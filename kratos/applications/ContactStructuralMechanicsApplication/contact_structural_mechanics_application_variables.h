@@ -79,6 +79,8 @@ KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                 
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                                                                   // Auxiliar boolean to check if the node is stick or not
 KRATOS_DEFINE_VARIABLE( double, GAP_GP )                                                                                        // A double storing the gap of the GP
 KRATOS_DEFINE_VARIABLE( double, SLIP_GP )                                                                                       // A double storing the slip of the GP
+KRATOS_DEFINE_VARIABLE( double, DOUBLE_LM_FACTOR )                                                                              // The double LM parameter
+KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, DOUBLE_LM )                    // The double LM
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_GP )                    // For getting the normal in the GP

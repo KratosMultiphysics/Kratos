@@ -155,6 +155,7 @@ public:
     
     // The current Lagrange Multipliers
     Matrix LagrangeMultipliers;
+    Matrix DoubleLagrangeMultipliers;
     
     // The normals of the nodes
     Matrix NormalsMaster;
@@ -178,6 +179,9 @@ public:
     double epsilon_normal;
     double epsilon_tangent;
     
+    // Double LM parameter
+    double epsilon;
+    
     // Initializer method 
     void Initialize(      
             const GeometryType& GeometryInput,          // The geometry of the slave 
@@ -192,6 +196,7 @@ public:
         
         // The current Lagrange Multipliers
         LagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        DoubleLagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // The normals of the nodes
         NormalsSlave  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
@@ -209,6 +214,9 @@ public:
         // Augmentation parameter
         epsilon_normal  = 0.0;
         epsilon_tangent = 0.0;
+        
+        // Double LM parameter
+        epsilon = 0.0;
     }
     
     // Updating the Master pair

@@ -459,7 +459,7 @@ public:
             }
 //             std::cout << "  CONV_IT: " << accel_it << " RESIDUAL NORM: " << norm_2(b) << std::endl;
            
-            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+//             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
         
             Vector updated_x( Dx.size() ); //updated_x
             updated_x.clear();
@@ -472,14 +472,15 @@ public:
             }
             
             // We calculate the norm of b
-            const double normA = SparseSpaceType::TwoNorm(A);
+//             const double normA = SparseSpaceType::TwoNorm(A);
 
             // Calculate the new displacement
             Vector tmp = updated_x;
             mpConvergenceAccelerator->InitializeNonLinearIteration();  
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-            mpConvergenceAccelerator->UpdateSolution(b/normA, updated_x);
+//             is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            mpConvergenceAccelerator->UpdateSolution(Dx, updated_x);
+//             mpConvergenceAccelerator->UpdateSolution(b/normA, updated_x);
             mpConvergenceAccelerator->FinalizeNonLinearIteration();   
             
             // Update residual variables

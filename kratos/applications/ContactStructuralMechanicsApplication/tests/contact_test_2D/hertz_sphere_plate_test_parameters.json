@@ -17,7 +17,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "contact_test_2D/hertz_sphere_plate_test"
         },
-        "compute_mortar_contact"             : true,
+        "compute_mortar_contact"             : 1,
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,

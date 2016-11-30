@@ -36,6 +36,7 @@ class ContactProcess(KratosMultiphysics.Process):
             "max_number_results"          : 1000,
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
+            "epsilon_DLM"                 : 1.0e3,
             "double_LM"                   : false,  
             "type_search"                 : "InRadius",
             "integration_order"           : 5
@@ -59,6 +60,7 @@ class ContactProcess(KratosMultiphysics.Process):
         self.max_number_results       = self.params["max_number_results"].GetInt() 
         self.augmentation_normal      = self.params["augmentation_normal"].GetDouble()
         self.augmentation_tangent     = self.params["augmentation_tangent"].GetDouble()
+        self.epsilon_DLM              = self.params["epsilon_DLM"].GetDouble()
         self.consider_double_lm       = self.params["double_LM"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
@@ -70,7 +72,9 @@ class ContactProcess(KratosMultiphysics.Process):
         computing_model_part = self.main_model_part.GetSubModelPart("computing_domain")
         computing_model_part.CreateSubModelPart("Contact")
         interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
-        
+        if (self.consider_double_lm == True):
+            interface_computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
+            
         for node in self.o_interface.Nodes:
             interface_computing_model_part.AddNode(node, 0)  
             node.Set(KratosMultiphysics.INTERFACE,True)
@@ -152,7 +156,10 @@ class ContactProcess(KratosMultiphysics.Process):
             del cond
             
             self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
+            if (self.consider_double_lm  == True):
+                self.contact_search.InitializeMortarConditionsDLM(self.active_check_factor, self.epsilon_DLM, self.integration_order)
+            else:
+                self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreatePointListNTN()
             self.contact_search.InitializeNTNConditions()
