@@ -8,12 +8,17 @@ import cluster_file_reader
 
 class ExplicitStrategy:
 
-    def __init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
-        # Initialization of member variables
-        # SIMULATION FLAGS
+        # Initialization of member variables        
 
-        self.Parameters              = Param
+        self.spheres_model_part = all_model_parts.spheres_model_part
+        self.inlet_model_part = all_model_parts.DEM_inlet_model_part
+        self.fem_model_part = all_model_parts.rigid_face_model_part
+        self.cluster_model_part = all_model_parts.cluster_model_part
+        self.contact_model_part = all_model_parts.contact_model_part
+        
+        self.Parameters = Param
 
         if not (hasattr(Param, "ComputeStressTensorOption")):
             self.compute_stress_tensor_option = 0
@@ -99,13 +104,6 @@ class ExplicitStrategy:
             self.bounding_box_stop_time  = self.final_time
         else:
             self.bounding_box_stop_time  = Param.BoundingBoxStopTime
-
-        # MODEL
-        self.spheres_model_part = spheres_model_part
-        self.fem_model_part = fem_model_part
-        self.cluster_model_part = cluster_model_part
-        self.inlet_model_part = inlet_model_part
-        self.contact_model_part = ModelPart("ContactModelPart")
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
