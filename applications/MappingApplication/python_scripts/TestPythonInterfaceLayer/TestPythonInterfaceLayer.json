@@ -1,0 +1,6 @@
+{
+	"mapper_settings": {
+		"mapper_type": "NearestNeighbor",
+		"search_iterations": 5
+	}
+}
