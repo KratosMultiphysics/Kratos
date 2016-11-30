@@ -1085,7 +1085,6 @@ public:
                 TSparseSpace::Copy(Sigma_h, dx_aux);
 
                 // Update results
-                rDofSet = pBuilderAndSolver->GetDofSet();
                 pScheme->Update(BaseType::GetModelPart(),rDofSet,mA, dx_aux ,mb);
                 if(this->MoveMeshFlag() == true)
                 {
@@ -1374,12 +1373,12 @@ private:
         mAuxElementModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
         mAuxConditionModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
 
-        mAuxElementModelPart.Nodes()             = ThisModelPart.Nodes();
-        mAuxConditionModelPart.Nodes()           = ThisModelPart.Nodes();
+        mAuxElementModelPart.Nodes() =              ThisModelPart.Nodes();
+        mAuxConditionModelPart.Nodes()    =        ThisModelPart.Nodes();
         mAuxElementModelPart.PropertiesArray()   = ThisModelPart.PropertiesArray();
         mAuxConditionModelPart.PropertiesArray() = ThisModelPart.PropertiesArray();
-        mAuxElementModelPart.Elements()          = ThisModelPart.Elements();
-        mAuxConditionModelPart.Conditions()      = ThisModelPart.Conditions();
+        mAuxElementModelPart.Elements() = ThisModelPart.Elements();
+        mAuxConditionModelPart.Conditions() = ThisModelPart.Conditions();
     }
 
     /***********************************************************************************/
@@ -1417,8 +1416,7 @@ private:
         //KRATOS_WATCH(Sigma_h);
 
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-        rDofSet = pBuilderAndSolver->GetDofSet();
+//        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
         // Necessary to find the roots. mDelta_p becomes aDx from the previous iteration
         /* for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
