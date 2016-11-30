@@ -95,6 +95,15 @@
             "distance"               : 0.5,
             "fluid_model_part_name"  : "Parts_Fluid"
         }
+    },{
+        "python_module" : "apply_distance_modification_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyDistanceModificationProcess",
+        "Parameters"    : {
+            "mesh_id"                   : 0,
+            "model_part_name"           : "Parts_Fluid",
+            "check_at_each_time_step"   : false
+        }
     }],
     "gravity"                          : [{
         "python_module" : "process_factory",
