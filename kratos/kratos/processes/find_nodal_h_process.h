@@ -1,57 +1,18 @@
-/*
-==============================================================================
-KratosPFEMApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
 #define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -94,14 +55,10 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	calculate the nodal H for all the nodes depending on the min distance
-	of the neighbouring nodes.
-
-	lonely nodes are given the average value of the H
+	Calculate the NODAL_H for all the nodes by means of the element sides minimum length
 */
 
-class FindNodalHProcess
-    : public Process
+class FindNodalHProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -115,8 +72,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& model_part)
-        : mr_model_part(model_part)
+    FindNodalHProcess(ModelPart& model_part) : mr_model_part(model_part)
     {
     }
 
@@ -143,62 +99,40 @@ public:
     virtual void Execute()
     {
         KRATOS_TRY
-        ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-        //
+        
+        // Check if variables are available 
+        if( mr_model_part.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )        
+            KRATOS_ERROR << "Variable NODAL_H not in the model part!";
 
-        double havg = 0.00;
-        double h_nodes = 0;
-
-        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        #pragma omp parallel for 
+        for(unsigned int i=0; i<mr_model_part.Nodes().size(); i++)
         {
-            if((in->GetValue(NEIGHBOUR_NODES)).size() != 0)
+            auto itNode = mr_model_part.NodesBegin() + i;
+            itNode->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
+        }
+         
+        for(unsigned int i=0; i<mr_model_part.Elements().size(); i++)
+        {
+            auto itElement = mr_model_part.ElementsBegin() + i;
+            auto& geom = itElement->GetGeometry();
+            
+            for(unsigned int k=0; k<geom.size()-1; k++)
             {
-                double xc = in->X();
-                double yc = in->Y();
-                double zc = in->Z();
-		
-
-		double h = std::numeric_limits<double>::max();
-		
-                for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
-                        i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+                double& h1 = geom[k].FastGetSolutionStepValue(NODAL_H);
+                for(unsigned int l=k+1; l<geom.size(); l++)
                 {
-                    double x = i->X();
-                    double y = i->Y();
-                    double z = i->Z();
-                    double l = (x-xc)*(x-xc);
-                    l += (y-yc)*(y-yc);
-                    l += (z-zc)*(z-zc);
-
-                    //if(l>h) h = l;
-                    if(l<h) h = l;
+                    double hedge = norm_2(geom[l].Coordinates() - geom[k].Coordinates());
+                    double& h2 = geom[l].FastGetSolutionStepValue(NODAL_H);
+                    
+                    // Get minimum between the existent value and the considered edge length 
+                    geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(h1, hedge);
+                    geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(h2, hedge);
                 }
-                h = sqrt(h);
-                havg += h;
-                h_nodes += 1;
-
-                in->FastGetSolutionStepValue(NODAL_H) = h;
-
-		//std::cout<<" Set NODAL_H ["<<in->Id()<<"]: "<<h<<std::endl;
             }
         }
+        
+        mr_model_part.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
 
-        //check the number of nodes
-        if(h_nodes == 0)
-            KRATOS_THROW_ERROR(std::logic_error,"no node has neighbours!!!!","");
-
-	//average h calculation
-        havg /= h_nodes;
-
-       //set the h to the average to the nodes without neighours
-        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            if((in->GetValue(NEIGHBOUR_NODES)).size() == 0)
-            {
-                in->FastGetSolutionStepValue(NODAL_H) = havg;
-            }
-
-	}
         KRATOS_CATCH("")
     }
 
