@@ -4,6 +4,7 @@ from sympy_fe_utilities import *
 
 do_simplifications = False
 dim_to_compute = "Both"       # Spatial dimensions to compute. Options:  "2D","3D","Both"
+linearisation = "FullNR"      # Linearisation type. Options: "Picard", "FullNR"
 mode = "c"                    # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -33,7 +34,6 @@ for dim in dim_vector:
     v = DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity 
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
-    vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity
     p = DefineVector('p',nnodes)                # Pressure
 
     ## Test functions definition
@@ -65,7 +65,13 @@ for dim in dim_vector:
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
     v_gauss = v.transpose()*N
-    vconv_gauss = vconv.transpose()*N
+    if (linearisation == "Picard"):
+        vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity
+        vconv_gauss = vconv.transpose()*N
+    elif (linearisation == "FullNR"):
+        vmesh = DefineMatrix('vmesh',nnodes,dim)    # Mesh velocity
+        vmesh_gauss = vmesh.transpose()*N
+        vconv_gauss = v_gauss - vmesh_gauss 
     accel_gauss = (bdf0*v+bdf1*vn+bdf2*vnn).transpose()*N
     p_gauss = p.transpose()*N
 
