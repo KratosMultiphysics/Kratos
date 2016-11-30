@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
-//                    
+//
 //
 
 #ifndef KRATOS_DISTANCE_MODIFICATION_PROCESS_H
@@ -115,7 +115,7 @@ public:
 
         // Modify the nodal distance values until there is no bad intersections
         while (bad_cuts > 0)
-        {              
+        {
             this->ModifyDistance(factor, bad_cuts);
             std::cout << "Distance modification iteration: " << counter << " Total bad cuts: " << bad_cuts << " Factor: " << factor << std::endl;
             factor /= 2.0;
@@ -135,8 +135,8 @@ public:
             ExecuteBeforeSolutionLoop();
         }
     }
-    
-    
+
+
     void ExecuteFinalize() override
     {
         if(mrCheckAtEachStep == true)
@@ -190,22 +190,22 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     void ModifyDistance(const double& factor,
                         unsigned int& bad_cuts)
     {
-        
+
         //~ std::cout << "ModifyDistance" << std::endl;
-        
+
         double tol_d = 1e-2;
         bad_cuts = 0;
-        
+
         // Simple check
         if( mrModelPart.NodesBegin()->SolutionStepsDataHas( DISTANCE ) == false )
             KRATOS_ERROR << "Nodes do not have DISTANCE variable!";
         if( mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )
             KRATOS_ERROR << "Nodes do not have NODAL_H variable!";
-        
+
         // Distance modification
         if (mrCheckAtEachStep == false) // Case in where the original distance does not need to be recomputed (e.g. CFD)
         {
@@ -214,14 +214,14 @@ protected:
                 double h = itNode->FastGetSolutionStepValue(NODAL_H);
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
-                
+
                 if((d >= 0.0) &&(d < tol_d))
                 {
                     std::cout << "Node: " << itNode->Id() << " Distance " << d;
-                    
+
                     // Modify the distance to avoid almost empty fluid elements
                     d = -0.001*tol_d;
-                    
+
                     std::cout << " modified to " << d << std::endl;
                 }
             }
@@ -245,7 +245,7 @@ protected:
                 }
             }
         }
-        
+
         // Check if there still exist bad cuts
         for (auto itElement=mrModelPart.ElementsBegin(); itElement!=mrModelPart.ElementsEnd(); itElement++)
         {
@@ -275,9 +275,6 @@ protected:
                     double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
                     if((d>=0.0) && (d<tol_d))
                     {
-                        
-                        std::cout << "BAD ELEMENT!!!!!" << std::endl;
-                        
                         bad_cuts++;
                         break;
                     }
@@ -285,8 +282,8 @@ protected:
             }
         }
     }
-    
-    
+
+
     void RecoverOriginalDistance()
     {
         for(unsigned int i=0; i<mModifiedDistancesIDs.size(); i++)
@@ -294,16 +291,16 @@ protected:
             unsigned int nodeId = mModifiedDistancesIDs[i];
             mrModelPart.GetNode(nodeId).FastGetSolutionStepValue(DISTANCE) = mModifiedDistancesValues[i];
         }
-        
+
         // Empty the modified distance vectors
-        mModifiedDistancesIDs.resize(0);        
+        mModifiedDistancesIDs.resize(0);
         mModifiedDistancesValues.resize(0);
         mModifiedDistancesIDs.shrink_to_fit();
         mModifiedDistancesValues.shrink_to_fit();
-        
+
     }
-    
-    
+
+
     void DeactivateFullNegativeElements()
     {
         // Deactivate the full negative distance elements
