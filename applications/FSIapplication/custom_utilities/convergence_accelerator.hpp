@@ -1,14 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
+//    . \  |   (   | |   (   |\__ \.
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt ------------------------------->>> WHAT ABOUT THE LICENSE?¿
-//
-//  Main authors:    Ruben Zorrilla
-//                    
+//  License:          BSD License
+//  Original author:  Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CONVERGENCE_ACCELERATOR )
