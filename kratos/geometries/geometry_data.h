@@ -67,9 +67,7 @@ public:
     - GI_GAUSS_4 gaussian integration with order 4.
     - GI_GAUSS_5 gaussian integration with order 5.
     */
-    enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5, GI_EXTENDED_GAUSS_1, GI_EXTENDED_GAUSS_2, GI_EXTENDED_GAUSS_3, GI_EXTENDED_GAUSS_4, GI_EXTENDED_GAUSS_5,
-                            NumberOfIntegrationMethods
-                           };
+    enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5, GI_EXTENDED_GAUSS_1, GI_EXTENDED_GAUSS_2, GI_EXTENDED_GAUSS_3, GI_EXTENDED_GAUSS_4, GI_EXTENDED_GAUSS_5, NumberOfIntegrationMethods };
 
     enum KratosGeometryFamily
     {

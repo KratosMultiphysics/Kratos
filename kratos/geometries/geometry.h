@@ -66,7 +66,6 @@ namespace Kratos
  * @see GeometryAndFormulationElement
  */
 template<class TPointType>
-
 class Geometry : public PointerVector<TPointType>
 {
 public:
