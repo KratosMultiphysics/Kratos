@@ -106,6 +106,7 @@ class NavierStokesEmbeddedMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OSS_SWITCH)  
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.M)           
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)           
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.PATCH_INDEX)
 
         print("Variables for the fluid embedded solver added correctly.")
