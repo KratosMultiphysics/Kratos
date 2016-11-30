@@ -169,8 +169,8 @@ namespace Kratos
 	std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -START- "<<std::endl;
       
       //update parametric wall position
-      ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
-      double Time      = rCurrentProcessInfo[TIME];
+      const ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
+      const double Time = rCurrentProcessInfo[TIME];
        
       mpParametricWall->UpdateBoxPosition( Time );
 	    
@@ -459,7 +459,7 @@ namespace Kratos
      
       //update parametric wall position
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
-      double Time      = rCurrentProcessInfo[TIME];
+      double Time = rCurrentProcessInfo[TIME];
      
 
 #ifdef _OPENMP
@@ -517,37 +517,19 @@ namespace Kratos
 
       // **************** Serial version of the same search:  **************** //
 
-      // Vector WallVelocity =  mpParametricWall->Velocity();
-      // int  MovementLabel  =  mpParametricWall->GetMovementLabel();
-
-      // //Check RIGID walls and search contacts
-      // for(ModelPart::NodesContainerType::iterator nd = rNodes.begin(); nd != rNodes.end(); ++nd)
+      // ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
+      
+      // for(ModelPart::NodesContainerType::const_iterator nd = rNodes.begin(); nd != rNodes.end(); nd++)
       // 	{
-      // 	  //set point rigid wall condition : usually in non rigid_wall points
-      // 	  if( nd->SolutionStepsDataHas(RIGID_WALL) ){
-
-      // 	    if( nd->GetSolutionStepValue(RIGID_WALL) == MovementLabel ){
-
-      // 	      //nd->Set(STRUCTURE);
-      // 	      nd->Set(RIGID);
-
-      // 	      //set new coordinates (MOVE MESH)
-      // 	      nd->X() = nd->X0() + WallVelocity[0] * Time;
-      // 	      nd->Y() = nd->Y0() + WallVelocity[1] * Time;
-      // 	      nd->Z() = nd->Z0() + WallVelocity[2] * Time;
-
-      // 	      //std::cout<<" node "<<(nd)->Id()<<" Position ("<<(nd)->X()<<", "<<(nd)->Y()<<" "<<(nd)->Z()<<") "<<std::endl;
-      // 	    }
-      // 	  }
-
       // 	  if( nd->Is(BOUNDARY) ){
 
       // 	    if( nd->IsNot(RIGID) )
       // 	      {
       // 		//to perform contact with a tube radius must be set
       // 		double Radius = 0;
-      // 		if( !RigidBodyPresent ){
-      // 		  Radius = nd->GetValue(MEAN_RADIUS);
+
+      // 		if( nd->IsNot(SLAVE) ){
+      // 		  //Radius = nd->GetValue(MEAN_RADIUS);
       // 		}
       // 		else{
       // 		  Radius = 0;
