@@ -124,59 +124,66 @@ public:
             TDataType delta_disp_norm = 0;
             TDataType ratio           = 0;
 
-            CalculateDispNorms(rDofSet,Dx,disp_norm,delta_disp_norm);
+            this->CalculateDispNorms(rDofSet,Dx,disp_norm,delta_disp_norm);
 
 
             if( disp_norm!=0 )
-                ratio=delta_disp_norm/disp_norm;
+                ratio = delta_disp_norm/disp_norm;
 
-	    if(disp_norm < mAlwaysConvergedNorm && delta_disp_norm<=disp_norm)
-                ratio=mRatioTolerance;
-
-	    if( ratio == 0 && int(delta_disp_norm-int(disp_norm))==0)
-	        ratio = 1;
-
+	    if( ratio == 0 && int(delta_disp_norm-int(disp_norm))==0 )
+	      ratio = 1;
 
             //std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
 
 	    TDataType Dx_size = SparseSpaceType::Size(Dx);
-
             TDataType absolute_norm = (delta_disp_norm/sqrt(Dx_size));
 
-	    if (this->GetEchoLevel() == 1)
-	      std::cout << "DISPLACEMENT CRITERION :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << absolute_norm <<")"<< std::endl;
-
+	    if( disp_norm < mAlwaysConvergedNorm && delta_disp_norm <= disp_norm )
+	      ratio = absolute_norm;
+	    
+	    if (r_model_part.GetCommunicator().MyPID() == 0)
+            {
+                if (this->GetEchoLevel() >= 1)
+                {
+                    std::cout << "DISPLACEMENT CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
+                }
+            }
+	    
 	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-
-            if ( ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm )
+            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm)
             {
-	      if (this->GetEchoLevel() == 1)
-		std::cout << "Convergence is achieved" << std::endl;
-		  
-  	        // if(r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
-		//   return false;
+	      if (r_model_part.GetCommunicator().MyPID() == 0)
+	      {
+                    if (this->GetEchoLevel() >= 1)
+                    {
+                        std::cout << "Convergence is achieved" << std::endl;
+                    }
+              }
 	      return true;
             }
             else
             {
-                if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1 &&  disp_norm <= mRatioTolerance * 1e-2)
-                {
-		  if (this->GetEchoLevel() == 1)
-                    KRATOS_WATCH( "convergence is achieved : - no movement - " )
-		  
-		  return true;
-                }
+                if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1 && disp_norm <= mRatioTolerance * 1e-2)
+		{
+		    if (r_model_part.GetCommunicator().MyPID() == 0)
+		      {
+			if (this->GetEchoLevel() >= 1)
+			  {
+			    std::cout << "convergence is achieved : - no movement - " << std::endl;
+			  }
+		      }		  
+		    return true;
+		}
                 else
                 {
-                    return false;
+                  return false;
                 }
             }
         }
         else  //nothing is moving
         {
-
             return true;
         }
 
@@ -294,7 +301,6 @@ private:
         {
             if(i_dof->IsFree())
             {
-
                 if (i_dof->GetVariable() == DISPLACEMENT_X || i_dof->GetVariable() == DISPLACEMENT_Y || i_dof->GetVariable() == DISPLACEMENT_Z)
                 {
                     //here we do: d_n+1^it-d_n

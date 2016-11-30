@@ -392,7 +392,7 @@ public:
   {
     KRATOS_TRY
 
-      TSystemMatrixType& mA  = *mpA;
+    TSystemMatrixType& mA  = *mpA;
     TSystemVectorType& mDx = *mpDx;
     TSystemVectorType& mb  = *mpb;
 

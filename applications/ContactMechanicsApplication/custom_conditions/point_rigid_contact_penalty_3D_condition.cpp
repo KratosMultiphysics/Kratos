@@ -91,7 +91,8 @@ namespace Kratos
     KRATOS_TRY
 
     GeneralVariables ContactVariables;
-
+    ContactVariables.Initialize();
+    
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
     if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo) ) {
@@ -194,6 +195,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
+      rVariables.Initialize();
+      
     KRATOS_CATCH( "" )
   }
 
@@ -206,8 +209,10 @@ namespace Kratos
 
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
+    //std::cout<<" ID ["<<this->Id()<<"] ["<<this->GetGeometry()[0].Id()<<"]"<<std::endl;
+    
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
-
+      
       rVariables.Options.Set(ACTIVE,true);
 
       rVariables.Gap.Normal = fabs(rVariables.Gap.Normal);
@@ -345,6 +350,9 @@ namespace Kratos
       rLeftHandSideMatrix= ZeroMatrix(dimension,dimension);
     }
 
+    // if( rVariables.Options.Is(ACTIVE))
+    //   std::cout<<" Contact Tangent Matrix ["<<this->Id()<<"]: "<<rLeftHandSideMatrix<<std::endl;
+    
     KRATOS_CATCH( "" )
   }
 
@@ -430,7 +438,12 @@ namespace Kratos
 
     }
 
-
+    // if( rVariables.Options.Is(ACTIVE)){
+    //   std::cout<<" Contact Forces Vector ["<<this->Id()<<"]: "<<rRightHandSideVector<<std::endl;
+    //   std::cout<<" Tangent Force "<<GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE)<<std::endl;
+	  
+    // }
+    
     KRATOS_CATCH( "" )
   }
 
@@ -462,7 +475,7 @@ namespace Kratos
 
     for(unsigned int j = 0; j < dimension; j++)
       {
-	ContactForce[j] = rRightHandSideVector[j];
+    	ContactForce[j] = rRightHandSideVector[j];
       }
     
 
@@ -507,7 +520,6 @@ namespace Kratos
       rRightHandSideVector[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
       ContactForce[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
     }
-
 
     if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE )) { 
       array_1d<double, 3 > & EffectiveContactForce = GetGeometry()[0].FastGetSolutionStepValue( EFFECTIVE_CONTACT_FORCE );

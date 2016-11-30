@@ -474,6 +474,8 @@ public:
       
       bool is_inside = SpatialBoundingBox::IsInside(rPoint);
 
+      //std::cout<<" [is inside :"<<is_inside<<"]"<<std::endl;
+      
       if( is_inside ){
 
 	PointType LocalPoint = rPoint;
@@ -520,7 +522,9 @@ public:
 	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, rNormal);
 	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.LocalQuaternion, rNormal);
 
-	this->ComputeContactTangent(rValues,rCurrentProcessInfo);
+	if( is_inside )
+	  this->ComputeContactTangent(rValues,rCurrentProcessInfo);
+	
       }
 
       //std::cout<<" ["<<is_inside<<"][ ContactFace: "<<rValues.GetContactFace()<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
@@ -548,7 +552,7 @@ public:
 
       unsigned int InitialNodeId = NodeId;
 
-      //get boundary model parts ( temporary implementation )
+      //get boundary model parts and computing model part ( temporary implementation )
       std::vector<std::string> BoundaryModelPartsName;
 
       ModelPart* pMainModelPart = &rModelPart;
@@ -557,7 +561,7 @@ public:
 	
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
     	{
-    	  if( i_mp->Is(BOUNDARY) ){
+    	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
     	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
     	      {
     		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
@@ -1402,7 +1406,7 @@ private:
       KRATOS_TRY
 
       ContactFace Face = FreeSurface;
-           
+     
       double FaceR = CalculateRakeFace( FaceR, rPoint, rRadius, rWallNose );
       double FaceT = CalculateTipFace( FaceT, rPoint, rRadius, rWallNose );
       double FaceC = CalculateClearanceFace( FaceC, rPoint, rRadius, rWallNose ); 
@@ -1416,11 +1420,12 @@ private:
       //  	node_in = true;
 
       // if( node_in ){
-      // 	std::cout<<" Point : "<<rPoint<<std::endl;
-      // 	std::cout<<" [ FaceR: "<<FaceR<<"; FaceT: "<<FaceT<<"; FaceC: "<<FaceC<<" ] "<<std::endl; 
-      // 	std::cout<<" [ Face1: "<<Face1<<"; Face2: "<<Face2<<"; Face3: "<<Face3<<" ] "<<std::endl;
+      // std::cout<<" Point : "<<rPoint<<" Center "<<rWallNose.Center<<std::endl;
+      // std::cout<<" [ FaceR: "<<FaceR<<"; FaceT: "<<FaceT<<"; FaceC: "<<FaceC<<" ] "<<std::endl; 
+      // std::cout<<" [ Face1: "<<Face1<<"; Face2: "<<Face2<<"; Face3: "<<Face3<<" ] "<<std::endl;
       // }
 
+      
       if(rWallNose.Convexity == 1){
 
 	if(FaceR>0 && Face3<0 && Face1<0){
@@ -1948,7 +1953,8 @@ private:
       Projection[0] = (rPoint[0]-rWallNose.Center[0]);
       Projection[1] = (rPoint[1]-rWallNose.Center[1]);
       Projection[2] = 0;
-      Projection /= norm_2(Projection);
+      if( norm_2(Projection) )
+	Projection /= norm_2(Projection);
       
       Projection[0] = rWallNose.Radius * Projection[0] + rWallNose.Center[0];
       Projection[1] = rWallNose.Radius * Projection[1] + rWallNose.Center[1];
@@ -1965,7 +1971,8 @@ private:
       PointType Distance(3);
       Distance[0] = rWallNose.Center[0]-rPoint[0];
       Distance[1] = rWallNose.Center[1]-rPoint[1];
-      Distance[2] = 0;      
+      Distance[2] = 0;
+      
       if( norm_2(Distance) <= rWallNose.Radius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }

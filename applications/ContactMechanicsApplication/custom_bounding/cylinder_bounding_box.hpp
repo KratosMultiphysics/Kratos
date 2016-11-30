@@ -308,6 +308,28 @@ public:
 	NodeId = this->GetMaxNodeId( rModelPart );
 
       unsigned int InitialNodeId = NodeId;
+
+      //get boundary model parts ( temporary implementation )
+      std::vector<std::string> BoundaryModelPartsName;
+
+      ModelPart* pMainModelPart = &rModelPart;
+      if( rModelPart.IsSubModelPart() )
+	pMainModelPart = rModelPart.GetParentModelPart();
+	
+      for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
+	{
+	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	      {
+		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
+		  BoundaryModelPartsName.push_back(i_mp->Name());
+		  break;
+		}
+	      }
+	  }
+	}     
+      //get boundary model parts ( temporary implementation )
+
       
       double SingleLength = AxisLength / (double)linear_partitions;
  
@@ -370,6 +392,11 @@ public:
 
 	      pNode->Set(RIGID,true);
 	      rModelPart.AddNode( pNode );
+
+	      //get boundary model parts ( temporary implementation )
+	      for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+		(pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+	      //get boundary model parts ( temporary implementation )
 	  
 	    }
 	}

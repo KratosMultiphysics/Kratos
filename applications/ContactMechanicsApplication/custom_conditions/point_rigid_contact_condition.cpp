@@ -396,7 +396,8 @@ namespace Kratos
    {
       KRATOS_TRY
 
-
+	rVariables.Initialize();
+	
       KRATOS_CATCH( "" )
 
    }

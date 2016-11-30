@@ -45,6 +45,8 @@
         },
         "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
         "implex"                             : *tcl(string tolower *GenData(Implex)),
+        "compute_reactions"                  : *tcl(string tolower *GenData(Write_Reactions)),
+	"compute_contact_forces"             : *tcl(string tolower *GenData(Write_Contact_Forces)),
         "convergence_criterion"              : "*GenData(Convergence_Criteria)",
 *if(strcmp(GenData(DOFS),"ROTATIONS")==0)
         "rotation_dofs"                      : true,

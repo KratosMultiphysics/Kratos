@@ -356,7 +356,7 @@ public:
 	
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
 	{
-	  if( i_mp->Is(BOUNDARY) ){
+	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
 	      {
 		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
@@ -432,10 +432,14 @@ public:
 	}
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 )
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+	std::cout<<" CREATE a LINE mesh "<<std::endl;
 	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
-      else
+      }
+      else{
+	std::cout<<" CREATE a QUADRILATERAL mesh "<<std::endl;
 	this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId);
+      }
       
       KRATOS_CATCH( "" )
     }
@@ -595,7 +599,7 @@ protected:
     {
       
       KRATOS_TRY       
-
+	
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
       if( rModelPart.IsSubModelPart() )
