@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:          BSD License
-//  Original author:  Ruben Zorrilla Martinez 
+//  Original author:  Ruben Zorrilla
 //
 
 #if !defined(KRATOS_AITKEN_CONVERGENCE_ACCELERATOR)
