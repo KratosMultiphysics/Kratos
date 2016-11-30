@@ -264,8 +264,20 @@ class TestProcesses(KratosUnittest.TestCase):
                                          
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
+            
+    
+    def test_find_nodal_h_process(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(NODAL_H)
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
         
-
-
+        FindNodalHProcess(model_part).Execute();
+        
+        for i in range(1,len(model_part.Nodes)):
+            self.assertEqual(model_part.GetNode(i).GetSolutionStepValue(NODAL_H), 0.25)
+        self.assertEqual(model_part.GetNode(len(model_part.Nodes)).GetSolutionStepValue(NODAL_H), 0.5)
+        
+        
 if __name__ == '__main__':
     KratosUnittest.main()
