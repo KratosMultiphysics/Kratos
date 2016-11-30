@@ -175,11 +175,6 @@ class NavierStokesMPISolver_VMSMonolithic:
             ## Construct and execute the MPICommunicator
             KratosMetis.SetMPICommunicatorProcess(self.main_model_part).Execute()
             
-            #~ ## Construct the submodelparts MPICommunicators
-            #~ for submodelpart in self.main_model_part.SubModelParts:
-                #~ print(submodelpart)
-                #~ KratosMetis.SetMPICommunicatorProcess(submodelpart).Execute()
-            
             ## Construct and execute the Parallel fill communicator
             ParallelFillCommunicator = KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
             ParallelFillCommunicator.Execute()
