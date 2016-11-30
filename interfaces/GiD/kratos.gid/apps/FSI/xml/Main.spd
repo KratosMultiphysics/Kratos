@@ -17,7 +17,7 @@
             <include n="Parts" active="1" path="apps/Solid/xml/Parts.spd"/>
             <include n="Intervals" active="1" path="apps/Common/xml/Intervals.spd"/>
             <include n="BoundaryConditions" active="1" path="apps/Structural/xml/BoundaryConditions.spd"/>
-            <include n="Loads" active="1" path="apps/Structural/xml/Loads.spd"/>
+            <include n="Loads" active="1" path="apps/Structural/xml/Loads.spd" pn="Conditions"/>
             <include n="SolutionStrategy" active="1" path="apps/FSI/xml/SolutionStrategyStructural.spd"/>
             <include n="Results" active="1" path="apps/FSI/xml/ResultsStructural.spd"/>
             <include n="Materials" active="1" path="apps/Solid/xml/Materials.spd"/>
