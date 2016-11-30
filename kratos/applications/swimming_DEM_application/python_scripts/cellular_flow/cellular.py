@@ -96,9 +96,13 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
+print(sys.argv)
 
+file_name, mesh_size, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.gradient_calculation_type = int(material_derivative_type)
+pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
@@ -125,8 +129,7 @@ print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 
 # Creating a code for the used input variables
-run_code = swim_proc.CreadeRunCode(pp)
-run_code += ' ' + str(pp.CFD_DEM.material_acceleration_calculation_type) +  ' ' + str(pp.CFD_DEM.laplacian_calculation_type)
+run_code = '_h_' + str(mesh_size) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
 #Z
 
 # Creating swimming DEM procedures
@@ -218,7 +221,7 @@ vars_man.AddNodalVariables(fluid_model_part, pp.fluid_vars)  #     MOD.
 input_file_name = pp.problem_name
 
 # reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name)
+model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_h_' + str(mesh_size)))
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #_____________________________________________________________________________________________________________________________________
@@ -256,22 +259,8 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
 solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
-procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
-procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
-procedures.AddMpiVariables(spheres_model_part)
-solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-scheme.AddSpheresVariables(spheres_model_part)
-procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
-procedures.AddMpiVariables(cluster_model_part)
-scheme.AddClustersVariables(cluster_model_part)
-procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-scheme.AddSpheresVariables(DEM_inlet_model_part)
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(rigid_face_model_part)
+
+procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
 vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
@@ -332,6 +321,12 @@ swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_p
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
+
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+os.chdir(main_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -744,7 +739,7 @@ scheme = ResidualBasedIncrementalUpdateStaticScheme()
 post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
 number=0
 for node in fluid_model_part.Nodes:
-    number += 1 
+    number += 1
 #Z
 
 N_steps = int(final_time / Dt_DEM) + 20
@@ -756,37 +751,6 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
 post_utils.Writeresults(time)
-
-#G
-#L = 1.0
-#U = 0.3
-#k = 2.72
-#omega = 0*math.pi
-#velocity_field = CellularFlowField(L , U , k, omega)
-
-
-#n_points = 25
-#coors = [L * i / (n_points - 1) for i in range(n_points)]
-
-#for i in range(n_points):
-    #for j in range(n_points):
-        #vel= Vector(3)
-        #coor= Vector(3)
-        #coor[0]=coors[i]
-        #coor[1]=coors[j]
-        #coor[2]=0
-        #velocity_field.Evaluate(0.,coor,vel,1,0)
-        #coeff = 0.1
-        #pylab.arrow(coor[0], coor[1], coeff*vel[0], coeff*vel[1], fc = "k", ec = "k", width = L * 1e-3, head_width = L * 5e-3, head_length = L * 8e-3)
-
-#plt.axis('equal')
-#axes = plt.gca()
-#axes.set_xlim([0.0,L])
-#axes.set_ylim([0.0,L])
-#plt.show()
-#print('vel',vel)
-#cacasS
-#Z
 
 def NormOfDifference(v1, v2):
     return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
@@ -821,6 +785,7 @@ while (time <= final_time):
         embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
 
     # solving the fluid part
+
     if step >= 3 and not stationarity:
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
@@ -890,80 +855,93 @@ while (time <= final_time):
         if pp.CFD_DEM.gradient_calculation_type == 2:
             derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
-            custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
-        if pp.CFD_DEM.laplacian_calculation_type == 1:
+            custom_functions_tool.CalculatePressureGradient(fluid_model_part)          
+        if pp.CFD_DEM.laplacian_calculation_type == 1:         
             derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
             derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 #G
-    error_mat_deriv = 0.
     error_laplacian = 0.
+    error_mat_deriv = 0.
     total_volume = 0.
-    mat_deriv_average = 0.
-    laplacian_average = 0.
-    for node in fluid_model_part.Nodes:
-        calc_mat_deriv = [0.] * 3
-        calc_laplacian = [0.] * 3
-        mat_deriv= Vector(3)
-        laplacian= Vector(3)
-        coor= Vector(3)
-        coor[0]=node.X
-        coor[1]=node.Y
-        coor[2]=0        
-        flow_field.CalculateMaterialAcceleration(time,coor,mat_deriv, 0)
-        flow_field.CalculateLaplacian(time,coor,laplacian, 0)        
-        calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
-        calc_mat_deriv[1] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
-        calc_mat_deriv[2] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z) 
-        calc_laplacian[0] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
-        calc_laplacian[1] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)    
-        calc_laplacian[2] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)  
-        #module_mat_deriv = 0.5 * max(math.sqrt((mat_deriv[0] + calc_mat_deriv_0) ** 2 + (mat_deriv[1] + calc_mat_deriv_1) ** 2 + (mat_deriv[2] + calc_mat_deriv_2) ** 2), 1e-8)       
-        #module_laplacian = 0.5 * max(math.sqrt((laplacian[0] + calc_laplacian_0) ** 2 + (laplacian[1] + calc_laplacian_1) ** 2 + (laplacian[2] + calc_laplacian_2) ** 2), 1e-8)
-        #module_mat_deriv = max(math.sqrt(mat_deriv[0] ** 2 + mat_deriv[1] ** 2 + mat_deriv[2] ** 2), 1e-8)       
-        #module_laplacian = max(math.sqrt(laplacian[0] ** 2 + laplacian[1] ** 2 + laplacian[2] ** 2), 1e-8)
-        
-        #laplacian[0] = 14
-        #laplacian[1] = 2
-        #laplacian[2] = 0
-        nodal_volume = node.GetSolutionStepValue(NODAL_AREA) 
-        total_volume += nodal_volume
-        error_mat_deriv += NormOfDifference(calc_mat_deriv, mat_deriv) * nodal_volume
-        error_laplacian += NormOfDifference(calc_laplacian, laplacian) * nodal_volume
-        diff_mat_deriv = [(calc_mat_deriv[i] - mat_deriv[i]) * nodal_volume for i in range(len(calc_mat_deriv))]
-        diff_laplacian = [(calc_laplacian[i] - laplacian[i]) * nodal_volume for i in range(len(calc_laplacian))]
-        mat_deriv_averager.Norm(diff_mat_deriv)
-        laplacian_averager.Norm(diff_laplacian)
-        mat_deriv_average += Norm(mat_deriv) * nodal_volume
-        laplacian_average += Norm(laplacian) * nodal_volume
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv[0])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv[1])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv[2])         
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
-        
-        
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]))  
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]))  
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
-    mat_deriv_errors.append(error_mat_deriv / mat_deriv_average)
-    laplacian_errors.append(error_laplacian / laplacian_average)
-    #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
-    #print('laplacian: min, max, avg, ', laplacian_averager.GetCurrentData())
-    print('rel_error_mat_deriv', error_mat_deriv / mat_deriv_average)
-    print('rel_error_laplacian', error_laplacian / laplacian_average)
+    mat_deriv_average = Vector(3)
+    laplacian_average = Vector(3)
+    for k in range(3):
+        mat_deriv_average[k] = 0.0
+        laplacian_average[k] = 0.0
+    norm_mat_deriv_average = 0.
+    norm_laplacian_average = 0.
+    i_node = 0
+    if step > 3:
+        for node in fluid_model_part.Nodes:
+            i_node += 1
+            calc_mat_deriv = [0.] * 3
+            calc_laplacian = [0.] * 3
+            mat_deriv= Vector(3)
+            laplacian= Vector(3)
+            coor= Vector(3)
+            coor[0]=node.X
+            coor[1]=node.Y
+            coor[2]=0        
+            flow_field.CalculateMaterialAcceleration(time,coor,mat_deriv, 0)
+            flow_field.CalculateLaplacian(time,coor,laplacian, 0)        
+            calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
+            calc_mat_deriv[1] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
+            calc_mat_deriv[2] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z) 
+            calc_laplacian[0] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
+            calc_laplacian[1] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)    
+            calc_laplacian[2] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)  
+            #module_mat_deriv = 0.5 * max(math.sqrt((mat_deriv[0] + calc_mat_deriv_0) ** 2 + (mat_deriv[1] + calc_mat_deriv_1) ** 2 + (mat_deriv[2] + calc_mat_deriv_2) ** 2), 1e-8)       
+            #module_laplacian = 0.5 * max(math.sqrt((laplacian[0] + calc_laplacian_0) ** 2 + (laplacian[1] + calc_laplacian_1) ** 2 + (laplacian[2] + calc_laplacian_2) ** 2), 1e-8)
+            #module_mat_deriv = max(math.sqrt(mat_deriv[0] ** 2 + mat_deriv[1] ** 2 + mat_deriv[2] ** 2), 1e-8)       
+            #module_laplacian = max(math.sqrt(laplacian[0] ** 2 + laplacian[1] ** 2 + laplacian[2] ** 2), 1e-8)
+            
+            #laplacian[0] = 14
+            #laplacian[1] = 2
+            #laplacian[2] = 0
+            #nodal_volume = node.GetSolutionStepValue(NODAL_AREA) 
+            #total_volume += nodal_volume
+            error_mat_deriv += NormOfDifference(calc_mat_deriv, mat_deriv)
+            error_laplacian += NormOfDifference(calc_laplacian, laplacian)
+            diff_mat_deriv = [calc_mat_deriv[i] - mat_deriv[i] for i in range(len(calc_mat_deriv))]
+            diff_laplacian = [calc_laplacian[i] - laplacian[i] for i in range(len(calc_laplacian))]
+            #mat_deriv_averager.Norm(diff_mat_deriv)
+            #laplacian_averager.Norm(diff_laplacian)
+            #for k in range(3):
+                #mat_deriv_average[k] += mat_deriv[k]
+                #laplacian_average[k] += laplacian[k]
+            norm_mat_deriv_average += Norm(mat_deriv)
+            norm_laplacian_average += Norm(laplacian)
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv[0])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv[1])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv[2])         
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
+            
+            
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]))  
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]))  
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
+    
+        if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
+            mat_deriv_errors.append(error_mat_deriv / norm_mat_deriv_average)
+            laplacian_errors.append(error_laplacian / norm_laplacian_average)
+            #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
+            #print('laplacian: min, max, avg, ', laplacian_averager.GetCurrentData())
+            print('rel_error_mat_deriv', error_mat_deriv / norm_mat_deriv_average)
+            print('rel_error_laplacian', error_laplacian / norm_laplacian_average)
 #Z
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -1078,17 +1056,33 @@ simulation_elapsed_time = timer.clock() - simulation_start_time
 print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
 print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
-with open('mat_deriv_errors.txt', 'w') as mat_errors_file:
+if not os.path.exists('../errors_recorded'):
+    os.makedirs('../errors_recorded')
+    
+with open('../errors_recorded/mat_deriv_errors_h_' + str(mesh_size) + '_type_' + str(pp.CFD_DEM.gradient_calculation_type) + '.txt', 'w') as mat_errors_file:
     for error in mat_deriv_errors:
         mat_errors_file.write(str(error) + '\n')
-with open('laplacian_errors.txt', 'w') as laplacian_errors_file:
+with open('../errors_recorded/laplacian_errors_h_' + str(mesh_size) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
     for error in laplacian_errors:
         laplacian_errors_file.write(str(error) + '\n')
 sys.stdout.flush()
 os.chdir(main_path)
 sys.stdout.path_to_console_out_file
 os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
-os.rename(post_path, post_path + '_FINISHED_AT_t=' + str(round(time, 1)))
+empty = False
+add_to_name = ''
+count = 0
+dir_name = post_path + '_FINISHED_AT_t=' + str(round(time, 1))
+#dir_name_it = dir_name
+#while os.path.isdir(dir_name_it):
+    #dir_name_it = dir_name + '_version_' + str(count + 1)
+    #count += 1
+if os.path.isdir(dir_name):
+    import shutil
+    shutil.rmtree(dir_name)
+    print(dir_name)
+    print(post_path)
+os.rename(post_path, dir_name)
 
 for i in drag_file_output_list:
     i.close()
