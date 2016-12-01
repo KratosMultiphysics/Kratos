@@ -47,7 +47,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
-        // for each element, constrno_balls_small_cellular_Post_Filesucting the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
+        // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
 
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
             // computing the shape function derivatives
@@ -120,7 +120,6 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, Variab
         for (unsigned int i = 0; i < TDim + 1; ++i){
             elemental_values[i] = geom[i].FastGetSolutionStepValue(scalar_container);
         }
-
 
         array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
 
@@ -274,7 +273,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
             array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(laplacian_container);
-            current_gradient_of_vi = ZeroVector(3);
+            noalias(current_gradient_of_vi) = ZeroVector(3);
         }
 
     } // for each component of the vector value
@@ -282,7 +281,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         array_1d <double, 3>& stored_laplacian = laplacians[id_to_position[inode->Id()]];
         array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(laplacian_container);
-        laplacian = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
+        noalias(laplacian) = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
     }
 
     std::cout << "Finished constructing the Laplacian by derivating nodal averages...\n";
