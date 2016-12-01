@@ -99,7 +99,8 @@ double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, c
 
 void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
 {
-    double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
+    double PreconsolidationStress = 0;
+    PreconsolidationStress = this->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
     const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
     double MeanStress;
     double DeviatoricQ;

@@ -178,8 +178,10 @@ protected:
 	  //others
 	  J.resize(1,false);
 	  j.resize(1,false);
-	  noalias(J[0]) = ZeroMatrix(1,1);
-	  noalias(j[0]) = ZeroMatrix(1,1);
+	  J[0].resize(dimension,dimension,false);
+	  j[0].resize(dimension,dimension,false);
+	  noalias(J[0]) = ZeroMatrix(dimension,dimension);
+	  noalias(j[0]) = ZeroMatrix(dimension,dimension);
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;

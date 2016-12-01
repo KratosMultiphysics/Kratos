@@ -453,7 +453,8 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     GeometryType::JacobiansType J;
     J.resize(1,false);
-    noalias(J[0])= ZeroMatrix(1,1);
+    J[0].resize(dimension,dimension,false);
+    noalias(J[0])= ZeroMatrix(dimension,dimension);
     J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1022,7 +1023,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
  
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      noalias(J[0])= ZeroMatrix(1,1);
+      J[0].resize(dimension,dimension,false);
+      noalias(J[0])= ZeroMatrix(dimension,dimension);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -1108,7 +1110,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      noalias(J[0])= ZeroMatrix(1,1);
+      J[0].resize(dimension,dimension,false);
+      noalias(J[0])= ZeroMatrix(dimension,dimension);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points

@@ -835,7 +835,8 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
     if( rVariables.Options.Is(ACTIVE)){
 
       //Force
-      Matrix ForceMatrix  = ZeroMatrix(3,3);
+      Matrix ForceMatrix(3,3);
+      noalias(ForceMatrix) = ZeroMatrix(3,3);
 
       noalias(ForceMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
       
@@ -850,9 +851,10 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
 	      
 
       //Moment
-      Matrix MomentMatrix = ZeroMatrix(3,3);
+      Matrix MomentMatrix(3,3);
+      noalias(MomentMatrix) = ZeroMatrix(3,3);
       
-      MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
+      noalias(MomentMatrix) = prod(ForceMatrix,rVariables.SkewSymDistance);
       
       for(unsigned int i=0; i<dimension; i++)
 	{

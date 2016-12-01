@@ -340,9 +340,22 @@ namespace Kratos
 
     if( rVariables.Options.Is(ACTIVE)){
 
-      noalias(rLeftHandSideMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
+      Matrix Kuug(3,3);
+      noalias(Kuug) = ZeroMatrix(3,3);
+	    
+      noalias(Kuug) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
+    
+      this->CalculateAndAddKuugTangent( Kuug,  rVariables, rIntegrationWeight);
 
-      this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
+
+      for(unsigned int i=0; i<dimension; i++)
+	{
+	  for(unsigned int j=0; j<dimension; j++)
+	    {
+	      rLeftHandSideMatrix(i,j) += Kuug(i,j);
+	    }
+	}
+      
 
     }
     else{
@@ -370,21 +383,17 @@ namespace Kratos
     double TangentForceModulus = this->CalculateCoulombsFrictionLaw( rVariables.Gap.Tangent, NormalForceModulus, rVariables );
     //std::cout<<" TangentForceModulus "<<TangentForceModulus<<std::endl;
 
-    //simpler expression:
-    Matrix Kuug(3,3);
-    noalias(Kuug) = ZeroMatrix(3,3);    
-    
     if( fabs(TangentForceModulus) >= 1e-25 ){
 
       if( mTangentialVariables.Slip ){
 	
-	noalias(Kuug) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 	
-	noalias(Kuug) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
 	if( dimension == 2 )
-	  noalias(Kuug) -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+	  noalias(rLeftHandSideMatrix) -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 	
 	//std::cout<<" A:Kuug "<<rLeftHandSideMatrix<<std::endl;
 	
@@ -392,25 +401,17 @@ namespace Kratos
       else {
 
 
-	noalias(Kuug) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 	
-	noalias(Kuug) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
 	if( dimension == 2 )
-	  noalias(Kuug) -= rVariables.Penalty.Tangent * rIntegrationWeight * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+	  noalias(rLeftHandSideMatrix) -= rVariables.Penalty.Tangent * rIntegrationWeight * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 
 	//std::cout<<" B:Kuug "<<rLeftHandSideMatrix<<std::endl;
       }
 
-    }
-
-    for(unsigned int i=0; i<dimension; i++)
-    {
-      for(unsigned int j=0; j<dimension; j++)
-	{
-	  rLeftHandSideMatrix(i,j) += Kuug(i,j);
-	}
     }
     
     KRATOS_CATCH( "" )
