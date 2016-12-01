@@ -372,7 +372,7 @@ namespace Kratos {
     double DEM_D_Conical_damage::CalculateNormalForce(const double indentation) {
         return 0.666666666666666666667 * mKn * indentation;
     }
-
+    
     double DEM_D_Conical_damage::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){        
         return 0.0;
     }

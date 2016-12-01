@@ -15,6 +15,8 @@ namespace Kratos {
     class DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
 
     public:
+        
+        using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_viscous_Coulomb);
 
