@@ -65,6 +65,7 @@ namespace Kratos {
                                     bool& sliding);
                 
         double CalculateNormalForce(const double indentation);
+
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,

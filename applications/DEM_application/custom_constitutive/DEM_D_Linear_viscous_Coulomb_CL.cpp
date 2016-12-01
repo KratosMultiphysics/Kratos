@@ -71,7 +71,7 @@ namespace Kratos {
 
         InitializeContact(element1, element2, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                      
         
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -178,7 +178,7 @@ namespace Kratos {
 
         InitializeContactWithFEM(element, wall, indentation);
         
-        LocalElasticContactForce[2] = CalculateNormalForce(indentation);
+        LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);

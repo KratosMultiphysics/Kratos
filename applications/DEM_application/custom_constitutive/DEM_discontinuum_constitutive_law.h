@@ -130,13 +130,11 @@ namespace Kratos {
                                             SphericParticle* const element,
                                             DEMWall* const wall,
                                             bool& sliding);
-        
-        virtual double CalculateNormalForce(const double indentation, SphericParticle * const element1, SphericParticle * const element2);
-        
+                
         virtual double CalculateNormalForce(const double indentation);
-    
-        virtual double CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall);
-        
+        virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        virtual double CalculateNormalForce(SphericParticle* const element, DEMWall* const wall, const double indentation);
+            
         virtual void CalculateTangentialForce(const double normal_force,
                                             double LocalElasticContactForce[3],
                                             const double LocalDeltDisp[3],
