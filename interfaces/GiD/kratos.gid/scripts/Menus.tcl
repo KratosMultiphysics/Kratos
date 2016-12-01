@@ -1,14 +1,55 @@
 
+proc Kratos::ToolbarAddItem {id icon code tex} {
+    variable kratos_private
+    if {![info exists kratos_private(MenuItems)]} {
+        set kratos_private(MenuItems) [dict create]
+    }
+    set num [llength [dict keys $kratos_private(MenuItems)]]
+    incr num
+    dict set kratos_private(MenuItems) $num id $num
+    dict set kratos_private(MenuItems) $num icon $icon
+    dict set kratos_private(MenuItems) $num code $code
+    dict set kratos_private(MenuItems) $num tex $tex
+    return $num
+}
+proc Kratos::ToolbarDeleteItem {id} {
+    variable kratos_private
+    foreach num [dict keys $kratos_private(MenuItems)] {
+        if {[dict get $kratos_private(MenuItems) $num id] eq $id } {dict unset kratos_private(MenuItems) $num; break }
+    }
+    return $num
+}
+
+proc Kratos::ToolbarRefresh {} {
+    Kratos::EndCreatePreprocessTBar
+    Kratos::CreatePreprocessModelTBar
+}
+
+
 proc Kratos::CreatePreprocessModelTBar { {type "DEFAULT INSIDELEFT"} } {
     global KBitmapsNames KBitmapsCommands KBitmapsHelp
     variable kratos_private
+    
+    Kratos::ToolbarAddItem "Model" "propstree.png" [list -np- gid_groups_conds::open_conditions menu] [= "Define the model properties"]
+    Kratos::ToolbarAddItem "Spacer" "" "" ""
+    Kratos::ToolbarAddItem "Run" "run.png" {Utilities Calculate} [= "Run the simulation"]
+    Kratos::ToolbarAddItem "Output" "output.png" [list -np- PWViewOutput] [= "View process info"]
+    Kratos::ToolbarAddItem "Stop" "stop.png" {Utilities CancelProcess} [= "Cancel process"]
+    
     set dir [file join $::Kratos::kratos_private(Path) images ]
-   
-    set KBitmapsNames(0) "$dir/new_props.gif --- $dir/openrunsim.gif $dir/runsimulation.png $dir/runsiminfo.gif $dir/stop.png"
-            
-    set KBitmapsCommands(0) [list [list -np- gid_groups_conds::open_conditions menu] "" [list -np- RunWin] {Utilities Calculate} [list -np- PWViewOutput] {Utilities CancelProcess}]
-
-    set KBitmapsHelp(0) [list [= "Define the model properties"]  "" [= "Open the process control window"] [= "Run the simulation"] [= "View process info"] [= "Cancel process"]]         
+    set iconslist [list ]
+    set commslist [list ]
+    set helpslist [list ]
+    foreach item [dict keys $kratos_private(MenuItems)] {
+        set icon [dict get $kratos_private(MenuItems) $item icon]
+        lappend iconslist [expr {$icon ne "" ? [file join $dir $icon] : "---"}]
+        lappend commslist  [dict get $kratos_private(MenuItems) $item code]
+        lappend helpslist [dict get $kratos_private(MenuItems) $item tex]
+    }
+    
+    set KBitmapsNames(0) $iconslist
+    set KBitmapsCommands(0) $commslist
+    set KBitmapsHelp(0) $helpslist
     
     set prefix Pre
     set name KPreprocessModelbar
@@ -24,9 +65,12 @@ proc Kratos::EndCreatePreprocessTBar {} {
     set name KPreprocessModelbar
     
     ReleaseToolbar ${name}
-    #if {[info exists kratos_private(ToolBars,PreprocessModelTBar)]} {
+    if {[info exists kratos_private(ToolBars,PreprocessModelTBar)]} {
         destroy $kratos_private(ToolBars,PreprocessModelTBar)
-    #}
+    }
+    if {[info exists kratos_private(MenuItems)]} {
+        unset kratos_private(MenuItems)
+    }
     update
 }
 
