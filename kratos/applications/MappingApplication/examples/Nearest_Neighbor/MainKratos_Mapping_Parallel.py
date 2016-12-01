@@ -6,12 +6,11 @@ sys.path.append(kratos_path)
 
 from KratosMultiphysics import *
 from KratosMultiphysics.MappingApplication import *
+import Mapper
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 
-
-warning, not updated yet, wont run as is!
 #*******************************************************************************
 ##### START AUXILLARY FUNCTIONS #####
 #*******************************************************************************
@@ -144,6 +143,9 @@ input_file_fluid     = "FSI_Example4Mapper_1_Fluid"
 model_part_master  = partition_and_read_model_part("ModelPartNameMaster", input_file_fluid, 3)
 model_part_slave = partition_and_read_model_part("ModelPartNameSlave", input_file_structure, 3)
 
+parameter_file = open("MainKratos_Mapping_Parallel.json",'r')
+ProjectParameters = Parameters( parameter_file.read())
+
 # Initialize GidIO
 output_file_master = "out_mapTest_master_r" + str(mpi.rank)
 output_file_slave  = "out_mapTest_slave_r" + str(mpi.rank)
@@ -186,7 +188,7 @@ WriteNodalResultsCustom(gid_io_slave, VELOCITY, model_part_slave, write_time)
 
 
 ##### Mapper stuff #####
-nearestNeighborMapper = NearestNeighborMapper(model_part_master, model_part_slave)
+nearestNeighborMapper = Mapper.Mapper(model_part_master, model_part_slave, ProjectParameters)
 
 # Time step 1.0: Map; constant values
 write_time = 1.0
