@@ -7,8 +7,8 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -454,7 +454,7 @@ namespace Kratos {
         the element and
         performs the operations needed to introduce the seected time
         integration scheme.
-		
+
           this function calculates at the same time the contribution to the
         LHS and to the RHS
           of the system
@@ -680,40 +680,67 @@ namespace Kratos {
             LocalSystemMatrixType LHS_Contribution;
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+            //for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+
+            #pragma omp parallel for
+            for(int k = 0; k<static_cast<int>(rModelPart.Nodes().size()); k++)
             {
-                itNode->FastGetSolutionStepValue(REACTION_X,0) = 0.0;
-                itNode->FastGetSolutionStepValue(REACTION_Y,0) = 0.0;
-                itNode->FastGetSolutionStepValue(REACTION_Z,0) = 0.0;
+                auto itNode = rModelPart.NodesBegin() + k;
+                (itNode->FastGetSolutionStepValue(REACTION)).clear();
             }
 
-            for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+            //for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+
+            #pragma omp parallel for firstprivate(EquationId,RHS_Contribution,LHS_Contribution)
+            for(int k = 0; k<static_cast<int>(rModelPart.Elements().size()); k++)
             {
+                auto itElem = rModelPart.Elements().ptr_begin()+k;
+                int thread_id = OpenMPUtils::ThisThread();
+
                 (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
                 //KRATOS_WATCH(LHS_Contribution);
                 //basic operations for the element considered
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
                 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-                (*itElem)->CalculateMassMatrix(mMass[0], CurrentProcessInfo);
-                (*itElem)->CalculateLocalVelocityContribution(mDamp[0], RHS_Contribution, CurrentProcessInfo);
+                (*itElem)->CalculateMassMatrix(mMass[thread_id], CurrentProcessInfo);
+                (*itElem)->CalculateLocalVelocityContribution(mDamp[thread_id], RHS_Contribution, CurrentProcessInfo);
 
                 (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
 
                 //adding the dynamic contributions (statics is already included)
-                AddDynamicsToLHS(LHS_Contribution, mDamp[0], mMass[0], CurrentProcessInfo);
-                AddDynamicsToRHS((*itElem), RHS_Contribution, mDamp[0], mMass[0], CurrentProcessInfo);
+                AddDynamicsToLHS(LHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
+                AddDynamicsToRHS((*itElem), RHS_Contribution, mDamp[thread_id], mMass[thread_id], CurrentProcessInfo);
 
                 GeometryType& rGeom = (*itElem)->GetGeometry();
                 unsigned int NumNodes = rGeom.PointsNumber();
                 unsigned int Dimension = rGeom.WorkingSpaceDimension();
-                unsigned int index = 0;
 
+                unsigned int index = 0;
                 for (unsigned int i = 0; i < NumNodes; i++)
                 {
-                    rGeom[i].FastGetSolutionStepValue(REACTION_X,0) -= RHS_Contribution[index++];
-                    rGeom[i].FastGetSolutionStepValue(REACTION_Y,0) -= RHS_Contribution[index++];
-                    if (Dimension == 3) rGeom[i].FastGetSolutionStepValue(REACTION_Z,0) -= RHS_Contribution[index++];
+                    auto& reaction = rGeom[i].FastGetSolutionStepValue(REACTION);
+
+                    double& target_value0 = reaction[0];
+                    const double& origin_value0 = RHS_Contribution[index++];
+                    #pragma omp atomic
+                    target_value0 -= origin_value0;
+
+                    double& target_value1 = reaction[1];
+                    const double& origin_value1 = RHS_Contribution[index++];
+                    #pragma omp atomic
+                    target_value1 -= origin_value1;
+
+                    if (Dimension == 3)
+                    {
+                      double& target_value2 = reaction[2];
+                      const double& origin_value2 = RHS_Contribution[index++];
+                      #pragma omp atomic
+                      target_value2 -= origin_value2;
+                    }
+            //        rGeom[i].FastGetSolutionStepValue(REACTION_X,0) -= RHS_Contribution[index++];
+             //          rGeom[i].FastGetSolutionStepValue(REACTION_Y,0) -= RHS_Contribution[index++];
+            //        if (Dimension == 3) rGeom[i].FastGetSolutionStepValue(REACTION_Z,0) -= RHS_Contribution[index++];
                     index++; // skip pressure dof
                 }
             }
@@ -927,7 +954,7 @@ namespace Kratos {
 
         /**
         bdyn = b - M*acc - D*vel
-					
+
          */
         void AddDynamicsToRHS(Element::Pointer rCurrentElement,
                               LocalSystemVectorType& RHS_Contribution,
@@ -1044,4 +1071,3 @@ namespace Kratos {
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
-
