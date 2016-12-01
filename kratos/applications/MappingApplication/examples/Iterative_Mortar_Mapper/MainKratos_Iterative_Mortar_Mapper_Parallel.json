@@ -1,6 +1,6 @@
 {
 	"mapper_settings": {
-		"mapper_type": "NearestNeighbor",
+		"mapper_type": "IterativeMortar",
     "interface_submodel_part_origin" : "FluidNoSlipInterface3D_interface_orig_fluid",
     "interface_submodel_part_destination" : "StructureInterface3D_interface_dest_struct"
 	}

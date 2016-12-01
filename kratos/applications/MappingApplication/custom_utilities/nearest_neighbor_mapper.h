@@ -98,33 +98,17 @@ public:
   ///@name Life Cycle
   ///@{
 
-  NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination) : Mapper(
-                      i_model_part_origin, i_model_part_destination) {
+  NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+                        double i_initial_search_radius, int i_max_search_iterations) : Mapper(
+                        i_model_part_origin, i_model_part_destination) {
 
       m_point_comm_manager_origin = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_origin,
           m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
       m_point_comm_manager_destination = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_destination,
           m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
 
-      bool bi_directional_search = true;
-
       m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
-                                        bi_directional_search);
-
-      MPI_Barrier(MPI_COMM_WORLD);
-  }
-
-  NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                        double i_initial_search_radius, int i_max_search_iterations) : Mapper(
-                        i_model_part_origin, i_model_part_destination) {
-
-      m_point_comm_manager_origin = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_origin, m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
-      m_point_comm_manager_destination = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_destination, m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
-
-      bool bi_directional_search = true;
-
-      m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
-                                        bi_directional_search, i_initial_search_radius, i_max_search_iterations);
+                                        i_initial_search_radius, i_max_search_iterations);
 
       MPI_Barrier(MPI_COMM_WORLD);
   }
@@ -150,37 +134,21 @@ public:
   /* This function maps a variable from Origin to Destination */
   void Map(const Variable<double>& origin_variable,
            const Variable<double>& destination_variable,
-           const bool add_value) override {
+           const bool add_value,
+           const bool sign_positive) override {
       bool direction = true;
-      m_mapper_communicator->TransferData(direction, origin_variable,
-                                          destination_variable, add_value);
+      m_mapper_communicator->TransferData(origin_variable, destination_variable,
+                                          direction, add_value);
   }
 
   /* This function maps a variable from Origin to Destination */
   void Map(const Variable< array_1d<double,3> >& origin_variable,
            const Variable< array_1d<double,3> >& destination_variable,
-           const bool add_value) override {
+           const bool add_value,
+           const bool sign_positive) override {
       bool direction = true;
-      m_mapper_communicator->TransferData(direction, origin_variable,
-                                          destination_variable, add_value);
-  }
-
-  /* This function maps a variable from Destination to Origin */
-  void InverseMap(const Variable<double>& origin_variable,
-                  const Variable<double>& destination_variable,
-                  const bool add_value) override { // TvalueType => MPI communicator
-      bool direction = false;
-      m_mapper_communicator->TransferData(direction, origin_variable,
-                                          destination_variable, add_value);
-  }
-
-  /* This function maps a variable from Destination to Origin */
-  void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                  const Variable< array_1d<double,3> >& destination_variable,
-                  const bool add_value) override {
-      bool direction = false;
-      m_mapper_communicator->TransferData(direction, origin_variable,
-                                          destination_variable, add_value);
+      m_mapper_communicator->TransferData(origin_variable, destination_variable,
+                                          direction, add_value);
   }
 
   ///@}

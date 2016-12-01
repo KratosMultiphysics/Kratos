@@ -25,7 +25,7 @@
 // #include "mpi.h" // TODO needed?
 #include "interface_search_structure.h"
 #include "processes/graph_coloring_process.h"
-#include <iomanip> 
+#include <iomanip>
 
 
 namespace Kratos
@@ -69,19 +69,6 @@ namespace Kratos
       ///@}
       ///@name Life Cycle
       ///@{
-
-      InterfaceSearchStructureMPI(InterfaceObjectManager::Pointer i_interface_object_manager,
-                               InterfaceObjectManager::Pointer i_interface_object_manager_bins,
-                               ModelPart& i_model_part_bins, int i_comm_rank, int i_comm_size) :
-                               InterfaceSearchStructure(i_interface_object_manager,
-                               i_interface_object_manager_bins, i_model_part_bins){
-          // Default Constructor, here the tolerances are computed in the search structure
-          m_comm_rank = i_comm_rank;
-          m_comm_size = i_comm_size;
-
-          ComputeGlobalSearchTolerance(i_model_part_bins);
-          ComputeLocalBoundingBox(i_model_part_bins);
-      }
 
       InterfaceSearchStructureMPI(InterfaceObjectManager::Pointer i_interface_object_manager,
                                InterfaceObjectManager::Pointer i_interface_object_manager_bins,

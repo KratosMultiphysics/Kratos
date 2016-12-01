@@ -25,6 +25,20 @@
 
 namespace Kratos
 {
+
+int ComputeNumberOfNodes(ModelPart& model_part) {
+    int num_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes();
+    model_part.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
+    return num_nodes;
+}
+
+int ComputeNumberOfConditions(ModelPart& model_part) {
+    int num_conditions = model_part.GetCommunicator().LocalMesh().NumberOfConditions();
+    model_part.GetCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
+    return num_conditions;
+}
+
+
 double ComputeSearchRadius(ModelPart& model_part) {
     double search_safety_factor = 1.2;
     double max_element_size = 0.0;

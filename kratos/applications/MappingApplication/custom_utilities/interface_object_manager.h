@@ -62,6 +62,15 @@ namespace Kratos {
 	typedef Element BaseType;
 	typedef BaseType::GeometryType GeometryType;
 
+  typedef IntegrationPoint<3> IntegrationPointType;
+
+  /** A Vector of IntegrationPointType which used to hold
+  integration points related to an integration
+  method. IntegrationPoints functions used this type to return
+  their results.
+  */
+  typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+
 
 ///@}
 ///@name  Enum's
@@ -130,7 +139,7 @@ public:
         manager->m_comm_rank = comm_rank;
         manager->m_comm_size = comm_size;
 
-        manager->m_point_comm_objects.resize(model_part.GetCommunicator().LocalMesh().Conditions().size()); // TODO segfault expected here if using GPS!
+        manager->m_point_comm_objects.resize(3*model_part.GetCommunicator().LocalMesh().Conditions().size()); // TODO segfault expected here if using GPS!
 
         manager->m_candidate_send_points.resize(comm_size);
         manager->m_send_points.resize(comm_size);
@@ -155,38 +164,58 @@ public:
         int i = 0;
         for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
             if(construction_type == 0) { // construct with Gauss Points
-                const Geometry< Node<3> >& rGeom = condition.GetGeometry();
+                // IntegrationPointsArrayType gauss_points_local_coords = condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_1);
+                //
+                // for (auto& gp_local_coords : gauss_points_local_coords) {
+                //     Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, gp_local_coords);
+                //     KRATOS_WATCH(sth.size())
+                //     KRATOS_WATCH(sth[0])
+                //     KRATOS_WATCH(sth[1])
+                //     KRATOS_WATCH(sth[2])
+                // }
 
-                Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
-                const int num_gauss_points = NContainer.size1();
-                const int num_nodes = NContainer.size2();
 
-                array_1d<double, 3> gauss_point_coords;
 
-                for (int j = 0; j < num_gauss_points; ++j) {
-                    gauss_point_coords[0] = 0;
-                    gauss_point_coords[1] = 0;
-                    gauss_point_coords[2] = 0;
+                // Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, static_cast<Node<3>::CoordinatesArrayType>(condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2)));
+                // KRATOS_WATCH(arrayIP[0].size())
+                // KRATOS_WATCH(arrayIP[0][0])
+                // KRATOS_WATCH(arrayIP[0][1])
+                // KRATOS_WATCH(arrayIP[0][2])
 
-                    for (int k = 0; k < num_nodes; ++k) {
-                        gauss_point_coords[0] += NContainer(k, j) * rGeom[j].X();
-                        gauss_point_coords[1] += NContainer(k, j) * rGeom[j].Y();
-                        gauss_point_coords[2] += NContainer(k, j) * rGeom[j].Z();
+
+                const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
+
+                Matrix shape_functions = condition_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+                const int num_gauss_points = shape_functions.size1();
+                const int num_nodes = shape_functions.size2();
+
+                array_1d<double, 3> gauss_point_global_coords;
+
+                for (int g = 0; g < num_gauss_points; ++g) {
+                    gauss_point_global_coords[0] = 0;
+                    gauss_point_global_coords[1] = 0;
+                    gauss_point_global_coords[2] = 0;
+
+                    for (int n = 0; n < num_nodes; ++n) {
+                        gauss_point_global_coords[0] += shape_functions(g, n) * condition_geometry[n].X();
+                        gauss_point_global_coords[1] += shape_functions(g, n) * condition_geometry[n].Y();
+                        gauss_point_global_coords[2] += shape_functions(g, n) * condition_geometry[n].Z();
                     }
 
-                    // manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, gauss_point_coords) );
+                    manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, gauss_point_global_coords) );
                     ++i;
                 }
             } else if (construction_type == 1) { // construct with center of condition
                 manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, condition.GetGeometry().Center()) );
                 ++i;
 
-            } else if (construction_type == 2) { // construct with nodal coordinates
-                for (auto& point : condition.GetGeometry().Points()) {
-                    manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, point.GetCoordinates()) );
-                    ++i;
-                }
+            // } else if (construction_type == 2) { // construct with nodal coordinates
+            //     for (auto& node : condition.GetGeometry().Points()) {
+            //         manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, node.Coordinates()) );
+            //         ++i;
+            //     }
             } else {
                 KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"CreateInterfaceConditionManager\" unknown type to construct manager with!" << std::endl;
             }
@@ -345,15 +374,9 @@ public:
 
 // ************ for Mapping ****************************************************
     void FillSendBufferWithValues(double* send_buffer, int& send_buffer_size, const int comm_partner,
-                                  const Variable<double> variable, const bool use_other_search_structure) {
+                                  const Variable<double> variable) {
         int i = 0;
-        std::vector<InterfaceObject::Pointer> point_list;
-
-        if (use_other_search_structure) {
-            point_list = m_send_points[comm_partner];
-        } else {
-            point_list = m_receive_points[comm_partner];
-        }
+        std::vector<InterfaceObject::Pointer> point_list = m_receive_points[comm_partner];
 
         for (auto point : point_list) {
             send_buffer[i] = point->GetObjectValue(variable);
@@ -363,15 +386,9 @@ public:
     }
 
     void FillSendBufferWithValues(double* send_buffer, int& send_buffer_size, const int comm_partner,
-                                  const Variable< array_1d<double,3> > variable, const bool use_other_search_structure) {
+                                  const Variable< array_1d<double,3> > variable) {
         int i = 0;
-        std::vector<InterfaceObject::Pointer> point_list;
-
-        if (use_other_search_structure) {
-            point_list = m_send_points[comm_partner];
-        } else {
-            point_list = m_receive_points[comm_partner];
-        }
+        std::vector<InterfaceObject::Pointer> point_list = m_receive_points[comm_partner];
 
         for (auto point : point_list) {
             send_buffer[(i*3) + 0] = point->GetObjectValue(variable)[0];
@@ -383,16 +400,9 @@ public:
     }
 
     void ProcessValues(double* buffer, const int buffer_size, const int comm_partner,
-                       const Variable<double> variable, const bool add_value,
-                       const bool use_other_search_structure) {
+                       const Variable<double> variable, const bool add_value) {
 
-        std::vector<InterfaceObject::Pointer> point_list;
-
-        if (use_other_search_structure) {
-            point_list = m_receive_points[comm_partner];
-        } else {
-            point_list = m_send_points[comm_partner];
-        }
+        std::vector<InterfaceObject::Pointer> point_list = m_send_points[comm_partner];
 
         if (static_cast<int>(point_list.size()) != buffer_size) {
             KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"ProcessValues, double\": Wrong number of results received!;\
@@ -409,8 +419,7 @@ public:
     }
 
     void ProcessValues(double* buffer, const int buffer_size, const int comm_partner,
-                       const Variable< array_1d<double,3> > variable, const bool add_value,
-                       const bool use_other_search_structure) {
+                       const Variable< array_1d<double,3> > variable, const bool add_value) {
 
         if (buffer_size % 3 != 0) {
             KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"ProcessValues, double<3>\": Uneven number of results received!;\
@@ -419,13 +428,7 @@ public:
 
         const int num_values = buffer_size / 3;
 
-        std::vector<InterfaceObject::Pointer> point_list;
-
-        if (use_other_search_structure) {
-            point_list = m_receive_points[comm_partner];
-        } else {
-            point_list = m_send_points[comm_partner];
-        }
+        std::vector<InterfaceObject::Pointer> point_list = m_send_points[comm_partner];
 
         if (static_cast<int>(point_list.size()) != num_values) {
            KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"ProcessValues, double<3>\": Wrong number of results received!;\

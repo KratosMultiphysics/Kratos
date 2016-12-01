@@ -71,22 +71,11 @@ namespace Kratos
 
       InterfaceSearchStructure(InterfaceObjectManager::Pointer i_interface_object_manager,
                                InterfaceObjectManager::Pointer i_interface_object_manager_bins,
-                               ModelPart& i_model_part_bins) :
-                               m_interface_object_manager(i_interface_object_manager),
-                               m_interface_object_manager_bins(i_interface_object_manager_bins) {
-          // Default Constructor, here the tolerances are computed in the search structure
-          ComputeLocalSearchTolerance(i_model_part_bins);
-          Initialize();
-      }
-
-      InterfaceSearchStructure(InterfaceObjectManager::Pointer i_interface_object_manager,
-                               InterfaceObjectManager::Pointer i_interface_object_manager_bins,
                                double i_initial_search_radius, int i_max_search_iterations) :
                                m_interface_object_manager(i_interface_object_manager),
                                m_interface_object_manager_bins(i_interface_object_manager_bins),
                                m_initial_search_radius(i_initial_search_radius),
                                m_max_search_iterations(i_max_search_iterations) {
-          // Custom Constructor, here the tolerances are passed from outside
           Initialize();
       }
 

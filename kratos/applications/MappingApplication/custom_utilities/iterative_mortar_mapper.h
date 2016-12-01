@@ -68,18 +68,18 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      IterativeMortarMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination) : Mapper(
-                          i_model_part_origin, i_model_part_destination) {
+      IterativeMortarMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+                            double i_initial_search_radius, int i_max_search_iterations,
+                            double i_convergence_tolerance, int i_convergence_iterations) : Mapper(
+                            i_model_part_origin, i_model_part_destination) {
 
           m_point_comm_manager_origin = Kratos::InterfaceObjectManager::CreateInterfaceConditionManager(m_model_part_origin,
               m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), 1 /*Center*/);
           m_point_comm_manager_destination = Kratos::InterfaceObjectManager::CreateInterfaceConditionManager(m_model_part_destination,
               m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), 0 /*Gauss Point*/);
-          //
-          // bool bi_directional_search = true;
-          //
-          // m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
-          //                                   bi_directional_search);
+
+          m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
+                                            i_initial_search_radius, i_max_search_iterations);
 
           MPI_Barrier(MPI_COMM_WORLD);
           std::cout << "IterativeMortarMapper Initialized" << std::endl;
@@ -98,27 +98,31 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void UpdateInterface(){};
+      void UpdateInterface() override {
+          m_mapper_communicator->ComputeSearchStructure();
+      }
 
       /* This function maps from Origin to Destination */
-      virtual void Map(const Variable<double>& origin_variable,
-                       const Variable<double>& destination_variable,
-                       const bool add_value){};
+      void Map(const Variable<double>& origin_variable,
+               const Variable<double>& destination_variable,
+               const bool add_value,
+               const bool sign_positive) override {};
 
       /* This function maps from Origin to Destination */
-      virtual void Map(const Variable< array_1d<double,3> >& origin_variable,
-                       const Variable< array_1d<double,3> >& destination_variable,
-                       const bool add_value){};
+      void Map(const Variable< array_1d<double,3> >& origin_variable,
+               const Variable< array_1d<double,3> >& destination_variable,
+               const bool add_value,
+               const bool sign_positive) override {};
 
-      /* This function maps from Destination to Origin */
-      virtual void InverseMap(const Variable<double>& origin_variable,
-                              const Variable<double>& destination_variable,
-                              const bool add_value){};
-
-      /* This function maps from Destination to Origin */
-      virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                              const Variable< array_1d<double,3> >& destination_variable,
-                              const bool add_value){};
+      // /* This function maps from Destination to Origin */
+      // virtual void InverseMap(const Variable<double>& origin_variable,
+      //                         const Variable<double>& destination_variable,
+      //                         const bool add_value){};
+      //
+      // /* This function maps from Destination to Origin */
+      // virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
+      //                         const Variable< array_1d<double,3> >& destination_variable,
+      //                         const bool add_value){};
 
 
       ///@}

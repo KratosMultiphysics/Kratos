@@ -91,81 +91,41 @@ namespace Kratos
 
       void Initialize(InterfaceObjectManager::Pointer i_interface_object_manager_origin,
                       InterfaceObjectManager::Pointer i_interface_object_manager_destination,
-                      bool bi_directional_search) override {
+                      double i_initial_search_radius, int i_max_search_iterations) override {
 
           m_interface_object_manager_origin = i_interface_object_manager_origin;
           m_interface_object_manager_destination = i_interface_object_manager_destination;
-          m_bidirectional_search = bi_directional_search;
 
-          m_search_structure_mpi_map = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
-             i_interface_object_manager_destination, i_interface_object_manager_origin,
-             m_model_part_origin, MyPID(), TotalProcesses()) );
-
-          if (bi_directional_search) {
-              m_search_structure_mpi_inverse_map = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
-                 i_interface_object_manager_origin, i_interface_object_manager_destination,
-                 m_model_part_destination, MyPID(), TotalProcesses()) );
-          }
-          KRATOS_WATCH("End of InitializeMPI")
-
-          ComputeSearchStructure();
-      }
-
-      void Initialize(InterfaceObjectManager::Pointer i_interface_object_manager_origin,
-                      InterfaceObjectManager::Pointer i_interface_object_manager_destination,
-                      bool bi_directional_search, double i_initial_search_radius,
-                      int i_max_search_iterations) override {
-
-          m_interface_object_manager_origin = i_interface_object_manager_origin;
-          m_interface_object_manager_destination = i_interface_object_manager_destination;
-          m_bidirectional_search = bi_directional_search;
-
-          m_search_structure_mpi_map = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
+          m_search_structure_mpi = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
              i_interface_object_manager_destination, i_interface_object_manager_origin, m_model_part_origin,
              i_initial_search_radius, i_max_search_iterations, MyPID(), TotalProcesses()) );
-
-          if (bi_directional_search) {
-              m_search_structure_mpi_inverse_map = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
-                 i_interface_object_manager_origin, i_interface_object_manager_destination, m_model_part_destination,
-                 i_initial_search_radius, i_max_search_iterations, MyPID(), TotalProcesses()) );
-          }
-          KRATOS_WATCH("End of InitializeMPI with Input(SearchRadius and MaxIter)")
 
           ComputeSearchStructure();
       }
 
       void ComputeSearchStructure() override {
-          m_search_structure_mpi_map->Clear();
-          m_search_structure_mpi_map->Search();
-          m_search_structure_mpi_map->GetMPIData(m_max_send_buffer_size_map,
+          m_search_structure_mpi->Clear();
+          m_search_structure_mpi->Search();
+          m_search_structure_mpi->GetMPIData(m_max_send_buffer_size_map,
                                              m_max_receive_buffer_size_map,
                                              m_colored_graph_map,
                                              m_max_colors_map);
-          if (m_bidirectional_search)
-              m_search_structure_mpi_inverse_map ->Clear();
-              m_search_structure_mpi_inverse_map ->Search();
-              m_search_structure_mpi_inverse_map->GetMPIData(m_max_send_buffer_size_inverse_map,
-                                                 m_max_receive_buffer_size_inverse_map,
-                                                 m_colored_graph_inverse_map,
-                                                 m_max_colors_inverse_map);
       }
 
-      void TransferData(bool direction, const Variable<double>& origin_variable,
+      void TransferData(const Variable<double>& origin_variable,
                         const Variable<double>& destination_variable,
-                        const bool add_value,
-                        bool use_other_search_structure = false) override {
+                        const bool direction, const bool add_value) override {
 
           TransferDataParallel(origin_variable, destination_variable,
-                               direction, add_value, use_other_search_structure);
+                               direction, add_value);
       }
 
-      void TransferData(bool direction, const Variable< array_1d<double,3> >& origin_variable,
+      void TransferData(const Variable< array_1d<double,3> >& origin_variable,
                         const Variable< array_1d<double,3> >& destination_variable,
-                        const bool add_value,
-                        bool use_other_search_structure = false) override {
+                        const bool direction, const bool add_value) override {
 
           TransferDataParallel(origin_variable, destination_variable,
-                               direction, add_value, use_other_search_structure);
+                               direction, add_value);
       }
 
       int MyPID () override { // Copy from "kratos/includes/mpi_communicator.h"
@@ -262,8 +222,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      InterfaceSearchStructureMPI::Pointer m_search_structure_mpi_map;
-      InterfaceSearchStructureMPI::Pointer m_search_structure_mpi_inverse_map;
+      InterfaceSearchStructureMPI::Pointer m_search_structure_mpi;
 
       int m_max_send_buffer_size_map;
       int m_max_send_buffer_size_inverse_map;
@@ -290,51 +249,35 @@ namespace Kratos
       template <typename T>
       void TransferDataParallel(const Variable< T >& origin_variable,
                                const Variable< T >& destination_variable,
-                               const bool direction, const bool add_value,
-                               const bool use_other_search_structure) {
-          if ((!m_bidirectional_search && !direction && !use_other_search_structure) ||
-              (!m_bidirectional_search && direction && use_other_search_structure))
-              KRATOS_ERROR << "MappingApplication; MapperMPICommunicator; \"TransferDataParallel\" Bi-Directional Search not defined!" << std::endl;
+                               const bool direction, const bool add_value) {
 
           // TODO here some implicit conversion is done, is that ok?
           std::vector<InterfaceObject::Pointer> local_mapping_points;
           std::vector<InterfaceObject::Pointer> remote_mapping_points;
 
           SelectPointLists(remote_mapping_points, local_mapping_points,
-                           direction, use_other_search_structure);
+                           direction);
 
           ExchangeDataLocal(origin_variable, destination_variable, remote_mapping_points,
                             local_mapping_points, add_value);
 
           ExchangeDataRemote(origin_variable, destination_variable,
                              m_interface_object_manager_origin, m_interface_object_manager_destination,
-                             direction, add_value, use_other_search_structure);
+                             direction, add_value);
 
           MPI_Barrier(MPI_COMM_WORLD);
       }
 
       void SelectPointLists(std::vector<InterfaceObject::Pointer>& point_list_1,
                             std::vector<InterfaceObject::Pointer>& point_list_2,
-                            const bool direction, const bool use_other_search_structure) override {
+                            const bool direction) override {
                                 // TODO unify it in terms of naming and use fnct of base-class!
-          // boolean "use_other_search_structure" is intended to be used for mortar mapping
-          // to exchange data in both directions with the same match-partners
           if (direction) { // map; origin -> destination
-              if (use_other_search_structure) { // use search structure of InverseMap
-                  point_list_1 = m_interface_object_manager_origin->GetLocalMappingVector();
-                  point_list_2 = m_interface_object_manager_destination->GetRemoteMappingVector();
-              } else { // use search structure of Map
-                  point_list_1 = m_interface_object_manager_origin->GetRemoteMappingVector();
-                  point_list_2 = m_interface_object_manager_destination->GetLocalMappingVector();
-              }
-          } else { // inverse map; destination -> origin
-              if (use_other_search_structure) { // use search structure of Map
-                  point_list_1 = m_interface_object_manager_destination->GetLocalMappingVector();
-                  point_list_2 = m_interface_object_manager_origin->GetRemoteMappingVector();
-              } else { // use search structure of InverseMap
-                  point_list_1 = m_interface_object_manager_destination->GetRemoteMappingVector();
-                  point_list_2 = m_interface_object_manager_origin->GetLocalMappingVector();
-              }
+              point_list_1 = m_interface_object_manager_origin->GetRemoteMappingVector();
+              point_list_2 = m_interface_object_manager_destination->GetLocalMappingVector();
+          } else { // inverse map; destination -> origin // TODO check!!!
+              point_list_1 = m_interface_object_manager_destination->GetRemoteMappingVector();
+              point_list_2 = m_interface_object_manager_origin->GetLocalMappingVector();
           }
           if (point_list_1.size() != point_list_2.size())
               KRATOS_ERROR << "MappingApplication; MapperMPICommunicator; \"SelectPointLists\" Size Mismatch!" << std::endl;
@@ -345,8 +288,7 @@ namespace Kratos
                               const Variable< T >& destination_variable,
                               InterfaceObjectManager::Pointer& object_manager_1,
                               InterfaceObjectManager::Pointer& object_manager_2,
-                              const bool direction, const bool add_value,
-                              const bool use_other_search_structure) {
+                              const bool direction, const bool add_value) {
           MPI_Status status; // TODO use this for some checks, e.g. if message has arrived,...
           int send_buffer_size = 0;
           int receive_buffer_size = 0;
@@ -388,13 +330,13 @@ namespace Kratos
               int comm_partner = colored_graph(MyPID(), i); // get the partner rank
               if (comm_partner != -1) { // check if rank is communicating in this communication step (aka. colour)
                   interface_object_manager_1->FillSendBufferWithValues(send_buffer, send_buffer_size, comm_partner,
-                                                                       origin_variable, use_other_search_structure);
+                                                                       origin_variable);
 
                   MPIManager::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
                               max_send_buffer_size, max_receive_buffer_size, comm_partner, status);
 
                   interface_object_manager_2->ProcessValues(receive_buffer, receive_buffer_size, comm_partner, destination_variable,
-                                                            add_value, use_other_search_structure);
+                                                            add_value);
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop colors
 

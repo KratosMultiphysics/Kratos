@@ -5,6 +5,7 @@ from KratosMultiphysics.MappingApplication import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
+import Mapper
 
 import os
 import process_factory
@@ -17,25 +18,20 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         input_file_structure = "Mapper_Test_1/FSI_Example4Mapper_1_Structural"
         input_file_fluid     = "Mapper_Test_1/FSI_Example4Mapper_1_Fluid"
 
+        parameter_file = open("KratosExecuteNearestNeighborMapperTest.json",'r')
+        ProjectParameters = Parameters( parameter_file.read())
+
         # Create and Partition Model Parts
         variable_list = [PRESSURE, VELOCITY, PARTITION_INDEX]
         self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_fluid, 3, variable_list)
         self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_structure, 3, variable_list)
 
+        # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
-
-        SetMPICommunicatorProcess(self.interface_sub_model_part_origin).Execute()
-        pfc_origin = ParallelFillCommunicator(self.interface_sub_model_part_origin)
-        pfc_origin.Execute()
-
         self.interface_sub_model_part_destination = self.model_part_destination.GetSubModelPart("StructureInterface3D_interface_dest_struct")
 
-        SetMPICommunicatorProcess(self.interface_sub_model_part_destination).Execute()
-        pfc_destination = ParallelFillCommunicator(self.interface_sub_model_part_destination)
-        pfc_destination.Execute()
-
         # Initialize Mapper
-        self.nearestNeighborMapper = NearestNeighborMapper(self.interface_sub_model_part_origin, self.interface_sub_model_part_destination)
+        self.nearestNeighborMapper = Mapper.Mapper(self.model_part_origin, self.model_part_destination, ProjectParameters)
 
 
     def TestMapConstantScalarValues(self):
@@ -158,11 +154,14 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
             mpi.world.barrier()
             model_part_input_file = model_part_input_file + "_" + str(mpi.rank)
 
+        model_part_io = ModelPartIO(model_part_input_file)
+        model_part_io.ReadModelPart(model_part)
+
         MPICommSetup = SetMPICommunicatorProcess(model_part)
         MPICommSetup.Execute()
 
-        model_part_io = ModelPartIO(model_part_input_file)
-        model_part_io.ReadModelPart(model_part)
+        ParallelFillComm = ParallelFillCommunicator(model_part.GetRootModelPart())
+        ParallelFillComm.Execute()
 
         model_part.ProcessInfo.SetValue(DOMAIN_SIZE, size_domain)
         model_part.SetBufferSize(1)
