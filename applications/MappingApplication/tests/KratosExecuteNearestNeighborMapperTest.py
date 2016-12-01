@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 from KratosMultiphysics import *
 from KratosMultiphysics.MappingApplication import *
+import Mapper
 
 import os
 import process_factory
@@ -14,15 +15,19 @@ class KratosExecuteNearestNeighborMapperTest(KratosUnittest.TestCase):
         input_file_structure = "Mapper_Test_1/FSI_Example4Mapper_1_Structural"
         input_file_fluid     = "Mapper_Test_1/FSI_Example4Mapper_1_Fluid"
 
+        parameter_file = open("KratosExecuteNearestNeighborMapperTest.json",'r')
+        ProjectParameters = Parameters( parameter_file.read())
+
         variable_list = [PRESSURE, VELOCITY]
         self.model_part_origin  = self.ReadModelPartSerial("ModelPartNameOrigin", input_file_fluid, variable_list)
         self.model_part_destination = self.ReadModelPartSerial("ModelPartNameDestination", input_file_structure, variable_list)
 
+        # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
         self.interface_sub_model_part_destination = self.model_part_destination.GetSubModelPart("StructureInterface3D_interface_dest_struct")
 
         # Initialize Mapper
-        self.nearestNeighborMapper = NearestNeighborMapper(self.interface_sub_model_part_origin, self.interface_sub_model_part_destination)
+        self.nearestNeighborMapper = Mapper.Mapper(self.model_part_origin, self.model_part_destination, ProjectParameters)
 
 
     def TestMapConstantScalarValues(self):

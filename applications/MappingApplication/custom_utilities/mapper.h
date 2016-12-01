@@ -94,11 +94,11 @@ public:
   Mapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination) :
 	  m_model_part_origin(i_model_part_origin), m_model_part_destination(i_model_part_destination) {
 
-          m_num_conditions_origin = m_model_part_origin.GetCommunicator().LocalMesh().Elements().size();
-          m_num_conditions_destination = m_model_part_destination.GetCommunicator().LocalMesh().Elements().size();
+          m_num_conditions_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfConditions();
+          m_num_conditions_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfConditions();
 
-          m_num_nodes_origin = m_model_part_origin.GetCommunicator().LocalMesh().Nodes().size();
-          m_num_nodes_destination = m_model_part_destination.GetCommunicator().LocalMesh().Nodes().size();
+          m_num_nodes_origin = m_model_part_origin.GetCommunicator().LocalMesh().NumberOfNodes();
+          m_num_nodes_destination = m_model_part_destination.GetCommunicator().LocalMesh().NumberOfNodes();
 
           #ifdef KRATOS_USING_MPI // mpi-parallel compilation
               int comm_size;
@@ -130,22 +130,24 @@ public:
   /* This function maps from Origin to Destination */
   virtual void Map(const Variable<double>& origin_variable,
                    const Variable<double>& destination_variable,
-                   const bool add_value) = 0;
+                   const bool add_value,
+                   const bool sign_positive) = 0;
 
   /* This function maps from Origin to Destination */
   virtual void Map(const Variable< array_1d<double,3> >& origin_variable,
                    const Variable< array_1d<double,3> >& destination_variable,
-                   const bool add_value) = 0;
+                   const bool add_value,
+                   const bool sign_positive) = 0;
 
-  /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable<double>& origin_variable,
-                          const Variable<double>& destination_variable,
-                          const bool add_value) = 0;
-
-  /* This function maps from Destination to Origin */
-  virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
-                          const Variable< array_1d<double,3> >& destination_variable,
-                          const bool add_value) = 0;
+  // /* This function maps from Destination to Origin */
+  // virtual void InverseMap(const Variable<double>& origin_variable,
+  //                         const Variable<double>& destination_variable,
+  //                         const bool add_value) = 0;
+  //
+  // /* This function maps from Destination to Origin */
+  // virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
+  //                         const Variable< array_1d<double,3> >& destination_variable,
+  //                         const bool add_value) = 0;
 
   ///@}
   ///@name Access

@@ -6,6 +6,8 @@ sys.path.append(kratos_path)
 
 from KratosMultiphysics import *
 from KratosMultiphysics.MappingApplication import *
+import Mapper
+
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
@@ -40,14 +42,17 @@ def partition_and_read_model_part(model_part_name, model_part_input_file, size_d
         mpi.world.barrier()
         model_part_input_file = model_part_input_file + "_" + str(mpi.rank)
 
-    MPICommSetup = SetMPICommunicatorProcess(model_part)
-    MPICommSetup.Execute()
-
     model_part_io = ModelPartIO(model_part_input_file)
     model_part_io.ReadModelPart(model_part)
 
-    # Set the domain size
+    MPICommSetup = SetMPICommunicatorProcess(model_part)
+    MPICommSetup.Execute()
+
+    ParallelFillComm = ParallelFillCommunicator(model_part.GetRootModelPart())
+    ParallelFillComm.Execute()
+
     model_part.ProcessInfo.SetValue(DOMAIN_SIZE, size_domain)
+    model_part.SetBufferSize(1)
 
     return model_part
 
@@ -133,23 +138,12 @@ def WriteNodalResultsCustom(gid_io, variable, model_part, output_time):
 input_file_structure = "FSI_Example4Mapper_1_Structural"
 input_file_fluid     = "FSI_Example4Mapper_1_Fluid"
 
-# 1 runs with 50 cores, but gets partitioning issues above ~40 cores
+parameter_file = open("MainKratos_Iterative_Mortar_Mapper_Parallel.json",'r')
+ProjectParameters = Parameters( parameter_file.read())
 
 # Create and Partition Model Parts
 model_part_master  = partition_and_read_model_part("ModelPartNameMaster", input_file_fluid, 3)
 model_part_slave = partition_and_read_model_part("ModelPartNameSlave", input_file_structure, 3)
-
-interface_sub_model_part_master = model_part_master.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
-
-SetMPICommunicatorProcess(interface_sub_model_part_master).Execute()
-pfc_master = ParallelFillCommunicator(interface_sub_model_part_master)
-pfc_master.Execute()
-
-interface_sub_model_part_slave = model_part_slave.GetSubModelPart("StructureInterface3D_interface_dest_struct")
-
-SetMPICommunicatorProcess(interface_sub_model_part_slave).Execute()
-pfc_slave = ParallelFillCommunicator(interface_sub_model_part_slave)
-pfc_slave.Execute()
 
 # Initialize GidIO
 output_file_master = "out_mapTest_master_r" + str(mpi.rank)
@@ -193,7 +187,7 @@ WriteNodalResultsCustom(gid_io_slave, VELOCITY, model_part_slave, write_time)
 
 
 ##### Mapper stuff #####
-nearestNeighborMapper = IterativeMortarMapper(interface_sub_model_part_master, interface_sub_model_part_slave)
+nearestNeighborMapper = Mapper.Mapper(model_part_master, model_part_slave, ProjectParameters)
 
 # Time step 1.0: Map; constant values
 write_time = 1.0

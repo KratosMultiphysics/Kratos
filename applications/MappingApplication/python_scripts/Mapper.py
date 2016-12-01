@@ -11,29 +11,22 @@ except:
     pass
 
 class Mapper:
-    def __init__(self, interface_model_part_origin, interface_model_part_destination, input_settings):
-        self.interface_model_part_origin = interface_model_part_origin
-        self.interface_model_part_destination = interface_model_part_destination
+    def __init__(self, model_part_origin, model_part_destination, input_settings):
+        self.model_part_origin = model_part_origin
+        self.model_part_destination = model_part_destination
         self.settings = input_settings
 
-        self.CheckInput() # Check if the Input is valid
+        self.CheckAndValidateJson() # Check json and set default parameters if necessary
 
-        self.default_parameters = KratosMultiphysics.Parameters("""{
-            "mapper_type"         : "",
-            "search_radius"       : -1.0,
-            "search_iterations"   : 10
-        }""")
-
-        # Overwrite the default settings with user-provided parameters
-        self.settings["mapper_settings"].RecursivelyValidateAndAssignDefaults(self.default_parameters)
+        self.ReadAndCheckInterfaceModelParts()
 
         self.search_radius_map = self.settings["mapper_settings"]["search_radius"].GetDouble()
         self.search_radius_inverse_map = self.settings["mapper_settings"]["search_radius"].GetDouble()
         self.search_iterations = self.settings["mapper_settings"]["search_iterations"].GetInt()
 
         if (self.search_radius_map < 0):
-            self.search_radius_map = ComputeSearchRadius(interface_model_part_origin)
-            self.search_radius_inverse_map = ComputeSearchRadius(interface_model_part_destination)
+            self.search_radius_map = ComputeSearchRadius(self.interface_model_part_origin)
+            self.search_radius_inverse_map = ComputeSearchRadius(self.interface_model_part_destination)
 
         self.type_of_mapper = self.settings["mapper_settings"]["mapper_type"].GetString()
 
@@ -71,7 +64,7 @@ class Mapper:
             #self.mapper_inverse_map.InverseMap(origin_variable, destination_variable, add_values, sign_positive)
             print("Map; inverse_map.InverseMap")
         else: # usual Case
-            #self.mapper_map.Map(origin_variable, destination_variable, add_values, sign_positive)
+            self.mapper_map.Map(origin_variable, destination_variable, add_values, sign_positive)
             print("Map; map.Map")
 
     # This Function maps from Destination (interface_model_part_destination) to Origin (interface_model_part_origin)
@@ -81,21 +74,47 @@ class Mapper:
             #self.mapper_map.InverseMap(origin_variable, destination_variable, add_values, sign_positive)
             print("InverseMap; map.InverseMap")
         else:
-            #self.mapper_inverse_map.Map(origin_variable, destination_variable, add_values, sign_positive)
+            self.mapper_inverse_map.Map(origin_variable, destination_variable, add_values, sign_positive)
             print("InverseMap; inverse_map.Map")
 
 
     ##### Auxilliary Functions ################################################
-    def CheckInput(self):
-        # TODO ok to check for conditions? => nearest neighbor only needs nodes!
-        if (self.interface_model_part_origin.NumberOfConditions(0) < 1):
-            raise ValueError("No conditions found in the origin model part")
-        if (self.interface_model_part_destination.NumberOfConditions(0) < 1):
-            raise ValueError("No conditions found in the destination model part")
-
+    def CheckAndValidateJson(self):
         if not (self.settings["mapper_settings"].Has("mapper_type")):
-            raise ValueError("No mapper defined in json")
+            raise ValueError("No mapper defined in json; \"mapper_type\" ")
 
+        if not (self.settings["mapper_settings"].Has("interface_submodel_part_origin")):
+            raise ValueError("No origin_submodel_part defined in json; \"interface_submodel_part_origin\"")
+
+        if not (self.settings["mapper_settings"].Has("interface_submodel_part_destination")):
+            raise ValueError("No destination_submodel_part defined in json; \"interface_submodel_part_destination\"")
+
+        self.default_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type"                           : "",
+            "interface_submodel_part_origin"        : "",
+            "interface_submodel_part_destination"   : "",
+            "search_radius"                         : -1.0,
+            "search_iterations"                     : 10
+        }""")
+
+        # Overwrite the default settings with user-provided parameters
+        self.settings["mapper_settings"].RecursivelyValidateAndAssignDefaults(self.default_parameters)
+
+    def ReadAndCheckInterfaceModelParts(self):
+        name_interface_submodel_part = self.settings["mapper_settings"]["interface_submodel_part_origin"].GetString()
+        self.interface_model_part_origin = self.model_part_origin.GetSubModelPart(name_interface_submodel_part)
+
+        name_interface_submodel_part = self.settings["mapper_settings"]["interface_submodel_part_destination"].GetString()
+        self.interface_model_part_destination = self.model_part_destination.GetSubModelPart(name_interface_submodel_part)
+
+        if (ComputeNumberOfNodes(self.interface_model_part_origin) < 1 and
+            ComputeNumberOfConditions(self.interface_model_part_origin) < 1):
+            raise ValueError("Neither nodes nor conditions found in the origin model part")
+        if (ComputeNumberOfNodes(self.interface_model_part_destination) < 1 and
+            ComputeNumberOfConditions(self.interface_model_part_destination) < 1):
+            raise ValueError("Neither nodes nor conditions found in the destination model part")
+
+        # TODO is the following necessary? => comes form the nonconformant mapper
         # domain_size_origin = self.interface_model_part_origin.ProcessInfo[DOMAIN_SIZE]
         # domain_size_destination = self.interface_model_part_destination.ProcessInfo[DOMAIN_SIZE]
         #
@@ -140,6 +159,13 @@ class Mapper:
         # print(self.settings.PrettyPrintJsonString())
         convergence_tolerance = self.settings["mapper_settings"]["iterative_mortar"]["convergence_tolerance"].GetDouble()
         convergence_iterations = self.settings["mapper_settings"]["iterative_mortar"]["convergence_iterations"].GetInt()
+
+        self.mapper_map = IterativeMortarMapper(self.interface_model_part_origin, self.interface_model_part_destination,
+                                                self.search_radius_map, self.search_iterations,
+                                                convergence_tolerance, convergence_iterations)
+        self.mapper_inverse_map = IterativeMortarMapper(self.interface_model_part_destination, self.interface_model_part_origin,
+                                                        self.search_radius_inverse_map, self.search_iterations,
+                                                        convergence_tolerance, convergence_iterations)
     # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     def InitializeMortarMapper(self):
