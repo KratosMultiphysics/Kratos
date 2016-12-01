@@ -113,13 +113,13 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool CheckFracturePropagation (Parameters& rParameters, ModelPart& rModelPart)
+    bool CheckFracturePropagation (Parameters& rParameters, ModelPart& rModelPart, const bool& move_mesh_flag)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
         GlobalPropagationVariables PropagationData;
         
-        this->InitializeCheckFracture(PropagationData, AuxVariables, rParameters, rModelPart);
+        this->InitializeCheckFracture(PropagationData, AuxVariables, rParameters, rModelPart, move_mesh_flag);
         
         //Loop for all pre-existing fractures
         for(unsigned int i = 0; i < rParameters["fractures_list"].size(); i++)
@@ -127,27 +127,28 @@ public:
             this->CheckFracture(i, PropagationData, AuxVariables, rParameters);
         }
         
-        this->FinalizeCheckFracture(PropagationData, rParameters, rModelPart);
+        this->FinalizeCheckFracture(PropagationData, rParameters, rModelPart, move_mesh_flag);
         
         return PropagationData.PropagateFractures;
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void MappingModelParts (Parameters& rParameters, ModelPart& rModelPartOld, ModelPart& rModelPartNew)
+    void MappingModelParts (Parameters& rParameters, ModelPart& rModelPartOld, ModelPart& rModelPartNew, const bool& move_mesh_flag)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
 
         // Note: after the CheckFracturePropagation method the rModelPartOld is in the reference state
 
-        this->InitializeMapping(AuxVariables,rModelPartNew);
+        this->InitializeMapping(AuxVariables,rModelPartNew, move_mesh_flag);
 
         this->NodalVariablesMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
 
         this->GaussPointStateVariableMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
-
-        this->UpdateMeshPosition(rModelPartNew);
+        
+        if(move_mesh_flag==true)
+            this->UpdateMeshPosition(rModelPartNew);
     }
 
 protected:
@@ -162,13 +163,15 @@ protected:
         GlobalPropagationVariables& rPropagationData,
         UtilityVariables& rAuxVariables,
         Parameters& rParameters,
-        ModelPart& rModelPart)
+        ModelPart& rModelPart,
+        const bool& move_mesh_flag)
     {
         // Set PropagateFractures bool to false
         rPropagationData.PropagateFractures = false;
 
         // Move mesh to the original position to work in the reference state
-        this->ResetMeshPosition(rModelPart);
+        if(move_mesh_flag==true)
+            this->ResetMeshPosition(rModelPart);
 
         // Locate fracture points inside CellMatrix
         this->SetFracturePoints(rPropagationData, rAuxVariables, rParameters, rModelPart);
@@ -282,12 +285,14 @@ protected:
     void FinalizeCheckFracture(
         const GlobalPropagationVariables& PropagationData,
         Parameters& rParameters,
-        ModelPart& rModelPart)
+        ModelPart& rModelPart,
+        const bool& move_mesh_flag)
     {
         if(PropagationData.PropagateFractures==false)
         {
             // Move mesh to the current position
-            this->UpdateMeshPosition(rModelPart);
+            if(move_mesh_flag==true)
+                this->UpdateMeshPosition(rModelPart);
         }
         else
         {
@@ -307,13 +312,36 @@ protected:
         PropDataFile.open ("PropagationData.tcl", std::fstream::out | std::fstream::trunc);
         PropDataFile.precision(12);
 
-        PropDataFile << "proc GetPropagationData {} {" << std::endl;
-        PropDataFile << "    set PropagationData [list]" << std::endl;
+        PropDataFile << "set PropagationData [list]" << std::endl;
 
         // GiDPath
-        PropDataFile << "    lappend PropagationData \"" << rParameters["fracture_data"]["gid_path"].GetString() << "\"" << std::endl;
+        PropDataFile << "lappend PropagationData \"" << rParameters["fracture_data"]["gid_path"].GetString() << "\"" << std::endl;
 
         int Id;
+
+        // BodySurfacesDict
+        for(unsigned int i = 0; i < rParameters["body_surfaces_list"].size(); i++)
+        {
+            Id = rParameters["body_surfaces_list"][i]["id"].GetInt();
+
+            PropDataFile << "dict set BodySurfacesDict " << Id << " Layer \""
+                         << rParameters["body_surfaces_list"][i]["layer"].GetString() << "\"" << std::endl;
+
+            PropDataFile << "set Groups [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["body_surfaces_list"][i]["groups"].size(); j++)
+            {
+                PropDataFile << "lappend Groups \"" << rParameters["body_surfaces_list"][i]["groups"][j].GetString() << "\"" << std::endl;
+            }
+            PropDataFile << "dict set BodySurfacesDict " << Id << " Groups $Groups" << std::endl;
+
+            PropDataFile << "set Lines [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["body_surfaces_list"][i]["lines"].size(); j++)
+            {
+                PropDataFile << "lappend Lines " << rParameters["body_surfaces_list"][i]["lines"][j].GetInt() << std::endl;
+            }
+            PropDataFile << "dict set BodySurfacesDict " << Id << " Lines $Lines" << std::endl;
+        }
+        PropDataFile << "lappend PropagationData $BodySurfacesDict" << std::endl;
 
         // FracturesDict
         for(unsigned int i = 0; i < rParameters["fractures_list"].size(); i++)
@@ -321,189 +349,164 @@ protected:
             Id = rParameters["fractures_list"][i]["id"].GetInt();
 
             // TipPoint
-            PropDataFile << "    dict set FracturesDict " << Id << " TipPoint Id "
+            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Id "
                          << rParameters["fractures_list"][i]["tip_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TipPoint Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Layer \""
                          << rParameters["fractures_list"][i]["tip_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["tip_point"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["tip_point"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["tip_point"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " TipPoint Groups $Groups" << std::endl;
-            PropDataFile << "    set Coordinates \"" << rParameters["fractures_list"][i]["tip_point"]["coordinates"][0].GetDouble()
+            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Groups $Groups" << std::endl;
+            PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["tip_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["tip_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["tip_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TipPoint Coordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Coordinates $Coordinates" << std::endl;
             // TopPoint
-            PropDataFile << "    dict set FracturesDict " << Id << " TopPoint Id "
+            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Id "
                          << rParameters["fractures_list"][i]["top_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TopPoint Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Layer \""
                          << rParameters["fractures_list"][i]["top_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_point"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["top_point"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["top_point"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " TopPoint Groups $Groups" << std::endl;
-            PropDataFile << "    set Coordinates \"" << rParameters["fractures_list"][i]["top_point"]["coordinates"][0].GetDouble()
+            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Groups $Groups" << std::endl;
+            PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["top_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["top_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["top_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TopPoint Coordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Coordinates $Coordinates" << std::endl;
             // BotPoint
-            PropDataFile << "    dict set FracturesDict " << Id << " BotPoint Id "
+            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Id "
                          << rParameters["fractures_list"][i]["bot_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " BotPoint Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Layer \""
                          << rParameters["fractures_list"][i]["bot_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_point"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["bot_point"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["bot_point"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " BotPoint Groups $Groups" << std::endl;
-            PropDataFile << "    set Coordinates \"" << rParameters["fractures_list"][i]["bot_point"]["coordinates"][0].GetDouble()
+            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Groups $Groups" << std::endl;
+            PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["bot_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["bot_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["bot_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " BotPoint Coordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Coordinates $Coordinates" << std::endl;
             // TopLine
-            PropDataFile << "    dict set FracturesDict " << Id << " TopLine Id "
+            PropDataFile << "dict set FracturesDict " << Id << " TopLine Id "
                          << rParameters["fractures_list"][i]["top_line"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TopLine Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " TopLine Layer \""
                          << rParameters["fractures_list"][i]["top_line"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_line"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["top_line"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["top_line"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " TopLine Groups $Groups" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " TopLine Groups $Groups" << std::endl;
 
-            PropDataFile << "    dict set FracturesDict " << Id << " TopLine InitPoint "
+            PropDataFile << "dict set FracturesDict " << Id << " TopLine InitPoint "
                          << rParameters["fractures_list"][i]["top_line"]["init_point"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " TopLine EndPoint "
+            PropDataFile << "dict set FracturesDict " << Id << " TopLine EndPoint "
                          << rParameters["fractures_list"][i]["top_line"]["end_point"].GetInt() << std::endl;
             // BotLine
-            PropDataFile << "    dict set FracturesDict " << Id << " BotLine Id "
+            PropDataFile << "dict set FracturesDict " << Id << " BotLine Id "
                          << rParameters["fractures_list"][i]["bot_line"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " BotLine Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " BotLine Layer \""
                          << rParameters["fractures_list"][i]["bot_line"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_line"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["bot_line"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["bot_line"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " BotLine Groups $Groups" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " BotLine Groups $Groups" << std::endl;
 
-            PropDataFile << "    dict set FracturesDict " << Id << " BotLine InitPoint "
+            PropDataFile << "dict set FracturesDict " << Id << " BotLine InitPoint "
                          << rParameters["fractures_list"][i]["bot_line"]["init_point"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " BotLine EndPoint "
+            PropDataFile << "dict set FracturesDict " << Id << " BotLine EndPoint "
                          << rParameters["fractures_list"][i]["bot_line"]["end_point"].GetInt() << std::endl;
             // InterfaceSurface
-            PropDataFile << "    dict set FracturesDict " << Id << " InterfaceSurface Id "
+            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Id "
                          << rParameters["fractures_list"][i]["interface_surface"]["id"].GetInt() << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " InterfaceSurface Layer \""
+            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Layer \""
                          << rParameters["fractures_list"][i]["interface_surface"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "    set Groups [list]" << std::endl;
+            PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["interface_surface"]["groups"].size(); j++)
             {
-                PropDataFile << "    lappend Groups \"" << rParameters["fractures_list"][i]["interface_surface"]["groups"][j].GetString() << "\"" << std::endl;
+                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["interface_surface"]["groups"][j].GetString() << "\"" << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " InterfaceSurface Groups $Groups" << std::endl;
-            PropDataFile << "    set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["top_line"][0].GetInt()
+            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Groups $Groups" << std::endl;
+            PropDataFile << "set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["top_line"][0].GetInt()
                          << " " << rParameters["fractures_list"][i]["interface_surface"]["top_line"][1].GetInt() << "\"" << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " InterfaceSurface TopLine $Lines" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface TopLine $Lines" << std::endl;
 
-            PropDataFile << "    set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["bot_line"][0].GetInt()
+            PropDataFile << "set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["bot_line"][0].GetInt()
                          << " " << rParameters["fractures_list"][i]["interface_surface"]["bot_line"][1].GetInt() << "\"" << std::endl;
-            PropDataFile << "    dict set FracturesDict " << Id << " InterfaceSurface BotLine $Lines" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface BotLine $Lines" << std::endl;
             // BodySurfaces
-            PropDataFile << "    set BodySurfaces [list]" << std::endl;
+            PropDataFile << "set BodySurfaces [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["body_surfaces"].size(); j++)
             {
-                PropDataFile << "    lappend BodySurfaces " << rParameters["fractures_list"][i]["body_surfaces"][j].GetInt() << std::endl;
+                PropDataFile << "lappend BodySurfaces " << rParameters["fractures_list"][i]["body_surfaces"][j].GetInt() << std::endl;
             }
-            PropDataFile << "    dict set FracturesDict " << Id << " BodySurfaces $BodySurfaces" << std::endl;
+            PropDataFile << "dict set FracturesDict " << Id << " BodySurfaces $BodySurfaces" << std::endl;
         }
-        PropDataFile << "    lappend PropagationData $FracturesDict" << std::endl;
-
-        // BodySurfacesDict
-        for(unsigned int i = 0; i < rParameters["body_surfaces_list"].size(); i++)
-        {
-            Id = rParameters["body_surfaces_list"][i]["id"].GetInt();
-
-            PropDataFile << "    dict set BodySurfacesDict " << Id << " Layer \""
-                         << rParameters["body_surfaces_list"][i]["layer"].GetString() << "\"" << std::endl;
-
-            PropDataFile << "    set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["body_surfaces_list"][i]["groups"].size(); j++)
-            {
-                PropDataFile << "    lappend Groups \"" << rParameters["body_surfaces_list"][i]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "    dict set BodySurfacesDict " << Id << " Groups $Groups" << std::endl;
-
-            PropDataFile << "    set Lines [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["body_surfaces_list"][i]["lines"].size(); j++)
-            {
-                PropDataFile << "    lappend Lines " << rParameters["body_surfaces_list"][i]["lines"][j].GetInt() << std::endl;
-            }
-            PropDataFile << "    dict set BodySurfacesDict " << Id << " Lines $Lines" << std::endl;
-        }
-        PropDataFile << "    lappend PropagationData $BodySurfacesDict" << std::endl;
+        PropDataFile << "lappend PropagationData $FracturesDict" << std::endl;
 
         // PropagationDict
-        PropDataFile << "    set PropagationDict [dict create]" << std::endl;
+        PropDataFile << "set PropagationDict [dict create]" << std::endl;
         for(unsigned int i = 0; i < PropagationData.PropagationVector.size(); i++)
         {
-            PropDataFile << "    dict set PropagationDict " << i << " MotherFractureId "
+            PropDataFile << "dict set PropagationDict " << i << " MotherFractureId "
                          << PropagationData.PropagationVector[i].MotherFractureId << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.PropagationVector[i].TopInitCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.PropagationVector[i].TopInitCoordinates[0]
                          << " " << PropagationData.PropagationVector[i].TopInitCoordinates[1] << " "
                          << PropagationData.PropagationVector[i].TopInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set PropagationDict " << i << " TopInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set PropagationDict " << i << " TopInitCoordinates $Coordinates" << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.PropagationVector[i].BotInitCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.PropagationVector[i].BotInitCoordinates[0]
                          << " " << PropagationData.PropagationVector[i].BotInitCoordinates[1] << " "
                          << PropagationData.PropagationVector[i].BotInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set PropagationDict " << i << " BotInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set PropagationDict " << i << " BotInitCoordinates $Coordinates" << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.PropagationVector[i].TipCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.PropagationVector[i].TipCoordinates[0]
                          << " " << PropagationData.PropagationVector[i].TipCoordinates[1] << " "
                          << PropagationData.PropagationVector[i].TipCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set PropagationDict " << i << " TipCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set PropagationDict " << i << " TipCoordinates $Coordinates" << std::endl;
         }
-        PropDataFile << "    lappend PropagationData $PropagationDict" << std::endl;
+        PropDataFile << "lappend PropagationData $PropagationDict" << std::endl;
 
         // BifurcationDict
-        PropDataFile << "    set BifurcationDict [dict create]" << std::endl;
+        PropDataFile << "set BifurcationDict [dict create]" << std::endl;
         for(unsigned int i = 0; i < PropagationData.BifurcationVector.size(); i++)
         {
-            PropDataFile << "    dict set BifurcationDict " << i << " MotherFractureId "
+            PropDataFile << "dict set BifurcationDict " << i << " MotherFractureId "
                          << PropagationData.BifurcationVector[i].MotherFractureId << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.BifurcationVector[i].TopInitCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopInitCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopInitCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set BifurcationDict " << i << " TopInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopInitCoordinates $Coordinates" << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.BifurcationVector[i].BotInitCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].BotInitCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].BotInitCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].BotInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set BifurcationDict " << i << " BotInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " BotInitCoordinates $Coordinates" << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.BifurcationVector[i].TopTipCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopTipCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopTipCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopTipCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set BifurcationDict " << i << " TopTipCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopTipCoordinates $Coordinates" << std::endl;
 
-            PropDataFile << "    set Coordinates \"" << PropagationData.BifurcationVector[i].BotTipCoordinates[0]
+            PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].BotTipCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].BotTipCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].BotTipCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "    dict set BifurcationDict " << i << " BotTipCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " BotTipCoordinates $Coordinates" << std::endl;
         }
-        PropDataFile << "    lappend PropagationData $BifurcationDict" << std::endl;
+        PropDataFile << "lappend PropagationData $BifurcationDict" << std::endl;
 
-        PropDataFile << "    return $PropagationData" << std::endl;
-        PropDataFile << "}" << std::endl;
+        PropDataFile << "return $PropagationData" << std::endl;
 
         PropDataFile.close();
     }
@@ -512,10 +515,12 @@ protected:
 
     void InitializeMapping(
         UtilityVariables& rAuxVariables,
-        ModelPart& rModelPartNew)
+        ModelPart& rModelPartNew,
+        const bool& move_mesh_flag)
     {
         // Move mesh to the original position to work in the reference state
-        this->ResetMeshPosition(rModelPartNew);
+        if(move_mesh_flag==true)
+            this->ResetMeshPosition(rModelPartNew);
 
         this->ComputeCellMatrixDimensions(rAuxVariables,rModelPartNew);
     }

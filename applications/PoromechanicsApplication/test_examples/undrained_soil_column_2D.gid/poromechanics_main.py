@@ -126,7 +126,9 @@ gid_output.ExecuteBeforeSolutionLoop()
 
 # Initialize Fracture Propagation Utility
 if FracturePropagation:
-    fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,problem_name)
+    fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
+                                                                                             problem_name,
+                                                                                             ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
 

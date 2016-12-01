@@ -293,6 +293,8 @@ End Conditions
 
 
 Begin SubModelPart Body_Part-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2

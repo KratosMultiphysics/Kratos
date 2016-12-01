@@ -48,6 +48,7 @@ public:
     using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
+    using MotherType::mpParameters;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,20 +67,6 @@ public:
         ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag) 
         {
-            //only include validation with c++11 since raw_literals do not exist in c++03
-            Parameters default_parameters( R"(
-                {
-                    "characteristic_length": 0.05,
-                    "search_neighbours_step": true,
-                    "body_domain_sub_model_part_list": [""],
-                    "loads_sub_model_part_list": [""],
-                    "loads_variable_list" : [""]
-                }  )" );
-            
-            // Validate agains defaults -- this also ensures no type mismatch
-            rParameters.ValidateAndAssignDefaults(default_parameters);
-            
-            mpParameters = &rParameters;
             mNonlocalDamageIsInitialized = false;
             mSearchNeighboursAtEachStep = rParameters["search_neighbours_step"].GetBool();
         }
@@ -277,7 +264,6 @@ public:
 protected:
 
     /// Member Variables
-    Parameters* mpParameters;
     NonlocalDamageUtilities* mpNonlocalDamageUtility;
     bool mNonlocalDamageIsInitialized;
     bool mSearchNeighboursAtEachStep;

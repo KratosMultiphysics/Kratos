@@ -8,7 +8,7 @@ import shutil
 
 class FracturePropagationUtility:
 
-    def __init__(self,domain_size,problem_name):
+    def __init__(self,domain_size,problem_name,move_mesh_flag):
         
         # Construct the utility
         self.domain_size = domain_size
@@ -26,6 +26,8 @@ class FracturePropagationUtility:
         else:
             self.execute_gid = "./gid"
         
+        self.move_mesh_flag = move_mesh_flag
+        
         # Define FracturesData
         parameter_file = open("FracturesData.json",'r')
         self.FracturesData = Parameters( parameter_file.read())
@@ -35,17 +37,6 @@ class FracturePropagationUtility:
         self.step_count = 0
         self.propagation_count = self.propagation_frequency
         self.remesh_count = 0
-
-        # Save preferences to avoid splash window when running GiD in minimized window #TODO: I should also save the meshing preferences and pass the OMP_THREADS
-        preferences = open("gid_preferences.ini",'w')
-        preferences.write("GID_OMP_NUM_THREADS 1\n")
-        preferences.write("AutomaticCorrectSizes 1\n")
-        preferences.write("SplashWindow 0\n")
-        preferences.write("SizeTransitionsFactor 0.4\n")
-        preferences.write("BoundaryWeightedTransition 1\n")
-        preferences.write("SurfaceMesher 1\n")
-        preferences.write("VolumeMesher 0\n")
-        preferences.close()
         
         # Define names and paths
         self.problem_name = problem_name
@@ -116,7 +107,7 @@ class FracturePropagationUtility:
         
         # Check fracture propagation
         propagate_fractures = False
-        propagate_fractures = self.PropagationUtility.CheckFracturePropagation(self.FracturesData, main_model_part)
+        propagate_fractures = self.PropagationUtility.CheckFracturePropagation(self.FracturesData,main_model_part,self.move_mesh_flag)
         
         # Generate new fractures if needed
         if propagate_fractures:
@@ -263,7 +254,7 @@ class FracturePropagationUtility:
         
         ### Mapping between old and new model parts ------------------------------------------------------------------
         
-        self.PropagationUtility.MappingModelParts(self.FracturesData, main_model_part_old, main_model_part)
+        self.PropagationUtility.MappingModelParts(self.FracturesData,main_model_part_old,main_model_part,self.move_mesh_flag)
         
         # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
         if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "Arc-Length":

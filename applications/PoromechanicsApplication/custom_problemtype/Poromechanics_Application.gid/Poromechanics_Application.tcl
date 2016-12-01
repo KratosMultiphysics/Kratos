@@ -38,15 +38,17 @@ proc AfterReadGIDProject { filename } {
 #-------------------------------------------------------------------------------
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
-        
-    # Write MDPA
+
+    # Source files
     source [file join $problemtypedir WriteMdpa.tcl]
-    set TableList [WriteMdpa $basename $dir]
+    source [file join $problemtypedir WriteProjectParameters.tcl]
+
+    # Write MDPA
+    set TableDict [WriteMdpa $basename $dir $problemtypedir]
 
     # Write ProjectParameters
-    source [file join $problemtypedir WriteProjectParameters.tcl]
-    WriteProjectParameters $basename $dir $TableList
-        
+    WriteProjectParameters $basename $dir $problemtypedir $TableDict
+
     # Write Initial fractures data
     if {[GiD_AccessValue get gendata Fracture_Propagation]==true && [GiD_AccessValue get gendata Domain_Size]==2} {
         # Define GiDPath
@@ -57,8 +59,23 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
         set gidexe [string trimright $gidexe gid.exe]
         
         source [file join $problemtypedir FracturePropagation2D.tcl]
-        WriteInitialFracturesData $dir $gidexe
+        WriteInitialFracturesData $dir $problemtypedir $gidexe
+        
+    } elseif {[GiD_AccessValue get gendata Fracture_Propagation]==true} {
+        # Define GiDPath
+        if {[regexp -all {\\} $gidexe] > 0} {
+            # Windows
+            regsub -all {\\} $gidexe {/} gidexe
+        }
+        set gidexe [string trimright $gidexe gid.exe]
+        
     }
+
+    ### Measure time
+    #set start_time_1 [clock clicks]
+    #set end_time_1 [expr { [clock clicks]-$start_time_1 }]
+    #WarnWin "Time for GenerateNewFractures: $end_time_1 clicks"
+    ###
 }
 
 
@@ -73,24 +90,25 @@ namespace eval Poromechanics_Application {
 #-------------------------------------------------------------------------------
 
 proc Poromechanics_Application::PropagateFractures2D { } {
-    
-    # Get Propagation Data
-    source [file join $::Poromechanics_Application::ProblemPath PropagationData.tcl]
-    set PropagationData [GetPropagationData]
-    
-    # Generate New Geometry and Write New FracturesData
+
+    # Source Propagation Data and file
+    set PropagationData [source [file join $::Poromechanics_Application::ProblemPath PropagationData.tcl]]
     source [file join $::Poromechanics_Application::ProblemTypePath FracturePropagation2D.tcl]
-    GenerateNewFractures $::Poromechanics_Application::ProblemPath $PropagationData
-    GiD_Process Mescape Files Save
-    
-    # Write new MDPA
+
+    # Generate New Geometry and Write New FracturesData
+    GenerateNewFractures $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $PropagationData
+
+    # Source files
     source [file join $::Poromechanics_Application::ProblemTypePath WriteMdpa.tcl]
-    set TableList [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath]
+    source [file join $::Poromechanics_Application::ProblemTypePath WriteProjectParameters.tcl]
+
+    # Write new MDPA
+    set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
 
     # Write new ProjectParameters
-    source [file join $::Poromechanics_Application::ProblemTypePath WriteProjectParameters.tcl]
-    WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $TableList
-    
+    WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
+
+    # Quit GiD
     GiD_Process Mescape Files Save
     GiD_Process escape escape escape escape escape Quit
 }

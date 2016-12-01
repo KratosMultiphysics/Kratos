@@ -26,12 +26,12 @@ Begin Properties 2
   BULK_MODULUS_FLUID 2.0e7
   TRANSVERSAL_PERMEABILITY 1.0e-11
   DYNAMIC_VISCOSITY 1.0e-3
+  THICKNESS 1.0
   DAMAGE_THRESHOLD 1.0e-3
   MINIMUM_JOINT_WIDTH 2.0e-3
   CRITICAL_DISPLACEMENT 1.0e-4
   YIELD_STRESS 1.0
   FRICTION_COEFFICIENT 0.4
-  THICKNESS 1.0
 End Properties
 
 Begin Properties 3
@@ -45,12 +45,12 @@ Begin Properties 3
   BULK_MODULUS_FLUID 2.0e7
   TRANSVERSAL_PERMEABILITY 1.0e-11
   DYNAMIC_VISCOSITY 1.0e-3
+  THICKNESS 1.0
   DAMAGE_THRESHOLD 1.0e-3
   MINIMUM_JOINT_WIDTH 2.0e-3
   CRITICAL_DISPLACEMENT 1.0e-4
   YIELD_STRESS 0.0
   FRICTION_COEFFICIENT 0.4
-  THICKNESS 1.0
 End Properties
 
 
@@ -27006,6 +27006,8 @@ End Conditions
 
 
 Begin SubModelPart Body_Part-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
@@ -53095,6 +53097,8 @@ Begin SubModelPart Body_Part-auto-1
 End SubModelPart
 
 Begin SubModelPart Interface_Part-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
   Begin SubModelPartNodes
     1007
     1017
@@ -55247,6 +55251,8 @@ Begin SubModelPart Interface_Part-auto-1
 End SubModelPart
 
 Begin SubModelPart Interface_Part-auto-2
+  Begin SubModelPartTables
+  End SubModelPartTables
   Begin SubModelPartNodes
     2313
     2325

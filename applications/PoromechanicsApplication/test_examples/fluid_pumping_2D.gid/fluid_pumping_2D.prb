@@ -121,6 +121,8 @@ QUESTION: Write_Permeability#CB#(true,false)
 VALUE: false
 QUESTION: Write_Damage#CB#(true,false)
 VALUE: true
+QUESTION: Write_Joint_Width#CB#(true,false)
+VALUE: false
 QUESTION: Write_Local_Stress_Vector#CB#(true,false)
 VALUE: false
 QUESTION: Write_Local_Relative_Displacement#CB#(true,false)

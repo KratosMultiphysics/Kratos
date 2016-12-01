@@ -1,6 +1,6 @@
-BeginZE /Users/ignasi/Downloads/tests/arc_length_test.gid/arc_length_test.vv
+BeginZE /home/ipouplana/Descargas/tests/arc_length_test.gid/arc_length_test.vv
    x -0.0443274974822998047 0.884327471256256104
-   y 0.966679155826568604 -0.766679108142852783
+   y 0.908887982368469238 -0.708887934684753418
    z -0.464660167694091797 0.464660167694091797
    e 0.464327484369277954
    v 0 0 0
@@ -29,7 +29,7 @@ BeginZE /Users/ignasi/Downloads/tests/arc_length_test.gid/arc_length_test.vv
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /Users/ignasi/Downloads/tests/arc_length_test.gid/arc_length_test.vv
+EndZE /home/ipouplana/Descargas/tests/arc_length_test.gid/arc_length_test.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

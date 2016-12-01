@@ -1,691 +1,265 @@
-proc WriteProjectParameters { basename dir TableList} {
-    
+proc WriteProjectParameters { basename dir problemtypedir TableDict} {
+
+    ## Source auxiliar procedures
+    source [file join $problemtypedir ProjectParamAuxProcs.tcl]
+        
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
-    set varfile [open $filename w]
+    set FileVar [open $filename w]
     
-    puts $varfile "\{"
+    puts $FileVar "\{"
         
     ## problem_data
-    puts $varfile "    \"problem_data\": \{"
-    puts $varfile "        \"problem_name\":         \"$basename\","
-    puts $varfile "        \"model_part_name\":      \"PorousDomain\","
-    puts $varfile "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
-    puts $varfile "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
-    puts $varfile "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $varfile "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
-    puts $varfile "        \"OMP_threads\":          [GiD_AccessValue get gendata OMP_Threads]"
-    puts $varfile "    \},"
+    puts $FileVar "    \"problem_data\": \{"
+    puts $FileVar "        \"problem_name\":         \"$basename\","
+    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
+    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
+    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"OMP_threads\":          [GiD_AccessValue get gendata OMP_Threads]"
+    puts $FileVar "    \},"
     
     ## solver_settings
-    puts $varfile "    \"solver_settings\": \{"
-    puts $varfile "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
-    puts $varfile "        \"model_import_settings\":              \{"
-    puts $varfile "            \"input_type\":     \"mdpa\","
-    puts $varfile "            \"input_filename\": \"$basename\""
-    puts $varfile "        \},"
-    puts $varfile "        \"buffer_size\":                        2,"
-    puts $varfile "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
-    puts $varfile "        \"reform_dofs_at_each_step\":           false,"
-    puts $varfile "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
-    puts $varfile "        \"move_mesh_flag\":                     true,"
-    puts $varfile "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
-    puts $varfile "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme_Type]\","
-    puts $varfile "        \"newmark_beta\":                       [GiD_AccessValue get gendata Newmark_Beta],"
-    puts $varfile "        \"newmark_gamma\":                      [GiD_AccessValue get gendata Newmark_Gamma],"
-    puts $varfile "        \"newmark_theta\":                      [GiD_AccessValue get gendata Newmark_Theta],"
-    puts $varfile "        \"rayleigh_m\":                         [GiD_AccessValue get gendata Rayleigh_Mass],"
-    puts $varfile "        \"rayleigh_k\":                         [GiD_AccessValue get gendata Rayleigh_Stiffness],"
-    puts $varfile "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
-    puts $varfile "        \"fracture_propagation\":               [GiD_AccessValue get gendata Fracture_Propagation],"
-    puts $varfile "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
-    puts $varfile "        \"displacement_relative_tolerance\":    [GiD_AccessValue get gendata Displacement_Relative_Tolerance],"
-    puts $varfile "        \"displacement_absolute_tolerance\":    [GiD_AccessValue get gendata Displacement_Absolute_Tolerance],"
-    puts $varfile "        \"residual_relative_tolerance\":        [GiD_AccessValue get gendata Residual_Relative_Tolerance],"
-    puts $varfile "        \"residual_absolute_tolerance\":        [GiD_AccessValue get gendata Residual_Absolute_Tolerance],"
-    puts $varfile "        \"max_iteration\":                      [GiD_AccessValue get gendata Max_Iterations],"
-    puts $varfile "        \"desired_iterations\":                 [GiD_AccessValue get gendata Desired_Iterations],"
-    puts $varfile "        \"max_radius_factor\":                  [GiD_AccessValue get gendata Max_Radius_Factor],"
-    puts $varfile "        \"min_radius_factor\":                  [GiD_AccessValue get gendata Min_Radius_Factor],"
-    puts $varfile "        \"builder\":                            \"[GiD_AccessValue get gendata Builder]\","
-    puts $varfile "        \"nonlocal_damage\":                    [GiD_AccessValue get gendata Non-local_Damage],"
-    puts $varfile "        \"characteristic_length\":              [GiD_AccessValue get gendata Characteristic_Length],"
+    puts $FileVar "    \"solver_settings\": \{"
+    puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+    puts $FileVar "        \"model_import_settings\":              \{"
+    puts $FileVar "            \"input_type\":     \"mdpa\","
+    puts $FileVar "            \"input_filename\": \"$basename\""
+    puts $FileVar "        \},"
+    puts $FileVar "        \"buffer_size\":                        2,"
+    puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
+    puts $FileVar "        \"reform_dofs_at_each_step\":           false,"
+    puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
+    puts $FileVar "        \"move_mesh_flag\":                     true,"
+    puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
+    puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme_Type]\","
+    puts $FileVar "        \"newmark_beta\":                       [GiD_AccessValue get gendata Newmark_Beta],"
+    puts $FileVar "        \"newmark_gamma\":                      [GiD_AccessValue get gendata Newmark_Gamma],"
+    puts $FileVar "        \"newmark_theta\":                      [GiD_AccessValue get gendata Newmark_Theta],"
+    puts $FileVar "        \"rayleigh_m\":                         [GiD_AccessValue get gendata Rayleigh_Mass],"
+    puts $FileVar "        \"rayleigh_k\":                         [GiD_AccessValue get gendata Rayleigh_Stiffness],"
+    puts $FileVar "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
+    puts $FileVar "        \"fracture_propagation\":               [GiD_AccessValue get gendata Fracture_Propagation],"
+    puts $FileVar "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
+    puts $FileVar "        \"displacement_relative_tolerance\":    [GiD_AccessValue get gendata Displacement_Relative_Tolerance],"
+    puts $FileVar "        \"displacement_absolute_tolerance\":    [GiD_AccessValue get gendata Displacement_Absolute_Tolerance],"
+    puts $FileVar "        \"residual_relative_tolerance\":        [GiD_AccessValue get gendata Residual_Relative_Tolerance],"
+    puts $FileVar "        \"residual_absolute_tolerance\":        [GiD_AccessValue get gendata Residual_Absolute_Tolerance],"
+    puts $FileVar "        \"max_iteration\":                      [GiD_AccessValue get gendata Max_Iterations],"
+    puts $FileVar "        \"desired_iterations\":                 [GiD_AccessValue get gendata Desired_Iterations],"
+    puts $FileVar "        \"max_radius_factor\":                  [GiD_AccessValue get gendata Max_Radius_Factor],"
+    puts $FileVar "        \"min_radius_factor\":                  [GiD_AccessValue get gendata Min_Radius_Factor],"
+    puts $FileVar "        \"builder\":                            \"[GiD_AccessValue get gendata Builder]\","
+    puts $FileVar "        \"nonlocal_damage\":                    [GiD_AccessValue get gendata Non-local_Damage],"
+    puts $FileVar "        \"characteristic_length\":              [GiD_AccessValue get gendata Characteristic_Length],"
     ## linear_solver_settings
-    puts $varfile "        \"linear_solver_settings\":             \{"
+    puts $FileVar "        \"linear_solver_settings\":             \{"
     if {[GiD_AccessValue get gendata Solver_Type]=="AMGCL"} {
-        puts $varfile "            \"solver_type\":                    \"AMGCL\","
-        puts $varfile "            \"smoother_type\":                  \"ilu0\","
-        puts $varfile "            \"krylov_type\":                    \"gmres\","
-        puts $varfile "            \"coarsening_type\":                \"aggregation\","
-        puts $varfile "            \"max_iteration\":                  100,"
-        puts $varfile "            \"provide_coordinates\":            false,"
-        puts $varfile "            \"gmres_krylov_space_dimension\":   100,"
-        puts $varfile "            \"verbosity\":                      [GiD_AccessValue get gendata Verbosity],"
-        puts $varfile "            \"tolerance\":                      1.0e-6,"
-        puts $varfile "            \"scaling\":                        [GiD_AccessValue get gendata Scaling],"
-        puts $varfile "            \"block_size\":                     1,"
-        puts $varfile "            \"use_block_matrices_if_possible\": true,"
-        puts $varfile "            \"coarse_enough\":                  5000"
+        puts $FileVar "            \"solver_type\":                    \"AMGCL\","
+        puts $FileVar "            \"smoother_type\":                  \"ilu0\","
+        puts $FileVar "            \"krylov_type\":                    \"gmres\","
+        puts $FileVar "            \"coarsening_type\":                \"aggregation\","
+        puts $FileVar "            \"max_iteration\":                  100,"
+        puts $FileVar "            \"provide_coordinates\":            false,"
+        puts $FileVar "            \"gmres_krylov_space_dimension\":   100,"
+        puts $FileVar "            \"verbosity\":                      [GiD_AccessValue get gendata Verbosity],"
+        puts $FileVar "            \"tolerance\":                      1.0e-6,"
+        puts $FileVar "            \"scaling\":                        [GiD_AccessValue get gendata Scaling],"
+        puts $FileVar "            \"block_size\":                     1,"
+        puts $FileVar "            \"use_block_matrices_if_possible\": true,"
+        puts $FileVar "            \"coarse_enough\":                  5000"
     } elseif {[GiD_AccessValue get gendata Solver_Type]=="BICGSTABSolver"} {
-        puts $varfile "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
-        puts $varfile "            \"tolerance\":                      1.0e-5,"
-        puts $varfile "            \"max_iteration\":                  100,"
-        puts $varfile "            \"scaling\":                        [GiD_AccessValue get gendata Scaling],"
-        puts $varfile "            \"preconditioner_type\":            \"ILU0Preconditioner\""
+        puts $FileVar "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
+        puts $FileVar "            \"tolerance\":                      1.0e-6,"
+        puts $FileVar "            \"max_iteration\":                  100,"
+        puts $FileVar "            \"scaling\":                        [GiD_AccessValue get gendata Scaling],"
+        puts $FileVar "            \"preconditioner_type\":            \"ILU0Preconditioner\""
     } else {
-        puts $varfile "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
-        puts $varfile "            \"tolerance\":                      1.0e-5,"
-        puts $varfile "            \"max_iteration\":                  100"
+        puts $FileVar "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
+        puts $FileVar "            \"tolerance\":                      1.0e-6,"
+        puts $FileVar "            \"max_iteration\":                  100"
     }
-    puts $varfile "        \},"
+    puts $FileVar "        \},"
     ## problem_domain_sub_model_part_list
     set PutStrings \[
     # Body_Part
-    set Groups [GiD_Info conditions Body_Part groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Body_Part
     # Interface_Part
-    set Groups [GiD_Info conditions Interface_Part groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Interface_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $varfile "        \"problem_domain_sub_model_part_list\": $PutStrings,"
+    puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
     ## body_domain_sub_model_part_list
     set PutStrings \[
-    set Groups [GiD_Info conditions Body_Part groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $varfile "        \"body_domain_sub_model_part_list\":      $PutStrings,"
+    puts $FileVar "        \"body_domain_sub_model_part_list\":      $PutStrings,"
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
-    set Groups [GiD_Info conditions Solid_Displacement groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Solid_Displacement
     # Fluid_Pressure
-    set Groups [GiD_Info conditions Fluid_Pressure groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Fluid_Pressure
     # Force
-    set Groups [GiD_Info conditions Force groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Force
     # Face_Load
-    set Groups [GiD_Info conditions Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Face_Load
     # Normal_Load
-    set Groups [GiD_Info conditions Normal_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Normal_Load
     # Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Normal_Fluid_Flux
     # Interface_Face_Load
-    set Groups [GiD_Info conditions Interface_Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Interface_Face_Load
     # Interface_Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Interface_Normal_Fluid_Flux
     # Body_Acceleration
-    set Groups [GiD_Info conditions Body_Acceleration groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNames PutStrings Body_Acceleration
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $varfile "        \"processes_sub_model_part_list\":      $PutStrings,"
+    puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings,"
     ## loads_sub_model_part_list
     set PutStrings \[
     set iGroup 0
     # Force
-    set Groups [GiD_Info conditions Force groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Force
     # Face_Load
-    set Groups [GiD_Info conditions Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Face_Load
     # Normal_Load
-    set Groups [GiD_Info conditions Normal_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Normal_Load
     # Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Normal_Fluid_Flux
     # Interface_Face_Load
-    set Groups [GiD_Info conditions Interface_Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Interface_Face_Load
     # Interface_Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Interface_Normal_Fluid_Flux
     # Body_Acceleration
-    set Groups [GiD_Info conditions Body_Acceleration groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        incr iGroup
-        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
-    }
+    AppendGroupNamesWithNum PutStrings iGroup Body_Acceleration
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $varfile "        \"loads_sub_model_part_list\":          $PutStrings,"
+    puts $FileVar "        \"loads_sub_model_part_list\":          $PutStrings,"
     ## loads_variable_list
     set PutStrings \[
     # Force
-    set Groups [GiD_Info conditions Force groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" FORCE \" ,
-    }
+    AppendGroupVariables PutStrings Force FORCE
     # Face_Load
-    set Groups [GiD_Info conditions Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" FACE_LOAD \" ,
-    }
+    AppendGroupVariables PutStrings Face_Load FACE_LOAD
     # Normal_Load
-    set Groups [GiD_Info conditions Normal_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" NORMAL_CONTACT_STRESS \" ,
-    }
+    AppendGroupVariables PutStrings Normal_Load NORMAL_CONTACT_STRESS
     # Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" NORMAL_FLUID_FLUX \" ,
-    }
+    AppendGroupVariables PutStrings Normal_Fluid_Flux NORMAL_FLUID_FLUX
     # Interface_Face_Load
-    set Groups [GiD_Info conditions Interface_Face_Load groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" FACE_LOAD \" ,
-    }
+    AppendGroupVariables PutStrings Interface_Face_Load FACE_LOAD
     # Interface_Normal_Fluid_Flux
-    set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" NORMAL_FLUID_FLUX \" ,
-    }
+    AppendGroupVariables PutStrings Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
     # Body_Acceleration
-    set Groups [GiD_Info conditions Body_Acceleration groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        append PutStrings \" VOLUME_ACCELERATION \" ,
-    }
+    AppendGroupVariables PutStrings Body_Acceleration VOLUME_ACCELERATION
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $varfile "        \"loads_variable_list\":                $PutStrings"
-    puts $varfile "    \},"
-    
+    puts $FileVar "        \"loads_variable_list\":                $PutStrings"
+    puts $FileVar "    \},"
+
     ## output_configuration
-    puts $varfile "    \"output_configuration\": \{"
-    puts $varfile "        \"result_file_configuration\": \{"
-    puts $varfile "            \"gidpost_flags\":       \{"
-    puts $varfile "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
-    puts $varfile "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
-    puts $varfile "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
+    puts $FileVar "    \"output_configuration\": \{"
+    puts $FileVar "        \"result_file_configuration\": \{"
+    puts $FileVar "            \"gidpost_flags\":       \{"
+    puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
+    puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
+    puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
     if {[GiD_AccessValue get gendata Fracture_Propagation]==true} {
-        puts $varfile "                \"MultiFileFlag\":         \"MultipleFiles\""
-        puts $varfile "            \},"
-        puts $varfile "            \"file_label\":          \"time\","
-        puts $varfile "            \"output_control_type\": \"time\","
+        puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
+        puts $FileVar "            \},"
+        puts $FileVar "            \"file_label\":          \"time\","
+        puts $FileVar "            \"output_control_type\": \"time\","
     } else {
-        puts $varfile "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
-        puts $varfile "            \},"
-        puts $varfile "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
-        puts $varfile "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
+        puts $FileVar "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
+        puts $FileVar "            \},"
+        puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
+        puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
     }
-    puts $varfile "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
-    puts $varfile "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
-    puts $varfile "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
-    puts $varfile "            \"skin_output\":         [GiD_AccessValue get gendata Skin_output],"
-    puts $varfile "            \"plane_output\":        \[\],"
+    puts $FileVar "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
+    puts $FileVar "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
+    puts $FileVar "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
+    puts $FileVar "            \"skin_output\":         [GiD_AccessValue get gendata Skin_output],"
+    puts $FileVar "            \"plane_output\":        \[\],"
     # nodal_results
     set PutStrings \[
     set iGroup 0
-    if {[GiD_AccessValue get gendata Write_Solid_Displacement]==true} {
-        incr iGroup
-        append PutStrings \" DISPLACEMENT \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Fluid_Pressure]==true} {
-        incr iGroup
-        append PutStrings \" WATER_PRESSURE \" ,
-    }
+    AppendOutputVariables PutStrings iGroup Write_Solid_Displacement DISPLACEMENT
+    AppendOutputVariables PutStrings iGroup Write_Fluid_Pressure WATER_PRESSURE
     if {[GiD_AccessValue get gendata Write_Reactions]==true} {
         incr iGroup
         append PutStrings \" REACTION \" , \" REACTION_WATER_PRESSURE \" ,
     }
-    if {[GiD_AccessValue get gendata Write_Force]==true} {
-        incr iGroup
-        append PutStrings \" FORCE \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Face_Load]==true} {
-        incr iGroup
-        append PutStrings \" FACE_LOAD \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Normal_Load]==true} {
-        incr iGroup
-        append PutStrings \" NORMAL_CONTACT_STRESS \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Tangential_Load]==true} {
-        incr iGroup
-        append PutStrings \" TANGENTIAL_CONTACT_STRESS \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Normal_Fluid_Flux]==true} {
-        incr iGroup
-        append PutStrings \" NORMAL_FLUID_FLUX \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Body_Acceleration]==true} {
-        incr iGroup
-        append PutStrings \" VOLUME_ACCELERATION \" ,
-    }
+    AppendOutputVariables PutStrings iGroup Write_Force FORCE
+    AppendOutputVariables PutStrings iGroup Write_Face_Load FACE_LOAD
+    AppendOutputVariables PutStrings iGroup Write_Normal_Load NORMAL_CONTACT_STRESS
+    AppendOutputVariables PutStrings iGroup Write_Tangential_Load TANGENTIAL_CONTACT_STRESS
+    AppendOutputVariables PutStrings iGroup Write_Normal_Fluid_Flux NORMAL_FLUID_FLUX
+    AppendOutputVariables PutStrings iGroup Write_Body_Acceleration VOLUME_ACCELERATION
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $varfile "            \"nodal_results\":       $PutStrings,"
+    puts $FileVar "            \"nodal_results\":       $PutStrings,"
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
-    if {[GiD_AccessValue get gendata Write_Strain]==true} {
-        incr iGroup
-        append PutStrings \" GREEN_LAGRANGE_STRAIN_TENSOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Effective_Stress]==true} {
-        incr iGroup
-        append PutStrings \" CAUCHY_STRESS_TENSOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Total_Stress]==true} {
-        incr iGroup
-        append PutStrings \" TOTAL_STRESS_TENSOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Von_Mises_Stress]==true} {
-        incr iGroup
-        append PutStrings \" VON_MISES_STRESS \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Fluid_Flux]==true} {
-        incr iGroup
-        append PutStrings \" FLUID_FLUX_VECTOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Permeability]==true} {
-        incr iGroup
-        append PutStrings \" PERMEABILITY_MATRIX \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Damage]==true} {
-        incr iGroup
-        append PutStrings \" DAMAGE_VARIABLE \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Local_Stress_Vector]==true} {
-        incr iGroup
-        append PutStrings \" LOCAL_STRESS_VECTOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Local_Relative_Displacement]==true} {
-        incr iGroup
-        append PutStrings \" LOCAL_RELATIVE_DISPLACEMENT_VECTOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Local_Fluid_Flux]==true} {
-        incr iGroup
-        append PutStrings \" LOCAL_FLUID_FLUX_VECTOR \" ,
-    }
-    if {[GiD_AccessValue get gendata Write_Local_Permeability]==true} {
-        incr iGroup
-        append PutStrings \" LOCAL_PERMEABILITY_MATRIX \" ,
-    }
+    AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
+    AppendOutputVariables PutStrings iGroup Write_Effective_Stress CAUCHY_STRESS_TENSOR
+    AppendOutputVariables PutStrings iGroup Write_Total_Stress TOTAL_STRESS_TENSOR
+    AppendOutputVariables PutStrings iGroup Write_Von_Mises_Stress VON_MISES_STRESS
+    AppendOutputVariables PutStrings iGroup Write_Fluid_Flux FLUID_FLUX_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Permeability PERMEABILITY_MATRIX
+    AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_VARIABLE
+    AppendOutputVariables PutStrings iGroup Write_Joint_Width JOINT_WIDTH
+    AppendOutputVariables PutStrings iGroup Write_Local_Stress_Vector LOCAL_STRESS_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Local_Relative_Displacement LOCAL_RELATIVE_DISPLACEMENT_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Local_Fluid_Flux LOCAL_FLUID_FLUX_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Local_Permeability LOCAL_PERMEABILITY_MATRIX
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $varfile "            \"gauss_point_results\": $PutStrings"
-    puts $varfile "        \},"
-    puts $varfile "        \"point_data_configuration\":  \[\]"
-    puts $varfile "    \},"
+    puts $FileVar "            \"gauss_point_results\": $PutStrings"
+    puts $FileVar "        \},"
+    puts $FileVar "        \"point_data_configuration\":  \[\]"
+    puts $FileVar "    \},"
     
     ## restart_options
-    puts $varfile "    \"restart_options\": \{"
-    puts $varfile "        \"SaveRestart\":      false,"
-    puts $varfile "        \"RestartFrequency\": 0,"
-    puts $varfile "        \"LoadRestart\":      false,"
-    puts $varfile "        \"Restart_Step\":     0"
-    puts $varfile "    \},"
-
+    puts $FileVar "    \"restart_options\": \{"
+    puts $FileVar "        \"SaveRestart\":      false,"
+    puts $FileVar "        \"RestartFrequency\": 0,"
+    puts $FileVar "        \"LoadRestart\":      false,"
+    puts $FileVar "        \"Restart_Step\":     0"
+    puts $FileVar "    \},"
+    
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
     set NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Fluid_Pressure groups]
     incr NumGroups [llength $Groups]
-    if {$NumGroups > 0} {
-        set iGroup 0
-        puts $varfile "    \"constraints_process_list\": \[\{"
-        # Solid_Displacement
-        set Groups [GiD_Info conditions Solid_Displacement groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] volumes]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":         0,"
-                puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":   \"DISPLACEMENT\","
-                puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
-                puts $varfile "            \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
-                puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":           \[0,0,0\]"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-                }
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] surfaces]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":         0,"
-                puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":   \"DISPLACEMENT\","
-                puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
-                puts $varfile "            \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
-                puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":           \[0,0,0\]"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-                }
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] lines]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":         0,"
-                puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":   \"DISPLACEMENT\","
-                puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
-                puts $varfile "            \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
-                puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":           \[0,0,0\]"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-                }
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] points]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":         0,"
-                puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":   \"DISPLACEMENT\","
-                puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
-                puts $varfile "            \"is_fixed\":        \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 10],[lindex [lindex $Groups $i] 15]\],"
-                puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 9],[lindex [lindex $Groups $i] 14]\],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":           \[0,0,0\]"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-                }
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        # Fluid_Pressure
-        set Groups [GiD_Info conditions Fluid_Pressure groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] volumes]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyPorePressureTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":              0,"
-                puts $varfile "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":        \"WATER_PRESSURE\","
-                puts $varfile "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
-                puts $varfile "            \"value\":                [lindex [lindex $Groups $i] 4],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":                0,"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":                $AuxList,"
-                }
-                if {[lindex [lindex $Groups $i] 3] == "Hydrostatic"} {
-                    set PutStrings true
-                } else {
-                    set PutStrings false
-                }
-                puts $varfile "            \"hydrostatic\":          $PutStrings,"
-                if {[lindex [lindex $Groups $i] 5] == "Y"} {
-                    set PutStrings 2
-                } elseif {[lindex [lindex $Groups $i] 5] == "Z"} {
-                    set PutStrings 3
-                } else {
-                    set PutStrings 1
-                }
-                puts $varfile "            \"gravity_direction\":    $PutStrings,"
-                puts $varfile "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
-                puts $varfile "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] surfaces]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyPorePressureTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":              0,"
-                puts $varfile "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":        \"WATER_PRESSURE\","
-                puts $varfile "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
-                puts $varfile "            \"value\":                [lindex [lindex $Groups $i] 4],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":                0,"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":                $AuxList,"
-                }
-                if {[lindex [lindex $Groups $i] 3] == "Hydrostatic"} {
-                    set PutStrings true
-                } else {
-                    set PutStrings false
-                }
-                puts $varfile "            \"hydrostatic\":          $PutStrings,"
-                if {[lindex [lindex $Groups $i] 5] == "Y"} {
-                    set PutStrings 2
-                } elseif {[lindex [lindex $Groups $i] 5] == "Z"} {
-                    set PutStrings 3
-                } else {
-                    set PutStrings 1
-                }
-                puts $varfile "            \"gravity_direction\":    $PutStrings,"
-                puts $varfile "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
-                puts $varfile "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] lines]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyPorePressureTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":              0,"
-                puts $varfile "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":        \"WATER_PRESSURE\","
-                puts $varfile "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
-                puts $varfile "            \"value\":                [lindex [lindex $Groups $i] 4],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":                0,"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":                $AuxList,"
-                }
-                if {[lindex [lindex $Groups $i] 3] == "Hydrostatic"} {
-                    set PutStrings true
-                } else {
-                    set PutStrings false
-                }
-                puts $varfile "            \"hydrostatic\":          $PutStrings,"
-                if {[lindex [lindex $Groups $i] 5] == "Y"} {
-                    set PutStrings 2
-                } elseif {[lindex [lindex $Groups $i] 5] == "Z"} {
-                    set PutStrings 3
-                } else {
-                    set PutStrings 1
-                }
-                puts $varfile "            \"gravity_direction\":    $PutStrings,"
-                puts $varfile "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
-                puts $varfile "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] points]
-            if {[llength $Entities] > 0} {
-                incr iGroup
-                puts $varfile "        \"python_module\": \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-                puts $varfile "        \"process_name\":  \"ApplyPorePressureTableProcess\","
-                puts $varfile "        \"Parameters\":    \{"
-                puts $varfile "            \"mesh_id\":              0,"
-                puts $varfile "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-                puts $varfile "            \"variable_name\":        \"WATER_PRESSURE\","
-                puts $varfile "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
-                puts $varfile "            \"value\":                [lindex [lindex $Groups $i] 4],"
-                if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                    puts $varfile "            \"table\":                0,"
-                } else {
-                    set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                    set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                    puts $varfile "            \"table\":                $AuxList,"
-                }
-                if {[lindex [lindex $Groups $i] 3] == "Hydrostatic"} {
-                    set PutStrings true
-                } else {
-                    set PutStrings false
-                }
-                puts $varfile "            \"hydrostatic\":          $PutStrings,"
-                if {[lindex [lindex $Groups $i] 5] == "Y"} {
-                    set PutStrings 2
-                } elseif {[lindex [lindex $Groups $i] 5] == "Z"} {
-                    set PutStrings 3
-                } else {
-                    set PutStrings 1
-                }
-                puts $varfile "            \"gravity_direction\":    $PutStrings,"
-                puts $varfile "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
-                puts $varfile "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
-                puts $varfile "        \}"
-                if {$iGroup < $NumGroups} {
-                    puts $varfile "    \},\{"
-                } else {
-                    puts $varfile "    \}\],"
-                }
-            }
-        }
+    set iGroup 0
+    puts $FileVar "    \"constraints_process_list\": \[\{"
+    # Solid_Displacement
+    set Groups [GiD_Info conditions Solid_Displacement groups]
+    WriteConstraintVectorProcess FileVar iGroup $Groups volumes DISPLACEMENT $TableDict $NumGroups
+    WriteConstraintVectorProcess FileVar iGroup $Groups surfaces DISPLACEMENT $TableDict $NumGroups
+    WriteConstraintVectorProcess FileVar iGroup $Groups lines DISPLACEMENT $TableDict $NumGroups
+    WriteConstraintVectorProcess FileVar iGroup $Groups points DISPLACEMENT $TableDict $NumGroups
+    # Note: it is important to write processes in the following order to account for intersections between conditions
+    # Fluid_Pressure
+    set Groups [GiD_Info conditions Fluid_Pressure groups]
+    WritePressureConstraintProcess FileVar iGroup $Groups volumes WATER_PRESSURE $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups surfaces WATER_PRESSURE $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups lines WATER_PRESSURE $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups points WATER_PRESSURE $TableDict $NumGroups
 
-    } else {
-        puts $varfile "    \"constraints_process_list\": \[\],"
-    }
-    
     ## loads_process_list
     set Groups [GiD_Info conditions Force groups]
     set NumGroups [llength $Groups]
@@ -703,215 +277,69 @@ proc WriteProjectParameters { basename dir TableList} {
     incr NumGroups [llength $Groups]
     if {$NumGroups > 0} {
         set iGroup 0
-        puts $varfile "    \"loads_process_list\": \[\{"
+        puts $FileVar "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_vector_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"FORCE\","
-            puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
-            puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           \[0,0,0\]"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-            }
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteLoadVectorProcess FileVar iGroup $Groups volumes FORCE $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FORCE $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups lines FORCE $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups points FORCE $TableDict $NumGroups
         # Face_Load
         set Groups [GiD_Info conditions Face_Load groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_vector_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"FACE_LOAD\","
-            puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
-            puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           \[0,0,0\]"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-            }
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteLoadVectorProcess FileVar iGroup $Groups volumes FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups lines FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups points FACE_LOAD $TableDict $NumGroups
         # Normal_Load
         set Groups [GiD_Info conditions Normal_Load groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_normal_load_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyNormalLoadTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":              0,"
-            puts $varfile "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":        \"NORMAL_CONTACT_STRESS\","
-            puts $varfile "            \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
-            puts $varfile "            \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":                \[0,0\],"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":                \[[lindex $AuxList 0],[lindex $AuxList 1]\],"
-            }
-            if {[lindex [lindex $Groups $i] 4] == "Hydrostatic"} {
-                set PutStrings true
-            } else {
-                set PutStrings false
-            }
-            puts $varfile "            \"hydrostatic\":          $PutStrings,"
-            if {[lindex [lindex $Groups $i] 6] == "Y"} {
-                set PutStrings 2
-            } elseif {[lindex [lindex $Groups $i] 6] == "Z"} {
-                set PutStrings 3
-            } else {
-                set PutStrings 1
-            }
-            puts $varfile "            \"gravity_direction\":    $PutStrings,"
-            puts $varfile "            \"reference_coordinate\": [lindex [lindex $Groups $i] 7],"
-            puts $varfile "            \"specific_weight\":      [lindex [lindex $Groups $i] 8]"
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteNormalLoadProcess FileVar iGroup $Groups volumes NORMAL_CONTACT_STRESS $TableDict $NumGroups
+        WriteNormalLoadProcess FileVar iGroup $Groups surfaces NORMAL_CONTACT_STRESS $TableDict $NumGroups
+        WriteNormalLoadProcess FileVar iGroup $Groups lines NORMAL_CONTACT_STRESS $TableDict $NumGroups
+        WriteNormalLoadProcess FileVar iGroup $Groups points NORMAL_CONTACT_STRESS $TableDict $NumGroups
         # Normal_Fluid_Flux
         set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_scalar_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadScalarTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"NORMAL_FLUID_FLUX\","
-            puts $varfile "            \"value\":           [lindex [lindex $Groups $i] 3],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           0"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           $AuxList"
-            }
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteLoadScalarProcess FileVar iGroup $Groups volumes NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups surfaces NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups lines NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups points NORMAL_FLUID_FLUX $TableDict $NumGroups
         # Interface_Face_Load
         set Groups [GiD_Info conditions Interface_Face_Load groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_vector_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"FACE_LOAD\","
-            puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
-            puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           \[0,0,0\]"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-            }
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteLoadVectorProcess FileVar iGroup $Groups volumes FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups lines FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups points FACE_LOAD $TableDict $NumGroups
         # Interface_Normal_Fluid_Flux
         set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_scalar_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadScalarTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"NORMAL_FLUID_FLUX\","
-            puts $varfile "            \"value\":           [lindex [lindex $Groups $i] 3],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           0"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           $AuxList"
-            }
-            puts $varfile "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
-            } else {
-                puts $varfile "    \}\]"
-            }
-        }
+        WriteLoadScalarProcess FileVar iGroup $Groups volumes NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups surfaces NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups lines NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups points NORMAL_FLUID_FLUX $TableDict $NumGroups
         # Body_Acceleration
         set Groups [GiD_Info conditions Body_Acceleration groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"python_module\": \"apply_load_vector_table_process\","
-            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $varfile "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
-            puts $varfile "        \"Parameters\":    \{"
-            puts $varfile "            \"mesh_id\":         0,"
-            puts $varfile "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $varfile "            \"variable_name\":   \"VOLUME_ACCELERATION\","
-            puts $varfile "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
-            puts $varfile "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-            if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
-                puts $varfile "            \"table\":           \[0,0,0\]"
-            } else {
-                set SearchInList [lsearch $TableList [lindex [lindex $Groups $i] 1]*]
-                set AuxList [lindex $TableList [expr { $SearchInList+1 }]]
-                puts $varfile "            \"table\":           \[[lindex $AuxList 0],[lindex $AuxList 1],[lindex $AuxList 2]\]"
-            }
-            puts $varfile "        \}"
+            puts $FileVar "        \"python_module\": \"apply_load_vector_table_process\","
+            puts $FileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $FileVar "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
+            puts $FileVar "        \"Parameters\":    \{"
+            puts $FileVar "            \"mesh_id\":         0,"
+            puts $FileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
+            puts $FileVar "            \"variable_name\":   \"VOLUME_ACCELERATION\","
+            puts $FileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 7]\],"
+            puts $FileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 6],[lindex [lindex $Groups $i] 8]\],"
+            puts $FileVar "            \"table\":           \[0,0,0\]"
+            puts $FileVar "        \}"
             if {$iGroup < $NumGroups} {
-                puts $varfile "    \},\{"
+                puts $FileVar "    \},\{"
             } else {
-                puts $varfile "    \}\]"
+                puts $FileVar "    \}\]"
             }
         }
     } else {
-        puts $varfile "    \"loads_process_list\":       \[\]"
+        puts $FileVar "    \"loads_process_list\":       \[\]"
     }
 
-    puts $varfile "\}"
+    puts $FileVar "\}"
     
-    close $varfile
+    close $FileVar
 }

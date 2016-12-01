@@ -42,7 +42,7 @@
         "characteristic_length":              0.05,
         "linear_solver_settings":             {
             "solver_type":                    "SuperLUSolver",
-            "tolerance":                      1.0e-5,
+            "tolerance":                      1.0e-6,
             "max_iteration":                  100
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
