@@ -42,7 +42,7 @@
         "characteristic_length":              0.05,
         "linear_solver_settings":             {
             "solver_type":                    "BICGSTABSolver",
-            "tolerance":                      1.0e-5,
+            "tolerance":                      1.0e-6,
             "max_iteration":                  100,
             "scaling":                        false,
             "preconditioner_type":            "ILU0Preconditioner"

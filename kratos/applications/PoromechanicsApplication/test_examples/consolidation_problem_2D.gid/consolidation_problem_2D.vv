@@ -1,6 +1,6 @@
-BeginZE /Users/ignasi/Downloads/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
+BeginZE /home/ipouplana/Descargas/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
    x -0.226483166217803955 1.22648310661315918
-   y 1.85599923133850098 -0.855999290943145752
+   y 1.76451230049133301 -0.764512300491333008
    z -0.726483166217803955 0.726483166217803955
    e 0.726483166217803955
    v 0 0 0
@@ -16,12 +16,12 @@ BeginZE /Users/ignasi/Downloads/tests/consolidation_problem_2D.gid/consolidation
    DrawingType 0
    LightVector 90 90 150 0
    OGLShadow(UseShadows) 0
-   OGLShadow(RenderMode) RenderNice
-   OGLShadow(ShadowBias) -0.002
-   OGLShadow(AmbientShadows) 1
-   OGLShadow(UseFBO) 1
-   OGLShadow(FBOSize) 2048
-   OGLShadow(DimmedLightFactor) 0.02
+   OGLShadow(RenderMode) RenderFast
+   OGLShadow(ShadowBias) 0
+   OGLShadow(AmbientShadows) 0
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0
    OGLStereo(UseStereo) 0
    OGLStereo(RelativeEyeDistance) 1
    OGLStereo(FlipEyes) 0
@@ -29,7 +29,7 @@ BeginZE /Users/ignasi/Downloads/tests/consolidation_problem_2D.gid/consolidation
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /Users/ignasi/Downloads/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
+EndZE /home/ipouplana/Descargas/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

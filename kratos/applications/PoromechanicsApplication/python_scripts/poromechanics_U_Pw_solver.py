@@ -169,6 +169,17 @@ class UPwSolver(object):
             ## Fluid dofs
             node.AddDof(KratosMultiphysics.WATER_PRESSURE,KratosMultiphysics.REACTION_WATER_PRESSURE)
 
+        if(self.settings["solution_type"].GetString() == "Dynamic"):
+            for node in self.main_model_part.Nodes:
+                # adding VELOCITY as dofs
+                node.AddDof(KratosMultiphysics.VELOCITY_X);
+                node.AddDof(KratosMultiphysics.VELOCITY_Y);
+                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                # adding ACCELERATION as dofs
+                node.AddDof(KratosMultiphysics.ACCELERATION_X);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z);        
+                
         print("DOFs correctly added")
     
     def Initialize(self):

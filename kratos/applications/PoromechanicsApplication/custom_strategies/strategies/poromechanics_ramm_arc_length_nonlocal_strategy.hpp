@@ -51,6 +51,7 @@ public:
     using Grandx2MotherType::mSolutionStepIsInitialized;
     using Grandx2MotherType::mMaxIterationNumber;
     using Grandx2MotherType::mInitializeWasPerformed;
+    using GrandMotherType::mpParameters;
     using MotherType::mpf;
     using MotherType::mpDxf;
     using MotherType::mpDxb;
@@ -79,7 +80,6 @@ public:
         ) : PoromechanicsRammArcLengthStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
-            mpParameters = &rParameters;
             mNonlocalDamageIsInitialized = false;
             mSearchNeighboursAtEachStep = rParameters["search_neighbours_step"].GetBool();
         }
@@ -327,7 +327,6 @@ public:
 protected:
 
     /// Member Variables
-    Parameters* mpParameters;
     NonlocalDamageUtilities* mpNonlocalDamageUtility;
     bool mNonlocalDamageIsInitialized;
     bool mSearchNeighboursAtEachStep;

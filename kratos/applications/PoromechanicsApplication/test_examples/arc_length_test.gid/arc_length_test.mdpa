@@ -12,11 +12,11 @@ Begin Properties 1
   PERMEABILITY_YY 4.5e-13
   PERMEABILITY_XY 0.0
   DYNAMIC_VISCOSITY 1.0e-3
+  THICKNESS 0.1
   DAMAGE_THRESHOLD 1.5e-4
   STRENGTH_RATIO 10.0
   RESIDUAL_STRENGTH 0.8
   SOFTENING_SLOPE 9000.0
-  THICKNESS 0.1
 End Properties
 
 
@@ -9006,6 +9006,8 @@ End Conditions
 
 
 Begin SubModelPart Body_Part-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2

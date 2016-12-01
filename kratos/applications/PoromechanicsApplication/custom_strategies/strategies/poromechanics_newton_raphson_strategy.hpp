@@ -61,7 +61,25 @@ public:
         bool MoveMeshFlag = false
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
-        {            
+        {
+            //only include validation with c++11 since raw_literals do not exist in c++03
+            Parameters default_parameters( R"(
+                {
+                    "desired_iterations": 4,
+                    "max_radius_factor": 20.0,
+                    "min_radius_factor": 0.5,
+                    "characteristic_length": 0.05,
+                    "search_neighbours_step": true,
+                    "body_domain_sub_model_part_list": [""],
+                    "loads_sub_model_part_list": [""],
+                    "loads_variable_list" : [""]
+                }  )" );
+            
+            // Validate agains defaults -- this also ensures no type mismatch
+            rParameters.ValidateAndAssignDefaults(default_parameters);
+            
+            mpParameters = &rParameters;
+            
             // Set Load SubModelParts and Variable names
             if(rParameters["loads_sub_model_part_list"].size() > 0)
             {
@@ -136,7 +154,7 @@ public:
 protected:
 
     /// Member Variables
-    
+    Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
     
