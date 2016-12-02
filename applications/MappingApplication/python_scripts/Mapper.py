@@ -2,15 +2,14 @@
 from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics
-# import KratosMultiphysics.MappingApplication as KratosMapping
-from KratosMultiphysics.MappingApplication import *
+import KratosMultiphysics.MappingApplication as KratosMapping
 # The following check is needed in case of an mpi-parallel compilation that is run serial
 try:
-    from KratosMultiphysics.mpi import *
+    import KratosMultiphysics.mpi as KratosMPI
 except:
     pass
 
-class Mapper:
+class NonMatchingGridMapper:
     def __init__(self, model_part_origin, model_part_destination, input_settings):
         self.model_part_origin = model_part_origin
         self.model_part_destination = model_part_destination
@@ -25,8 +24,8 @@ class Mapper:
         self.search_iterations = self.settings["mapper_settings"]["search_iterations"].GetInt()
 
         if (self.search_radius_map < 0):
-            self.search_radius_map = ComputeSearchRadius(self.interface_model_part_origin)
-            self.search_radius_inverse_map = ComputeSearchRadius(self.interface_model_part_destination)
+            self.search_radius_map = KratosMapping.ComputeSearchRadius(self.interface_model_part_origin)
+            self.search_radius_inverse_map = KratosMapping.ComputeSearchRadius(self.interface_model_part_destination)
 
         self.type_of_mapper = self.settings["mapper_settings"]["mapper_type"].GetString()
 
@@ -107,27 +106,27 @@ class Mapper:
         name_interface_submodel_part = self.settings["mapper_settings"]["interface_submodel_part_destination"].GetString()
         self.interface_model_part_destination = self.model_part_destination.GetSubModelPart(name_interface_submodel_part)
 
-        if (ComputeNumberOfNodes(self.interface_model_part_origin) < 1 and
-            ComputeNumberOfConditions(self.interface_model_part_origin) < 1):
+        if (KratosMapping.ComputeNumberOfNodes(self.interface_model_part_origin) < 1 and
+            KratosMapping.ComputeNumberOfConditions(self.interface_model_part_origin) < 1):
             raise ValueError("Neither nodes nor conditions found in the origin model part")
-        if (ComputeNumberOfNodes(self.interface_model_part_destination) < 1 and
-            ComputeNumberOfConditions(self.interface_model_part_destination) < 1):
+        if (KratosMapping.ComputeNumberOfNodes(self.interface_model_part_destination) < 1 and
+            KratosMapping.ComputeNumberOfConditions(self.interface_model_part_destination) < 1):
             raise ValueError("Neither nodes nor conditions found in the destination model part")
 
         # TODO is the following necessary? => comes form the nonconformant mapper
-        # domain_size_origin = self.interface_model_part_origin.ProcessInfo[DOMAIN_SIZE]
-        # domain_size_destination = self.interface_model_part_destination.ProcessInfo[DOMAIN_SIZE]
-        #
-        # if (domain_size_origin != domain_size_destination):
-        #     raise ValueError("Domain sizes from two model parts are not compatible")
+        domain_size_origin = self.interface_model_part_origin.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        domain_size_destination = self.interface_model_part_destination.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        if (domain_size_origin != domain_size_destination):
+            raise ValueError("Domain sizes from two model parts are not compatible")
 
 
     ##### Mapper Initialize Functions #########################################
     def InitializeNearestNeighborMapper(self):
         print("Python, NearestNeighborMapper initialized")
-        self.mapper_map = NearestNeighborMapper(self.interface_model_part_origin, self.interface_model_part_destination,
+        self.mapper_map = KratosMapping.NearestNeighborMapper(self.interface_model_part_origin, self.interface_model_part_destination,
                                                 self.search_radius_map, self.search_iterations)
-        self.mapper_inverse_map = NearestNeighborMapper(self.interface_model_part_destination, self.interface_model_part_origin,
+        self.mapper_inverse_map = KratosMapping.NearestNeighborMapper(self.interface_model_part_destination, self.interface_model_part_origin,
                                                         self.search_radius_inverse_map, self.search_iterations)
     # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     def InitializeNearestElementMapper(self):
@@ -160,10 +159,10 @@ class Mapper:
         convergence_tolerance = self.settings["mapper_settings"]["iterative_mortar"]["convergence_tolerance"].GetDouble()
         convergence_iterations = self.settings["mapper_settings"]["iterative_mortar"]["convergence_iterations"].GetInt()
 
-        self.mapper_map = IterativeMortarMapper(self.interface_model_part_origin, self.interface_model_part_destination,
+        self.mapper_map = KratosMapping.IterativeMortarMapper(self.interface_model_part_origin, self.interface_model_part_destination,
                                                 self.search_radius_map, self.search_iterations,
                                                 convergence_tolerance, convergence_iterations)
-        self.mapper_inverse_map = IterativeMortarMapper(self.interface_model_part_destination, self.interface_model_part_origin,
+        self.mapper_inverse_map = KratosMapping.IterativeMortarMapper(self.interface_model_part_destination, self.interface_model_part_origin,
                                                         self.search_radius_inverse_map, self.search_iterations,
                                                         convergence_tolerance, convergence_iterations)
     # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

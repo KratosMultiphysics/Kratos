@@ -261,7 +261,6 @@ namespace Kratos
       void SelectBestResult(InterfaceObjectConfigure::IteratorType point, const InterfaceObjectConfigure::ResultContainerType& result_list, const std::vector<double>& distances,
                                   const std::size_t& num_results, InterfaceObject::Pointer& vec_closest_results, double& closest_distance) {
 
-
           double min_distance = 1e15;
           int min_index = 0; // TODO this is sort of the safe option to avoid segfaults, discuss with Jordi
 
