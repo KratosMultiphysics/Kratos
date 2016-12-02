@@ -288,5 +288,8 @@ proc Pfem::xml::ProcGetBodiesValues {$domNode $args} {
     }
     return [join $bodies ","]
 }
+proc Pfem::xml::ConditionSorterWindow {{init default}} {
+    W "Not implemented ConditionSorterWindow"
+}
 
 Pfem::xml::Init

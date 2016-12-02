@@ -135,6 +135,11 @@ proc apps::ExecuteOnApp {appid func args} {
     }
     return $response
 }
+proc apps::ExecuteOnCurrentApp {func args} {
+    variable activeApp
+    set response [ExecuteOnApp [$activeApp getName] $func {*}$args]
+    return $response
+}
 proc apps::LoadAppById {appid} {
     variable appList
     foreach app $appList {
