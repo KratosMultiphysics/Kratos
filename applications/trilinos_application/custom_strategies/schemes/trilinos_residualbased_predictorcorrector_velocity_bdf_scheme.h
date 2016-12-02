@@ -133,6 +133,7 @@ public:
                                                      Variable<double>& rSlipVar):
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent<TSparseSpace,TDenseSpace>(DomainSize,rSlipVar)
     {
+        mImporterIsInitialized=false;
     }
 
 
@@ -148,7 +149,7 @@ public:
      */
     /*@{ */
 
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -194,7 +195,7 @@ public:
                                        DofsArrayType& rDofSet,
                                        TSystemMatrixType& A,
                                        TSystemVectorType& Dx,
-                                       TSystemVectorType& b)
+                                       TSystemVectorType& b) override
     {
         KRATOS_TRY;
 
@@ -270,6 +271,9 @@ protected:
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
+    bool mImporterIsInitialized;
+
+    boost::shared_ptr<Epetra_Import> mpDofImporter;
 
 
     /*@} */
@@ -323,6 +327,7 @@ protected:
         mpDofImporter.swap(pDofImporter);
 
         mImporterIsInitialized = true;
+
     }
 
     /*@} */
@@ -352,9 +357,6 @@ private:
     /**@name Member Variables */
     /*@{ */
 
-    bool mImporterIsInitialized;
-
-    boost::shared_ptr<Epetra_Import> mpDofImporter;
 
     /*@} */
     /**@name Private Operators*/
