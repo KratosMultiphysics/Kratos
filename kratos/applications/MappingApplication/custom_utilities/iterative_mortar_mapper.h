@@ -74,9 +74,9 @@ namespace Kratos
                             i_model_part_origin, i_model_part_destination) {
 
           m_point_comm_manager_origin = Kratos::InterfaceObjectManager::CreateInterfaceConditionManager(m_model_part_origin,
-              m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), 1 /*Center*/);
+              m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), GeometryData::GI_GAUSS_2);
           m_point_comm_manager_destination = Kratos::InterfaceObjectManager::CreateInterfaceConditionManager(m_model_part_destination,
-              m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), 0 /*Gauss Point*/);
+              m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses(), GeometryData::GI_GAUSS_2);
 
           m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
                                             i_initial_search_radius, i_max_search_iterations);

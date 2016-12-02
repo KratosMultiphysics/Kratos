@@ -251,7 +251,8 @@ public:
         // then first call the empty standard constructor, then do the calculations and populate
         // the base class stuff, although populating the derived class (i.e. "this") should also be ok
 
-        m_num_nodes = i_condition.GetGeometry().PointsNumber();
+        // m_num_nodes = i_condition.GetGeometry().PointsNumber();
+        m_geometry_family = i_condition.GetGeometry().GetGeometryFamily();
     }
 
     int GetObjectId() override {
@@ -260,12 +261,12 @@ public:
 
     bool CheckResult(array_1d<double, 3> global_coords, double& min_distance, double distance) override { // I am an object in the bins
         bool is_inside;
-
-        if (m_num_nodes == 2) { // I am a line condition
+        // TODO do sth with min_distance
+        if (m_geometry_family == GeometryData::Kratos_Linear) { // I am a line condition
             is_inside = ProjectPointToLine(global_coords, distance);
-        } else if (m_num_nodes == 3) { // I am a triangular condition
+        } else if (m_geometry_family == GeometryData::Kratos_Triangle) { // I am a triangular condition
             is_inside = ProjectPointToTriangle(global_coords, distance);
-        } else if (m_num_nodes == 4) { // I am a quadrilateral condition
+        } else if (m_geometry_family == GeometryData::Kratos_Quadrilateral) { // I am a quadrilateral condition
             is_inside = ProjectPointToQuaddrilateral(global_coords, distance);
         } else {
             KRATOS_ERROR << "MappingApplication; InterfaceCondition; \"ComputeBestResult\" wrong number of points in condition!" << std::endl;
@@ -278,7 +279,7 @@ protected:
 
 private:
     Condition* m_p_condition;
-    int m_num_nodes;
+    int m_geometry_family;
 
     bool ProjectPointToLine(array_1d<double, 3> global_coords, double& distance) {
         return false;

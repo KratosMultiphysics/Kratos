@@ -187,7 +187,7 @@ WriteNodalResultsCustom(gid_io_slave, VELOCITY, model_part_slave, write_time)
 
 
 ##### Mapper stuff #####
-nearestNeighborMapper = Mapper.Mapper(model_part_master, model_part_slave, ProjectParameters)
+nearestNeighborMapper = Mapper.NonMatchingGridMapper(model_part_master, model_part_slave, ProjectParameters)
 
 # Time step 1.0: Map; constant values
 write_time = 1.0

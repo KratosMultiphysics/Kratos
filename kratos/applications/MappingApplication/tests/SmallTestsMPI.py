@@ -38,11 +38,12 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
 
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            GiD_output = True
             if (self.num_processors == 1):
-                self.test = KratosExecuteNearestNeighborMapperTest()
+                self.test = KratosExecuteNearestNeighborMapperTest(GiD_output)
             else:
                 from KratosExecuteNearestNeighborMapperTestMPI import KratosExecuteNearestNeighborMapperTestMPI
-                self.test = KratosExecuteNearestNeighborMapperTestMPI()
+                self.test = KratosExecuteNearestNeighborMapperTestMPI(GiD_output)
 
     def test_execution(self):
         # Within this location context:
@@ -56,34 +57,34 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
                 # run tests that are depending on number of processors
                 list_processors_TestMapNonConstantScalarValues = [2,4,8]
                 if (self.num_processors in list_processors_TestMapNonConstantScalarValues):
-                    self.test.TestMapNonConstantScalarValues()
+                    self.test.TestMapNonConstantScalarValues(5.0)
 
                 list_processors_TestInverseMapNonConstantScalarValues = [3,5,9]
                 if (self.num_processors in list_processors_TestInverseMapNonConstantScalarValues):
-                    self.test.TestInverseMapNonConstantScalarValues()
+                    self.test.TestInverseMapNonConstantScalarValues(6.0)
 
 
     def tearDown(self):
         pass
 
     def serialTests(self):
-        self.test.TestMapConstantScalarValues()
-        self.test.TestInverseMapConstantScalarValues()
+        self.test.TestMapConstantScalarValues(1.0)
+        self.test.TestInverseMapConstantScalarValues(2.0)
 
-        self.test.TestMapConstantVectorValues()
-        self.test.TestInverseMapConstantVectorValues()
+        self.test.TestMapConstantVectorValues(3.0)
+        self.test.TestInverseMapConstantVectorValues(4.0)
 
-        self.test.TestMapNonConstantScalarValues()
-        self.test.TestInverseMapNonConstantScalarValues()
+        self.test.TestMapNonConstantScalarValues(5.0)
+        self.test.TestInverseMapNonConstantScalarValues(6.0)
 
     def parallelTests(self):
         # These tests run independent of the number of processors,
         # since only conatant fields are mapped
-        self.test.TestMapConstantScalarValues()
-        self.test.TestInverseMapConstantScalarValues()
+        self.test.TestMapConstantScalarValues(1.0)
+        self.test.TestInverseMapConstantScalarValues(2.0)
 
-        self.test.TestMapConstantVectorValues()
-        self.test.TestInverseMapConstantVectorValues()
+        self.test.TestMapConstantVectorValues(3.0)
+        self.test.TestInverseMapConstantVectorValues(4.0)
 
 
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):

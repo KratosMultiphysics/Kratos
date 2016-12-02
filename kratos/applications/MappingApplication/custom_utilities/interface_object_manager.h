@@ -133,13 +133,15 @@ public:
     }
 
     static InterfaceObjectManager::Pointer CreateInterfaceConditionManager(ModelPart& model_part, int comm_rank, int comm_size,
-                                                                           const int construction_type) {
+                                                                           GeometryData::IntegrationMethod integration_method) {
         InterfaceObjectManager::Pointer manager = InterfaceObjectManager::Pointer(new InterfaceObjectManager());
 
         manager->m_comm_rank = comm_rank;
         manager->m_comm_size = comm_size;
 
-        manager->m_point_comm_objects.resize(3*model_part.GetCommunicator().LocalMesh().Conditions().size()); // TODO segfault expected here if using GPS!
+        int num_integration_points = 3; //IntegrationPointsNumber(integration_method); => how to get the number of integration points without the geometry?
+
+        manager->m_point_comm_objects.reserve(num_integration_points * model_part.GetCommunicator().LocalMesh().NumberOfConditions());
 
         manager->m_candidate_send_points.resize(comm_size);
         manager->m_send_points.resize(comm_size);
@@ -159,67 +161,67 @@ public:
         //
         // for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
         //     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-
-
-        int i = 0;
-        for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
-            if(construction_type == 0) { // construct with Gauss Points
-                // IntegrationPointsArrayType gauss_points_local_coords = condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_1);
-                //
-                // for (auto& gp_local_coords : gauss_points_local_coords) {
-                //     Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, gp_local_coords);
-                //     KRATOS_WATCH(sth.size())
-                //     KRATOS_WATCH(sth[0])
-                //     KRATOS_WATCH(sth[1])
-                //     KRATOS_WATCH(sth[2])
-                // }
-
-
-
-
-                // Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, static_cast<Node<3>::CoordinatesArrayType>(condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2)));
-                // KRATOS_WATCH(arrayIP[0].size())
-                // KRATOS_WATCH(arrayIP[0][0])
-                // KRATOS_WATCH(arrayIP[0][1])
-                // KRATOS_WATCH(arrayIP[0][2])
-
-
-                const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
-
-                Matrix shape_functions = condition_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-                const int num_gauss_points = shape_functions.size1();
-                const int num_nodes = shape_functions.size2();
-
-                array_1d<double, 3> gauss_point_global_coords;
-
-                for (int g = 0; g < num_gauss_points; ++g) {
-                    gauss_point_global_coords[0] = 0;
-                    gauss_point_global_coords[1] = 0;
-                    gauss_point_global_coords[2] = 0;
-
-                    for (int n = 0; n < num_nodes; ++n) {
-                        gauss_point_global_coords[0] += shape_functions(g, n) * condition_geometry[n].X();
-                        gauss_point_global_coords[1] += shape_functions(g, n) * condition_geometry[n].Y();
-                        gauss_point_global_coords[2] += shape_functions(g, n) * condition_geometry[n].Z();
-                    }
-
-                    manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, gauss_point_global_coords) );
-                    ++i;
-                }
-            } else if (construction_type == 1) { // construct with center of condition
-                manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, condition.GetGeometry().Center()) );
-                ++i;
-
-            // } else if (construction_type == 2) { // construct with nodal coordinates
-            //     for (auto& node : condition.GetGeometry().Points()) {
-            //         manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, node.Coordinates()) );
-            //         ++i;
-            //     }
-            } else {
-                KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"CreateInterfaceConditionManager\" unknown type to construct manager with!" << std::endl;
-            }
-        }
+        //
+        //
+        // int i = 0;
+        // for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
+        //     if(construction_type == 0) { // construct with Gauss Points
+        //         // IntegrationPointsArrayType gauss_points_local_coords = condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_1);
+        //         //
+        //         // for (auto& gp_local_coords : gauss_points_local_coords) {
+        //         //     Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, gp_local_coords);
+        //         //     KRATOS_WATCH(sth.size())
+        //         //     KRATOS_WATCH(sth[0])
+        //         //     KRATOS_WATCH(sth[1])
+        //         //     KRATOS_WATCH(sth[2])
+        //         // }
+        //
+        //
+        //
+        //
+        //         // Node<3>::CoordinatesArrayType sth = condition.GetGeometry().GlobalCoordinates(sth, static_cast<Node<3>::CoordinatesArrayType>(condition.GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2)));
+        //         // KRATOS_WATCH(arrayIP[0].size())
+        //         // KRATOS_WATCH(arrayIP[0][0])
+        //         // KRATOS_WATCH(arrayIP[0][1])
+        //         // KRATOS_WATCH(arrayIP[0][2])
+        //
+        //
+        //         const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
+        //
+        //         Matrix shape_functions = condition_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        //
+        //         const int num_gauss_points = shape_functions.size1();
+        //         const int num_nodes = shape_functions.size2();
+        //
+        //         array_1d<double, 3> gauss_point_global_coords;
+        //
+        //         for (int g = 0; g < num_gauss_points; ++g) {
+        //             gauss_point_global_coords[0] = 0;
+        //             gauss_point_global_coords[1] = 0;
+        //             gauss_point_global_coords[2] = 0;
+        //
+        //             for (int n = 0; n < num_nodes; ++n) {
+        //                 gauss_point_global_coords[0] += shape_functions(g, n) * condition_geometry[n].X();
+        //                 gauss_point_global_coords[1] += shape_functions(g, n) * condition_geometry[n].Y();
+        //                 gauss_point_global_coords[2] += shape_functions(g, n) * condition_geometry[n].Z();
+        //             }
+        //
+        //             manager->m_point_comm_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, gauss_point_global_coords) ));
+        //             ++i;
+        //         }
+        //     } else if (construction_type == 1) { // construct with center of condition
+        //         manager->m_point_comm_objects[i] = InterfaceObject::Pointer( new InterfaceCondition(condition, condition.GetGeometry().Center()) );
+        //         ++i;
+        //
+        //     // } else if (construction_type == 2) { // construct with nodal coordinates
+        //     //     for (auto& node : condition.GetGeometry().Points()) {
+        //     //         manager->m_point_comm_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, node.Coordinates()) ));
+        //     //         ++i;
+        //     //     }
+        //     } else {
+        //         KRATOS_ERROR << "MappingApplication; InterfaceObjectManager; \"CreateInterfaceConditionManager\" unknown type to construct manager with!" << std::endl;
+        //     }
+        // }
         std::cout << "Initialized Condition Manager" << std::endl;
         return manager;
     }
