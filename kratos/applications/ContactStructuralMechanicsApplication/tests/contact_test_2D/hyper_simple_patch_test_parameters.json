@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
