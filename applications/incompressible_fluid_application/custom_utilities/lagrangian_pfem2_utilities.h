@@ -321,7 +321,7 @@ public:
 //  	unsigned int buffer_size = rModelPart.GetBufferSize();
 	
 	int aux_id = 1;
-	rNewNodes = ModelPart::NodesContainerType();
+	rNewNodes.clear(); // = ModelPart::NodesContainerType();
 	rNewNodes.reserve(rInletNodes.size());
 	
         //create a copy of all of the nodes in the inlet model part
