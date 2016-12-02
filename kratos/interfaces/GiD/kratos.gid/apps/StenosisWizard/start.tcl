@@ -40,5 +40,8 @@ proc ::StenosisWizard::StartWizardWindow { } {
     Wizard::CreateWindow
     
 }
+proc ::StenosisWizard::CustomToolbarItems { } {
+    return "-1"    
+}
 
 ::StenosisWizard::Init

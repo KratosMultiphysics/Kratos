@@ -6,7 +6,7 @@ proc Kratos::ToolbarAddItem {id icon code tex} {
     }
     set num [llength [dict keys $kratos_private(MenuItems)]]
     incr num
-    dict set kratos_private(MenuItems) $num id $num
+    dict set kratos_private(MenuItems) $num id $id
     dict set kratos_private(MenuItems) $num icon $icon
     dict set kratos_private(MenuItems) $num code $code
     dict set kratos_private(MenuItems) $num tex $tex
@@ -15,7 +15,10 @@ proc Kratos::ToolbarAddItem {id icon code tex} {
 proc Kratos::ToolbarDeleteItem {id} {
     variable kratos_private
     foreach num [dict keys $kratos_private(MenuItems)] {
-        if {[dict get $kratos_private(MenuItems) $num id] eq $id } {dict unset kratos_private(MenuItems) $num; break }
+        if {[dict get $kratos_private(MenuItems) $num id] eq $id } {
+            set kratos_private(MenuItems) [dict remove $kratos_private(MenuItems) $num]
+            break
+        }
     }
     return $num
 }
@@ -35,28 +38,35 @@ proc Kratos::CreatePreprocessModelTBar { {type "DEFAULT INSIDELEFT"} } {
     Kratos::ToolbarAddItem "Run" "run.png" {Utilities Calculate} [= "Run the simulation"]
     Kratos::ToolbarAddItem "Output" "output.png" [list -np- PWViewOutput] [= "View process info"]
     Kratos::ToolbarAddItem "Stop" "stop.png" {Utilities CancelProcess} [= "Cancel process"]
+    Kratos::ToolbarAddItem "SpacerApp" "" "" ""
     
-    set dir [file join $::Kratos::kratos_private(Path) images ]
-    set iconslist [list ]
-    set commslist [list ]
-    set helpslist [list ]
-    foreach item [dict keys $kratos_private(MenuItems)] {
-        set icon [dict get $kratos_private(MenuItems) $item icon]
-        lappend iconslist [expr {$icon ne "" ? [file join $dir $icon] : "---"}]
-        lappend commslist  [dict get $kratos_private(MenuItems) $item code]
-        lappend helpslist [dict get $kratos_private(MenuItems) $item tex]
+    set app_items_toolbar [apps::ExecuteOnCurrentApp CustomToolbarItems]
+    if {$app_items_toolbar < 1} {
+        Kratos::ToolbarDeleteItem "SpacerApp"
     }
-    
-    set KBitmapsNames(0) $iconslist
-    set KBitmapsCommands(0) $commslist
-    set KBitmapsHelp(0) $helpslist
-    
-    set prefix Pre
-    set name KPreprocessModelbar
-    set procname ::Kratos::CreatePreprocessModelTBar
-    set kratos_private(ToolBars,PreprocessModelTBar) [CreateOtherBitmaps ${name} [= "Kratos toolbar"] KBitmapsNames KBitmapsCommands KBitmapsHelp $dir $procname $type $prefix]
-    
-    AddNewToolbar [= "Kratos toolbar"] ${prefix}${name}WindowGeom $procname
+    if {$app_items_toolbar ne "-1"} {
+        set dir [file join $::Kratos::kratos_private(Path) images ]
+        set iconslist [list ]
+        set commslist [list ]
+        set helpslist [list ]
+        foreach item [dict keys $kratos_private(MenuItems)] {
+            set icon [dict get $kratos_private(MenuItems) $item icon]
+            lappend iconslist [expr {$icon ne "" ? [file join $dir $icon] : "---"}]
+            lappend commslist  [dict get $kratos_private(MenuItems) $item code]
+            lappend helpslist [dict get $kratos_private(MenuItems) $item tex]
+        }
+        
+        set KBitmapsNames(0) $iconslist
+        set KBitmapsCommands(0) $commslist
+        set KBitmapsHelp(0) $helpslist
+        
+        set prefix Pre
+        set name KPreprocessModelbar
+        set procname ::Kratos::CreatePreprocessModelTBar
+        set kratos_private(ToolBars,PreprocessModelTBar) [CreateOtherBitmaps ${name} [= "Kratos toolbar"] KBitmapsNames KBitmapsCommands KBitmapsHelp $dir $procname $type $prefix]
+        
+        AddNewToolbar [= "Kratos toolbar"] ${prefix}${name}WindowGeom $procname
+    }
 }
 
 proc Kratos::EndCreatePreprocessTBar {} {
