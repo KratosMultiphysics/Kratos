@@ -232,7 +232,7 @@ public:
         mEchoLevel = Level;
     }
 
-    int GetEchoLevel()
+    virtual int GetEchoLevel()
     {
         return mEchoLevel;
     }
@@ -248,7 +248,7 @@ public:
         mStiffnessMatrixIsBuilt = false;
     }
 
-    int GetRebuildLevel()
+    virtual int GetRebuildLevel()
     {
         return mRebuildLevel;
     }
