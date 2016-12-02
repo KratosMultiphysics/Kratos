@@ -180,81 +180,17 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
-#ifndef _OPENMP
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rVar);
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
-            (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-
-            Geometry< Node<3> >& geom = (*it)->GetGeometry();
-            if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
-
-            for(unsigned int i=0; i<geom.size(); i++)
-                EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
-
-            //assemble the elemental contribution
-            this->AssembleLHS(A,LHS_Contribution,EquationId);
-            this->AssembleRHS(b,RHS_Contribution,EquationId);
-        }
-
-        LHS_Contribution.resize(0,0,false);
-        RHS_Contribution.resize(0,false);
-        EquationId.resize(0,false);
-
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
-            (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-
-            Geometry< Node<3> >& geom = (*it)->GetGeometry();
-            if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
-
-            for(unsigned int i=0; i<geom.size(); i++)
-            {
-                EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
-            }
-
-            //assemble the elemental contribution
-            this->AssembleLHS(A,LHS_Contribution,EquationId);
-            this->AssembleRHS(b,RHS_Contribution,EquationId);
-        }
-#else
-        ////////////////////////////////////////////////////////////////////////
-        //********************************************************************//
-        ////////////////////////////////////////////////////////////////////////
-        //OPENMP
-        ////////////////////////////////////////////////////////////////////////
-        //********************************************************************//
-        ////////////////////////////////////////////////////////////////////////
-
 //create a partition of the element array
-        int number_of_threads = omp_get_max_threads();
+        int number_of_threads = OpenMPUtils::GetNumThreads();
+        int A_size = A.size1();
 
+#ifdef _OPENMP
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
-
-
-        int A_size = A.size1();
         for(int i = 0; i<A_size; i++)
             omp_init_lock(&lock_array[i]);
-
+#endif
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
@@ -265,7 +201,7 @@ public:
         }
 
 
-        double start_prod = omp_get_wtime();
+        double start_prod = OpenMPUtils::GetCurrentTime();
 
         #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
@@ -299,8 +235,11 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                 //assemble the elemental contribution
-                Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
-
+#ifdef _OPENMP
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+#else
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
+#endif
             }
         }
 
@@ -339,24 +278,24 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
                 }
 
-                //assemble the elemental contribution
-                Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
-
+#ifdef _OPENMP
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+#else
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
+#endif
             }
         }
         if (this->GetEchoLevel()>0)
         {
-            double stop_prod = omp_get_wtime();
+            double stop_prod = OpenMPUtils::GetCurrentTime();
             std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
         }
 
+#ifdef _OPENMP
         for(int i = 0; i<A_size; i++)
             omp_destroy_lock(&lock_array[i]);
-
 #endif
-
-
-
+        
         KRATOS_CATCH("")
 
     }
@@ -753,44 +692,6 @@ private:
 
 
 
-    //**************************************************************************
-#ifdef _OPENMP
-    void Assemble(
-        TSystemMatrixType& A,
-        TSystemVectorType& b,
-        const LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        std::vector< omp_lock_t >& lock_array
-    )
-    {
-        unsigned int local_size = LHS_Contribution.size1();
-
-        for (unsigned int i_local=0; i_local<local_size; i_local++)
-        {
-            unsigned int i_global=EquationId[i_local];
-
-            if ( i_global < BaseType::mEquationSystemSize )
-            {
-                omp_set_lock(&lock_array[i_global]);
-
-                b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local=0; j_local<local_size; j_local++)
-                {
-                    unsigned int j_global=EquationId[j_local];
-                    if ( j_global < BaseType::mEquationSystemSize )
-                    {
-                        A(i_global,j_global) += LHS_Contribution(i_local,j_local);
-                    }
-                }
-
-                omp_unset_lock(&lock_array[i_global]);
-
-
-            }
-        }
-    }
-#endif
 
 
     /*@} */
