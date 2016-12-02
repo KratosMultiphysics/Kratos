@@ -213,10 +213,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [dict get $FracturesDict $MotherFractureId BotPoint Id] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
         # Create ContactSurface for the old crack
-        set TopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        lappend TopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-        set BotLine [GiD_Info Geometry MaxNumLines]
-        lappend BotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
+        set TopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]]
+        set BotLine [list [GiD_Info Geometry MaxNumLines] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]]
         GiD_Geometry create surface [dict get $FracturesDict $MotherFractureId InterfaceSurface Id] contactsurface \
             [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $BotLine $TopLine
         
@@ -232,10 +230,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
         # Create new InterfaceContactSurface
-        set TopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        lappend TopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-        set BotLine [GiD_Info Geometry MaxNumLines]
-        lappend BotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
+        set TopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]]
+        set BotLine [list [GiD_Info Geometry MaxNumLines] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]]
         GiD_Geometry create surface append contactsurface \
             [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $BotLine $TopLine
 
@@ -308,10 +304,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [dict get $FracturesDict $MotherFractureId BotPoint Id] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
         # Create ContactSurface for the old crack
-        set TopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        lappend TopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-        set BotLine [GiD_Info Geometry MaxNumLines]
-        lappend BotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
+        set TopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]]
+        set BotLine [list [GiD_Info Geometry MaxNumLines] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]]
         GiD_Geometry create surface [dict get $FracturesDict $MotherFractureId InterfaceSurface Id] contactsurface \
             [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $BotLine $TopLine
 
@@ -328,10 +322,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [dict get $FracturesDict $MotherFractureId TipPoint Id] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
         # Create new InterfaceContactSurface
-        set TopTopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        lappend TopTopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-        set TopBotLine [GiD_Info Geometry MaxNumLines]
-        lappend TopBotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
+        set TopTopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]]
+        set TopBotLine [list [GiD_Info Geometry MaxNumLines] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]]
         GiD_Geometry create surface append contactsurface \
             [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $TopBotLine $TopTopLine
 
@@ -348,10 +340,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
             [expr { [GiD_Info Geometry MaxNumPoints]-2 }] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
         # Create new InterfaceContactSurface
-        set BotTopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        lappend BotTopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-        set BotBotLine [GiD_Info Geometry MaxNumLines]
-        lappend BotBotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
+        set BotTopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]]
+        set BotBotLine [list [GiD_Info Geometry MaxNumLines] [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]]
         GiD_Geometry create surface append contactsurface \
             [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $BotBotLine $BotTopLine
 
