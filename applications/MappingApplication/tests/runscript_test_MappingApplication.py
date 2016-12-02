@@ -1,3 +1,9 @@
+# Philipp Bucher, 2.12.2016
+# This script is intended to test the Nearest Neighbor Mapper in parallel with 
+# several numbers of cores, since at the time of this work there is no parallel
+# testing in Kratos yet
+# usage: "python3.5 runscript_test_MappingApplication.py"
+
 import os, sys
 from time import *
 import datetime
