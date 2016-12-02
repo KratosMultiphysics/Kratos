@@ -135,7 +135,9 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+#ifdef _OPENMP        
         , mnode_lock()
+#endif
     {
 
         CreateSolutionStepData();
@@ -157,8 +159,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif    
+        {
         KRATOS_THROW_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
         CreateSolutionStepData();
 
@@ -173,8 +177,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -191,8 +197,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -209,8 +217,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY, NewZ)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
@@ -230,8 +240,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rThisPoint)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
 
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -267,8 +279,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rOtherCoordinates)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
 
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -291,8 +305,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
@@ -312,8 +328,10 @@ public:
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
+#ifdef _OPENMP        
         , mnode_lock()
-    {
+#endif
+        {
 // 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
