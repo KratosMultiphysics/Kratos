@@ -11,22 +11,24 @@ import os
 import process_factory
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from numpy import size
+
 class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
 
     def __init__(self, gid_output):
         self.GiD_output = gid_output
 
         # Mdpa Input files
-        input_file_structure = "KratosExecuteNearestNeighborMapperTest_mdpa/FSI_Example4Mapper_1_Structural"
-        input_file_fluid     = "KratosExecuteNearestNeighborMapperTest_mdpa/FSI_Example4Mapper_1_Fluid"
+        input_file_origin      = "KratosExecuteNearestNeighborMapperTest_mdpa/origin"
+        input_file_destination = "KratosExecuteNearestNeighborMapperTest_mdpa/destination"
 
         parameter_file = open("KratosExecuteNearestNeighborMapperTest_mdpa/KratosExecuteNearestNeighborMapperTest.json",'r')
         ProjectParameters = Parameters(parameter_file.read())
 
         # Create and Partition Model Parts
         variable_list = [PRESSURE, VELOCITY, PARTITION_INDEX]
-        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_fluid, 3, variable_list)
-        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_structure, 3, variable_list)
+        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_origin, 3, variable_list)
+        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_destination, 3, variable_list)
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
@@ -37,6 +39,8 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
 
         if (self.GiD_output):
             self.InitializeGiD()
+
+        self.SetPrescribedValues()
 
 
     def TestMapConstantScalarValues(self, output_time):
@@ -96,9 +100,7 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         variable_origin = VELOCITY
         variable_destination = VELOCITY
 
-        self.SetValuesOnNodes(self.model_part_origin, VELOCITY_X, map_value[0])
-        self.SetValuesOnNodes(self.model_part_origin, VELOCITY_Y, map_value[1])
-        self.SetValuesOnNodes(self.model_part_origin, VELOCITY_Z, map_value[2])
+        self.SetValuesOnNodes(self.model_part_origin, VELOCITY, map_value)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
@@ -109,9 +111,7 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
 
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_X, map_value[0])
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_Y, map_value[1])
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_Z, map_value[2])
+        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY, map_value)
 
         # Adding Values
         self.nearestNeighborMapper.Map(variable_origin, variable_destination, True)
@@ -119,18 +119,14 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_X, map_value[0]*2)
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_Y, map_value[1]*2)
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY_Z, map_value[2]*2)
+        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY, [2*x for x in map_value])
 
     def TestInverseMapConstantVectorValues(self, output_time):
         map_value = [1.4785, -0.88, -33.123]
         variable_origin = VELOCITY
         variable_destination = VELOCITY
 
-        self.SetValuesOnNodes(self.model_part_destination, VELOCITY_X, map_value[0])
-        self.SetValuesOnNodes(self.model_part_destination, VELOCITY_Y, map_value[1])
-        self.SetValuesOnNodes(self.model_part_destination, VELOCITY_Z, map_value[2])
+        self.SetValuesOnNodes(self.model_part_destination, VELOCITY, map_value)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
@@ -141,9 +137,7 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
 
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_X, map_value[0])
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_Y, map_value[1])
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_Z, map_value[2])
+        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY, map_value)
 
         # Adding Values
         self.nearestNeighborMapper.InverseMap(variable_origin, variable_destination, True)
@@ -151,15 +145,13 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_X, map_value[0]*2)
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_Y, map_value[1]*2)
-        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY_Z, map_value[2]*2)
+        self.CheckValues(self.interface_sub_model_part_origin, VELOCITY, [2*x for x in map_value])
 
     def TestMapNonConstantScalarValues(self, output_time):
         variable_origin = PRESSURE
         variable_destination = PRESSURE
 
-        self.SetValuesOnNodesId(self.interface_sub_model_part_origin, variable_origin)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.scalar_values_origin_send)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
@@ -169,14 +161,13 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
 
-        nodal_values = self.GetNodalValuesIdMap()
-        self.CheckValuesId(self.interface_sub_model_part_destination, variable_destination, nodal_values)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.scalar_values_destination_receive)
 
     def TestInverseMapNonConstantScalarValues(self, output_time):
         variable_origin = PRESSURE
         variable_destination = PRESSURE
 
-        self.SetValuesOnNodesId(self.interface_sub_model_part_destination, variable_destination)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.scalar_values_destination_send)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
@@ -186,8 +177,39 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
 
-        nodal_values = self.GetNodalValuesIdInverseMap()
-        self.CheckValuesId(self.interface_sub_model_part_origin, variable_origin, nodal_values)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.scalar_values_origin_receive)
+
+    def TestMapNonConstantVectorValues(self, output_time):
+        variable_origin = VELOCITY
+        variable_destination = VELOCITY
+
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin, VELOCITY, self.vector_values_origin_send)
+
+        if (self.GiD_output):
+            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+
+        self.nearestNeighborMapper.Map(variable_origin, variable_destination)
+
+        if (self.GiD_output):
+            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+
+        self.CheckValuesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.vector_values_destination_receive)
+
+    def TestInverseMapNonConstantVectorValues(self, output_time):
+        variable_origin = VELOCITY
+        variable_destination = VELOCITY
+
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination, VELOCITY, self.vector_values_destination_send)
+
+        if (self.GiD_output):
+            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+
+        self.nearestNeighborMapper.InverseMap(variable_origin, variable_destination)
+
+        if (self.GiD_output):
+            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+
+        self.CheckValuesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.vector_values_origin_receive)
 
 
     def partition_and_read_model_part(self, model_part_name, model_part_input_file, size_domain, variable_list, number_of_partitions = mpi.size):
@@ -231,110 +253,35 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
             if node.GetSolutionStepValue(PARTITION_INDEX) == mpi.rank:
                 node.SetSolutionStepValue(variable, value)
 
-    def SetValuesOnNodesId(self, model_part, variable):
+    def SetValuesOnNodesPrescribed(self, model_part, variable, nodal_values):
         for node in model_part.Nodes:
             if node.GetSolutionStepValue(PARTITION_INDEX) == mpi.rank:
-                node.SetSolutionStepValue(variable, node.Id)
+                nodal_coords = (node.X, node.Y, node.Z)
+                node.SetSolutionStepValue(variable, nodal_values[nodal_coords])
 
-    def CheckValues(self, model_part, variable, map_value):
+    def CheckValues(self, model_part, variable, value_mapped):
         for node in model_part.Nodes:
             if node.GetSolutionStepValue(PARTITION_INDEX) == mpi.rank:
-                value = node.GetSolutionStepValue(variable)
-                self.assertAlmostEqual(map_value,value)
+                value_expected = node.GetSolutionStepValue(variable)
+                if (size(value_mapped) > 1): # Variable is a vector
+                    self.assertAlmostEqualVector(value_mapped,value_expected)
+                else: # Variable is a scalar
+                    self.assertAlmostEqual(value_mapped,value_expected,4)
 
-    def CheckValuesId(self, model_part, variable, nodal_values):
-        i = 0
+    def CheckValuesPrescribed(self, model_part, variable, nodal_values):
         for node in model_part.Nodes:
             if node.GetSolutionStepValue(PARTITION_INDEX) == mpi.rank:
-                value = node.GetSolutionStepValue(variable)
-                self.assertAlmostEqual(nodal_values[i],value)
-                i += 1
-        if (len(nodal_values) != i):
-            raise Exception("Array Sizes are not matching")
+                value_mapped = node.GetSolutionStepValue(variable)
+                nodal_coords = (node.X, node.Y, node.Z)
+                value_expected = nodal_values[nodal_coords]
+                if (size(value_mapped) > 1): # Variable is a vector
+                    self.assertAlmostEqualVector(value_mapped,value_expected)
+                else: # Variable is a scalar
+                    self.assertAlmostEqual(value_mapped,value_expected,4)
 
-    def GetNodalValuesIdMap(self):
-        if (mpi.size == 2):
-            if (mpi.rank == 0):
-                nodal_ids = [56,53,6,14,1,17,25,12,57,37,61,63]
-            elif (mpi.rank == 1):
-                nodal_ids = [11,39,34,40,7,16,29,20,31,35,55,64,66]
-
-        elif (mpi.size == 4):
-            if (mpi.rank == 0):
-                nodal_ids = [56,53,6,12,63]
-            elif (mpi.rank == 1):
-                nodal_ids = [14,1,25,31,57,37,61]
-            elif (mpi.rank == 2):
-                nodal_ids = [34,20,35,55,64]
-            elif (mpi.rank == 3):
-                nodal_ids = [11,39,40,7,16,5,29,66]
-
-        elif (mpi.size == 8):
-            if (mpi.rank == 0):
-                nodal_ids = [6,5,12]
-            elif (mpi.rank == 1):
-                nodal_ids = [63]
-            elif (mpi.rank == 2):
-                nodal_ids = [56,53,14,1]
-            elif (mpi.rank == 3):
-                nodal_ids = [29,25,57,37,61]
-            elif (mpi.rank == 4):
-                nodal_ids = [35,55,64]
-            elif (mpi.rank == 5):
-                nodal_ids = [39,40]
-            elif (mpi.rank == 6):
-                nodal_ids = [11,34,7,16,20,31,66]
-            elif (mpi.rank == 7):
-                nodal_ids = []
-        else:
-            raise Exception("Id-Mapping \"Map\" not implemented for " + str(mpi.size) + " processors")
-
-        return nodal_ids
-
-    def GetNodalValuesIdInverseMap(self):
-        if (mpi.size == 3):
-            if (mpi.rank == 0):
-                nodal_ids = [16,1,16,18,31,3,3,2,5,2,78]
-            elif (mpi.rank == 1):
-                nodal_ids = [48,31,10,33,33,49,49,50,60,53,6,54,74,72]
-            elif (mpi.rank == 2):
-                nodal_ids = [12,12,12,18,8,13,43,10,31,7,6,77]
-
-        elif (mpi.size == 5):
-            if (mpi.rank == 0):
-                nodal_ids = [16,18,3,2,5,2,78]
-            elif (mpi.rank == 1):
-                nodal_ids = [12,12,12,18,8,13,16,43,7,6,77]
-            elif (mpi.rank == 2):
-                nodal_ids = [1,31,48,3,53]
-            elif (mpi.rank == 3):
-                nodal_ids = [31,33,49,49,50,54,74,72]
-            elif (mpi.rank == 4):
-                nodal_ids = [10,10,33,31,60,6]
-
-        elif (mpi.size == 9):
-            if (mpi.rank == 0):
-                nodal_ids = [12,13,1]
-            elif (mpi.rank == 1):
-                nodal_ids = [16,16,5,78]
-            elif (mpi.rank == 2):
-                nodal_ids = [8,43,7,77]
-            elif (mpi.rank == 3):
-                nodal_ids = [12,12,18,18]
-            elif (mpi.rank == 4):
-                nodal_ids = [10,10,6,6]
-            elif (mpi.rank == 5):
-                nodal_ids = [33,49,60,54,74]
-            elif (mpi.rank == 6):
-                nodal_ids = [3,3,2,2]
-            elif (mpi.rank == 7):
-                nodal_ids = [49,50,53,72]
-            elif (mpi.rank == 8):
-                nodal_ids = [31,48,31,33,31]
-        else:
-            raise Exception("Id-Mapping \"InverseMap\" not implemented for " + str(mpi.size) + " processors")
-
-        return nodal_ids
+    def assertAlmostEqualVector(self, values_mapped, values_expected):
+        for i in range(0,3):
+            self.assertAlmostEqual(values_mapped[i],values_expected[i],4)
 
 
     def InitializeGiD(self):
@@ -366,3 +313,270 @@ class KratosExecuteNearestNeighborMapperTestMPI(KratosUnittest.TestCase):
         gid_io.InitializeMesh(0)
         gid_io.WriteMesh(model_part.GetMesh())
         gid_io.FinalizeMesh()
+
+
+    def SetPrescribedValues(self):
+        self.scalar_values_origin_send = {
+        (-0.5, -0.5, 0.0) : 74.8612,
+        (-0.3002, -0.5, 0.0) : 71.2017,
+        (-0.5, -0.364, 0.0) : -80.2386,
+        (-0.32243, -0.21657, 0.0) : 8.5714,
+        (-0.199, -0.5, 0.0) : -81.6182,
+        (-0.15359, -0.33, 0.0) : -85.2777,
+        (-0.5, -0.17, 0.0) : -94.3847,
+        (-0.15359, -0.1004, 0.0) : 70.1815,
+        (-0.32679, -0.00077, 0.0) : -95.3669,
+        (0.01401, -0.35733, 0.0) : 41.267,
+        (0.173, -0.5, 0.0) : 77.2532,
+        (-0.5, 0.188, 0.0) : -58.9351,
+        (-0.15359, 0.1888, 0.0) : -75.2223,
+        (0.18145, -0.31476, 0.0) : -1.8728,
+        (0.01262, -0.04, 0.0) : -88.0393,
+        (-0.32293, 0.23667, 0.0) : -0.6181,
+        (0.19212, -0.177, 0.0) : 99.6869,
+        (-0.5, 0.355, 0.0) : -7.3811,
+        (0.3568, -0.5, 0.0) : 29.8251,
+        (-0.15559, 0.355, 0.0) : -69.2206,
+        (0.33541, -0.21888, 0.0) : 57.3482,
+        (0.03398, 0.21551, 0.0) : 61.6527,
+        (0.19244, 0.1066, 0.0) : 88.1457,
+        (0.32613, 0.012, 0.0) : 92.5446,
+        (0.5, -0.5, 0.0) : 46.5348,
+        (-0.5, 0.5, 0.0) : -65.896,
+        (-0.31004, 0.5, 0.0) : -72.4578,
+        (0.5, -0.325, 0.0) : 65.5213,
+        (0.19885, 0.29804, 0.0) : -79.2115,
+        (0.34366, 0.15961, 0.0) : 0.3687,
+        (-0.10041, 0.5, 0.0) : 0.5273,
+        (0.5, -0.10561, 0.0) : 17.4257,
+        (0.152, 0.5, 0.0) : 67.2235,
+        (0.5, 0.19874, 0.0) : -91.6093,
+        (0.3321, 0.5, 0.0) : -70.3876,
+        (0.5, 0.30456, 0.0) : 87.3811,
+        (0.5, 0.5, 0.0) : 47.4853 }
+
+        self.scalar_values_destination_send = {
+        (-0.5, -0.5, 0.0) : -29.2379,
+        (-0.5, -0.246, 0.0) : -98.8008,
+        (-0.262, -0.5, 0.0) : -21.5213,
+        (-0.28857, -0.14832, 0.0) : 78.5838,
+        (-0.5, 0.06104, 0.0) : 86.4897,
+        (0.0553, -0.5, 0.0) : 33.4003,
+        (-0.04361, -0.28681, 0.0) : 60.6458,
+        (-0.08274, -0.01745, 0.0) : 44.3008,
+        (-0.27185, 0.1518, 0.0) : -14.2951,
+        (0.15858, -0.32561, 0.0) : 45.8605,
+        (-0.5, 0.2592, 0.0) : -38.8276,
+        (0.2511, -0.5, 0.0) : 20.6577,
+        (0.19743, -0.1191, 0.0) : -70.3052,
+        (-0.14373, 0.25658, 0.0) : 11.9008,
+        (0.19981, 0.11831, 0.0) : -10.9708,
+        (0.5, -0.5, 0.0) : -70.6218,
+        (-0.5, 0.5, 0.0) : -71.0203,
+        (0.5, -0.2425, 0.0) : 57.4228,
+        (-0.25129, 0.5, 0.0) : -99.7596,
+        (0.11949, 0.31894, 0.0) : 21.5272,
+        (0.5, 0.0052, 0.0) : -22.0285,
+        (0.0124, 0.5, 0.0) : 35.9431,
+        (0.5, 0.249, 0.0) : 87.495,
+        (0.25186, 0.5, 0.0) : 93.018,
+        (0.5, 0.5, 0.0) : 13.4472 }
+
+        self.vector_values_origin_send = {
+        (-0.5, -0.5, 0.0) : (-82.6987, 95.4827, 89.3428),
+        (-0.3002, -0.5, 0.0) : (60.7885, 89.6246, -15.217),
+        (-0.5, -0.364, 0.0) : (60.5731, -87.3619, 14.2162),
+        (-0.32243, -0.21657, 0.0) : (94.3739, -47.977, 84.8945),
+        (-0.199, -0.5, 0.0) : (-45.466, 10.6292, 13.0954),
+        (-0.15359, -0.33, 0.0) : (70.8957, -79.9669, 10.832),
+        (-0.5, -0.17, 0.0) : (97.4695, 81.8736, -88.5944),
+        (-0.15359, -0.1004, 0.0) : (-94.7962, 70.3255, 40.8216),
+        (-0.32679, -0.00077, 0.0) : (-86.3453, 30.0437, -63.3355),
+        (0.01401, -0.35733, 0.0) : (81.9431, 44.044, -76.4111),
+        (0.173, -0.5, 0.0) : (-80.3916, -32.4842, 67.057),
+        (-0.5, 0.188, 0.0) : (-46.661, 23.6675, 89.1151),
+        (-0.15359, 0.1888, 0.0) : (47.3517, 34.2461, -56.1094),
+        (0.18145, -0.31476, 0.0) : (68.6203, 49.2641, 2.576),
+        (0.01262, -0.04, 0.0) : (-95.6574, 80.6006, -20.3202),
+        (-0.32293, 0.23667, 0.0) : (35.495, -89.1297, 72.2261),
+        (0.19212, -0.177, 0.0) : (70.5812, -40.4829, 97.703),
+        (-0.5, 0.355, 0.0) : (-26.6771, -45.2197, -43.927),
+        (0.3568, -0.5, 0.0) : (-33.4444, -59.0702, -23.3442),
+        (-0.15559, 0.355, 0.0) : (-62.3037, -60.0014, 11.5194),
+        (0.33541, -0.21888, 0.0) : (-36.7822, -74.8982, 94.9569),
+        (0.03398, 0.21551, 0.0) : (87.1369, 59.4913, -78.8707),
+        (0.19244, 0.1066, 0.0) : (-31.8417, -14.0344, -9.4779),
+        (0.32613, 0.012, 0.0) : (-58.5903, 63.2413, 80.5193),
+        (0.5, -0.5, 0.0) : (-43.5106, -57.763, 98.5749),
+        (-0.5, 0.5, 0.0) : (-30.8904, 50.4188, 89.1966),
+        (-0.31004, 0.5, 0.0) : (93.0028, -53.8615, -34.9477),
+        (0.5, -0.325, 0.0) : (0.9265, -40.9413, -36.5583),
+        (0.19885, 0.29804, 0.0) : (70.0601, 63.2991, -11.9064),
+        (0.34366, 0.15961, 0.0) : (-28.9694, -26.4793, -6.908),
+        (-0.10041, 0.5, 0.0) : (83.3125, -14.6739, 23.429),
+        (0.5, -0.10561, 0.0) : (63.7904, -21.4233, 83.3817),
+        (0.152, 0.5, 0.0) : (77.2986, -28.2953, 35.1405),
+        (0.5, 0.19874, 0.0) : (20.9458, -28.2064, -7.7992),
+        (0.3321, 0.5, 0.0) : (12.9683, 66.6925, 28.39),
+        (0.5, 0.30456, 0.0) : (78.6603, -82.0786, -0.9975),
+        (0.5, 0.5, 0.0) : (17.363, -14.019, 98.6192) }
+
+        self.vector_values_destination_send = {
+        (-0.5, -0.5, 0.0) : (-56.4463, -25.9128, 65.2663),
+        (-0.5, -0.246, 0.0) : (15.5472, -50.5599, -6.8589),
+        (-0.262, -0.5, 0.0) : (-42.618, -77.049, 15.075),
+        (-0.28857, -0.14832, 0.0) : (-45.3971, 12.1528, -76.4542),
+        (-0.5, 0.06104, 0.0) : (76.7786, -77.7307, 82.6615),
+        (0.0553, -0.5, 0.0) : (-75.3713, 59.8855, -26.5626),
+        (-0.04361, -0.28681, 0.0) : (80.9893, -54.946, 9.0543),
+        (-0.08274, -0.01745, 0.0) : (72.7381, -47.1258, 11.7604),
+        (-0.27185, 0.1518, 0.0) : (52.1867, -89.2781, -25.5366),
+        (0.15858, -0.32561, 0.0) : (6.3482, -88.3025, -67.2723),
+        (-0.5, 0.2592, 0.0) : (73.4525, 56.9959, -57.0295),
+        (0.2511, -0.5, 0.0) : (-30.4067, 83.2038, 82.9062),
+        (0.19743, -0.1191, 0.0) : (-95.7395, 6.1749, 29.4679),
+        (-0.14373, 0.25658, 0.0) : (-44.646, -11.6643, 36.3388),
+        (0.19981, 0.11831, 0.0) : (8.9531, 48.6582, 22.0265),
+        (0.5, -0.5, 0.0) : (-63.2004, -89.0804, -47.276),
+        (-0.5, 0.5, 0.0) : (-62.2399, 78.8062, -43.6925),
+        (0.5, -0.2425, 0.0) : (-61.2615, -96.1305, 62.5688),
+        (-0.25129, 0.5, 0.0) : (-52.5028, 7.931, 66.3195),
+        (0.11949, 0.31894, 0.0) : (-43.234, -97.6892, -38.1162),
+        (0.5, 0.0052, 0.0) : (-9.6424, 3.8129, -3.9237),
+        (0.0124, 0.5, 0.0) : (99.2372, 38.2263, 92.0563),
+        (0.5, 0.249, 0.0) : (-6.5423, 16.3678, 0.9326),
+        (0.25186, 0.5, 0.0) : (-30.2543, 19.2205, 10.2341),
+        (0.5, 0.5, 0.0) : (91.3727, -50.0157, -27.6178) }
+
+
+        self.scalar_values_origin_receive = {
+        (-0.5, -0.5, 0.0) : -29.2379,
+        (-0.3002, -0.5, 0.0) : -21.5213,
+        (-0.5, -0.364, 0.0) : -98.8008,
+        (-0.32243, -0.21657, 0.0) : 78.5838,
+        (-0.199, -0.5, 0.0) : -21.5213,
+        (-0.15359, -0.33, 0.0) : 60.6458,
+        (-0.5, -0.17, 0.0) : -98.8008,
+        (-0.15359, -0.1004, 0.0) : 44.3008,
+        (-0.32679, -0.00077, 0.0) : 78.5838,
+        (0.01401, -0.35733, 0.0) : 60.6458,
+        (0.173, -0.5, 0.0) : 20.6577,
+        (-0.5, 0.188, 0.0) : -38.8276,
+        (-0.15359, 0.1888, 0.0) : 11.9008,
+        (0.18145, -0.31476, 0.0) : 45.8605,
+        (0.01262, -0.04, 0.0) : 44.3008,
+        (-0.32293, 0.23667, 0.0) : -14.2951,
+        (0.19212, -0.177, 0.0) : -70.3052,
+        (-0.5, 0.355, 0.0) : -38.8276,
+        (0.3568, -0.5, 0.0) : 20.6577,
+        (-0.15559, 0.355, 0.0) : 11.9008,
+        (0.33541, -0.21888, 0.0) : 57.4228,
+        (0.03398, 0.21551, 0.0) : 21.5272,
+        (0.19244, 0.1066, 0.0) : -10.9708,
+        (0.32613, 0.012, 0.0) : -10.9708,
+        (0.5, -0.5, 0.0) : -70.6218,
+        (-0.5, 0.5, 0.0) : -71.0203,
+        (-0.31004, 0.5, 0.0) : -99.7596,
+        (0.5, -0.325, 0.0) : 57.4228,
+        (0.19885, 0.29804, 0.0) : 21.5272,
+        (0.34366, 0.15961, 0.0) : -10.9708,
+        (-0.10041, 0.5, 0.0) : 35.9431,
+        (0.5, -0.10561, 0.0) : -22.0285,
+        (0.152, 0.5, 0.0) : 93.018,
+        (0.5, 0.19874, 0.0) : 87.495,
+        (0.3321, 0.5, 0.0) : 93.018,
+        (0.5, 0.30456, 0.0) : 87.495,
+        (0.5, 0.5, 0.0) : 13.4472 }
+
+        self.scalar_values_destination_receive = {
+        (-0.5, -0.5, 0.0) : 74.8612,
+        (-0.5, -0.246, 0.0) : -94.3847,
+        (-0.262, -0.5, 0.0) : 71.2017,
+        (-0.28857, -0.14832, 0.0) : 8.5714,
+        (-0.5, 0.06104, 0.0) : -58.9351,
+        (0.0553, -0.5, 0.0) : 77.2532,
+        (-0.04361, -0.28681, 0.0) : 41.267,
+        (-0.08274, -0.01745, 0.0) : -88.0393,
+        (-0.27185, 0.1518, 0.0) : -0.6181,
+        (0.15858, -0.32561, 0.0) : -1.8728,
+        (-0.5, 0.2592, 0.0) : -58.9351,
+        (0.2511, -0.5, 0.0) : 77.2532,
+        (0.19743, -0.1191, 0.0) : 99.6869,
+        (-0.14373, 0.25658, 0.0) : -75.2223,
+        (0.19981, 0.11831, 0.0) : 88.1457,
+        (0.5, -0.5, 0.0) : 46.5348,
+        (-0.5, 0.5, 0.0) : -65.896,
+        (0.5, -0.2425, 0.0) : 65.5213,
+        (-0.25129, 0.5, 0.0) : -72.4578,
+        (0.11949, 0.31894, 0.0) : -79.2115,
+        (0.5, 0.0052, 0.0) : 17.4257,
+        (0.0124, 0.5, 0.0) : 0.5273,
+        (0.5, 0.249, 0.0) : -91.6093,
+        (0.25186, 0.5, 0.0) : -70.3876,
+        (0.5, 0.5, 0.0) : 47.4853 }
+
+        self.vector_values_origin_receive = {
+        (-0.5, -0.5, 0.0) : (-56.4463,-25.9128,65.2663),
+        (-0.3002, -0.5, 0.0) : (-42.618,-77.049,15.075),
+        (-0.5, -0.364, 0.0) : (15.5472,-50.5599,-6.8589),
+        (-0.32243, -0.21657, 0.0) : (-45.3971,12.1528,-76.4542),
+        (-0.199, -0.5, 0.0) : (-42.618,-77.049,15.075),
+        (-0.15359, -0.33, 0.0) : (80.9893,-54.946,9.0543),
+        (-0.5, -0.17, 0.0) : (15.5472,-50.5599,-6.8589),
+        (-0.15359, -0.1004, 0.0) : (72.7381,-47.1258,11.7604),
+        (-0.32679, -0.00077, 0.0) : (-45.3971,12.1528,-76.4542),
+        (0.01401, -0.35733, 0.0) : (80.9893,-54.946,9.0543),
+        (0.173, -0.5, 0.0) : (-30.4067,83.2038,82.9062),
+        (-0.5, 0.188, 0.0) : (73.4525,56.9959,-57.0295),
+        (-0.15359, 0.1888, 0.0) : (-44.646,-11.6643,36.3388),
+        (0.18145, -0.31476, 0.0) : (6.3482,-88.3025,-67.2723),
+        (0.01262, -0.04, 0.0) : (72.7381,-47.1258,11.7604),
+        (-0.32293, 0.23667, 0.0) : (52.1867,-89.2781,-25.5366),
+        (0.19212, -0.177, 0.0) : (-95.7395,6.1749,29.4679),
+        (-0.5, 0.355, 0.0) : (73.4525,56.9959,-57.0295),
+        (0.3568, -0.5, 0.0) : (-30.4067,83.2038,82.9062),
+        (-0.15559, 0.355, 0.0) : (-44.646,-11.6643,36.3388),
+        (0.33541, -0.21888, 0.0) : (-61.2615,-96.1305,62.5688),
+        (0.03398, 0.21551, 0.0) : (-43.234,-97.6892,-38.1162),
+        (0.19244, 0.1066, 0.0) : (8.9531,48.6582,22.0265),
+        (0.32613, 0.012, 0.0) : (8.9531,48.6582,22.0265),
+        (0.5, -0.5, 0.0) : (-63.2004,-89.0804,-47.276),
+        (-0.5, 0.5, 0.0) : (-62.2399,78.8062,-43.6925),
+        (-0.31004, 0.5, 0.0) : (-52.5028,7.931,66.3195),
+        (0.5, -0.325, 0.0) : (-61.2615,-96.1305,62.5688),
+        (0.19885, 0.29804, 0.0) : (-43.234,-97.6892,-38.1162),
+        (0.34366, 0.15961, 0.0) : (8.9531,48.6582,22.0265),
+        (-0.10041, 0.5, 0.0) : (99.2372,38.2263,92.0563),
+        (0.5, -0.10561, 0.0) : (-9.6424,3.8129,-3.9237),
+        (0.152, 0.5, 0.0) : (-30.2543,19.2205,10.2341),
+        (0.5, 0.19874, 0.0) : (-6.5423,16.3678,0.9326),
+        (0.3321, 0.5, 0.0) : (-30.2543,19.2205,10.2341),
+        (0.5, 0.30456, 0.0) : (-6.5423,16.3678,0.9326),
+        (0.5, 0.5, 0.0) : (91.3727,-50.0157,-27.6178) }
+
+        self.vector_values_destination_receive = {
+        (-0.5, -0.5, 0.0) : (-82.6987,95.4827,89.3428),
+        (-0.5, -0.246, 0.0) : (97.4695,81.8736,-88.5944),
+        (-0.262, -0.5, 0.0) : (60.7885,89.6246,-15.217),
+        (-0.28857, -0.14832, 0.0) : (94.3739,-47.977,84.8945),
+        (-0.5, 0.06104, 0.0) : (-46.661,23.6675,89.1151),
+        (0.0553, -0.5, 0.0) : (-80.3916,-32.4842,67.057),
+        (-0.04361, -0.28681, 0.0) : (81.9431,44.044,-76.4111),
+        (-0.08274, -0.01745, 0.0) : (-95.6574,80.6006,-20.3202),
+        (-0.27185, 0.1518, 0.0) : (35.495,-89.1297,72.2261),
+        (0.15858, -0.32561, 0.0) : (68.6203,49.2641,2.576),
+        (-0.5, 0.2592, 0.0) : (-46.661,23.6675,89.1151),
+        (0.2511, -0.5, 0.0) : (-80.3916,-32.4842,67.057),
+        (0.19743, -0.1191, 0.0) : (70.5812,-40.4829,97.703),
+        (-0.14373, 0.25658, 0.0) : (47.3517,34.2461,-56.1094),
+        (0.19981, 0.11831, 0.0) : (-31.8417,-14.0344,-9.4779),
+        (0.5, -0.5, 0.0) : (-43.5106,-57.763,98.5749),
+        (-0.5, 0.5, 0.0) : (-30.8904,50.4188,89.1966),
+        (0.5, -0.2425, 0.0) : (0.9265,-40.9413,-36.5583),
+        (-0.25129, 0.5, 0.0) : (93.0028,-53.8615,-34.9477),
+        (0.11949, 0.31894, 0.0) : (70.0601,63.2991,-11.9064),
+        (0.5, 0.0052, 0.0) : (63.7904,-21.4233,83.3817),
+        (0.0124, 0.5, 0.0) : (83.3125,-14.6739,23.429),
+        (0.5, 0.249, 0.0) : (20.9458,-28.2064,-7.7992),
+        (0.25186, 0.5, 0.0) : (12.9683,66.6925,28.39),
+        (0.5, 0.5, 0.0) : (17.363,-14.019,98.6192) }

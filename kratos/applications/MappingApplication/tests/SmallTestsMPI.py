@@ -48,43 +48,21 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            if (self.num_processors == 1):
-                self.serialTests()
-            else:
-                # run tests that are independent of number of processors
-                self.parallelTests()
+            self.test.TestMapConstantScalarValues(1.0)
+            self.test.TestInverseMapConstantScalarValues(2.0)
 
-                # run tests that are depending on number of processors
-                list_processors_TestMapNonConstantScalarValues = [2,4,8]
-                if (self.num_processors in list_processors_TestMapNonConstantScalarValues):
-                    self.test.TestMapNonConstantScalarValues(5.0)
+            self.test.TestMapConstantVectorValues(3.0)
+            self.test.TestInverseMapConstantVectorValues(4.0)
 
-                list_processors_TestInverseMapNonConstantScalarValues = [3,5,9]
-                if (self.num_processors in list_processors_TestInverseMapNonConstantScalarValues):
-                    self.test.TestInverseMapNonConstantScalarValues(6.0)
+            self.test.TestMapNonConstantScalarValues(5.0)
+            self.test.TestInverseMapNonConstantScalarValues(6.0)
+
+            self.test.TestMapNonConstantVectorValues(7.0)
+            self.test.TestInverseMapNonConstantVectorValues(8.0)
 
 
     def tearDown(self):
         pass
-
-    def serialTests(self):
-        self.test.TestMapConstantScalarValues(1.0)
-        self.test.TestInverseMapConstantScalarValues(2.0)
-
-        self.test.TestMapConstantVectorValues(3.0)
-        self.test.TestInverseMapConstantVectorValues(4.0)
-
-        self.test.TestMapNonConstantScalarValues(5.0)
-        self.test.TestInverseMapNonConstantScalarValues(6.0)
-
-    def parallelTests(self):
-        # These tests run independent of the number of processors,
-        # since only conatant fields are mapped
-        self.test.TestMapConstantScalarValues(1.0)
-        self.test.TestInverseMapConstantScalarValues(2.0)
-
-        self.test.TestMapConstantVectorValues(3.0)
-        self.test.TestInverseMapConstantVectorValues(4.0)
 
 
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):
