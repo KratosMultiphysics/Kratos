@@ -94,7 +94,7 @@ KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecovery_TDim);
 
 /// Default constructor.
 
-DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mFirstTimeAppending(true){}
+DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mCalculatingGradientAndLaplacian(false), mFirstTimeAppending(true){}
 
 /// Destructor.
 virtual ~DerivativeRecovery(){}
@@ -121,6 +121,8 @@ void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& s
 void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
+
+void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void CalculateVelocityLaplacianRate(ModelPart& r_model_part);
 
@@ -204,6 +206,7 @@ bool mFirstLaplacianRecovery;
 bool mSomeCloudsDontWork;
 bool mCalculatingTheGradient;
 bool mCalculatingTheLaplacian;
+bool mCalculatingGradientAndLaplacian;
 bool mFirstTimeAppending;
 double mLastMeasurementTime;
 double mLastPressureVariation;
