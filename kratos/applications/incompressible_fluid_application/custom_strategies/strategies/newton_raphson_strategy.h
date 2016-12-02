@@ -506,8 +506,6 @@ public:
         }
 
         //update results
-        rDofSet = pBuilderAndSolver->GetDofSet();
-
         pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
         //move the mesh if needed
@@ -518,7 +516,6 @@ public:
         if (is_converged==true)
         {
             //initialisation of the convergence criteria
-            rDofSet = pBuilderAndSolver->GetDofSet();
             mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
             if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
@@ -571,7 +568,6 @@ public:
 
 
             //Updating the results stored in the database
-            rDofSet = pBuilderAndSolver->GetDofSet();
             pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
             //move the mesh if needed
