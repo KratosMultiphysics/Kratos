@@ -305,11 +305,9 @@ public:
                     }
 
 #ifdef _OPENMP
-                    //assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
-                    this->AssembleLHS(A, LHS_Contribution, EquationId);
-                    this->AssembleRHS(b, RHS_Contribution, EquationId);
+                this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
 #endif
                 }
 
@@ -813,10 +811,9 @@ protected:
 
                 //assemble the elemental contribution
 #ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+                this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
-                this->AssembleLHS(A, LHS_Contribution, EquationId);
-                this->AssembleRHS(b, RHS_Contribution, EquationId);
+                this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
 
             }
@@ -862,10 +859,9 @@ protected:
 
                 //assemble the elemental contribution
 #ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+                this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
-                this->AssembleLHS(A, LHS_Contribution, EquationId);
-                this->AssembleRHS(b, RHS_Contribution, EquationId);
+                this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
             }
         }
@@ -937,46 +933,6 @@ private:
     }
 
 
-
-    //**************************************************************************
-#ifdef _OPENMP
-
-    void Assemble(
-        TSystemMatrixType& A,
-        TSystemVectorType& b,
-        const LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        std::vector< omp_lock_t >& lock_array
-    )
-    {
-        unsigned int local_size = LHS_Contribution.size1();
-
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-
-            if (i_global < BaseType::mEquationSystemSize)
-            {
-                omp_set_lock(&lock_array[i_global]);
-
-                b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
-                    {
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                    }
-                }
-
-                omp_unset_lock(&lock_array[i_global]);
-
-
-            }
-        }
-    }
-#endif
 
 
     /*@} */

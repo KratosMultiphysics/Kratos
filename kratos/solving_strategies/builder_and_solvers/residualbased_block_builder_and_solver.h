@@ -236,8 +236,11 @@ public:
                 pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                 //assemble the elemental contribution
+#ifdef _OPENMP
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-
+#else
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
             }
@@ -262,7 +265,11 @@ public:
                 pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                 //assemble the elemental contribution
+#ifdef _OPENMP
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+#else
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
@@ -658,6 +665,8 @@ public:
         {
             KRATOS_WATCH("Initializing lock array")
         }
+        
+#ifdef _OPENMP
         if (mlock_array.size() != 0)
         {
             for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
@@ -665,13 +674,13 @@ public:
                 omp_destroy_lock(&mlock_array[i]);
             }
         }
-
         mlock_array.resize(BaseType::mDofSet.size());
-
+        
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
         {
             omp_init_lock(&mlock_array[i]);
         }
+#endif
         if( this->GetEchoLevel() > 2)
         {
             std::cout << "End of setupdofset\n" << std::endl;
@@ -927,10 +936,12 @@ public:
             std::cout << "ResidualBasedBlockBuilderAndSolver Clear Function called" << std::endl;
         }
 
+#ifdef _OPENMP
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             omp_destroy_lock(&mlock_array[i]);
         mlock_array.resize(0);
-
+#endif 
+        
     }
 
     /**
@@ -980,8 +991,9 @@ protected:
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
+#ifdef _OPENMP
     std::vector< omp_lock_t > mlock_array;
-
+#endif
 
     /*@} */
     /**@name Protected Operators*/
@@ -1027,12 +1039,15 @@ protected:
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
+#ifdef _OPENMP
                 omp_set_lock(&mlock_array[ids[i]]);
-
+#endif 
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
+#ifdef _OPENMP
                 omp_unset_lock(&mlock_array[ids[i]]);
+#endif 
             }
 
         }
@@ -1045,12 +1060,14 @@ protected:
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
+#ifdef _OPENMP
                 omp_set_lock(&mlock_array[ids[i]]);
-
+#endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-
+#ifdef _OPENMP
                 omp_unset_lock(&mlock_array[ids[i]]);
+#endif
             }
         }
 
@@ -1121,7 +1138,40 @@ protected:
     }
 
 
+    void Assemble(
+        TSystemMatrixType& A,
+        TSystemVectorType& b,
+        const LocalSystemMatrixType& LHS_Contribution,
+        const LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId
+#ifdef _OPENMP
+        ,std::vector< omp_lock_t >& lock_array
+#endif
+    )
+    {
+        unsigned int local_size = LHS_Contribution.size1();
 
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = EquationId[i_local];
+
+#ifdef _OPENMP
+            omp_set_lock(&lock_array[i_global]);
+#endif
+            b[i_global] += RHS_Contribution(i_local);
+
+            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+
+#ifdef _OPENMP
+            omp_unset_lock(&lock_array[i_global]);
+#endif
+
+
+            //note that computation of reactions is not performed here!
+        }
+    }
+
+    
     //**************************************************************************
 
     void AssembleRHS(
@@ -1305,7 +1355,6 @@ private:
             partitions[i] = partitions[i - 1] + partition_size;
     }
 
-#ifdef _OPENMP
     inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
     {
         double* values_vector = A.value_data().begin();
@@ -1336,43 +1385,7 @@ private:
         }
     }
 
-    void Assemble(
-        TSystemMatrixType& A,
-        TSystemVectorType& b,
-        const LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        std::vector< omp_lock_t >& lock_array
-    )
-    {
-        unsigned int local_size = LHS_Contribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-
-
-            omp_set_lock(&lock_array[i_global]);
-
-            b[i_global] += RHS_Contribution(i_local);
-
-            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
-//                  for (unsigned int j_local = 0; j_local < local_size; j_local++)
-//                  {
-//                      unsigned int j_global = EquationId[j_local];
-//
-//                          A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-//
-//
-//                  }
-            omp_unset_lock(&lock_array[i_global]);
-
-
-
-            //note that computation of reactions is not performed here!
-        }
-    }
-#endif
 
 
     inline unsigned int ForwardFind(const unsigned int id_to_find,
