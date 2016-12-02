@@ -670,29 +670,9 @@ public:
 
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
         }
-
-        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
-        {
-            std::cout << "solution obtained = " << Dx << std::endl;
-            std::cout << "RHS  = " << b << std::endl;
-        }
-        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            // 				std::cout << "After first system solution" << std::endl;
-            std::cout << "SystemMatrix = " << A << std::endl;
-            std::cout << "solution obtained = " << Dx << std::endl;
-            std::cout << "RHS  = " << b << std::endl;
-        }
-        else if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
-        }
+        
+        // Debugging info
+        EchoInfo(iteration_number);
         
         // Updating the results stored in the database
         UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
@@ -762,7 +742,9 @@ public:
                 std::cout << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
-            
+            // Debugging info
+            EchoInfo(iteration_number);
+        
             // Updating the results stored in the database
             UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
 
@@ -789,7 +771,9 @@ public:
 
         //plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
             MaxIterationsExceeded();
+        }
 
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
@@ -845,8 +829,7 @@ public:
     {
         return mKeepSystemConstantDuringIterations;
     }
-
-
+    
     ///@}
     ///@name Inquiry 
     ///@{
@@ -978,6 +961,39 @@ protected:
         }
     }
 
+    //**********************************************************************
+    //**********************************************************************
+    
+    virtual void EchoInfo(const unsigned int iteration_number)
+    {
+        TSystemMatrixType& A = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b = *mpb;
+        
+        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
+        {
+            std::cout << "Solution obtained = " << Dx << std::endl;
+            std::cout << "RHS  = " << b << std::endl;
+        }
+        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+//             std::cout << "After first system solution" << std::endl;
+            std::cout << "SystemMatrix = " << A << std::endl;
+            std::cout << "Solution obtained = " << Dx << std::endl;
+            std::cout << "RHS  = " << b << std::endl;
+        }
+        else if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
+        }
+    }
+    
     //**********************************************************************
     //**********************************************************************
 
