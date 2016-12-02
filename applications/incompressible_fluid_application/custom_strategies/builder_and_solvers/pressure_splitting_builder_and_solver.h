@@ -833,7 +833,7 @@ public:
         ElementsArrayType& pElements = rModelPart.Elements();
         ConditionsArrayType& pConditions = rModelPart.Conditions();
 
-        BaseType::mDofSet = DofsArrayType();
+        BaseType::mDofSet.clear(); // = DofsArrayType();
 
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         Element::DofsVectorType ElementalDofList;
@@ -1234,7 +1234,7 @@ public:
      */
     void Clear()
     {
-        this->mDofSet = DofsArrayType();
+        this->mDofSet.clear(); // = DofsArrayType();
 
         if (this->mpReactionsVector != NULL)
             TSparseSpace::Clear((this->mpReactionsVector));
