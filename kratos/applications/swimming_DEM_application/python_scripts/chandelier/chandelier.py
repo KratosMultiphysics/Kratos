@@ -2,7 +2,7 @@ import math
 import cmath
 import mpmath
 import matplotlib.pyplot as plt
-
+import numpy as np
 import chandelier_parameters as pp
 
 class AnalyticSimulator:
@@ -184,6 +184,23 @@ if __name__ == "__main__":
     from mpl_toolkits.mplot3d import Axes3D
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(sim.x, sim.y, sim.z)
+    ax.plot(sim.x, sim.y, sim.z, label='all forces')
+    
+    pp.include_history_force = 0
+    sim = AnalyticSimulator(pp)
+    sim.CalculateTrajectory()
+    ax.plot(sim.x, sim.y, sim.z, label='no history force')
+    # Create cubic bounding box to simulate equal aspect ratio
+
+    max_range = np.array([max(sim.x)-min(sim.x), max(sim.y)-min(sim.y), max(sim.z)-min(sim.z)]).max()
+    Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(max(sim.x)+min(sim.x))
+    Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(max(sim.y)+min(sim.y))
+    Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(max(sim.z)+min(sim.z))
+    ax.set_xlabel('$x$ ($m$)', fontsize=20, rotation = 0)
+    ax.set_ylabel('$y$ ($m$)', fontsize=20, rotation = 0)
+    ax.set_zlabel('$z$ ($m$)', fontsize=20, rotation = 0)
+    plt.legend(loc='upper left')
+    fig.tight_layout()    
+    plt.savefig('spirals.eps', format='eps', dpi=1000)    
     plt.show()
 
