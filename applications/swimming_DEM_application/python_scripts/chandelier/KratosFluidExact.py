@@ -99,11 +99,11 @@ pp.CFD_DEM = DEM_parameters
 ##############################################################################
 
 #G
-file_name, j, k, current_run_path = sys.argv
-print(j, k)
-M = int(j)
-TIME_WINDOW = 5 * pp.CFD_DEM.MaxTimeStep * 2 ** int(k)
-sys.path.append(current_run_path)
+#file_name, j, k, current_run_path = sys.argv
+#print(j, k)
+#M = int(j)
+#TIME_WINDOW = 5 * pp.CFD_DEM.MaxTimeStep * 2 ** int(k)
+#sys.path.append(current_run_path)
 
 pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.do_search_neighbours = False
@@ -113,14 +113,14 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 2
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
-pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = TIME_WINDOW
+pp.CFD_DEM.quadrature_order = 1
+pp.CFD_DEM.time_window = 1
 pp.CFD_DEM.number_of_exponentials = M
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
@@ -128,8 +128,8 @@ pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
-number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
-print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
+#number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+#print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 
@@ -137,18 +137,25 @@ pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 run_code = swim_proc.CreateRunCode(pp)
 #Z
 
-# Import utilities from models
+# Creating swimming DEM procedures
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
+
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+# Import utilities from models
 
 demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
  
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
+
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
@@ -333,13 +340,6 @@ swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_p
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
-
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
-
-os.chdir(main_path)
-swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -696,7 +696,7 @@ import matplotlib.pyplot as plt
 
 import chandelier_parameters as ch_pp
 import chandelier as ch
-import quadrature as quad
+#import quadrature as quad
 sim = ch.AnalyticSimulator(ch_pp)
 
 post_utils.Writeresults(time)
