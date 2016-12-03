@@ -50,16 +50,32 @@ for m in range(0, n_exponentials):
 E_r = [[abs(r_final - r_table[m][k]) / r_final for k in range(n_doubling)] for m in range(n_exponentials)]
 E   = [[Radius([positions_table[m][k][0] - x_final, positions_table[m][k][1] - y_final]) / r_final for k in range(n_doubling)] for m in range(n_exponentials)]
 bytes_per_vector = 24
-memory = [[(m + 5 * 2 ** k) * 24 for k in range(n_doubling)] for m in range(n_exponentials)]
+memory = [[(m + 1 + 5 * 2 ** k) * bytes_per_vector for k in range(n_doubling)] for m in range(n_exponentials)]
+#from matplotlib import rc
+#rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+#rc('text', usetex=True)
 
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+font_size = 60
+ax.tick_params(axis='x', labelsize=0.75 * font_size)
+ax.tick_params(axis='y', labelsize=0.75 * font_size)
+ax.tick_params(axis='both', which='major', pad=20)
+fig.tight_layout()
 m = 0
+zoom_in = True
 for line in reversed(E):
-    plt.plot(memory[10-m], line, '-o', label='m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
+    if zoom_in:
+        plt.plot(memory[10-m][:5], line[:5], '-o', label='m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
+    else:
+        plt.plot(memory[10-m], line, '-o', label='m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
     m += 1
-plt.xlabel('bytes stored per particle')
-plt.ylabel('$E$')
-plt.legend()
+plt.xlabel('$\mathrm{bytes}$', fontsize = font_size)
+plt.ylabel('$E$', fontsize = font_size)
+plt.legend(prop={'size':30}, bbox_to_anchor=(1.12,1.12))
 plt.semilogy()
-plt.savefig('EvsMemory.pdf')
+
+plt.savefig('EvsMemory.pdf', dpi = 600)
+#plt.tight_layout()
 plt.show()
 
