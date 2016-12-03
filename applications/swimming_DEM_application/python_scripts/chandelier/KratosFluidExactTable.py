@@ -137,12 +137,24 @@ pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 run_code = swim_proc.CreateRunCode(pp)
 #Z
 
-# Import utilities from models
+# Creating swimming DEM procedures
 procedures    = DEM_procedures.Procedures(DEM_parameters)
-demio         = DEM_procedures.DEMIo(DEM_parameters)
+
+# Creating necessary directories
+main_path = os.getcwd()
+
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+# Import utilities from models
+
+demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
+
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
  
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
@@ -328,12 +340,6 @@ swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_p
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
-
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
-os.chdir(main_path)
-swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -848,7 +854,6 @@ while (time <= final_time):
         # applying fluid-to-DEM coupling if required
 
         if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
-
             if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
