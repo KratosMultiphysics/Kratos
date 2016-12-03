@@ -15,6 +15,10 @@ def ExactIntegrationOfSinus(t, a = None, b = None):
             return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(- 0.5, t))
         elif a == None and b != None:
             a = 0
+        elif a == 'MinusInfinity' and b != None:
+            return math.sqrt(0.5 * math.pi) * (math.sin(b) - math.cos(b)) 
+        elif a == 'MinusInfinity' and b == None:
+            return math.sqrt(0.5 * math.pi) * (math.sin(t) - math.cos(t)) 
         elif b == None:
             b = t
         mpmath.mp.dps = 50
@@ -26,11 +30,24 @@ def ExactIntegrationOfSinus(t, a = None, b = None):
         arg_a = mpmath.sqrt(2 * (t - a) / pi)
         arg_b = mpmath.sqrt(2 * (t - b) / pi) 
         return mpmath.sqrt(2 * mpmath.mp.pi) * ((fsin(arg_b) - fsin(arg_a)) * mpmath.cos(t) + (fcos(arg_a) - fcos(arg_b)) * mpmath.sin(t))
-      
+    
 def ExactIntegrationOfSinusWithExponentialKernel(t, ti, alpha = None, beta = None):
+    #print('alpha', alpha)
+    #print('beta', beta)
+    #print('t', t)
     a = sqrt(exp(1) / ti)
-    b = - 0.5  / ti
-    return a / (b ** 2 + 1) * (exp(b * (t - alpha)) * (b * sin(alpha) + cos(alpha)) - exp(b * (t - beta)) * (b * sin(beta) + cos(beta)))
+    b = - 0.5 / ti
+    if alpha == 'MinusInfinity':
+        return - a / (b ** 2 + 1) * exp(b * (t - beta)) * (b * sin(beta) + cos(beta)) 
+    else:
+        return a / (b ** 2 + 1) * (exp(b * (t - alpha)) * (b * sin(alpha) + cos(alpha)) - exp(b * (t - beta)) * (b * sin(beta) + cos(beta)))
+        
+def ExactIntegrationOfTail(final_time, final_time_minus_tw, initial_time, ais, tis):
+        F_tail = 0.0
+        for i in range(len(ais)):
+            ti = tis[i]
+            F_tail += ais[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, initial_time, final_time_minus_tw)
+        return F_tail   
 
 # *****************************************************************************************************************************************************************************************
 # QUADRATURES
@@ -260,57 +277,68 @@ def Phi(t):
         answer = 1. + 0.5 * t + 1. / 6 * t ** 2
     return answer
 
-def Hinsberg(m, t_win, times, f):
+def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
     verify_interpolation = False
-    cheat = False
+    cheat = True
     cheat_a_little = True
     print_debug_info = False
     
     if len(times) < 4: # no tail left
-        return Daitche(times, f, 1)
+        return Daitche(times, f, 2)
     else:
-        import hinsberg_optimization as op
+        #import hinsberg_optimization as op
         initial_time = times[0]
         final_time = times[- 1]
         interval = final_time - initial_time
         
         # Partitioning time vector in two  ------------------------------
-               
+        i_time = 0       
         for i in range(len(times)):
+            i_time  = i 
             if times[i] >= final_time - t_win:
                 break
             
-        t_middle = times[i]    
-        old_times = [time * t_middle / interval for time in times]        
-        recent_times = [t_middle + time * (interval - t_middle) / interval for time in times]
-        
+        t_middle = times[i_time]    
+        #old_times = [time * t_middle / interval for time in times]        
+        #recent_times = [t_middle + time * (interval - t_middle) / interval for time in times]
+        old_times = times[:i_time + 1]
+        recent_times = times[i_time:]
+        #print('old_times',old_times)
+        #print('recent_times',recent_times)
+        #cacac
         # Calculating window integral  ------------------------------
-        
-        #F_win = Bombardelli(recent_times, f, 4)#(1, recent_times, f)
-        F_win = Daitche(recent_times, f, 3)
-        
+        if len(recent_times) >= 4:
+            F_win = Daitche(recent_times, f, 2)
+        else:
+            F_win = Daitche(times, f, 2)
+            return F_win
+
         # Calculating Tail Integral ------------------------------
         
         # Building exponentials interpolation of the kernel
-        
-        tis_tilde = [0.1, 0.3, 1., 3., 5.,10., 40., 190., 1000., 6500., 50000.]
-        a0 = [ 0.23477446,  0.28549392,  0.28479113, 0.3, 0.26149251,  0.32055117,  0.35351918, 0.3963018,   0.42237921,  0.48282255,  0.63471099]    
-        #tis_tilde =  [0.08956585408046244, 0.2870950284336926, 1.0034210750126729, 3.4129613625909867, 6.909388254560943, 14.600819374885972, 60.53069064744825, 296.58588621193513, 1475.4757309492854, 8886.495135602947, 33152.71985133249]
-        #tis_tilde =  [0.1707000481354637, 1.7099225151768165, 37.841414663455545, 540.498450575195]
-        #a0 = [ 0.65401084,  0.61361639,  0.84124245,  0.79267579]
-        #a0 = [ 0.27792595,  0.2916543,   0.30825487,  0.27327803,  0.08061242,  0.30187241,  0.37500623,  0.38739543,  0.4110891,   0.40065175,  0.51386666]
-        #a0 = [0.3 for t in tis_tilde]
+                
+        if which_set_of_points == 'hinsberg':
+            # Hinsberg's points
+            tis_tilde = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+            a0 = [ 0.23477481312586,  0.28549576238194,  0.28479416718255, 0.26149775537574, 0.32056200511938, 0.35354490689146, 0.39635904496921, 0.42253908596514, 0.48317384225265, 0.63661146557001]    
+            tis_tilde = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+            
+            #tis_tilde = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+            #a0 = [ 0.23477481312586,  0.28549576238194,  0.28479416718255, 0.26149775537574, 0.32056200511938, 0.35354490689146, 0.39635904496921, 0.42253908596514, 0.48317384225265, 0.63661146557001]    
+        elif which_set_of_points == 't-norm':
+        # Our points (t-norm)
+            tis_tilde = [0.171137410203, 0.469538455725, 1.333604723390, 4.038729849045, 13.268683433850, 48.350555319658, 202.201304412825, 1029.089927961859, 7177.875290938712, 93277.737373373078]        
+            a0 = [0.246702083145, 0.246474944419, 0.259717868181, 0.277340588232, 0.299501001874, 0.328282204667, 0.367882181136, 0.427624033730, 0.533580013899, 0.765266538864]
+        else:
+        # Our points (abs value)
+            tis_tilde = [0.1878604572, 0.5306382498, 1.5524873935, 4.6517443725, 14.2413555446, 50.7413819742, 263.7561507819, 2146.211201895, 26744.590748687, 348322.670028861]        
+            a0 = [0.2520642358, 0.254913066, 0.2638832071, 0.2666445191, 0.2806268115, 0.344914608, 0.4566204962, 0.5663046247, 0.6253574036, 0.6932526975]
+     
         #functional = op.Functional(tis_tilde)
         #op.GetExponentialsCoefficients(functional, a0)
-        #a0 = [0.37140492497, 0.42213046005, 0.52488268154, 0.78143202593]
-        #tis_tilde=[0.35050516570, 1.75257036603, 11.65284347454, 136.88606867688]
-        a0 = [0.43079707202 ,0.53194030882, 0.80464753089]
-        tis_tilde = [0.45214632116,3.05971221535,36.76947294003 ]
         tis = [t * t_win for t in tis_tilde]
 
 
-        print("times of tangency: ", tis)
-        print("a coefficeints: ", a0)
         F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
         Fis = [0.0 for coefficient in a0]
         
@@ -335,33 +363,35 @@ def Hinsberg(m, t_win, times, f):
             plt.axis('equal')
             plt.show()
         
-        # For each interpoland, calculate its integral contribution step by step
-        
-        for i in range(len(a0)):
-            ti = tis[i]
-            for k in range(1, len(old_times)):
-                delta_t = old_times[k] - old_times[k - 1]                
-                normalized_dt = delta_t / (2 * ti)
-                normalized_t = old_times[k - 1] / (2 * ti)
-                fn = f(old_times[k - 1])
-                fn_plus_1 = f(old_times[k])
-                exp_dt = exp(- normalized_dt)
-                Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
-                if cheat_a_little: # calculate exact contribution and not approximation given by Hinsberg
-                    Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k])
-                Fre = exp_dt * Fis[i]
-                Fis[i] = float(Fdi) + Fre
-                
-            F_tail += a0[i] * Fis[i]
-            
         # Cheating, calculating the exact interpoland's integral all at once (and not step by step) ------------------------------
-        
+           
         if cheat:
             F_tail = 0.0
             for i in range(len(a0)):
                 ti = tis[i]
                 F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, 0., old_times[-1])
+
+        # For each interpoland, calculate its integral contribution step by step
         
+        else:
+            for i in range(len(a0)):
+                ti = tis[i]
+                for k in range(1, len(old_times)):
+                    delta_t = old_times[k] - old_times[k - 1]                
+                    normalized_dt = delta_t / (2 * ti)
+                    normalized_t = old_times[k - 1] / (2 * ti)
+                    fn = f(old_times[k - 1])
+                    fn_plus_1 = f(old_times[k])
+                    exp_dt = exp(- normalized_dt)
+                    Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
+                    if cheat_a_little: # calculate exact contribution and not approximation given by Hinsberg
+                        Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k])
+                    Fre = exp_dt * Fis[i]
+                    Fis[i] = float(Fdi) + Fre
+                    
+                F_tail += a0[i] * Fis[i]
+            
+
         
         # Printing debug info ------------------------------
         
@@ -377,6 +407,8 @@ def Hinsberg(m, t_win, times, f):
             print("TAIL", F_tail)
             print("F_win + F_tail", F_win + F_tail)
             sys.exit
+        print('F_win',F_win)
+        print('F_tail', F_tail)
         return F_win + F_tail
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -533,7 +565,7 @@ def SubstituteEmpiricalRichardsons(approx_successive_values, k, order, level = -
                     eiminus1 = abs((richardsons[i] - richardsons[i - 1]) / (one * richardsons[i]))
                     ei = abs((richardsons[i + 1] - richardsons[i]) / (one * richardsons[i + 1]))
                     approx_order = max(log(eiminus1 / (one * ei)) / log(one * k), order)
-                    print(approx_order)
+                    #print(approx_order)
                 
                 new_richardsons.append((k ** approx_order * richardsons[i + 1] - richardsons[i]) / (one * (k ** approx_order - 1)))
 
@@ -561,19 +593,18 @@ def SubstituteShanks(approx_sequence):
 if __name__ == "__main__":
     # Paramters ----------------------------
 
-    final_time = 20.0
-    t_win = 2.0
-    n_discretizations = 8
+    final_time = 10
+    t_win = 1.0
+    n_discretizations = 7
     min_exp = 3
     k = 2
     m = 10
-    order_bomb = 2
+    order_bomb = 1
     f = math.sin
     n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
     n_sizes = [final_time / number for number in n_div]
-    print("Sizes: ", n_div)
-    n_theor_slopes = 4
-    n_samples = 8
+    n_theor_slopes = 2
+    n_samples = int(min(8, n_div[0]))
 
     # Containers ----------------------------
 
@@ -584,12 +615,19 @@ if __name__ == "__main__":
     approx_values_3 = [0] * n_discretizations
     approx_values_bomb = [0] * n_discretizations
     approx_values_hins = [0] * n_discretizations
+    approx_values_hins_t_norm = [0] * n_discretizations
+    approx_values_hins_abs = [0] * n_discretizations
+
     errors_naive = [0] * n_discretizations
     errors_1 = [0] * n_discretizations
     errors_2 = [0] * n_discretizations
     errors_3 = [0] * n_discretizations
     errors_bomb = [0] * n_discretizations
+    
     errors_hins = [0] * n_discretizations
+    errors_hins_t_norm = [0] * n_discretizations    
+    errors_hins_abs = [0] * n_discretizations
+
     errors_naive_rich = [0] * n_discretizations
     errors_1_rich = [0] * n_discretizations
     errors_2_rich = [0] * n_discretizations
@@ -616,8 +654,6 @@ if __name__ == "__main__":
         for n_divisions in n_div:            
             h = final_time / n_divisions 
             times = [h * delta for delta in range(n_divisions * i // n_samples)]
-            print(times)
-            
             if i == n_samples:
                 times.append(final_time)                
             else:
@@ -630,15 +666,21 @@ if __name__ == "__main__":
             approx_value_2 = Daitche(times, f, 2)
             approx_value_3 = Daitche(times, f, 3)
             approx_value_bomb = Bombardelli(times, f, order_bomb)            
-            #approx_value_hins = Hinsberg(m, t_win, times, f)   
+            approx_value_hins = Hinsberg(m, t_win, times, f)   
+            approx_value_hins_t_norm = Hinsberg(m, t_win, times, f, 't-norm')   
+            approx_value_hins_abs = Hinsberg(m, t_win, times, f, 'abs-norm')   
+            
+            print('exact_value', exact_value)
             approx_value_naive = 1
-            approx_value_hins  = 1
             error_naive = abs(approx_value_naive - exact_value)
             error_1 =     abs(approx_value_1 - exact_value)
             error_2 =     abs(approx_value_2 - exact_value)
             error_3 =     abs(approx_value_3 - exact_value)
             error_bomb =  abs(approx_value_bomb - exact_value)
             error_hins =  abs(approx_value_hins - exact_value)
+            error_hins_t_norm =  abs(approx_value_hins_t_norm - exact_value)
+            error_hins_abs =  abs(approx_value_hins_abs - exact_value)
+            
             
             #approx_values_naive[j] = approx_value_naive
             approx_values_1[j] = approx_value_1
@@ -646,6 +688,9 @@ if __name__ == "__main__":
             approx_values_3[j] = approx_value_3
             approx_values_bomb[j] = approx_value_bomb
             approx_values_hins[j] = approx_value_hins
+            approx_values_hins_t_norm[j] = approx_value_hins_t_norm
+            approx_values_hins_abs[j] = approx_value_hins_abs
+            
             #approx_values_naive[j] = approx_value_naive
 
             exact_values[j] = float(exact_value)
@@ -655,9 +700,11 @@ if __name__ == "__main__":
             errors_3[j]     =  max(errors_3[j], error_3)
             errors_bomb[j]  =  max(errors_bomb[j], error_bomb)
             errors_hins[j]  =  max(errors_hins[j], error_hins)
+            errors_hins_t_norm[j]  =  max(errors_hins_t_norm[j], error_hins_t_norm)
+            errors_hins_abs[j]  =  max(errors_hins_abs[j], error_hins_abs)
+            
             j += 1
-
-
+       
         # Convergence acceleration ----------------------------
 
         approx_values_naive_rich = [value for value in approx_values_naive] 
@@ -703,7 +750,7 @@ if __name__ == "__main__":
         SubstituteShanks(approx_values_hins_shank)
 
         # Computing errors ----------------------------
-
+        
         errors_naive_rich = [max(errors_naive_rich[i], abs(approx_values_naive_rich[i] - exact_values[i])) for i in range(len(exact_values))]
         errors_1_rich = [max(errors_1_rich[i], abs(approx_values_1_rich[i] - exact_values[i])) for i in range(len(exact_values))]
         errors_2_rich = [max(errors_2_rich[i], abs(approx_values_2_rich[i] - exact_values[i])) for i in range(len(exact_values))]
@@ -733,17 +780,20 @@ if __name__ == "__main__":
 
     # Plotting ----------------------------
     #plt.plot(n_sizes, errors_naive, color='r', linestyle = '-', linewidth=2, marker='o', label = 'Newton--Cotes')
-    plt.plot(n_sizes, errors_1, color='b', linestyle = '-', linewidth=2, marker='*', label = 'Daitche, order 1')
+    #plt.plot(n_sizes, errors_1, color='b', linestyle = '-', linewidth=2, marker='*', label = 'Daitche, order 1')
     plt.plot(n_sizes, errors_2, color='g', linestyle = '-', linewidth=2, marker='v', label = 'Daitche, order 2')
-    plt.plot(n_sizes, errors_3, color='k', linestyle = '-', linewidth=2,  marker='^', label = 'Daitche, order 3')
+    #plt.plot(n_sizes, errors_3, color='k', linestyle = '-', linewidth=2,  marker='^', label = 'Daitche, order 3')
     bomb_sizes = [size / 1 for size in n_sizes]
-    plt.plot(bomb_sizes, errors_bomb, color='c', linestyle = '-', linewidth=2,  marker='d', label = 'Bombardelli, order 1')
-    #plt.plot(n_sizes, errors_hins, color='m')
+    #plt.plot(bomb_sizes, errors_bomb, color='c', linestyle = '-', linewidth=2,  marker='d', label = 'Bombardelli, order 1')
+    plt.plot(n_sizes, errors_hins, color='m', marker='o', label = 'Hinsberg, m = 10 (points by van Hinsberg et al.)')
+    plt.plot(n_sizes, errors_hins_t_norm, color='m', marker='v', label = 'Hinsberg, m = 10 (optimizing t-norm)')
+    plt.plot(n_sizes, errors_hins_abs, color='m', marker='*', label = 'Hinsberg, m = 10 (optimizing abs-value norm)')
+    
     #plt.plot(n_sizes, errors_naive_rich, color='r', linestyle = '--')
     #plt.plot(n_sizes, errors_1_rich, color='b', linestyle = '--', label = 'Daitche, order 1 + Richardson')
     #plt.plot(n_sizes, errors_2_rich, color='g', linestyle = '--', label = 'Daitche, order 2 + Richardson')
     #plt.plot(n_sizes, errors_3_rich, color='k', linestyle = '--', label = 'Daitche, order 3 + Richardson')
-    plt.plot(bomb_sizes, errors_bomb_rich, color='c', linestyle = '--', linewidth=1.5, marker='d', label = 'Bombardelli + Richardson')
+    #plt.plot(bomb_sizes, errors_bomb_rich, color='c', linestyle = '--', linewidth=1.5, marker='d', label = 'Bombardelli + Richardson')
     #plt.plot(n_sizes, errors_hins_rich, color='m', linestyle = '--')
     #plt.plot(n_sizes, errors_naive_rich_emp, color='r', linestyle = '-.')
     #plt.plot(n_sizes, errors_1_rich_emp, color='b', linestyle = '-.')
@@ -758,10 +808,10 @@ if __name__ == "__main__":
     #plt.plot(n_sizes, errors_bomb_shank, color='c', linestyle = '-.')
     #plt.plot(n_sizes, errors_hins_shank, color='m', linestyle = '-.')
     #plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_naive, color='r', linestyle = ':')
-    plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_1, color='b', linestyle = ':')
+    #plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_1, color='b', linestyle = ':')
     plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_2, color='g', linestyle = ':')
-    plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_3, color='k', linestyle = ':')
-    plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_bomb, color='c', linestyle = ':')
+    #plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_3, color='k', linestyle = ':')
+    #plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_bomb, color='c', linestyle = ':')
     #plt.plot(n_sizes[- n_theor_slopes:], theoretical_slope_hins, color='m', linestyle = ':')
     
     def LogInterpolation(a, b):
@@ -773,10 +823,10 @@ if __name__ == "__main__":
              #xytext=(-50, 0), textcoords='offset points', fontsize=12,
              #arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=-.2"))
     annotation_cooors_1 = [LogInterpolation(n_sizes[- 1], n_sizes[- 2]), LogInterpolation(theoretical_slope_1[- 1], theoretical_slope_1[- 2])]
-    plt.annotate(r'$\sim h^2$',
-             xy=(annotation_cooors_1[0], annotation_cooors_1[1]), xycoords='data',
-             xytext=(-40, 0), textcoords='offset points', fontsize=12,
-             arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=-.2"))
+    #plt.annotate(r'$\sim h^2$',
+             #xy=(annotation_cooors_1[0], annotation_cooors_1[1]), xycoords='data',
+             #xytext=(-40, 0), textcoords='offset points', fontsize=12,
+             #arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=-.2"))
     annotation_cooors_2 = [LogInterpolation(n_sizes[- 1], n_sizes[- 2]), LogInterpolation(theoretical_slope_2[- 1], theoretical_slope_2[- 2])]    
     plt.annotate(r'$\sim h^3$',
              xy=(annotation_cooors_2[0], annotation_cooors_2[1]), xycoords='data',
@@ -801,4 +851,5 @@ if __name__ == "__main__":
     plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_bomb_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)
     #plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.eps', format='eps', dpi=1200)
     #plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)    
+    plt.savefig('comparing_norms_with_sinus.eps', format='eps', dpi=1000)
     plt.show()
