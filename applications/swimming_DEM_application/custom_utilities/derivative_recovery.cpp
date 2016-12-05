@@ -752,7 +752,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         }
 
         else {
-            for (int i = 1; i < n_poly_terms; i++){
+            for (unsigned int i = 1; i < n_poly_terms; i++){
                 relevant_terms[i - 1] = i;
             }
         }
