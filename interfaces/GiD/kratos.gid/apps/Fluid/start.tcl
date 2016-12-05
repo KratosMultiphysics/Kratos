@@ -101,6 +101,7 @@ proc ::Fluid::ChangeAppTo {appid} {
             ::spdAux::CreateDimensionWindow
         }
         "EmbeddedFluid" {
+            spdAux::deactiveApp Fluid
             apps::setActiveApp $appid       
         }
         default {

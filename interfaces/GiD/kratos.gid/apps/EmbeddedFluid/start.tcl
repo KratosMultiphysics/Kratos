@@ -15,7 +15,8 @@ proc ::EmbeddedFluid::Init { } {
     set attributes [dict create]
     
     set prefix EMBFL
-    set ::Model::ValidSpatialDimensions [list 2D 3D]
+    set ::Model::ValidSpatialDimensions [list 3D]
+    spdAux::SetSpatialDimmension "3D"
     
     # Allow to open the tree
     set ::spdAux::TreeVisibility 1
@@ -24,7 +25,7 @@ proc ::EmbeddedFluid::Init { } {
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     LoadMyFiles
-    ::spdAux::CreateDimensionWindow
+    #::spdAux::CreateDimensionWindow
 }
 
 proc ::EmbeddedFluid::LoadMyFiles { } {
@@ -40,6 +41,10 @@ proc ::EmbeddedFluid::GetAttribute {name} {
     set value ""
     catch {set value [dict get $attributes $name]}
     return $value
+}
+
+proc ::EmbeddedFluid::CustomToolbarItems { } {
+    Kratos::ToolbarAddItem "ImportMesh" "Import.png" [list -np- EmbeddedFluid::xml::ImportMeshWindow] [= "Import embedded mesh"]   
 }
 
 ::EmbeddedFluid::Init

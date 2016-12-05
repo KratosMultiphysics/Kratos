@@ -2,6 +2,7 @@
   <container n="EmbeddedFluid" pn="Embedded Fluid" icon="units" prefix="EMBFL" tree_state="open" open_window="0">
     <include n="AnalysisType" active="1" path="apps/Fluid/xml/AnalysisType.spd"/>
     <include n="Parts" active="1" path="apps/Fluid/xml/Parts.spd"/>
+    <include n="EmbeddedParts" active="1" path="apps/EmbeddedFluid/xml/EmbeddedParts.spd"/>
     <include n="Intervals" active="0" path="apps/Common/xml/Intervals.spd"/>
     <include n="InitialConditions" active="1" path="apps/Fluid/xml/InitialConditions.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Fluid/xml/BoundaryConditions.spd"/>
