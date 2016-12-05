@@ -165,10 +165,12 @@ procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
-rigid_face_model_part = ModelPart("RigidFace_Part")
-cluster_model_part    = ModelPart("Cluster_Part")
+rigid_face_model_part = ModelPart("RigidFacePart")
+cluster_model_part    = ModelPart("ClusterPart")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part    = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("MappingPart")
+contact_model_part    = ModelPart("ContactPart")
+all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -262,25 +264,11 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
-procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
-procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
-procedures.AddMpiVariables(spheres_model_part)
-solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-scheme.AddSpheresVariables(spheres_model_part)
-procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
-procedures.AddMpiVariables(cluster_model_part)
-scheme.AddClustersVariables(cluster_model_part)
-procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-scheme.AddSpheresVariables(DEM_inlet_model_part)
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(rigid_face_model_part)
+
+procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
 vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
@@ -342,6 +330,12 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+os.chdir(main_path)
+
 KRATOSprint("\nInitializing Problem...")
 
 # Initialize GiD-IO
@@ -362,11 +356,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
-demio.InitializeMesh(spheres_model_part,
-                     rigid_face_model_part,
-                     cluster_model_part,
-                     solver.contact_model_part,
-                     mapping_model_part)
+demio.InitializeMesh(all_model_parts)
 
 os.chdir(post_path)
 
@@ -693,7 +683,7 @@ scheme = ResidualBasedIncrementalUpdateStaticScheme()
 post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
 #Z
 
-# CHANDELIER BEGIN
+# CANDELIER BEGIN
 import math 
 import cmath
 import mpmath
@@ -764,7 +754,7 @@ coordinates = []
 if store_coors_counter.Tick():
     coordinates.append([time_dem, node.X, node.Y, node.Z])
     
-while (time <= final_time):
+while time <= final_time:
     time = time + Dt
     step += 1
     fluid_model_part.CloneTimeStep(time)
@@ -840,13 +830,15 @@ while (time <= final_time):
         if pp.CFD_DEM.gradient_calculation_type == 2:
             derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
-            custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
-        if pp.CFD_DEM.laplacian_calculation_type == 1:
+            custom_functions_tool.CalculatePressureGradient(fluid_model_part)          
+        if pp.CFD_DEM.laplacian_calculation_type == 1:         
             derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        elif pp.CFD_DEM.laplacian_calculation_type == 2:
+        elif pp.CFD_DEM.laplacian_calculation_type == 2 and pp.CFD_DEM.material_acceleration_calculation_type < 2:
             derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 2:
+            derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)                           
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -862,11 +854,12 @@ while (time <= final_time):
         # applying fluid-to-DEM coupling if required
 
         if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
+
             if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
-            else:         
-                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)             
+            else:
+                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
                 
                 for node in spheres_model_part.Nodes:
                     x = node.X
@@ -1035,7 +1028,7 @@ while (time <= final_time):
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-    
+
     if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
         if DEM_parameters.coupling_level_type:
@@ -1043,7 +1036,7 @@ while (time <= final_time):
 
         post_utils.Writeresults(time)
         out = 0
-    
+
     out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
