@@ -38,10 +38,12 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
         r_model_part.AddNodalSolutionStepVariable(ORIENTATION);
+        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL);
+        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG);
+        r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA);
+        r_model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM); 
         
         if (mRotationOption){
-            r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA);
-            r_model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM);
             r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
             r_model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY);
             r_model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY);
