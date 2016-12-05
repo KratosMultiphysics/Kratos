@@ -32,7 +32,7 @@ proc Kratos::ToolbarRefresh {} {
 proc Kratos::CreatePreprocessModelTBar { {type "DEFAULT INSIDELEFT"} } {
     global KBitmapsNames KBitmapsCommands KBitmapsHelp
     variable kratos_private
-    
+    Kratos::EndCreatePreprocessTBar
     Kratos::ToolbarAddItem "Model" "propstree.png" [list -np- gid_groups_conds::open_conditions menu] [= "Define the model properties"]
     Kratos::ToolbarAddItem "Spacer" "" "" ""
     Kratos::ToolbarAddItem "Run" "run.png" {Utilities Calculate} [= "Run the simulation"]
