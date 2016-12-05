@@ -8,6 +8,7 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
+import os
 
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
@@ -602,8 +603,26 @@ def CopyInputFilesIntoFolder(files_path, folder_path):
             if os.path.isfile(file):
                 shutil.copy2(file, input_data_directory)
 
-def PrintPositionsToFile(coors, method, j_var, k_var, main_path):
+def PrintPositionsToFile(coors, method='', j_var='', k_var='', main_path=''):
+
     with open(main_path + '/coors_' + str(method) + str(j_var) + str(k_var) + '.txt','w') as fout:
+        for coor in coors:
+            line = ''
+
+            for comp in coor:
+                line += str(comp) + ' '
+            fout.write(line + '\n')
+
+def PrintPositionsToFileInterpolation(coors, n_div, method, main_path=''):
+    if method == 2:
+        mat_deriv_type = 'recovery'
+    else:
+        mat_deriv_type = 'standard'
+
+    directory_name = main_path + '/coordinates'
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
+    with open(main_path + '/coordinates/coors_ndiv_' + str(n_div) + '_type_' + mat_deriv_type + '.txt','w') as fout:
         for coor in coors:
             line = ''
 
