@@ -103,14 +103,16 @@ public:
         // Check if variables are available 
         if( mr_model_part.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )        
             KRATOS_ERROR << "Variable NODAL_H not in the model part!";
-
+        
+        const int NNodes = static_cast<int>(mr_model_part.Nodes().size());
+        
         #pragma omp parallel for 
-        for(unsigned int i=0; i<mr_model_part.Nodes().size(); i++)
+        for(int i=0; i<NNodes; i++)
         {
             auto itNode = mr_model_part.NodesBegin() + i;
             itNode->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
         }
-         
+        
         for(unsigned int i=0; i<mr_model_part.Elements().size(); i++)
         {
             auto itElement = mr_model_part.ElementsBegin() + i;
