@@ -10,6 +10,7 @@
   <appLink n="Structural"		public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
   <appLink n="Solid" 			public="1" pn="Solid" active="0" appid="Solid" prefix="SL"/>
   <appLink n="Fluid" 			public="1" pn="Fluid" active="0" appid="Fluid" prefix="FL"/>
+  <appLink n="EmbeddedFluid" 	public="0" pn="Embedded fluid" active="0" appid="EmbeddedFluid" prefix="FL"/>
   <appLink n="FSI" 				public="1" pn="FSI" active="0" appid="FSI" prefix="FSI"/>
   <appLink n="Pfem" 			public="1" pn="Pfem" active="0" appid="Pfem" prefix="PFEM_"/>
   <appLink n="StenosisWizard" 	public="1" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard"/>
