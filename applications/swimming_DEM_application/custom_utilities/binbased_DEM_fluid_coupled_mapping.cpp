@@ -80,9 +80,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
 
-    if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
-        MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
-    }
+//    if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
+//        MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
+//    }
 
     if (IsDEMVariable(FLUID_VEL_PROJECTED_RATE)){
         #pragma omp parallel for
@@ -879,7 +879,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(
     else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
         //InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
         Interpolate(p_elem, N, p_node, MATERIAL_ACCELERATION, FLUID_ACCEL_PROJECTED);
-        KRATOS_WATCH("entro")
     }
 
     else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
