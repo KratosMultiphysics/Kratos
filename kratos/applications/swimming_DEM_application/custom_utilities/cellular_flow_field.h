@@ -69,9 +69,9 @@ void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const
 
 void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0) override;
 
-void LockCoordinates(const int i_thread = 0);
+void LockCoordinates(const int i_thread = 0) override;
 
-void UnlockCoordinates(const int i_thread = 0);
+void UnlockCoordinates(const int i_thread = 0) override;
 //***************************************************************************************************************
 //***************************************************************************************************************
 
