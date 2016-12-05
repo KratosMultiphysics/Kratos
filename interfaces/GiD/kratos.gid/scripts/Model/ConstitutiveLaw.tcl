@@ -129,3 +129,9 @@ proc Model::CheckConstLawOutputState { constlawactive paramName} {
     }
     return $state
 }
+
+
+proc Model::ForgetConstitutiveLaws { } {
+    variable ConstitutiveLaws
+    set ConstitutiveLaws [list ]
+}

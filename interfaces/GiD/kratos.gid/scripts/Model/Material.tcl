@@ -68,3 +68,9 @@ proc Model::getMaterial {mid} {
     }
     return ""
 }
+
+
+proc Model::ForgetMaterials { } {
+    variable Materials
+    set Materials [list ]
+}
