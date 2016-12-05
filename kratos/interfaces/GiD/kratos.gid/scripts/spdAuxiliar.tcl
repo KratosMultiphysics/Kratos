@@ -118,6 +118,17 @@ proc spdAux::reactiveApp { } {
     apps::setActiveApp $appname
 }
 
+proc spdAux::deactiveApp { appid } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    [$root selectNodes "hiddenfield\[@n='activeapp'\]"] setAttribute v ""
+    foreach elem [$root getElementsByTagName "appLink"] {
+        if {$appid eq [$elem getAttribute "appid"] && [$elem getAttribute "active"] eq "1"} {
+            $elem setAttribute "active" 0
+            break
+        } 
+    }
+}
 proc spdAux::activeApp { appid } {
     #W "Active $appid"
     variable initwind
@@ -217,6 +228,10 @@ proc spdAux::CreateDimensionWindow { } {
     if { $nd ne "undefined" } {
         spdAux::SwitchDimAndCreateWindow $nd
     } {
+        if {[llength $::Model::ValidSpatialDimensions] == 1} {
+            spdAux::SwitchDimAndCreateWindow [lindex $::Model::ValidSpatialDimensions 0]
+            return ""
+        }
         set dir $::Kratos::kratos_private(Path)
         
         set initwind .gid.win_example
