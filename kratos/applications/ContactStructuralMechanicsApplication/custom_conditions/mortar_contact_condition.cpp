@@ -206,15 +206,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
 
                 // The slip of th GP
                 double integration_point_slip;
-                // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
+                this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
                 
                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
                     const double int_aux = IntegrationWeight * rVariables.DetJSlave * rVariables.Phi_LagrangeMultipliers[iNode];
                     aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
                     aux_int_slip[iNode]     +=  integration_point_slip * int_aux;
-                    aux_int_friction[iNode] +=  rVariables.mu           * int_aux;
+                    aux_int_friction[iNode] +=  rVariables.mu          * int_aux;
                 }
             }
         }
