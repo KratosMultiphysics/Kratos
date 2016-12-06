@@ -302,9 +302,9 @@ public:
 //        KRATOS_WATCH(rMatrixOrig);
 //        KRATOS_WATCH(det);
 
-        if (det < 1.0e-18)
+        if (std::abs(det) < 1.0e-18)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is 0 or negative!!!, det = ", det);
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
         }
 
         /* Compute inverse of the Matrix */
@@ -321,7 +321,7 @@ public:
     {
         const double det = rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(0, 1) * rMatrixOrig(1, 0);
 
-        if (det < 1.0e-18)
+        if (std::abs(det) < 1.0e-18)
         {
             InvMatrix = ZeroMatrix(2,2);
         }
@@ -356,9 +356,9 @@ public:
                 - rMatrixOrig(2, 1) * rMatrixOrig(1, 2) * rMatrixOrig(0, 0)\
                 - rMatrixOrig(1, 0) * rMatrixOrig(0, 1) * rMatrixOrig(2,2);
 
-        if (det < 1.0e-18)
+        if (std::abs(det) < 1.0e-18)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is 0 or negative!!!, det = ", det);
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
         }
     }
 
@@ -375,9 +375,9 @@ public:
                 - rMatrixOrig(2, 1) * rMatrixOrig(1, 2) * rMatrixOrig(0, 0)\
                 - rMatrixOrig(1, 0) * rMatrixOrig(0, 1) * rMatrixOrig(2,2);
 
-        if (det < 1.0e-18)
+        if (std::abs(det) < 1.0e-18)
         {
-            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is 0 or negative!!!, det = ", det);
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
         }
     }
 
@@ -430,7 +430,7 @@ public:
                         - rMatrixOrig(2, 1) * rMatrixOrig(1, 2) * rMatrixOrig(0, 0)\
                         - rMatrixOrig(1, 0) * rMatrixOrig(0, 1) * rMatrixOrig(2,2);
 
-        if (det < 1.0e-18)
+        if (std::abs(det) < 1.0e-18)
         {
             InvMatrix = ZeroMatrix(3,3);
         }
