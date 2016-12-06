@@ -15,13 +15,19 @@
 // External includes
 
 // Project includes
+/* Mortar includes */
 #include "custom_conditions/mortar_contact_condition.h"
-#include "custom_utilities/contact_utilities.h"
-#include "utilities/math_utils.h"
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+
+/* Additional includes */
 #include <algorithm>
+
+/* Utilities */
+#include "custom_utilities/contact_utilities.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "../FSIapplication/custom_utilities/qr_utility.h" // QR decomposition utility used in matrix inversion.
 
 /* Includes of particular contact conditions */
 #include "contact_2D_2N_2N.hpp"
@@ -31,7 +37,7 @@
 // #include "contact_3D_3N_3N_double_lm.hpp"
 // #include "contact_3D_4N_4N_double_lm.hpp"
 
-// Logging format include
+/* Logging format include */
 #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos 
@@ -1493,7 +1499,8 @@ Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactData& rContactData)
 {        
-    Matrix InvMe = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: In case Me is almost singular or singular (few GP integrated), will be considered as ZeroMatrix 
+    Matrix InvMe = ZeroMatrix(TNumNodes, TNumNodes);
+    // NOTE: Legacy inversion. In case Me is almost singular or singular (few GP integrated), will be considered as ZeroMatrix 
     if (TNumNodes == 2)
     {
         StructuralMechanicsMathUtilities::InvMat2x2(rContactData.Me, InvMe);
@@ -1503,13 +1510,25 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactD
         StructuralMechanicsMathUtilities::InvMat3x3(rContactData.Me, InvMe);
     }   
     
-    rContactData.Ae = prod(rContactData.De, InvMe);
+//     // Inversion using the QR decompisition // NOTE: Giving problems in the cases of almost singular matrix
+//     QR<double, row_major> QR_decomposition;     
+//     QR_decomposition.compute(TNumNodes, TNumNodes, &rContactData.Me(0, 0));
+//     
+//     Matrix aux_I = identity_matrix<double>( TNumNodes ); // NOTE: Simplify this code¿?
+//     for (unsigned int col = 0; col < TNumNodes; col++)
+//     {   Vector aux_I_col = column(aux_I, col);
+//         Vector aux_InvMe_col = ZeroVector(TNumNodes);
+//         QR_decomposition.solve(&aux_I_col[0], &aux_InvMe_col[0]);
+//         column(InvMe, col) = aux_InvMe_col;
+//     }
+    
+    noalias(rContactData.Ae) = prod(rContactData.De, InvMe);
+    
     for (unsigned int i = 0; i < TDim * TNumNodes; i++)
     {
-// //         rContactData.DeltaAe[i] = prod(rContactData.DeltaDe[i], InvMe) - prod(prod(rContactData.Ae, rContactData.DeltaMe[i]), InvMe);
         rContactData.DeltaAe[i] = rContactData.DeltaDe[i] - prod(rContactData.Ae, rContactData.DeltaMe[i]);
         rContactData.DeltaAe[i] = prod(rContactData.DeltaAe[i], InvMe);
-// //         rContactData.DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
+//         rContactData.DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
     }
 }
 
