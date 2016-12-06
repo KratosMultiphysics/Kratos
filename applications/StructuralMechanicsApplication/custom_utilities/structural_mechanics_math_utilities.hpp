@@ -297,7 +297,7 @@ public:
             boost::numeric::ublas::bounded_matrix<double, 2, 2 > & InvMatrix
             )
     {
-        double det = rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(0, 1) * rMatrixOrig(1, 0);
+        const double det = rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(0, 1) * rMatrixOrig(1, 0);
 
 //        KRATOS_WATCH(rMatrixOrig);
 //        KRATOS_WATCH(det);
@@ -312,6 +312,27 @@ public:
         InvMatrix(0, 1) = - rMatrixOrig(0, 1) / det;
         InvMatrix(1, 0) = - rMatrixOrig(1, 0) / det;
         InvMatrix(1, 1) =   rMatrixOrig(0, 0) / det;
+    }
+
+    static inline void InvMat2x2(
+            const Matrix & rMatrixOrig,
+            Matrix & InvMatrix
+            )
+    {
+        const double det = rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(0, 1) * rMatrixOrig(1, 0);
+
+        if (det < 1.0e-18)
+        {
+            InvMatrix = ZeroMatrix(2,2);
+        }
+        else
+        {
+            /* Compute inverse of the Matrix */
+            InvMatrix(0, 0) =   rMatrixOrig(1, 1) / det;
+            InvMatrix(0, 1) = - rMatrixOrig(0, 1) / det;
+            InvMatrix(1, 0) = - rMatrixOrig(1, 0) / det;
+            InvMatrix(1, 1) =   rMatrixOrig(0, 0) / det;
+        }
     }
 
     /***********************************************************************************/
@@ -394,6 +415,40 @@ public:
 //        noalias(aux) = prod(InvMatrix, rMatrixOrig);
 //        KRATOS_WATCH(aux);
 
+    }
+
+    static inline void InvMat3x3(
+            const Matrix& rMatrixOrig,
+            Matrix & InvMatrix
+            )
+    {
+        /* Compute determinant of the Jacobian */
+        const double det =rMatrixOrig(0, 0) * rMatrixOrig(1, 1) * rMatrixOrig(2, 2) \
+                        + rMatrixOrig(1, 0) * rMatrixOrig(2, 1) * rMatrixOrig(0, 2)\
+                        + rMatrixOrig(0, 1) * rMatrixOrig(1, 2) * rMatrixOrig(2, 0)\
+                        - rMatrixOrig(2, 0) * rMatrixOrig(1, 1) * rMatrixOrig(0, 2)\
+                        - rMatrixOrig(2, 1) * rMatrixOrig(1, 2) * rMatrixOrig(0, 0)\
+                        - rMatrixOrig(1, 0) * rMatrixOrig(0, 1) * rMatrixOrig(2,2);
+
+        if (det < 1.0e-18)
+        {
+            InvMatrix = ZeroMatrix(3,3);
+        }
+        else
+        {
+            /* Compute inverse of the Matrix */
+            InvMatrix(0, 0) =   (rMatrixOrig(1, 1) * rMatrixOrig(2, 2) - rMatrixOrig(1, 2) * rMatrixOrig(2, 1)) / det;
+            InvMatrix(1, 0) = - (rMatrixOrig(1, 0) * rMatrixOrig(2, 2) - rMatrixOrig(2, 0) * rMatrixOrig(1, 2)) / det;
+            InvMatrix(2, 0) =   (rMatrixOrig(1, 0) * rMatrixOrig(2, 1) - rMatrixOrig(1, 1) * rMatrixOrig(2, 0)) / det;
+
+            InvMatrix(0, 1) = - (rMatrixOrig(0, 1) * rMatrixOrig(2, 2) - rMatrixOrig(0, 2) * rMatrixOrig(2, 1)) / det;
+            InvMatrix(1, 1) =   (rMatrixOrig(0, 0) * rMatrixOrig(2, 2) - rMatrixOrig(0, 2) * rMatrixOrig(2, 0)) / det;
+            InvMatrix(2, 1) = - (rMatrixOrig(0, 0) * rMatrixOrig(2, 1) - rMatrixOrig(0, 1) * rMatrixOrig(2, 0)) / det;
+
+            InvMatrix(0, 2) =   (rMatrixOrig(0, 1) * rMatrixOrig(1, 2) - rMatrixOrig(0, 2) * rMatrixOrig(1, 1)) / det;
+            InvMatrix(1, 2) = - (rMatrixOrig(0, 0) * rMatrixOrig(1, 2) - rMatrixOrig(0, 2) * rMatrixOrig(1, 0)) / det;
+            InvMatrix(2, 2) =   (rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(1, 0) * rMatrixOrig(0, 1)) / det;
+        }
     }
 
     /***********************************************************************************/

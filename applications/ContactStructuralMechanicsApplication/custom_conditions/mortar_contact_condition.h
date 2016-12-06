@@ -172,6 +172,15 @@ public:
     Matrix v1;
     Matrix v2;
     
+    // Ae
+    Matrix Me;
+    Matrix De;
+    Matrix Ae;
+    // Derivatives Ae
+    std::vector<Matrix> DeltaMe;
+    std::vector<Matrix> DeltaDe;
+    std::vector<Matrix> DeltaAe;
+    
     // Delta time
     double Dt;
     
@@ -217,6 +226,46 @@ public:
         
         // Double LM parameter
         epsilon = 0.0;
+    }
+    
+    // Initialize the DeltaAe components
+    void InitializeDeltaAeComponents(            
+        const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
+        const unsigned int& rDimension              // 3D/2D physical space
+        )
+    {
+        // Ae
+        Me = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+        De = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+        Ae = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+        // Derivatives Ae
+        DeltaMe.resize(rNumberOfSlaveNodes * rDimension);
+        DeltaDe.resize(rNumberOfSlaveNodes * rDimension);
+        DeltaAe.resize(rNumberOfSlaveNodes * rDimension);
+        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
+        {
+            DeltaMe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+            DeltaDe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+            DeltaAe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+        }
+    }
+    
+    // Clearing the DeltaAe components
+    void ClearDeltaAeComponents(            
+        const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
+        const unsigned int& rDimension              // 3D/2D physical space
+        )
+    {
+        Me.resize(0,0, false);
+        De.resize(0,0, false);
+        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
+        {
+            DeltaMe[i].resize(0,0, false);
+            DeltaDe[i].resize(0,0, false);
+        }
+        
+        DeltaMe.clear();
+        DeltaDe.clear();
     }
     
     // Updating the Master pair
@@ -300,7 +349,7 @@ public:
         // Shape functions local derivatives for contact pair
         Matrix DN_De_Master;
         Matrix DN_De_Slave;
-        Matrix DPhi_De_LagrangeMultipliers;
+//         Matrix DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
         double DetJSlave;
@@ -327,19 +376,19 @@ public:
 
             // Shape functions
             N_Master.resize(TNumNodes, false);
-            N_Master.clear( );
+//             N_Master.clear( );
             N_Slave.resize(TNumNodes, false);
-            N_Slave.clear( );
+//             N_Slave.clear( );
             Phi_LagrangeMultipliers.resize(TNumNodes, false);
-            Phi_LagrangeMultipliers.clear( );
+//             Phi_LagrangeMultipliers.clear( );
 
             // Shape functions local derivatives
             DN_De_Master.resize(TNumNodes, TDim - 1, false);
-            DN_De_Master.clear( );
+//             DN_De_Master.clear( );
             DN_De_Slave.resize(TNumNodes, TDim - 1, false);
-            DN_De_Slave.clear( );
-            DPhi_De_LagrangeMultipliers.resize(TNumNodes, TDim - 1, false);
-            DPhi_De_LagrangeMultipliers.clear( );
+//             DN_De_Slave.clear( );
+//             DPhi_De_LagrangeMultipliers.resize(TNumNodes, TDim - 1, false);
+//             DPhi_De_LagrangeMultipliers.clear( );
 
             // Jacobian of slave
             DetJSlave = 0.0;
@@ -922,6 +971,7 @@ protected:
      */
     bool CalculateKinematics( 
         GeneralVariables& rVariables,
+        const ContactData rContactData,
         const double& rPointNumber,
         const unsigned int& rPairIndex,
         const GeometryType::IntegrationPointsArrayType& integration_points
@@ -1014,6 +1064,36 @@ protected:
         GeneralVariables& rVariables,
         const PointType& local_point 
     );
+    
+    /*
+     * Calculates the componets necssaries to compute the derivatives of Phi
+     */
+    void CalculateDeltaAeComponents(
+        GeneralVariables& rVariables,
+        ContactData& rContactData,
+        const double& rIntegrationWeight
+    );
+    
+    /*
+     * Calculates the matrix De
+     */
+    Matrix ComputeDe(        
+        const Vector N1, 
+        const double detJ 
+        );
+    
+    /*
+     * Calculates the matrix De
+     */
+    Matrix ComputeMe(        
+        const Vector N1, 
+        const double detJ 
+        );
+    
+    /*
+     * Calculates the matrix DeltaAe
+     */
+    void CalculateDeltaAe(ContactData& rContactData);
     
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/

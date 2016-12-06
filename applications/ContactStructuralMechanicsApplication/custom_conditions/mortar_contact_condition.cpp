@@ -138,7 +138,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
     KRATOS_TRY;
     
     // Create and initialize condition variables:
-    GeneralVariables Variables;
+    GeneralVariables rVariables;
     
     // Initialize the current contact data
     ContactData rContactData;
@@ -154,13 +154,13 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
     for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
     {   
         // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
         // Update the contact data
         this->UpdateContactData(rContactData, PairIndex);
          
         // Master segment info
-        const GeometryType& current_master_element = Variables.GetMasterElement( );
+        const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
         array_1d<double, TNumNodes> aux_int_gap      = ZeroVector(TNumNodes);
         array_1d<double, TNumNodes> aux_int_slip     = ZeroVector(TNumNodes);
@@ -168,32 +168,53 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
         
         double total_weight = 0.0;
         
+        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
+        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            // Calculate the kinematic variables
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+            
+            if (inside == true)
+            {   
+                const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
+            
+                this->CalculateDeltaAeComponents(rVariables, rContactData, IntegrationWeight);
+            }
+        }
+        
+        // We can consider the pair if at least one of the collocation point is inside 
+        if (total_weight > 0.0)
+        {
+            this->CalculateDeltaAe(rContactData);
+            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
+        }
+        
         // Integrating the LHS and RHS
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
         
             // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
+            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
             if (inside == true)
             {
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
-                     
-                total_weight += IntegrationWeight;
-                
+
                 // The slip of th GP
                 double integration_point_slip;
                 // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
                 
                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
-                    const double int_aux = IntegrationWeight * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+                    const double int_aux = IntegrationWeight * rVariables.DetJSlave * rVariables.Phi_LagrangeMultipliers[iNode];
                     aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
                     aux_int_slip[iNode]     +=  integration_point_slip * int_aux;
-                    aux_int_friction[iNode] +=  Variables.mu           * int_aux;
+                    aux_int_friction[iNode] +=  rVariables.mu           * int_aux;
                 }
             }
         }
@@ -914,7 +935,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     KRATOS_TRY;
     
     // Create and initialize condition variables:#pragma omp critical
-    GeneralVariables Variables;
+    GeneralVariables rVariables;
     
     // Initialize the current contact data
     ContactData rContactData;
@@ -929,42 +950,64 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
     {   
         // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
         // Update the contact data
         this->UpdateContactData(rContactData, PairIndex);
          
         // Master segment info
-        const GeometryType& current_master_element = Variables.GetMasterElement( );
-
-        bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = ZeroMatrix(MatrixSize, MatrixSize);
-        array_1d<double, MatrixSize> RHS_contact_pair = ZeroVector(MatrixSize);
+        const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
         double total_weight = 0.0;
         
-        // Integrating the LHS and RHS
+        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
+        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
-        
-//             Variables.print();
-            
-            // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
             
             if (inside == true)
             {   
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
-                total_weight += IntegrationWeight; // NOTE: I keep this, because with ALM if it is inactive there is a penalty term in the LHS and the RHS
+                total_weight += IntegrationWeight;
                
+                this->CalculateDeltaAeComponents(rVariables, rContactData, IntegrationWeight);
+            }
+        }
+        
+        // We can consider the pair if at least one of the collocation point is inside 
+        if (total_weight > 0.0)
+        {
+            this->CalculateDeltaAe(rContactData);
+            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
+        }
+        
+        // Integrating the LHS and RHS
+        bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = ZeroMatrix(MatrixSize, MatrixSize);
+        array_1d<double, MatrixSize> RHS_contact_pair = ZeroVector(MatrixSize);
+        
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            // Calculate the kinematic variables
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+        
+//             Variables.print();
+            
+            // Calculate the gap in the integration node and check tolerance
+            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+            
+            if (inside == true)
+            {   
+                const double IntegrationWeight = integration_points[PointNumber].Weight();
+
                 // The normal LM augmented
-                double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
+                double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
                   
                 // The slip of th GP
                 double integration_point_slip;
                 // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
                 
                 if (rCurrentProcessInfo[TIME_STEPS] == 1) // NOTE: To avoid problems the first iteration
                 {
@@ -975,14 +1018,14 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS<MatrixSize>( LHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
+                    this->CalculateLocalLHS<MatrixSize>( LHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
                 }
                 
                 // Calculation of the vector is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS<MatrixSize>( RHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
+                    this->CalculateLocalRHS<MatrixSize>( RHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
                 }
             }
         }
@@ -1009,9 +1052,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
 //             std::cout << "--------------------------------------------------" << std::endl;
 //             KRATOS_WATCH(this->Id());
 //             KRATOS_WATCH(PairIndex);
-//             KRATOS_WATCH(rContactData.u1);
-//             KRATOS_WATCH(rContactData.LagrangeMultipliers);
-//             KRATOS_WATCH(rContactData.DoubleLagrangeMultipliers);
+// //             KRATOS_WATCH(rContactData.u1);
+// //             KRATOS_WATCH(rContactData.LagrangeMultipliers);
+// // //             KRATOS_WATCH(rContactData.DoubleLagrangeMultipliers);
 // //             KRATOS_WATCH(LHS_contact_pair);
 //             LOG_MATRIX_PRETTY( LHS_contact_pair );
 // //             KRATOS_WATCH(RHS_contact_pair);
@@ -1133,6 +1176,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateKinematics( 
     GeneralVariables& rVariables,
+    const ContactData rContactData,
     const double& rPointNumber,
     const unsigned int& rPairIndex,
     const GeometryType::IntegrationPointsArrayType& integration_points
@@ -1150,13 +1194,14 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateKinematics(
     
     // SHAPE FUNCTIONS 
     rVariables.N_Slave = slave_nodes.ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
+    rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, rVariables.N_Slave);
 //     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
-    rVariables.Phi_LagrangeMultipliers = LagrangeMultiplierShapeFunctionValue( local_point.Coordinate(1), local_point.Coordinate(2) );
+//     rVariables.Phi_LagrangeMultipliers = LagrangeMultiplierShapeFunctionValue( local_point.Coordinate(1), local_point.Coordinate(2) );
     
     // SHAPE FUNCTION DERIVATIVES
     rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );
 //     rVariables.DPhi_De_LagrangeMultipliers = slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );// TODO: This could be needed in the future to be different than the standart shape functions
-    rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( local_point.Coordinate(1), local_point.Coordinate(2) );
+//     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( local_point.Coordinate(1), local_point.Coordinate(2) );
     
     // MASTER CONDITION
     const bool inside = this->MasterShapeFunctionValue( rVariables, local_point);
@@ -1208,6 +1253,265 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
     }
     
     return inside;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<2, 2, false>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+    /* DEFINITIONS */
+    const Vector N1           = rVariables.N_Slave;
+    const double detJ         = rVariables.DetJSlave; 
+     
+    rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+    rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+    
+    for (unsigned int i = 0; i < 2 * 2; i++)
+    {
+        rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D2N2N::ComputeDeltaDe( N1, rContactData, i );
+        rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D2N2N::ComputeDeltaMe( N1, rContactData, i );
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<2, 3, false>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 3 * 3; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<3, 3, false>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 3 * 3; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<3, 4, false>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 4 * 4; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<2, 2, true>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+    /* DEFINITIONS */
+    const Vector N1           = rVariables.N_Slave;
+    const double detJ         = rVariables.DetJSlave; 
+     
+    rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+    rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+    
+    for (unsigned int i = 0; i < 2 * 2; i++)
+    {
+        rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D2N2NDLM::ComputeDeltaDe( N1, rContactData, i );
+        rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D2N2NDLM::ComputeDeltaMe( N1, rContactData, i );
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<2, 3, true>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 3 * 3; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<3, 3, true>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 3 * 3; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<3, 4, true>::CalculateDeltaAeComponents(
+    GeneralVariables& rVariables,
+    ContactData& rContactData,
+    const double& rIntegrationWeight
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const double detJ         = rVariables.DetJSlave; 
+//      
+//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
+//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
+//     
+//     for (unsigned int i = 0; i < 4 * 4; i++)
+//     {
+//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
+//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
+//     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeDe(
+        const Vector N1, 
+        const double detJ 
+        )
+{
+    Matrix De = ZeroMatrix(TNumNodes, TNumNodes);
+    
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        De(i,i) = detJ * N1[i];
+    }
+    
+    return De;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
+        const Vector N1, 
+        const double detJ 
+        )
+{
+    Matrix Me = ZeroMatrix(TNumNodes, TNumNodes);
+    
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        for (unsigned int j = 0; j < TNumNodes; j++)
+        {
+            Me(i,j) = detJ * N1[i] * N1[j];
+        }
+    }
+    
+    return Me;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactData& rContactData)
+{        
+    Matrix InvMe = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: In case Me is almost singular or singular (few GP integrated), will be considered as ZeroMatrix 
+    if (TNumNodes == 2)
+    {
+        StructuralMechanicsMathUtilities::InvMat2x2(rContactData.Me, InvMe);
+    }
+    else if (TNumNodes == 3)
+    {
+        StructuralMechanicsMathUtilities::InvMat3x3(rContactData.Me, InvMe);
+    }   
+    
+    rContactData.Ae = prod(rContactData.De, InvMe);
+    for (unsigned int i = 0; i < TDim * TNumNodes; i++)
+    {
+// //         rContactData.DeltaAe[i] = prod(rContactData.DeltaDe[i], InvMe) - prod(prod(rContactData.Ae, rContactData.DeltaMe[i]), InvMe);
+        rContactData.DeltaAe[i] = rContactData.DeltaDe[i] - prod(rContactData.Ae, rContactData.DeltaMe[i]);
+        rContactData.DeltaAe[i] = prod(rContactData.DeltaAe[i], InvMe);
+// //         rContactData.DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes); // NOTE: Test with zero derivative
+    }
 }
 
 /***********************************************************************************/
@@ -2305,7 +2609,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     // TODO: Add the FRICTION_COEFFICIENT, and maybe if it is ACTIVE or SLIPPING the GP
 
     // Create and initialize condition variables:
-    GeneralVariables Variables;
+    GeneralVariables rVariables;
     
     // Initialize the current contact data
     ContactData rContactData;
@@ -2332,29 +2636,54 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
     {   
         // Initialize general variables for the current master element
-        this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
         // Update the contact data
         this->UpdateContactData(rContactData, PairIndex);
         
         // Master segment info
-        const GeometryType& current_master_element = Variables.GetMasterElement( );
+        const GeometryType& current_master_element = rVariables.GetMasterElement( );
+        
+        double total_weight = 0.0;
+        
+        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
+        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            // Calculate the kinematic variables
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+            
+            if (inside == true)
+            {   
+                const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
+               
+                this->CalculateDeltaAeComponents(rVariables, rContactData, IntegrationWeight);
+            }
+        }
+        
+        // We can consider the pair if at least one of the collocation point is inside 
+        if (total_weight > 0.0)
+        {
+            this->CalculateDeltaAe(rContactData);
+            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
+        }
         
         // Calculating the values
         for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
         {
             // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
+            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
             
             // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
+            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
 
             if (inside == true)
             {
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
-                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
+                    const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
                     
                     if (augmented_normal_lm < 0)
                     {
@@ -2368,7 +2697,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
                             double integration_point_slip;
                         
                             // The tangent LM augmented
-                            const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+                            const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
                             
                             if ( rVariable == TANGENTIAL_CONTACT_STRESS )
                             {
@@ -2405,7 +2734,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     KRATOS_TRY;
     
     // Create and initialize condition variables:
-    GeneralVariables Variables;
+    GeneralVariables rVariables;
     
     // Initialize the current contact data
     ContactData rContactData;
@@ -2437,24 +2766,26 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
         if (number_of_elements_master > 0)
         {
             // Initialize general variables for the current master element
-            this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, 0 ); // NOTE: The pair does not matter
+            this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, 0 ); // NOTE: The pair does not matter
+            // Initialize Ae
+            rContactData.InitializeDeltaAeComponents(TNumNodes, TDim); // NOTE: We need at least a zero Ae matrix to avoid problems in the CalculateKinematics
             
             // Calculating the values
             for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
             {
                 // Calculate the kinematic variables
-                const bool inside = this->CalculateKinematics( Variables, PointNumber, 0, integration_points ); // NOTE: The pair does not matter
+                const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, 0, integration_points ); // NOTE: The pair does not matter
                 
                 if (inside == true)
                 {
                     if (rVariable == NORMAL_GP)
                     {   
-                        const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
+                        const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
                         rOutput[PointNumber] = normal_gp;
                     }
                     else
                     {
-                        const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); 
+                        const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave); 
                         rOutput[PointNumber] = tangent_gp;
                     }
                 }
@@ -2466,35 +2797,60 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
         for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
         {   
             // Initialize general variables for the current master element
-            this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
+            this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
             
             // Update the contact data
             this->UpdateContactData(rContactData, PairIndex);
             
             // Master segment info
-            const GeometryType& current_master_element = Variables.GetMasterElement( );
+            const GeometryType& current_master_element = rVariables.GetMasterElement( );
+            
+            double total_weight = 0.0;
+            
+            // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
+            rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
+            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+            {
+                // Calculate the kinematic variables
+                const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+                
+                if (inside == true)
+                {   
+                    const double IntegrationWeight = integration_points[PointNumber].Weight();
+                    total_weight += IntegrationWeight;
+                
+                    this->CalculateDeltaAeComponents(rVariables, rContactData, IntegrationWeight);
+                }
+            }
+            
+            // We can consider the pair if at least one of the collocation point is inside 
+            if (total_weight > 0.0)
+            {
+                this->CalculateDeltaAe(rContactData);
+                rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
+            }
             
             // Calculating the values
             for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
             {
                 // Calculate the kinematic variables
-                const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
+                const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
                 
                 // Calculate the gap in the integration node and check tolerance
-                const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
+                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
                 if (inside == true)
                 {
                     if (rVariable == NORMAL_CONTACT_STRESS_GP || rVariable == TANGENTIAL_CONTACT_STRESS_GP)
                     {
                         // The normal LM augmented
-                        const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
+                        const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
                         
                         if (augmented_normal_lm < 0)
                         {
                             if ( rVariable == NORMAL_CONTACT_STRESS_GP )
                             {
-                                const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
+                                const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
                                 rOutput[PointNumber] += augmented_normal_lm * normal_gp;
                             }
                             else
@@ -2503,9 +2859,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
                                 double integration_point_slip;
                             
                                 // The tangent LM augmented
-                                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+                                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
                                 
-                                const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); // TODO: Extend to 3D case
+                                const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave); // TODO: Extend to 3D case
                                 rOutput[PointNumber] += augmented_tangent_lm * tangent_gp;
                             }
                         }
