@@ -11,19 +11,17 @@ proc EmbeddedFluid::xml::Init { } {
     variable dir
     variable lastImportMeshSize
     set lastImportMeshSize 0
-    #Model::DestroyEverything
-    Model::ForgetMaterials
-    Model::ForgetConstitutiveLaws
+    Model::DestroyEverything
     Model::InitVariables dir $EmbeddedFluid::dir
     
-    #Model::getSolutionStrategies Strategies.xml
-    #Model::getElements Elements.xml
+    Model::getSolutionStrategies "../../Fluid/xml/Strategies.xml"
+    Model::getElements "../../Fluid/xml/Elements.xml"
     Model::getMaterials Materials.xml
-    #Model::getNodalConditions NodalConditions.xml
+    Model::getNodalConditions "../../Fluid/xml/NodalConditions.xml"
     Model::getConstitutiveLaws ConstitutiveLaws.xml
-    #Model::getProcesses Processes.xml
-    #Model::getConditions Conditions.xml
-    #Model::getSolvers "../../Common/xml/Solvers.xml"
+    Model::getProcesses "../../Fluid/xml/Processes.xml"
+    Model::getConditions "../../Fluid/xml/Conditions.xml"
+    Model::getSolvers "../../Common/xml/Solvers.xml"
 }
 
 
