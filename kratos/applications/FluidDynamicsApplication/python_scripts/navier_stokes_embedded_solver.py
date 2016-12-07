@@ -51,6 +51,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "scaling"             : true,
                 "verbosity"           : 0
             },
+            "distance_reading_settings"    : {
+                "import_mode"         : "from_GID_file",
+                "distance_file_name"  : "distance_file"
+            },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
@@ -88,6 +92,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 """)
         else:
             raise Exception("Domain size is not 2 or 3!!")
+
+        ## Set the distance reading filename
+        # self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+"_distance.post.res")
+        self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
         print("Construction of NavierStokesEmbeddedSolver finished.")
 
@@ -210,8 +218,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
 
     def Solve(self):
-        (self.bdf_process).Execute()
         self.DivergenceClearance()
+        (self.bdf_process).Execute()
         (self.solver).Solve()
 
     def _ExecuteAfterReading(self):
@@ -230,3 +238,12 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian3DLaw()
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian2DLaw()
+
+        ## Setting the nodal distance
+        try:
+            import read_distance_from_file
+            DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
+            DistanceUtility.ImportDistance()
+        except FileNotFoundError:
+            ####### NOTE: TEMPORAL SOLUTION. RECALL TO SUPRESS THE try AS SOON AS THE INTERFACE IS FINISHED #######
+            print("DISTANCE FILE NOT FOUND. DISTANCE IS MANUALLY SET.")
