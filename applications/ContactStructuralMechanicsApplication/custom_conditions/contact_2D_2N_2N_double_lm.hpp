@@ -1871,13 +1871,13 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    static inline bounded_matrix<double,4,4> ComputeDeltaDe(
+    static inline bounded_matrix<double,2,2> ComputeDeltaDe(
         const Vector N1, 
         const ContactData& rContactData,
         const unsigned int derivative_index
         )
 {
-    bounded_matrix<double,4,4> DeltaDe;
+    bounded_matrix<double,2,2> DeltaDe;
     
     const Matrix X1 = rContactData.X1;
     const Matrix u1 = rContactData.u1;
@@ -1911,13 +1911,13 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    static inline bounded_matrix<double,4,4> ComputeDeltaMe(
+    static inline bounded_matrix<double,2,2> ComputeDeltaMe(
         const Vector N1, 
         const ContactData& rContactData,
         const unsigned int derivative_index
         )
 {
-    bounded_matrix<double,4,4> DeltaMe;
+    bounded_matrix<double,2,2> DeltaMe;
     
     const Matrix X1 = rContactData.X1;
     const Matrix u1 = rContactData.u1;
