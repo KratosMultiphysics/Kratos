@@ -123,6 +123,8 @@ public:
     struct Features
     {
 
+      KRATOS_CLASS_POINTER_DEFINITION(Features);
+      
     /**
      * Structure "Features" to be used by the element to get the the constitutive law characteristics*
      * its variables will be used to check constitutive law and element compatibility
@@ -138,6 +140,34 @@ public:
       double               mSpaceDimension;
       std::vector< StrainMeasure > mStrainMeasures;
 
+      /**
+       * Constructor.
+       */
+      Features()
+      {
+      }
+      
+      /**
+       * Destructor.
+       */
+      ~Features()
+      {
+      }
+
+      // set variables
+      void SetOptions       (const Flags&  rOptions)      {mOptions=rOptions;};
+      void SetStrainSize    (const double StrainSize)     {mStrainSize=StrainSize;};
+      void SetSpaceDimension(const double SpaceDimension) {mSpaceDimension=SpaceDimension;};
+      void SetStrainMeasure (const StrainMeasure Measure) {mStrainMeasures.push_back(Measure);};
+
+      void SetStrainMeasures (const std::vector<StrainMeasure> MeasuresVector) {mStrainMeasures = MeasuresVector;};
+
+      // get variables
+      const Flags& GetOptions () {return mOptions;};
+
+      const double& GetStrainSize() {return mStrainSize;};
+      const double& GetSpaceDimension() {return mSpaceDimension;};
+      std::vector<StrainMeasure>& GetStrainMeasures() {return mStrainMeasures;};
     };
 
 
