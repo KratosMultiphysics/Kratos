@@ -21,6 +21,10 @@ proc EmbeddedFluid::write::writeModelPartEvent { } {
     Fluid::write::writeMeshes
     writeDistances
 }
+proc EmbeddedFluid::write::writeCustomFilesEvent { } {
+    write::CopyFileIntoModel "python/KratosFluid.py"
+    write::RenameFileInModel "KratosFluid.py" "MainKratos.py"
+}
 
 proc EmbeddedFluid::write::writeDistances { } {
     set go 0
