@@ -32,6 +32,7 @@ proc ::EmbeddedFluid::LoadMyFiles { } {
     variable dir
     
     uplevel #0 [list source [file join $dir xml GetFromXML.tcl]]
+    uplevel #0 [list source [file join $dir xml ImportWindowController.tcl]]
     uplevel #0 [list source [file join $dir write write.tcl]]
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
 }
@@ -45,6 +46,15 @@ proc ::EmbeddedFluid::GetAttribute {name} {
 
 proc ::EmbeddedFluid::CustomToolbarItems { } {
     Kratos::ToolbarAddItem "ImportMesh" "Import.png" [list -np- EmbeddedFluid::xml::ImportMeshWindow] [= "Import embedded mesh"]   
+}
+
+proc ::EmbeddedFluid::BeforeMeshGeneration {elementsize} {
+    GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 1 escape escape 
+
+}
+
+proc ::EmbeddedFluid::AfterMeshGeneration {fail} {
+    GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 0 escape escape 
 }
 
 ::EmbeddedFluid::Init

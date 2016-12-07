@@ -1,4 +1,4 @@
-namespace eval Fluid::write {
+namespace eval EmbeddedFluid::write {
     # Namespace variables declaration
     variable FluidConditions
     
@@ -9,7 +9,7 @@ namespace eval Fluid::write {
     variable validApps
 }
 
-proc Fluid::write::Init { } {
+proc EmbeddedFluid::write::Init { } {
     # Namespace variables inicialization
     variable FluidConditions
     set FluidConditions(temp) 0
@@ -27,18 +27,18 @@ proc Fluid::write::Init { } {
     set validApps [list "Fluid"]
 }
 
-proc Fluid::write::AddValidApps {appid} {
+proc EmbeddedFluid::write::AddValidApps {appid} {
     variable validApps
     if {$appid ni $validApps} {lappend validApps $appid}
 }
 
-proc Fluid::write::SetCoordinatesByGroups {value} {
+proc EmbeddedFluid::write::SetCoordinatesByGroups {value} {
     variable writeCoordinatesByGroups
     set writeCoordinatesByGroups $value
 }
 
 # Events
-proc Fluid::write::writeModelPartEvent { } {
+proc EmbeddedFluid::write::writeModelPartEvent { } {
     variable PartsUN
     variable writeCoordinatesByGroups
     variable validApps
@@ -53,12 +53,12 @@ proc Fluid::write::writeModelPartEvent { } {
     writeConditions
     writeMeshes
 }
-proc Fluid::write::writeCustomFilesEvent { } {
+proc EmbeddedFluid::write::writeCustomFilesEvent { } {
     write::CopyFileIntoModel "python/KratosFluid.py"
     write::RenameFileInModel "KratosFluid.py" "MainKratos.py"
 }
 
-proc Fluid::write::Validate {} {
+proc EmbeddedFluid::write::Validate {} {
     variable PartsUN
     set err ""
     set doc $gid_groups_conds::doc
@@ -77,19 +77,19 @@ proc Fluid::write::Validate {} {
 }
 
 # MDPA Blocks
-proc Fluid::write::writeProperties { } {
+proc EmbeddedFluid::write::writeProperties { } {
     # Begin Properties
     write::WriteString "Begin Properties 0"
     write::WriteString "End Properties"
     write::WriteString ""
 }
 
-proc Fluid::write::writeConditions { } {
+proc EmbeddedFluid::write::writeConditions { } {
     writeBoundaryConditions
     writeDrags
 }
 
-proc Fluid::write::writeBoundaryConditions { } {
+proc EmbeddedFluid::write::writeBoundaryConditions { } {
     variable FluidConditions
     variable BCUN
     
@@ -119,18 +119,18 @@ proc Fluid::write::writeBoundaryConditions { } {
     }
 }
 
-proc Fluid::write::writeDrags { } {
+proc EmbeddedFluid::write::writeDrags { } {
     
 }
 
-proc Fluid::write::writeMeshes { } {
+proc EmbeddedFluid::write::writeMeshes { } {
     write::writePartMeshes
     write::writeNodalConditions "FLNodalConditions"
     writeConditionsMesh
     #writeSkinMesh
 }
 
-proc Fluid::write::writeConditionsMesh { } {
+proc EmbeddedFluid::write::writeConditionsMesh { } {
     variable FluidConditions
     variable BCUN
     set doc $gid_groups_conds::doc
@@ -151,7 +151,7 @@ proc Fluid::write::writeConditionsMesh { } {
     }
 }
 
-proc Fluid::write::writeSkinMesh { } {
+proc EmbeddedFluid::write::writeSkinMesh { } {
     variable FluidConditions
     variable BCUN
     set doc $gid_groups_conds::doc
@@ -177,7 +177,7 @@ proc Fluid::write::writeSkinMesh { } {
     ::write::writeGroupMesh EXTRA $skinconfgroup "Conditions" $listiniend
 }
 
-proc Fluid::write::CheckClosedVolume {} {
+proc EmbeddedFluid::write::CheckClosedVolume {} {
     variable BCUN
     set isclosed 1
     
@@ -209,4 +209,4 @@ proc Fluid::write::CheckClosedVolume {} {
     return $isclosed
 }
 
-Fluid::write::Init
+EmbeddedFluid::write::Init
