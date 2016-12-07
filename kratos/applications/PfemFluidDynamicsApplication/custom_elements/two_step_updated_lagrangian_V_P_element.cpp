@@ -261,11 +261,10 @@ namespace Kratos {
     rRightHandSideVector = ZeroVector(LocalSize);
 
     bool computeElement=false;
-    computeElement=CheckSliverElements();
-    // computeElement=true;
+    // computeElement=CheckSliverElements();
+    computeElement=true;
     if(computeElement==true){
-      //   break;
-      // }
+
 
       // Shape functions and integration points
       ShapeFunctionDerivativesArrayType DN_DX;
@@ -283,7 +282,7 @@ namespace Kratos {
       // Loop on integration points
       for (unsigned int g = 0; g < NumGauss; g++)
 	{
-	  const double GaussWeight = GaussWeights[g];
+	  const double GaussWeight = fabs(GaussWeights[g]);
 	  const ShapeFunctionsType& N = row(NContainer,g);
 	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
@@ -297,7 +296,12 @@ namespace Kratos {
 
 	  this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
 
-
+	  // if(rCurrentProcessInfo[STEP]==1){
+	  //   rElementalVariables.MeanPressure=Pressure;
+	  //   // std::cout<<"Pressure "<< Pressure<<std::endl;
+	  // }else{
+	  //   rElementalVariables.MeanPressure=OldPressure*0.5+Pressure*0.5;
+	  // }
 	  rElementalVariables.MeanPressure=OldPressure*0.5+Pressure*0.5;
 
 	  computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,g,N);
@@ -310,27 +314,17 @@ namespace Kratos {
 	    this->EvaluateInPoint(Density,DENSITY,N);
 	    this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 
-	    // Density=1000.0;
-
-	    // Density=GetProperties()[DENSITY];
-	    // double bulkModulus=GetProperties()[BULK_MODULUS];
-	    // std::cout<<"\t the bulk modulus is !!!!!!!!! "<<bulkModulus;
 	    if(Density==0){
 	      std::cout<<"\t Density=0 !!!!!!!!! ";
 	      Density=1000.0;
-	      // for (SizeType i = 0; i < NumNodes; ++i){
-	      //   if(rGeom[i].Is(OLD_ENTITY)){
-	      // 	std::cout<<"....it was a new node!!!!!!!!!!! "<<std::endl;
-	      //   }
-	      // }
 	    }
 	    // Add integration point contribution to the local mass matrix
 	    // double massWeight=GaussWeight*Density*2.0/TimeStep;
 	    double DynamicWeight=GaussWeight*Density;
 	    double MeanValueMass=0;
 	    this->ComputeLumpedMassMatrix(MassMatrix,DynamicWeight,MeanValueMass);
+	      
 	    // this->ComputeMomentumMassTerm(MassMatrix,N,dynamicWeight);
-
 	    this->AddExternalForces(rRightHandSideVector,Density,BodyForce,N,GaussWeight);
 
 	    this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
@@ -343,8 +337,6 @@ namespace Kratos {
 	    this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight);
 	    if(MeanValueMass!=0 && MeanValueMaterial!=0){
 	      VolumetricCoeff*=MeanValueMass*2/TimeStep/MeanValueMaterial;
-	      // double BulkReduction=MeanValueMass*2/TimeStep/MeanValueMaterial;
-	      // std::cout<<"___BulkRed: "<<BulkReduction<<std::endl;
 	    }else{
 	      std::cout<<" DANGEROUS ELEMENT!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
 	      std::cout<<" MeanValueMass="<<MeanValueMass;
@@ -356,9 +348,9 @@ namespace Kratos {
 	      VolumetricCoeff*=TimeStep;
 
 	    }
-	
+	    double theta=0.5;
 	    // Add viscous term
-	    this->AddCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight);
+	    this->AddCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  }else{
 	    for (SizeType n = 0; n < NumNodes; ++n)
 	      {
@@ -371,16 +363,14 @@ namespace Kratos {
     
       // Add residual of previous iteration to RHS
       VectorType VelocityValues = ZeroVector(LocalSize);
-      this->GetVelocityValues(VelocityValues,0);
       VectorType UpdatedAccelerations = ZeroVector(LocalSize);
-      UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
       VectorType LastAccValues = ZeroVector(LocalSize);
+
+      this->GetVelocityValues(VelocityValues,0);
+      UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
       this->GetAccelerationValues(LastAccValues,0);
       this->GetVelocityValues(VelocityValues,1);
       UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
-      // VectorType OldVelocityValues = ZeroVector(LocalSize);
-      // this->GetVelocityValues(OldVelocityValues,2);
-      // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - (VelocityValues-OldVelocityValues)/TimeStep; 
       noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
       noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
@@ -414,8 +404,8 @@ namespace Kratos {
  
 
     bool computeElement=false;
-    computeElement=CheckSliverElements();
-    // computeElement=true;
+    // computeElement=CheckSliverElements();
+     computeElement=true;
 
     if(computeElement==true){
       // Shape functions and integration points
@@ -456,7 +446,7 @@ namespace Kratos {
 	  computeElement=this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
 	  if(computeElement==true){
 	    // this->UpdateCauchyStress(g);
-	    const double GaussWeight = GaussWeights[g];
+	    const double GaussWeight = fabs(GaussWeights[g]);
 	    const ShapeFunctionsType& N = row(NContainer,g);
 	    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 	    this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
@@ -490,14 +480,20 @@ namespace Kratos {
 	    this->CalculateTauFIC(Tau,ElemSize,ConvVel,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
 	    double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	    // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
-	    this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
-	    rLeftHandSideMatrix+=BulkVelMatrixLump;
+	    if(rCurrentProcessInfo[STEP]>10){
+	      // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	      this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
+	      rLeftHandSideMatrix+=BulkVelMatrixLump;	
+	    }
+
 
 	    double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
-	    // this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
-	    this->ComputeBulkMatrixForPressureAccLump(BulkAccMatrixLump,N,BulkStabCoeff);
-	    rLeftHandSideMatrix+=BulkAccMatrixLump;
+	    if(rCurrentProcessInfo[STEP]>10){
+	      // this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
+	      this->ComputeBulkMatrixForPressureAccLump(BulkAccMatrixLump,N,BulkStabCoeff);
+	      rLeftHandSideMatrix+=BulkAccMatrixLump;
+	    
+	    }
 	    // this->AddStabilizationMatrixLHS(rLeftHandSideMatrix,BulkAccMatrix,N,BulkStabCoeff);
 
 	    double BoundLHSCoeff=Tau*ElemSize*ElemSize/GaussWeight;
@@ -573,7 +569,7 @@ namespace Kratos {
 		this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,BodyForce,GaussWeight,rDN_DX,i);
 
 		rRightHandSideVector[i] += BoundRHSVector[i];
-		// std::cout<<"   B[i] "<<BoundRHSVector[i];
+		// std::cout<<"  B[i] "<<BoundRHSVector[i]<<" " <<rGeom[i].Coordinates()<<"\n ";
 		// rRightHandSideVector[i] += PressureAccStabilizationRHSterm[i];
 		// if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
 		//   rRightHandSideVector[i]=0;
@@ -582,7 +578,7 @@ namespace Kratos {
 
 	  }else
 	    {
-	      const double GaussWeight = GaussWeights[g];
+	      const double GaussWeight = fabs(GaussWeights[g]);
 	      const ShapeFunctionsType& N = row(NContainer,g);
 	      this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 	      double BulkCoeff =GaussWeight/(VolumetricCoeff);
@@ -597,8 +593,26 @@ namespace Kratos {
 
 	  }
 
-	}
+	}   
+   
 
+    }else{
+      int numBoundary=0;
+      for (SizeType n = 0; n < NumNodes; ++n)
+	{
+	  if(rGeom[n].Is(BOUNDARY)){
+	    numBoundary++;
+	  } 
+	}
+      if(numBoundary==NumNodes){
+	rLeftHandSideMatrix = IdentityMatrix(NumNodes,NumNodes);
+	for (SizeType n = 0; n < NumNodes; ++n)
+	  {
+	    rGeom[n].FastGetSolutionStepValue(PRESSURE,0)=0;
+	    rGeom[n].FastGetSolutionStepValue(PRESSURE,1)=0;
+	  }
+	std::cout<<"DO NOT COMPUTE THIS BOUNDARY ELEMENT: IMPOSE PRESSURE=0 "<<rGeom[0].Coordinates()<<std::endl;
+      }
     }
   }
   
@@ -1118,7 +1132,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1),false);
 
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
-      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+      rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
   
     }
     
@@ -1902,20 +1916,17 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
 	}
       }
     if(sliverNodes==NumNodes){
-      for (unsigned int g = 0; g < NumGauss; g++)
-      	{
-      	  const double GaussWeight = GaussWeights[g];
-      	   std::cout<<"SLIVER ELEMENT! volume is "<<GaussWeight<<std::endl;
-
-      	  // if(GaussWeight<0.000000001){
-      	    // sliver=true;
-      	    // std::cout<<"YES THIS IS A SLIVER! I WILL NOT COMPUTE IT"<<std::endl;
-      	    computeElement=false;
-      	  // }
-
-      	}
-
+      computeElement=false;
     }
+    for (unsigned int g = 0; g < NumGauss; g++)
+      {
+	const double GaussWeight = GaussWeights[g];
+	if(fabs(GaussWeight)<0.000000000001){
+	  std::cout<<" THIS IS A SLIVER! I WILL NOT COMPUTE IT "<<GaussWeight<<std::endl;
+	computeElement=false;
+	}
+
+      }
 
     return computeElement;
   }

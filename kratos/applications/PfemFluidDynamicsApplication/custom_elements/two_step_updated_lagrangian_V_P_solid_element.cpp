@@ -232,6 +232,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 									 const ShapeFunctionDerivativesType& rDN_DX,
 									 const double secondLame,
 									 const double bulkModulus,
+									 const double theta,
 									 const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -239,7 +240,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     const double nTwoThirds = -2.0 / 3.0;
 
     MatrixType invGradDef=rElementalVariables.InvFgrad;
-    double theta=0.5;
 
     SizeType FirstRow=0;
     SizeType FirstCol=0;
@@ -461,6 +461,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 									 const ShapeFunctionDerivativesType& rDN_DX,
 									 const double secondLame,
 									 const double bulkModulus,
+									 const double theta,
 									 const double Weight){
 
    const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -468,7 +469,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     const double nTwoThirds = -2.0 / 3.0;
 
     MatrixType invGradDef=rElementalVariables.InvFgrad;
-    double theta=0.5;
 
     SizeType FirstRow=0;
     SizeType FirstCol=0;
