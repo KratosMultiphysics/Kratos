@@ -1,5 +1,5 @@
 # Project Parameters
-proc ::Fluid::write::getParametersDict { } {
+proc ::EmbeddedFluid::write::getParametersDict { } {
     variable BCUN
     
     set projectParametersDict [dict create]
@@ -63,14 +63,14 @@ proc ::Fluid::write::getParametersDict { } {
     return $projectParametersDict   
 }
 
-proc Fluid::write::writeParametersEvent { } {
+proc EmbeddedFluid::write::writeParametersEvent { } {
     set projectParametersDict [getParametersDict]
     write::SetParallelismConfiguration
     write::WriteJSON $projectParametersDict
 }
 
 # Gravity SubModelParts and Process collection
-proc Fluid::write::getGravityProcessDict {} {
+proc EmbeddedFluid::write::getGravityProcessDict {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
@@ -96,7 +96,7 @@ proc Fluid::write::getGravityProcessDict {} {
 }
 
 # Skin SubModelParts ids
-proc Fluid::write::getBoundaryConditionMeshId {} {
+proc EmbeddedFluid::write::getBoundaryConditionMeshId {} {
     variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -118,7 +118,7 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
 }
 
 # No-skin SubModelParts ids
-proc Fluid::write::getNoSkinConditionMeshId {} {
+proc EmbeddedFluid::write::getNoSkinConditionMeshId {} {
     variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
