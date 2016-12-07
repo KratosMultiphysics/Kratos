@@ -476,9 +476,6 @@ public:
             }
         }
         
-        // Applied laziness - MUST be calculated BEFORE normalizing the normals
-        ComputeDeltaNodesMeanNormalModelPart( rModelPart );
-
         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
@@ -488,6 +485,20 @@ public:
             itNode->GetValue(NORMAL)      /= total_area;
             itNode->GetValue(TANGENT_XI)  /= total_area;
             itNode->GetValue(TANGENT_ETA) /= total_area;
+        }
+        
+//         // Applied laziness - MUST be calculated BEFORE normalizing the normals
+//         ComputeDeltaNodesMeanNormalModelPart( rModelPart ); // NOTE: The area pondering?, after or before
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+//             const double total_area        = itNode->GetValue(NODAL_AREA);
+//             itNode->GetValue(NORMAL)      /= total_area;
+//             itNode->GetValue(TANGENT_XI)  /= total_area;
+//             itNode->GetValue(TANGENT_ETA) /= total_area;
 
             const double norm_normal     = norm_2(itNode->GetValue(NORMAL));
             const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
@@ -514,7 +525,7 @@ public:
     static inline void ComputeDeltaNodesMeanNormalModelPart(ModelPart & rModelPart)
     {
         // TODO: Add parallelization
-        
+
         // Conditions
         ConditionsArrayType& pCond  = rModelPart.Conditions();
         ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
@@ -541,7 +552,7 @@ public:
             auto itNode = pNode.begin() + i;
             itNode->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
         }
-
+        
         // Sum the directional derivatives of the adjacent segments
         for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
         {
@@ -553,35 +564,37 @@ public:
                 const unsigned int num_nodes = itCond->GetGeometry( ).PointsNumber();
                 if( dimension == 2 )
                 {
-                    const double ne_norm = itCond->GetGeometry( ).Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
-                    
-                    Delta_ne_adj( 0, 0 ) =  0.0;
-                    Delta_ne_adj( 0, 1 ) = -1.0;
-                    Delta_ne_adj( 1, 0 ) =  1.0;
-                    Delta_ne_adj( 1, 1 ) =  0.0;
-                    
-                    Ce = prod( I - ne_o_ne, Delta_ne_adj ) / ne_norm;     // In 2D, Delta_ne_adj is node-independent => evaluated outside the nodes loop
-                    
-                    for (unsigned int i = 0; i < num_nodes; i++)
+                    if (num_nodes == 2)
                     {
-                        NodeType& node_j = itCond->GetGeometry( )[i];
+                        const double ne_norm = itCond->GetGeometry( ).Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
                         
-                        // -/+ 0.5 are the values of DN_Dxi for linear line elements at nodes 1 and 2 - no need to call the function
-                        double DN_De_j = 0.0;
-                        if( i == 0 )
-                        {
-                            DN_De_j = -0.5;
-                        }
-                        else if( i == 1 )
-                        {
-                            DN_De_j =  0.5;
-                        }
-                        else
-                        {
-                            KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: ", num_nodes );
-                        }
+                        Delta_ne_adj( 0, 0 ) =  0.0;
+                        Delta_ne_adj( 0, 1 ) = -1.0;
+                        Delta_ne_adj( 1, 0 ) =  1.0;
+                        Delta_ne_adj( 1, 1 ) =  0.0;
                         
-                        node_j.GetValue(DELTA_NORMAL) += Ce * DN_De_j;
+                        Ce = prod( I - ne_o_ne, Delta_ne_adj ) / ne_norm;     // In 2D, Delta_ne_adj is node-independent => evaluated outside the nodes loop
+                        
+                        for (unsigned int i = 0; i < num_nodes; i++)
+                        {
+                            NodeType& node_j = itCond->GetGeometry( )[i];
+                            
+                            // -/+ 0.5 are the values of DN_Dxi for linear line elements at nodes 1 and 2 - no need to call the function
+                            double DN_De_j = 0.0;
+                            if( i == 0 )
+                            {
+                                DN_De_j = -0.5;
+                            }
+                            else if( i == 1 )
+                            {
+                                DN_De_j =  0.5;
+                            }
+                            node_j.GetValue(DELTA_NORMAL) += Ce * DN_De_j;
+                        }
+                    }
+                    else
+                    {
+                        KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: ", num_nodes );
                     }
                 }
                 else if ( dimension == 3 )
@@ -697,7 +710,7 @@ public:
                 }
             }
         }
-
+        
         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
