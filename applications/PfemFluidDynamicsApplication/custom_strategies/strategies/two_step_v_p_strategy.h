@@ -219,6 +219,7 @@ public:
       const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      double timeStep = rCurrentProcessInfo[STEP];
       unsigned int maxNonLinearIterations=mMaxPressureIter;
       if(currentTime<10*timeInterval){
 	if ( BaseType::GetEchoLevel() > 1)
@@ -234,30 +235,40 @@ public:
       bool continuityConverged = false;
       boost::timer solve_step_time;
       // Iterative solution for pressure
-      for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
-	{
-	  if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-	    std::cout << "----- > iteration: " << it << std::endl;
+      if(timeStep==1){
+      	unsigned int iter=0;
+      	this->SetActiveLabel();
+      	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations);
+      }else if(timeStep==2){
+      	unsigned int iter=0;
+      	this->SetActiveLabel();
+      	 momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations);
+      }else{
 
-	  if(it==0){
-	    this->CheckSlivers();
-	  }
+	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
+	  {
+	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+	      std::cout << "----- > iteration: " << it << std::endl;
 
-	  momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations);
-
-	  this->CalculateDisplacements();
-	  /* this->CalculateAccelerations(); */
-
-	  continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
-
-	  if ( (continuityConverged || momentumConverged) && it>2)
-	    {
-	      if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-		std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
-	      break;
+	    if(it==0){
+	      this->SetActiveLabel();
 	    }
-	}
 
+	    momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations);
+
+	    this->CalculateDisplacements();
+	    /* this->CalculateAccelerations(); */
+
+	    continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
+
+	    if ( (continuityConverged && momentumConverged) && it>2)
+	      {
+		if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+		  std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+		break;
+	      }
+	  }
+      }
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	std::cout << "Convergence tolerance not reached." << std::endl;
 
@@ -354,7 +365,7 @@ public:
 
     }
 
-    void CheckSlivers()
+    void SetActiveLabel()
     {
 
 #pragma omp parallel
@@ -614,8 +625,17 @@ protected:
             {
                 const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
 
-                for (unsigned int d = 0; d < 3; ++d)
-                    NormV += Vel[d] * Vel[d];
+		double NormVelNode=0;
+
+                for (unsigned int d = 0; d < 3; ++d){
+		  NormVelNode+=Vel[d] * Vel[d];
+		  NormV += Vel[d] * Vel[d];
+		}
+		if(NormVelNode<0.000000001 && !itNode->Is(RIGID)){
+		  itNode->FastGetSolutionStepValue(VELOCITY)*=0;
+
+		}
+
             }
         }
 
@@ -698,21 +718,15 @@ protected:
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance=0.05;
       if(currentTime<10*timeInterval){
-	minTolerance=1;
+	minTolerance=10;
       }
 
       bool isItNan=false;
       isItNan=std::isnan(DvErrorNorm);
       bool isItInf=false;
       isItInf=std::isinf(DvErrorNorm);
-
-      //Changed 18/11/2016
-      //if(DvErrorNorm>minTolerance || (!DvErrorNorm<0 && !DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
-      //NOTE :: Alessandro what does it mean if(!DvErrorNorm<0) ?? do you mean if( DvErrorNorm>=0 ) (== if( !(DvErrorNorm<0) )
-      // !DvErrorNorm can be False or True, and (False<0 or True<0) = (!DvErrorNorm<0) is always False and (False>0 or True>0) = (!DvErrorNorm>0) is always True.
-      // (!DvErrorNorm<0 && !DvErrorNorm>0) this is always False.
-      if( (DvErrorNorm>minTolerance) || (!(DvErrorNorm<0) && !(DvErrorNorm>0)) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
-	std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+	std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<<DvErrorNorm<< std::endl;
 #pragma omp parallel 
 	{
 	  ModelPart::NodeIterator NodeBegin;
@@ -804,7 +818,7 @@ private:
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
-        //ModelPart& rModelPart = this->GetModelPart();
+        ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
 

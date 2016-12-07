@@ -336,6 +336,7 @@ namespace Kratos
 				  const ShapeFunctionDerivativesType& rShapeDeriv,
 				  const double secondLame,
 				  const double bulkModulus,
+				  const double theta,
 				  const double Weight);
 	
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
