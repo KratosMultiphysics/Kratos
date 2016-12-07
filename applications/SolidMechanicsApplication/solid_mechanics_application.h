@@ -92,6 +92,7 @@
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp"
 
+#include "custom_constitutive/python_outfitted_constitutive_law.hpp"
 //#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
 //#include "custom_constitutive/linear_elastic_plastic_plane_strain_2D_law.hpp"
 //#include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
@@ -399,6 +400,8 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
+
+   const PythonOutfittedConstitutiveLaw          mPythonOutfittedConstitutiveLaw;
 
    //Linear Elastic Plastic Laws
    //const LinearElasticPlastic3DLaw               mLinearElasticPlastic3DLaw;

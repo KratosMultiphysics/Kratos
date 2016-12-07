@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+#import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
@@ -27,7 +29,7 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
-             "constrained": true,
+             "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}
         }

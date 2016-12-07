@@ -2164,7 +2164,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
+        {	  
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
@@ -2172,9 +2172,9 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            ComparisonUtilities EquivalentStress;
+	    ComparisonUtilities EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
         }
     }
