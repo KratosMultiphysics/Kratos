@@ -409,14 +409,14 @@ public:
             for(unsigned int i=0; i<TNumNodes; i++) Ncenter[i]=0.25;
             const double dgauss = inner_prod(distances, Ncenter);
 
-            // Gauss pt. is FLUID
+            // Gauss pt. is FLUID (the element is close to be full of fluid)
             if(dgauss > 0.0)
             {
                 ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
             }
         }
         else
-        {                
+        {
             // Loop over subdivisions
             for(unsigned int division = 0; division<ndivisions; division++)
             {
@@ -441,7 +441,7 @@ public:
                 }
             }
         }
-        
+
         // Add level set boundary terms, penalty and modified Nitche contributions
         AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas, ndivisions);
     }
@@ -1190,9 +1190,9 @@ protected:
         {
             constexpr unsigned int BlockSize = TDim+1;                 // Block size
             constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
-            
+
             double diag_max = 0.0;
-            
+
             for (unsigned int i=0; i<MatrixSize; i++)
             {
                 if ((fabs(rLeftHandSideMatrix(i,i)) > diag_max) && ((i+1)%BlockSize != 0))
@@ -1201,8 +1201,8 @@ protected:
                 }
             }
 
-            double tol_d; 
-            
+            double tol_d;
+
             if (TDim == 2)
             {
                 tol_d = 1e-2*sqrt(data.h);
@@ -1211,7 +1211,7 @@ protected:
             {
                 tol_d = 1e-2*pow(data.h, 1.0/3.0);
             }
-            
+
             double pen_coef = std::max((diag_max/(0.1*data.h*data.h)),(1000*data.h*data.h));
 
             for (unsigned int i=0; i<TNumNodes; i++)
@@ -1374,6 +1374,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_SYMBOLIC_INCLUDED  defined 
-
-
+#endif // KRATOS_STOKES_ELEMENT_SYMBOLIC_INCLUDED  defined
