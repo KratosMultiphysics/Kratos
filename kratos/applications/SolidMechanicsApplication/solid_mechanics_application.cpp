@@ -138,7 +138,7 @@ namespace Kratos
   {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-
+    
     std::cout << "     KRATOS  __|  _ \\  |   |  _ \\              " << std::endl;
     std::cout << "           \\__ \\ (   | |   | | , )             " << std::endl;
     std::cout << "           |___/\\___/ ___|_| ___/ MECHANICS     " << std::endl;
@@ -351,6 +351,8 @@ namespace Kratos
     Serializer::Register( "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw );
     Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
     Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
+
+    Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
     
     //Isotropic Damage laws
     Serializer::Register( "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw );

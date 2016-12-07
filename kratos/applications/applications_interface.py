@@ -132,6 +132,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
         sys.path.append(applications_path + '/SolidMechanicsApplication/python_scripts')
+        sys.path.append(applications_path + '/SolidMechanicsApplication/python_scripts/constitutive_laws')
         sys.path.append(applications_path + '/SolidMechanicsApplication/Linux')
         from KratosSolidMechanicsApplication import *
         solid_mechanics_application = KratosSolidMechanicsApplication()

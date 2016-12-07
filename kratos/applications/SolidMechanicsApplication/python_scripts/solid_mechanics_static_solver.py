@@ -113,7 +113,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
-
+        
         # Check if everything is assigned correctly
         self.Check();
 
