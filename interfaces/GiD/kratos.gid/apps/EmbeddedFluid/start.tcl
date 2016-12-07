@@ -15,6 +15,7 @@ proc ::EmbeddedFluid::Init { } {
     set attributes [dict create]
     
     set prefix EMBFL
+    
     set ::Model::ValidSpatialDimensions [list 3D]
     spdAux::SetSpatialDimmension "3D"
     
@@ -25,6 +26,7 @@ proc ::EmbeddedFluid::Init { } {
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     LoadMyFiles
+    apps::LoadAppById "Fluid"
     #::spdAux::CreateDimensionWindow
 }
 
@@ -49,6 +51,7 @@ proc ::EmbeddedFluid::CustomToolbarItems { } {
 }
 
 proc ::EmbeddedFluid::BeforeMeshGeneration {elementsize} {
+    catch {file delete -force [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]}
     GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 1 escape escape 
 
 }
