@@ -53,32 +53,38 @@ using namespace boost::python;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 
-template<class TVariableType> bool ConstitutiveLawHas(ConstitutiveLaw& this_constitutive_law, TVariableType const& rThisVariable) { return this_constitutive_law.Has(rThisVariable); }
+template<class TVariableType> bool ConstitutiveLawHas(ConstitutiveLaw& rThisConstitutiveLaw, TVariableType const& rThisVariable) { return rThisConstitutiveLaw.Has(rThisVariable); }
 
 //dirty trick. give back a copy instead of a reference
-template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLaw& this_constitutive_law, const Variable<TDataType >& rThisVariable, TDataType& value ) 
+template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType >& rThisVariable, TDataType& value ) 
 { 
-    TDataType tmp = this_constitutive_law.GetValue(rThisVariable, value);
+    TDataType tmp = rThisConstitutiveLaw.GetValue(rThisVariable, value);
     return tmp;
 }
-template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& this_constitutive_law, const Variable<TDataType>& rThisVariable, TDataType& value, const ProcessInfo& rCurrentProcessInfo)
-{ this_constitutive_law.SetValue(rThisVariable, value, rCurrentProcessInfo); }
+template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType>& rThisVariable, TDataType& value, const ProcessInfo& rCurrentProcessInfo)
+{ rThisConstitutiveLaw.SetValue(rThisVariable, value, rCurrentProcessInfo); }
 
 //only exporting functions with the new interface - considering deprecated the old interface
-void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& this_constitutive_law, ConstitutiveLaw::Parameters& rValues,const ConstitutiveLaw::StressMeasure& rStressMeasure)
-{this_constitutive_law.CalculateMaterialResponse (rValues,rStressMeasure);}
+void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& rThisConstitutiveLaw, ConstitutiveLaw::Parameters& rValues,const ConstitutiveLaw::StressMeasure& rStressMeasure)
+{rThisConstitutiveLaw.CalculateMaterialResponse (rValues,rStressMeasure);}
 
+Flags GetFeaturesOptions(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetOptions();}
+double GetStrainSizeFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainSize();}
+double GetSpaceDimensionFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetSpaceDimension();}
+std::vector<ConstitutiveLaw::StrainMeasure>& GetStrainMeasuresFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainMeasures(); } 
 
-double GetDeterminantF1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetDeterminantF();}
+Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetOptions();}
+  
+double GetDeterminantF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeterminantF();}
 
-Vector& GetStrainVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStrainVector();}
-Vector& GetStrainVector2(ConstitutiveLaw::Parameters& this_params, Vector& strain){ return this_params.GetStrainVector(strain);}
-Vector& GetStressVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStressVector();}
-Vector& GetStressVector2(ConstitutiveLaw::Parameters& this_params, Vector& stress){ return this_params.GetStressVector(stress);}
-Matrix& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetConstitutiveMatrix();}
-Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& this_params, Matrix& C){ return this_params.GetConstitutiveMatrix(C);}
-const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetDeformationGradientF();}
-Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& this_params, Matrix& F){ return this_params.GetDeformationGradientF(F);}
+Vector& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
+Vector& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& strain){ return rThisParameters.GetStrainVector(strain);}
+Vector& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
+Vector& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& stress){ return rThisParameters.GetStressVector(stress);}
+Matrix& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
+Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& C){ return rThisParameters.GetConstitutiveMatrix(C);}
+const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
+Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& F){ return rThisParameters.GetDeformationGradientF(F);}
 
 
 
@@ -102,6 +108,18 @@ void  AddConstitutiveLawToPython()
         .value("StressMeasure_Cauchy",ConstitutiveLaw::StressMeasure_Cauchy)
     ;
 
+    class_< ConstitutiveLaw::Features, ConstitutiveLaw::Features::Pointer, boost::noncopyable>
+      ("ConstitutiveLawFeatures", init<>() )
+      .def("SetOptions",&ConstitutiveLaw::Features::SetOptions)
+      .def("SetStrainSize",&ConstitutiveLaw::Features::SetStrainSize)
+      .def("SetSpaceDimension",&ConstitutiveLaw::Features::SetSpaceDimension)
+      .def("SetStrainMeasures",&ConstitutiveLaw::Features::SetStrainMeasures)
+      .def("SetStrainMeasure",&ConstitutiveLaw::Features::SetStrainMeasure)
+      .def("GetOptions",GetFeaturesOptions)
+      .def("GetStrainSize",GetStrainSizeFeatures)
+      .def("GetSpaceDimension",GetSpaceDimensionFeatures)
+      .def("GetStrainMeasures",&GetStrainMeasuresFeatures, return_internal_reference<>())
+      ;
 
     class_< ConstitutiveLaw::Parameters, ConstitutiveLaw::Parameters::Pointer, boost::noncopyable>
     ("ConstitutiveLawParameters", init<>() )
@@ -123,6 +141,7 @@ void  AddConstitutiveLawToPython()
         .def("SetMaterialProperties",&ConstitutiveLaw::Parameters::SetMaterialProperties)
         .def("SetElementGeometry",&ConstitutiveLaw::Parameters::SetElementGeometry)
         .def("SetDeformationGradientF",&ConstitutiveLaw::Parameters::SetDeformationGradientF)
+        .def("GetOptions",GetLawOptions)
         .def("GetDeterminantF",GetDeterminantF1)
 //         .def("GetShapeFunctionsValues",&ConstitutiveLaw::Parameters::GetShapeFunctionsValues)
 //         .def("GetShapeFunctionsDerivatives",&ConstitutiveLaw::Parameters::GetShapeFunctionsDerivatives)
@@ -189,7 +208,7 @@ void  AddConstitutiveLawToPython()
     .def("PullBackConstitutiveMatrix",&ConstitutiveLaw::PullBackConstitutiveMatrix)
     .def("PushForwardConstitutiveMatrix",&ConstitutiveLaw::PushForwardConstitutiveMatrix)
     .def("Check",&ConstitutiveLaw::Check)
-//     .def("GetLawFeatures",&ConstitutiveLaw::GetLawFeatures)
+    .def("GetLawFeatures",&ConstitutiveLaw::GetLawFeatures)
     .def_readonly("COMPUTE_STRAIN", &ConstitutiveLaw::COMPUTE_STRAIN)
     .def_readonly("COMPUTE_STRESS", &ConstitutiveLaw::COMPUTE_STRESS)
     .def_readonly("COMPUTE_CONSTITUTIVE_TENSOR", &ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)
@@ -200,6 +219,7 @@ void  AddConstitutiveLawToPython()
     .def_readonly("FINALIZE_MATERIAL_RESPONSE", &ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE)
     .def_readonly("FINITE_STRAINS", &ConstitutiveLaw::FINITE_STRAINS)
     .def_readonly("INFINITESIMAL_STRAINS", &ConstitutiveLaw::INFINITESIMAL_STRAINS)
+    .def_readonly("THREE_DIMENSIONAL_LAW", &ConstitutiveLaw::THREE_DIMENSIONAL_LAW)
     .def_readonly("PLANE_STRAIN_LAW", &ConstitutiveLaw::PLANE_STRAIN_LAW)
     .def_readonly("PLANE_STRESS_LAW", &ConstitutiveLaw::PLANE_STRESS_LAW)
     .def_readonly("AXISYMMETRIC_LAW", &ConstitutiveLaw::AXISYMMETRIC_LAW)

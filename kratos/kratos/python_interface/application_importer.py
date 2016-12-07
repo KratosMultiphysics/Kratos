@@ -26,6 +26,9 @@ def ImportApplication(application, application_name, application_folder, caller)
         application_path = os.path.join(applications_root, application_folder)
         python_path = os.path.join(application_path, 'python_scripts')
         sys.path.append(python_path)
+        # Add constitutive laws python scrips folder to path
+        constitutive_laws_path = os.path.join(python_path, 'constitutive_laws')
+        sys.path.append(constitutive_laws_path)
         # Add application to kernel
         Kernel.AddApplication(application)
         # Dynamic renumbering of variables to ensure consistency
