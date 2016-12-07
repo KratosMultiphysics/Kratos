@@ -428,7 +428,7 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart)
+    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) 
     {
         // Tolerance
         const double tol = 1.0e-14;
@@ -476,9 +476,8 @@ public:
             }
         }
         
-//         // TODO: This is just for the Mohamed conditions, remove if not used!!!!
-//         // Applied laziness - MUST be calculated BEFORE normalizing the normals
-//         ComputeDeltaNodesMeanNormalModelPart( rModelPart );
+        // Applied laziness - MUST be calculated BEFORE normalizing the normals
+        ComputeDeltaNodesMeanNormalModelPart( rModelPart );
 
         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 

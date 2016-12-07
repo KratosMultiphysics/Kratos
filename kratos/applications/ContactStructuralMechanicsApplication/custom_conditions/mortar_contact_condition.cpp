@@ -653,7 +653,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     )
 {    
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -677,7 +677,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
         // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
     }
 
     LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR, true );
@@ -685,7 +685,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); i++ )
     {
         // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
+        this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
     }
     LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
 
@@ -697,7 +697,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     LocalSystem.SetRightHandSideVariables( rRHSVariables );
 
     // Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -713,7 +713,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     KRATOS_TRY;
     
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -723,14 +723,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLocalSystem(
     LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR, true );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
     
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( rRightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" );
 }
@@ -745,7 +745,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLeftHandSide(
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -756,14 +756,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLeftHandSide(
     VectorType RightHandSideVector = Vector( );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( RightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -777,7 +777,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLeftHandSide(
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -791,14 +791,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateLeftHandSide(
     // Initialize size for the system components
     for( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
-        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
     }
 
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
     LocalSystem.SetRightHandSideVector( RightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -811,7 +811,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateRightHandSide(
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -822,14 +822,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateRightHandSide(
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
-    this->InitializeSystemMatrices<MatrixSize>( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
+    this->InitializeSystemMatrices<TMatrixSize>( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( LeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( rRightHandSideVector );
 
     //Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -842,7 +842,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateRightHandSide(
     ProcessInfo& rCurrentProcessInfo )
 {
     // Calculates the size of the system
-    constexpr unsigned int MatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
+    constexpr unsigned int TMatrixSize = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes);
         
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -856,7 +856,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateRightHandSide(
     // Initialize size for the system components
     for( unsigned int i = 0; i < rRightHandSideVectors.size(); i++ )
     {
-        this->InitializeSystemMatrices<MatrixSize>( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<TMatrixSize>( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
     }
 
     // Set Variables to Local system components
@@ -864,21 +864,21 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateRightHandSide(
     LocalSystem.SetRightHandSideVectors( rRightHandSideVectors );
 
     // Calculate condition system
-    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<TMatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize >
+template< unsigned int TMatrixSize >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSystemMatrices( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     Flags& rCalculationFlags 
     )
 {
-    const unsigned int condition_size = this->CalculateConditionSize<MatrixSize>( );
+    const unsigned int condition_size = this->CalculateConditionSize<TMatrixSize>( );
     
     // Resizing as needed the LHS
     if ( rCalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
@@ -937,10 +937,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDampingMatrix(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize >
+template< unsigned int TMatrixSize >
 const unsigned int MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateConditionSize( )
 {
-    const unsigned int condition_size = mThisMasterElements.size( ) * MatrixSize; // NOTE: Assuming same number of nodes for the master
+    const unsigned int condition_size = mThisMasterElements.size( ) * TMatrixSize; // NOTE: Assuming same number of nodes for the master
     
     return condition_size;
 }
@@ -949,7 +949,7 @@ const unsigned int MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCo
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize>
+template< unsigned int TMatrixSize>
 void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSystem( 
     LocalSystemComponents& rLocalSystem,
     const ProcessInfo& rCurrentProcessInfo
@@ -988,7 +988,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+            bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
             
             const double IntegrationWeight = integration_points[PointNumber].Weight();
             prop_weight += IntegrationWeight;
@@ -1025,13 +1025,13 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         }
         
         // Integrating the LHS and RHS
-        bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = ZeroMatrix(MatrixSize, MatrixSize);
-        array_1d<double, MatrixSize> RHS_contact_pair = ZeroVector(MatrixSize);
+        bounded_matrix<double, TMatrixSize, TMatrixSize> LHS_contact_pair = ZeroMatrix(TMatrixSize, TMatrixSize);
+        array_1d<double, TMatrixSize> RHS_contact_pair = ZeroVector(TMatrixSize);
         
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+            bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
         
 //             Variables.print();
             
@@ -1059,14 +1059,14 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS<MatrixSize>( LHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
+                    this->CalculateLocalLHS<TMatrixSize>( LHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
                 }
                 
                 // Calculation of the vector is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS<MatrixSize>( RHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
+                    this->CalculateLocalRHS<TMatrixSize>( RHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
                 }
             }
         }
@@ -1079,7 +1079,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                     rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS<MatrixSize>( rLocalSystem, LHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddLHS<TMatrixSize>( rLocalSystem, LHS_contact_pair, PairIndex, current_master_element );
             }
 
             // Assemble of the vector is required
@@ -1087,7 +1087,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                     rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS<MatrixSize>( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddRHS<TMatrixSize>( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
             }
             
 //             std::cout << "--------------------------------------------------" << std::endl;
@@ -1143,7 +1143,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     
     /* LM */
     rContactData.LagrangeMultipliers = GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
-    rContactData.DoubleLagrangeMultipliers = GetVariableMatrix(GetGeometry(), DOUBLE_LM, 0); 
+    if (TDoubleLM == true)
+    {
+        rContactData.DoubleLagrangeMultipliers = GetVariableMatrix(GetGeometry(), DOUBLE_LM, 0); 
+    }
     
     /* NORMALS AND TANGENTS */ // TODO: To interpolate it is necessary to consider a smooth function
     const array_1d<double, 3> normal      = this->GetValue(NORMAL);
@@ -1153,7 +1156,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
         {
-            rContactData.NormalsSlave(i_slave, i_dim) = normal[i_dim];
+            rContactData.NormalsSlave(i_slave, i_dim)  = normal[i_dim];
             rContactData.Tangent1Slave(i_slave, i_dim) = tangent_xi[i_dim];
             rContactData.Tangent2Slave(i_slave, i_dim) = tangent_eta[i_dim];
         }
@@ -1572,10 +1575,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactD
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize >
+template< unsigned int TMatrixSize >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
     LocalSystemComponents& rLocalSystem,
-    bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
+    bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
     const unsigned int rPairIndex,
     const GeometryType& current_master_element
     )
@@ -1644,7 +1647,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
                 MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
                 
                 // Assemble in the correct position
-                this->AssembleContactPairLHSToConditionSystem<MatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+                this->AssembleContactPairLHSToConditionSystem<TMatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
                 calculated = true;
             }
 
@@ -1660,7 +1663,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
         
         // Assemble in the correct position
-        this->AssembleContactPairLHSToConditionSystem<MatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+        this->AssembleContactPairLHSToConditionSystem<TMatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
     }
 }
 
@@ -1668,16 +1671,16 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize>
+template< unsigned int TMatrixSize>
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AssembleContactPairLHSToConditionSystem(
-    bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
+    bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
     MatrixType& rConditionLHS,
     const unsigned int rPairIndex
     )
 {
     // Find location of the pair's master DOFs in ConditionRHS
-    const unsigned int index_begin = rPairIndex * MatrixSize;
-    const unsigned int index_end  = index_begin + MatrixSize;
+    const unsigned int index_begin = rPairIndex * TMatrixSize;
+    const unsigned int index_end  = index_begin + TMatrixSize;
     
     subrange( rConditionLHS, index_begin, index_end, index_begin, index_end) += rPairLHS;
 }
@@ -2012,10 +2015,10 @@ void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize >
+template< unsigned int TMatrixSize >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
     LocalSystemComponents& rLocalSystem,
-    array_1d<double, MatrixSize>& RHS_contact_pair,
+    array_1d<double, TMatrixSize>& RHS_contact_pair,
     const unsigned int rPairIndex,
     const GeometryType& current_master_element
     )
@@ -2076,7 +2079,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
                 VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
 
                 // Assemble
-                this->AssembleContactPairRHSToConditionSystem<MatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+                this->AssembleContactPairRHSToConditionSystem<TMatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
                 
                 calculated = true;
             }
@@ -2093,7 +2096,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
         
         // Assemble
-        this->AssembleContactPairRHSToConditionSystem<MatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+        this->AssembleContactPairRHSToConditionSystem<TMatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
     }
 }
   
@@ -2101,16 +2104,16 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-template< unsigned int MatrixSize >
+template< unsigned int TMatrixSize >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AssembleContactPairRHSToConditionSystem(
-    array_1d<double, MatrixSize>& rPairRHS,
+    array_1d<double, TMatrixSize>& rPairRHS,
     VectorType& rConditionRHS,
     const unsigned int rPairIndex
     )
 {
     // Find location of the pair's master DOFs in ConditionRHS
-    const unsigned int index_begin = rPairIndex * MatrixSize;
-    const unsigned int index_end  = index_begin + MatrixSize;
+    const unsigned int index_begin = rPairIndex * TMatrixSize;
+    const unsigned int index_end  = index_begin + TMatrixSize;
     
     // Computing subrange
     subrange( rConditionRHS, index_begin, index_end ) += rPairRHS;

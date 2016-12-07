@@ -176,6 +176,7 @@ public:
     Matrix Me;
     Matrix De;
     Matrix Ae;
+    
     // Derivatives Ae
     std::vector<Matrix> DeltaMe;
     std::vector<Matrix> DeltaDe;
@@ -190,6 +191,9 @@ public:
     
     // Double LM parameter
     double epsilon;
+    
+    // Default destructor
+    ~ContactData(){}
     
     // Initializer method 
     void Initialize(      
@@ -213,8 +217,11 @@ public:
         Tangent2Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // Displacements and velocities of the slave
+        X1.resize(rNumberOfSlaveNodes, rDimension, false);
         X1 = GetCoordinates(GeometryInput, false);
+        u1.resize(rNumberOfSlaveNodes, rDimension, false);
         u1 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+        v1.resize(rNumberOfSlaveNodes, rDimension, false);
         v1 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Delta time 
@@ -258,12 +265,6 @@ public:
     {
         Me.resize(0,0, false);
         De.resize(0,0, false);
-        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
-        {
-            DeltaMe[i].resize(0,0, false);
-            DeltaDe[i].resize(0,0, false);
-        }
-        
         DeltaMe.clear();
         DeltaDe.clear();
     }
@@ -293,8 +294,11 @@ public:
         }
         
         // Displacements and velocities of the master
+        X2.resize(rNumberOfMasterNodes, rDimension, false);
         X2 = GetCoordinates(GeometryInput, false);
+        u2.resize(rNumberOfMasterNodes, rDimension, false);
         u2 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+        v2.resize(rNumberOfMasterNodes, rDimension, false);
         v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
     }
 };
