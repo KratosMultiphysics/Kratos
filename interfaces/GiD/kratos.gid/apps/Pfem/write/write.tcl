@@ -59,6 +59,9 @@ proc Pfem::write::writeNodalConditions { keyword } {
     foreach group $groups {
         set cid [[$group parent] @n]
         set groupid [$group @name]
+        # Aqui hay que gestionar la escritura de los bodies
+        # Una opcion es crear un megagrupo temporal con esa informacion, mandar a pintar, y luego borrar el grupo.
+        # Otra opcion es no escribir el submodelpart. Ya tienen las parts y el project parameters tiene el conformado de los bodies
         ::write::writeGroupMesh $cid $groupid "nodal"
     }
 }
