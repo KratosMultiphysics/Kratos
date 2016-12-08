@@ -48,7 +48,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "compute_reactions": true,
             "compute_contact_forces": false,
             "compute_mortar_contact": 1,
-            "block_builder": false,
+            "block_builder": true,
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
