@@ -11,6 +11,8 @@ proc ::EmbeddedFluid::Init { } {
     variable prefix
     variable attributes
     
+    apps::LoadAppById "Fluid"
+    
     set dir [apps::getMyDir "EmbeddedFluid"]
     set attributes [dict create]
     
@@ -26,7 +28,6 @@ proc ::EmbeddedFluid::Init { } {
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     LoadMyFiles
-    apps::LoadAppById "Fluid"
     #::spdAux::CreateDimensionWindow
 }
 
