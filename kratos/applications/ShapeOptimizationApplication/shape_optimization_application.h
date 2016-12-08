@@ -64,6 +64,9 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+// elements
+#include "custom_elements/small_displacement_analytic_sensitivity_element.hpp"
+
 //conditions
 #include "custom_conditions/shape_optimization_condition.h"
 
@@ -84,12 +87,13 @@ namespace Kratos
     // Optimization variables
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
     KRATOS_DEFINE_VARIABLE(double,OBJECTIVE_SURFACE_SENSITIVITY);
-    KRATOS_DEFINE_VARIABLE(double,MAPPED_OBJECTIVE_SENSITIVITY);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_OBJECTIVE_SENSITIVITY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
     KRATOS_DEFINE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
-    KRATOS_DEFINE_VARIABLE(double,MAPPED_CONSTRAINT_SENSITIVITY);
-    KRATOS_DEFINE_VARIABLE(double,SEARCH_DIRECTION);
-    KRATOS_DEFINE_VARIABLE(double,DESIGN_UPDATE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
 
@@ -103,6 +107,15 @@ namespace Kratos
 
     // To create and process mapping matrix
     KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
+
+    // For Structure Sensitivity Analysis
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT);
+    KRATOS_DEFINE_VARIABLE(int,ACTIVE_NODE_INDEX);
+	KRATOS_DEFINE_VARIABLE(Vector,DKDXU);
+    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_X);
+    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
+    KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
 
 
 	///@} 
@@ -258,6 +271,12 @@ namespace Kratos
 		///@{ 
 
         // elements
+
+        // for structural optimization
+      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D4N;
+      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D10N;
+      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D8N;
+      	const SmallDisplacementAnalyticSensitivityElement mSmallDisplacementAnalyticSensitivityElement3D20N;
 
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;

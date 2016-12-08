@@ -38,8 +38,7 @@
 #
 #   Project Name:        KratosShape                            $
 #   Created by:          $Author:    daniel.baumgaertner@tum.de $
-#   Last modified by:    $Co-Author: daniel.baumgaertner@tum.de $
-#   Date:                $Date:                      March 2016 $
+#   Date:                $Date:                   December 2016 $
 #   Revision:            $Revision:                         0.0 $
 #
 # ==============================================================================
@@ -79,7 +78,6 @@ class VertexMorphingMethod:
                                 config.GiDWriteMeshFlag,
                                 config.GiDWriteConditionsFlag)
 
-
         # Add variables needed for shape optimization
         opt_model_part.AddNodalSolutionStepVariable(NORMAL)
         opt_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
@@ -89,7 +87,8 @@ class VertexMorphingMethod:
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        opt_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE) 
+        opt_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE)
+        opt_model_part.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
         opt_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
@@ -104,6 +103,7 @@ class VertexMorphingMethod:
         model_part_io = ModelPartIO(config.design_surface_name)
         model_part_io.ReadModelPart(opt_model_part)
         opt_model_part.SetBufferSize(buffer_size)
+        opt_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,config.domain_size)
         print("\nThe following design surface was defined:\n\n",opt_model_part)
 
         # Set configurations
@@ -135,17 +135,19 @@ class VertexMorphingMethod:
                                    # Defines maximum nodes that may be considered within the filter radius
         self.mapper = VertexMorphingMapper( self.opt_model_part,
                                             config.filter_function,
+                                            config.use_mesh_preserving_filter_matrix,
                                             config.filter_size,
                                             max_nodes_affected )
 
         # Toolbox to perform optimization
         self.opt_utils = OptimizationUtilities( self.opt_model_part,
                                                 self.objectives,
-                                                self.constraints )
+                                                self.constraints,
+                                                self.config.step_size,
+                                                self.config.normalize_search_direction )
 
         # Toolbox to pre & post process geometry data
-        self.geom_utils = GeometryUtilities( self.opt_model_part,
-                                             self.config.domain_size )
+        self.geom_utils = GeometryUtilities( self.opt_model_part )
 
     # --------------------------------------------------------------------------
     def optimize(self):
@@ -160,8 +162,9 @@ class VertexMorphingMethod:
         # Start timer and assign to object such that total time of opt may be measured at each step
         self.opt_start_time = time.time()
 
-        # Initialize design output in GID Format
+        # Initialize design output in GID Format and print baseline design
         self.gid_io.initialize_results(self.opt_model_part)
+        self.gid_io.write_results(0, self.opt_model_part, self.config.nodal_results, [])   
 
         # Call for for specified optimization algorithm
         if(self.config.optimization_algorithm == "steepest_descent"):
@@ -183,7 +186,7 @@ class VertexMorphingMethod:
         opt_end_time = time.time()
 
         print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,1)," s!")
+        print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,2)," s!")
         print("> ==============================================================================================================\n")
 
     # --------------------------------------------------------------------------
@@ -199,13 +202,14 @@ class VertexMorphingMethod:
             break
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_file, 'w') as csvfile:
+        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr")
             row.append("\tf")
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
+            row.append("\tstep_size[-]")
             row.append("\tt_iteration[s]")
             row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
@@ -233,11 +237,10 @@ class VertexMorphingMethod:
 
             # Set controller to evaluate objective
             self.controller.initialize_controls()
-            self.controller.get_controls()[only_F_id]["calc_func"] = 1
+            self.controller.get_controls()[only_F_id]["calc_value"] = 1
 
-            # Set to evaluate objective gradient if provided
-            if(self.objectives[only_F_id]["grad"]=="provided"):
-                self.controller.get_controls()[only_F_id]["calc_grad"] = 1
+            # Set to evaluate objective gradient
+            self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
 
             # Initialize response container
             response = self.controller.create_response_container()          
@@ -247,7 +250,7 @@ class VertexMorphingMethod:
             self.analyzer( X, self.controller.get_controls(), iterator, response )
 
             # Store gradients on the nodes of the model_part
-            self.store_grads_on_nodes( response[only_F_id]["grad"] )
+            self.store_grads_on_nodes( response[only_F_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -264,8 +267,12 @@ class VertexMorphingMethod:
             # Compute search direction
             self.opt_utils.compute_search_direction_steepest_descent()
 
+            # # Adjustment of step size
+            # if( opt_itr > 1 and response[only_F_id]["value"]>previous_f):
+            #     self.config.step_size = self.config.step_size/2
+
             # Compute design variable update (do one step in the optimization algorithm)
-            self.opt_utils.compute_design_update( self.config.step_size_0 )
+            self.opt_utils.compute_design_update()
 
             # Map design update to geometry space
             self.mapper.map_design_update_to_geometry_space()
@@ -273,31 +280,32 @@ class VertexMorphingMethod:
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
             delta_f_relative = 0.0
-            print("\n> Current value of objective function = ",response[only_F_id]["func"])
+            print("\n> Current value of objective function = ",response[only_F_id]["value"])
             if(opt_itr>1):
-                delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
-                delta_f_relative = 100*(response[only_F_id]["func"]-previous_f)/initial_f
-                print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
-                print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")            
+                delta_f_absolute = 100*(response[only_F_id]["value"]-initial_f)/initial_f
+                delta_f_relative = 100*(response[only_F_id]["value"]-previous_f)/initial_f
+                print("> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
+                print("> Relative change of objective function = ",round(delta_f_relative,6)," [%]")            
 
             # Take time needed for current optimization step
             end_time = time.time()
-            time_current_step = round(end_time - start_time,1)
-            time_optimization = round(end_time - self.opt_start_time,1)
+            time_current_step = round(end_time - start_time,2)
+            time_optimization = round(end_time - self.opt_start_time,2)
             print("\n> Time needed for current optimization step = ",time_current_step,"s")
-            print("\n> Time needed for total optimization so far = ",time_optimization,"s")     
+            print("> Time needed for total optimization so far = ",time_optimization,"s")     
             
             # Write design in GID format
             self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
 
             # Write design history to file
-            with open(self.config.design_history_file, 'a') as csvfile:
+            with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(opt_itr)+"\t")
-                row.append("\t"+str("%.12f"%(response[only_F_id]["func"]))+"\t")
+                row.append("\t"+str("%.12f"%(response[only_F_id]["value"]))+"\t")
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
+                row.append("\t"+str(self.config.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
                 row.append("\t"+str("%.1f"%(time_optimization))+"\t")
                 historyWriter.writerow(row)              
@@ -315,20 +323,20 @@ class VertexMorphingMethod:
                     print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,".")
                     break
 
-                # # Check if value of objective increases
-                # if(response[only_F_id]["func"]>previous_f):
-                #     print("\n> Value of objective function increased!")
-                #     break
+                # Check if value of objective increases
+                if(response[only_F_id]["value"]>previous_f):
+                    print("\n> Value of objective function increased!")
+                    break
 
             # Update design
             X = self.get_design()
 
             # Store values of for next iteration
-            previous_f = response[only_F_id]["func"]
+            previous_f = response[only_F_id]["value"]
 
             # Store initial objective value
             if(opt_itr==1):
-                initial_f = response[only_F_id]["func"]
+                initial_f = response[only_F_id]["value"]
 
     # --------------------------------------------------------------------------
     def start_augmented_lagrange(self):
@@ -359,7 +367,7 @@ class VertexMorphingMethod:
                                                      self.config.lambda_0 )
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_file, 'w') as csvfile:
+        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -369,7 +377,7 @@ class VertexMorphingMethod:
             row.append("\tf\t")
             row.append("\tdf_absolute[%]\t")
             row.append("\tpenalty_fac\t")
-            row.append("\tC["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t") 
+            row.append("\tC["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t") 
             row.append("\tlambda["+str(only_C_id)+"]\t")
             historyWriter.writerow(row)  
 
@@ -408,14 +416,12 @@ class VertexMorphingMethod:
 
                 # Set controller to evaluate objective and constraint
                 self.controller.initialize_controls()
-                self.controller.get_controls()[only_F_id]["calc_func"] = 1
-                self.controller.get_controls()[only_C_id]["calc_func"] = 1
+                self.controller.get_controls()[only_F_id]["calc_value"] = 1
+                self.controller.get_controls()[only_C_id]["calc_value"] = 1
 
-                # Set controller to evaluate objective and constraint gradient if provided
-                if(self.objectives[only_F_id]["grad"]=="provided"):
-                    self.controller.get_controls()[only_F_id]["calc_grad"] = 1
-                if(self.constraints[only_C_id]["grad"]=="provided"):
-                    self.controller.get_controls()[only_C_id]["calc_grad"] = 1                
+                # Set controller to evaluate objective and constraint gradient
+                self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
+                self.controller.get_controls()[only_C_id]["calc_gradient"] = 1                
 
                 # Initialize response container
                 response = self.controller.create_response_container()          
@@ -428,7 +434,7 @@ class VertexMorphingMethod:
                 l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
 
                 # Store gradients on the nodes of the model_part
-                self.store_grads_on_nodes( response[only_F_id]["grad"], response[only_C_id]["grad"] )
+                self.store_grads_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
                 # Compute unit surface normals at each node of current design
                 self.geom_utils.compute_unit_surface_normals()
@@ -446,7 +452,7 @@ class VertexMorphingMethod:
                 self.opt_utils.compute_search_direction_augmented_lagrange( self.constraints, response )
 
                 # Compute design variable update (do one step in the optimization algorithm)
-                self.opt_utils.compute_design_update( self.config.step_size_0 )
+                self.opt_utils.compute_design_update()
     
                 # Map design update to geometry space
                 self.mapper.map_design_update_to_geometry_space()
@@ -456,22 +462,22 @@ class VertexMorphingMethod:
                 delta_l_relative = 0.0
                 print("\n> Current value of Lagrange function = ",round(l,12))
                 if(sub_opt_itr>1):
-                    delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
+                    delta_f_absolute = 100*(response[only_F_id]["value"]-initial_f)/initial_f
                     delta_l_relative = 100*(l-previous_l)/initial_l
                     print("\n> Relative change of Lagrange function = ",round(delta_l_relative,6)," [%]")
 
                 # We write every major and every suboptimization iteration in design history
-                with open(self.config.design_history_file, 'a') as csvfile:
+                with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
                    historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                    row = []
                    row.append(str(opt_itr)+"\t")
                    row.append("\t"+str(sub_opt_itr)+"\t")
                    row.append("\t"+str("%.12f"%(l))+"\t")
                    row.append("\t"+str("%.6f"%(delta_l_relative))+"\t")
-                   row.append("\t"+str("%.12f"%(response[only_F_id]["func"]))+"\t")
+                   row.append("\t"+str("%.12f"%(response[only_F_id]["value"]))+"\t")
                    row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                    row.append("\t"+str("%.2f"%(self.vm_utils.get_penalty_fac()))+"\t")
-                   row.append("\t"+str("%.12f"%(response[only_C_id]["func"]))+"\t")
+                   row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
                    row.append("\t"+str("%.12f"%(self.vm_utils.get_lambda(only_C_id)))+"\t")
                    historyWriter.writerow(row)
 
@@ -505,13 +511,13 @@ class VertexMorphingMethod:
 
                 # Store initial objective value
                 if(opt_itr==1 and sub_opt_itr==1):
-                    initial_f = response[only_F_id]["func"]
+                    initial_f = response[only_F_id]["value"]
                     initial_l = l
 
                 # Take time needed for current suboptimization step as well as for the overall opt so far
                 subopt_end_time = time.time()
-                print("\n> Time needed for current suboptimization step = ",round(subopt_end_time - subopt_start_time,1),"s")
-                print("\n> Time needed for total optimization so far = ",round(subopt_end_time - self.opt_start_time,1),"s")
+                print("\n> Time needed for current suboptimization step = ",round(subopt_end_time - subopt_start_time,2),"s")
+                print("\n> Time needed for total optimization so far = ",round(subopt_end_time - self.opt_start_time,2),"s")
 
             # Check Convergence (More convergence criterion for major optimization iteration to be implemented!)
 
@@ -525,7 +531,7 @@ class VertexMorphingMethod:
 
             # Take time needed for current optimization step
             end_time = time.time()
-            print("\n> Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+            print("\n> Time needed for current optimization step = ",round(end_time - start_time,2),"s")
 
     # --------------------------------------------------------------------------
     def start_penalized_projection(self):
@@ -549,14 +555,16 @@ class VertexMorphingMethod:
             break            
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_file, 'w') as csvfile:
+        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr")
             row.append("\tf")
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
-            row.append("\tc["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")          
+            row.append("\tc["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t")          
+            row.append("\trelaxation_fac[-]")
+            row.append("\tstep_size[-]")
             row.append("\tt_iteration[s]")
             row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
@@ -569,7 +577,8 @@ class VertexMorphingMethod:
 
         # Miscellaneous working variables for data management
         initial_f = 0.0
-        previous_f = 0.0            
+        previous_f = 0.0 
+        previous_c = 0.0        
 
         # Start optimization loop
         for opt_itr in range(1,self.config.max_opt_iterations+1):
@@ -584,14 +593,12 @@ class VertexMorphingMethod:
 
             # Set controller to evaluate objective and constraint
             self.controller.initialize_controls()
-            self.controller.get_controls()[only_F_id]["calc_func"] = 1
-            self.controller.get_controls()[only_C_id]["calc_func"] = 1
+            self.controller.get_controls()[only_F_id]["calc_value"] = 1
+            self.controller.get_controls()[only_C_id]["calc_value"] = 1
 
-            # Set controller to evaluate objective and constraint gradient if provided
-            if(self.objectives[only_F_id]["grad"]=="provided"):
-                self.controller.get_controls()[only_F_id]["calc_grad"] = 1
-            if(self.constraints[only_C_id]["grad"]=="provided"):
-                self.controller.get_controls()[only_C_id]["calc_grad"] = 1                
+            # Set controller to evaluate objective and constraint gradient
+            self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
+            self.controller.get_controls()[only_C_id]["calc_gradient"] = 1                
 
             # Initialize response container
             response = self.controller.create_response_container()          
@@ -600,27 +607,18 @@ class VertexMorphingMethod:
             iterator = str(opt_itr) + ".0"
             self.analyzer( X, self.controller.get_controls(), iterator, response )
 
-            # Scale constraint if specified
-            response[only_C_id]["func"] = response[only_C_id]["func"]*self.config.constraint_scaling
-            if(self.config.constraint_scaling!=1.0):
-                for node_Id in response[only_C_id]["grad"]:
-                    scaled_sens=[ response[only_C_id]["grad"][node_Id][0]*self.config.constraint_scaling,
-                                  response[only_C_id]["grad"][node_Id][1]*self.config.constraint_scaling,
-                                  response[only_C_id]["grad"][node_Id][2]*self.config.constraint_scaling ]
-                    response[only_C_id]["grad"][node_Id] = scaled_sens
-
             # Check if constraint is active
             for func_id in self.config.constraints:
                 if(self.config.constraints[func_id]["type"] == "eq"):
                     constraints_given = True
-                elif(response[func_id]["func"]>0):
+                elif(response[func_id]["value"]>0):
                     constraints_given = True
                 else:
                     constraints_given = False
                 break
 
             # Store gradients on the nodes of the model_part
-            self.store_grads_on_nodes( response[only_F_id]["grad"], response[only_C_id]["grad"] )
+            self.store_grads_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -634,14 +632,18 @@ class VertexMorphingMethod:
             # Map sensitivities to design space
             self.mapper.map_sensitivities_to_design_space( constraints_given )
 
-            # Compute search direction
+            # # Adjustment of step size
+            # if( opt_itr > 1 and response[only_F_id]["value"]>previous_f):
+            #     self.config.step_size = self.config.step_size/2
+
             if(constraints_given):
-                self.opt_utils.compute_search_direction_penalized_projection( response[only_C_id]["func"] )
+                correction_scaling = [2.0] 
+                self.opt_utils.compute_projected_search_direction( response[only_C_id]["value"] )
+                self.opt_utils.correct_projected_search_direction( response[only_C_id]["value"], previous_c, relaxation_fac )
+                self.opt_utils.compute_design_update()
             else:
                 self.opt_utils.compute_search_direction_steepest_descent()
-
-            # Compute design variable update (do one step in the optimization algorithm)
-            self.opt_utils.compute_design_update( self.config.step_size_0 )
+                self.opt_utils.compute_design_update()
 
             # Map design update to geometry space
             self.mapper.map_design_update_to_geometry_space()
@@ -649,18 +651,18 @@ class VertexMorphingMethod:
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
             delta_f_relative = 0.0
-            print("\n> Current value of objective function = ",response[only_F_id]["func"])
+            print("\n> Current value of objective function = ",response[only_F_id]["value"])
             if(opt_itr>1):
-                delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
-                delta_f_relative = 100*(response[only_F_id]["func"]-previous_f)/initial_f
+                delta_f_absolute = 100*(response[only_F_id]["value"]-initial_f)/initial_f
+                delta_f_relative = 100*(response[only_F_id]["value"]-previous_f)/initial_f
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")           
-                print("\n> Current value of constraint function = ",round(response[only_C_id]["func"]/self.config.constraint_scaling,12))
+                print("\n> Current value of constraint function = ",round(response[only_C_id]["value"],12))
 
             # Take time needed for current optimization step
             end_time = time.time()
-            time_current_step = round(end_time - start_time,1)
-            time_optimization = round(end_time - self.opt_start_time,1)
+            time_current_step = round(end_time - start_time,2)
+            time_optimization = round(end_time - self.opt_start_time,2)
             print("\n> Time needed for current optimization step = ",time_current_step,"s")
             print("\n> Time needed for total optimization so far = ",time_optimization,"s")     
             
@@ -668,14 +670,16 @@ class VertexMorphingMethod:
             self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
 
             # Write design history to file
-            with open(self.config.design_history_file, 'a') as csvfile:
+            with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(opt_itr)+"\t")
-                row.append("\t"+str("%.12f"%(response[only_F_id]["func"]))+"\t")
+                row.append("\t"+str("%.12f"%(response[only_F_id]["value"]))+"\t")
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
-                row.append("\t"+str("%.12f"%(response[only_C_id]["func"]/self.config.constraint_scaling))+"\t")
+                row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
+                row.append("\t"+str("%.12f"%(relaxation_fac[0]))+"\t")
+                row.append("\t"+str(self.config.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
                 row.append("\t"+str("%.1f"%(time_optimization))+"\t")
                 historyWriter.writerow(row)       
@@ -692,11 +696,12 @@ class VertexMorphingMethod:
             X = self.get_design()
 
             # Store values of for next iteration
-            previous_f = response[only_F_id]["func"]
+            previous_f = response[only_F_id]["value"]
+            previous_c = response[only_C_id]["value"]
 
             # Store initial objective value
             if(opt_itr==1):
-                initial_f = response[only_F_id]["func"]            
+                initial_f = response[only_F_id]["value"]            
 
     # --------------------------------------------------------------------------
     def store_grads_on_nodes(self,objective_grads,constraint_grads={}):
@@ -766,23 +771,23 @@ class Controller:
         # Create and initialize controler
         self.controls = {}
         for func_id in config.objectives:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
+            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}
         for func_id in config.constraints:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}     
+            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}     
 
         # Initialize response container to provide storage for any response
         self.response_container = {}       
         for func_id in config.objectives:
-            self.response_container[func_id] = {"func": None, "grad": None}
+            self.response_container[func_id] = {"value": None, "gradient": None}
         for func_id in config.constraints:
-            self.response_container[func_id] = {"func": None, "grad": None}            
+            self.response_container[func_id] = {"value": None, "gradient": None}            
 
     # --------------------------------------------------------------------------
     def initialize_controls( self ):
 
         # Sets 
         for func_id in self.controls:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
+            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}
 
     # --------------------------------------------------------------------------
     def get_controls( self ):
@@ -794,7 +799,7 @@ class Controller:
 
         # Create and initialize container to store any response defined 
         for func_id in self.response_container:
-            self.response_container[func_id] = {"func": None, "grad": None}
+            self.response_container[func_id] = {"value": None, "gradient": None}
 
         # Return container
         return self.response_container      

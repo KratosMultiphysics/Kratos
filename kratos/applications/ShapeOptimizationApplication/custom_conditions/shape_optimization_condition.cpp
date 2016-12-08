@@ -38,8 +38,7 @@
 //
 //   Project Name:        KratosShape                            $
 //   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Last modified by:    $Co-Author: daniel.baumgaertner@tum.de $
-//   Date:                $Date:                      March 2016 $
+//   Date:                $Date:                   December 2016 $
 //   Revision:            $Revision:                         0.0 $
 //
 // ==============================================================================

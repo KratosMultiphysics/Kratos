@@ -38,28 +38,18 @@
 //
 //   Project Name:        KratosShape                            $
 //   Created by:          $Author:    daniel.baumgaertner@tum.de $
+//                        $Author:           armin.geiser@tum.de $
 //   Date:                $Date:                   December 2016 $
 //   Revision:            $Revision:                         0.0 $
 //
 // ==============================================================================
 
-#if !defined(KRATOS_SHAPE_OPTIMIZATION_CONDITION_H_INCLUDED )
-#define  KRATOS_SHAPE_OPTIMIZATION_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_ANALYTIC_SENSITIVITIES_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_ANALYTIC_SENSITIVITIES_ELEMENT_H_INCLUDED
 
-// ------------------------------------------------------------------------------
-// System includes
-// ------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
-#include "includes/condition.h"
-
-// ==============================================================================
+#include "solid_mechanics_application.h"
+#include "custom_elements/small_displacement_element.hpp"
 
 namespace Kratos
 {
@@ -78,90 +68,79 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Shape optimization condition
-
-/**
- * Implements a shape definition to allow for shape optimization.
- * This works currently only works for 3D geometries composed of 3-noded triangles
- */
-class ShapeOptimizationCondition
-    : public Condition
+class SmallDisplacementAnalyticSensitivityElement :
+        public SmallDisplacementElement
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    // Counted pointer of ShapeOptimizationCondition
-    KRATOS_CLASS_POINTER_DEFINITION( ShapeOptimizationCondition );
-    ///@}
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
+    /// Counted pointer of SmallDisplacementAnalyticSensitivityElement
+    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementAnalyticSensitivityElement );
+    
+    ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ShapeOptimizationCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    /// Default constructors
+    SmallDisplacementAnalyticSensitivityElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    ShapeOptimizationCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    SmallDisplacementAnalyticSensitivityElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    /// Copy constructor
-    ShapeOptimizationCondition( ShapeOptimizationCondition const& rOther);
+    ///Copy constructor
+    SmallDisplacementAnalyticSensitivityElement(SmallDisplacementAnalyticSensitivityElement const& rOther);
 
-    /// Destructor
-    virtual ~ShapeOptimizationCondition();
+    /// Destructor.
+    virtual ~SmallDisplacementAnalyticSensitivityElement();
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    SmallDisplacementAnalyticSensitivityElement& operator=(SmallDisplacementAnalyticSensitivityElement const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
+    /**
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    /**
+     * creates a new total lagrangian updated element pointer
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
     /**
-     * creates a new condition pointer
-     * @param NewId: the ID of the new condition
-     * @param ThisNodes: the nodes of the new condition
-     * @param pProperties: the properties assigned to the new condition
-     * @return a Pointer to the new condition
+     * clones the selected element variables, creating a new one
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId,
-			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-
-    /**
-     * clones the selected condition variables, creating a new one
-     * @param NewId: the ID of the new condition
-     * @param ThisNodes: the nodes of the new condition
-     * @param pProperties: the properties assigned to the new condition
-     * @return a Pointer to the new condition
-     */
-    Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
-
-
-
-    //************* COMPUTING  METHODS
-
-    /**
-     * Calculate a condition variable
-     */
-
-    void Calculate(const Variable< array_1d<double,3> > &rVariable, double &Output , ProcessInfo &rCurrentProcessInfo );
-
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    /// Overwritten function to calculate sensitivities
+    void Calculate(const Variable<Vector> &rVariable, Vector &rOutput, const ProcessInfo &rCurrentProcessInfo);
 
     ///@}
     ///@name Access
     ///@{
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -179,39 +158,37 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    ShapeOptimizationCondition() {};
+
     ///@}
     ///@name Protected Operators
     ///@{
+
+    SmallDisplacementAnalyticSensitivityElement() : SmallDisplacementElement()
+    {
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
-
     ///@}
     ///@name Protected  Access
     ///@{
-
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
     ///@}
 
 private:
+
     ///@name Static Member Variables
     ///@{
-
-
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators
@@ -221,29 +198,40 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void CalculateDerivedDeformationMatrix(Matrix& rDB, const Matrix& rDN_DX, const int node_index, const int direction);
 
 
     ///@}
     ///@name Private  Access
     ///@{
-
-
     ///@}
-    ///@name Private Inquiry
-    ///@{
 
     ///@}
     ///@name Serialization
     ///@{
-
     friend class Serializer;
 
+    // A private default constructor necessary for serialization
     virtual void save(Serializer& rSerializer) const;
-
     virtual void load(Serializer& rSerializer);
 
-}; // class ShapeOptimizationCondition.
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    ///@}
+
+}; // Class SmallDisplacementAnalyticSensitivityElement
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_SHAPE_OPTIMIZATION_CONDITION_H_INCLUDED defined
+#endif // KRATOS_SMALL_DISPLACEMENT_ANALYTIC_SENSITIVITIES_ELEMENT_H_INCLUDED  defined
