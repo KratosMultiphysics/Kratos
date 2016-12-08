@@ -39,7 +39,7 @@ proc ::Pfem::GetAttribute {name} {
 }
 
 proc ::Pfem::CustomToolbarItems { } {
-    Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- Pfem::xml::ConditionSorterWindow] [= "Sort the conditions"]   
+    Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- Pfem::xml::CndSortWindow::ConditionSorterWindow] [= "Sort the conditions"]   
 }
 
 ::Pfem::Init

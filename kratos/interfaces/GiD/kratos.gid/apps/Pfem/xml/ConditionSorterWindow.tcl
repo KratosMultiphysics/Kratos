@@ -60,7 +60,7 @@ namespace eval Pfem::xml::CndSortWindow {
     # VTCL GENERATED GUI PROCEDURES
     #
 
-    proc Pfem::xml::CndSortWindow::vTclWindow. {base} {
+    proc Pfem::xml::CndSortWindow::vTclWindow.gid.sortcondwind {base} {
         if {$base == ""} {
             set base .
         }
@@ -81,7 +81,7 @@ namespace eval Pfem::xml::CndSortWindow {
     # Open a widow for the test dialog. Left half = Scrollbox.
     # Right: Some entries and a message for testing the code.
     #
-    proc Pfem::xml::CndSortWindow::vTclWindow.dialog {base} {
+    proc Pfem::xml::CndSortWindow::vTclWindow.gid.dialog {base} {
         variable Pref
         variable PosX
         variable PosY
@@ -111,33 +111,24 @@ namespace eval Pfem::xml::CndSortWindow {
     #
     # fill a list with entries
     #
-        set Eintraege [list ]
+        set Items [list ]
         for {set i 1} {$i < 21} {incr i} {
-            lappend Eintraege "Item $i"
+            lappend Items "Item $i"
         }
     #
     # One call creates the listbox
     #
-        set Canv [Sort-by-Drag_Listbox .dialog $Eintraege 20 20 150 240]
+        set Canv [Sort-by-Drag_Listbox $base $Items 20 20 150 240]
     #
     # Widgets on the right side
     #
-        label $base.xl -text X -anchor e
-        label $base.yl -text Y -anchor e
-        entry $base.x -textvariable PosX -width 12 -justify center
-        entry $base.y -textvariable PosY -width 12 -justify center
         button $base.ok -text Quit -command exit -width 12 -default active
         label $base.dl -text Delta -anchor e
         entry $base.d -textvariable Delta -width 12 -justify center
-        message $base.m -width 140 \
-            -text "Sort the of conditions."
+        message $base.m -width 140  -text "Sort the of conditions."
     #
     # Position all widgets
     #
-        place $base.xl -x 236 -y  30 -anchor e
-        place $base.yl -x 236 -y  60 -anchor e
-        place $base.x  -x 240 -y  30 -anchor w
-        place $base.y  -x 240 -y  60 -anchor w
         place $base.dl -x 236 -y 110 -anchor e
         place $base.d  -x 240 -y 110 -anchor w
         place $base.m  -x 200 -y 135 -anchor nw
@@ -148,39 +139,33 @@ namespace eval Pfem::xml::CndSortWindow {
     # Create a pseudo-listbox with canvas elements. Looks like a listbox,
     # but is really a canvas, and all widgets only pretend to be what they seem.
     #
-    proc Pfem::xml::CndSortWindow::Sort-by-Drag_Listbox { base Eintraege XNull YNull Breite Hoehe } {
+    proc Pfem::xml::CndSortWindow::Sort-by-Drag_Listbox { base Items XNull YNull Breite Hoehe } {
         variable Pref
         variable Index
         variable Eintrag
         variable Scrollposition
         variable Scrollbereich
-    #
-        set Canv [canvas $base.cv -borderwidth 0 -highlightthickness 0 \
-            -height [expr $Hoehe + 2*$YNull] -width [expr $Breite + 2*$XNull] \
-            -bg $Pref(Fill)]
+        catch {destroy $base.cv}
+        set Canv [canvas $base.cv -borderwidth 0 -highlightthickness 0  -height [expr $Hoehe + 2*$YNull] -width [expr $Breite + 2*$XNull] -bg $Pref(Fill)]
     #
     # Create the box with a scrollbar on the right
     #
-        $Canv create rectangle $XNull $YNull [expr $XNull + $Breite] \
-            [expr $YNull + $Hoehe] -outline black -width 1 -fill white -tags Box
-        $Canv create rectangle [expr $XNull - 1] [expr $YNull - 1] \
-            [expr $XNull + $Breite + 1] [expr $YNull + $Hoehe + 1] \
-            -outline grey50 -width 1 -tags Box
-        scrollbar $base.lbscroll -command "Pfem::xml::CndSortWindow::Sort-by-Drag_ListboxScroll $base" \
-            -borderwidth 0 -orient vert -width 16 -cursor left_ptr
+        $Canv create rectangle $XNull $YNull [expr $XNull + $Breite] [expr $YNull + $Hoehe] -outline black -width 1 -fill white -tags Box
+        $Canv create rectangle [expr $XNull - 1] [expr $YNull - 1] [expr $XNull + $Breite + 1] [expr $YNull + $Hoehe + 1] -outline grey50 -width 1 -tags Box
+        catch {destroy $base.lbscroll}
+        scrollbar $base.lbscroll -command "Pfem::xml::CndSortWindow::Sort-by-Drag_ListboxScroll $base" -borderwidth 0 -orient vert -width 16 -cursor left_ptr
         place $Canv -x 0 -y 0 -anchor nw
-        place $base.lbscroll -x [expr $XNull + $Breite - 16] -y $YNull \
-            -anchor nw -width 16 -height $Hoehe
+        place $base.lbscroll -x [expr $XNull + $Breite - 16] -y $YNull -anchor nw -width 16 -height $Hoehe
     #
     # Fill the box with the list
     #
-        for {set i 0} {$i < [llength $Eintraege]} {incr i} {
-            set Eintrag($i) "[lindex $Eintraege $i]"
+        for {set i 0} {$i < [llength $Items]} {incr i} {
+            set Eintrag($i) "[lindex $Items $i]"
             lappend Index($i) $i
         }
         set Scrollposition 0
         set Schrifthoehe 16
-        set Scrollbereich [expr $Schrifthoehe * [llength $Eintraege]]
+        set Scrollbereich [expr $Schrifthoehe * [llength $Items]]
         Pfem::xml::CndSortWindow::Sort-by-Drag_ListboxScroll $base scroll 0.0 units
     #
         return $Canv
@@ -229,8 +214,7 @@ namespace eval Pfem::xml::CndSortWindow {
             }
     #
             if {$yPos < [expr $Hoehe - 20]} {
-                $Canv create text 24 $yPos -text $Eintrag($Index($i)) \
-                    -anchor w -fill black -tags ent$i
+                $Canv create text 24 $yPos -text $Eintrag($Index($i)) -anchor w -fill black -tags ent$i
                 incr yPos $Schrifthoehe
     #
     # Bindings for dragging and dropping of items.
@@ -325,5 +309,66 @@ namespace eval Pfem::xml::CndSortWindow {
     }
 
     #
-    Pfem::xml::CndSortWindow::Window show .gid.sortcondwind
-    Pfem::xml::CndSortWindow::Window show .gid.dialog
+    
+proc Pfem::xml::CndSortWindow::ConditionSorterWindow {{init default}} {
+    #W "Not implemented ConditionSorterWindow"
+    set base ".gid"
+    catch {Pfem::xml::CndSortWindow::TMP_Cards}
+    #Pfem::xml::CndSortWindow::Window show $base
+    #Pfem::xml::CndSortWindow::Window show $base.dialog
+}
+
+proc Pfem::xml::CndSortWindow::TMP_Cards { } {
+        catch {destroy .gid.w1.c}
+        catch {destroy .gid.w1}
+        toplevel .gid.w1
+        pack [canvas .gid.w1.c -bg darkgreen -borderwidth 0 -highlightthickness 0] -expand 1 -fill both
+
+  image create photo ::Pfem::xml::CndSortWindow::ah -format gif -data {
+       R0lGODlhRwBgAKEAAH//1AAAAP////8AACH5BAEAAAAALAAAAABHAGAAAAL/BIKpy+0PYzBH2I
+       uz3rz7L0wBSJamiZzquqbawMZyOL7zfbrYwOP+p7vwYL+iJijo9YxMWkZJbBaDy2RUiqMOh9if
+       bgvuZmvW51XMcm2FXHRM3bZW3SokfUq+G+36MRsW15dTs7YmOGgBZnhYAqd4xujhqBjZSPZYab
+       mzmAmUJ9ep+RQqStryaVqaioK66umKCKsqK9lKe2R7i8Gnu5vb6wTMwStMLLPI6WdESen1u4KJ
+       6WMM/Sit/GN9fUOtot2M7fMdNv1cPY7HND7HbX5uvef+Tp4ute3cRR8vFrjP39XtVkBaA2UVhH
+       XQVcJVC1M1NPWQVMRQEztVzHTxDqSMYm76ceTH6SOWayKbaLNQUh28YLROspRVqE1KlYCqzLxz
+       k05ONztnIJMp79DPJT19nrEZVOjKl7C2FTXKxlcvKBmeQmVn1ejGpJH6MW25IavPsFwZlnVYQV
+       hVChLaun3b1kABADs=}
+  image create photo ::Pfem::xml::CndSortWindow::as -format gif -data {
+       R0lGODlhRwBgAKEAAH//1AAAAP///////yH5BAEAAAAALAAAAABHAGAAAAL/BIKpy+0PYzBH2I
+       uz3rz7L0wBSJamiZzquqbZyMZyCGP1jJfuleQ+uLP0fsRNMBUsFo+jpPK3i96ePumCuoQ9sFDt
+       1MllIYc0cPg0tk7PKjO7un535VRnnI7+uvHA25XfUtMA2OY1SKhjyICYKOSQcwfH00QDuTeTRI
+       apUKcXibKodBnDyZn1VFr2GSja46qJM5qXRjvXRfsq23fblNur6wEc7BuiarxpWUtsSrrap9xr
+       zMwqU/paDC1s49xhPVZW6c2toT2ZDb4MS1Iu7Ut5JV4YiPuLq1oLOn+fi02fllfoHzx099Cp6z
+       bOXMFvDKPBA6bNnTSC4n7lA1XPkUCD3y68NcLI0d5DfgeNJOTYLkJKcOtOkhQJ02JJci7xLcRW
+       UKPFlrP2jQw5aOaLmvUWbYHAchfGou6MBhW6LaBORSGnary41FPHrbD+8AyI9OrUR1hnkc3pc9
+       pXMaHMZWoLsJNXIuxazrXV6hDdk4m27GVkCXAsvoKHFrZr+DAQmooR9pvU2OShunL8Un5jmTAf
+       vZcrT+vsWU/kYIxHlzX9ATQj1XIFDWGNiowp2LETV0Kd1jXusX4005ESdXc40cK/BS9uxzcedb
+       S5xGmO5bnywtB/VxDOYYIBCdy7e+duoAAAOw==}
+
+ bind .gid.w1.c <ButtonPress-1> { Pfem::xml::CndSortWindow::bPress1 %W %x %y}
+ bind .gid.w1 <Configure> {wm title .gid.w1 "Merry Christmas"}
+}
+ proc  Pfem::xml::CndSortWindow::bPress1 {w x y} {
+
+   set i [lindex [$w find overlapping $x $y $x $y] end]
+   if { $i == "" } {
+        set i [$w create image $x $y -anchor nw -image ::Pfem::xml::CndSortWindow::ah -tags card]
+         Pfem::xml::CndSortWindow::setFocus $w $i
+      } else {
+         Pfem::xml::CndSortWindow::setFocus $w $i
+      }
+
+ }
+ 
+
+ proc Pfem::xml::CndSortWindow::setFocus {w i} {
+
+   if { [.gid.w1.c find withtag hasfocus] != "" } {
+        $w itemconfigure [.gid.w1.c find withtag hasfocus] -image ::Pfem::xml::CndSortWindow::ah
+        $w dtag [.gid.w1.c find withtag hasfocus] hasfocus
+      }
+   $w focus $i
+   $w itemconfigure $i -image ::Pfem::xml::CndSortWindow::as
+   $w addtag hasfocus withtag $i
+
+ }
