@@ -2,24 +2,28 @@
 # Workspace settings 
 # ================================================================================================================
 
-design_history_directory = "path/to/desired/Design_history_directory_name"
-design_history_file = design_history_directory + "/design_history.csv"
+# Define directory with a relative or absolute path
+design_history_directory = "Design_history"
+design_history_file = "design_history.csv"
 
 # ================================================================================================================
 # Response functions 
 # ================================================================================================================
 
 # Define container of objective functions
-# Format: objectives = { "unique_func_id": {"grad": "provided"},
-#                        "unique_func_id": {"grad": "provided"},
-#               ... }
-objectives = { "some_objective_name": {"grad": "provided"} }
+# Format: objectives = { "unique_func_id": {"gradient_mode": "analytic"},
+#                        "unique_func_id": {"gradient_mode": "semi_analytic", "step_size": 1e-5},
+#                        "unique_func_id": {"gradient_mode": "external"},
+#                        ... }
+objectives = { "some_objective_name": {"gradient_mode": "external"} }
+
 # Define container of constraint functions
-# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq", "grad": "provided"},
-#                         "unique_func_id": {"type": "eq"/"ineq", "grad": "provided"},
-#               ... }    
-constraints = { "some_constraint_name": {"type": "eq", "grad": "provided"} }
-  
+# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "analytic"},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "semi_analytic", "step_size": 1e-5},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "external"},
+#                         ... }    
+constraints = { "some_constraint_name": {"type": "eq", "gradient_mode": "external"} }
+    
 # ================================================================================================================  
 # Design variables 
 # ================================================================================================================
@@ -27,17 +31,23 @@ constraints = { "some_constraint_name": {"type": "eq", "grad": "provided"} }
 design_control = "vertex_morphing" 
 # options: "vertex_morphing"
 
-domain_size = 3
 design_output_mode = "relative"
 # options: "relative"   - X is defined relative to previous design
 #          "total"      - X is defined relative to initial design
 #          "absolute"   - X is defined as absolute values (coordinates)
 
+domain_size = 3
+# options: 2 or 3 for 2D or 3D optimization patch
+
 # Case: design_control = "vertex_morphing"
 design_surface_name = "path/to/your/mpda/some_mesh_name"
-filter_function = "gaussian"
+filter_function = "linear"
 # options: "gaussian"
-filter_size = 0.3
+#          "linear"
+use_mesh_preserving_filter_matrix = False
+# options: True    - surface normal information used in the filter matrix
+#        : False   - complete filter matrix is used
+filter_size = 50
 
 # ================================================================================================================
 # Optimization algorithm 
@@ -49,7 +59,7 @@ optimization_algorithm = "steepest_descent"
 #          "penalized_projection",
     
 # General convergence criterions
-max_opt_iterations = 1000
+max_opt_iterations = 100
     
 # Case: "steepest descent"
 relative_tolerance_objective = 1e-1 # [%]
@@ -61,24 +71,29 @@ penalty_fac_0 = 4
 gamma = 4
 penalty_fac_max = 2000
 lambda_0 = 0.0
-
-# Case: optimization_algorithm = "penalized_projection"
-constraint_scaling = 1000
-     
+            
 # ================================================================================================================ 
 # Determination of step size (line-search) 
 # ================================================================================================================
 
 # Only constant step-size is implemented yet
-step_size_0 = 0.001
+normalize_search_direction = False
+step_size = 0.1
 
 # ================================================================================================================
 # For GID output 
 # ================================================================================================================
 
 nodal_results=[ "NORMALIZED_SURFACE_NORMAL",
+                "IS_ON_BOUNDARY",
+                "SENSITIVITIES_DEACTIVATED",
+                "SHAPE_UPDATES_DEACTIVATED",
                 "OBJECTIVE_SENSITIVITY",
+                "MAPPED_OBJECTIVE_SENSITIVITY",
                 "CONSTRAINT_SENSITIVITY",
+                "MAPPED_CONSTRAINT_SENSITIVITY",
+                "DESIGN_UPDATE",
+                "DESIGN_CHANGE_ABSOLUTE",
                 "SHAPE_UPDATE",
                 "SHAPE_CHANGE_ABSOLUTE"]
 VolumeOutput = True

@@ -38,8 +38,7 @@
 //
 //   Project Name:        KratosShape                            $
 //   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Last modified by:    $Co-Author: daniel.baumgaertner@tum.de $
-//   Date:                $Date:                      March 2016 $
+//   Date:                $Date:                   December 2016 $
 //   Revision:            $Revision:                         0.0 $
 //
 // ==============================================================================
@@ -62,6 +61,7 @@
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/vertex_morphing_mapper.h"
+#include "custom_utilities/response_functions/strain_energy_response_function.h"
 
 // ==============================================================================
 
@@ -79,9 +79,8 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, double, const int>())
-
-            .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
+    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, bool, double, const int>())
+			.def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
             .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
             .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
             ;
@@ -89,7 +88,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, boost::python::dict, boost::python::dict>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, boost::python::dict, boost::python::dict, double, bool>())
 
             // ----------------------------------------------------------------
             // For running unconstrained descent methods
@@ -109,7 +108,8 @@ void  AddCustomUtilitiesToPython()
             // ----------------------------------------------------------------
             // For running penalized projection method
             // ----------------------------------------------------------------
-            .def("compute_search_direction_penalized_projection", &OptimizationUtilities::compute_search_direction_penalized_projection)
+            .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
+			.def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
 
             // ----------------------------------------------------------------
             // General optimization operations
@@ -120,11 +120,23 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
-    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&, const int>())
+    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
 
             .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
             .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
+			.def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
             ;
+
+    // ========================================================================
+    // For calculations related to response functions
+    // ========================================================================
+    class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, boost::python::dict>())
+            .def("initialize", &StrainEnergyResponseFunction::initialize)
+            .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
+            .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)   
+            .def("get_value", &StrainEnergyResponseFunction::get_value)
+            .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
+            ;    
 }
 
 

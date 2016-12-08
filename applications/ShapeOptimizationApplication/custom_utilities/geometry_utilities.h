@@ -38,8 +38,7 @@
 //
 //   Project Name:        KratosShape                            $
 //   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Last modified by:    $Co-Author: daniel.baumgaertner@tum.de $
-//   Date:                $Date:                      March 2016 $
+//   Date:                $Date:                   December 2016 $
 //   Revision:            $Revision:                         0.0 $
 //
 // ==============================================================================
@@ -119,15 +118,35 @@ public:
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
 
+	// Structs needed for operations related to surface extraction
+	struct KeyComparor
+	{
+		bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
+		{
+			if(lhs.size() != rhs.size())
+				return false;
+
+			for(unsigned int i=0; i<lhs.size(); i++)
+				if(lhs[i] != rhs[i]) return false;
+
+			return true;
+		}
+	};
+	struct KeyHasher
+	{
+		std::size_t operator()(const vector<int>& k) const
+		{
+			return boost::hash_range(k.begin(), k.end());
+		}
+	};
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    GeometryUtilities( ModelPart& model_part,
-                       const int domain_size )
-        : mr_opt_model_part(model_part),
-          m_domain_size(domain_size)
+    GeometryUtilities( ModelPart& model_part )
+        : mr_model_part(model_part)
     {
         // Set precision for output
         std::cout.precision(12);
@@ -156,10 +175,11 @@ public:
 
         // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
         NormalCalculationUtils normal_util = NormalCalculationUtils();
-        normal_util.CalculateOnSimplex(mr_opt_model_part,m_domain_size);
+        const unsigned int domain_size = mr_model_part.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        normal_util.CalculateOnSimplex(mr_model_part,domain_size);
 
         // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
         {
             // Normalize normal and assign to solution step value
             array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
@@ -176,7 +196,7 @@ public:
         KRATOS_TRY;
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
         {
             // We compute dFdX_n = (dFdX \cdot n) * n
             array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
@@ -204,6 +224,69 @@ public:
         }
 
         KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void extract_surface_nodes( std::string const& NewSubModelPartName )
+    {
+    	KRATOS_TRY;
+
+    	if(mr_model_part.HasSubModelPart(NewSubModelPartName))
+    	{
+    		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
+    		return;
+    	}
+
+    	// Create new sub-model part within the given main model part that shall list all surface nodes
+    	mr_model_part.CreateSubModelPart(NewSubModelPartName);
+
+    	// Some type-definitions
+    	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+    	typedef boost::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
+
+    	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
+    	hashmap n_faces_map;
+
+    	// Fill map that counts number of faces for given set of nodes
+    	for (ModelPart::ElementIterator itElem = mr_model_part.ElementsBegin(); itElem != mr_model_part.ElementsEnd(); itElem++)
+    	{
+    		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+
+    		for(unsigned int face=0; face<faces.size(); face++)
+    		{
+    			// Create vector that stores all node is of current face
+    			vector<unsigned int> ids(faces[face].size());
+
+    			// Store node ids
+    			for(unsigned int i=0; i<faces[face].size(); i++)
+    				ids[i] = faces[face][i].Id();
+
+    			//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+    			std::sort(ids.begin(), ids.end());
+
+    			// Fill the map
+    			n_faces_map[ids] += 1;
+    		}
+    	}
+
+    	// Vector to store all nodes on surface. Node ids may be listed several times
+    	std::vector<std::size_t> temp_surface_node_ids;
+
+    	// Add surface nodes to sub-model part
+    	for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	{
+    		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
+    		if(it->second == 1)
+    		{
+    			for(unsigned int i=0; i<it->first.size(); i++)
+    				temp_surface_node_ids.push_back(it->first[i]);
+    		}
+    	}
+
+    	// Add nodes and remove double entries
+    	mr_model_part.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+
+    	KRATOS_CATCH("");
     }
 
     // ==============================================================================
@@ -296,8 +379,7 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mr_opt_model_part;
-    const int m_domain_size;
+    ModelPart& mr_model_part;
 
     ///@}
     ///@name Private Operators
