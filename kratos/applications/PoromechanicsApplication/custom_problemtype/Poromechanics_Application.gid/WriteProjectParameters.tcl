@@ -280,61 +280,25 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups volumes FORCE $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FORCE $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups lines FORCE $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups points FORCE $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE $TableDict $NumGroups
         # Face_Load
         set Groups [GiD_Info conditions Face_Load groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups volumes FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups lines FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups points FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FACE_LOAD $TableDict $NumGroups
         # Normal_Load
         set Groups [GiD_Info conditions Normal_Load groups]
-        WriteNormalLoadProcess FileVar iGroup $Groups volumes NORMAL_CONTACT_STRESS $TableDict $NumGroups
-        WriteNormalLoadProcess FileVar iGroup $Groups surfaces NORMAL_CONTACT_STRESS $TableDict $NumGroups
-        WriteNormalLoadProcess FileVar iGroup $Groups lines NORMAL_CONTACT_STRESS $TableDict $NumGroups
-        WriteNormalLoadProcess FileVar iGroup $Groups points NORMAL_CONTACT_STRESS $TableDict $NumGroups
+        WriteNormalLoadProcess FileVar iGroup $Groups NORMAL_CONTACT_STRESS $TableDict $NumGroups
         # Normal_Fluid_Flux
         set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
-        WriteLoadScalarProcess FileVar iGroup $Groups volumes NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups surfaces NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups lines NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups points NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups NORMAL_FLUID_FLUX $TableDict $NumGroups
         # Interface_Face_Load
         set Groups [GiD_Info conditions Interface_Face_Load groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups volumes FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups surfaces FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups lines FACE_LOAD $TableDict $NumGroups
-        WriteLoadVectorProcess FileVar iGroup $Groups points FACE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FACE_LOAD $TableDict $NumGroups
         # Interface_Normal_Fluid_Flux
         set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
-        WriteLoadScalarProcess FileVar iGroup $Groups volumes NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups surfaces NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups lines NORMAL_FLUID_FLUX $TableDict $NumGroups
-        WriteLoadScalarProcess FileVar iGroup $Groups points NORMAL_FLUID_FLUX $TableDict $NumGroups
+        WriteLoadScalarProcess FileVar iGroup $Groups NORMAL_FLUID_FLUX $TableDict $NumGroups
         # Body_Acceleration
         set Groups [GiD_Info conditions Body_Acceleration groups]
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            incr iGroup
-            puts $FileVar "        \"python_module\": \"apply_load_vector_table_process\","
-            puts $FileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $FileVar "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
-            puts $FileVar "        \"Parameters\":    \{"
-            puts $FileVar "            \"mesh_id\":         0,"
-            puts $FileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
-            puts $FileVar "            \"variable_name\":   \"VOLUME_ACCELERATION\","
-            puts $FileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 7]\],"
-            puts $FileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 6],[lindex [lindex $Groups $i] 8]\],"
-            puts $FileVar "            \"table\":           \[0,0,0\]"
-            puts $FileVar "        \}"
-            if {$iGroup < $NumGroups} {
-                puts $FileVar "    \},\{"
-            } else {
-                puts $FileVar "    \}\]"
-            }
-        }
+        WriteLoadVectorProcess FileVar iGroup $Groups VOLUME_ACCELERATION $TableDict $NumGroups
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\]"
     }

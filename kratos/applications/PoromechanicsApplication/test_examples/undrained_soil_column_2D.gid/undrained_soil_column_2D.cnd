@@ -370,20 +370,35 @@ CONDTYPE: over group
 GROUPALLOW: surfaces volumes
 QUESTION: BODY_ACCELERATION_X#CB#(true,false)
 VALUE: false
-DEPENDENCIES: (false,HIDE,X_Value,0.0)(true,RESTORE,X_Value,#CURRENT#)
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Body_Acceleration_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
 HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_X_Table,#CURRENT#)
+QUESTION: Body_Acceleration_X_Table(Time,Body_Acceleration_X)
+VALUE: #N# 2 0.0 0.0
 QUESTION: BODY_ACCELERATION_Y#CB#(true,false)
 VALUE: false
-DEPENDENCIES: (false,HIDE,Y_Value,0.0)(true,RESTORE,Y_Value,#CURRENT#)
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Body_Acceleration_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
 HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Y_Table,#CURRENT#)
+QUESTION: Body_Acceleration_Y_Table(Time,Body_Acceleration_Y)
+VALUE: #N# 2 0.0 0.0
 QUESTION: BODY_ACCELERATION_Z#CB#(true,false)
 VALUE: true
-DEPENDENCIES: (false,HIDE,Z_Value,0.0)(true,RESTORE,Z_Value,#CURRENT#)
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Body_Acceleration_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: -10.0
 HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Z_Table,#CURRENT#)
+QUESTION: Body_Acceleration_Z_Table(Time,Body_Acceleration_Z)
+VALUE: #N# 2 0.0 0.0
 END CONDITION

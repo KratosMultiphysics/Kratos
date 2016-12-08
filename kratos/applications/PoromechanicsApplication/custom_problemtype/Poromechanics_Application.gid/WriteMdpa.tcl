@@ -33,6 +33,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     VectorTable FileVar TableId TableDict Interface_Face_Load FACE_LOAD
     # Interface_Normal_Fluid_Flux
     ScalarTable FileVar TableId TableDict Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
+    # Body_Acceleration
+    VectorTable FileVar TableId TableDict Body_Acceleration VOLUME_ACCELERATION
     puts $FileVar ""
     
     ## Properties
@@ -554,7 +556,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Interface_Normal_Fluid_Flux
     WriteLoadSubmodelPart FileVar Interface_Normal_Fluid_Flux $TableDict $ConditionDict
     # Body_Acceleration
-    WriteNodeSubmodelPart FileVar Body_Acceleration
+    WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
     
     close $FileVar
     
