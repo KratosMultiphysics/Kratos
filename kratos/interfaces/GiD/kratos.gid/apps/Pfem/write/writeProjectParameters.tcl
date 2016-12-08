@@ -19,10 +19,10 @@ proc Pfem::write::getParametersDict { } {
     dict set projectParametersDict problem_process_list $problemProcessList
     
     ##### constraints_process_list
-    dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict SLNodalConditions "Nodal"]
+    dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict PFEM_NodalConditions "Nodal"]
     
     ##### loads_process_list
-    dict set projectParametersDict loads_process_list [write::getConditionsParametersDict SLLoads]
+    dict set projectParametersDict loads_process_list [write::getConditionsParametersDict PFEM_Loads]
     
     ##### Restart
     set output_process_list [GetPFEM_OutputProcessList]
