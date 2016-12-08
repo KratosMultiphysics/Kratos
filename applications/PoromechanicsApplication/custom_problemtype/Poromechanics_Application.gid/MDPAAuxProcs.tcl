@@ -873,34 +873,3 @@ proc WriteLoadSubmodelPart {FileVar CondName TableDict ConditionDict} {
         }
     }
 }
-
-#-------------------------------------------------------------------------------
-
-proc WriteNodeSubmodelPart {FileVar CondName} {
-    set Groups [GiD_Info conditions $CondName groups]
-    if {[llength $Groups]>0} {
-        upvar $FileVar MyFileVar
-        
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
-            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            # Tables
-            puts $MyFileVar "  Begin SubModelPartTables"
-            puts $MyFileVar "  End SubModelPartTables"
-            # Nodes
-            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
-            puts $MyFileVar "  Begin SubModelPartNodes"
-            for {set j 0} {$j < [llength $Entities]} {incr j} {
-                puts $MyFileVar "    [lindex $Entities $j]"
-            }
-            puts $MyFileVar "  End SubModelPartNodes"
-            # Elements
-            puts $MyFileVar "  Begin SubModelPartElements"
-            puts $MyFileVar "  End SubModelPartElements"
-            # Conditions
-            puts $MyFileVar "  Begin SubModelPartConditions"
-            puts $MyFileVar "  End SubModelPartConditions"
-            puts $MyFileVar "End SubModelPart"
-            puts $MyFileVar ""
-        }
-    }
-}
