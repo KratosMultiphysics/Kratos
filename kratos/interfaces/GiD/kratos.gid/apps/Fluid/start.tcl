@@ -52,7 +52,9 @@ proc ::Fluid::FluidAppSelectorWindow { } {
     catch {set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]} 
     if {$nd eq ""} {catch {set nd [ [$root selectNodes "hiddenfield\[@n='nDim'\]"] getAttribute v]}}
     if { $nd ne "undefined" } {
-        spdAux::SwitchDimAndCreateWindow $nd
+        if {[apps::getActiveAppId] eq "Fluid"} {
+            spdAux::SwitchDimAndCreateWindow $nd
+        }
     } {
         set dir $::Kratos::kratos_private(Path)
         
