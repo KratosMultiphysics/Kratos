@@ -40,32 +40,29 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_disp",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "process_factory",
-        "kratos_module" : "KratosMultiphysics",
-        "check"                 : "DirectorVectorNonZero direction",
-        "help"                  : "This process ",
-        "process_name"          : "ApplyConstantVectorValueProcess",
-        "Parameters"            : {
+        "python_module" : "assign_modulus_and_direction_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToNodesProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_load",
             "variable_name"   : "POINT_LOAD",
-            "factor"          : 1.0,
-            "direction"       : [0.0,-1,0.0]
+            "modulus"         : "1",
+            "direction"       : [0.0,-1.0,0.0]
         }
     }],
     "output_configuration"     : {
