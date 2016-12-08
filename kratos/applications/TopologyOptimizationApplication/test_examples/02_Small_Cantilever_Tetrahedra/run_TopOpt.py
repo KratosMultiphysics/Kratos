@@ -51,12 +51,12 @@ solver.ImportModelPart()
 # if we integrate it in the model part we cannot use combined solvers
 solver.AddDofs()
 
-#build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-##TODO: replace MODEL for the Kratos one ASAP
-##get the list of the submodel part in the object Model
+# Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+## Get the list of the submodel part in the object Model
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
+    if( main_model_part.HasSubModelPart(part_name) ):
+        Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 #print model_part and properties
 if(echo_level>1):
@@ -73,16 +73,19 @@ if(echo_level>1):
 #obtain the list of the processes to be applied
 
 import process_factory
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-
+#the process order of execution is important
+list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+if(ProjectParameters.Has("output_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
             
 #print list of constructed processes
 if(echo_level>1):
     for process in list_of_processes:
         print(process)
 
-#TODO: decide which is the correct place to initialize the processes 
 for process in list_of_processes:
     process.ExecuteInitialize()
 
@@ -90,7 +93,6 @@ for process in list_of_processes:
 
 #### START SOLUTION ####
 
-#TODO: think if there is a better way to do this
 computing_model_part = solver.GetComputingModelPart()
 
 
@@ -134,14 +136,13 @@ def solve_structure(opt_itr):
     step = opt_itr
     main_model_part.CloneTimeStep(time)
 
-    # print process info
-    ##
-    
+     # processes to be executed at the begining of the solution step
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
         
+    # Actual solution
     solver.Solve()
        
     for process in list_of_processes:
@@ -149,17 +150,21 @@ def solve_structure(opt_itr):
     
     gid_output.ExecuteFinalizeSolutionStep()
 
-    #TODO: decide if it shall be done only when output is processed or not (boundary_conditions_processes ??)
+    # processes to be executed at the end of the solution step
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
+
+    # processes to be executed before witting the output
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
     
-    # write results and restart files: (frequency writing is controlled internally by the gid_io)
-    if gid_output.IsOutputStep():
+    # write output results GiD: (frequency writing is controlled internally)
+    if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
                       
-    #TODO: decide if it shall be done only when output is processed or not
+    # processes to be executed after witting the output
     for process in list_of_processes:
-        process.ExecuteAfterOutputStep()
+        process.ExecuteAfterOutputStep()    
 
     # measure process time
     tfp = timer.clock()
