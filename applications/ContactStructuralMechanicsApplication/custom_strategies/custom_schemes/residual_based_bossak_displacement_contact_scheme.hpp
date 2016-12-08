@@ -88,118 +88,32 @@ public:
         : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham)
     {
     }
+
+//     /** 
+//      * Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
+//      * @param rCurrentCondition: The condition to compute
+//      * @param RHS_Contribution: The RHS vector contribution
+//      * @param EquationId: The ID's of the element degrees of freedom
+//      * @param CurrentProcessInfo: The current process info instance
+//      */
+//     
+//     void GetConditionDofList(
+//         Condition::Pointer rCurrentCondition,
+//         Element::DofsVectorType& ConditionDofList,
+//         ProcessInfo& CurrentProcessInfo)
+//     {
+//         bool condition_is_active = true;
+//         if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
+//         {
+//             condition_is_active = (rCurrentCondition)->Is(ACTIVE);
+//         }
+//         
+//         if (condition_is_active == true)
+//         {
+//             rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
+//         }
+//     }
     
-    /**
-     * This function is designed to be called in the builder and solver to introduce
-     * @param rCurrentCondition: The condition to compute
-     * @param LHS_Contribution: The LHS matrix contribution
-     * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the element degrees of freedom
-     * @param CurrentProcessInfo: The current process info instance
-     */
-    
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            const int thread = OpenMPUtils::ThisThread();
-                    
-            // Basic operations for the condition considered
-            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-
-            (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
-
-            (rCurrentCondition)->CalculateMassMatrix(BaseType::mMatrix.M[thread], CurrentProcessInfo);
-
-            (rCurrentCondition)->CalculateDampingMatrix(BaseType::mMatrix.D[thread],CurrentProcessInfo);
-
-            AddDynamicsToLHS  (LHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
-
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
-        }
-        
-        KRATOS_CATCH("");
-    }
-    
-    /**
-     * This function is designed to calculate just the RHS contribution
-     * @param rCurrentElemen: The element to compute
-     * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the element degrees of freedom
-     * @param CurrentProcessInfo: The current process info instance
-     */
-    
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            const int thread = OpenMPUtils::ThisThread();
-            
-            // Basic operations for the condition considered
-            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
-            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
-
-            (rCurrentCondition)->CalculateMassMatrix(BaseType::mMatrix.M[thread], CurrentProcessInfo);
-
-            (rCurrentCondition)->CalculateDampingMatrix(BaseType::mMatrix.D[thread], CurrentProcessInfo);
-
-            // Adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
-        }
-        
-        KRATOS_CATCH("");
-    }
-    
-    /** 
-     * Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
-     * @param rCurrentCondition: The condition to compute
-     * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the element degrees of freedom
-     * @param CurrentProcessInfo: The current process info instance
-     */
-    
-    void GetConditionDofList(
-        Condition::Pointer rCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
-        }
-    }
     /**
      * This is the place to initialize the conditions. This is intended to be called just once when the strategy is initialized
      * @param rModelPart: The model of the problem to solve
@@ -249,7 +163,6 @@ public:
      * @param A: LHS matrix
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
-     *
      */
     
     void InitializeSolutionStep(
@@ -346,17 +259,15 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
         // Update normal of the conditions
@@ -371,25 +282,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE) == true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->InitializeNonLinearIteration(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->InitializeNonLinearIteration(CurrentProcessInfo);
             }
         }
         
@@ -421,18 +330,16 @@ public:
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+        
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
 
-        #pragma omp parallel
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->FinalizeSolutionStep(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->FinalizeSolutionStep(CurrentProcessInfo);
         }
     
         // Update normal of the conditions
@@ -444,25 +351,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE)== true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE)== true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-               
-                if ( condition_is_active == true )
-                {
-                    itCond->FinalizeSolutionStep(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->FinalizeSolutionStep(CurrentProcessInfo);
             }
         }
        
@@ -496,17 +401,15 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
                 
         // Update normal of the conditions
@@ -518,25 +421,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE)== true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE)== true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
             }
         }
         
@@ -577,98 +478,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * Updating first time Derivative
-     * @param CurrentVelocity: The current velocity
-     * @param DeltaDisplacement: The increment of displacement
-     * @param PreviousVelocity: The previous velocity
-     * @param PreviousAcceleration: The previous acceleration
-     */
-
-    inline void UpdateVelocity(
-        array_1d<double, 3 > & CurrentVelocity,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
-    )
-    {
-        BaseType::UpdateVelocity(CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
-    }
-
-    /**
-     * Updating second time Derivative
-     * @param CurrentVelocity: The current velocity
-     * @param DeltaDisplacement: The increment of displacement
-     * @param PreviousVelocity: The previous velocity
-     * @param PreviousAcceleration: The previous acceleration
-     */
-
-    inline void UpdateAcceleration(
-        array_1d<double, 3 > & CurrentAcceleration,
-        const array_1d<double, 3 > & DeltaDisplacement,
-        const array_1d<double, 3 > & PreviousVelocity,
-        const array_1d<double, 3 > & PreviousAcceleration
-    )
-    {
-        BaseType::UpdateVelocity(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
-    }
-
-    /**
-     * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K
-     * @param LHS_Contribution: The dynamic contribution for the LHS
-     * @param D: The damping matrix
-     * @param M: The mass matrix
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void AddDynamicsToLHS(
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
-        )
-    {
-        BaseType::AddDynamicsToLHS(LHS_Contribution, D, M, CurrentProcessInfo);
-    }
-
-    /**
-     * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
-     * @param rCurrentElement: The element to compute
-     * @param RHS_Contribution: The dynamic contribution for the RHS
-     * @param D: The damping matrix
-     * @param M: The mass matrix
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void AddDynamicsToRHS(
-        Element::Pointer rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        BaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, D, M, CurrentProcessInfo);
-    }
-
-    /**
-     * It adds the dynamic RHS contribution of the condition: b - M*a - D*v
-     * @param rCurrentCondition: The condition to compute
-     * @param RHS_Contribution: The dynamic contribution for the RHS
-     * @param D: The damping matrix
-     * @param M: The mass matrix
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void AddDynamicsToRHS(
-        Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        BaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, D, M, CurrentProcessInfo);
-    }
 
     ///@}
     ///@name Protected  Access

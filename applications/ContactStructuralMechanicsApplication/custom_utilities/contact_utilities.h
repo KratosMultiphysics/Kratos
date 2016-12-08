@@ -461,12 +461,13 @@ public:
             {
                 ConditionNormal(*(itCond.base()));
                 
-                const double & rArea = itCond->GetGeometry().Area();
+                const unsigned int number_nodes = itCond->GetGeometry().PointsNumber();
+                const double & rArea = itCond->GetGeometry().Area()/number_nodes;
                 const array_1d<double, 3> & rNormal     = itCond->GetValue(NORMAL);
                 const array_1d<double, 3> & rTangentXi  = itCond->GetValue(TANGENT_XI);
                 const array_1d<double, 3> & rTangentEta = itCond->GetValue(TANGENT_ETA);
                 
-                for (unsigned int i = 0; i < itCond->GetGeometry().PointsNumber(); i++)
+                for (unsigned int i = 0; i < number_nodes; i++)
                 {
                     itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
                     noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rArea * rNormal;

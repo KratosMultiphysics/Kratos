@@ -20,8 +20,8 @@
         "compute_mortar_contact"             : 1,
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
-        "reform_dofs_at_each_step"      : true,
+        "clear_storage"                      : true,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -29,7 +29,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "split_factor"                       : 10.0,
-        "max_number_splits"                    : 3,
+        "max_number_splits"                  : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -121,7 +121,7 @@
             "input_file_name"      : "contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Parts_parts_hemisphere",
             "sub_model_part_name"  : "Interface",
-            "time_frequency"       : 1.00
+            "time_frequency"       : 0.5
         }
     }
     ],
@@ -136,7 +136,7 @@
             "output_file_name"     : "contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Parts_parts_hemisphere",
             "sub_model_part_name"  : "Interface",
-            "time_frequency"       : 1.00
+            "time_frequency"       : 0.5
         }
     }
     ],

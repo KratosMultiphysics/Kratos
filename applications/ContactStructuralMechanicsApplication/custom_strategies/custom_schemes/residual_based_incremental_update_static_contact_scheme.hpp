@@ -84,88 +84,38 @@ public:
     {
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+//     /** 
+//      * Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
+//      * @param rCurrentCondition: The condition to compute
+//      * @param RHS_Contribution: The RHS vector contribution
+//      * @param EquationId: The ID's of the element degrees of freedom
+//      * @param CurrentProcessInfo: The current process info instance
+//      */
+//     
+//     void GetConditionDofList(
+//         Condition::Pointer rCurrentCondition,
+//         Element::DofsVectorType& ConditionDofList,
+//         ProcessInfo& CurrentProcessInfo
+//         ) override
+//     {
+//         bool condition_is_active = true;
+//         if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
+//         {
+//             condition_is_active = (rCurrentCondition)->Is(ACTIVE);
+//         }
+//         
+//         if (condition_is_active == true)
+//         {
+//             rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
+//         }
+//     }
     
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY;
-        
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
-            BaseType::Condition_CalculateSystemContributions( rCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
-        }
-        
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
-            BaseType::Condition_Calculate_RHS_Contribution( rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo );
-        }
-        
-        KRATOS_CATCH("");
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /** 
-     * Function that returns the list of Degrees of freedom to be assembled in the system for a Given Element
+    /**
+     * This is the place to initialize the conditions. This is intended to be called just once when the strategy is initialized
+     * @param rModelPart: The model of the problem to solve
      */
     
-    void GetConditionDofList(
-        Condition::Pointer rCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        bool condition_is_active = true;
-        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
-        {
-            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
-        }
-        
-        if (condition_is_active == true)
-        {
-            rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    virtual void InitializeConditions(
-        ModelPart& rModelPart)
+    void InitializeConditions(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -178,24 +128,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
-        #pragma omp parallel
-        {
-            const unsigned int k = OpenMPUtils::ThisThread();
-            typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
 
-            for (typename ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
+        {
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE) == true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->Initialize(); //function to initialize the condition
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->Initialize(); //function to initialize the condition
             }
         }
 
@@ -203,81 +152,110 @@ public:
         KRATOS_CATCH("");
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart: The model of the problem to solve
+     * @param A: LHS matrix
+     * @param Dx: Incremental update of primary variables
+     * @param b: RHS Vector
+     */
 
-    virtual void InitializeSolutionStep(
+    void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+        ) override
     {
         KRATOS_TRY;
-       
+        
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-                
-        // Initialize solution step for all of the elements
-        ElementsArrayType& pElements = rModelPart.Elements();
-        for ( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
+
+        // Initializes solution step for all of the elements
+        ElementsArrayType& rElements = rModelPart.Elements();
+
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            it->InitializeSolutionStep(CurrentProcessInfo);
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->InitializeSolutionStep(CurrentProcessInfo);
         }
         
-        // Initialize solution step for all of the conditions
-        ConditionsArrayType& pConditions = rModelPart.Conditions();
-        for ( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
+        // Initializes solution step for all the conditions
+        ConditionsArrayType& rConditions = rModelPart.Conditions();
+
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
+        
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
             bool condition_is_active = true;
-            if( it->IsDefined(ACTIVE) == true)
+            if( (itCond)->IsDefined(ACTIVE)== true)
             {
-                condition_is_active = it->Is(ACTIVE);
+                condition_is_active = (itCond)->Is(ACTIVE);
             }
             
             if ( condition_is_active == true )
             {
-                it->InitializeSolutionStep(CurrentProcessInfo);
+                itCond->InitializeSolutionStep(CurrentProcessInfo);
             }
-
         }
         
         KRATOS_CATCH("");
     }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * It initializes a non-linear iteration (for the element)
+     * @param rModelPart: The model of the problem to solve
+     * @param A: LHS matrix
+     * @param Dx: Incremental update of primary variables
+     * @param b: RHS Vector
+     */
     
     void InitializeNonLinIteration(
       ModelPart& rModelPart,
       TSystemMatrixType& A,
       TSystemVectorType& Dx,
       TSystemVectorType& b
-    )
+      ) override
     {
         KRATOS_TRY;
         
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+                
         // It resets the weighted gap and slip 
         ContactUtilities::ResetVisited(rModelPart);
         
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
         // Update normal of the conditions
@@ -292,61 +270,65 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE) == true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->InitializeNonLinearIteration(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->InitializeNonLinearIteration(CurrentProcessInfo);
             }
         }
         
         KRATOS_CATCH("");
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * Function called once at the end of a solution step, after convergence is reached if
+     * an iterative process is needed
+     * @param rModelPart: The model of the problem to solve
+     * @param A: LHS matrix
+     * @param Dx: Incremental update of primary variables
+     * @param b: RHS Vector
+     */
 
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b
+        ) override
     {
         KRATOS_TRY;
         
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        
         // Finalizes solution step for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->FinalizeSolutionStep(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         // Update normal of the conditions
@@ -358,25 +340,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE)== true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE)== true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->FinalizeSolutionStep(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->FinalizeSolutionStep(CurrentProcessInfo);
             }
         }
         
@@ -387,6 +367,10 @@ public:
     
     /**
      * Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
+     * @param rModelPart: The model of the problem to solve
+     * @param A: LHS matrix
+     * @param Dx: Incremental update of primary variables
+     * @param b: RHS Vector
      */
     
     void FinalizeNonLinIteration(
@@ -394,29 +378,28 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-        )
+        ) override
     {
         KRATOS_TRY;
         
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        
         // Finalizes non linear iteration for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        typename ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < nelem; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
-            }
+            typename ElementsArrayType::iterator itElem = ElemBegin + i;
+            
+            itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
 
         // Update normal of the conditions
@@ -428,25 +411,23 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
         
-        #pragma omp parallel
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
         {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            typename ConditionsArrayType::iterator itCond = CondBegin + i;
+            
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE)== true)
             {
-                bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE)== true)
-                {
-                    condition_is_active = (itCond)->Is(ACTIVE);
-                }
-                
-                if ( condition_is_active == true )
-                {
-                    itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
-                }
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
             }
         }
                 
@@ -454,7 +435,92 @@ public:
         
         KRATOS_CATCH("");
     }
-};
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@{
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    ///@}
+}; /* Class ResidualBasedIncrementalUpdateStaticContactScheme */
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
 
 }  // namespace Kratos
 
