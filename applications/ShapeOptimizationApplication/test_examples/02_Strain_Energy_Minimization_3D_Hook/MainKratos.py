@@ -304,8 +304,7 @@ def analyzer(X, controls, opt_itr, response):
         # Get gradient information on design surface
         dFdXs = {}
         for node_id in X.keys():
-            node = main_model_part.Nodes[node_id]
-            dFdXs[node_id] = node.GetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)
+            dFdXs[node_id] = dFdX[node_id]
 
         # If contribution from mesh-motion to gradient shall be considered
         ComputeAndAddMeshDerivatives(dFdXs, dFdX) 
