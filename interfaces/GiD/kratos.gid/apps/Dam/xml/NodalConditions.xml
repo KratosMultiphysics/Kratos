@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
-  <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="DISPLACEMENT"
-					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
+  <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="DISPLACEMENT" 
+                      analysis_type="Quasi-Static,Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
     <outputs>
       <parameter n="REACTION" pn="Reaction" v="Yes"/>
     </outputs>
   </NodalConditionItem>
    
   <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" 
-		      analysis_type="Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical"  >
+                      analysis_type="Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
   </NodalConditionItem>
   
-  <NodalConditionItem  n="ACCELERATION" pn="Acceleration" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="ACCELERATION" 
-		       analysis_type="Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
+  <NodalConditionItem n="ACCELERATION" pn="Acceleration" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="ACCELERATION" 
+                      analysis_type="Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
   </NodalConditionItem>
     
-  <NodalConditionItem  n="INITIALTEMPERATURE" pn="Initial Temperature" ProcessName="ImposeUniformTemperatureProcess" VariableName="TEMPERATURE"
-					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" >
+  <NodalConditionItem n="INITIALTEMPERATURE" pn="Initial Temperature" ProcessName="ImposeUniformTemperatureProcess" VariableName="TEMPERATURE"
+					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" >
   </NodalConditionItem>
   
-  <NodalConditionItem  n="BOFANGTEMPERATURE" pn="Bofang Temperature" ProcessName="ImposeBofangConditionProcess" VariableName="TEMPERATURE"
-					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 2]" >
+  <NodalConditionItem n="BOFANGTEMPERATURE" pn="Bofang Temperature" ProcessName="ImposeBofangConditionProcess" VariableName="TEMPERATURE"
+					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 2]" >
   </NodalConditionItem>
   
-  <NodalConditionItem  n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ImposeThermalParametersScalarValueProcess" VariableName="THERMAL_PARAMETERS"
-					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
+  <NodalConditionItem n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ImposeThermalParametersScalarValueProcess" VariableName="THERMAL_PARAMETERS"
+					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
   </NodalConditionItem>
   
-<!--
-  <NodalConditionItem  n="REFERENCETEMPERATURE" pn="Reference Temperature" ProcessName="ImposeUniformTemperatureProcess" VariableName="REFERENCE_TEMPERATURE"
-					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
-  </NodalConditionItem>
--->
-  
-
 </NodalConditionList>
