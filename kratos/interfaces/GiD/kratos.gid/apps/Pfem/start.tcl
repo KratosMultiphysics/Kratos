@@ -24,7 +24,6 @@ proc ::Pfem::Init { } {
 proc ::Pfem::LoadMyFiles { } {
     variable dir
     uplevel #0 [list source [file join $dir xml GetFromXML.tcl]]
-    uplevel #0 [list source [file join $dir xml ConditionSorterWindow.tcl]]
     uplevel #0 [list source [file join $dir .. Solid write write.tcl]]
     uplevel #0 [list source [file join $dir write write.tcl]]
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
@@ -39,7 +38,7 @@ proc ::Pfem::GetAttribute {name} {
 }
 
 proc ::Pfem::CustomToolbarItems { } {
-    Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- Pfem::xml::CndSortWindow::ConditionSorterWindow] [= "Sort the conditions"]   
+    Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- SorterWindow::SorterWindow] [= "Sort the conditions"]   
 }
 
 ::Pfem::Init
