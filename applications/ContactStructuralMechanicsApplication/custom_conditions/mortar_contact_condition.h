@@ -16,6 +16,8 @@
 // System includes
 
 // External includes
+#include "structural_mechanics_application.h"
+#include "structural_mechanics_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include <vector>
 
@@ -495,6 +497,11 @@ public:
     */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
+    /**
+    * Called at the ending of each solution step
+    */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    
    /**
     * Called at the end of each iteration
     */
@@ -832,11 +839,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;              // Integration order of the element
-    std::vector<Condition::Pointer> mThisMasterElements;   // Vector which contains the pointers to the master elements
-
-    bool mUseManualColocationIntegration;                  // Use the manual collocation integration
-    ColocationIntegration mColocationIntegration;          // The manual collocation integration
+    IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
+    unsigned int mPairSize;                              // The number of contact pairs
+    std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
+    
+    bool mUseManualColocationIntegration;                // Use the manual collocation integration
+    ColocationIntegration mColocationIntegration;        // The manual collocation integration
     
     ///@}
     ///@name Protected Operators

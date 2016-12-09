@@ -42,7 +42,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "line_search": false,
             "implex": false,
             "compute_reactions": true,
