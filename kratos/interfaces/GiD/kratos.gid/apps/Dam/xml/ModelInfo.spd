@@ -2,7 +2,7 @@
 <container n="ModelInfo" pn="Model information" icon="information16" help="Model information" state="normal" open_window="0">
     <value n="TypeofProblem" pn="Type of Problem" un="DamTypeofProblem" v="Mechanical" values="Mechanical,Thermo-Mechanical" help="Type of problem" actualize_tree="1"/>
     <value n="SolutionType" pn="Solution type" un="DamSoluType" v="Quasi-Static" values="Quasi-Static,Dynamic" help="Solution type" actualize_tree="1"/>
-    <value n="AnalysisType" pn="Analysis type" un="DamAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type" state="[checkStateByUniqueName DamSoluType Quasi-Static]"/>
+    <value n="AnalysisType" pn="Analysis type" un="DamAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type" />
     
     <container n="MechanicalProblem" pn="Mechanical Problem"  state="normal" actualize_tree="1" open_window="0">
         <value n="SolStratCombo" pn="Solution strategy" un="DamSolStrat,DamSolStratMech" v="" values="" dict="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="normal"/>
