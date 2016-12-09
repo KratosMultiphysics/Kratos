@@ -20,7 +20,7 @@
         "compute_mortar_contact"             : 1,
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : true,
+        "clear_storage"                      : false,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

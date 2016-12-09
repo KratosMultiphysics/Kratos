@@ -17,8 +17,8 @@
 // Project includes
 /* Mortar includes */
 #include "custom_conditions/mortar_contact_condition.h"
-#include "structural_mechanics_application.h"
-#include "structural_mechanics_application_variables.h"
+// #include "structural_mechanics_application.h"
+// #include "structural_mechanics_application_variables.h"
 
 /* Additional includes */
 #include <algorithm>
@@ -27,7 +27,7 @@
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
-#include "../FSIapplication/custom_utilities/qr_utility.h" // QR decomposition utility used in matrix inversion.
+// #include "../FSIapplication/custom_utilities/qr_utility.h" // QR decomposition utility used in matrix inversion.
 
 /* Includes of particular contact conditions */
 #include "contact_2D_2N_2N.hpp"
@@ -98,6 +98,26 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::Initialize( )
     
     InitializeIntegrationMethod();
     
+    // First populate of the vector of master elements
+    const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
+    mPairSize = all_containers->size();
+//     mThisMasterElements.clear(); // NOTE: Be careful, this calls the destructor
+    mThisMasterElements.resize( mPairSize, false );
+    
+    for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
+    {
+        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
+    }
+    
+    if (mPairSize == 0)
+    {
+        this->Set(ACTIVE, false);
+    }
+    else
+    {
+        this->Set(ACTIVE, true);
+    }
+    
     KRATOS_CATCH( "" );
 }
 
@@ -108,16 +128,8 @@ template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
-    // Populate the vector of master elements
-    std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
-    mThisMasterElements.clear();
-    mThisMasterElements.resize( all_containers->size( ) );
-    
-    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
-    {
-        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
-    }
+
+    // NOTE: Add things if necessary
     
     KRATOS_CATCH( "" );
 }
@@ -131,7 +143,20 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeNonLinearIterat
     KRATOS_TRY;
 
     // NOTE: Add things if necessary
+        
+    KRATOS_CATCH( "" );
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY;
+    
+    // NOTE: Add things if necessary
+    
     KRATOS_CATCH( "" );
 }
 
@@ -155,9 +180,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
+    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
-    for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
@@ -940,7 +965,7 @@ template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 template< unsigned int TMatrixSize >
 const unsigned int MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateConditionSize( )
 {
-    const unsigned int condition_size = mThisMasterElements.size( ) * TMatrixSize; // NOTE: Assuming same number of nodes for the master
+    const unsigned int condition_size = mPairSize * TMatrixSize; // NOTE: Assuming same number of nodes for the master
     
     return condition_size;
 }
@@ -970,7 +995,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                                                                                   
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
@@ -2455,11 +2480,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
     )
 {
     KRATOS_TRY;   
-
-    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-        
+    
     // Calculates the size of the system
-    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * all_conditions.size( ); 
+    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * mPairSize; 
     
     if (rResult.size() != condition_size)
     {
@@ -2469,10 +2492,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for ( unsigned int i_cond = 0;  i_cond < all_conditions.size( ); ++i_cond )
+//     for ( unsigned int i_cond = 0;  i_cond < all_conditions.size(); ++i_cond )
+    for ( unsigned int i_cond = 0;  i_cond < mPairSize; ++i_cond )
     {   
-        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );
-
+        GeometryType& current_master = mThisMasterElements[i_cond]->GetGeometry( );
+        
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
         {
@@ -2538,11 +2562,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
 )
 {
     KRATOS_TRY;
-    
-    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-    
+
     // Calculates the size of the system
-    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * all_conditions.size( ); 
+    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * mPairSize; 
     
     if (rConditionalDofList.size() != condition_size)
     {
@@ -2552,9 +2574,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for ( unsigned int i_cond = 0; i_cond < all_conditions.size( ); ++i_cond )
-    {
-        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );   
+    for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
+    { 
+        GeometryType& current_master = mThisMasterElements[i_cond]->GetGeometry( );   
 
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
@@ -2607,7 +2629,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
             }
         }
     }
-
+    
     KRATOS_CATCH( "" );
 }
 
@@ -2670,9 +2692,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     // Initialize the current contact data
     ContactData rContactData;
-
-    // Slave segment info
-    const unsigned int number_of_elements_master = mThisMasterElements.size( );
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -2690,7 +2709,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
@@ -2813,9 +2832,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     // Initialize the current contact data
     ContactData rContactData;
-
-    // Slave segment info
-    const unsigned int number_of_elements_master = mThisMasterElements.size( );
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -2838,7 +2854,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     if (rVariable == NORMAL_GP || rVariable == TANGENT_GP)
     {
-        if (number_of_elements_master > 0)
+        if (mPairSize > 0)
         {
             // Initialize general variables for the current master element
             this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, 0 ); // NOTE: The pair does not matter
@@ -2869,7 +2885,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     }
     else
     {
-        for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
+        for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
         {   
             // Initialize general variables for the current master element
             this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );

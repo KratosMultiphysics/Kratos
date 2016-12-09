@@ -115,12 +115,12 @@ class Kratos_Execute_Test:
             for process in self.list_of_processes:
                 process.ExecuteBeforeOutputStep()
 
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
-
             if (self.output_post == True):
                 if self.gid_output.IsOutputStep():
                     self.gid_output.PrintOutput()
+                    
+            for process in self.list_of_processes:
+                process.ExecuteAfterOutputStep()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalize()

@@ -51,7 +51,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "rayleigh_alpha":0.0,
             "rayleigh_beta" :0.0,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "line_search": false,
             "implex": false,
             "compute_reactions": true,
