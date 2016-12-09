@@ -2,6 +2,7 @@
 <ProcessList>
    <!---  NODAL PROCESSES --> 
    <!---  Nodal Displacement, Acceleration -->
+
   <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="apply_constraint_vector_dam_table_process"
 		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the selected components of a given vector variable">
     <inputs>
@@ -14,6 +15,18 @@
         <parameter n="Value_Z_Table" pn="Value Z table filename" type="tablefile" v="" state="[CheckDimension 3D]"/>
     </inputs>
   </Process>
+
+
+<!--
+    <Process n="AssignVectorComponentsToNodesProcess" pn="Assign a vector value process" python_module="assign_vector_components_to_nodes_process"
+           kratos_module="KratosMultiphysics.SolidMechanicsApplication"
+	   help="This process fixes the selected components of a given vector variable">
+    <inputs>
+      <parameter n="value" pn="Value" type="vector" enabled="1" function="1" v="0.0,0.0,0.0"/>
+    </inputs>
+  </Process>
+-->
+
   
    <!---  Uniform tempereature -->
   <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" python_module="impose_uniform_temperature_process"
