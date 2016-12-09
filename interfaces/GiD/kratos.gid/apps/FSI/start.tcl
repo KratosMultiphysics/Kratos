@@ -36,4 +36,8 @@ proc ::FSI::LoadMyFiles { } {
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
 }
 
+proc ::FSI::CustomToolbarItems { } {
+    Kratos::ToolbarAddItem "Example" "example.png" [list -np- ::FSI::examples::MokChannelFlexibleWall] [= "Example\nMOK - Channel with flexible wall"]   
+}
+
 ::FSI::Init
