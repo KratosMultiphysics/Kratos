@@ -320,7 +320,7 @@ class VertexMorphingMethod:
 
                 # Check for relative tolerance
                 if(abs(delta_f_relative)<self.config.relative_tolerance_objective):
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,".")
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,"%.")
                     break
 
                 # Check if value of objective increases
@@ -495,7 +495,7 @@ class VertexMorphingMethod:
 
                     # Check for relative tolerance
                     if(abs(delta_l_relative)<self.config.relative_tolerance_sub_opt): 
-                        print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.config.relative_tolerance_sub_opt,".")
+                        print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.config.relative_tolerance_sub_opt,"%.")
                         break
 
                     # Check if value of lagrangian increases
