@@ -74,7 +74,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","MESH_DISPLACEMENT"],
             "gauss_point_results" : ["VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
