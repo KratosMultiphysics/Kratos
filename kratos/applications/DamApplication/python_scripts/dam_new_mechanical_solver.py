@@ -179,6 +179,17 @@ class DamMechanicalSolver:
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y,KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
+            
+        if(self.settings["mechanical_settings"]["solution_type"].GetString() == "Dynamic"):
+            for node in self.main_model_part.Nodes:
+                # adding first derivatives as dofs
+                node.AddDof(KratosMultiphysics.VELOCITY_X);
+                node.AddDof(KratosMultiphysics.VELOCITY_Y);
+                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                # adding second derivatives as dofs
+                node.AddDof(KratosMultiphysics.ACCELERATION_X);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z); 
 
         print(" Mechanical DOFs correctly added")
 

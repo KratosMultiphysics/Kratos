@@ -93,7 +93,7 @@ model_part.SetBufferSize(buffer_size)
 diffusion_solver.AddDofs(model_part)
 
 # Set mechanical degrees of freedom
-mechanical_solver.AddDofs(model_part)
+mechanical_solver.AddDofs(model_part,ProjectParameters.MechanicalSolverSettings)
 
 # Set ProcessInfo variables and fill the previous steps of the buffer with the initial conditions
 current_time = -(buffer_size-1)*delta_time

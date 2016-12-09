@@ -35,12 +35,24 @@ def AddVariables(model_part):
     print("Variables correctly added")
 
 
-def AddDofs(model_part):
+def AddDofs(model_part, config):
     for node in model_part.Nodes:
         ##Solid dofs
         node.AddDof(DISPLACEMENT_X,REACTION_X)
         node.AddDof(DISPLACEMENT_Y,REACTION_Y)
         node.AddDof(DISPLACEMENT_Z,REACTION_Z)
+        
+        
+    if (config.analysis_type == "Dynamic"):
+        for node in model_part.Nodes:
+            # adding first derivatives as dofs
+            node.AddDof(VELOCITY_X);
+            node.AddDof(VELOCITY_Y);
+            node.AddDof(VELOCITY_Z);
+            # adding second derivatives as dofs
+            node.AddDof(ACCELERATION_X);
+            node.AddDof(ACCELERATION_Y);
+            node.AddDof(ACCELERATION_Z); 
 
     print("DOFs correctly added")
 
