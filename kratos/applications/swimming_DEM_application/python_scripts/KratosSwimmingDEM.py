@@ -711,9 +711,15 @@ if pp.CFD_DEM.drag_force_type == 9:
 # NANO END
 
 #G
+post_process_model_part = ModelPart("PostFluidPart")
+model_part_cloner = ConnectivityPreserveModeler()
+post_reference_element = ComputeLaplacianSimplex()
+post_reference_condition = ComputeLaplacianSimplexCondition()
+model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, post_reference_element, post_reference_condition)
 linear_solver = CGSolver()
 scheme = ResidualBasedIncrementalUpdateStaticScheme()
-post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
+
+post_process_strategy = ResidualBasedLinearStrategy(post_process_model_part, scheme, linear_solver, False, True, False, False)
 number=0
 for node in fluid_model_part.Nodes:
     number += 1
@@ -761,18 +767,18 @@ while (time <= final_time):
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
 #G                     
-            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
-                current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
+            if pp.CFD_DEM.laplacian_calculation_type == 3 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+                current_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
-                fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
+                fractional_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
+                post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
                 post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = fractional_step
+                post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = fractional_step
                 
     # assessing stationarity
 
