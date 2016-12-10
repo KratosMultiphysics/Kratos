@@ -27,8 +27,11 @@
 #include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
+#include "custom_elements/calculate_laplacian_simplex_element.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
+#include "custom_conditions/calculate_laplacian_simplex_condition.h"
+
 #include "custom_elements/spheric_swimming_particle.h"
 #include "../DEM_application/custom_elements/spheric_particle.h"
 #include "../DEM_application/custom_elements/nanoparticle.h"
@@ -110,10 +113,14 @@ private:
     /// 3D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
 
-    /// Exact 2D slip condition using rotated coordinates (monolithic version)
+    const ComputeLaplacianSimplex<2> mComputeLaplacianSimplex2D;
+    const ComputeLaplacianSimplex<3> mComputeLaplacianSimplex3D;
+
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
-    /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
+
+    const  ComputeLaplacianSimplexCondition<2,2> mComputeLaplacianSimplexCondition2D;
+    const  ComputeLaplacianSimplexCondition<3,3> mComputeLaplacianSimplexCondition3D;
 
     const ShellRigid mRigidShellElement;
 
