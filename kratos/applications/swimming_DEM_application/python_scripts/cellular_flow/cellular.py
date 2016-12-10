@@ -12,7 +12,7 @@ init_time = timer.time()
 import os
 os.system('cls' if os.name == 'nt' else 'clear')
 import sys
-#sys.path.append("/home/gcasas/kratos")
+sys.path.append("/home/gcasas/kratos")
 
 class Logger(object):
     def __init__(self):
@@ -96,9 +96,10 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
-print(sys.argv)
-
-file_name, mesh_size, material_derivative_type, laplacian_type = sys.argv
+n_div = 20
+material_derivative_type = 1
+laplacian_type = 3
+#file_name, mesh_size, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.gradient_calculation_type = int(material_derivative_type)
@@ -129,7 +130,7 @@ print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 
 # Creating a code for the used input variables
-run_code = '_h_' + str(mesh_size) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
+run_code = '_ndiv_' + str(n_div ) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
 #Z
 
 # Creating swimming DEM procedures
@@ -159,10 +160,12 @@ procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
-rigid_face_model_part = ModelPart("RigidFace_Part")
-cluster_model_part    = ModelPart("Cluster_Part")
+rigid_face_model_part = ModelPart("RigidFacePart")
+cluster_model_part    = ModelPart("ClusterPart")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part    = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("MappingPart")
+contact_model_part    = ModelPart("ContactPart")
+all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -221,7 +224,7 @@ vars_man.AddNodalVariables(fluid_model_part, pp.fluid_vars)  #     MOD.
 input_file_name = pp.problem_name
 
 # reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_h_' + str(mesh_size)))
+model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_ndiv_' + str(n_div)))
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #_____________________________________________________________________________________________________________________________________
@@ -256,7 +259,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 
@@ -348,11 +351,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
-demio.InitializeMesh(spheres_model_part,
-                     rigid_face_model_part,
-                     cluster_model_part,
-                     solver.contact_model_part,
-                     mapping_model_part)
+demio.InitializeMesh(all_model_parts)
 
 os.chdir(post_path)
 
@@ -722,7 +721,7 @@ if pp.CFD_DEM.perform_analytics_option:
     gauge.ConstructArrayOfNodes(condition)
     print(gauge.variables)
     print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
-# ANALYTICS END005
+# ANALYTICS END
 
 # NANO BEGIN
 if pp.CFD_DEM.drag_force_type == 9:
@@ -734,9 +733,16 @@ if pp.CFD_DEM.drag_force_type == 9:
 # NANO END
 
 #G
+post_process_model_part = ModelPart("PostFluidPart")
+model_part_cloner = ConnectivityPreserveModeler()
+model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "WallCondition3D")
+import derivative_recovery_solver
+derivative_recovery_solver.AddVariables(post_process_model_part)
+derivative_recovery_solver.AddDofs(post_process_model_part)
 linear_solver = CGSolver()
 scheme = ResidualBasedIncrementalUpdateStaticScheme()
-post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
+post_process_strategy = ResidualBasedLinearStrategy(post_process_model_part, scheme, linear_solver, False, True, False, False)
+post_process_strategy.SetEchoLevel(2)
 number=0
 for node in fluid_model_part.Nodes:
     number += 1
@@ -760,6 +766,7 @@ def Norm(v):
 
 mat_deriv_errors = []
 laplacian_errors = []
+fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
 
 while (time <= final_time):
 
@@ -808,18 +815,21 @@ while (time <= final_time):
                 #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
 #Z
 
-            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
-                current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
+            if pp.CFD_DEM.laplacian_calculation_type == 3 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+                current_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
-                fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
+                #post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
-                #post_process_strategy.Solve()
+                post_process_strategy.Solve()
+                #fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
+
+                #fluid_solver.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = fractional_step
+                #post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = current_step
+                #fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = current_step
                 
     # assessing stationarity
 
@@ -858,10 +868,13 @@ while (time <= final_time):
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)          
         if pp.CFD_DEM.laplacian_calculation_type == 1:         
             derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        elif pp.CFD_DEM.laplacian_calculation_type == 2:
+        elif pp.CFD_DEM.laplacian_calculation_type == 2 and pp.CFD_DEM.material_acceleration_calculation_type < 2:
             derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 2:
+            derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)                           
+
 #G
     error_laplacian = 0.
     error_mat_deriv = 0.
@@ -1059,10 +1072,10 @@ print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 if not os.path.exists('../errors_recorded'):
     os.makedirs('../errors_recorded')
     
-with open('../errors_recorded/mat_deriv_errors_h_' + str(mesh_size) + '_type_' + str(pp.CFD_DEM.gradient_calculation_type) + '.txt', 'w') as mat_errors_file:
+with open('../errors_recorded/mat_deriv_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.gradient_calculation_type) + '.txt', 'w') as mat_errors_file:
     for error in mat_deriv_errors:
         mat_errors_file.write(str(error) + '\n')
-with open('../errors_recorded/laplacian_errors_h_' + str(mesh_size) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
+with open('../errors_recorded/laplacian_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
     for error in laplacian_errors:
         laplacian_errors_file.write(str(error) + '\n')
 sys.stdout.flush()

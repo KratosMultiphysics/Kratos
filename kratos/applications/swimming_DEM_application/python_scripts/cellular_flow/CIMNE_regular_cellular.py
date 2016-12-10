@@ -96,8 +96,6 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
-print(sys.argv)
-
 file_name, n_div, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
@@ -159,10 +157,12 @@ procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
-rigid_face_model_part = ModelPart("RigidFace_Part")
-cluster_model_part    = ModelPart("Cluster_Part")
+rigid_face_model_part = ModelPart("RigidFacePart")
+cluster_model_part    = ModelPart("ClusterPart")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part    = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("MappingPart")
+contact_model_part    = ModelPart("ContactPart")
+all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -256,7 +256,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 
@@ -348,11 +348,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
-demio.InitializeMesh(spheres_model_part,
-                     rigid_face_model_part,
-                     cluster_model_part,
-                     solver.contact_model_part,
-                     mapping_model_part)
+demio.InitializeMesh(all_model_parts)
 
 os.chdir(post_path)
 
@@ -808,14 +804,14 @@ while (time <= final_time):
                 #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
 #Z
 
-            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+            if pp.CFD_DEM.laplacian_calculation_type == 3 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
                 fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
-                #post_process_strategy.Solve()
+                post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
@@ -878,7 +874,7 @@ while (time <= final_time):
     norm_laplacian_average = 0.
     i_node = 0
     if step > 3:
-        for node in fluid_model_part.Nodes:            
+        for node in fluid_model_part.Nodes:
             i_node += 1
             calc_mat_deriv = [0.] * 3
             calc_laplacian = [0.] * 3
