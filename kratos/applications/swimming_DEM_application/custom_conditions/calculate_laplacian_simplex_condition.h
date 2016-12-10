@@ -33,8 +33,6 @@
 #include "includes/cfd_variables.h"
 
 //Other Applications includes
-#include "../../applications/FluidDynamicsApplication/fluid_dynamics_application.h"
-#include "../../applications/FluidDynamicsApplication/custom_conditions/monolithic_wall_condition.h"
 
 namespace Kratos
 {
