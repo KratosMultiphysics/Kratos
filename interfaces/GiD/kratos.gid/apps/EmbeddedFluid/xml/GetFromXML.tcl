@@ -13,8 +13,8 @@ proc EmbeddedFluid::xml::Init { } {
     set lastImportMeshSize 0
     Model::DestroyEverything
     Model::InitVariables dir $EmbeddedFluid::dir
-    
-    Model::getSolutionStrategies "../../Fluid/xml/Strategies.xml"
+
+    Model::getSolutionStrategies "../../EmbeddedFluid/xml/Strategies.xml"
     Model::getElements "../../Fluid/xml/Elements.xml"
     Model::getMaterials Materials.xml
     Model::getNodalConditions "../../Fluid/xml/NodalConditions.xml"
@@ -40,15 +40,15 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
-    
+
     # Erase when Fractional step is available
-    spdAux::SetValueOnTreeItem v Monolithic EMBFLSolStrat
-    spdAux::SetValueOnTreeItem values Monolithic EMBFLSolStrat
-    spdAux::SetValueOnTreeItem dict "Monolithic,Navier Stokes - Monolithic" EMBFLSolStrat
-    spdAux::SetValueOnTreeItem v MN EMBFLScheme
-    spdAux::SetValueOnTreeItem values MN EMBFLScheme
-    spdAux::SetValueOnTreeItem dict "MN,Monolitic generic scheme" EMBFLScheme
-    
+    #spdAux::SetValueOnTreeItem v Monolithic EMBFLSolStrat
+    #spdAux::SetValueOnTreeItem values Monolithic EMBFLSolStrat
+    #spdAux::SetValueOnTreeItem dict "Monolithic,Navier Stokes - Monolithic" EMBFLSolStrat
+    #spdAux::SetValueOnTreeItem v MN EMBFLScheme
+    #spdAux::SetValueOnTreeItem values MN EMBFLScheme
+    #spdAux::SetValueOnTreeItem dict "MN,Monolitic generic scheme" EMBFLScheme
+
 }
 
 EmbeddedFluid::xml::Init
