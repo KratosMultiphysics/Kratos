@@ -229,13 +229,54 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int BlockSize = TDim;
-        const SizeType LocalSize = BlockSize * TNumNodes;
+//        const unsigned int BlockSize = TDim;
+//        const SizeType LocalSize = BlockSize * TNumNodes;
 
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
+//        if (rRightHandSideVector.size() != LocalSize)
+//            rRightHandSideVector.resize(LocalSize);
 
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+//        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+//        const GeometryType& rGeom = this->GetGeometry();
+//        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+//        const unsigned int NumGauss = IntegrationPoints.size();
+
+//        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+//        double Area;
+//        array_1d<double, TNumNodes> N;
+//        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+//        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+//        array_1d<double,3> Normal;s
+//        this->CalculateNormal(Normal); //this already contains the area
+//        double A = std::sqrt(Normal[0]*Normal[0]+Normal[1]*Normal[1]+Normal[2]*Normal[2]);
+//        Normal /= A;
+
+//        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+//        double J = (TDim == 2) ? 0.5*A : 2.0*A;
+
+//        for (unsigned int g = 0; g < NumGauss; g++)
+//        {
+//            Vector N = row(NContainer,g);
+//            double Weight = J * IntegrationPoints[g].Weight();
+
+//            // Neumann boundary condition
+//            for (unsigned int i = 0; i < TNumNodes; i++)
+//            {
+//                //unsigned int row = i*LocalSize;
+//                const NodeType& rConstNode = this->GetGeometry()[i];
+
+//                for (unsigned int j = 0; j < TNumNodes; j++)
+//                {
+//                    const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+
+//                    unsigned int row = j*LocalSize;
+//                    for (unsigned int d = 0; d < TDim;d++)
+//                        rLocalVector[row+d] -= Weight*DN_DX[j]*N[i]*rVel[d]*Normal[d];
+//                }
+//            }
+//        }
     }
 
 
@@ -313,6 +354,9 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    ///
+    void CalculateNormal(array_1d<double,3>& An );
+
 
     ///@}
     ///@name Protected  Access

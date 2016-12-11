@@ -187,13 +187,13 @@ public:
         if (rRightHandSideVector.size() != LocalSize)
             rRightHandSideVector.resize(LocalSize, false);
 
-//        for (int i=0; i<LocalSize; ++i){
-//            for (int j=0; j<LocalSize; ++j){
-//                rLeftHandSideMatrix(i, j) = 0.0;
-//            }
-//            rLeftHandSideMatrix(i, i) = 1.0;
-//            rRightHandSideVector(i) = 0.5;
-//        }
+        for (unsigned int i=0; i<LocalSize; ++i){
+            for (unsigned int j=0; j<LocalSize; ++j){
+                rLeftHandSideMatrix(i, j) = 0.0;
+            }
+            rLeftHandSideMatrix(i, i) = 0.0;
+            rRightHandSideVector(i) = 0.0;
+        }
 
         boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
         array_1d<double, TDim+1 > N;
@@ -454,7 +454,6 @@ private:
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
-        //rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = TDim * TNumNodes;
 
         // Resize and set to zero
@@ -471,9 +470,10 @@ private:
 
 
         // Add 'classical' mass matrix (lumped)
-        double Coeff = Area / TNumNodes; //Optimize!
-        this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
+//        double Coeff = Area / TNumNodes; //Optimize!
+//        this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
 
+        // Add 'consistent' mass matrix
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
         VectorType GaussWeights;
