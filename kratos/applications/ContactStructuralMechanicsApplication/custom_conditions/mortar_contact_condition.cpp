@@ -98,26 +98,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::Initialize( )
     
     InitializeIntegrationMethod();
     
-    // First populate of the vector of master elements
-    const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
-    mPairSize = all_containers->size();
-//     mThisMasterElements.clear(); // NOTE: Be careful, this calls the destructor
-    mThisMasterElements.resize( mPairSize, false );
-    
-    for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
-    {
-        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
-    }
-    
-    if (mPairSize == 0)
-    {
-        this->Set(ACTIVE, false);
-    }
-    else
-    {
-        this->Set(ACTIVE, true);
-    }
-    
     KRATOS_CATCH( "" );
 }
 
@@ -129,7 +109,25 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSolutionStep( P
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    // First populate of the vector of master elements
+    const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
+    mPairSize = all_containers->size();
+//     mThisMasterElements.clear(); // NOTE: Be careful, this calls the destructor
+    mThisMasterElements.resize( mPairSize, false );
+    
+    for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
+    {
+        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
+    }
+    
+//     if (mPairSize == 0) // NOTE: This is not supposed to be necessary
+//     {
+//         this->Set(ACTIVE, false);
+//     }
+//     else
+//     {
+//         this->Set(ACTIVE, true);
+//     }
     
     KRATOS_CATCH( "" );
 }
@@ -2481,8 +2479,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
 {
     KRATOS_TRY;   
     
+    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
+    
     // Calculates the size of the system
-    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * mPairSize; 
+    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * all_conditions.size(); 
     
     if (rResult.size() != condition_size)
     {
@@ -2492,10 +2492,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-//     for ( unsigned int i_cond = 0;  i_cond < all_conditions.size(); ++i_cond )
-    for ( unsigned int i_cond = 0;  i_cond < mPairSize; ++i_cond )
+    for ( unsigned int i_cond = 0;  i_cond < all_conditions.size(); ++i_cond )
     {   
-        GeometryType& current_master = mThisMasterElements[i_cond]->GetGeometry( );
+        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );
         
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
@@ -2562,9 +2561,11 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
 )
 {
     KRATOS_TRY;
-
+    
+    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
+    
     // Calculates the size of the system
-    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * mPairSize; 
+    const unsigned int condition_size = TDim * ((2 + TDoubleLM) * TNumNodes + TNumNodes) * all_conditions.size(); 
     
     if (rConditionalDofList.size() != condition_size)
     {
@@ -2574,9 +2575,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
     unsigned int index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
-    { 
-        GeometryType& current_master = mThisMasterElements[i_cond]->GetGeometry( );   
+    for ( unsigned int i_cond = 0; i_cond < all_conditions.size(); ++i_cond )
+    {
+        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );   
 
         // Master Nodes Displacement Equation IDs
         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
@@ -2632,7 +2633,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
     
     KRATOS_CATCH( "" );
 }
-
 
 //******************************* GET DOUBLE VALUE *********************************/
 /***********************************************************************************/

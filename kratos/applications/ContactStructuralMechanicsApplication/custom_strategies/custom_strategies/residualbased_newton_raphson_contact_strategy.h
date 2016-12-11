@@ -188,27 +188,6 @@ public:
     
     /******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************/
     /***********************************************************************************/
-
-    /**
-     * Initialization of member variables and prior operations
-     */
-     
-    void Initialize() override
-    {
-        KRATOS_TRY;
-
-        if (BaseType::mInitializeWasPerformed == false)
-        {
-            BaseType::Initialize();
-        }
-        else
-        {
-            typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-            pScheme->InitializeConditions(BaseType::GetModelPart().GetSubModelPart("Contact"));
-        }
-
-        KRATOS_CATCH("");
-    }
     
     /**
      * Solves the current step. This function returns true if a solution has been found, false otherwise.
