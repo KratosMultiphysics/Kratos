@@ -23,10 +23,10 @@ def MoveNodes(model_part,time):
       disp[0] = 0.0    #0.05*math.sin((time-0.02)*100)
       disp[1] = 0.0
       disp[2] = 0.03*math.sin((time-0.02)*100) 
-      node.SetSolutionStepValue(DISPLACEMENT,0,disp)
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.SetSolutionStepValue(MESH_DISPLACEMENT,0,disp)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
 
 
 #Apply displacement boundary conditions
@@ -34,17 +34,17 @@ def MoveNodes(model_part,time):
 def ApplyDisplacementConditions(model_part):
   for node in model_part.Nodes:
     if(node.X < 0.0001 or node.X > 1.999):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
     if(node.Y > 0.4999 or node.Y < 0.0001):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
     if(node.Is(INTERFACE)):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
 
 #Set number of threads
 
@@ -124,7 +124,7 @@ if(MeshSolverType == "Laplacian"):
   mesh_sol.time_order = 2
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarity"):
-  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(model_part,reform_dofs_at_each_step)
+  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(model_part,reform_dofs_at_each_step, False)
   mesh_sol.time_order = 2
   mesh_sol.Initialize()
 else:

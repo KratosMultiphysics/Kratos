@@ -5,15 +5,14 @@ message("**** configuring KratosALEApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set( KRATOS_ALE_APPLICATION_SOURCES     
+set( KRATOS_ALE_APPLICATION_SOURCES
+	      ${CMAKE_CURRENT_SOURCE_DIR}/ale_application.cpp
+	      ${CMAKE_CURRENT_SOURCE_DIR}/ale_application_variables.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_meshmoving_element.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/structural_meshmoving_element.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/ale_application.cpp 
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/ale_python_application.cpp 
+	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/ale_python_application.cpp
 )
 
 ###############################################################
@@ -22,12 +21,12 @@ add_library(KratosALEApplication SHARED ${KRATOS_ALE_APPLICATION_SOURCES})
 target_link_libraries(KratosALEApplication KratosCore )
 set_target_properties(KratosALEApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosALEApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosALEApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

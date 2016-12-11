@@ -8,9 +8,10 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(AUX_MESH_VAR)
+    model_part.AddNodalSolutionStepVariable(MESH_REACTION)
+    model_part.AddNodalSolutionStepVariable(MESH_RHS)
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
     mpi.world.barrier()
     if mpi.rank == 0:
@@ -20,22 +21,27 @@ def AddVariables(model_part):
 def AddDofs(model_part):
     for node in model_part.Nodes:
         # adding dofs
-        node.AddDof(AUX_MESH_VAR)
+        node.AddDof(MESH_DISPLACEMENT_X, MESH_REACTION_X)
+        node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
+        node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
 
     mpi.world.barrier()
     if mpi.rank == 0:
         print("dofs for the mesh solver added correctly")
 
 
-class TrilinosMeshSolver:
+class TrilinosMeshSolverComponentwise:
 
     def __init__(self, model_part, domain_size, reform_dof_at_every_step):
 
-        # Set parameters
-        self.time_order = 2
         self.model_part = model_part
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
+
+        #AddDofs(model_part)
+
+        # assignation of parameters to be used
+        self.time_order = 1
 
         # Create communicator
         self.Comm = CreateCommunicator()
@@ -43,7 +49,7 @@ class TrilinosMeshSolver:
         # Define solver
         import PressureMultiLevelSolver
         pressure_nit_max = 1000
-        pressure_linear_tol = 1
+        pressure_linear_tol = 1e-6
         self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
 
     def Initialize(self):

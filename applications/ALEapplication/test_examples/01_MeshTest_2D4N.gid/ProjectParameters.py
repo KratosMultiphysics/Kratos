@@ -2,7 +2,7 @@ domain_size = 2
 
 #SolverType = "FractionalStep"
 NumberofThreads = 1
-MeshSolverType = "StructuralSimilarity" #StructuralSimilarity  #Laplacian
+MeshSolverType = "Laplacian" #StructuralSimilarity  #Laplacian
 
 
 #general problem settings
@@ -20,7 +20,7 @@ groups_dictionary = {
 output_time = 0.01
 output_step = 1
 VolumeOutput = True
-nodal_results=["DISPLACEMENT", "MESH_VELOCITY"]
+nodal_results=["MESH_DISPLACEMENT", "MESH_VELOCITY"]
 gauss_points_results=[]
 GiDPostMode = "Binary"
 GiDWriteMeshFlag = True

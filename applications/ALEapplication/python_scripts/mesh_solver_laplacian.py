@@ -7,24 +7,25 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):
-    
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+
+    model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-    
+    model_part.AddNodalSolutionStepVariable(MESH_REACTION)
+    model_part.AddNodalSolutionStepVariable(MESH_RHS)
+
     print("Mesh solver variables added correctly.")
 
 
 def AddDofs(model_part):
-    
-    for node in model_part.Nodes:
 
-        node.AddDof(DISPLACEMENT_X)
-        node.AddDof(DISPLACEMENT_Y)
-        node.AddDof(DISPLACEMENT_Z)
+    for node in model_part.Nodes:
+        node.AddDof(MESH_DISPLACEMENT_X, MESH_REACTION_X)
+        node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
+        node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
 
     print("Mesh solver DOFs added correctly.")
-    
-    
+
+
 def CreateMeshSolver(model_part, reform_dof_at_every_step):
     return MeshSolverLaplacian(model_part,reform_dof_at_every_step)
 
@@ -49,10 +50,10 @@ class MeshSolverLaplacian:
         max_it = 1000
         verbosity = 1
         m = 100
-        #self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
-        pILUPrecond = ILU0Preconditioner()
+        self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
+        #pILUPrecond = ILU0Preconditioner()
         #self.linear_solver = DeflatedCGSolver(1e-6, 3000, True, 1000)
-        self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
+        #self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
         #self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
 
     def Initialize(self):

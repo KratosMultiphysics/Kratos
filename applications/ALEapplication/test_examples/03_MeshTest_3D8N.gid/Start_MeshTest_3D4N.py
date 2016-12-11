@@ -30,16 +30,16 @@ def DefineInterface(model_part):
 def ApplyDisplacementConditions(model_part):
   for node in model_part.Nodes:
     if(node.X < 0.0001 or node.X > 1.999):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Z)
     if(node.Y > 0.4999 or node.Y < 0.0001):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
     if(node.Is(INTERFACE)):
-      node.Fix(DISPLACEMENT_X)
-      node.Fix(DISPLACEMENT_Y)
-      node.Fix(DISPLACEMENT_Z)
+      node.Fix(MESH_DISPLACEMENT_X)
+      node.Fix(MESH_DISPLACEMENT_Y)
+      node.Fix(MESH_DISPLACEMENT_Z)
       
 def DisplacementToMesh(fluid_interface, time, movement, ampFac):
     time *= ampFac
@@ -61,8 +61,8 @@ def DisplacementToMesh(fluid_interface, time, movement, ampFac):
         else:
             wait = input("Wrong type of movement specified, please correct input")
         # set the prescribed values
-        node.SetSolutionStepValue(DISPLACEMENT_X,0,valueX)
-        node.SetSolutionStepValue(DISPLACEMENT_Y,0,valueY)
+        node.SetSolutionStepValue(MESH_DISPLACEMENT_X,0,valueX)
+        node.SetSolutionStepValue(MESH_DISPLACEMENT_Y,0,valueY)
       
 
 #Set number of threads
@@ -142,7 +142,7 @@ if(MeshSolverType == "Laplacian"):
   mesh_sol.time_order = 2
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarity"):
-  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(model_part,reform_dofs_at_each_step)
+  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(model_part,reform_dofs_at_each_step, False)
   mesh_sol.time_order = 2
   mesh_sol.Initialize()
 else:

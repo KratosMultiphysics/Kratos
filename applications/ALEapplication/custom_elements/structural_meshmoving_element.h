@@ -1,19 +1,19 @@
+// ==============================================================================
 /*
- ==============================================================================
+ KratosALEApllication
+ A library based on:
  Kratos
  A General Purpose Software for Multi-Physics Finite Element Analysis
- Version 1.0 (Released on march 05, 2007).
+ (Released on march 05, 2007).
 
- Copyright 2007
- Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
- pooyan@cimne.upc.edu
- rrossi@cimne.upc.edu
- janosch.stascheit@rub.de
- nagel@sd.rub.de
- - CIMNE (International Center for Numerical Methods in Engineering),
- Gran Capita' s/n, 08034 Barcelona, Spain
- - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
+ Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
+                     pooyan@cimne.upc.edu
+                     rrossi@cimne.upc.edu
+                     a.winterstein@tum.de
+- CIMNE (International Center for Numerical Methods in Engineering),
+  Gran Capita' s/n, 08034 Barcelona, Spain
+- Chair of Structural Analysis, Technical University of Munich
+  Arcisstrasse 21 80333 Munich, Germany
 
  Permission is hereby granted, free  of charge, to any person obtaining
  a  copy  of this  software  and  associated  documentation files  (the
@@ -36,13 +36,12 @@
  CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
  TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
- ==============================================================================
- */
+*/
+//==============================================================================
 
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: Andreas.Mini@tum.de $
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
  *  Date:                $Date: June 2016 $
  *  Revision:            $Revision: 1.4 $
  * ***************************************************************************/
@@ -66,7 +65,9 @@
  * solves the equations of solid mechanics using a corrotational formulation
  * and a linear elastic consitutive law. The stiffness of the elements
  * depends on their size and can be controlled by the Jacobian Determinant
- * weightened by an exponent. It is implemented for all types of elements.
+ * weightened by an exponent. Therefore the current model part is copied and
+ * thus it is not necessary to create the mesh moving element explicity in the
+ * input file for the geometry. It is implemented for all types of elements.
  */
 
 namespace Kratos {
@@ -104,7 +105,6 @@ class StructuralMeshMovingElement : public Element {
   typedef BaseType::VectorType VectorType;
   typedef BaseType::EquationIdVectorType EquationIdVectorType;
   typedef BaseType::DofsVectorType DofsVectorType;
-
   typedef GeometryData::IntegrationMethod IntegrationMethod;
 
   ///@}
@@ -127,17 +127,36 @@ class StructuralMeshMovingElement : public Element {
 
   ///@name Operations
   ///@{
-
+  /**
+  * Returns the currently selected integration method
+  * @return current integration method selected
+  */
+ /**
+  * creates a new total lagrangian updated element pointer
+  * @param NewId: the ID of the new element
+  * @param ThisNodes: the nodes of the new element
+  * @param pProperties: the properties assigned to the new element
+  * @return a Pointer to the new element
+  */
   BaseType::Pointer Create(IndexType NewId,
       NodesArrayType const& rThisNodes,
       PropertiesType::Pointer pProperties) const;
+
 
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo);
 
+  /**
+  * Sets on rResult the ID's of the element degrees of freedom
+  */
   void EquationIdVector(EquationIdVectorType& rResult,
       ProcessInfo& rCurrentProcessInfo);
+
+  /**
+  * Sets on rElementalDofList the degrees of freedom of the considered element
+  * geometry
+  */
 
   void GetDofList(DofsVectorType& rElementalDofList,
       ProcessInfo& rCurrentProcessInfo);
@@ -148,6 +167,13 @@ class StructuralMeshMovingElement : public Element {
   MatrixType SetAndModifyConstitutiveLaw(const int &dimension, const double& rPointNumber);
 
   MatrixType CalculateBMatrix(const int &dimension, const double& rPointNumber);
+
+  void CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector);
+
+  void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+
+  void CalculateAndAddRHS(VectorType& rRightHandSideVector);
 
   ///@}
   ///@name Access
@@ -187,7 +213,6 @@ protected:
    */
   void GetDisplacementValues(VectorType& rValues,
       const int Step = 0);
-
   ///@}
   ///@name Protected  Access
   ///@{
@@ -209,6 +234,7 @@ private:
   GeometryType::JacobiansType mInvJ0;
   VectorType mDetJ0;
   double mTotalDomainInitialSize;
+  SizeType mLocalSize;
   ///@}
   ///@name Member Variables
   ///@{
@@ -259,4 +285,3 @@ private:
   // namespace Kratos.
 
 #endif // KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED
-
