@@ -178,6 +178,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
@@ -196,48 +198,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
         array_1d<double, TNumNodes> aux_int_friction = ZeroVector(TNumNodes);
         
         double total_weight = 0.0;
-        double prop_weight  = 0.0;
-        
-        // Calculating the proportion between the integrated area and segment area
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            const double IntegrationWeight = integration_points[PointNumber].Weight();
-            prop_weight += IntegrationWeight;
-            if (inside == true)
-            {   
-                total_weight += IntegrationWeight;
-            }
-        }
-        
-        if (total_weight > 0.0)
-        {
-            prop_weight /= total_weight;
-        }
-            
-        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
-        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            if (inside == true)
-            {   
-                const double IntegrationWeight = integration_points[PointNumber].Weight();
-                this->CalculateDeltaAeComponents(rVariables, rContactData, prop_weight * IntegrationWeight);
-            }
-        }
-        
-        // We can consider the pair if at least one of the collocation point is inside 
-        if (total_weight > 0.0)
-        {
-            this->CalculateDeltaAe(rContactData);
-            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
-        }
-        
+
         // Integrating the LHS and RHS
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
@@ -250,6 +211,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
             if (inside == true)
             {
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
 
                 // The slip of th GP
                 double integration_point_slip;
@@ -993,6 +955,8 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                                                                                   
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Initialize general variables for the current master element
@@ -1005,47 +969,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
         double total_weight = 0.0;
-        double prop_weight  = 0.0;
-        
-        // Calculating the proportion between the integrated area and segment area
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            const double IntegrationWeight = integration_points[PointNumber].Weight();
-            prop_weight += IntegrationWeight;
-            if (inside == true)
-            {   
-                total_weight += IntegrationWeight;
-            }
-        }
-        
-        if (total_weight > 0.0)
-        {
-            prop_weight /= total_weight;
-        }
-        
-        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
-        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            if (inside == true)
-            {   
-                const double IntegrationWeight = integration_points[PointNumber].Weight();
-                this->CalculateDeltaAeComponents(rVariables, rContactData, prop_weight * IntegrationWeight);
-            }
-        }
-        
-        // We can consider the pair if at least one of the collocation point is inside 
-        if (total_weight > 0.0)
-        {
-            this->CalculateDeltaAe(rContactData);
-            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
-        }
         
         // Integrating the LHS and RHS
         bounded_matrix<double, TMatrixSize, TMatrixSize> LHS_contact_pair = ZeroMatrix(TMatrixSize, TMatrixSize);
@@ -1064,6 +987,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
             if (inside == true)
             {   
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
 
                 // The normal LM augmented
                 double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
@@ -1207,6 +1131,55 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
         {
             rContactData.epsilon = GetProperties().GetValue(DOUBLE_LM_FACTOR);
         }
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
+    ContactData& rContactData,
+    GeneralVariables& rVariables,
+    const GeometryType::IntegrationPointsArrayType& integration_points,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    double total_weight = 0.0; // NOTE: The integral is supposed to be in the domain partially integrated, I don't know if consider any additional thing for the partial integration
+    
+    rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
+    {   
+        // Initialize general variables for the current master element
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
+        
+        // Update the contact data
+        this->UpdateContactData(rContactData, PairIndex);
+         
+        // Master segment info
+        const GeometryType& current_master_element = rVariables.GetMasterElement( );
+            
+        // Calculating the proportion between the integrated area and segment area
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            // Calculate the kinematic variables
+            bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
+            
+            if (inside == true)
+            {   
+                const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
+                this->CalculateDeltaAeComponents(rVariables, rContactData, IntegrationWeight);
+            }
+        }
+    }
+    
+    // We can consider the pair if at least one of the collocation point is inside 
+    if (total_weight > 0.0)
+    {
+        this->CalculateDeltaAe(rContactData);
+        rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
     }
 }
 
@@ -2709,6 +2682,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Initialize general variables for the current master element
@@ -2719,49 +2694,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
         
         // Master segment info
         const GeometryType& current_master_element = rVariables.GetMasterElement( );
-        
-        double total_weight = 0.0;
-        double prop_weight  = 0.0;
-        
-        // Calculating the proportion between the integrated area and segment area
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            const double IntegrationWeight = integration_points[PointNumber].Weight();
-            prop_weight += IntegrationWeight;
-            if (inside == true)
-            {   
-                total_weight += IntegrationWeight;
-            }
-        }
-        
-        if (total_weight > 0.0)
-        {
-            prop_weight /= total_weight;
-        }
-        
-        // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
-        rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
-            // Calculate the kinematic variables
-            const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            if (inside == true)
-            {   
-                const double IntegrationWeight = integration_points[PointNumber].Weight();
-                this->CalculateDeltaAeComponents(rVariables, rContactData, prop_weight * IntegrationWeight);
-            }
-        }
-        
-        // We can consider the pair if at least one of the collocation point is inside 
-        if (total_weight > 0.0)
-        {
-            this->CalculateDeltaAe(rContactData);
-            rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
-        }
         
         // Calculating the values
         for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
@@ -2852,6 +2784,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    
     if (rVariable == NORMAL_GP || rVariable == TANGENT_GP)
     {
         if (mPairSize > 0)
@@ -2895,49 +2829,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
             
             // Master segment info
             const GeometryType& current_master_element = rVariables.GetMasterElement( );
-            
-            double total_weight = 0.0;
-            double prop_weight  = 0.0;
-        
-            // Calculating the proportion between the integrated area and segment area
-            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-            {
-                // Calculate the kinematic variables
-                const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-                
-                const double IntegrationWeight = integration_points[PointNumber].Weight();
-                prop_weight += IntegrationWeight;
-                if (inside == true)
-                {   
-                    total_weight += IntegrationWeight;
-                }
-            }
-            
-            if (total_weight > 0.0)
-            {
-                prop_weight /= total_weight;
-            }
-            
-            // Integrating the Ae derivative (needed for a consistent linearization using the dual LM) // NOTE: Can be very time consuming 
-            rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
-            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-            {
-                // Calculate the kinematic variables
-                const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-                
-                if (inside == true)
-                {   
-                    const double IntegrationWeight = integration_points[PointNumber].Weight();                
-                    this->CalculateDeltaAeComponents(rVariables, rContactData, prop_weight * IntegrationWeight);
-                }
-            }
-            
-            // We can consider the pair if at least one of the collocation point is inside 
-            if (total_weight > 0.0)
-            {
-                this->CalculateDeltaAe(rContactData);
-                rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
-            }
             
             // Calculating the values
             for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )

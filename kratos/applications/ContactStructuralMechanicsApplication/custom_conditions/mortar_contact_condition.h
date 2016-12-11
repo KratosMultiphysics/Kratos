@@ -964,6 +964,16 @@ protected:
         );
     
     /**
+     * Calculate Ae and DeltaAe matrices
+     */
+    void CalculateAeAndDeltaAe( 
+        ContactData& rContactData,
+        GeneralVariables& rVariables,
+        const GeometryType::IntegrationPointsArrayType& integration_points,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+    
+    /**
      * Initialize General Variables
      */
     void UpdateContactData( 
