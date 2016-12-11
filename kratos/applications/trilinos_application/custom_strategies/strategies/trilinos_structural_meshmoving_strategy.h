@@ -167,8 +167,8 @@ class TrilinosStructuralMeshMovingStrategy : public SolvingStrategy<
           i != (*mpMeshModelPart).NodesEnd(); ++i)
       {
         array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
         noalias(mesh_v) = disp - dispold;
         mesh_v *= coeff;
       }
@@ -183,9 +183,9 @@ class TrilinosStructuralMeshMovingStrategy : public SolvingStrategy<
           i != (*mpMeshModelPart).NodesEnd(); ++i)
       {
         array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(DISPLACEMENT);
-        noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-        noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(DISPLACEMENT,2);
+        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
+        noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,2);
       }
     }
 
@@ -199,8 +199,13 @@ class TrilinosStructuralMeshMovingStrategy : public SolvingStrategy<
 
   void MoveNodes()
   {
-    CalculateMeshVelocities();
-    BaseType::MoveMesh();
+    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
+            i != BaseType::GetModelPart().NodesEnd(); ++i)
+    {
+        (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
+        (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
+        (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
+    }
   }
 
   /*@} */
@@ -345,4 +350,3 @@ private:
 /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_MESHMOVING_STRATEGY  defined */
-

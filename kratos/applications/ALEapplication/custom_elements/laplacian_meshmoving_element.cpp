@@ -1,21 +1,19 @@
+// ==============================================================================
 /*
- ==============================================================================
- KratosALEApplication
+ KratosALEApllication
  A library based on:
  Kratos
  A General Purpose Software for Multi-Physics Finite Element Analysis
- Version 1.0 (Released on march 05, 2007).
+ (Released on march 05, 2007).
 
- Copyright 2007
- Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
- pooyan@cimne.upc.edu
- rrossi@cimne.upc.edu
- janosch.stascheit@rub.de
- nagel@sd.rub.de
- - CIMNE (International Center for Numerical Methods in Engineering),
- Gran Capita' s/n, 08034 Barcelona, Spain
- - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
+ Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
+                     pooyan@cimne.upc.edu
+                     rrossi@cimne.upc.edu
+                     a.winterstein@tum.de
+- CIMNE (International Center for Numerical Methods in Engineering),
+  Gran Capita' s/n, 08034 Barcelona, Spain
+- Chair of Structural Analysis, Technical University of Munich
+  Arcisstrasse 21 80333 Munich, Germany
 
  Permission is hereby granted, free  of charge, to any person obtaining
  a  copy  of this  software  and  associated  documentation files  (the
@@ -38,9 +36,8 @@
  CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
  TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
- ==============================================================================
- */
+*/
+//==============================================================================
 
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
@@ -139,8 +136,8 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
   for (SizeType iNode = 0; iNode < NumNodes; ++iNode) {
 
     const VectorType& displacement = GetGeometry()[iNode]
-        .FastGetSolutionStepValue(DISPLACEMENT, 0)
-        - GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT, 1);
+        .FastGetSolutionStepValue(MESH_DISPLACEMENT, 0)
+        - GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
     IntermediateDisplacements[iNode] = displacement[ComponentIndex];
   }
 
@@ -203,10 +200,10 @@ void LaplacianMeshMovingElement::EquationIdVector(
   for (SizeType iNode = 0; iNode < NumNodes; ++iNode) {
 
     SizeType Index = iNode * dimension;
-    rResult[Index] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
-    rResult[Index + 1] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
+    rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X).EquationId();
+    rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y).EquationId();
     if (dimension == 3)
-      rResult[Index + 2] = rGeom[iNode].GetDof(DISPLACEMENT_Z).EquationId();
+      rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z).EquationId();
   }
 }
 
@@ -225,13 +222,12 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
 
     SizeType Index = iNode * dimension;
 
-    rElementalDofList[Index] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
-    rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
+    rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
+    rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
     if (dimension == 3)
-      rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(DISPLACEMENT_Z);
+      rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
 
   }
 }
 
 }  // Namespace Kratos
-

@@ -1,3 +1,44 @@
+// ==============================================================================
+/*
+ KratosALEApllication
+ A library based on:
+ Kratos
+ A General Purpose Software for Multi-Physics Finite Element Analysis
+ (Released on march 05, 2007).
+
+ Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
+                     pooyan@cimne.upc.edu
+                     rrossi@cimne.upc.edu
+                     a.winterstein@tum.de
+- CIMNE (International Center for Numerical Methods in Engineering),
+  Gran Capita' s/n, 08034 Barcelona, Spain
+- Chair of Structural Analysis, Technical University of Munich
+  Arcisstrasse 21 80333 Munich, Germany
+
+ Permission is hereby granted, free  of charge, to any person obtaining
+ a  copy  of this  software  and  associated  documentation files  (the
+ "Software"), to  deal in  the Software without  restriction, including
+ without limitation  the rights to  use, copy, modify,  merge, publish,
+ distribute,  sublicense and/or  sell copies  of the  Software,  and to
+ permit persons to whom the Software  is furnished to do so, subject to
+ the following condition:
+
+ Distribution of this code for  any  commercial purpose  is permissible
+ ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+ The  above  copyright  notice  and  this permission  notice  shall  be
+ included in all copies or substantial portions of the Software.
+
+ THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+//==============================================================================
+
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
  *  Last Modified by:    $Author: A.Winterstein@tum.de $
@@ -13,7 +54,6 @@
 /* External includes */
 #include "spaces/ublas_space.h"
 
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -22,6 +62,9 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_elements/structural_meshmoving_element.h"
+#include "processes/find_nodal_neighbours_process.h"
+
+#include "ale_application.h"
 
 namespace Kratos {
 
@@ -72,9 +115,9 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
   StructuralMeshMovingStrategy(
       ModelPart& model_part,
       typename TLinearSolver::Pointer pNewLinearSolver,
-      int velocity_order = 1,
-      bool reform_dof_at_every_step = false
-
+      int velocity_order = 2,
+      bool reform_dof_at_every_step = false,
+      bool compute_reactions = false
   )
   : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part)
   {
@@ -86,21 +129,23 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     mreform_dof_at_every_step = reform_dof_at_every_step;
 
     typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
+    //typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
         ( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
-    bool CalculateReactions = false;
+    //bool CalculateReactions = false;
     bool ReformDofAtEachIteration = false;
     bool CalculateNormDxFlag = false;
+    bool compute_reactions = false;
 
     BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer
         (new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
 
     mstrategy = typename BaseType::Pointer
         ( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >
-    (*mpMeshModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+    (*mpMeshModelPart,pscheme,pNewLinearSolver,pBuilderSolver,compute_reactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
     KRATOS_CATCH("")
   }
@@ -113,6 +158,7 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
   {
     KRATOS_TRY;
 
+
     // Setting mesh to initial configuration
     for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd(); ++i){
 
@@ -121,12 +167,13 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
       (i)->Z() = (i)->Z0();
     }
 
+
     // Solve for the mesh movement
     mstrategy->Solve();
 
     // Update FEM-base
     CalculateMeshVelocities();
-    BaseType::MoveMesh();
+    MoveNodes();
 
     // Clearing the system if needed
     if(mreform_dof_at_every_step == true)
@@ -154,8 +201,8 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
           i != (*mpMeshModelPart).NodesEnd(); ++i){
 
         array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
         noalias(mesh_v) = disp - dispold;
         mesh_v *= coeff;
       }
@@ -170,9 +217,9 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
           i != (*mpMeshModelPart).NodesEnd(); ++i){
 
         array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(DISPLACEMENT);
-        noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-        noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(DISPLACEMENT,2);
+        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,1);
+        noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT,2);
       }
     }
 
@@ -186,9 +233,26 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
   void MoveNodes()
   {
-    CalculateMeshVelocities();
-    BaseType::MoveMesh();
+    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
+            i != BaseType::GetModelPart().NodesEnd(); ++i)
+    {
+        (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
+        (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
+        (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
+    }
   }
+
+
+  void UpdateReferenceMesh()
+{
+  for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
+          i != BaseType::GetModelPart().NodesEnd(); ++i)
+  {
+      (i)->X0() = (i)->X();
+      (i)->Y0() = (i)->Y();
+      (i)->Z0() = (i)->Z();
+  }
+}
 
   /*@} */
   /**@name Operators
@@ -320,4 +384,3 @@ private:
 /* namespace Kratos.*/
 
 #endif /* KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY  defined */
-
