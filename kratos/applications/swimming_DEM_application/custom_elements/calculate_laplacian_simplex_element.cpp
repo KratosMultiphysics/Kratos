@@ -71,17 +71,22 @@ void ComputeLaplacianSimplex<3,4>::AddRHSLaplacian(VectorType& F,
     array_1d<double, 3 > Velocity;
 
     int LocalIndex = 0;
-    int LocalNodalIndex = 0;
+    for (unsigned int iNodeB = 0; iNodeB < 4; ++iNodeB){
 
-    for (unsigned int iNode = 0; iNode < 4; ++iNode)
-    {
-        Velocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < 3; ++d)
-        {
-            F[LocalIndex++] -= Coef * rShapeDeriv(LocalNodalIndex, d) * Velocity[d] * rShapeDeriv(iNode, d);
+        for (unsigned int dj = 0; dj < 3; ++dj){
+            double value = 0.0;
+
+            for (unsigned int iNodeA = 0; iNodeA < 4; ++iNodeA){
+                Velocity = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY);
+
+                for (unsigned int di = 0; di < 3; ++di){
+                    value -= rShapeDeriv(iNodeB, di) * Velocity[dj] * rShapeDeriv(iNodeA, di);
+                }
+            }
+
+            F[LocalIndex++] += Coef * value;
         }
-        LocalNodalIndex++;
     }
 }
 
-}
+} // namespace Kratos
