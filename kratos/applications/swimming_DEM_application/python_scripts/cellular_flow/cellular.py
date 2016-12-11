@@ -735,7 +735,7 @@ if pp.CFD_DEM.drag_force_type == 9:
 #G
 post_process_model_part = ModelPart("PostFluidPart")
 model_part_cloner = ConnectivityPreserveModeler()
-model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "WallCondition3D")
+model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
 import derivative_recovery_solver
 derivative_recovery_solver.AddVariables(post_process_model_part)
 derivative_recovery_solver.AddDofs(post_process_model_part)
@@ -810,6 +810,9 @@ while (time <= final_time):
                 node.SetSolutionStepValue(VELOCITY_X, vel[0])
                 node.SetSolutionStepValue(VELOCITY_Y, vel[1])
                 node.SetSolutionStepValue(VELOCITY_Z, vel[2])
+                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, 0.0)
+                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, 0.0)
+                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, 0.0)
                 #node.SetSolutionStepValue(VELOCITY_X, 7*node.X**2 + 6 * node.Y + 19)
                 #node.SetSolutionStepValue(VELOCITY_Y,  9 *node.X**2 - 8 * node.Y**2 +30*node.X)
                 #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
