@@ -699,7 +699,7 @@ if pp.CFD_DEM.perform_analytics_option:
     gauge.ConstructArrayOfNodes(condition)
     print(gauge.variables)
     print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
-# ANALYTICS END005
+# ANALYTICS END
 
 # NANO BEGIN
 if pp.CFD_DEM.drag_force_type == 9:
@@ -713,9 +713,10 @@ if pp.CFD_DEM.drag_force_type == 9:
 #G
 post_process_model_part = ModelPart("PostFluidPart")
 model_part_cloner = ConnectivityPreserveModeler()
-post_reference_element = ComputeLaplacianSimplex()
-post_reference_condition = ComputeLaplacianSimplexCondition()
-model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, post_reference_element, post_reference_condition)
+model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
+import derivative_recovery_solver
+derivative_recovery_solver.AddVariables(post_process_model_part)
+derivative_recovery_solver.AddDofs(post_process_model_part)
 linear_solver = CGSolver()
 scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
@@ -771,14 +772,11 @@ while (time <= final_time):
                 current_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
-                fractional_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
-                post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
                 post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = fractional_step
                 
     # assessing stationarity
 
