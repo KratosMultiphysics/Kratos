@@ -150,13 +150,13 @@ proc Kratos::RestoreVariables { } {
     variable kratos_private
     
     foreach {k v} $kratos_private(RestoreVars) {
-        set k $v
+        set $k $v
     }
     set kratos_private(RestoreVars) [list ]
 }
 proc Kratos::AddRestoreVar {varName} {
     variable kratos_private
-    set val $$varName
+    set val [set $varName]
     lappend kratos_private(RestoreVars) $varName $val
 }
 
