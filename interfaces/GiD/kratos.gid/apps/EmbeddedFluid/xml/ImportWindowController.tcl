@@ -31,6 +31,9 @@ proc EmbeddedFluid::xml::ImportMeshWindow { } {
     GiD_EntitiesGroups assign $model_name lines [GiD_EntitiesLayers get $model_name lines]
     GiD_EntitiesGroups assign $model_name points [GiD_EntitiesLayers get $model_name points]
     
+    GiD_Process Mescape Meshing AssignSizes Surfaces $EmbeddedFluid::xml::lastImportMeshSize selection {*}[GiD_EntitiesLayers get $model_name surfaces] MEscape 
+
+    
     GidUtils::EnableGraphics
     GidUtils::UpdateWindow GROUPS
     GidUtils::UpdateWindow LAYER
@@ -42,16 +45,16 @@ proc EmbeddedFluid::xml::ImportMeshWindow { } {
     set basepath [spdAux::getRoute EMBFLImportedParts]
     set gNode [spdAux::AddConditionGroupOnXPath $basepath $model_name]
     set xpath [$gNode toXPath]
-    gid_groups_conds::addF $xpath value [list n MeshSize pn {Mesh size} v $EmbeddedFluid::xml::lastImportMeshSize]
+    gid_groups_conds::addF $xpath value [list n MeshSize pn {Mesh size} v $EmbeddedFluid::xml::lastImportMeshSize state disabled]
     [$gNode parent] setAttribute tree_state open
     $gNode setAttribute open_window 1
     spdAux::RequestRefresh
 }
 
 proc EmbeddedFluid::xml::MoreImportOptions { f } {
-    #variable _merge 
+    if {$EmbeddedFluid::xml::lastImportMeshSize == 0} {set EmbeddedFluid::xml::lastImportMeshSize 0.5}
     ttk::label $f.lblGeometry -text [= "Mesh size"]:
-    ttk::entry $f.entGeometry -textvariable EmbeddedFluid::xml::lastImportMeshSize  
+    ttk::entry $f.entGeometry -textvariable EmbeddedFluid::xml::lastImportMeshSize
     grid columnconfigure $f 1 -weight 1
     grid $f.lblGeometry $f.entGeometry -sticky w 
 
