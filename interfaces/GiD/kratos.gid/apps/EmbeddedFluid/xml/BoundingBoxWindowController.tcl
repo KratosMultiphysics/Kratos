@@ -32,7 +32,7 @@ proc EmbeddedFluid::xml::BoundingBox::CreateWindow { } {
     wm resizable $w 1 1
     wm deiconify $w
     wm title $w [= "Bounding box window"]
-    set Delta 30
+    wm attribute $w -topmost 1
     
     EmbeddedFluid::xml::BoundingBox::RefreshWindow 
 }
