@@ -111,12 +111,14 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         # Prepare modelparts
         spheres_model_part    = ModelPart("SpheresPart")
-        rigid_face_model_part = ModelPart("RigidFace_Part")
-        cluster_model_part    = ModelPart("Cluster_Part")
+        rigid_face_model_part = ModelPart("RigidFacePart")
+        cluster_model_part    = ModelPart("ClusterPart")
         DEM_inlet_model_part  = ModelPart("DEMInletPart")
-        mapping_model_part    = ModelPart("Mappingmodel_part")
+        mapping_model_part    = ModelPart("MappingPart")
+        contact_model_part    = ModelPart("ContactPart")
+        all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
 
-        # Constructing utilities objects
+# Constructing a utilities objects
         creator_destructor = ParticleCreatorDestructor()
         dem_fem_search = DEM_FEM_Search()
         
@@ -136,7 +138,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
 
         # Creating a solver object and set the search strategy
-        solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+        solver = SolverStrategy.ExplicitStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
         
         procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 
@@ -199,7 +201,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         demio.Initialize(DEM_parameters)
 
         os.chdir(post_path)
-        demio.InitializeMesh(spheres_model_part,rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part)
+        demio.InitializeMesh(all_model_parts)
 
         # Perform a partition to balance the problem
         solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
