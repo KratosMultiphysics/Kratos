@@ -15,6 +15,7 @@ proc InitGIDProject { dir } {
 }
 
 proc EndGIDProject {} {
+    Kratos::RestoreVariables
     Kratos::DestroyWindows
     spdAux::EndRefreshTree
     Kratos::RegisterEnvironment
@@ -97,6 +98,7 @@ proc Kratos::InitGIDProject { dir } {
     set kratos_private(Path) $dir ;#to know where to find the files
     set kratos_private(DevMode) "release" ; #can be dev or release
     set kratos_private(MenuItems) [dict create]
+    set kratos_private(RestoreVars) [list ]
     array set kratos_private [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Name Version MinimumGiDVersion}]
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
         WarnWin [_ "Error: %s Interface requires GiD %s or later." $kratos_private(Name) $kratos_private(MinimumGiDVersion)]
@@ -142,6 +144,20 @@ proc Kratos::InitGIDProject { dir } {
     
     after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
+}
+
+proc Kratos::RestoreVariables { } {
+    variable kratos_private
+    
+    foreach {k v} $kratos_private(RestoreVars) {
+        set k $v
+    }
+    set kratos_private(RestoreVars) [list ]
+}
+proc Kratos::AddRestoreVar {varName} {
+    variable kratos_private
+    set val $$varName
+    lappend kratos_private(RestoreVars) $varName $val
 }
 
 proc Kratos::DestroyWindows {} {
