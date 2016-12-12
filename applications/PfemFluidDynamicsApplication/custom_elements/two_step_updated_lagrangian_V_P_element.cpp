@@ -597,7 +597,7 @@ namespace Kratos {
    
 
     }else{
-      int numBoundary=0;
+      unsigned int numBoundary=0; 
       for (SizeType n = 0; n < NumNodes; ++n)
 	{
 	  if(rGeom[n].Is(BOUNDARY)){
