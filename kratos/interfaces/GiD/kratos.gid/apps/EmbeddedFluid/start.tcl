@@ -28,6 +28,9 @@ proc ::EmbeddedFluid::Init { } {
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     LoadMyFiles
+    Kratos::AddRestoreVar "::GidPriv(DuplicateEntities)"
+    set ::GidPriv(DuplicateEntities) 1
+
     #::spdAux::CreateDimensionWindow
 }
 
@@ -49,6 +52,7 @@ proc ::EmbeddedFluid::GetAttribute {name} {
 
 proc ::EmbeddedFluid::CustomToolbarItems { } {
     Kratos::ToolbarAddItem "ImportMesh" "Import.png" [list -np- EmbeddedFluid::xml::ImportMeshWindow] [= "Import embedded mesh"]   
+    Kratos::ToolbarAddItem "Move" "move.png" [list -np- CopyMove Move] [= "Move the geometry/mesh"]   
 }
 
 proc ::EmbeddedFluid::BeforeMeshGeneration {elementsize} {
