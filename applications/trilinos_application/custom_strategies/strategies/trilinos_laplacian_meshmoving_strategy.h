@@ -23,6 +23,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "../ALEapplication/ale_application.h"
+#include "../ALEapplication/ale_application_variables.h"
 #include "../ALEapplication/custom_elements/laplacian_meshmoving_element.h"
 
 

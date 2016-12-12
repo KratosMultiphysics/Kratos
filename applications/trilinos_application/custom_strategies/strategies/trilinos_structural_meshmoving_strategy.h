@@ -18,6 +18,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "../ALEapplication/ale_application.h"
+#include "../ALEapplication/ale_application_variables.h"
 #include "../ALEapplication/custom_elements/structural_meshmoving_element.h"
 
 /* Trilinos includes */
