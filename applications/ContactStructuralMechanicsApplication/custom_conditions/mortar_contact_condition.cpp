@@ -113,7 +113,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSolutionStep( P
     const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
     mPairSize = all_containers->size();
 //     mThisMasterElements.clear(); // NOTE: Be careful, this calls the destructor
-    mThisMasterElements.resize( mPairSize, false );
+    mThisMasterElements.resize( mPairSize );
     
     for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
     {
