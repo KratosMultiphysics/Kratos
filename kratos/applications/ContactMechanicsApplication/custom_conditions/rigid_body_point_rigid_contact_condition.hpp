@@ -13,16 +13,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-
-#include "custom_bounding/spatial_bounding_box.hpp"
+#include "custom_conditions/point_rigid_contact_condition.hpp"
 
 namespace Kratos
 {
@@ -48,7 +41,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 class RigidBodyPointRigidContactCondition
-    : public Condition
+    : public PointRigidContactCondition
 {
 public:
 
@@ -63,141 +56,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointRigidContactCondition );
     ///@}
 
-protected:
-
-    /**
-     * Flags related to the condition computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
-
-    /**
-     * Parameters to be used in the Condition as they are. 
-     */
-
-   typedef struct
-    {
-        PointType Normal;        //normal direction
-        PointType Tangent;       //tangent direction
-	   
-    } SurfaceVector;
-
-    typedef struct
-    {
-        double Normal;        //normal component 
-        double Tangent;       //tangent component
-        	   
-    } SurfaceScalar;
-
-    typedef struct
-    {
-      Flags           Options;               //calculation options
-      
-      //Geometrical gaps:
-      SurfaceScalar   Gap;                   //normal and tangential gap
-
-      //Friction:
-      PointType       RelativeDisplacement;  //relative displacement
-      double          FrictionCoefficient;   //total friction coeffitient mu
-
-      SurfaceScalar   Penalty;               //Penalty Parameter normal and tangent
-
-      //Geometric variables
-      SurfaceVector   Surface;               //normal and tangent vector to the surface
-      
-      
-      PointType      CentroidPosition;
-      double          CentroidDistance;
-
-      Matrix          SkewSymDistance;
-
-      //for axisymmetric use only
-      double  CurrentRadius;
-      double  ReferenceRadius;
-
-
-    } GeneralVariables;
-
-
-
-    typedef struct
-     {
-        bool   Slip;
-        double Sign; 
-       
-        double DeltaTime; 
-        double PreviousTangentForceModulus;
-
-        double FrictionCoefficient;
-        double DynamicFrictionCoefficient;
-        double StaticFrictionCoefficient;
-
-     } TangentialContactVariables;
-
-    /**
-     * This struct is used in the component wise calculation only
-     * is defined here and is used to declare a member variable in the component wise condition
-     * private pointers can only be accessed by means of set and get functions
-     * this allows to set and not copy the local system variables
-     */
-
-    struct LocalSystemComponents
-    {
-    private:
-      
-      //for calculation local system with compacted LHS and RHS 
-      MatrixType *mpLeftHandSideMatrix;
-      VectorType *mpRightHandSideVector;
-
-      //for calculation local system with LHS and RHS components 
-      std::vector<MatrixType> *mpLeftHandSideMatrices;
-      std::vector<VectorType> *mpRightHandSideVectors;
-
-      //LHS variable components 
-      const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
-
-      //RHS variable components 
-      const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
-
-    
-    public:
-
-      //calculation flags
-      Flags  CalculationFlags;
-
-      /**
-       * sets the value of a specified pointer variable
-       */
-      void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-      void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
-
-      void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-      void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
-
- 
-      /**
-       * returns the value of a specified pointer variable
-       */
-      MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-      std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
-
-      VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-      std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
-
-    };
-
-
-public:
-
-
     ///@name Life Cycle
     ///@{
 
@@ -205,7 +63,6 @@ public:
     RigidBodyPointRigidContactCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
     RigidBodyPointRigidContactCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
-
 
     RigidBodyPointRigidContactCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall );
 
@@ -247,33 +104,6 @@ public:
 			     NodesArrayType const& ThisNodes) const;
 
 
-    //************* STARTING - ENDING  METHODS
-
-
-    /**
-     * Called at the beginning of each iteration
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the end of each iteration
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the end of each solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-
     //************* GETTING METHODS
 
     /**
@@ -307,77 +137,6 @@ public:
 				    int Step = 0 );
 
 
-    //************* COMPUTING  METHODS
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate all condition contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the condition left hand side matrix
-     * @param rRightHandSideVector: the condition right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo );
-
-
-    /**
-     * this function provides a more general interface to the condition.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-			      const std::vector< Variable< MatrixType > >& rLHSVariables,
-			      std::vector< VectorType >& rRightHandSideVectors,
-			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the condition right hand side vector only
-      * @param rRightHandSideVector: the condition right hand side vector
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo );
-
-
-    /**
-     * this function provides a more general interface to the condition.
-     * it is designed so that rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the condition mass matrix
-      * @param rMassMatrix: the condition mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo );
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the condition damping matrix
-      * @param rDampingMatrix: the condition damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo );
-
     /**
      * this function is designed to make the element to assemble an rRHS vector
      * identified by a variable rRHSVariable by assembling it to the nodes on the variable
@@ -402,14 +161,6 @@ public:
      * @param rCurrentProcessInfo
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo );
-
-
-    /**
-     * Rigid Contact Condition has a spatial bounding box defining the rigid wall properites
-     * it must be set and it is a member pointer variable
-     */
-    void SetRigidWall(SpatialBoundingBox::Pointer pRigidWall);
-
 
     ///@}
     ///@name Access
@@ -440,9 +191,6 @@ protected:
     SpatialBoundingBox::Pointer mpRigidWall;
 
 
-    TangentialContactVariables mTangentialVariables;
-
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -450,11 +198,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
+  
     /**
      * Initialize System Matrices
      */
@@ -464,46 +208,13 @@ protected:
 					  Flags& rCalculationFlags);
 
     /**
-     * Initialize General Variables
-     */
-    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
-
-    /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
-    /**
-     * Calculates the condition contributions
-     */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-				    double& rIntegrationWeight);
-
-
+ 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
@@ -534,7 +245,7 @@ protected:
     
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
 
-    double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
+    double CalculateFrictionCoefficient( const double& rTangentRelativeMovement, const double& rDeltaTime );
 
 
     /**

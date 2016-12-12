@@ -26,7 +26,6 @@ namespace Kratos
          pGeometry)
       : AxisymPointRigidContactPenalty2DCondition(NewId, pGeometry)
    {
-      //DO NOT ADD DOFS HERE!!!
    }
 
    //************************************************************************************
@@ -258,8 +257,6 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      mTangentialVariables.IntegrationWeight = rIntegrationWeight;
-
       MatrixType InitialMatrix = rLeftHandSideMatrix;
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -279,7 +276,7 @@ namespace Kratos
       if( fabs(TangentForceModulus) >= 1e-25 ){
 
          // PLASTIC
-         if ( mTangentialVariables.Slip ) {
+         if ( rVariables.Slip ) {
 
 
             if ( rVariables.Penalty.Tangent < 1e-6)
@@ -288,10 +285,10 @@ namespace Kratos
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
             Matrix  TangentMatrix = ZeroMatrix(dimension,dimension);
 
-            TangentMatrix = rVariables.TangentMatrix.Normal * ( rVariables.Penalty.Normal / mTangentialVariables.Neighb_distance) * outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ;
+            TangentMatrix = rVariables.TangentMatrix.Normal * ( rVariables.Penalty.Normal / rVariables.ContributoryFactor) * outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ;
             TangentMatrix += rVariables.TangentMatrix.Tangent * outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
-            TangentMatrix *= mTangentialVariables.Sign * rIntegrationWeight * mTangentialVariables.Neighb_distance ;
+            TangentMatrix *= rIntegrationWeight * rVariables.ContributoryFactor;
             for (unsigned int i = 0; i < MatSize-1; i++){
                for (unsigned int j = 0; j < MatSize-1; j++){
                   rLeftHandSideMatrix(i,j) -= TangentMatrix(i,j);
@@ -300,7 +297,7 @@ namespace Kratos
 
             // and now the water pressure part
             for (unsigned int i = 0; i < MatSize-1; i++) {
-               WaterMatrix(i, MatSize-1) += mTangentialVariables.Sign * rVariables.TangentMatrix.Normal * rVariables.Surface.Tangent(i) * rIntegrationWeight * mTangentialVariables.Neighb_distance ;
+               WaterMatrix(i, MatSize-1) += rVariables.TangentMatrix.Normal * rVariables.Surface.Tangent(i) * rIntegrationWeight * rVariables.ContributoryFactor ;
 
             }
             rLeftHandSideMatrix -= WaterMatrix;

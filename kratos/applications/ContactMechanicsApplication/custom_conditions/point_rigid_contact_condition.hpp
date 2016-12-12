@@ -100,32 +100,44 @@ protected:
       
       //Geometrical gaps:
       SurfaceScalar   Gap;                   //normal and tangential gap
+      double          ContributoryFactor;    //distance to neighbour points
 
       //Friction:
+      bool            Slip;                  //slip = true / stick = false
       PointType       RelativeDisplacement;  //relative point displacement
       double          FrictionCoefficient;   //total friction coeffitient mu
-
+      double          DeltaTime;             //time step
+      
       SurfaceScalar   Penalty;               //Penalty Parameter normal and tangent
 
       //Geometric variables
       SurfaceVector   Surface;               //normal and tangent vector to the surface
-
+          
       // Elasto-plastic constitutive matrix (axisym and PS) (Normal and Tangent stiffness)
       SurfaceScalar   TangentMatrix; 
-      
 
-       //for axisymmetric use only
+      //Contact stress
+      Vector ContactStressVector;
+      
+      //for axisymmetric use only
       double  CurrentRadius;
       double  ReferenceRadius;
+
+      //for rigid body
+      Matrix  SkewSymDistance;     //compute the skewsymmmetric tensor of the distance
 
       void Initialize()
       {
 	Gap.Normal  = 0;
 	Gap.Tangent = 0;
 
+	ContributoryFactor = 0;
+
 	RelativeDisplacement.resize(3);
 	noalias(RelativeDisplacement) = ZeroVector(3);
 
+	Slip = false;
+	DeltaTime = 0;
 	FrictionCoefficient = 0;
 	Penalty.Normal  = 0;
 	Penalty.Tangent = 0;
@@ -135,9 +147,12 @@ protected:
 	Surface.Tangent.resize(3);
 	noalias(Surface.Tangent) = ZeroVector(3);
 
+	SkewSymDistance.resize(3,3);
+	noalias(SkewSymDistance) =  ZeroMatrix(3,3);
+	
 	TangentMatrix.Normal = 0;
 	TangentMatrix.Tangent = 0;
-
+		
 	CurrentRadius = 0;
 	ReferenceRadius = 0;
       }
@@ -258,30 +273,31 @@ public:
 
 
     //************* STARTING - ENDING  METHODS
-
-
+  
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the end of each iteration
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
+    virtual void Initialize();
 
     /**
      * Called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Called at the beginning of each iteration
+     */
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Called at the end of each iteration
+     */
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Called at the end of each solution step
+     */
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     //************* GETTING METHODS
@@ -454,7 +470,17 @@ protected:
      */
     SpatialBoundingBox::Pointer mpRigidWall;
 
+
+    /**
+     * Pointer to the friction law
+     */
     FrictionLaw::Pointer mpFrictionLaw;
+
+
+    /**
+     * Contact stress tensor
+     */
+    Vector mContactStressVector;
   
     ///@}
     ///@name Protected Operators
@@ -588,6 +614,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
 	  //rSerializer.save("mpRigidWall",mpRigidWall); //rebuild in contact search and in restart
 	rSerializer.save("mpFrictionLaw",mpFrictionLaw);
+	rSerializer.save("mContactStressVector",mContactStressVector);
     }
 
     virtual void load( Serializer& rSerializer )
@@ -595,6 +622,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
 	  //rSerializer.load("mpRigidWall",mpRigidWall);
 	rSerializer.load("mpFrictionLaw",mpFrictionLaw);
+	rSerializer.load("mContactStressVector",mContactStressVector);
     }
 
     ///@}

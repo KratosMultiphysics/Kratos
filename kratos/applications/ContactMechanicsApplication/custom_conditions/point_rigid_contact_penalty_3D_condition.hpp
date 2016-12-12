@@ -45,28 +45,6 @@ namespace Kratos
 class PointRigidContactPenalty3DCondition
     : public PointRigidContactCondition
 {
-protected:
-
-    typedef struct
-     {
-        bool   Slip;
-        double Sign; 
-       
-        double DeltaTime; 
-        double PreviousTangentForceModulus;
-
-        double FrictionCoefficient;
-        double DynamicFrictionCoefficient;
-        double StaticFrictionCoefficient;
-        double IntegrationWeight;
-
-        double Cohesion;
-        double Neighb_distance; 
-
-     } TangentialContactVariables;
-
-
-
 public:
 
    ///@name Type Definitions
@@ -79,7 +57,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty3DCondition );
     ///@}
  
-    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -131,19 +108,6 @@ public:
     Condition::Pointer Clone(IndexType NewId, 
 			     NodesArrayType const& ThisNodes) const;
 
-    /**
-     * Called at the beginning of each step
-     */
-  
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the beginning of each iteration
-     */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-    ///@}
     ///@name Access
     ///@{
     ///@}
@@ -165,21 +129,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TangentialContactVariables mTangentialVariables;
-
     ///@}
     ///@name Protected Operators
     ///@{
-    ///@}
+
+  ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Initialize General Variables
-     */
-    void InitializeGeneralVariables(GeneralVariables& rVariables, 
-				    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
@@ -215,14 +171,16 @@ protected:
     virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
 
 
+
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
-    
+  
+    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, GeneralVariables& rVariables );    
+  
+
 
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
 
-    double CalculateEffectiveNormalForceModulus(const double&  rNormalForceModulus);
-
-    double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
+    double CalculateFrictionCoefficient(const double& rTangentRelativeMovement, const double& rDeltaTime);
 
 
     /**

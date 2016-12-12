@@ -19,20 +19,10 @@
 namespace Kratos
 {
 
-
-/**
- * Flags related to the condition computation
- */
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyPointRigidContactCondition, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyPointRigidContactCondition, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyPointRigidContactCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyPointRigidContactCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
-
 //***********************************************************************************
 //***********************************************************************************
 RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
+    : PointRigidContactCondition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -40,7 +30,7 @@ RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexTy
 //***********************************************************************************
 //***********************************************************************************
 RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+    : PointRigidContactCondition(NewId, pGeometry, pProperties)
 {
 
     //DO NOT ADD DOFS HERE!!!
@@ -50,7 +40,7 @@ RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexTy
 //************************************************************************************
 //************************************************************************************
 RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
-  : Condition(NewId, pGeometry, pProperties)
+  : PointRigidContactCondition(NewId, pGeometry, pProperties)
 {
     mpRigidWall = pRigidWall;
     
@@ -65,7 +55,7 @@ RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition(IndexTy
 //************************************************************************************
 //************************************************************************************
 RigidBodyPointRigidContactCondition::RigidBodyPointRigidContactCondition( RigidBodyPointRigidContactCondition const& rOther )
-    : Condition(rOther)
+    : PointRigidContactCondition(rOther)
     , mMasterElements(rOther.mMasterElements)
       
 {
@@ -173,29 +163,6 @@ void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rV
     KRATOS_CATCH( "" )
 }
 
-
-//************************************************************************************
-//************************************************************************************
-void RigidBodyPointRigidContactCondition::ClearNodalForces()
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	GetGeometry()[i].SetLock();
-	array_1d<double, 3> & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	ContactForce.clear();
-	GetGeometry()[i].UnSetLock();
-      }
-
-    //KRATOS_WATCH( " CLEAR NODAL FORCE " )
-
-    KRATOS_CATCH( "" )
-}
-
-
 //***********************************************************************************
 //***********************************************************************************
 
@@ -255,77 +222,6 @@ void RigidBodyPointRigidContactCondition::AddExplicitContribution(const VectorTy
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    GeneralVariables ContactVariables;
-
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
-    
-    if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
-           
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
-
-      mTangentialVariables.PreviousTangentForceModulus = 0.0;
-      for (unsigned int i = 0; i < dimension; ++i) {
-	mTangentialVariables.PreviousTangentForceModulus += ContactForce[i] * ContactVariables.Surface.Tangent[i];
-      }
-
-
-    }
-    else {
-      mTangentialVariables.PreviousTangentForceModulus = 0.0;
-    } 
-    
-    mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-
-    mTangentialVariables.Sign = 1;
-    
-    mTangentialVariables.FrictionCoefficient = 0.3;
-    mTangentialVariables.DynamicFrictionCoefficient = 0.3;
-    mTangentialVariables.StaticFrictionCoefficient  = 0.4;
-    
-    ClearNodalForces();
-    
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-void RigidBodyPointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-  
-  ClearNodalForces();
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
-{
-  KRATOS_TRY
-    
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-  
-  KRATOS_CATCH( "" )
-}
-
-
 //***********************************************************************************
 //***********************************************************************************
 
@@ -334,7 +230,6 @@ void RigidBodyPointRigidContactCondition::InitializeSystemMatrices(MatrixType& r
 								   Flags& rCalculationFlags)
 
 {
-
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -362,23 +257,12 @@ void RigidBodyPointRigidContactCondition::InitializeSystemMatrices(MatrixType& r
 }
 
 
-//***********************************************************************************
-//***********************************************************************************
-
-void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
- 
-    KRATOS_CATCH( "" )
-
-}
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-  void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
-{
+void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
+  {
     KRATOS_TRY
 
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
@@ -392,27 +276,6 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
       //get contact properties and parameters
       this->CalculateContactFactors( rVariables );
 
-      //get correct tangent vector
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      const array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-      const array_1d<double, 3> & PreviousDisplacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-      array_1d<double, 3 > DeltaDisplacement           = CurrentDisplacement-PreviousDisplacement;
- 
-      for (unsigned int i = 0; i < dimension ; ++i) {
-	rVariables.Surface.Tangent[i] = DeltaDisplacement[i] - mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity()[i];
-      }
-
-      if( norm_2(rVariables.Surface.Normal) )
-	rVariables.Surface.Normal /=  norm_2(rVariables.Surface.Normal);
-
-      rVariables.Surface.Tangent -= inner_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) * rVariables.Surface.Normal;
-
-      if( norm_2(rVariables.Surface.Tangent) )
-	rVariables.Surface.Tangent /=  norm_2(rVariables.Surface.Tangent);
-
-      rVariables.Surface.Tangent *= (-1); // for consistency in the tangent contact force direction
-
     }
     else{
       
@@ -420,8 +283,9 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
       
     }
 
+    rVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
     KRATOS_CATCH( "" )
-}
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -459,6 +323,8 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
 
     if( distance == 0 )
       distance = 1;
+
+    rVariables.ContributoryFactor = distance;
     
     //get contact properties and parameters
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
@@ -477,14 +343,11 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
 
-    rVariables.CentroidPosition =  GetGeometry()[0].Coordinates() - mMasterElements.front().GetGeometry()[0].Coordinates();
-    rVariables.CentroidDistance = norm_2(rVariables.CentroidPosition);
+    PointType CentroidPosition = GetGeometry()[0].Coordinates() - mMasterElements.front().GetGeometry()[0].Coordinates();
 
-
-    rVariables.SkewSymDistance = ZeroMatrix(3,3);
 
     //compute the skewsymmmetric tensor of the distance
-    this->VectorToSkewSymmetricTensor(rVariables.CentroidPosition, rVariables.SkewSymDistance);
+    this->VectorToSkewSymmetricTensor(CentroidPosition, rVariables.SkewSymDistance);
 
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
@@ -511,315 +374,13 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
       
    }
 
-  //************************************************************************************
-  //************************************************************************************
 
-  void RigidBodyPointRigidContactCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-								     ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    //create and initialize condition variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-    //reading integration points
-    for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
-    {
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,rCurrentProcessInfo,PointNumber);
-
-        //calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = 1;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-	if( Variables.Options.Is(ACTIVE) )
-	  rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1; 
-
-        if ( rLocalSystem.CalculationFlags.Is(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
-            //contributions to stiffness matrix calculated on the reference config
-	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
-        }
-
-        if ( rLocalSystem.CalculationFlags.Is(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
-            //contribution to external forces 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
-        }
-
-    }
-
-    KRATOS_CATCH( "" )
-}
 
 
 //************* COMPUTING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
-{
-
-  //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-    {
-      std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-      const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
-
-      for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  
-	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
-	    // operation performed: add Kg to the rLefsHandSideMatrix
-	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-
-	  if(calculated == false)
-	    {
-	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
-	    }
-
-	}
-    } 
-  else{
-    
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-
-    // operation performed: add Kg to the rLefsHandSideMatrix
-    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    //KRATOS_WATCH( rLeftHandSideMatrix )
-  }
-
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
-{
-    //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-    {
-
-      std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-      const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-      for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
-	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    this->CalculateAndAddContactForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-	  
-	  if(calculated == false)
-	    {
-	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
-	    }
-
-	}
-    }
-    else{
-      
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-
-      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-      this->CalculateAndAddContactForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-
-      //KRATOS_WATCH( rRightHandSideVector )
-
-    }
-    
-
-}
-
-//***********************************************************************************
-//************************************************************************************
-
-double& RigidBodyPointRigidContactCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-    return rIntegrationWeight;
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    //Initialize sizes for the system components:
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR);
-
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-    //KRATOS_WATCH( rLeftHandSideMatrix )
-    //KRATOS_WATCH( rRightHandSideVector )
-
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-					       const std::vector< Variable< MatrixType > >& rLHSVariables,
-					       std::vector< VectorType >& rRightHandSideVectors,
-					       const std::vector< Variable< VectorType > >& rRHSVariables,
-					       ProcessInfo& rCurrentProcessInfo )
-{
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-
-    //Initialize sizes for the system components:
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
-      rLeftHandSideMatrices.resize(rLHSVariables.size());
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX);
-    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
-      {
-	//Note: rRightHandSideVectors.size() > 0
-	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
-      }
-
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX,false);
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	//Note: rLeftHandSideMatrices.size() > 0
-    	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-
-    LocalSystem.CalculationFlags.Set(RigidBodyPointRigidContactCondition::COMPUTE_LHS_MATRIX,true);
-
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rMassMatrix.resize(0, 0, false);
-
-    KRATOS_CATCH( "" )
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rDampingMatrix.resize(0, 0, false);
-
-    KRATOS_CATCH( "" )
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 							      GeneralVariables& rVariables,
@@ -907,15 +468,15 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 
   if( fabs(TangentForceModulus) >= 1e-25 ){
        
-    if ( mTangentialVariables.Slip ) {
+    if ( rVariables.Slip ) {
       //simpler expression:
-      noalias(ForceMatrix) = mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+      noalias(ForceMatrix) = rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
-      noalias(ForceMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
+      noalias(ForceMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
 
       //extra term (2D)
       //if( dimension == 2 )
-	//noalias(ForceMatrix) -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+	//noalias(ForceMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 
 
     }
@@ -1124,24 +685,22 @@ double& RigidBodyPointRigidContactCondition::CalculateNormalForceModulus ( doubl
 
 double RigidBodyPointRigidContactCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
 {
-  mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
+  rVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement,rVariables.DeltaTime);
 
  
-  double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ mTangentialVariables.PreviousTangentForceModulus; 
+  double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ rVariables.PreviousTangentForceModulus; 
      
   //std::cout<<" Gap.Tangent "<<rVariables.Gap.Tangent<<std::endl;
 
  
-  if ( fabs(TangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) && fabs(rVariables.Gap.Tangent) > 1e-200) {
+  if ( fabs(TangentForceModulus) >  rVariables.FrictionCoefficient * fabs(rNormalForceModulus) && fabs(rVariables.Gap.Tangent) > 1e-200) {
 
-    mTangentialVariables.Sign =  rVariables.Gap.Tangent/ fabs( rVariables.Gap.Tangent ) ; 
-
-    TangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
-    mTangentialVariables.Slip = true;
+    TangentForceModulus = rVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
+    rVariables.Slip = true;
 
   }
   else {
-    mTangentialVariables.Slip = false;
+    rVariables.Slip = false;
   }
 
 
@@ -1153,13 +712,29 @@ double RigidBodyPointRigidContactCondition::CalculateCoulombsFrictionLaw(double 
 //**************************** Check friction coefficient ***************************
 //***********************************************************************************
 
-double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(double & rTangentRelativeMovement)
+double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(const double& rTangentRelativeMovement, const double& rDeltaTime)
 {
+    KRATOS_TRY
 
-  //---FRICTION LAW in function of the relative sliding velocity ---//
+    //---FRICTION LAW in function of the relative sliding velocity ---//
+    
+    double DynamicFrictionCoefficient = 0.0;//0.2;
+    double StaticFrictionCoefficient  = 0.0;//0.3;
 
+    if( GetProperties().Has(FRICTION_ACTIVE) ){
+      if( GetProperties()[FRICTION_ACTIVE] ){
+
+	if( GetProperties().Has(MU_DYNAMIC) )
+	  DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
+
+	if( GetProperties().Has(MU_STATIC) )
+	  StaticFrictionCoefficient = GetProperties()[MU_STATIC];
+      }
+    }
+
+    
   double Velocity = 0;
-  Velocity = rTangentRelativeMovement / mTangentialVariables.DeltaTime;
+  Velocity = rTangentRelativeMovement / rDeltaTime;
 
  
   //Addicional constitutive parameter  C
@@ -1171,7 +746,7 @@ double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(double 
   double E = 0;//0.01;
 
 
-  double FrictionCoefficient = mTangentialVariables.DynamicFrictionCoefficient + ( mTangentialVariables.StaticFrictionCoefficient-  mTangentialVariables.DynamicFrictionCoefficient ) * exp( (-1) * C * fabs(Velocity) );
+  double FrictionCoefficient = DynamicFrictionCoefficient + ( StaticFrictionCoefficient - DynamicFrictionCoefficient ) * exp( (-1) * C * fabs(Velocity) );
 
 
   //Square root regularization
@@ -1181,6 +756,8 @@ double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(double 
   //FrictionCoefficient *= tanh( fabs(Velocity)/E );
 
   return FrictionCoefficient;
+  
+  KRATOS_CATCH( "" )    
 
 }
 
@@ -1188,7 +765,7 @@ double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(double 
 //************************************************************************************
 
 void RigidBodyPointRigidContactCondition::VectorToSkewSymmetricTensor( const Vector& rVector, 
-							       Matrix& rSkewSymmetricTensor )
+								       Matrix& rSkewSymmetricTensor )
 {
     KRATOS_TRY
 

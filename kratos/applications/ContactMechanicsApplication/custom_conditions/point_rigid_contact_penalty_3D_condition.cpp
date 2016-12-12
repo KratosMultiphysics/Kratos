@@ -83,122 +83,6 @@ namespace Kratos
 
   }
 
-  //************************************************************************************
-  //************************************************************************************
-
-  void PointRigidContactPenalty3DCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    GeneralVariables ContactVariables;
-    ContactVariables.Initialize();
-    
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
-
-    if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo) ) {
-
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
-
-      mTangentialVariables.PreviousTangentForceModulus = 0.0;
-      for (unsigned int i = 0; i < dimension; ++i) {
-    	mTangentialVariables.PreviousTangentForceModulus += ContactForce[i] * ContactVariables.Surface.Tangent[i];
-      }
-
-    }
-    else {
-      
-      mTangentialVariables.PreviousTangentForceModulus = 0.0;
-    } 
-
-    mTangentialVariables.PreviousTangentForceModulus = 0.0;
-    
-    mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-    mTangentialVariables.Sign = 1;
-
-    mTangentialVariables.DynamicFrictionCoefficient = 0.0;//0.2;
-    mTangentialVariables.StaticFrictionCoefficient  = 0.0;//0.3;
-
-    if( GetProperties().Has(FRICTION_ACTIVE) ){
-      if( GetProperties()[FRICTION_ACTIVE] ){
-
-	if( GetProperties().Has(MU_DYNAMIC) )
-	  mTangentialVariables.DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
-
-	if( GetProperties().Has(MU_STATIC) )
-	  mTangentialVariables.StaticFrictionCoefficient = GetProperties()[MU_STATIC];
-      }
-    }
-	  
-    mTangentialVariables.FrictionCoefficient = mTangentialVariables.StaticFrictionCoefficient;      
-
-    // Compute the neighbour distance, then a stress-"like" may be computed.
-    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
-    array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
-    array_1d<double,3> Neighb_Point;
-
-    double distance = 0;
-    double counter = 0;
-
-    for(unsigned int i = 0; i < rN.size(); i++)
-      {
-	if(rN[i].Is(BOUNDARY)){
-
-	  Neighb_Point[0] = rN[i].X();
-	  Neighb_Point[1] = rN[i].Y();
-	  Neighb_Point[2] = rN[i].Z();
-
-	  distance += norm_2(Contact_Point-Neighb_Point);
-
-	  counter ++;
-	}
-      }
-
-    if( counter != 0 )
-      distance /= counter;
-      
-    if( distance == 0 )
-      distance = 1;
-
-    mTangentialVariables.Neighb_distance = distance; 
-
-    //when implex is active --> it deletes contact forces at last implex step<--
-    //std::cout<<" Initialize Solution Step ["<<this->Id()<<"]"<<std::endl;
-    //ClearNodalForces();
-
-    KRATOS_CATCH( "" )
-
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-  void PointRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-      
-    rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-    rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-   
-    ClearNodalForces();
-
-    KRATOS_CATCH( "" )
-    
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void PointRigidContactPenalty3DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, 
-									const ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-      rVariables.Initialize();
-      
-    KRATOS_CATCH( "" )
-  }
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
@@ -209,8 +93,7 @@ namespace Kratos
 
     SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
-    //std::cout<<" ID ["<<this->Id()<<"] ["<<this->GetGeometry()[0].Id()<<"]"<<std::endl;
-    
+   
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
       
       rVariables.Options.Set(ACTIVE,true);
@@ -225,7 +108,9 @@ namespace Kratos
 
       rVariables.Options.Set(ACTIVE,false);
     }
-
+    
+    rVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+    
     KRATOS_CATCH( "" )
   }
 
@@ -237,35 +122,38 @@ namespace Kratos
   {
 
     KRATOS_TRY
-
-    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
-
+	
+    //Compute the neighbour distance, then a stress-"like" may be computed.
+    WeakPointerVector<Node<3> >& rN  = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
-
+    
     double distance = 0;
-    double counter  = 0;
-
+    double counter = 0;
+    
     for(unsigned int i = 0; i < rN.size(); i++)
       {
 	if(rN[i].Is(BOUNDARY)){
-
+	  
 	  Neighb_Point[0] = rN[i].X();
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
-
+	    
 	  distance += norm_2(Contact_Point-Neighb_Point);
-
+	    
 	  counter ++;
 	}
       }
-
+      
     if( counter != 0 )
       distance /= counter;
-
+    
     if( distance == 0 )
-      distance = 1;
+      distance = 1;           
+      
 
+    rVariables.ContributoryFactor = distance;
+    
     //get contact properties and parameters
     double PenaltyParameter = 1;
     if( GetProperties().Has(PENALTY_PARAMETER) )
@@ -385,15 +273,15 @@ namespace Kratos
 
     if( fabs(TangentForceModulus) >= 1e-25 ){
 
-      if( mTangentialVariables.Slip ){
+      if( rVariables.Slip ){
 	
-	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 	
-	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
 	if( dimension == 2 )
-	  noalias(rLeftHandSideMatrix) -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+	  noalias(rLeftHandSideMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 	
 	//std::cout<<" A:Kuug "<<rLeftHandSideMatrix<<std::endl;
 	
@@ -426,8 +314,6 @@ namespace Kratos
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.Options.Is(ACTIVE)){
-
-      mTangentialVariables.IntegrationWeight  = rIntegrationWeight;
 
       this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
@@ -478,17 +364,24 @@ namespace Kratos
       {
     	ContactForce[j] = rRightHandSideVector[j];
       }
-    
 
+    
+    rVariables.ContactStressVector = MathUtils<double>::StressTensorToVector( NormalForceModulus * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) , rVariables.ContactStressVector.size() );
+        
     if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE )) { 
 
-      double EffectiveNormalModulus = CalculateEffectiveNormalForceModulus( NormalForceModulus*(-1) / rIntegrationWeight);
+      double EffectiveNormalModulus = NormalForceModulus * (-1) / rIntegrationWeight;
+
+      EffectiveNormalModulus = CalculateEffectiveNormalForceModulus( EffectiveNormalModulus, rVariables );
+      
       EffectiveNormalModulus *= (-1) * rIntegrationWeight;
  
       array_1d<double, 3 >& EffectiveContactForce = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_FORCE);
+      
       for (unsigned int j = 0; j < dimension; j++) {
 	EffectiveContactForce[j] = EffectiveNormalModulus * rVariables.Surface.Normal[j];
       }
+      
     }
 
     GetGeometry()[0].UnSetLock();
@@ -502,8 +395,8 @@ namespace Kratos
 									       GeneralVariables& rVariables,
 									       double& rIntegrationWeight)
   {
+    KRATOS_TRY
 
-    mTangentialVariables.IntegrationWeight = rIntegrationWeight;
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     double NormalForceModulus = 0;
@@ -529,8 +422,11 @@ namespace Kratos
       }
     }
 
+    rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( TangentForceModulus * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent) , rVariables.ContactStressVector.size() );
+    
     GetGeometry()[0].UnSetLock();
 
+    KRATOS_CATCH( "" )
   }
 
   //**************************** Calculate Normal Force Modulus ***********************
@@ -538,14 +434,40 @@ namespace Kratos
 
   double& PointRigidContactPenalty3DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, GeneralVariables& rVariables )
   {
+    KRATOS_TRY
 
     rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal);
 
     return rNormalForceModulus;
+    
+    KRATOS_CATCH( "" )
 
   }
 
+  //**************************** Calculate Effective Normal Force Modulus ***********************
+  //*********************************************************************************************
 
+  double& PointRigidContactPenalty3DCondition::CalculateEffectiveNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables )
+  {
+    KRATOS_TRY
+
+
+    if ( GetGeometry()[0].HasDofFor(WATER_PRESSURE) )
+      {
+	double WaterForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_PRESSURE );
+	if (WaterForce > 0.0)
+	  WaterForce = 0.0;
+
+	WaterForce *=  rVariables.ContributoryFactor;
+
+	rNormalForceModulus -= WaterForce ; // due to the sign convention
+      }
+
+    return rNormalForceModulus;
+  
+
+    KRATOS_CATCH( "" )
+  }
 
   //**************************** Check Coulomb law for Tangent Contact Force **********
   //***********************************************************************************
@@ -553,20 +475,20 @@ namespace Kratos
   double PointRigidContactPenalty3DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
   {
 
-    mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
+    rVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement, rVariables.DeltaTime);
 
     double FrictionalForceModulus      =  rVariables.Penalty.Tangent * rVariables.Gap.Tangent;      
-    double SlipFrictionalForceModulus  =  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus);
+    double SlipFrictionalForceModulus  =  rVariables.FrictionCoefficient * fabs(rNormalForceModulus);
        
     if( fabs(FrictionalForceModulus) > fabs(SlipFrictionalForceModulus) ){
 
-      mTangentialVariables.Slip = true;
+      rVariables.Slip = true;
 	 
       FrictionalForceModulus = SlipFrictionalForceModulus;
 
     }
     else {
-      mTangentialVariables.Slip = false;
+      rVariables.Slip = false;
 	 
     }
 
@@ -579,32 +501,30 @@ namespace Kratos
   //**************************** Check friction coefficient ***************************
   //***********************************************************************************
 
-  double PointRigidContactPenalty3DCondition::CalculateEffectiveNormalForceModulus(const double& rNormalForceModulus)
+  double PointRigidContactPenalty3DCondition::CalculateFrictionCoefficient(const double& rTangentRelativeMovement, const double& rDeltaTime)
   {
-
-    double EffectiveForce = rNormalForceModulus;
-
-    if ( GetGeometry()[0].HasDofFor(WATER_PRESSURE) )
-      {
-	double WaterForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_PRESSURE );
-	if (WaterForce > 0.0)
-	  WaterForce = 0.0;
-	WaterForce *= mTangentialVariables.Neighb_distance;
-
-	EffectiveForce = rNormalForceModulus - WaterForce ; // due to the sign convention
-      }
-
-    return EffectiveForce; 
-  }
-
-
-  double PointRigidContactPenalty3DCondition::CalculateFrictionCoefficient(double & rTangentRelativeMovement)
-  {
+    
+    KRATOS_TRY
 
     //---FRICTION LAW in function of the relative sliding velocity ---//
+    
+    double DynamicFrictionCoefficient = 0.0;//0.2;
+    double StaticFrictionCoefficient  = 0.0;//0.3;
 
+    if( GetProperties().Has(FRICTION_ACTIVE) ){
+      if( GetProperties()[FRICTION_ACTIVE] ){
+
+	if( GetProperties().Has(MU_DYNAMIC) )
+	  DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
+
+	if( GetProperties().Has(MU_STATIC) )
+	  StaticFrictionCoefficient = GetProperties()[MU_STATIC];
+      }
+    }
+	  
+    
     double Velocity = 0;
-    Velocity = rTangentRelativeMovement / mTangentialVariables.DeltaTime;
+    Velocity = rTangentRelativeMovement / rDeltaTime;
 
 
     //Addicional constitutive parameter  C
@@ -616,7 +536,7 @@ namespace Kratos
     double E=0.01;
 
 
-    double FrictionCoefficient = mTangentialVariables.DynamicFrictionCoefficient + ( mTangentialVariables.StaticFrictionCoefficient - mTangentialVariables.DynamicFrictionCoefficient ) * exp( (-1) * C * fabs(Velocity) );
+    double FrictionCoefficient = DynamicFrictionCoefficient + ( StaticFrictionCoefficient - DynamicFrictionCoefficient ) * exp( (-1) * C * fabs(Velocity) );
 
 
     //Square root regularization
@@ -626,6 +546,8 @@ namespace Kratos
     //FrictionCoefficient *= tanh( fabs(Velocity)/E );
 
     return FrictionCoefficient;
+
+    KRATOS_CATCH( "" )    
 
   }
 
