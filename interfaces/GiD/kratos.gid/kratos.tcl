@@ -123,8 +123,9 @@ proc Kratos::InitGIDProject { dir } {
     foreach filename {SimpleXMLViewer.tcl FileManager.tcl } {
         uplevel 1 [list source [file join $dir libs $filename]]
     }
-    set filename SorterWindow.tcl
-    uplevel 1 [list source [file join $dir libs SorterWindow $filename]]
+    foreach {dirname filename} {SorterWindow SorterWindow.tcl wcb wcb.tcl} {
+        uplevel 1 [list source [file join $dir libs $dirname $filename]]
+    }
     
     set kratos_private(UseWizard) 0
      
