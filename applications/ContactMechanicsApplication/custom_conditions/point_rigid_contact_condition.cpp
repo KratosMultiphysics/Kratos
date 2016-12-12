@@ -72,6 +72,7 @@ namespace Kratos
       : Condition(rOther)
       ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
       ,mpRigidWall(rOther.mpRigidWall)
+      ,mContactStressVector(rOther.mContactStressVector)
 
    {
       mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
@@ -311,26 +312,50 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
+   void PointRigidContactCondition::Initialize()
+   {
+      KRATOS_TRY
+
+      const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+      const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
+
+      mContactStressVector.resize(voigt_size);
+      noalias(mContactStressVector) = ZeroVector(voigt_size);
+	
+      KRATOS_CATCH( "" )
+   }
+  
+   //************************************************************************************
+   //************************************************************************************
+
    void PointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
-	
-      //when implex is active --> it deletes contact forces at last implex step<--
-      //ClearNodalForces();
 
+      const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+      const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
+      
+      if(mContactStressVector.size() != voigt_size){
+	mContactStressVector.resize(voigt_size);
+	noalias(mContactStressVector) = ZeroVector(voigt_size);
+      }
+	
       KRATOS_CATCH( "" )
    }
-
-
+  
    //************************************************************************************
    //************************************************************************************
    void PointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
    {
+      KRATOS_TRY
+	
       rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
       rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
       rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
       ClearNodalForces();
+      
+      KRATOS_CATCH( "" )
    }
 
    //************************************************************************************
@@ -346,7 +371,7 @@ namespace Kratos
    void PointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
-
+	
       // CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
       // CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
       // CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
@@ -396,8 +421,14 @@ namespace Kratos
    {
       KRATOS_TRY
 
-	rVariables.Initialize();
+      const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+      const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 	
+      rVariables.Initialize();
+
+      rVariables.ContactStressVector.resize(voigt_size);
+      noalias(rVariables.ContactStressVector) = ZeroVector(voigt_size);
+      
       KRATOS_CATCH( "" )
 
    }
@@ -449,14 +480,15 @@ namespace Kratos
 	     this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 	   }
 	
-         if( Variables.Options.Is(ACTIVE) )// {
-	   rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1; 
-	 //   std::cout<<" ACTIVE_CONTACTS "<<rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS]<<std::endl;
-	 //   std::cout<<" RHS "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
-	 // }
-	 // else{
-	 //   std::cout<<" NON Active Contact "<<GetGeometry()[0].Id()<<" "<<Variables.Gap.Normal<<" normal"<<Variables.Surface.Normal<<" "<<GetGeometry()[0].Coordinates()<<std::endl;
-	 // }
+         if( Variables.Options.Is(ACTIVE) ){
+	   rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
+	   noalias(mContactStressVector) = Variables.ContactStressVector;
+	   //   std::cout<<" ACTIVE_CONTACTS "<<rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS]<<std::endl;
+	   //   std::cout<<" RHS "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
+	   // }
+	   // else{
+	   //   std::cout<<" NON Active Contact "<<GetGeometry()[0].Id()<<" "<<Variables.Gap.Normal<<" normal"<<Variables.Surface.Normal<<" "<<GetGeometry()[0].Coordinates()<<std::endl;
+	 }
       }
 
       KRATOS_CATCH( "" )

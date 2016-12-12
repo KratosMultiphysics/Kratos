@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CYLINDER_BOUNDING_BOX_H_INCLUDED )
-#define  KRATOS_CYLINDER_BOUNDING_BOX_H_INCLUDED
+#if !defined(KRATOS_TUBE_BOUNDING_BOX_H_INCLUDED )
+#define  KRATOS_TUBE_BOUNDING_BOX_H_INCLUDED
 
 // External includes
 
@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_bounding/spatial_bounding_box.hpp"
 #include "geometries/quadrilateral_3d_4.h"
+#include "custom_utilities/spline_curve_utilities.hpp"
 
 namespace Kratos
 {
@@ -51,35 +52,49 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CylinderBoundingBox
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) TubeBoundingBox
   : public SpatialBoundingBox
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CylinderBoundingBox
-    KRATOS_CLASS_POINTER_DEFINITION( CylinderBoundingBox );
+    /// Pointer definition of TubeBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION( TubeBoundingBox );
 
     //typedef bounded_vector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
-    typedef ModelPart::NodeType                              NodeType;
+    typedef Node<3>                                          NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+    typedef ModelPart::ElementsContainerType    ElementsContainerType;
     typedef Quaternion<double>                         QuaternionType;
     typedef ModelPart::ElementType                        ElementType;
     typedef ElementType::GeometryType                    GeometryType;
 
+    //definitions for spatial search
+    typedef NodeType::Pointer                         NodePointerType;
+    typedef std::vector<NodePointerType>        NodePointerTypeVector;
+    typedef std::vector<NodeType>                      NodeTypeVector;
+    typedef NodePointerTypeVector::iterator       NodePointerIterator;
+    typedef std::vector<double>                        DistanceVector;
+    typedef std::vector<double>::iterator            DistanceIterator;
+    typedef Bucket<3, NodeType, NodePointerTypeVector, NodePointerType, NodePointerIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> >            KdtreeType; //Kdtree
+
+    
+public:
+  
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CylinderBoundingBox() : SpatialBoundingBox()
+    TubeBoundingBox() : SpatialBoundingBox()
     {
       KRATOS_TRY
 
-      std::cout<< "Calling Cylinder Wall BBX empty constructor" <<std::endl;
+      std::cout<< "Calling Tube BBX empty constructor" <<std::endl;
 
       KRATOS_CATCH("")
     }
@@ -88,7 +103,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    CylinderBoundingBox(Parameters CustomParameters)
+    TubeBoundingBox(ModelPart& rModelPart, Parameters CustomParameters)
     {
 
       KRATOS_TRY
@@ -96,8 +111,6 @@ public:
       Parameters DefaultParameters( R"(
             {
                 "parameters_list":[{
-                   "first_center":  [0.0, 0.0, 0.0],
-                   "second_center": [0.0, 0.0, 0.0],
                    "radius": 0.0,
                    "convexity": 1
                  }],
@@ -111,22 +124,12 @@ public:
         
       if(CustomParameters["parameters_list"].IsArray() == true && CustomParameters["parameters_list"].size() != 1)
         {
-	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Cylinder BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
+	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Tube BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
         }
 
       mBox.Initialize();
 
       Parameters BoxParameters = CustomParameters["parameters_list"][0];
-
-      mFirstCenter[0] = BoxParameters["first_center"][0].GetDouble();
-      mFirstCenter[1] = BoxParameters["first_center"][1].GetDouble();
-      mFirstCenter[2] = BoxParameters["first_center"][2].GetDouble();
-
-      mSecondCenter[0] = BoxParameters["second_center"][0].GetDouble();
-      mSecondCenter[1] = BoxParameters["second_center"][1].GetDouble();
-      mSecondCenter[2] = BoxParameters["second_center"][2].GetDouble();
-
-      mBox.Center    = 0.5 * (mFirstCenter+mSecondCenter);
       
       mBox.Radius = BoxParameters["radius"].GetDouble();
 
@@ -136,18 +139,12 @@ public:
 
       mBox.Convexity = BoxParameters["convexity"].GetInt();
 
-      PointType Side;
-      Side[0] = mBox.Radius;
-      Side[1] = mBox.Radius;
-      Side[2] = mBox.Radius;
-
-      mBox.UpperPoint = mBox.Center + Side;
-      mBox.LowerPoint = mSecondCenter - Side;
-
       mBox.SetInitialValues();
 
       mRigidBodyCenterSupplied = false;
 
+      this->CreateKnotsList(rModelPart);
+      
       KRATOS_CATCH("")
     }
 
@@ -155,37 +152,23 @@ public:
     //**************************************************************************
     //**************************************************************************
 
+    TubeBoundingBox(ModelPart& rModelPart, double Radius, int Convexity)
+    {
 
-    // General Wall constructor
-    CylinderBoundingBox(PointType FirstCenter,
-			PointType SecondCenter,
-			double Radius,
-			PointType Velocity,
-			int Convexity)
-      
-    {           
       KRATOS_TRY
 
-      std::cout<<" [--CYLINDER WALL--] "<<std::endl;
-      
-      mFirstCenter   = FirstCenter;
-      mSecondCenter  = SecondCenter;
 
-      mBox.Center    = 0.5 * (FirstCenter+SecondCenter);
-      mBox.Radius    = Radius;
+      mBox.Initialize();
+     
+      mBox.Radius = Radius;
+
       mBox.Convexity = Convexity;
-
-      std::cout<<"  [Convexity:"<<mBox.Convexity<<std::endl;
-      std::cout<<"  [Radius:"<<mBox.Radius<<std::endl;
-      std::cout<<"  [Center1:"<<mFirstCenter<<std::endl;
-      std::cout<<"  [Center2:"<<mSecondCenter<<std::endl;
-      std::cout<<" [--------] "<<std::endl;
-      
-      mBox.Velocity = Velocity;
 
       mBox.SetInitialValues();
 
       mRigidBodyCenterSupplied = false;
+
+      this->CreateKnotsList(rModelPart);           
 
       KRATOS_CATCH("")
     }
@@ -194,14 +177,14 @@ public:
     //**************************************************************************
 
     /// Assignment operator.
-    CylinderBoundingBox& operator=(CylinderBoundingBox const& rOther)
+    TubeBoundingBox& operator=(TubeBoundingBox const& rOther)
     {
       KRATOS_TRY
 
       SpatialBoundingBox::operator=(rOther);
 
-      mFirstCenter = rOther.mFirstCenter;
-      mSecondCenter = rOther.mSecondCenter;
+      mKnotsList = rOther.mKnotsList;
+      mpKnotsKdtree = rOther.mpKnotsKdtree;
       
       return *this;
 
@@ -212,10 +195,10 @@ public:
     //**************************************************************************
 
     /// Copy constructor.
-    CylinderBoundingBox(CylinderBoundingBox const& rOther) 
+    TubeBoundingBox(TubeBoundingBox const& rOther) 
       :SpatialBoundingBox(rOther)
-      ,mFirstCenter(rOther.mFirstCenter)
-      ,mSecondCenter(rOther.mSecondCenter)
+      ,mKnotsList(rOther.mKnotsList)
+      ,mpKnotsKdtree(rOther.mpKnotsKdtree)
     {
     }
 
@@ -224,7 +207,7 @@ public:
     //**************************************************************************
 
     /// Destructor.
-    virtual ~CylinderBoundingBox() {};
+    virtual ~TubeBoundingBox() {};
 
 
     ///@}
@@ -247,17 +230,17 @@ public:
 
       bool is_inside = false;
       
-      double CylinderRadius = mBox.Radius;
+      double TubeRadius = mBox.Radius-Radius;
 
       //outside
-      if( mBox.Convexity == 1)
-	CylinderRadius *= 1.25; //increase the bounding box 
+      if( mBox.Convexity == 1) 
+	TubeRadius *= 1.25; //increase the bounding box 
 
       //inside
-      if( mBox.Convexity == -1)
-       	CylinderRadius *= 0.75; //decrease the bounding box 
+      if( mBox.Convexity == -1) 
+       	TubeRadius *= 0.75; //decrease the bounding box 
 
-      is_inside = ContactSearch(rPoint, CylinderRadius);
+      is_inside = ContactSearch(rPoint, TubeRadius);
 
       return is_inside;
 
@@ -284,25 +267,17 @@ public:
     } 
 
 
-
+   
     //************************************************************************************
     //************************************************************************************
 
-    //Cylinder
+    //Tube
     void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
     {
       KRATOS_TRY
 
-      //std::cout<<" Create Cylinder Mesh "<<std::endl;
+      //std::cout<<" Create Tube Mesh "<<std::endl;
 	
-      //1.-create generatrix
-      PointType Axis = (mSecondCenter - mFirstCenter);
-      double AxisLength = norm_2(Axis);
-      
-      if( AxisLength )
-	Axis/=AxisLength;
-
-      
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
 	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
@@ -332,31 +307,70 @@ public:
 	}     
       //get boundary model parts ( temporary implementation )
 
-      
-      double SingleLength = AxisLength / (double)linear_partitions;
- 
+     
+      SplineCurveUtilities::SplineType Spline;
+      double PointId = 0;
+      int KnotId  = 0;
+      int number_of_segments = linear_partitions;
+
       PointType Point(3);
 
       // Create Axis generatrix
-      // for(int i=0; i<linear_partitions; i++)
+      // for(int i=1; i<mKnotsList.size()-2; i++)
       // 	{
-      // 	  Point =  mFirstCenter + Axis * ( SingleLength );
-      // 	  NodeId += 1;
-      // 	  NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
+      // 	  Point[0] = mKnotsList[i]->X();
+      // 	  Point[1] = mKnotsList[i]->Y();
+      // 	  Point[2] = mKnotsList[i]->Z();
 
+      // 	  NodeId += 1;
+      // 	  NodeType::Pointer pNode = this->CreateNode(rModelPart, Point, NodeId);
       // 	  pNode->Set(RIGID,true);
       // 	  rModelPart.AddNode( pNode );
-      // 	}
 
+      //     //get boundary model parts ( temporary implementation )
+      // 	  for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+      // 	    (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+      //     //get boundary model parts ( temporary implementation )
+
+      //     KnotId = mKnotsList[i]->Id();
+      	  
+      //     mSplineCurveUtilities.SetSpline(Spline, mKnotsList, KnotId);
+
+      //     PointId = KnotId;
+
+      // 	  if( i == mKnotsList.size()-3 ) //last segment write last point only 
+      // 	    number_of_segments = 1;
+
+
+      // 	  for(int j=0; j<number_of_segments; j++)
+      // 	    {
+      // 	      PointId = j/double(linear_partitions);
+
+      // 	      Point = ZeroVector(3);
+      // 	      Point = mSplineCurveUtilities.PointOnCurve(Point, Spline, PointId);
+
+      //         NodeId += 1;
+      //         NodeType::Pointer pNode = this->CreateNode(rModelPart, Point, NodeId);
+      //         pNode->Set(RIGID,true);
+      //         rModelPart.AddNode( pNode );
+
+      //         //get boundary model parts ( temporary implementation )
+      // 	      for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+      // 		(pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+      // 	      //get boundary model parts ( temporary implementation )
+  
+      //       }
+
+      // 	}
+      // number_of_segments = linear_partitions;
+      // InitialNodeId = NodeId;
       
       PointType DirectionX(3);
-      noalias(DirectionX) = Axis;
+noalias(DirectionX) = ZeroVector(3);
       PointType DirectionY(3);
       noalias(DirectionY) = ZeroVector(3);
       PointType DirectionZ(3);
-      noalias(DirectionZ) = ZeroVector(3);
-   
-      this->CalculateOrthonormalBase(DirectionX, DirectionY, DirectionZ);
+      noalias(DirectionZ) = ZeroVector(3);  
 
       PointType BasePoint(3);
       PointType RotationAxis(3);
@@ -364,53 +378,78 @@ public:
 
       double alpha = 0;
       QuaternionType Quaternion;
-      
-      for(int i=0; i<linear_partitions; i++)
+
+
+      for(unsigned int i=1; i<mKnotsList.size()-2; i++)
 	{
-	  Point =  mFirstCenter + Axis * ( SingleLength ) * i /(double)linear_partitions;
+	  Point[0] = mKnotsList[i]->X();
+	  Point[1] = mKnotsList[i]->Y();
+	  Point[2] = mKnotsList[i]->Z();
 
-	  for(int k=0; k<angular_partitions; k++)
-	    {		  
-	      alpha = (2.0 * 3.14159262 * k)/(double)angular_partitions;
+          KnotId = mKnotsList[i]->Id();
+      	  
+          mSplineCurveUtilities.SetSpline(Spline, mKnotsList, KnotId);
 
-	      //vector of rotation
-	      RotationAxis = DirectionX * alpha;
-	      Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
-		  
-	      RotatedDirectionY = DirectionY;
-	  
-	      Quaternion.RotateVector3(RotatedDirectionY);
-	  
-	      // std::cout<<" alpha "<<alpha<<"  cos "<<Q(1,1)<<std::endl;
-	      //std::cout<<" Rotated "<<RotatedDirectionY<<" alpha "<<alpha<<std::endl;
-	  
-	      //add the angular_partitions points number along the circular base of the cylinder
-	      NodeId += 1;
-	      noalias(BasePoint) = Point + mBox.Radius * RotatedDirectionY;
+          PointId = KnotId;
 
-	      //std::cout<<" BasePoint["<<NodeId<<"] "<<BasePoint<<" radius "<<mBox.Radius<<std::endl;
+  	  if( i == mKnotsList.size()-3 ) //last segment write last point only 
+	    number_of_segments = 1;
+
+	  for(int j=0; j<number_of_segments; j++)
+	    {
+
+	      PointId = j/double(linear_partitions);
+
+	      Point = ZeroVector(3);
+	      Point = mSplineCurveUtilities.PointOnCurve(Point, Spline, PointId);
+
+              DirectionX = mSplineCurveUtilities.PointOnCurveFirstDerivative(Spline, PointId);
 	      
-	      NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
+              this->CalculateOrthonormalBase(DirectionX, DirectionY, DirectionZ);
 
-	      pNode->Set(RIGID,true);
-	      rModelPart.AddNode( pNode );
 
-	      //get boundary model parts ( temporary implementation )
-	      for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
-		(pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
-	      //get boundary model parts ( temporary implementation )
+              for(int k=0; k<angular_partitions; k++)
+		{		  
+                  alpha = (2.0 * 3.14159262 * k)/(double)angular_partitions;
+
+                  //vector of rotation
+	          RotationAxis = DirectionX * alpha;
+	          Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
+		  
+	          RotatedDirectionY = DirectionY;
 	  
+                  Quaternion.RotateVector3(RotatedDirectionY);
+	  
+	          // std::cout<<" alpha "<<alpha<<"  cos "<<Q(1,1)<<std::endl;
+	          //std::cout<<" Rotated "<<RotatedDirectionY<<" alpha "<<alpha<<std::endl;
+	  
+		  //add the angular_partitions points number along the circular base of the cylinder
+		  NodeId += 1;
+		  noalias(BasePoint) = Point + mBox.Radius * RotatedDirectionY;
+
+		  //std::cout<<" BasePoint["<<NodeId<<"] "<<BasePoint<<" radius "<<mBox.Radius<<std::endl;
+	      
+		  NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
+
+		  pNode->Set(RIGID,true);
+		  rModelPart.AddNode( pNode );
+
+		  //get boundary model parts ( temporary implementation )
+		  for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+		    (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+		  //get boundary model parts ( temporary implementation )
+	  
+		}
 	    }
 	}
 
-      //std::cout<<" Create Cylinder Mesh NODES "<<std::endl;
+      //std::cout<<" Create Tube Mesh NODES "<<std::endl;
       
       this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId, angular_partitions);
 
       KRATOS_CATCH( "" )
     }
-
-       
+      
 
     ///@}
     ///@name Access
@@ -430,7 +469,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "CylinderBoundingBox";
+        return "TubeBoundingBox";
     }
 
     /// Print information about this object.
@@ -456,8 +495,11 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    PointType mFirstCenter;
-    PointType mSecondCenter;
+    std::vector<NodeType::Pointer> mKnotsList;
+    
+    KdtreeType* mpKnotsKdtree;
+
+    SplineCurveUtilities mSplineCurveUtilities;
     
     ///@}
     ///@name Protected member Variables
@@ -473,7 +515,79 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    //************************************************************************************
+    //************************************************************************************
+    
+    void CreateKnotsList(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+      //1.-Create Generatrix
+      NodePointerTypeVector GeneratrixPoints;
 
+      //Set generatrix control points for a given set of two noded line conditions
+      unsigned int id = 0; //start with 0;
+  
+      NodePointerType GeneratrixPoint;
+      
+      for(ElementsContainerType::iterator ie = rModelPart.ElementsBegin(); ie!=rModelPart.ElementsEnd(); ie++)
+	{
+	  if( ie->GetGeometry().size() > 1){
+
+	    GeneratrixPoint = NodePointerType( new NodeType(id, ie->GetGeometry()[0].X(), ie->GetGeometry()[0].Y(), ie->GetGeometry()[0].Z()) );
+	    GeneratrixPoints.push_back( GeneratrixPoint );
+
+	    //std::cout<<" Point ["<<ie->GetGeometry()[0].X()<<", "<<ie->GetGeometry()[0].Y()<<", "<<ie->GetGeometry()[0].Z()<<"] "<<std::endl;
+	  
+	    id++;
+	  }
+	}
+
+
+      ElementsContainerType::iterator LastElement = rModelPart.ElementsEnd()-1;
+      int num_nodes = LastElement->GetGeometry().size()-1;
+      
+      GeneratrixPoint = NodePointerType( new NodeType(id,LastElement->GetGeometry()[num_nodes].X(),LastElement->GetGeometry()[num_nodes].Y(),LastElement->GetGeometry()[num_nodes].Z()) );
+      GeneratrixPoints.push_back( GeneratrixPoint );
+
+      std::cout<<"  [DEFINED BY:"<<GeneratrixPoints.size()<<" control points]"<<std::endl;
+
+      //2.-Create Arch Length Parametrized Spline Curve
+      int SegmentsNumber = 250;
+      mSplineCurveUtilities.CreateParametrizedCurve(GeneratrixPoints, mKnotsList, SegmentsNumber);
+
+      // for(unsigned int i=0; i<mKnotsList.size(); i++)
+      // 	std::cout<<" mKnotsListI ["<<i<<"]: "<<mKnotsList[i]->Id()<<std::endl;
+
+      std::cout<<"  [REDEFINED WITH: "<<mKnotsList.size()<<" knots]"<<std::endl;
+
+      
+      this->CreateKnotsKdtree();
+
+      
+      KRATOS_CATCH("")     
+    }
+      
+    //************************************************************************************
+    //************************************************************************************
+    
+    void CreateKnotsKdtree()
+    {
+      KRATOS_TRY
+
+
+      //creating an auxiliary list for the pre integration points
+      unsigned int   bucket_size = 20;
+
+      NodePointerTypeVector KnotsList = mKnotsList;
+
+      unsigned int knots_begin = 1;
+      unsigned int knots_end   = 3;
+      
+      mpKnotsKdtree = new KdtreeType(KnotsList.begin()+knots_begin,KnotsList.end()-knots_end,bucket_size);
+
+      
+      KRATOS_CATCH("")     
+    }
 
 
     //************************************************************************************
@@ -486,12 +600,8 @@ protected:
       KRATOS_TRY
 
       //1.-compute point projection
-      PointType Axis = (mSecondCenter - mFirstCenter);
-      if( norm_2(Axis) )
-	Axis/=norm_2(Axis);
-
       PointType Projection(3);
-      Projection = inner_prod( (rPoint-mFirstCenter), Axis) * Axis;
+      Projection = mSplineCurveUtilities.CalculatePointProjection( rPoint, *mpKnotsKdtree, mKnotsList, Projection );
      
       //2.-compute gap
       double GapNormal = norm_2(rPoint-Projection)-rRadius;
@@ -512,7 +622,7 @@ protected:
     //************************************************************************************
     //************************************************************************************
 
-    //Cylinder (note: box position has been updated previously)
+    //Tube (note: box position has been updated previously)
     bool ContactSearch(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
       KRATOS_TRY
@@ -527,13 +637,8 @@ protected:
       rTangent = ZeroVector(3);
 
       //1.-compute point projection
-      PointType Axis = (mSecondCenter - mFirstCenter);
-      if( norm_2(Axis) )
-	Axis/=norm_2(Axis);
-      
       PointType Projection(3);
-      Projection = inner_prod( (rPoint-mFirstCenter), Axis) * Axis;
-      
+      Projection = mSplineCurveUtilities.CalculatePointProjection( rPoint, *mpKnotsKdtree, mKnotsList, Projection );     
            
       //2.-compute contact normal
       rNormal = rPoint-Projection;
@@ -558,7 +663,7 @@ protected:
       KRATOS_CATCH( "" )
     }
 
-
+    
     //************************************************************************************
     //************************************************************************************
 
@@ -567,7 +672,7 @@ protected:
       
       KRATOS_TRY
 
-      //std::cout<<" Create Cylinder Mesh ELEMENTS "<<std::endl;
+      //std::cout<<" Create Tube Mesh ELEMENTS "<<std::endl;
 
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
@@ -677,7 +782,7 @@ protected:
       }
 
 
-      //std::cout<<" Create Cylinder Mesh ELEMENTS CREATED "<<std::endl;
+      //std::cout<<" Create Tube Mesh ELEMENTS CREATED "<<std::endl;
       
       KRATOS_CATCH( "" )
 				     
@@ -739,7 +844,7 @@ private:
     ///@}
 
 
-}; // Class CylinderBoundingBox
+}; // Class TubeBoundingBox
 
 ///@}
 
@@ -756,6 +861,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CYLINDER_BOUNDING_BOX_H_INCLUDED  defined 
+#endif // KRATOS_TUBE_BOUNDING_BOX_H_INCLUDED  defined 
 
 
