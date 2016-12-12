@@ -97,15 +97,16 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #                                                                            #
 ##############################################################################
 n_div = 20
-material_derivative_type = 1
+material_derivative_type = 2
 laplacian_type = 3
 #file_name, mesh_size, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = int(material_derivative_type)
 pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
-pp.CFD_DEM.material_acceleration_calculation_type = 1
+pp.CFD_DEM.material_acceleration_calculation_type = 2
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
@@ -634,7 +635,7 @@ embedded_counter             = swim_proc.Counter(1,
 DEM_to_fluid_counter         = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type > 1)
-pressure_gradient_counter    = swim_proc.Counter(1, 
+derivative_recovery_counter    = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
@@ -733,16 +734,10 @@ if pp.CFD_DEM.drag_force_type == 9:
 # NANO END
 
 #G
-post_process_model_part = ModelPart("PostFluidPart")
-model_part_cloner = ConnectivityPreserveModeler()
-model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
-import derivative_recovery_solver
-derivative_recovery_solver.AddVariables(post_process_model_part)
-derivative_recovery_solver.AddDofs(post_process_model_part)
-linear_solver = CGSolver()
-scheme = ResidualBasedIncrementalUpdateStaticScheme()
-post_process_strategy = ResidualBasedLinearStrategy(post_process_model_part, scheme, linear_solver, False, True, False, False)
-post_process_strategy.SetEchoLevel(2)
+
+import derivative_recovery_strategy
+recovery = derivative_recovery_strategy.DerivativeRecoveryStrategy(pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
+
 number=0
 for node in fluid_model_part.Nodes:
     number += 1
@@ -810,30 +805,12 @@ while (time <= final_time):
                 node.SetSolutionStepValue(VELOCITY_X, vel[0])
                 node.SetSolutionStepValue(VELOCITY_Y, vel[1])
                 node.SetSolutionStepValue(VELOCITY_Z, vel[2])
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, 0.0)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, 0.0)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, 0.0)
                 #node.SetSolutionStepValue(VELOCITY_X, 7*node.X**2 + 6 * node.Y + 19)
                 #node.SetSolutionStepValue(VELOCITY_Y,  9 *node.X**2 - 8 * node.Y**2 +30*node.X)
                 #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
 #Z
+          
 
-            if pp.CFD_DEM.laplacian_calculation_type == 3 and VELOCITY_LAPLACIAN in pp.fluid_vars:
-                current_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
-                print("\nSolving for the Laplacian...")
-                sys.stdout.flush()
-                #post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
-
-                post_process_strategy.Solve()
-                #fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
-
-                #fluid_solver.Solve()
-
-                print("\nFinished solving for the Laplacian.")
-                sys.stdout.flush()
-                #post_process_model_part.ProcessInfo[FRACTIONAL_STEP] = current_step
-                #fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = current_step
-                
     # assessing stationarity
 
         if stationarity_counter.Tick():
@@ -862,21 +839,10 @@ while (time <= final_time):
         out = 0
 
     # solving the DEM part
-    pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
+    derivative_recovery_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
-    if pressure_gradient_counter.Tick():
-        if pp.CFD_DEM.gradient_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
-        elif pp.CFD_DEM.gradient_calculation_type == 1:            
-            custom_functions_tool.CalculatePressureGradient(fluid_model_part)          
-        if pp.CFD_DEM.laplacian_calculation_type == 1:         
-            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        elif pp.CFD_DEM.laplacian_calculation_type == 2 and pp.CFD_DEM.material_acceleration_calculation_type < 2:
-            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
-        elif pp.CFD_DEM.material_acceleration_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)                           
+    if derivative_recovery_counter.Tick():
+        recovery.Recover()
 
 #G
     error_laplacian = 0.
