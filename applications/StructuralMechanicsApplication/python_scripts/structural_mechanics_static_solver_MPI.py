@@ -16,21 +16,15 @@ KratosMultiphysics.CheckForPreviousImport()
 import structural_mechanics_solver_MPI
 
 def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+    return StaticMechanicalSolverMPI(main_model_part, custom_settings)
 
-class StaticMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which 
-    ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
+class StaticMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolverMPI):
+
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -71,42 +65,44 @@ class StaticMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver):
             "processes_sub_model_part_list": [""]
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         #construct the linear solver
         import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
         self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        
+
         print("Construction of Static Mechanical MPI Solver finished")
-    
+
     def AddVariables(self):
-        
-        structural_mechanics_solver_MPI.MechanicalSolver.AddVariables(self)
+
+        super(StaticMechanicalSolverMPI, self).AddVariables()
 
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_TORQUE)
-    
+
     def Initialize(self):
 
         print("::[Mechanical MPI Solver]:: -START-")
-        
+        # Construct the communicator
+        self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
+
         # Get the solid computing model part
         self.computing_model_part = self.GetComputingModelPart()
-                
+
         # Solution scheme choice
-        mechanical_scheme = self._GetSolutionScheme(self.settings["analysis_type"].GetString(), 
+        mechanical_scheme = self._GetSolutionScheme(self.settings["analysis_type"].GetString(),
                                                     self.settings["component_wise"].GetBool(),
                                                     self.settings["compute_contact_forces"].GetBool())
-        
+
         # Get the convergence choice
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
-        
+
         # Builder and solver choice
-        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(), 
+        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(),
                                                        self.settings["block_builder"].GetBool())
 
         # Mechanical solver choice
@@ -128,10 +124,10 @@ class StaticMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver):
         self.Check();
 
         print("::[Mechanical MPI Solver]:: -END- ")
-        
+
     #### Specific internal functions ####
-        
+
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
         mechanical_scheme = TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()
-                                
+
         return mechanical_scheme

@@ -16,21 +16,21 @@ KratosMultiphysics.CheckForPreviousImport()
 import structural_mechanics_solver_MPI
 
 def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+    return ImplicitMechanicalSolverMPI(main_model_part, custom_settings)
 
-class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
+class ImplicitMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolverMPI):
+
+    ##constructor. the constructor shall only take care of storing the settings
+    ##and the pointer to the main_model part. This is needed since at the point of constructing the
     ##model part is still not filled and the variables are not yet allocated
     ##
-    ##real construction shall be delayed to the function "Initialize" which 
+    ##real construction shall be delayed to the function "Initialize" which
     ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -73,11 +73,11 @@ class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver)
 
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         #construct the linear solver
         import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
         self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -85,8 +85,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver)
         print("Construction of Implicit Mechanical MPI Solver finished")
 
     def AddVariables(self):
-        
-        structural_mechanics_solver_MPI.MechanicalSolver.AddVariables(self)
+
+        super(ImplicitMechanicalSolverMPI, self).AddVariables()
 
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
@@ -95,22 +95,24 @@ class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver)
     def Initialize(self):
 
         print("::[Mechanical MPI Solver]:: -START-")
-        
+        # Construct the communicator
+        self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
+
         # Get the solid computing model part
         self.computing_model_part = self.GetComputingModelPart()
-        
+
         # Builder and solver creation
-        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(), 
+        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(),
                                                        self.settings["block_builder"].GetBool())
-        
+
         # Solution scheme creation
-        mechanical_scheme = self._GetSolutionScheme(self.settings["scheme_type"].GetString(), 
+        mechanical_scheme = self._GetSolutionScheme(self.settings["scheme_type"].GetString(),
                                                     self.settings["component_wise"].GetBool(),
                                                     self.settings["compute_contact_forces"].GetBool())
-        
+
         # Get the convergence criterion
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
-        
+
         # Mechanical solver creation
         self._CreateMechanicalSolver(mechanical_scheme,
                                      mechanical_convergence_criterion,
@@ -131,45 +133,45 @@ class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver)
 
         print("::[Mechanical MPI Solver]:: -END- ")
 
-        
+
     #### Decomposed Newton-Raphson resolution functions ####
-    
+
     def SolverInitialize(self):
         self.mechanical_solver.Initialize()
-        
+
     def SolverInitializeSolutionStep(self):
         self.mechanical_solver.InitializeSolutionStep()
-        
+
     def SolverPredict(self):
         self.mechanical_solver.Predict()
-        
+
     def SolverSolveSolutionStep(self):
         self.mechanical_solver.SolveSolutionStep()
-        
+
     def SolverFinalizeSolutionStep(self):
         self.mechanical_solver.FinalizeSolutionStep()
 
     #### Specific internal functions ####
-    
+
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark"):
-            self.settings.AddEmptyValue("damp_factor_m")  
+            self.settings.AddEmptyValue("damp_factor_m")
             self.settings.AddEmptyValue("dynamic_factor")
             self.settings["damp_factor_m"].SetDouble(0.0)
             self.settings["dynamic_factor"].SetDouble(1.0)
-                                                                           
+
         elif(scheme_type == "Bossak"):
-            self.settings.AddEmptyValue("damp_factor_m")  
+            self.settings.AddEmptyValue("damp_factor_m")
             self.settings.AddEmptyValue("dynamic_factor")
             self.settings["damp_factor_m"].SetDouble(-0.01)
-            self.settings["dynamic_factor"].SetDouble(1.0)    
-        
-        # Creating the implicit solution scheme:  
+            self.settings["dynamic_factor"].SetDouble(1.0)
+
+        # Creating the implicit solution scheme:
         if (scheme_type == "Newmark" or scheme_type == "Bossak"):
             #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
             #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
-            
+
             mechanical_scheme = TrilinosApplication.TrilinosResidualBasedNewmarkScheme(self.settings["dynamic_factor"].GetDouble())
-                                   
+
         return mechanical_scheme
