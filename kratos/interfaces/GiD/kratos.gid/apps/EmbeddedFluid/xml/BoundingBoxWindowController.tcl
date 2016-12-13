@@ -185,7 +185,7 @@ proc EmbeddedFluid::xml::BoundingBox::CreateBoxGeom { } {
     
     GiD_Process Mescape Geometry Create Object Rectangle $Xo $Yo $Zo $Xf $Yf $Zo Mescape
     set surfid [GiD_EntitiesLayers get $boxname surfaces]
-    GiD_Process Mescape Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0 0.0 0.0 FNoJoin 0.0 0.0 $h $surfid Mescape Mescape 
+    GiD_Process Mescape Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0 0.0 0.0 FNoJoin 0.0 0.0 $h $surfid Mescape 
     GidUtils::SetWarnLine [= "Bounding box created: Xo = %s  Yo = %s  Zo = %s  Xf = %s  Yf = %s  Zf = %s" $Xo $Yo $Zo $Xf $Yf $Zf]
 }
     
