@@ -14,15 +14,13 @@ proc EmbeddedFluid::xml::Init { } {
     Model::DestroyEverything
     Model::InitVariables dir $EmbeddedFluid::dir
 
-    Model::getSolutionStrategies "../../EmbeddedFluid/xml/Strategies.xml"
+    Model::getSolutionStrategies Strategies.xml
     Model::getElements "../../Fluid/xml/Elements.xml"
     Model::getMaterials Materials.xml
     Model::getNodalConditions "../../Fluid/xml/NodalConditions.xml"
     Model::getConstitutiveLaws ConstitutiveLaws.xml
     Model::getProcesses "../../Fluid/xml/Processes.xml"
     Model::getConditions "../../Fluid/xml/Conditions.xml"
-    Model::getProcesses Processes.xml
-    Model::getConditions Conditions.xml
     Model::getSolvers "../../Common/xml/Solvers.xml"
 }
 
