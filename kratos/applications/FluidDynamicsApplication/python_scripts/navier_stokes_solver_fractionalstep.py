@@ -171,7 +171,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
     def SolverFinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
         if(self.compute_reactions):
-                    (self.solver).CalculateReactions()
+            (self.solver).CalculateReactions()
 
 
     def Solve(self):
