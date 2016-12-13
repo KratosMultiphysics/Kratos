@@ -228,9 +228,9 @@ class VertexMorphingMethod:
         for opt_itr in range(1,self.config.max_opt_iterations+1):
 
             # Some output
-            print("\n>===============================================")
-            print("> Starting optimization iteration ",opt_itr)
-            print(">===============================================\n")
+            print("\n>===================================================================")
+            print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
+            print(">===================================================================\n")
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
@@ -396,9 +396,9 @@ class VertexMorphingMethod:
         for opt_itr in range(1,self.config.max_opt_iterations+1):
 
             # Some output
-            print("\n>===============================================")
-            print("> Starting optimization iteration ",opt_itr)
-            print(">===============================================\n")
+            print("\n>===================================================================")
+            print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
+            print(">===================================================================\n")
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
@@ -563,7 +563,7 @@ class VertexMorphingMethod:
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
             row.append("\tc["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t")          
-            row.append("\trelaxation_fac[-]")
+            row.append("\tcorrection_scaling[-]")
             row.append("\tstep_size[-]")
             row.append("\tt_iteration[s]")
             row.append("\tt_total[s]") 
@@ -584,9 +584,9 @@ class VertexMorphingMethod:
         for opt_itr in range(1,self.config.max_opt_iterations+1):
 
             # Some output
-            print("\n>===============================================")
-            print("> Starting optimization iteration ",opt_itr)
-            print(">===============================================\n")
+            print("\n>===================================================================")
+            print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
+            print(">===================================================================\n")
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
@@ -637,9 +637,9 @@ class VertexMorphingMethod:
             #     self.config.step_size = self.config.step_size/2
 
             if(constraints_given):
-                correction_scaling = [2.0] 
+                correction_scaling = [False] 
                 self.opt_utils.compute_projected_search_direction( response[only_C_id]["value"] )
-                self.opt_utils.correct_projected_search_direction( response[only_C_id]["value"], previous_c, relaxation_fac )
+                self.opt_utils.correct_projected_search_direction( response[only_C_id]["value"], previous_c, correction_scaling )
                 self.opt_utils.compute_design_update()
             else:
                 self.opt_utils.compute_search_direction_steepest_descent()
@@ -678,7 +678,7 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
                 row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
-                row.append("\t"+str("%.12f"%(relaxation_fac[0]))+"\t")
+                row.append("\t"+str("%.12f"%(correction_scaling[0]))+"\t")
                 row.append("\t"+str(self.config.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
                 row.append("\t"+str("%.1f"%(time_optimization))+"\t")
