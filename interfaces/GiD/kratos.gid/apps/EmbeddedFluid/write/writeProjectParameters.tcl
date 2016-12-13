@@ -4,6 +4,10 @@ proc ::EmbeddedFluid::write::getParametersDict { } {
       set bclist [dict get $param_dict boundary_conditions_process_list]
       lappend bclist [GetDistanceModificationDict]
       dict set param_dict boundary_conditions_process_list $bclist
+      
+      set solverSettingsDict [dict get $param_dict solver_settings]
+      set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict EmbeddedFluid] ]
+      dict set param_dict solver_settings $solverSettingsDict
       return $param_dict
 }
 
