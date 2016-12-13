@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosTrilinosApplication ****")
- 
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
@@ -11,7 +11,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ALEapplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
- 
+
 
 #find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
@@ -24,7 +24,7 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
 #     add_definitions(-lrt)
 
     find_package(Pastix QUIET)
-     
+
 #     find_package(BLAS   QUIET)
 
 #     if (PASTIX_INCLUDES AND SCOTCH_INCLUDES AND BLAS_FOUND)
@@ -41,16 +41,16 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
     set(AMGCL_ROOT "../../external_libraries" )
     message(STATUS "Found AMGCL at ${AMGCL_ROOT}")
     include_directories(${AMGCL_ROOT})
-    
-    ##including extra boost libraries 
-    
+
+    ##including extra boost libraries
+
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
 
 ##add definitions needed
 
 ## generate variables with the sources
-set( KRATOS_TRILINOS_APPLICATION_SOURCES    
+set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
@@ -65,6 +65,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
     ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
     ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
+    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/ale_application_variables.cpp
     ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication/custom_elements/vms_adjoint_element.cpp
     ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
@@ -88,12 +89,12 @@ endif()
 
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
