@@ -27,21 +27,23 @@ proc EmbeddedFluid::write::writeCustomFilesEvent { } {
 }
 
 proc EmbeddedFluid::write::writeDistances { } {
-    set go 0
-    set distfilepath [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]
-    set a [open $distfilepath r]
-    write::WriteString "Begin NodalData DISTANCE"
-    while {[gets $a line]>=0} {
-        if {$line eq "End Values"} {set go 0}
-        if {$go == 2} {
-            write::WriteString $line
+    set must_write [write::getValue EMBFLDistanceReading ReadingMode]
+    if {$must_write eq "MDPA"} {
+        set go 0
+        set distfilepath [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]
+        set a [open $distfilepath r]
+        write::WriteString "Begin NodalData DISTANCE"
+        while {[gets $a line]>=0} {
+            if {$line eq "End Values"} {set go 0}
+            if {$go == 2} {
+                write::WriteString $line
+            }
+            if {$line eq {Result "Distance" "Signed distance" 1 Scalar OnNodes}} {incr go 1}
+            if {$line eq "Values"} {incr go 1}
+            
         }
-        if {$line eq {Result "Distance" "Signed distance" 1 Scalar OnNodes}} {incr go 1}
-        if {$line eq "Values"} {incr go 1}
-        
+        write::WriteString "End NodalData"
     }
-    write::WriteString "End NodalData"
-
 }
 
 EmbeddedFluid::write::Init
