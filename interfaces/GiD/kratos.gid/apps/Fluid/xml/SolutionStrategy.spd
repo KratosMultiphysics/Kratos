@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolutionStrat" pn="Solution" help="Solution Strategy" open_window="0">
+<container n="SolutionStrat" pn="Solution" un="FLSolutionParameters" help="Solution Strategy" open_window="0">
 	  <!--<container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >-->
 			<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
 			<dynamicnode command="injectSolvers" args=""/>

@@ -43,6 +43,9 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]
+    gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]
+    customlib::ProcessIncludes $::Kratos::kratos_private(Path)
+    
     # Erase when Fractional step is available
     #spdAux::SetValueOnTreeItem v Monolithic EMBFLSolStrat
     #spdAux::SetValueOnTreeItem values Monolithic EMBFLSolStrat

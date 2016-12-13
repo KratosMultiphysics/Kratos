@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="DistanceReading" pn="Distance reading settings" un="EMBFLDistanceReading" help="Distance reading settings" open_window="0">
+	<value n="ReadingMode" pn="Reading mode" v="MDPA" values="MDPA,FILE" dict="MDPA,Mdpa,FILE,File" help=""/>
+	<value n='Filename' pn='Filename' v='-' values='[GetFilesValues]' update_proc='AddFile' help='Select a distance file .post.res' state='normal' />
+</container>
