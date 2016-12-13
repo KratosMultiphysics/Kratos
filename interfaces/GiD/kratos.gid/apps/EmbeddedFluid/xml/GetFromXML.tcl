@@ -42,7 +42,7 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
-
+    gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]
     # Erase when Fractional step is available
     #spdAux::SetValueOnTreeItem v Monolithic EMBFLSolStrat
     #spdAux::SetValueOnTreeItem values Monolithic EMBFLSolStrat
