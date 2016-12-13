@@ -7,6 +7,16 @@ proc ::EmbeddedFluid::write::getParametersDict { } {
       
       set solverSettingsDict [dict get $param_dict solver_settings]
       set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict EmbeddedFluid] ]
+      
+      set dist_settings_dict [dict create]
+      set dist_mode [write::getValue EMBFLDistanceReading ReadingMode]
+      dict set dist_settings_dict import_mode $dist_mode
+      if {$dist_mode ne "MDPA"} {
+            set dist_file [write::getValue EMBFLDistanceReading Filename]
+            dict set dist_settings_dict distance_file_name $dist_file
+      }
+      dict set solverSettingsDict distance_reading_settings $dist_settings_dict
+      
       dict set param_dict solver_settings $solverSettingsDict
       return $param_dict
 }
