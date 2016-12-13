@@ -6,7 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Mohamed Khalil
+//                   Vicente Mataix Ferrándiz
 //
 
 // System includes

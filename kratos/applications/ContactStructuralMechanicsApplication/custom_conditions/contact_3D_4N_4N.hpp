@@ -1415,9 +1415,9 @@ public:
 {
     bounded_matrix<double,36,36> lhs;
     
-    const Matrix normalslave  = rContactData.NormalsSlave;
-    const Matrix tan1slave    = rContactData.Tangent1Slave;
-    const Matrix tan2slave    = rContactData.Tangent2Slave;
+    const Matrix normalslave  = rContactData.Normal_s;
+    const Matrix tan1slave    = rContactData.Tangent_xi_s;
+    const Matrix tan2slave    = rContactData.Tangent_eta_s;
     const Matrix lm           = rContactData.LagrangeMultipliers;
     const double Dt           = rContactData.Dt;
 
@@ -2905,9 +2905,9 @@ public:
     array_1d<double,36> rhs;
     
     const Matrix lm           = rContactData.LagrangeMultipliers;
-    const Matrix normalslave  = rContactData.NormalsSlave;
-    const Matrix tan1slave    = rContactData.Tangent1Slave;
-    const Matrix tan2slave    = rContactData.Tangent2Slave;
+    const Matrix normalslave  = rContactData.Normal_s;
+    const Matrix tan1slave    = rContactData.Tangent_xi_s;
+    const Matrix tan2slave    = rContactData.Tangent_eta_s;
     const Vector Gaps         = rContactData.Gaps;
     const double Dt           = rContactData.Dt;
     

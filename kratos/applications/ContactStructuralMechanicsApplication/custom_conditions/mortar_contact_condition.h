@@ -160,11 +160,11 @@ public:
     Matrix DoubleLagrangeMultipliers;
     
     // The normals of the nodes
-    Matrix NormalsMaster;
-    Matrix NormalsSlave;
+    Matrix Normal_m;
+    Matrix Normal_s;
     
-    Matrix Tangent1Slave;
-    Matrix Tangent2Slave;
+    Matrix Tangent_xi_s;
+    Matrix Tangent_eta_s;
     
     // Displacements and velocities
     Matrix X1;
@@ -173,6 +173,15 @@ public:
     Matrix u2;
     Matrix v1;
     Matrix v2;
+    
+    // Derivatives 
+    std::vector<double> DeltaJ_s;
+//     std::vector<Vector> DeltaGaps;
+//     std::vector<Vector> DeltaN2;
+    std::vector<Matrix> Delta_Normal_s;
+    std::vector<Matrix> Delta_Tangent_xi_s;
+    std::vector<Matrix> Delta_Tangent_eta_s;
+    std::vector<Matrix> Delta_Normal_m;
     
     // Ae
     Matrix Me;
@@ -214,9 +223,9 @@ public:
         DoubleLagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // The normals of the nodes
-        NormalsSlave  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        Tangent1Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        Tangent2Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Normal_s  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Tangent_xi_s = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Tangent_eta_s = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // Displacements and velocities of the slave
         X1.resize(rNumberOfSlaveNodes, rDimension, false);
@@ -225,6 +234,24 @@ public:
         u1 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
         v1.resize(rNumberOfSlaveNodes, rDimension, false);
         v1 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
+        
+        // Derivatives 
+        DeltaJ_s.resize(rNumberOfSlaveNodes * rDimension);
+//         DeltaGaps.resize(2 * rNumberOfSlaveNodes * rDimension, false);
+//         DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension, false);
+        Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
+        Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
+        Delta_Tangent_eta_s.resize(rNumberOfSlaveNodes * rDimension);
+        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
+        {
+//             DeltaGaps[i] = ZeroVector(rNumberOfSlaveNodes);
+//             DeltaGaps[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
+//             DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
+//             DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
+            Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+            Delta_Tangent_xi_s[i]  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+            Delta_Tangent_eta_s[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        }
         
         // Delta time 
         Dt = 0.0;
@@ -282,7 +309,7 @@ public:
         const GeometryType GeometryInput =  pCond->GetGeometry();
         MasterGeometry = GeometryInput; // Updating the geometry
         
-        NormalsMaster = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+        Normal_m = ZeroMatrix(rNumberOfMasterNodes, rDimension);
         
         for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
         {
@@ -291,7 +318,7 @@ public:
 
             for (unsigned int iDof = 0; iDof < rDimension; iDof++)
             {
-                NormalsMaster(iNode, iDof) = normal[iDof]; 
+                Normal_m(iNode, iDof) = normal[iDof]; 
             }
         }
         
@@ -302,6 +329,12 @@ public:
         u2 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
         v2.resize(rNumberOfMasterNodes, rDimension, false);
         v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
+        
+        Delta_Normal_m.resize(rNumberOfMasterNodes * rDimension);
+        for (unsigned int i = 0; i < rNumberOfMasterNodes * rDimension; i++)
+        {
+            Delta_Normal_m[i] = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+        }
     }
 };
     
@@ -1073,6 +1106,26 @@ protected:
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
         const double& integration_point_slip
+        );
+    
+    /********************************************************************************/
+    /*************** METHODS TO CALCULATE MORTAR CONDITION DERIVATIVES **************/
+    /********************************************************************************/
+    
+    void CalculateDeltaDetJSlave(
+        GeneralVariables& rVariables,
+        ContactData& rContactData
+        );
+    
+    bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
+        const GeometryType& CondGeometry,
+        const Matrix DN, 
+        const unsigned int node_index
+        );
+    
+    void CalculateDeltaNormalTangent(
+        GeneralVariables& rVariables,
+        ContactData& rContactData
         );
     
     /***********************************************************************************/
