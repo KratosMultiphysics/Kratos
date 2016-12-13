@@ -192,28 +192,19 @@ virtual ~TimeDependantForceField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector)
+double Evaluate(const double time, const array_1d<double, 3>& coor)
 {
     array_1d<double, 3> porosity_grad;
-    double porosity = mAlpha.Evaluate(time, coor);
+    return mAlpha.Evaluate(time, coor);
 
-    mAlpha.CalculateGradient(time, coor, porosity_grad);
-    vector[0] = 0.0;
-    vector[1] = - porosity * porosity_grad[1];
-    vector[2] = 0.0;
+//    mAlpha.CalculateGradient(time, coor, porosity_grad);
+//    vector[0] = 0.0;
+//    vector[1] = - porosity * porosity_grad[1];
+//    vector[2] = 0.0;
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
-void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv){}
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient){}
-void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div){}
-void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot){}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
 
 TimeDependantPorosityField GetPorosityField(){return(mAlpha);}
 
