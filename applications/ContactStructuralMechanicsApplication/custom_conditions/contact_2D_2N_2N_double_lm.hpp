@@ -66,10 +66,10 @@ public:
 {
     bounded_matrix<double,16,16> lhs;
     
-    const Matrix normalmaster    = rContactData.NormalsMaster;
-    const Vector normalmasterg   = prod(trans(normalmaster), N2);
-    const Matrix normalslave     = rContactData.NormalsSlave;
-    const Matrix tan1slave       = rContactData.Tangent1Slave;
+    const Matrix normalmaster    = rContactData.Normal_m;
+    const Vector normalmasterg    = prod(trans(normalmaster), N1);
+    const Matrix normalslave     = rContactData.Normal_s;
+    const Matrix tan1slave       = rContactData.Tangent_xi_s;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
     const double epsilon         = rContactData.epsilon;
@@ -627,10 +627,10 @@ public:
 {
     bounded_matrix<double,16,16> lhs;
     
-    const Matrix normalmaster    = rContactData.NormalsMaster;
+    const Matrix normalmaster    = rContactData.Normal_m;
     const Vector normalmasterg   = prod(trans(normalmaster), N2);
-    const Matrix normalslave     = rContactData.NormalsSlave;
-    const Matrix tan1slave       = rContactData.Tangent1Slave;
+    const Matrix normalslave     = rContactData.Normal_s;
+    const Matrix tan1slave       = rContactData.Tangent_xi_s;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
     const double Dt              = rContactData.Dt;
@@ -1109,10 +1109,10 @@ public:
 {
     bounded_matrix<double,16,16> lhs;
     
-    const Matrix normalmaster    = rContactData.NormalsMaster;
+    const Matrix normalmaster    = rContactData.Normal_m;
     const Vector normalmasterg   = prod(trans(normalmaster), N2);
-    const Matrix normalslave     = rContactData.NormalsSlave;
-    const Matrix tan1slave       = rContactData.Tangent1Slave;
+    const Matrix normalslave     = rContactData.Normal_s;
+    const Matrix tan1slave       = rContactData.Tangent_xi_s;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
     const double Dt              = rContactData.Dt;
@@ -1591,10 +1591,10 @@ public:
 {
     bounded_matrix<double,16,16> lhs;
     
-//     const Matrix normalmaster    = rContactData.NormalsMaster;
+//     const Matrix normalmaster    = rContactData.Normal_m;
 //     const Vector normalmasterg   = prod(trans(normalmaster), N2);
-//     const Matrix normalslave     = rContactData.NormalsSlave;
-//     const Matrix tan1slave       = rContactData.Tangent1Slave;
+//     const Matrix normalslave     = rContactData.Normal_s;
+//     const Matrix tan1slave       = rContactData.Tangent_xi_s;
 //     const Matrix lm              = rContactData.LagrangeMultipliers;
 //     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
 //     const double Dt              = rContactData.Dt;
@@ -1635,8 +1635,8 @@ public:
 {
     array_1d<double,16> rhs;
     
-    const Matrix normalslave    = rContactData.NormalsSlave;
-    const Matrix tan1slave      = rContactData.Tangent1Slave;
+    const Matrix normalslave    = rContactData.Normal_s;
+    const Matrix tan1slave      = rContactData.Tangent_xi_s;
     const Matrix lm             = rContactData.LagrangeMultipliers;
     const Matrix dlm            = rContactData.DoubleLagrangeMultipliers;
     const double epsilon        = rContactData.epsilon;
@@ -1716,8 +1716,8 @@ public:
 {
     array_1d<double,16> rhs;
     
-    const Matrix normalslave     = rContactData.NormalsSlave;
-    const Matrix tan1slave       = rContactData.Tangent1Slave;
+    const Matrix normalslave     = rContactData.Normal_s;
+    const Matrix tan1slave       = rContactData.Tangent_xi_s;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
     const double Dt              = rContactData.Dt;
@@ -1783,8 +1783,8 @@ public:
 {
     array_1d<double,16> rhs;
     
-    const Matrix normalslave     = rContactData.NormalsSlave;
-    const Matrix tan1slave       = rContactData.Tangent1Slave;
+    const Matrix normalslave     = rContactData.Normal_s;
+    const Matrix tan1slave       = rContactData.Tangent_xi_s;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
     const double Dt              = rContactData.Dt;
@@ -1849,8 +1849,8 @@ public:
 {
     array_1d<double,16> rhs;
     
-//     const Matrix normalslave     = rContactData.NormalsSlave;
-//     const Matrix tan1slave       = rContactData.Tangent1Slave;
+//     const Matrix normalslave     = rContactData.Normal_s;
+//     const Matrix tan1slave       = rContactData.Tangent_xi_s;
 //     const Matrix lm              = rContactData.LagrangeMultipliers;
 //     const Matrix dlm             = rContactData.DoubleLagrangeMultipliers;
 //     const double Dt              = rContactData.Dt;
