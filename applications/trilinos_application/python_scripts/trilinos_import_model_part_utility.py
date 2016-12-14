@@ -26,7 +26,7 @@ class TrilinosImportModelPartUtility():
             if KratosMPI.mpi.rank == 0 :
 
                 # Original .mdpa file reading
-                model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
+                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
 
                 # Partition of the original .mdpa file
                 number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
