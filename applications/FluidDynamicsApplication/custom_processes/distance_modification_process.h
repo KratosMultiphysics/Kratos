@@ -74,6 +74,7 @@ public:
     /// Constructor.
     DistanceModificationProcess(ModelPart& rModelPart, const bool& rCheckAtEachStep)
     {
+        mFactorCoeff = 2.0;
         mrModelPart = rModelPart;
         mrCheckAtEachStep = rCheckAtEachStep;
     }
@@ -118,7 +119,7 @@ public:
         {
             this->ModifyDistance(factor, bad_cuts);
             std::cout << "Distance modification iteration: " << counter << " Total bad cuts: " << bad_cuts << " Factor: " << factor << std::endl;
-            factor /= 2.0;
+            factor /= mFactorCoeff;
             counter++;
         }
 
@@ -182,7 +183,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
     ModelPart                                  mrModelPart;
+    double                                    mFactorCoeff;
     bool                                 mrCheckAtEachStep;
     std::vector<unsigned int>        mModifiedDistancesIDs;
     std::vector<double>           mModifiedDistancesValues;
@@ -194,10 +197,7 @@ protected:
     void ModifyDistance(const double& factor,
                         unsigned int& bad_cuts)
     {
-
-        //~ std::cout << "ModifyDistance" << std::endl;
-
-        double tol_d = 1e-2;
+        double tol_d;
         bad_cuts = 0;
 
         // Simple check
@@ -215,33 +215,33 @@ protected:
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 
-                if((d >= 0.0) &&(d < tol_d))
+                if((d >= 0.0) && (d < tol_d))
                 {
-                    std::cout << "Node: " << itNode->Id() << " Distance " << d;
-
                     // Modify the distance to avoid almost empty fluid elements
+                    std::cout << "Node: " << itNode->Id() << " distance " << d;
                     d = -0.001*tol_d;
-
                     std::cout << " modified to " << d << std::endl;
                 }
             }
         }
-        else // Case in where the original distance needs to be ketp to track the interface (e.g. FSI)
+        else // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
         {
             for (auto itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); itNode++)
             {
                 double h = itNode->GetValue(NODAL_H);
+                double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 
-                double& d = itNode->FastGetSolutionStepValue(DISTANCE);
-
-                if((d >= 0.0) &&(d < tol_d))
+                if((d >= 0.0) && (d < tol_d))
                 {
                     // Store the original distance to be recovered at the end of the step
                     mModifiedDistancesIDs.push_back(itNode->Id());
                     mModifiedDistancesValues.push_back(d);
+
                     // Modify the distance to avoid almost empty fluid elements
+                    std::cout << "Node: " << itNode->Id() << " distance " << d;
                     d = -0.001*tol_d;
+                    std::cout << " modified to " << d << std::endl;
                 }
             }
         }
@@ -258,7 +258,7 @@ protected:
             {
                 double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
 
-                if(d>0.0)
+                if(d > 0.0)
                 {
                     npos++;
                 }
@@ -268,12 +268,15 @@ protected:
                 }
             }
 
-            if((nneg>0) && (npos>0)) // The element is cut
+            if((nneg > 0) && (npos > 0)) // The element is cut
             {
                 for(unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
                 {
+                    double h = rGeometry[itNode].GetValue(NODAL_H);
                     double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
-                    if((d>=0.0) && (d<tol_d))
+                    tol_d = (factor*mFactorCoeff)*h;
+
+                    if((d >= 0.0) && (d < tol_d))
                     {
                         bad_cuts++;
                         break;
@@ -297,7 +300,7 @@ protected:
         mModifiedDistancesValues.resize(0);
         mModifiedDistancesIDs.shrink_to_fit();
         mModifiedDistancesValues.shrink_to_fit();
-
+        
     }
 
 
