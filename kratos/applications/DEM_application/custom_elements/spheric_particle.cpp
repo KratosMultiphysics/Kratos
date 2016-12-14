@@ -33,6 +33,7 @@ SphericParticle::SphericParticle()
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
+    mpIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -41,6 +42,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
+    mpIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
@@ -50,6 +52,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
+    mpIntegrationScheme = NULL;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
@@ -59,6 +62,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
     mRealMass = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
+    mpIntegrationScheme = NULL;
 }
 
 Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -68,13 +72,15 @@ Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& 
 
 /// Destructor.
 SphericParticle::~SphericParticle(){
-
     if (mStressTensor!=NULL) {
         delete mStressTensor;
         mStressTensor = NULL;
         delete mSymmStressTensor;
         mSymmStressTensor = NULL;
     }
+    if (mpIntegrationScheme!=NULL) {
+        delete mpIntegrationScheme;
+    }        
 }
 
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
