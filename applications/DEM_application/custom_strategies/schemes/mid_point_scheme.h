@@ -39,17 +39,17 @@ namespace Kratos {
 
         virtual ~MidPointScheme() {}
         
-        DEMIntegrationScheme* CloneRaw() const {
+        DEMIntegrationScheme* CloneRaw() const override {
             DEMIntegrationScheme* cloned_scheme(new MidPointScheme(*this));
             return cloned_scheme;
         }
         
-        DEMIntegrationScheme::Pointer CloneShared() const {
+        DEMIntegrationScheme::Pointer CloneShared() const override {
             DEMIntegrationScheme::Pointer cloned_scheme(new MidPointScheme(*this));
             return cloned_scheme;
         }
         
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override {
             std::cout << "Assigning MidPointScheme to properties " << pProp->Id() << std::endl;
             pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
