@@ -34,9 +34,21 @@ namespace Kratos {
         /// Destructor.
         virtual ~SymplecticEulerScheme() {}
         
-        void AddSpheresVariables(ModelPart & r_model_part) override;
+        DEMIntegrationScheme* CloneRaw() const override {
+            DEMIntegrationScheme* cloned_scheme(new SymplecticEulerScheme(*this));
+            return cloned_scheme;
+        }
+        
+         DEMIntegrationScheme::Pointer CloneShared() const override {
+            DEMIntegrationScheme::Pointer cloned_scheme(new SymplecticEulerScheme(*this));
+            return cloned_scheme;
+        }
+        
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override;
+        
+        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
     
-        void AddClustersVariables(ModelPart & r_model_part) override;
+        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/
 
         void UpdateTranslationalVariables(
             int StepFlag,
@@ -62,7 +74,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
                 
-        void UpdateRotationalVariables(
+        void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

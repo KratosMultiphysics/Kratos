@@ -3,11 +3,16 @@
 
 namespace Kratos {
 
-    void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddSpheresVariables(r_model_part);}
+    void ForwardEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning ForwardEulerScheme to properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
     
-    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddClustersVariables(r_model_part);}
+    /*void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
+         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
+    
+    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
+         DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
 
     void ForwardEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -61,7 +66,7 @@ namespace Kratos {
         }
     } 
 
-    void ForwardEulerScheme::UpdateRotationalVariables(
+    void ForwardEulerScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

@@ -42,7 +42,7 @@ class ExplicitStrategy:
         self.fix_velocities_flag     = 0
         self.Procedures              = procedures
         self.time_integration_scheme = scheme
-        self.time_integration_scheme.SetRotationOption(self.rotation_option)
+        #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = self.Var_Translator(Param.CleanIndentationsOption)
         self.contact_mesh_option           = 0
@@ -242,11 +242,13 @@ class ExplicitStrategy:
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                              self.time_integration_scheme, self.search_strategy, self.do_search_neighbours) 
+                                                              #TODO: remove time_integration_scheme. no longer necessary
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
+                                                             #TODO: remove time_integration_scheme. no longer necessary
                                 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
@@ -381,6 +383,22 @@ class ExplicitStrategy:
             sinAlpha = math.sin(math.radians(e))
 
         return (1-sinAlpha)/sinAlpha
+    
+    def IntegrationSchemeTranslator(self, name):
+        if name == 'Forward_Euler':
+            class_name = 'ForwardEulerScheme'
+        elif name == 'Symplectic_Euler':
+            class_name = 'SymplecticEulerScheme'
+        elif name == 'Taylor_Scheme':
+            class_name = 'TaylorScheme'        
+        elif name == 'Newmark_Beta_Method':
+            class_name = 'NewmarkBetaScheme'
+        elif name == 'Verlet_Velocity':
+            class_name = 'VerletVelocityScheme'
+        else:
+            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return class_name
 
     def ModifyProperties(self, properties):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
@@ -424,4 +442,12 @@ class ExplicitStrategy:
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             print(properties)
+            
+        if properties.Has(DEM_INTEGRATION_SCHEME_NAME):  
+            scheme_name = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+        else:
+            scheme_name = self.Parameters.IntegrationScheme
+            
+        scheme = globals().get(self.IntegrationSchemeTranslator(scheme_name))()
+        scheme.SetIntegrationSchemeInProperties(properties)
         

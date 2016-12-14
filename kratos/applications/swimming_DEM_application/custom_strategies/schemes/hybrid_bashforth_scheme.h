@@ -34,9 +34,9 @@ namespace Kratos {
         /// Destructor.
         virtual ~HybridBashforthScheme() {}
 
-        void AddSpheresVariables(ModelPart & r_model_part);
+        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
 
-        void AddClustersVariables(ModelPart & r_model_part);
+        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption);*/
 
         void UpdateTranslationalVariables(
             int StepFlag,

@@ -36,6 +36,16 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 
+#include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_strategies/schemes/forward_euler_scheme.h"
+#include "custom_strategies/schemes/mid_point_scheme.h"
+#include "custom_strategies/schemes/newmark_beta_scheme.h"
+#include "custom_strategies/schemes/symplectic_euler_scheme.h"
+#include "custom_strategies/schemes/taylor_scheme.h"
+#include "custom_strategies/schemes/verlet_velocity_scheme.h"
+
+
 namespace Kratos
 {
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
@@ -46,6 +56,10 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
   KRATOS_CREATE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
   KRATOS_CREATE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+          
+  //scheme
+  KRATOS_CREATE_VARIABLE(std::string, DEM_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_INTEGRATION_SCHEME_POINTER)
           
   //Probability distribution
   KRATOS_CREATE_VARIABLE(std::string, PROBABILITY_DISTRIBUTION)        
@@ -406,6 +420,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
     KRATOS_REGISTER_VARIABLE(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
     KRATOS_REGISTER_VARIABLE(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
+            
+    //scheme
+    KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_NAME)
+    KRATOS_REGISTER_VARIABLE(DEM_INTEGRATION_SCHEME_POINTER)
            
     KRATOS_REGISTER_VARIABLE(PROBABILITY_DISTRIBUTION)        
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_PROBABILITY_DISTRIBUTION)        
@@ -742,6 +760,15 @@ namespace Kratos
     Serializer::Register("DEM_Dempack_dev", DEM_Dempack_dev());
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
+    
+    Serializer::Register("ConstAverageAccelerationScheme", ConstAverageAccelerationScheme());
+    Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
+    Serializer::Register("MidPointScheme", MidPointScheme());
+    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
+    Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
+    Serializer::Register("TaylorScheme", TaylorScheme());
+    Serializer::Register("VerletVelocityScheme", VerletVelocityScheme());
+    Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
     
     std::cout << " done."                                  << std::endl;
   }

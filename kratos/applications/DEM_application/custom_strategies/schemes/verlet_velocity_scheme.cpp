@@ -2,12 +2,17 @@
 #include "verlet_velocity_scheme.h"
 
 namespace Kratos {
-
-    void VerletVelocityScheme::AddSpheresVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddSpheresVariables(r_model_part);}
     
-    void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddClustersVariables(r_model_part);}
+    void VerletVelocityScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+            std::cout << "Assigning VerletVelocityScheme to properties " << pProp->Id() << std::endl;
+            pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+        }
+
+    /*void VerletVelocityScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
+         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);}
+    
+    void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
+         DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);}*/
 
     void VerletVelocityScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -92,7 +97,7 @@ namespace Kratos {
             }//CORRECT
     }
     
-    void VerletVelocityScheme::UpdateRotationalVariables(
+    void VerletVelocityScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

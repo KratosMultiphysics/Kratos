@@ -60,54 +60,35 @@ namespace Kratos
 
           class_<DEMIntegrationScheme, boost::noncopyable >
                     ("DEMIntegrationScheme", init< >())
-            .def("AddSpheresVariables",&DEMIntegrationScheme::AddSpheresVariables)
-            .def("AddClustersVariables",&DEMIntegrationScheme::AddClustersVariables)
-            .def("SetRotationOption",&DEMIntegrationScheme::SetRotationOption)
+            .def("SetIntegrationSchemeInProperties", &DEMIntegrationScheme::SetIntegrationSchemeInProperties)
+            //.def("AddSpheresVariables",&DEMIntegrationScheme::AddSpheresVariables)
+            //.def("AddClustersVariables",&DEMIntegrationScheme::AddClustersVariables)
+            //.def("SetRotationOption",&DEMIntegrationScheme::SetRotationOption)
                   ;
+          
+          class_<Variable<DEMIntegrationScheme::Pointer>, boost::noncopyable >("DEMIntegrationSchemePointerVariable", no_init)
+                    .def(self_ns::str(self)
+          );
+          
+          class_<Variable<DEMIntegrationScheme*>, boost::noncopyable >("DEMIntegrationSchemeRawPointerVariable", no_init)
+                    .def(self_ns::str(self)
+          );
 
-          class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "ForwardEulerScheme", init<>()
-                  )
-                  ;
+          class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("ForwardEulerScheme", init<>());
 
-          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "SymplecticEulerScheme", init<>()
-                  )
-                  ;
+          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("SymplecticEulerScheme", init<>());
 
-          class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "NewmarkBetaScheme", init<const double, const double>()
-                  )
-                  ;
+          class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("NewmarkBetaScheme", init<const double, const double>());
 
-          class_< VerletVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "VerletVelocityScheme", init<>()
-                  )
-                  ;
+          class_< VerletVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VerletVelocityScheme", init<>());
 
-          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "TaylorScheme", init<>()
-                  )
-                  ;
+          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
 
-          class_< ConstAverageAccelerationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
-          (
-                    "ConstAverageAccelerationScheme", init<>()
-                  )
-                  ;
+          class_< ConstAverageAccelerationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("ConstAverageAccelerationScheme", init<>());
 
-          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
-                    ("OMP_DEMSearch", init<double, double, double>())
-                    ;
+          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>("OMP_DEMSearch", init<double, double, double>());
 
-          class_< ExplicitSolverSettings, boost::noncopyable >
-          (
-            "ExplicitSolverSettings", init<>() )
+          class_< ExplicitSolverSettings, boost::noncopyable >("ExplicitSolverSettings", init<>() )
           .def_readwrite("r_model_part",&ExplicitSolverSettings::r_model_part)
           .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
           .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
@@ -116,8 +97,7 @@ namespace Kratos
           ;
 
           class_< ExplicitSolverStrategy,  boost::noncopyable>
-          (
-          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
+          ("ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
                   .def("Solve", &ExplicitSolverStrategy::Solve)
                   .def("Initialize", &ExplicitSolverStrategy::Initialize)
                   .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)

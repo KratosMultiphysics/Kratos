@@ -68,7 +68,7 @@ boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& 
 void AddCustomUtilitiesToPython() {
     
     using namespace boost::python;
-    
+        
     class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)

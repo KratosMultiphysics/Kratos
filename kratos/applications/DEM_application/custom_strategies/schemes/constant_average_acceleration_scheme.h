@@ -39,10 +39,25 @@ namespace Kratos
 
       /// Destructor.
       virtual ~ConstAverageAccelerationScheme(){}
+      
+      DEMIntegrationScheme* CloneRaw() const {
+            DEMIntegrationScheme* cloned_scheme(new ConstAverageAccelerationScheme(*this));
+            return cloned_scheme;
+      }
+      
+      DEMIntegrationScheme::Pointer CloneShared() const {
+            DEMIntegrationScheme::Pointer cloned_scheme(new ConstAverageAccelerationScheme(*this));
+            return cloned_scheme;
+        }
+      
+      void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning ConstAverageAccelerationScheme to properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
             
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
-     void Calculate(ModelPart& model_part, int StepFlag = -1)  override
+     /*void Calculate(ModelPart& model_part, bool TRotationOption, int StepFlag = -1)  override
      {
         KRATOS_TRY
         
@@ -61,7 +76,7 @@ namespace Kratos
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 	
 	
-#pragma omp parallel for /*firstprivate(aux)*/ shared(delta_t) 
+        #pragma omp parallel for 
 	for(int k=0; k<number_of_threads; k++)
 	{
 	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -166,7 +181,7 @@ namespace Kratos
 	   }
 	}
 	KRATOS_CATCH(" ")
-     }  
+     }  */
     
     
      

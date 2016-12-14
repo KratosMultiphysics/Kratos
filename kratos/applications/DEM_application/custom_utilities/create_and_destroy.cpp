@@ -398,8 +398,10 @@ namespace Kratos {
             if (mDoSearchNeighbourElements) { // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
             }
         }
 
@@ -445,7 +447,7 @@ namespace Kratos {
         {
         //pnew_node = r_modelpart.CreateNewNode(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]); //ACTUAL node creation and addition to model part
             r_modelpart.Nodes().push_back(pnew_node);
-        }
+        }                        
         
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
         array_1d<double, 3 > null_vector(3, 0.0);
@@ -605,7 +607,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
-                    
+           
         if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
             OrientationReal    = ((double) rand() / (RAND_MAX));
             OrientationImag[0] = ((double) rand() / (RAND_MAX));
@@ -620,6 +622,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         }        
 
         p_cluster->SetOrientation(OrientationReal, OrientationImag);
+        
         p_cluster->Initialize(r_process_info); 
         
         const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
@@ -661,8 +664,10 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             if (mDoSearchNeighbourElements) { // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourElasticExtraContactForces.push_back(zero_vector);
             }
 
             spheric_p_particle->Set(NEW_ENTITY);

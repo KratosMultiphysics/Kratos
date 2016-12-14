@@ -3,59 +3,20 @@
 
 namespace Kratos {
 
-    void NewmarkBetaScheme::AddSpheresVariables(ModelPart & r_model_part){
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part);
+    void NewmarkBetaScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning NewmarkBetaScheme to properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
+    /*void NewmarkBetaScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
+        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
         //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);
     }
     
-    void NewmarkBetaScheme::AddClustersVariables(ModelPart & r_model_part){
-        DEMIntegrationScheme::AddClustersVariables(r_model_part);
+    void NewmarkBetaScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
+        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
         //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);                      
-    }
-    
-    void NewmarkBetaScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
-        KRATOS_TRY
-        ProcessInfo& r_process_info = model_part.GetProcessInfo();
-        double delta_t = r_process_info[DELTA_TIME];
-        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
-        bool if_virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
-        double force_reduction_factor = 1.0;
-        if (if_virtual_mass_option) {
-            force_reduction_factor = 1.0 - virtual_mass_coeff;
-            if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
-        }
-        vector<unsigned int> node_partition;
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-    #pragma omp parallel for shared(delta_t)
-        for (int k = 0; k < (int) number_of_threads; k++) {
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
-
-            for (ModelPart::NodeIterator i_iterator = i_begin; i_iterator != i_end; ++i_iterator) {
-                Node < 3 > & i = *i_iterator;
-                if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-                array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                array_1d<double, 3 >& coor = i.Coordinates();
-                array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
-                array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);                
-
-                double mass = i.FastGetSolutionStepValue(NODAL_MASS);
-
-                bool Fix_vel[3] = {false, false, false};
-
-                Fix_vel[0] = i.Is(DEMFlags::FIXED_VEL_X);
-                Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
-                Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
-
-                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
-            } //nodes in the thread
-        } //threads
-        KRATOS_CATCH(" ")
-    }
+    }  */      
 
     void NewmarkBetaScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -112,7 +73,7 @@ namespace Kratos {
         }
     } 
     
-    void NewmarkBetaScheme::UpdateRotationalVariables(
+    void NewmarkBetaScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

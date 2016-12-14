@@ -53,6 +53,7 @@ namespace Kratos
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
+        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
@@ -70,6 +71,9 @@ namespace Kratos
         virtual void SetInitialNeighbours(const double search_tolerance);
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
+        
+        virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
    
         double GetSqrtOfRealMass();
         virtual double SlowGetDensity();
@@ -98,7 +102,8 @@ namespace Kratos
        
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
-        std::vector<SphericParticle*>      mListOfSphericParticles;        
+        std::vector<SphericParticle*>      mListOfSphericParticles; 
+        DEMIntegrationScheme* mpIntegrationScheme;        
       
     private:
        
