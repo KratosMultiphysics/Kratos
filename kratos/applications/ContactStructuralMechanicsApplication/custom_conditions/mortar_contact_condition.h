@@ -176,8 +176,8 @@ public:
     
     // Derivatives 
     std::vector<double> DeltaJ_s;
-//     std::vector<Vector> DeltaGaps;
-//     std::vector<Vector> DeltaN2;
+    std::vector<double> DeltaGap;
+    std::vector<Vector> DeltaN2;
     std::vector<Matrix> Delta_Normal_s;
     std::vector<Matrix> Delta_Tangent_xi_s;
     std::vector<Matrix> Delta_Tangent_eta_s;
@@ -237,17 +237,15 @@ public:
         
         // Derivatives 
         DeltaJ_s.resize(rNumberOfSlaveNodes * rDimension);
-//         DeltaGaps.resize(2 * rNumberOfSlaveNodes * rDimension, false);
-//         DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension, false);
+        DeltaGap.resize(2 * rNumberOfSlaveNodes * rDimension);
+        DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension);
         Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_eta_s.resize(rNumberOfSlaveNodes * rDimension);
         for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
         {
-//             DeltaGaps[i] = ZeroVector(rNumberOfSlaveNodes);
-//             DeltaGaps[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
-//             DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
-//             DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
+            DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
+            DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
             Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
             Delta_Tangent_xi_s[i]  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
             Delta_Tangent_eta_s[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
@@ -1126,6 +1124,16 @@ protected:
     void CalculateDeltaNormalTangentSlave(ContactData& rContactData);
     
     void CalculateDeltaNormalMaster(ContactData& rContactData);
+    
+    void CalculateDeltaN2(
+        GeneralVariables& rVariables,
+        ContactData& rContactData
+        );
+    
+    void CalculateDeltaGap(
+        GeneralVariables& rVariables,
+        ContactData& rContactData
+        );
     
     /***********************************************************************************/
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
