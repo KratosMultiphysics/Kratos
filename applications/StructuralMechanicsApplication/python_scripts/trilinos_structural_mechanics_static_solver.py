@@ -13,12 +13,12 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 # Import the mechanical solver base class
-import structural_mechanics_solver_MPI
+import trilinos_structural_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolverMPI(main_model_part, custom_settings)
+    return TrilinosStaticMechanicalSolver(main_model_part, custom_settings)
 
-class StaticMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolverMPI):
+class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -28,7 +28,7 @@ class StaticMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolver
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "structural_mechanics_static_solver_MPI",
+            "solver_type": "trilinos_structural_mechanics_static_solver",
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Static",
@@ -78,7 +78,7 @@ class StaticMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolver
 
     def AddVariables(self):
 
-        super(StaticMechanicalSolverMPI, self).AddVariables()
+        super(TrilinosStaticMechanicalSolver, self).AddVariables()
 
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
