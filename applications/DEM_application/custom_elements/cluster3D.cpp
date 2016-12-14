@@ -23,27 +23,26 @@
 
 namespace Kratos {
 
-    
     Cluster3D::Cluster3D() : Element() {}
             
-      
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry) {}
-      
+    : Element(NewId, pGeometry) {
+        mpIntegrationScheme = NULL;
+    }
       
     Cluster3D::Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties) {}
-
+    : Element(NewId, pGeometry, pProperties) {
+        mpIntegrationScheme = NULL;
+    }
       
     Cluster3D::Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
-    : Element(NewId, ThisNodes) {}
-
+    : Element(NewId, ThisNodes) {
+        mpIntegrationScheme = NULL;
+    }
     
     Element::Pointer Cluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
-          
         return Element::Pointer(new Cluster3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }      
-
     
     // Destructor
     Cluster3D::~Cluster3D() {
@@ -66,6 +65,11 @@ namespace Kratos {
         mListOfSphericParticles.clear();
         mListOfCoordinates.clear();  
         mListOfRadii.clear();  
+        
+        if (mpIntegrationScheme!=NULL) {
+            delete mpIntegrationScheme;
+        }        
+
     }
 
       
