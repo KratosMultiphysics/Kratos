@@ -80,7 +80,7 @@ public:
     const Matrix v1 = rContactData.v1;
     const Matrix v2 = rContactData.v2;
     
-    const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1);
+    const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1); // NOTE: Compute this in the main file!!!
     const Vector DeltaPhiu101 = prod(rContactData.DeltaAe[1],N1);
     const Vector DeltaPhiu110 = prod(rContactData.DeltaAe[2],N1);
     const Vector DeltaPhiu111 = prod(rContactData.DeltaAe[3],N1);
