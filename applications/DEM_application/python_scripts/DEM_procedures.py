@@ -316,15 +316,15 @@ class Procedures(object):
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
         self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-        self.scheme.AddSpheresVariables(spheres_model_part)
+        #self.scheme.AddSpheresVariables(spheres_model_part)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        self.scheme.AddClustersVariables(cluster_model_part)
+        #self.scheme.AddClustersVariables(cluster_model_part)
         self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
         self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
         self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
-        self.scheme.AddSpheresVariables(DEM_inlet_model_part)
+        #self.scheme.AddSpheresVariables(DEM_inlet_model_part)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -348,7 +348,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
 
@@ -360,8 +360,8 @@ class Procedures(object):
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(self.DEM_parameters.RotationOption)):
-            model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
-            model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+            model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+            model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
             if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
                 model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
                 model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
@@ -421,6 +421,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
         model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION)
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)

@@ -33,27 +33,41 @@ namespace Kratos {
 
         /// Default constructor.
 
-        MidPointScheme() {
-        }
+        MidPointScheme() {}
 
         /// Destructor.
 
-        virtual ~MidPointScheme() {
+        virtual ~MidPointScheme() {}
+        
+        DEMIntegrationScheme* CloneRaw() const {
+            DEMIntegrationScheme* cloned_scheme(new MidPointScheme(*this));
+            return cloned_scheme;
+        }
+        
+        DEMIntegrationScheme::Pointer CloneShared() const {
+            DEMIntegrationScheme::Pointer cloned_scheme(new MidPointScheme(*this));
+            return cloned_scheme;
+        }
+        
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+            std::cout << "Assigning MidPointScheme to properties " << pProp->Id() << std::endl;
+            pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
         }
 
-        void AddSpheresVariables(ModelPart & r_model_part)  override {
+        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption)  override {
 
-            DEMIntegrationScheme::AddSpheresVariables(r_model_part);
-
-        }
-
-        void AddClustersVariables(ModelPart & r_model_part)  override {
-
-            DEMIntegrationScheme::AddClustersVariables(r_model_part);
+            DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
 
         }
+
+        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption)  override {
+
+            DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
+
+        }*/
 
         void UpdateTranslationalVariables(
+                int StepFlag,
                 Node < 3 > & i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
@@ -82,6 +96,7 @@ namespace Kratos {
         }
 
         void UpdateRotationalVariables(
+                int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,

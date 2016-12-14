@@ -16,6 +16,7 @@
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_conditions/RigidFace.h"
 #include "../custom_conditions/dem_wall.h"
+#include "../custom_strategies/schemes/dem_integration_scheme.h"
 #include "includes/kratos_export_api.h"
 //#include "../kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
@@ -76,6 +77,10 @@ virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
+
+virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme); 
+virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
 
 virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
                                           DEMWall* const wall,
@@ -340,6 +345,7 @@ double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
+DEMIntegrationScheme* mpIntegrationScheme;
 
 private:
 

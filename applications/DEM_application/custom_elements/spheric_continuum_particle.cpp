@@ -444,7 +444,6 @@ namespace Kratos {
         double gap = distance - radius_sum;
         double real_distance = GetInteractionRadius() + 0.5 * gap;
         //double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-        //KRATOS_WATCH(rRepresentative_Volume)
         //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
         mPartialRepresentativeVolume += 0.33333333333333 * real_distance * contact_area;
 

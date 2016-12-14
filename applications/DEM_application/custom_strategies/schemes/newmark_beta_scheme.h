@@ -35,14 +35,21 @@ namespace Kratos {
         /// Destructor.
         virtual ~NewmarkBetaScheme() {}
         
+        DEMIntegrationScheme* CloneRaw() const {
+            DEMIntegrationScheme* cloned_scheme(new NewmarkBetaScheme(*this));
+            return cloned_scheme;
+        }
         
-        void AddSpheresVariables(ModelPart & r_model_part) override;
-    
-        void AddClustersVariables(ModelPart & r_model_part) override;
+        DEMIntegrationScheme::Pointer CloneShared() const {
+            DEMIntegrationScheme::Pointer cloned_scheme(new NewmarkBetaScheme(*this));
+            return cloned_scheme;
+        }
         
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const;
         
-        void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) override;
-
+        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
+        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption) override;*/
+               
         void UpdateTranslationalVariables(
             int StepFlag,
             Node < 3 > & i,
@@ -67,7 +74,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
         
-        void UpdateRotationalVariables(
+        void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

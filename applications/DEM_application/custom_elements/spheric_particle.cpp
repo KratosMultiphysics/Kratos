@@ -126,7 +126,15 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     mBoundDeltaDispSq = 0.0;
 
     CreateDiscontinuumConstitutiveLaws(r_process_info);
+    
+    DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
+    SetIntegrationScheme(integration_scheme);
+    
     KRATOS_CATCH( "" )
+}
+
+void SphericParticle::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme) {
+    mpIntegrationScheme = integration_scheme->CloneRaw();
 }
 
 void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control)
@@ -1654,6 +1662,9 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherRea
 
 void SphericParticle::SendForcesToFEM(){};
 
+void SphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+    GetIntegrationScheme().Move(GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);
+}
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
 void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}

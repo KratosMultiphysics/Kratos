@@ -14,6 +14,7 @@
 #include "includes/condition.h"
 #include "utilities/quaternion.h"
 #include "custom_utilities/cluster_information.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 
 namespace Kratos
 {
@@ -38,7 +39,11 @@ namespace Kratos
   //constitutive law
   KRATOS_DEFINE_VARIABLE(std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
   KRATOS_DEFINE_VARIABLE(std::string, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME)
-  //KRATOS_DEFINE_VARIABLE( DEMConstitutiveLaw::Pointer, DEM_CONSTITUTIVE_LAW_POINTER )
+  
+  //scheme
+  KRATOS_DEFINE_VARIABLE(std::string, DEM_INTEGRATION_SCHEME_NAME)
+  KRATOS_DEFINE_VARIABLE(DEMIntegrationScheme::Pointer, DEM_INTEGRATION_SCHEME_POINTER)
+  
    
   KRATOS_DEFINE_VARIABLE(std::string, PROBABILITY_DISTRIBUTION)
   KRATOS_DEFINE_VARIABLE(std::string, EXCENTRICITY_PROBABILITY_DISTRIBUTION)

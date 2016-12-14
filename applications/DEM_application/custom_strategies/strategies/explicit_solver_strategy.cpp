@@ -102,8 +102,6 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         SendProcessInfoToClustersModelPart();
 
-        // Omp initializations
-
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -247,7 +245,7 @@ namespace Kratos {
 
     double ExplicitSolverStrategy::Solve() {
         KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
+        ModelPart& r_model_part = GetModelPart(); 
 
         InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
@@ -410,8 +408,58 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::PerformTimeIntegrationOfMotion(int StepFlag) {
         KRATOS_TRY
-        GetScheme()->Calculate(GetModelPart(), StepFlag);
-        GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
+        
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        double delta_t = r_process_info[DELTA_TIME];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF]; //TODO: change the name of this variable to FORCE_REDUCTION_FACTOR
+        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
+        double force_reduction_factor = 1.0;
+        if (virtual_mass_option) {
+            force_reduction_factor = virtual_mass_coeff;
+            if ((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) {
+                KRATOS_THROW_ERROR(std::runtime_error, "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= ", virtual_mass_coeff)
+            }
+        }   
+        
+        bool rotation_option = r_process_info[ROTATION_OPTION];
+        
+        const int number_of_particles       = (int) mListOfSphericParticles.size();
+        const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
+        
+        ModelPart& r_clusters_model_part  = *mpCluster_model_part;
+        ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();        
+        ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
+
+        #pragma omp parallel
+        {            
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            }
+            
+            #pragma omp for
+            for (int i = 0; i < number_of_ghost_particles; i++) {
+                mListOfGhostSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            }
+            
+            #pragma omp for
+            for (int k = 0; k < (int) pLocalClusters.size(); k++) {
+                typename ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            }
+            
+            #pragma omp for
+            for (int k = 0; k < (int) pGhostClusters.size(); k++) {
+                typename ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+            }
+            
+        }
+        
+        //GetScheme()->Calculate(GetModelPart(), StepFlag);
+        //GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
         KRATOS_CATCH("")
     }
 

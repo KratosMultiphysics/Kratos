@@ -23,6 +23,8 @@
 #include <iostream> 
 
 namespace Kratos {
+    
+    class Cluster3D;
 
     class KRATOS_API(DEM_APPLICATION) DEMIntegrationScheme {
     public:
@@ -33,15 +35,23 @@ namespace Kratos {
         DEMIntegrationScheme();
 
         virtual ~DEMIntegrationScheme();
+        
+        virtual DEMIntegrationScheme* CloneRaw() const {
+            DEMIntegrationScheme* cloned_scheme(new DEMIntegrationScheme(*this));
+            return cloned_scheme;
+        }
+        
+        virtual DEMIntegrationScheme::Pointer CloneShared() const {
+            DEMIntegrationScheme::Pointer cloned_scheme(new DEMIntegrationScheme(*this));
+            return cloned_scheme;
+        }
 
-        virtual void AddSpheresVariables(ModelPart & r_model_part);
-        virtual void AddClustersVariables(ModelPart & r_model_part);
+        virtual void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const;
         
-        void SetRotationOption(const int rotation_option);
-        
-        virtual void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part);         
-        virtual void Calculate(ModelPart& model_part, int StepFlag = -1);
-                
+        /*virtual void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
+        virtual void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption); */               
+        virtual void Move(Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
+        virtual void MoveCluster(Cluster3D* cluster_element, Node<3> & i, const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual void UpdateTranslationalVariables(
                             int StepFlag, 
                             Node < 3 > & i,
@@ -54,10 +64,10 @@ namespace Kratos {
                             const double force_reduction_factor,
                             const double mass,
                             const double delta_t,
-                            const bool Fix_vel[3]);        
-
-        virtual void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag );
+                            const bool Fix_vel[3]);    
         
+        virtual void CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);        
         virtual void CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
@@ -75,7 +85,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
 
-        virtual void UpdateRotationalVariables(
+        virtual void UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -119,6 +129,8 @@ namespace Kratos {
                                     const bool Fix_Ang_vel[3]);
 
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
+        
+        virtual void RotateClusterNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
         virtual std::string Info() const {
             std::stringstream buffer;
@@ -141,7 +153,7 @@ namespace Kratos {
 
         private:
             
-        bool mRotationOption;
+        //bool mRotationOption;
 
         DEMIntegrationScheme& operator=(DEMIntegrationScheme const& rOther) {
             return *this;
@@ -152,6 +164,17 @@ namespace Kratos {
         DEMIntegrationScheme(DEMIntegrationScheme const& rOther) {
             *this = rOther;
         }
+        
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const {
+                    //rSerializer.save("MyMemberName",myMember);
+        }
+
+        virtual void load(Serializer& rSerializer) {
+                    //rSerializer.load("MyMemberName",myMember);
+        }
+        
     }; // Class DEMIntegrationScheme
 
     /// input stream function
@@ -161,7 +184,6 @@ namespace Kratos {
     }
 
     /// output stream function
-
     inline std::ostream& operator<<(std::ostream& rOStream, const DEMIntegrationScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;

@@ -3,17 +3,22 @@
 
 namespace Kratos {
     
-    void SymplecticEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
+    void SymplecticEulerScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+    }
+    
+    /*void SymplecticEulerScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
         
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part);
+        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
         
     }
     
-    void SymplecticEulerScheme::AddClustersVariables(ModelPart & r_model_part){
+    void SymplecticEulerScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
         
-        DEMIntegrationScheme::AddClustersVariables(r_model_part);
+        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
                               
-    }
+    }*/
     
     void SymplecticEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -65,7 +70,7 @@ namespace Kratos {
         }
     }            
     
-    void SymplecticEulerScheme::UpdateRotationalVariables(
+    void SymplecticEulerScheme::UpdateRotationalVariablesOfCluster(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,

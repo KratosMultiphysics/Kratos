@@ -6,13 +6,13 @@
 
 namespace Kratos {
 
-    void HybridBashforthScheme::AddSpheresVariables(ModelPart & r_model_part){
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part);
+    /*void HybridBashforthScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
+        DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
     }
 
-    void HybridBashforthScheme::AddClustersVariables(ModelPart & r_model_part){
-        DEMIntegrationScheme::AddClustersVariables(r_model_part);
-    }
+    void HybridBashforthScheme::AddClustersVariables(ModelPart & r_model_part, bool TRotationOption){
+        DEMIntegrationScheme::AddClustersVariables(r_model_part, TRotationOption);
+    }*/
 
     void HybridBashforthScheme::UpdateTranslationalVariables(
             int StepFlag,

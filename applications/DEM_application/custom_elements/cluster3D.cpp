@@ -85,8 +85,16 @@ namespace Kratos {
         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
 
         CustomInitialize(r_process_info);
+        
+        DEMIntegrationScheme::Pointer& integration_scheme = GetProperties()[DEM_INTEGRATION_SCHEME_POINTER];
+        SetIntegrationScheme(integration_scheme);
     }
     
+    
+    void Cluster3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme){
+    
+        mpIntegrationScheme = integration_scheme->CloneRaw();
+    }
     
     void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
@@ -126,9 +134,9 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
-         
+        
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
-
+        
         const double& OrientationReal = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_REAL);
         const array_1d<double, 3>& OrientationImag = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG);
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
@@ -144,7 +152,7 @@ namespace Kratos {
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);                   
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
-        
+
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
@@ -464,7 +472,7 @@ namespace Kratos {
                     p_continuum_particle_i->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_i->mInitialNeighborsSize++;
                     p_continuum_particle_i->mNeighbourElasticContactForces.push_back(zero_vector);
-                    
+                    p_continuum_particle_i->mNeighbourElasticExtraContactForces.push_back(zero_vector);
                     
                     p_continuum_particle_j->mNeighbourElements.push_back(p_continuum_particle_i);
                     p_continuum_particle_j->mIniNeighbourIds.push_back(p_continuum_particle_i->Id());
@@ -473,8 +481,16 @@ namespace Kratos {
                     p_continuum_particle_j->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_j->mInitialNeighborsSize++; 
                     p_continuum_particle_j->mNeighbourElasticContactForces.push_back(zero_vector);
+                    p_continuum_particle_j->mNeighbourElasticExtraContactForces.push_back(zero_vector);
                 }
             }   
-        }
+        }               
     }
+    
+    void Cluster3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
+        GetIntegrationScheme().MoveCluster(this, GetGeometry()[0], delta_t, rotation_option, force_reduction_factor, StepFlag);            
+    }
+    
+    
+    
 }  // namespace Kratos.
