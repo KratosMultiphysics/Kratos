@@ -40,17 +40,17 @@ namespace Kratos
       /// Destructor.
       virtual ~ConstAverageAccelerationScheme(){}
       
-      DEMIntegrationScheme* CloneRaw() const {
+      DEMIntegrationScheme* CloneRaw() const override {
             DEMIntegrationScheme* cloned_scheme(new ConstAverageAccelerationScheme(*this));
             return cloned_scheme;
       }
       
-      DEMIntegrationScheme::Pointer CloneShared() const {
+      DEMIntegrationScheme::Pointer CloneShared() const override {
             DEMIntegrationScheme::Pointer cloned_scheme(new ConstAverageAccelerationScheme(*this));
             return cloned_scheme;
         }
       
-      void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+      void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override {
         std::cout << "Assigning ConstAverageAccelerationScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }

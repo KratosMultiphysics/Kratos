@@ -37,17 +37,17 @@ namespace Kratos {
         /// Destructor.
         virtual ~VerletVelocityScheme() {}
         
-        DEMIntegrationScheme* CloneRaw() const {
+        DEMIntegrationScheme* CloneRaw() const override {
             DEMIntegrationScheme* cloned_scheme(new VerletVelocityScheme(*this));
             return cloned_scheme;
         }
         
-        DEMIntegrationScheme::Pointer CloneShared() const {
+        DEMIntegrationScheme::Pointer CloneShared() const override {
             DEMIntegrationScheme::Pointer cloned_scheme(new VerletVelocityScheme(*this));
             return cloned_scheme;
         }
         
-        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const;
+        void SetIntegrationSchemeInProperties(Properties::Pointer pProp) const override;
 
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption) override;
     
