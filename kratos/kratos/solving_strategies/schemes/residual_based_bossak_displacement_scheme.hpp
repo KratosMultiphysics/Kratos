@@ -196,7 +196,7 @@ public:
 
             if (itDof->IsFree() )
             {
-                itDof->GetSolutionStepValue() += Dx[itDof->EquationId()];
+                itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx,itDof->EquationId());
             }
         }
 
