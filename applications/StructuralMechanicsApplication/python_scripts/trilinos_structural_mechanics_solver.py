@@ -123,30 +123,35 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _GetBuilderAndSolver(self, component_wise, block_builder):
-        if(block_builder):
-            # To keep matrix blocks in builder
-            builder_and_solver = "standard"
-        else:
-            builder_and_solver = "residual"
-
-        return builder_and_solver
-
-
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-
+        
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
         else:
             guess_row_size = 45
             
-        import trilinos_strategy_python
-        self.mechanical_solver = trilinos_strategy_python.SolvingStrategyPython(builder_and_solver,
-                                                                                self.main_model_part,
-                                                                                mechanical_scheme,
-                                                                                self.linear_solver,
-                                                                                mechanical_convergence_criterion,
-                                                                                compute_reactions,
-                                                                                reform_step_dofs,
-                                                                                move_mesh_flag,
-                                                                                self.EpetraCommunicator,
-                                                                                guess_row_size)
+        if(block_builder):
+            # To keep matrix blocks in builder
+            builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(self.EpetraCommunicator,
+                                                                                   guess_row_size,
+                                                                                   self.linear_solver
+                                                                                   )
+        else:
+            builder_and_solver = TrilinosApplication.TrilinosResidualBasedBuilderAndSolver(self.EpetraCommunicator,
+                                                                                           guess_row_size,
+                                                                                           self.linear_solver
+                                                                                           )
+        return builder_and_solver
+
+
+    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
+                                                                                
+        self.mechanical_solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
+                                                                                   mechanical_scheme,
+                                                                                   self.linear_solver,
+                                                                                   mechanical_convergence_criterion,
+                                                                                   builder_and_solver,
+                                                                                   max_iters,
+                                                                                   compute_reactions,
+                                                                                   reform_step_dofs,
+                                                                                   move_mesh_flag
+                                                                                   )
