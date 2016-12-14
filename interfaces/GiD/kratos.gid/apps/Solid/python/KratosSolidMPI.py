@@ -171,19 +171,17 @@ time       = main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-
 # Solving the problem (time integration)
 while(time < end_time):
 
     # current time parameters
     # main_model_part.ProcessInfo.GetPreviousStepInfo(1)[KratosMultiphysics.DELTA_TIME] = delta_time
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-    time = time + delta_time
-    step = step + 1
+    time += delta_time
+    step += 1
 
     main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
-    main_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
+    #main_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
     main_model_part.CloneTimeStep(time) 
     
     if mpi.mpi.rank == 0:
@@ -205,7 +203,7 @@ while(time < end_time):
     #solver.SolveSolutionStep()
 
     #solver.FinalizeSolutionStep()
-
+    
     solver.Solve()
     
     StopTimeMeasuring(clock_time,"Solving", False);
