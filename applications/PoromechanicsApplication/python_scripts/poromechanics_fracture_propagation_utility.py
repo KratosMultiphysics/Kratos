@@ -1,9 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
+# Import system python
+import os
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+# Import shutil to manage file copying
 import shutil
 
 class FracturePropagationUtility:
@@ -13,7 +16,7 @@ class FracturePropagationUtility:
         # Construct the utility
         self.domain_size = domain_size
         if domain_size==2:
-            self.PropagationUtility = FracturePropagation2DUtilities()
+            self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
             self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
         else:
             print("**************** For the moment FracturePropagationUtility is NOT available in 3D ****************")
@@ -30,7 +33,7 @@ class FracturePropagationUtility:
         
         # Define FracturesData
         parameter_file = open("FracturesData.json",'r')
-        self.FracturesData = Parameters( parameter_file.read())
+        self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
         
         # Define control variables
         self.propagation_frequency = self.FracturesData["fracture_data"]["propagation_frequency"].GetInt()
@@ -48,7 +51,7 @@ class FracturePropagationUtility:
         
         # Save files of the original state
         self.SaveInitialProblemFiles()
-    
+
     def SaveInitialProblemFiles(self):
         
         # Create two folders
@@ -133,7 +136,7 @@ class FracturePropagationUtility:
             
             # Update FracturesData
             parameter_file = open("FracturesData.json",'r')
-            self.FracturesData = Parameters( parameter_file.read())
+            self.FracturesData = KratosMultiphysics.Parameters( parameter_file.read())
             
             main_model_part,solver,list_of_processes,gid_output = self.GenereateNewModelPart(main_model_part,
                                                                                              solver,
@@ -161,10 +164,16 @@ class FracturePropagationUtility:
         # Finalizing strategy
         solver.Clear()
         
-        # Save old post list file
+        # Save old .post.list file
         original_filename = str(self.problem_name)+".post.lst"
         original_filepath = os.path.join(str(self.problem_path),str(original_filename))
-        new_filename = str(self.problem_name)+".post_"+str(self.remesh_count)+".lst"
+        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".post.lst"
+        new_filepath = os.path.join(str(self.problem_path),str(new_filename))
+        shutil.copy(str(original_filepath), str(new_filepath))
+        # Save old .time file
+        original_filename = str(self.problem_name)+".time"
+        original_filepath = os.path.join(str(self.problem_path),str(original_filename))
+        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".time"
         new_filepath = os.path.join(str(self.problem_path),str(new_filename))
         shutil.copy(str(original_filepath), str(new_filepath))
         
@@ -177,7 +186,7 @@ class FracturePropagationUtility:
         
         # Parsing the parameters
         parameter_file = open("ProjectParameters.json",'r')
-        ProjectParameters = Parameters( parameter_file.read())
+        ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
         #Import solver module
         solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
@@ -195,8 +204,10 @@ class FracturePropagationUtility:
         ## Model part ------------------------------------------------------------------------------------------------
 
         # Defining the model part
-        main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-        main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
+        main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, main_model_part_old.ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, main_model_part_old.ProcessInfo[KratosPoro.TIME_UNIT_CONVERTER])
         Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
         # Construct the solver (main setting methods are located in the solver_module)
@@ -230,9 +241,8 @@ class FracturePropagationUtility:
         for process in list_of_processes:
             process.ExecuteInitialize()
         
-        # Set TIME and DELTA_TIME
-        main_model_part.ProcessInfo[TIME] = main_model_part_old.ProcessInfo[TIME]
-        main_model_part.ProcessInfo[DELTA_TIME] = main_model_part_old.ProcessInfo[DELTA_TIME]
+        # Set TIME
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, main_model_part_old.ProcessInfo[KratosMultiphysics.TIME])
         
         # Initialize GiD I/O
         computing_model_part = solver.GetComputingModelPart()
@@ -258,8 +268,8 @@ class FracturePropagationUtility:
         
         # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
         if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "Arc-Length":
-            main_model_part.ProcessInfo[ARC_LENGTH_LAMBDA] = main_model_part_old.ProcessInfo[ARC_LENGTH_LAMBDA]
-            main_model_part.ProcessInfo[ARC_LENGTH_RADIUS_FACTOR] = main_model_part_old.ProcessInfo[ARC_LENGTH_RADIUS_FACTOR]
+            main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_LAMBDA])
+            main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_RADIUS_FACTOR])
             solver._UpdateLoads()
         
         # delete auxiliary model_part

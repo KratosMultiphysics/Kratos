@@ -12,7 +12,7 @@ def CleanPreviousFiles(problem_path):
 	file_ending_type = ".post.msh"
 	CleanPreviousFileType(file_ending_type,problem_path)
 
-	file_ending_type = ".lst"
+	file_ending_type = ".post.lst"
 	CleanPreviousFileType(file_ending_type,problem_path)
 
 
