@@ -49,7 +49,6 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "compute_mortar_contact": false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -99,15 +98,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
-            
-            if  self.settings["compute_mortar_contact"].GetBool():
-                if (scheme_type == "Newmark"):
-                    mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
-                else:
-                    alpha = self.settings["damp_factor_m"].GetDouble()
-                    mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(alpha)
-            else:
-                mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+            mechanical_scheme = super(ImplicitMechanicalSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
