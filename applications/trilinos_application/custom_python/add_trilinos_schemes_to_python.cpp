@@ -46,6 +46,7 @@
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme_slip.h"
 #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
+#include "custom_strategies/schemes/trilinos_residual_based_bossak_displacement_scheme.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
@@ -166,6 +167,12 @@ void  AddSchemes()
            bases< TrilinosBaseSchemeType >, boost::noncopyable >
            (
                "TrilinosResidualBasedNewmarkScheme", init<double >()
+           );
+           
+    class_ < TrilinosResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases< TrilinosBaseSchemeType >, boost::noncopyable >
+           (
+               "TrilinosResidualBasedBossakDisplacementScheme", init<double >()
            );
 
     typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme;
