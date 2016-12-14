@@ -959,7 +959,11 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                                                                                   
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
+    // Compute Ae and its derivative
     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    
+    // Compute the normal and tangent derivatives of the slave
+    this->CalculateDeltaNormalTangentSlave(rContactData);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
@@ -969,6 +973,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         // Update the contact data
         this->UpdateContactData(rContactData, PairIndex);
          
+        // Compute the normal derivatives of the master
+        this->CalculateDeltaNormalMaster(rContactData);
+        
         // Master segment info
         const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
@@ -985,7 +992,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         
             // Update the derivatives
             this->CalculateDeltaDetJSlave(rVariables, rContactData);
-            this->CalculateDeltaNormalTangent(rVariables, rContactData);
 //             // TODO: Add more derivatives!!!!!
             
             // Calculate the gap in the integration node and check tolerance
@@ -2498,7 +2504,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaDetJSlave(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
 bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::LocalDeltaNormal( // NOTE: Not the mean, look in the contact utilities 
     const GeometryType& CondGeometry,
-    const Matrix DN, 
     const unsigned int node_index
     )
 {
@@ -2524,17 +2529,28 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
         Delta_ne_adj( 1, 0 ) =  1.0;
         Delta_ne_adj( 1, 1 ) =  0.0;
         
+        double DN_De_j = 0.0;
+        if( node_index == 0 )
+        {
+            DN_De_j = - 0.5;
+        }
+        else if( node_index == 1 )
+        {
+            DN_De_j =   0.5;
+        }
+        
         Ce = prod( I - ne_o_ne, Delta_ne_adj ) / ne_norm;     // In 2D, Delta_ne_adj is node-independent => evaluated outside the nodes loop
         
-        DeltaNormal = - 2.0 * Ce * DN(node_index, 0); // NOTE: Check why - 2???!!!, it was the only wayto ensure the same value as the symbolic. You will need to repeat this in 3D            
-//         DeltaNormal = Ce * DN(node_index, 0);             
+        DeltaNormal = - 2.0 * Ce * DN_De_j; // NOTE: Check why - 2???!!!, it was the only wayto ensure the same value as the symbolic. You will need to repeat this in 3D            
+//         DeltaNormal = Ce * DN_De_j;             
     }
     else
     {
         const double ne_norm = this->GetGeometry( ).Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
         
         Matrix J = ZeroMatrix( 3, 2 ); // Jacobian [ 3D global x 2D local ]
-        array_1d<double, 3> local_coords_j = ZeroVector( 3 );
+        array_1d<double, 2> DN_De_j;
+        array_1d<double, 3> local_coords_j;
         
         if( TNumNodes == 3 )    // linear triangle element
         {
@@ -2542,52 +2558,66 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
             {
                 local_coords_j[0] = 0.0;
                 local_coords_j[1] = 0.0;
+                DN_De_j[0] = - 1.0;
+                DN_De_j[1] = - 1.0;
             }
             else if( node_index == 1 )
             {
                 local_coords_j[0] = 1.0;
                 local_coords_j[1] = 0.0;
+                DN_De_j[0] = 1.0;
+                DN_De_j[1] = 0.0;
             }
-            else // i == 2
+            else // node_index == 2
             {
                 local_coords_j[0] = 0.0;
                 local_coords_j[1] = 1.0;
+                DN_De_j[0] = 0.0;
+                DN_De_j[1] = 1.0;
             }
         }
-        else if( TNumNodes == 4 )    // linear quad element - FIXME: this will screw things up if the user defines a 4-node tri elem
+        else if( TNumNodes == 4 )    // linear quad element 
         {
             if( node_index == 0 )
             {
-                local_coords_j[0] = -1.0;
-                local_coords_j[1] = -1.0;
+                local_coords_j[0] = - 1.0;
+                local_coords_j[1] = - 1.0;
+                DN_De_j[0] = - 0.5;
+                DN_De_j[1] = - 0.5;
             }
             else if( node_index == 1 )
             {
-                local_coords_j[0] =  1.0;
-                local_coords_j[1] = -1.0;
+                local_coords_j[0] =   1.0;
+                local_coords_j[1] = - 1.0;
+                DN_De_j[0] =   0.5;
+                DN_De_j[1] = - 0.5;
             }
             else if( node_index == 2 )
             {
                 local_coords_j[0] =  1.0;
                 local_coords_j[1] =  1.0;
+                DN_De_j[0] =  0.5;
+                DN_De_j[1] =  0.5;
             }
-            else // i == 3
+            else // node_index == 3
             {
-                local_coords_j[0] = -1.0;
-                local_coords_j[1] =  1.0;
+                local_coords_j[0] = - 1.0;
+                local_coords_j[1] =   1.0;
+                DN_De_j[0] = - 0.5;
+                DN_De_j[1] =   0.5;
             }
         }
         
         this->GetGeometry( ).Jacobian( J, local_coords_j );
         
         Delta_ne_adj(0,0) = 0.0;
-        Delta_ne_adj(0,1) = +J(2,1) * DN(node_index, 0) - J(2,0) * DN(node_index, 1); 
-        Delta_ne_adj(0,2) = -J(1,1) * DN(node_index, 0) + J(1,0) * DN(node_index, 1); 
-        Delta_ne_adj(1,0) = -J(2,1) * DN(node_index, 0) + J(2,0) * DN(node_index, 1); 
+        Delta_ne_adj(0,1) = +J(2,1) * DN_De_j[0] - J(2,0) * DN_De_j[1]; 
+        Delta_ne_adj(0,2) = -J(1,1) * DN_De_j[0] + J(1,0) * DN_De_j[1]; 
+        Delta_ne_adj(1,0) = -J(2,1) * DN_De_j[0] + J(2,0) * DN_De_j[1]; 
         Delta_ne_adj(1,1) = 0.0;                   
-        Delta_ne_adj(1,2) = +J(0,1) * DN(node_index, 0) - J(0,0) * DN(node_index, 1); 
-        Delta_ne_adj(2,0) = +J(1,1) * DN(node_index, 0) - J(1,0) * DN(node_index, 1); 
-        Delta_ne_adj(2,1) = -J(0,1) * DN(node_index, 0) + J(0,0) * DN(node_index, 1); 
+        Delta_ne_adj(1,2) = +J(0,1) * DN_De_j[0] - J(0,0) * DN_De_j[1]; 
+        Delta_ne_adj(2,0) = +J(1,1) * DN_De_j[0] - J(1,0) * DN_De_j[1]; 
+        Delta_ne_adj(2,1) = -J(0,1) * DN_De_j[0] + J(0,0) * DN_De_j[1]; 
         Delta_ne_adj(2,2) = 0.0;
         
         Ce = prod( I - ne_o_ne, Delta_ne_adj ) / ne_norm;
@@ -2610,17 +2640,14 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTangent(
-   GeneralVariables& rVariables,
-   ContactData& rContactData
-   )
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTangentSlave(ContactData& rContactData)
 {
     if (TDim == 2)
     {
         for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
 //             bounded_matrix<double, 2, 2> DeltaNormal = GetGeometry()[i_slave].GetValue(DELTA_NORMAL);
-            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), rVariables.DN_De_Slave, i_slave);
+            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(GetGeometry(), i_slave);
             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
             {
                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
@@ -2631,39 +2658,69 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTange
                 }
             }
         }
-        for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
-        {
-//             bounded_matrix<double, 2, 2> DeltaNormal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
-            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(rContactData.MasterGeometry, rVariables.DN_De_Master, i_master);
-            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
-            {
-                for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
-                {
-                    row(rContactData.Delta_Normal_m[i_master * TDim + i_dof], i_node) = trans(column(DeltaNormal, i_dof)); 
-                }
-            }
-        }
     }
     else
     {
         for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
 //             bounded_matrix<double, 3, 3> DeltaNormal = GetGeometry()[i_slave]->GetValue(DELTA_NORMAL);
-            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(this->GetGeometry(), rVariables.DN_De_Slave, i_slave);
+            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(this->GetGeometry(), i_slave);
             
             // Calculate nodal tangents
             array_1d<double, 3> t_xi  = ZeroVector(3);
             array_1d<double, 3> t_eta = ZeroVector(3);
             ContactUtilities::NodalTangents( t_xi, t_eta, GetGeometry(), i_slave );
             
-            const double norm_t_xi  = norm_2(t_xi );
             const MatrixType I = IdentityMatrix( TDim, TDim );
             
-            const Matrix DN1 = rVariables.DN_De_Slave;
-            MatrixType DeltaTangentXi = ( I/norm_t_xi - outer_prod( t_xi, t_xi )/(norm_t_xi*norm_t_xi*norm_t_xi) ) * DN1(i_slave, 0);
+            array_1d<double, 2> DN_De_j;
+            if( TNumNodes == 3 )    // linear triangle element
+            {
+                if( i_slave == 0 )
+                {
+                    DN_De_j[0] = -1.0;
+                    DN_De_j[1] = -1.0;
+                }
+                else if( i_slave == 1 )
+                {
+                    DN_De_j[0] = 1.0;
+                    DN_De_j[1] = 0.0;
+                }
+                else // i_slave == 2
+                {
+                    DN_De_j[0] = 0.0;
+                    DN_De_j[1] = 1.0;
+                }
+            }
+            else if( TNumNodes == 4 )    // linear quad element 
+            {
+                if( i_slave == 0 )
+                {
+                    DN_De_j[0] = -0.5;
+                    DN_De_j[1] = -0.5;
+                }
+                else if( i_slave == 1 )
+                {
+                    DN_De_j[0] =  0.5;
+                    DN_De_j[1] = -0.5;
+                }
+                else if( i_slave == 2 )
+                {
+                    DN_De_j[0] =  0.5;
+                    DN_De_j[1] =  0.5;
+                }
+                else // i_slave == 3
+                {
+                    DN_De_j[0] = -0.5;
+                    DN_De_j[1] =  0.5;
+                }
+            }
+                        
+            const double norm_t_xi  = norm_2(t_xi );
+            MatrixType DeltaTangentXi = ( I/norm_t_xi - outer_prod( t_xi, t_xi )/(norm_t_xi*norm_t_xi*norm_t_xi) ) * DN_De_j[0];
             
             const double norm_t_eta = norm_2(t_eta);
-            MatrixType DeltaTangentEta = ( I/norm_t_eta - outer_prod( t_eta, t_eta )/(norm_t_eta*norm_t_eta*norm_t_eta) ) * DN1(i_slave, 1);
+            MatrixType DeltaTangentEta = ( I/norm_t_eta - outer_prod( t_eta, t_eta )/(norm_t_eta*norm_t_eta*norm_t_eta) ) * DN_De_j[1];
             
             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
             {
@@ -2675,10 +2732,36 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTange
                 }
             }
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaster(ContactData& rContactData)
+{
+    if (TDim == 2)
+    {
+        for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
+        {
+//             bounded_matrix<double, 2, 2> DeltaNormal = GetGeometry[i_master].GetValue(DELTA_NORMAL);
+            bounded_matrix<double, 2, 2> DeltaNormal = this->LocalDeltaNormal(rContactData.MasterGeometry, i_master);
+            for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
+            {
+                for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                {
+                    row(rContactData.Delta_Normal_m[i_master * TDim + i_dof], i_node) = trans(column(DeltaNormal, i_dof)); 
+                }
+            }
+        }
+    }
+    else
+    {
         for ( unsigned int i_master = 0, i = 0; i_master < TNumNodes; ++i_master, i += TDim )
         {
 //             bounded_matrix<double, 3, 3> DeltaNormal = GetGeometry[i_master]->GetValue(DELTA_NORMAL);
-            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(rContactData.MasterGeometry, rVariables.DN_De_Master, i_master);
+            const bounded_matrix<double, 3, 3> DeltaNormal = this->LocalDeltaNormal(rContactData.MasterGeometry, i_master);
             for (unsigned i_dof = 0; i_dof < TDim; i_dof++) 
             {
                 for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
@@ -2688,7 +2771,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTange
             }
         }
     }
-            
 }
 
 // /***********************************************************************************/

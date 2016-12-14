@@ -330,6 +330,7 @@ public:
         v2.resize(rNumberOfMasterNodes, rDimension, false);
         v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
+        // Derivative of master's normal
         Delta_Normal_m.resize(rNumberOfMasterNodes * rDimension);
         for (unsigned int i = 0; i < rNumberOfMasterNodes * rDimension; i++)
         {
@@ -1119,14 +1120,12 @@ protected:
     
     bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
         const GeometryType& CondGeometry,
-        const Matrix DN, 
         const unsigned int node_index
         );
     
-    void CalculateDeltaNormalTangent(
-        GeneralVariables& rVariables,
-        ContactData& rContactData
-        );
+    void CalculateDeltaNormalTangentSlave(ContactData& rContactData);
+    
+    void CalculateDeltaNormalMaster(ContactData& rContactData);
     
     /***********************************************************************************/
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
