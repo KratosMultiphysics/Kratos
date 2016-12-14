@@ -1125,12 +1125,7 @@ protected:
     
     void CalculateDeltaNormalMaster(ContactData& rContactData);
     
-    void CalculateDeltaN2(
-        GeneralVariables& rVariables,
-        ContactData& rContactData
-        );
-    
-    void CalculateDeltaGap(
+    void CalculateDeltaN2AndDeltaGap(
         GeneralVariables& rVariables,
         ContactData& rContactData
         );

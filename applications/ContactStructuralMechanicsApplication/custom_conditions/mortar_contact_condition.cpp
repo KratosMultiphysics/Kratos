@@ -997,8 +997,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 
                 // Update the derivatives
                 this->CalculateDeltaDetJSlave(rVariables, rContactData);
-                this->CalculateDeltaN2(rVariables, rContactData);
-                this->CalculateDeltaGap(rVariables, rContactData);
+                this->CalculateDeltaN2AndDeltaGap(rVariables, rContactData);
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
@@ -2777,8 +2776,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaste
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: try to fuse the calculateDeltaN2 and DeltaGap, this way you can remove from contactdata the X and u
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2(
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaGap(
    GeneralVariables& rVariables,
    ContactData& rContactData
    )
@@ -2800,6 +2799,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2(
     const std::vector<Matrix> DNormal_s = rContactData.Delta_Normal_s;
     const std::vector<Matrix> DNormal_m = rContactData.Delta_Normal_m;
     
+    // Calculate Delta N2
     for (unsigned int i_dof = 0; i_dof < 2 * TNumNodes * TDim; i_dof++)
     {                
         if (TDim == 2)
@@ -2857,30 +2857,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2(
             }
         }
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > 
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaGap(
-   GeneralVariables& rVariables,
-   ContactData& rContactData
-   )
-{
-    // Shape functions
-    const Vector N1 = rVariables.N_Slave;
-    const Vector N2 = rVariables.N_Master;
     
-    // Coordinates
-    const Matrix u1 = rContactData.u1;
-    const Matrix X1 = rContactData.X1;
-    const Matrix u2 = rContactData.u2;
-    const Matrix X2 = rContactData.X2;
     
-    // Normals
-    const Vector Normal_sg = prod(trans(rContactData.Normal_s), N1);
-    
+    // Calculate Delta Gap
     for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
