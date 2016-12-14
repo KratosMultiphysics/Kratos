@@ -16,9 +16,9 @@ KratosMultiphysics.CheckForPreviousImport()
 import solid_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return MechanicalSolverMPI(main_model_part, custom_settings)
+    return TrilinosMechanicalSolver(main_model_part, custom_settings)
 
-class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
+class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
     ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part. This is needed since at the point of constructing the
@@ -34,7 +34,7 @@ class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "structural_mechanics_solver_MPI",
+            "solver_type": "trilinos_structural_mechanics_solver",
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
@@ -83,7 +83,7 @@ class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
         self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def AddVariables(self):
-        super(MechanicalSolverMPI, self).AddVariables()
+        super(TrilinosMechanicalSolver, self).AddVariables()
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
@@ -96,10 +96,10 @@ class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
 
         # Call the base class execute after reading (check and prepare model process and set the constitutive law)
-        super(MechanicalSolverMPI, self)._ExecuteAfterReading()
+        super(TrilinosMechanicalSolver, self)._ExecuteAfterReading()
 
         # Call the base class set and fill buffer size
-        super(MechanicalSolverMPI, self)._SetAndFillBuffer()
+        super(TrilinosMechanicalSolver, self)._SetAndFillBuffer()
 
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
@@ -117,8 +117,8 @@ class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
 
         # Construction of the class convergence_criterion
-        import convergence_criteria_factory_MPI
-        convergence_criterion = convergence_criteria_factory_MPI.convergence_criterion(conv_params)
+        import trilinos_convergence_criteria_factory
+        convergence_criterion = trilinos_convergence_criteria_factory.convergence_criterion(conv_params)
 
         return convergence_criterion.mechanical_convergence_criterion
 
@@ -133,13 +133,13 @@ class MechanicalSolverMPI(solid_mechanics_solver.MechanicalSolver):
 
 
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-        import trilinos_strategy_python
 
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
         else:
             guess_row_size = 45
-
+            
+        import trilinos_strategy_python
         self.mechanical_solver = trilinos_strategy_python.SolvingStrategyPython(builder_and_solver,
                                                                                 self.main_model_part,
                                                                                 mechanical_scheme,

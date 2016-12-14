@@ -13,12 +13,12 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 # Import the mechanical solver base class
-import structural_mechanics_solver_MPI
+import trilinos_structural_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolverMPI(main_model_part, custom_settings)
+    return TrilinosImplicitMechanicalSolver(main_model_part, custom_settings)
 
-class ImplicitMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolverMPI):
+class TrilinosImplicitMechanicalSolver(structural_mechanics_solver.TrilinosMechanicalSolver):
 
     ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part. This is needed since at the point of constructing the
@@ -34,7 +34,7 @@ class ImplicitMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolv
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "structural_mechanics_implicit_dynamic_solver_MPI",
+            "solver_type": "trilinos_structural_mechanics_implicit_dynamic_solver",
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
@@ -86,7 +86,7 @@ class ImplicitMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolv
 
     def AddVariables(self):
 
-        super(ImplicitMechanicalSolverMPI, self).AddVariables()
+        super(TrilinosImplicitMechanicalSolver, self).AddVariables()
 
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
@@ -155,23 +155,11 @@ class ImplicitMechanicalSolverMPI(structural_mechanics_solver_MPI.MechanicalSolv
 
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
-        if(scheme_type == "Newmark"):
-            self.settings.AddEmptyValue("damp_factor_m")
-            self.settings.AddEmptyValue("dynamic_factor")
-            self.settings["damp_factor_m"].SetDouble(0.0)
-            self.settings["dynamic_factor"].SetDouble(1.0)
-
-        elif(scheme_type == "Bossak"):
-            self.settings.AddEmptyValue("damp_factor_m")
-            self.settings.AddEmptyValue("dynamic_factor")
-            self.settings["damp_factor_m"].SetDouble(-0.01)
-            self.settings["dynamic_factor"].SetDouble(1.0)
-
-        # Creating the implicit solution scheme:
-        if (scheme_type == "Newmark" or scheme_type == "Bossak"):
-            #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
-            #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
-
-            mechanical_scheme = TrilinosApplication.TrilinosResidualBasedNewmarkScheme(self.settings["dynamic_factor"].GetDouble())
+        if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
+            if (scheme_type == "Newmark"):
+                mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(0.0)
+            else:
+                alpha = self.settings["damp_factor_m"].GetDouble()
+                mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(alpha) 
 
         return mechanical_scheme
