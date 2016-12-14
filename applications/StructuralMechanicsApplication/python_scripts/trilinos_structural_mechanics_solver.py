@@ -144,7 +144,7 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
 
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-                                                                                
+        
         self.mechanical_solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
                                                                                    mechanical_scheme,
                                                                                    self.linear_solver,

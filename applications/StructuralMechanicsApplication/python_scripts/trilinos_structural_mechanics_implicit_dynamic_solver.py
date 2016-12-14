@@ -18,7 +18,7 @@ import trilinos_structural_mechanics_solver
 def CreateSolver(main_model_part, custom_settings):
     return TrilinosImplicitMechanicalSolver(main_model_part, custom_settings)
 
-class TrilinosImplicitMechanicalSolver(structural_mechanics_solver.TrilinosMechanicalSolver):
+class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
 
     ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part. This is needed since at the point of constructing the
@@ -100,7 +100,7 @@ class TrilinosImplicitMechanicalSolver(structural_mechanics_solver.TrilinosMecha
 
         # Get the solid computing model part
         self.computing_model_part = self.GetComputingModelPart()
-
+        
         # Builder and solver creation
         builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(),
                                                        self.settings["block_builder"].GetBool())
