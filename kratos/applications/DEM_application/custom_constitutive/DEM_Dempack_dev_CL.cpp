@@ -104,11 +104,11 @@ namespace Kratos {
         double mTensionLimit;
 
 
-        double rmin = element1->GetRadius();
-        const double other_radius = element2->GetRadius();
-        if (other_radius < rmin) rmin = other_radius;
-        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
-//          double effective_calculation_area = calculation_area;
+//        double rmin = element1->GetRadius();
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+          double effective_calculation_area = calculation_area;
 
         if (&element1_props == &element2_props) {
 
@@ -405,11 +405,11 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        double rmin = element1->GetRadius();  // test de rebalance de areas solo en resistencia
-        const double other_radius = element2->GetRadius();
-        if (other_radius < rmin) rmin = other_radius;
-        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
-//        double effective_calculation_area = calculation_area;
+//        double rmin = element1->GetRadius();  // test de rebalance de areas solo en resistencia
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+        double effective_calculation_area = calculation_area;
 
 
         if (failure_type == 0) { // This means it has not broken
@@ -490,7 +490,6 @@ namespace Kratos {
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
 
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
-
         ElasticLocalRotationalMoment[0] = -debugging_rotational_factor * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[0] - MyWeightedRadius * OtherLocalDeltaDisplacement[0]);
 
