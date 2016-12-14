@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -692,6 +693,7 @@ void AddModelPartToPython()
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<array_1d<double, 3 > >)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
+                .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
 		.def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
 		.def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
 		.def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)

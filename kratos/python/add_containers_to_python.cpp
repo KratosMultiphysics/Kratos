@@ -54,6 +54,7 @@
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/timer.h"
+#include "utilities/quaternion.h"
 
 
 
@@ -296,6 +297,10 @@ void  AddContainersToPython()
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, bases<VariableData>, boost::noncopyable >( "Array1DComponentVariable", no_init )
     .def( self_ns::str( self ) )
     ;
+    
+    class_<Variable<Quaternion<double> >, boost::noncopyable >( "DoubleQuaternionVariable", no_init )
+    .def( self_ns::str( self ) )
+    ;
 
 
     //class_<AllVariablesDataValueContainer, AllVariablesDataValueContainer::Pointer>( "DataValueContainer" )
@@ -324,6 +329,7 @@ void  AddContainersToPython()
     .def( VariableIndexingPython<DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
     .def( VariableIndexingPython<DataValueContainer, Variable<RadiationSettings::Pointer > >() )
     .def( VariableIndexingPython<DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
+    .def( VariableIndexingPython<DataValueContainer, Variable<Quaternion<double> > >() )
     .def( self_ns::str( self ) )
     ;
 
@@ -337,6 +343,7 @@ void  AddContainersToPython()
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<vector<double> > >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<matrix<double> > >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
+    .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<Quaternion<double> > >() )
     .def( self_ns::str( self ) )
     ;
 
