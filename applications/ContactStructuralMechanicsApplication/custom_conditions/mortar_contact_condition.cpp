@@ -208,12 +208,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
         {
             // Calculate the kinematic variables
             const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-        
-            // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
             if (inside == true)
             {
+                // Calculate the gap in the integration node and check tolerance
+                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+            
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
 
@@ -989,16 +989,17 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         {
             // Calculate the kinematic variables
             bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-        
-            // Update the derivatives
-            this->CalculateDeltaDetJSlave(rVariables, rContactData);
-//             // TODO: Add more derivatives!!!!!
-            
-            // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
             if (inside == true)
             {   
+                // Calculate the gap in the integration node and check tolerance
+                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                
+                // Update the derivatives
+                this->CalculateDeltaDetJSlave(rVariables, rContactData);
+                this->CalculateDeltaN2(rVariables, rContactData);
+                this->CalculateDeltaGap(rVariables, rContactData);
+            
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
                 
@@ -2773,37 +2774,141 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaste
     }
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-// 
-// template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > 
-// void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2(
-//    GeneralVariables& rVariables,
-//    ContactData& rContactData
-//    )
-// {
-//     for (unsigned int i_dof = 0; i_dof < 2 * TNumNodes * TDim; i_dof++)
-//     {
-//         
-//     }
-//     
-// }
+/***********************************************************************************/
+/***********************************************************************************/
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-// 
-// template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Need first the DeltaN2
-// void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaGaps(
-//    GeneralVariables& rVariables,
-//    ContactData& rContactData
-//    )
-// {
-//     for (unsigned int i_dof = 0; i_dof < 2 * TNumNodes * TDim; i_dof++)
-//     {
-//         
-//     }
-//     
-// }
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: try to fuse the calculateDeltaN2 and DeltaGap, this way you can remove from contactdata the X and u
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2(
+   GeneralVariables& rVariables,
+   ContactData& rContactData
+   )
+{
+    // Shape functions
+    const Vector N1 = rVariables.N_Slave;
+    const Vector N2 = rVariables.N_Master;
+    
+    // Coordinates
+    const Matrix u1 = rContactData.u1;
+    const Matrix X1 = rContactData.X1;
+    const Matrix u2 = rContactData.u2;
+    const Matrix X2 = rContactData.X2;
+    
+    // Normals
+    const Vector Normal_sg = prod(trans(rContactData.Normal_s), N1);
+    const Vector Normal_mg = prod(trans(rContactData.Normal_m), N2);
+    
+    const std::vector<Matrix> DNormal_s = rContactData.Delta_Normal_s;
+    const std::vector<Matrix> DNormal_m = rContactData.Delta_Normal_m;
+    
+    for (unsigned int i_dof = 0; i_dof < 2 * TNumNodes * TDim; i_dof++)
+    {                
+        if (TDim == 2)
+        {
+            if (TNumNodes == 2)
+            {
+                if (i_dof == 0)
+                {
+                    rContactData.DeltaN2[0][0] =     (-N1[0]*Normal_sg[0]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[0]*Normal_sg[1]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[0] + (DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                    rContactData.DeltaN2[0][1] =     -(-N1[0]*Normal_sg[0]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[0]*Normal_sg[1]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[0] + (DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[0](0,0)*N1[0] + DNormal_s[0](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[0](0,1)*N1[0] + DNormal_s[0](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                }
+                else if (i_dof == 1)
+                {
+                    rContactData.DeltaN2[1][0] =     (-N1[0]*Normal_sg[0]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[0]*Normal_sg[1]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[0] + (DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                    rContactData.DeltaN2[1][1] =     -(-N1[0]*Normal_sg[0]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[0]*Normal_sg[1]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[0] + (DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[1](0,0)*N1[0] + DNormal_s[1](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[1](0,1)*N1[0] + DNormal_s[1](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                }
+                else if (i_dof == 2)
+                {
+                    rContactData.DeltaN2[2][0] =     (-N1[1]*Normal_sg[0]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[1]*Normal_sg[1]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[1] + (DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                    rContactData.DeltaN2[2][1] =     -(-N1[1]*Normal_sg[0]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[1]*Normal_sg[1]*Normal_mg[0]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[1] + (DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[2](0,0)*N1[0] + DNormal_s[2](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[2](0,1)*N1[0] + DNormal_s[2](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                }
+                else if (i_dof == 3)
+                {
+                    rContactData.DeltaN2[3][0] =     (-N1[1]*Normal_sg[0]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[1]*Normal_sg[1]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[1] + (DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                    rContactData.DeltaN2[3][1] =     -(-N1[1]*Normal_sg[0]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - N1[1]*Normal_sg[1]*Normal_mg[1]/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + N1[1] + (DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[0]*(-(DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(-(DNormal_s[3](0,0)*N1[0] + DNormal_s[3](1,0)*N1[1])*Normal_mg[0] - (DNormal_s[3](0,1)*N1[0] + DNormal_s[3](1,1)*N1[1])*Normal_mg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1));
+                }
+                else if (i_dof == 4)
+                {
+                    rContactData.DeltaN2[4][0] =     (Normal_sg[0]*(-(DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*(Normal_mg[0] + (DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(Normal_mg[0] + (DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) - (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                    rContactData.DeltaN2[4][1] =     -(Normal_sg[0]*(-(DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*(Normal_mg[1] + (DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(Normal_mg[0] + (DNormal_m[0](0,0)*N2[0] + DNormal_m[0](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[0](0,1)*N2[0] + DNormal_m[0](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                }
+                else if (i_dof == 5)
+                {
+                    rContactData.DeltaN2[5][0] =     (Normal_sg[0]*(-(DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*(Normal_mg[1] + (DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(Normal_mg[1] + (DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) - (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                    rContactData.DeltaN2[5][1] =     -(Normal_sg[0]*(-(DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*(Normal_mg[1] + (DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*(Normal_mg[1] + (DNormal_m[1](0,0)*N2[0] + DNormal_m[1](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[1](0,1)*N2[0] + DNormal_m[1](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                }
+                else if (i_dof == 6)
+                {
+                   rContactData.DeltaN2[6][0] =     (Normal_sg[0]*(-(DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*((DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*((DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - 1)/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                   rContactData.DeltaN2[6][1] =     -(Normal_sg[0]*(-(DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*((DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*((DNormal_m[2](0,0)*N2[0] + DNormal_m[2](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[2](0,1)*N2[0] + DNormal_m[2](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - 1)/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) - (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+            
+                }
+                else if (i_dof == 7)
+                {
+                    rContactData.DeltaN2[7][0] =     (Normal_sg[0]*(-(DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*((DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*((DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - 1)/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                    rContactData.DeltaN2[7][1] =     -(Normal_sg[0]*(-(DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[0]*((DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(-(DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*Normal_sg[0] - (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*Normal_sg[1])*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/std::pow(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1], 2) + Normal_sg[1]*((DNormal_m[3](0,0)*N2[0] + DNormal_m[3](1,0)*N2[1])*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + (DNormal_m[3](0,1)*N2[0] + DNormal_m[3](1,1)*N2[1])*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) - 1)/(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) - (N1[0]*(X1(0,0) + u1(0,0)) + N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,0) + u1(1,0)) + N1[1]*(X1(1,1) + u1(1,1)) - X2(1,0) - X2(1,1) - u2(1,0) - u2(1,1) + Normal_sg[0]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]) + Normal_sg[1]*(Normal_mg[0]*(-N1[0]*(X1(0,0) + u1(0,0)) - N1[1]*(X1(1,0) + u1(1,0)) + X2(0,0) + u2(0,0)) + Normal_mg[1]*(-N1[0]*(X1(0,1) + u1(0,1)) - N1[1]*(X1(1,1) + u1(1,1)) + X2(0,1) + u2(0,1)))/(Normal_sg[0]*Normal_mg[0] + Normal_sg[1]*Normal_mg[1]))/std::pow(X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1), 2);
+                }
+            }
+        }
+        else
+        {
+            if (TNumNodes == 3)
+            {
+                // TODO: Finish this!!!!!
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > 
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaGap(
+   GeneralVariables& rVariables,
+   ContactData& rContactData
+   )
+{
+    // Shape functions
+    const Vector N1 = rVariables.N_Slave;
+    const Vector N2 = rVariables.N_Master;
+    
+    // Coordinates
+    const Matrix u1 = rContactData.u1;
+    const Matrix X1 = rContactData.X1;
+    const Matrix u2 = rContactData.u2;
+    const Matrix X2 = rContactData.X2;
+    
+    // Normals
+    const Vector Normal_sg = prod(trans(rContactData.Normal_s), N1);
+    
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+    {
+        for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+        {
+            const unsigned int i_dof = i_slave * TDim + i_dim;
+            
+            const Vector DN2 = rContactData.DeltaN2[i_dof];
+            
+            const Vector DeltaNormal = prod(trans(rContactData.Delta_Normal_s[i_dof]), N1);
+            
+            const Vector RelPos = prod(trans(X1 + u1), N1) - prod(trans(X2 + u2), N2);
+            
+            rContactData.DeltaGap[i_dof] = - inner_prod(DeltaNormal, RelPos) - Normal_sg[i_dim] * N1[i_slave] + inner_prod(Normal_sg, prod(trans(X2 + u2), DN2));
+        }
+    }
+    
+    for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
+    {
+        for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+        {
+            const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
+            
+            const Vector DN2 = rContactData.DeltaN2[i_dof];
+            
+            rContactData.DeltaGap[i_dof] = Normal_sg[i_dim] * N2[i_master] +  inner_prod(Normal_sg, prod(trans(X2 + u2), DN2));
+        }
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -3065,12 +3170,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
         {
             // Calculate the kinematic variables
             const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-            
-            // Calculate the gap in the integration node and check tolerance
-            const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
 
             if (inside == true)
             {
+                // Calculate the gap in the integration node and check tolerance
+                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+            
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
@@ -3200,12 +3305,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
             {
                 // Calculate the kinematic variables
                 const bool inside = this->CalculateKinematics( rVariables, rContactData, PointNumber, PairIndex, integration_points );
-                
-                // Calculate the gap in the integration node and check tolerance
-                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
                 if (inside == true)
                 {
+                    // Calculate the gap in the integration node and check tolerance
+                    const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                
                     if (rVariable == NORMAL_CONTACT_STRESS_GP || rVariable == TANGENTIAL_CONTACT_STRESS_GP)
                     {
                         // The normal LM augmented
