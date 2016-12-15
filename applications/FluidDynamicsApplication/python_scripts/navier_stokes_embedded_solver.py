@@ -27,6 +27,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "distance_reading_settings"    : {
+                "import_mode"         : "from_GID_file",
+                "distance_file_name"  : "distance_file"
+            },
             "maximum_iterations": 10,
             "dynamic_tau": 0.0,
             "oss_switch": 0,
@@ -50,10 +54,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "coarsening_type"     : "aggregation",
                 "scaling"             : true,
                 "verbosity"           : 0
-            },
-            "distance_reading_settings"    : {
-                "import_mode"         : "from_GID_file",
-                "distance_file_name"  : "distance_file"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -104,7 +104,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Wave velocity
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
 
@@ -225,6 +226,13 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
     def _ExecuteAfterReading(self):
         ## Base class _ExecuteAfterReading call
         super(NavierStokesEmbeddedMonolithicSolver, self)._ExecuteAfterReading()
+
+        ## Set the SOUND_VELOCITY value (wave velocity)
+        if self.main_model_part.Properties[1].Has(KratosMultiphysics.SOUND_VELOCITY):
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = self.main_model_part.Properties[1][KratosMultiphysics.SOUND_VELOCITY]
+        else:
+            # If the wave velocity is not defined take a large enough value to consider the fluid as incompressible
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = 1e+12
 
         ## Set the DYNAMIC_VISCOSITY variable needed for the embedded element
         for element in self.main_model_part.Elements:
