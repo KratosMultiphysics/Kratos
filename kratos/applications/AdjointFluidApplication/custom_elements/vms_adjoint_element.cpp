@@ -100,211 +100,6 @@ void VMSAdjointElement<3>::EquationIdVector(
 }
 
 template<>
-void VMSAdjointElement<2>::GetAdjointValuesVector(VectorType& rValues)
-{
-  const SizeType NumNodes(3), LocalSize(9);
-
-  if (rValues.size() != LocalSize)
-    rValues.resize(LocalSize, false);
-
-  GeometryType& rGeom = this->GetGeometry();
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_PRESSURE);
-  }
-}
-
-template<>
-void VMSAdjointElement<3>::GetAdjointValuesVector(VectorType& rValues)
-{
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rValues.size() != LocalSize)
-    rValues.resize(LocalSize, false);
-
-  GeometryType& rGeom = this->GetGeometry();
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_VELOCITY_Z);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        ADJOINT_PRESSURE);
-  }
-}
-
-template<>
-void VMSAdjointElement<2>::GetFluidValuesVector(VectorType& rValues)
-{
-  const SizeType NumNodes(3), LocalSize(9);
-
-  if (rValues.size() != LocalSize)
-    rValues.resize(LocalSize, false);
-
-  GeometryType& rGeom = this->GetGeometry();
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_PRESSURE);
-  }
-}
-
-template<>
-void VMSAdjointElement<3>::GetFluidValuesVector(VectorType& rValues)
-{
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rValues.size() != LocalSize)
-    rValues.resize(LocalSize, false);
-
-  GeometryType& rGeom = this->GetGeometry();
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Z);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_PRESSURE);
-  }
-}
-
-template<>
-void VMSAdjointElement<2>::CalculateAdvectiveVelocity(
-    VectorType& rVelocity,
-    const array_1d<double, 3>& rN)
-{
-  const SizeType NumNodes(3);
-
-  rVelocity = ZeroVector(2);
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rVelocity[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        PRIMAL_VELOCITY_X) * rN[iNode];
-    rVelocity[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        PRIMAL_VELOCITY_Y) * rN[iNode];
-  }
-}
-
-template<>
-void VMSAdjointElement<3>::CalculateAdvectiveVelocity(
-    VectorType& rVelocity,
-    const array_1d<double, 4>& rN)
-{
-  const SizeType NumNodes(4);
-
-  rVelocity = ZeroVector(3);
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rVelocity[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        PRIMAL_VELOCITY_X) * rN[iNode];
-    rVelocity[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        PRIMAL_VELOCITY_Y) * rN[iNode];
-    rVelocity[2] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        PRIMAL_VELOCITY_Z) * rN[iNode];
-  }
-}
-
-template<>
-void VMSAdjointElement<2>::CalculateVelocityGradient(
-    MatrixType& rGradVel,
-    const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX)
-{
-  const SizeType Dimension(2);
-  const SizeType NumNodes(3);
-
-  rGradVel = ZeroMatrix(Dimension, Dimension);
-  
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    for (IndexType d = 0; d < Dimension; ++d)
-    {
-      rGradVel(0,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
-      rGradVel(1,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
-    }
-  }
-}
-
-template<>
-void VMSAdjointElement<3>::CalculateVelocityGradient(
-    MatrixType& rGradVel,
-    const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX)
-{
-  const SizeType Dimension(3);
-  const SizeType NumNodes(4);
-
-  rGradVel = ZeroMatrix(Dimension,Dimension);
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    for (IndexType d = 0; d < Dimension; ++d)
-    {
-      rGradVel(0,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
-      rGradVel(1,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
-      rGradVel(2,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Z);
-    }
-  }
-}
-
-template<>
-void VMSAdjointElement<2>::CalculateBodyForce(VectorType& rBodyForce,
-                                              const array_1d<double, 3>& rN)
-{
-  const SizeType NumNodes(3);
-
-  rBodyForce = ZeroVector(2);
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rBodyForce[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        BODY_FORCE_X) * rN[iNode];
-    rBodyForce[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        BODY_FORCE_Y) * rN[iNode];
-  }
-}
-
-template<>
-void VMSAdjointElement<3>::CalculateBodyForce(VectorType& rBodyForce,
-                                              const array_1d<double, 4>& rN)
-{
-  const SizeType NumNodes(4);
-
-  rBodyForce = ZeroVector(3);
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rBodyForce[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        BODY_FORCE_X) * rN[iNode];
-    rBodyForce[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        BODY_FORCE_Y) * rN[iNode];
-    rBodyForce[2] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        BODY_FORCE_Z) * rN[iNode];
-  }
-}
-
-template<>
 double VMSAdjointElement<2>::CalculateElementSize(const double Area)
 {
   // Diameter of a circle of given Area.
@@ -321,7 +116,7 @@ double VMSAdjointElement<3>::CalculateElementSize(const double Volume)
 
 template<>
 void VMSAdjointElement<2>::CalculateDeterminantOfJacobianDerivatives(
-    VectorType& rDetJDerivatives)
+    array_1d< double, 6 >& rDetJDerivatives)
 {
   const SizeType LocalSize(6);
 
@@ -338,7 +133,7 @@ void VMSAdjointElement<2>::CalculateDeterminantOfJacobianDerivatives(
 
 template<>
 void VMSAdjointElement<3>::CalculateDeterminantOfJacobianDerivatives(
-    VectorType& rDetJDerivatives)
+    array_1d< double, 12 >& rDetJDerivatives)
 {
   const SizeType LocalSize(12);
 
@@ -507,7 +302,7 @@ void VMSAdjointElement<3>::AddViscousTerm(
 
 template<>
 void VMSAdjointElement<2>::AddViscousTermDerivative(
-    MatrixType& rResult,
+    boost::numeric::ublas::bounded_matrix< double, 9, 9 >& rResult,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX_Deriv,
     const double Weight,
@@ -566,7 +361,7 @@ void VMSAdjointElement<2>::AddViscousTermDerivative(
 
 template<>
 void VMSAdjointElement<3>::AddViscousTermDerivative(
-    MatrixType& rResult,
+    boost::numeric::ublas::bounded_matrix< double, 16, 16 >& rResult,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX_Deriv,
     const double Weight,

@@ -240,11 +240,11 @@ for step in range(1,35):
     fluid_solver.Solve()
     PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-for node in fluid_model_part.Nodes:
-    vel   = node.GetSolutionStepValue(VELOCITY)
-    press = node.GetSolutionStepValue(PRESSURE)
-    node.SetSolutionStepValue(PRIMAL_VELOCITY,vel)
-    node.SetSolutionStepValue(PRIMAL_PRESSURE,press)
+#for node in fluid_model_part.Nodes:
+#    vel   = node.GetSolutionStepValue(VELOCITY)
+#    press = node.GetSolutionStepValue(PRESSURE)
+#    node.SetSolutionStepValue(PRIMAL_VELOCITY,vel)
+#    node.SetSolutionStepValue(PRIMAL_PRESSURE,press)
 
 # Adjoint solution
 adjoint_solver.Solve()

@@ -39,9 +39,16 @@ class TrilinosAdjointFluidSolver:
         self.linear_solver_tol = 1e-6
         self.linear_solver_max_it = 1000
 
-        import MonolithicMultiLevelSolver
-        self.linear_solver = MonolithicMultiLevelSolver.LinearSolver(
-            self.linear_solver_tol,self.linear_solver_max_it)
+        aztec_parameters = ParameterList()
+        aztec_parameters.set("AZ_solver", "AZ_gmres")
+        aztec_parameters.set("AZ_output", "AZ_none")
+        MLList = ParameterList()
+        default_settings = EpetraDefaultSetter()
+        default_settings.SetDefaults(MLList, "NSSA")
+        MLList.set("ML output", 0)
+        MLList.set("max levels", 3)
+        MLList.set("aggregation: type", "Uncoupled")
+        self.linear_solver = MultiLevelSolver(aztec_parameters, MLList, self.linear_solver_tol, self.linear_solver_max_it)
 
         self.comm = CreateCommunicator()
         

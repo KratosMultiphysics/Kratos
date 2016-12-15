@@ -11,7 +11,7 @@
 
 // Application includes
 #include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_strategies/strategies/adjoint_fluid_strategy.h"
+#include "custom_strategies/custom_strategies/adjoint_fluid_strategy.h"
 
 namespace Kratos
 {
