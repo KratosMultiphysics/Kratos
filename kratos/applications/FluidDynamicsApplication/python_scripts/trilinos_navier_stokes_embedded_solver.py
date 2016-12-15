@@ -30,6 +30,10 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "distance_reading_settings"    : {
+                "import_mode"         : "from_GID_file",
+                "distance_file_name"  : "distance_file"
+            },
             "maximum_iterations": 10,
             "dynamic_tau": 0.0,
             "oss_switch": 0,
