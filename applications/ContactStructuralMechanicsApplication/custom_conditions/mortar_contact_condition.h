@@ -177,6 +177,7 @@ public:
     // Derivatives 
     std::vector<double> DeltaJ_s;
     std::vector<double> DeltaGap;
+    std::vector<Vector> DeltaPhi;
     std::vector<Vector> DeltaN2;
     std::vector<Matrix> Delta_Normal_s;
     std::vector<Matrix> Delta_Tangent_xi_s;
@@ -238,12 +239,14 @@ public:
         // Derivatives 
         DeltaJ_s.resize(rNumberOfSlaveNodes * rDimension);
         DeltaGap.resize(2 * rNumberOfSlaveNodes * rDimension);
+        DeltaPhi.resize(rNumberOfSlaveNodes * rDimension);
         DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension);
         Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_eta_s.resize(rNumberOfSlaveNodes * rDimension);
         for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
         {
+            DeltaPhi[i] = ZeroVector(rNumberOfSlaveNodes);
             DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
             DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
             Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
@@ -1126,6 +1129,11 @@ protected:
     void CalculateDeltaNormalMaster(ContactData& rContactData);
     
     void CalculateDeltaN2AndDeltaGap(
+        GeneralVariables& rVariables,
+        ContactData& rContactData
+        );
+    
+    void CalculateDeltaPhi(
         GeneralVariables& rVariables,
         ContactData& rContactData
         );

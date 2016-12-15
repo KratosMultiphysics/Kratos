@@ -79,16 +79,12 @@ public:
     
     const Matrix v1 = rContactData.v1;
     const Matrix v2 = rContactData.v2;
-    
-    const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1); // NOTE: Compute this in the main file!!!
-    const Vector DeltaPhiu101 = prod(rContactData.DeltaAe[1],N1);
-    const Vector DeltaPhiu110 = prod(rContactData.DeltaAe[2],N1);
-    const Vector DeltaPhiu111 = prod(rContactData.DeltaAe[3],N1);
 
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
     const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
     const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
+    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
     const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
     
     const double Dnormalslave11u111 =     DeltaNormals[3](1,1);
@@ -107,14 +103,14 @@ public:
     const double Dnormalslave00u110 =     DeltaNormals[2](0,0);
     const double Dnormalslave00u101 =     DeltaNormals[1](0,0);
     const double Dnormalslave00u100 =     DeltaNormals[0](0,0);
-    const double DPhi1u111 =     DeltaPhiu111[1];
-    const double DPhi1u110 =     DeltaPhiu110[1];
-    const double DPhi1u101 =     DeltaPhiu101[1];
-    const double DPhi1u100 =     DeltaPhiu100[1];
-    const double DPhi0u111 =     DeltaPhiu111[0];
-    const double DPhi0u110 =     DeltaPhiu110[0];
-    const double DPhi0u101 =     DeltaPhiu101[0];
-    const double DPhi0u100 =     DeltaPhiu100[0];
+    const double DPhi1u111 =     DeltaPhi[3][1];
+    const double DPhi1u110 =     DeltaPhi[2][1];
+    const double DPhi1u101 =     DeltaPhi[1][1];
+    const double DPhi1u100 =     DeltaPhi[0][1];
+    const double DPhi0u111 =     DeltaPhi[3][0];
+    const double DPhi0u110 =     DeltaPhi[2][0];
+    const double DPhi0u101 =     DeltaPhi[1][0];
+    const double DPhi0u100 =     DeltaPhi[0][0];
     const double DN21u211 =     DeltaN2[7][1];
     const double DN21u210 =     DeltaN2[6][1];
     const double DN21u201 =     DeltaN2[5][1];
@@ -447,15 +443,11 @@ public:
     const Matrix v1 = rContactData.v1;
     const Matrix v2 = rContactData.v2;
     
-    const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1);
-    const Vector DeltaPhiu101 = prod(rContactData.DeltaAe[1],N1);
-    const Vector DeltaPhiu110 = prod(rContactData.DeltaAe[2],N1);
-    const Vector DeltaPhiu111 = prod(rContactData.DeltaAe[3],N1);
-    
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
     const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
     const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
+    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
     const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
     
     const double Dtan1slave11u111 =     Deltatangentxis[3](1,1);
@@ -474,14 +466,14 @@ public:
     const double Dtan1slave00u110 =     Deltatangentxis[2](0,0);
     const double Dtan1slave00u101 =     Deltatangentxis[1](0,0);
     const double Dtan1slave00u100 =     Deltatangentxis[0](0,0);
-    const double DPhi1u111 =     DeltaPhiu111[1];
-    const double DPhi1u110 =     DeltaPhiu110[1];
-    const double DPhi1u101 =     DeltaPhiu101[1];
-    const double DPhi1u100 =     DeltaPhiu100[1];
-    const double DPhi0u111 =     DeltaPhiu111[0];
-    const double DPhi0u110 =     DeltaPhiu110[0];
-    const double DPhi0u101 =     DeltaPhiu101[0];
-    const double DPhi0u100 =     DeltaPhiu100[0];
+    const double DPhi1u111 =     DeltaPhi[3][1];
+    const double DPhi1u110 =     DeltaPhi[2][1];
+    const double DPhi1u101 =     DeltaPhi[1][1];
+    const double DPhi1u100 =     DeltaPhi[0][1];
+    const double DPhi0u111 =     DeltaPhi[3][0];
+    const double DPhi0u110 =     DeltaPhi[2][0];
+    const double DPhi0u101 =     DeltaPhi[1][0];
+    const double DPhi0u100 =     DeltaPhi[0][0];
     const double DN21u211 =     DeltaN2[7][1];
     const double DN21u210 =     DeltaN2[6][1];
     const double DN21u201 =     DeltaN2[5][1];
@@ -797,16 +789,12 @@ public:
     
     const Matrix v1 = rContactData.v1;
     const Matrix v2 = rContactData.v2;
-    
-    const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1);
-    const Vector DeltaPhiu101 = prod(rContactData.DeltaAe[1],N1);
-    const Vector DeltaPhiu110 = prod(rContactData.DeltaAe[2],N1);
-    const Vector DeltaPhiu111 = prod(rContactData.DeltaAe[3],N1);
 
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
     const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
     const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
+    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
     const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
     
     const double Dtan1slave11u111 =     Deltatangentxis[3](1,1);
@@ -825,14 +813,14 @@ public:
     const double Dtan1slave00u110 =     Deltatangentxis[2](0,0);
     const double Dtan1slave00u101 =     Deltatangentxis[1](0,0);
     const double Dtan1slave00u100 =     Deltatangentxis[0](0,0);
-    const double DPhi1u111 =     DeltaPhiu111[1];
-    const double DPhi1u110 =     DeltaPhiu110[1];
-    const double DPhi1u101 =     DeltaPhiu101[1];
-    const double DPhi1u100 =     DeltaPhiu100[1];
-    const double DPhi0u111 =     DeltaPhiu111[0];
-    const double DPhi0u110 =     DeltaPhiu110[0];
-    const double DPhi0u101 =     DeltaPhiu101[0];
-    const double DPhi0u100 =     DeltaPhiu100[0];
+    const double DPhi1u111 =     DeltaPhi[3][1];
+    const double DPhi1u110 =     DeltaPhi[2][1];
+    const double DPhi1u101 =     DeltaPhi[1][1];
+    const double DPhi1u100 =     DeltaPhi[0][1];
+    const double DPhi0u111 =     DeltaPhi[3][0];
+    const double DPhi0u110 =     DeltaPhi[2][0];
+    const double DPhi0u101 =     DeltaPhi[1][0];
+    const double DPhi0u100 =     DeltaPhi[0][0];
     const double DN21u211 =     DeltaN2[7][1];
     const double DN21u210 =     DeltaN2[6][1];
     const double DN21u201 =     DeltaN2[5][1];
@@ -1146,16 +1134,12 @@ public:
 //     
 //     const Matrix v1 = rContactData.v1;
 //     const Matrix v2 = rContactData.v2;
-//     
-//     const Vector DeltaPhiu100 = prod(rContactData.DeltaAe[0],N1);
-//     const Vector DeltaPhiu101 = prod(rContactData.DeltaAe[1],N1);
-//     const Vector DeltaPhiu110 = prod(rContactData.DeltaAe[2],N1);
-//     const Vector DeltaPhiu111 = prod(rContactData.DeltaAe[3],N1);
 // 
 //     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
 //     const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
 //     const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
 //     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
+//     const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
 //     const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
 //     
 //substitute_derivatives_variables_inactive 
