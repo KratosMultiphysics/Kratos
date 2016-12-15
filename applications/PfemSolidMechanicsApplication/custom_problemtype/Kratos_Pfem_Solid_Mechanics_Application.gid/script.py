@@ -104,6 +104,8 @@ pfem_solid_variables.AddVariables(main_model_part)
 
 # Read model_part (note: the buffer_size is set here) (restart is read here)
 solver.ImportModelPart()
+#reset the time step. if the problem is reloaded. there
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 
 # Add dofs (always after importing the model part)
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
@@ -137,6 +139,8 @@ import process_factory
 #the process order of execution is important
 list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["water_process_list"] )
+#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["assign_initial_state_process_list"] )
 if(ProjectParameters.Has("problem_process_list")):
     list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
 if(ProjectParameters.Has("output_process_list")):
@@ -165,7 +169,7 @@ computing_model_part = solver.GetComputingModelPart()
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
-#solver.InitializeStrategy()
+solver.InitializeStrategy()
 solver.SetEchoLevel(echo_level)
 
 #### Output settings start ####
