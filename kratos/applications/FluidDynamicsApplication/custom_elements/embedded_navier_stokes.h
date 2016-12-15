@@ -187,7 +187,7 @@ public:
 
             data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
             data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            data.nu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
+            data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
             distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
 
