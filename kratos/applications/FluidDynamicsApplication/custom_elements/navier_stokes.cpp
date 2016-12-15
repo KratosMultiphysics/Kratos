@@ -149,8 +149,8 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
         const double vconv_norm = norm_2(vconv_gauss);
 
         // Stabilization parameters
-        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*rho*mu)/(h*h));
-        const double tau2 = (rho*mu) + 0.5*h*vconv_norm;
+        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
+        const double tau2 = mu + 0.5*h*vconv_norm;
 
         const double clhs0 =             pow(DN(0,0), 2)*rho;
         const double clhs1 =             N[0]*rho;
@@ -1258,8 +1258,8 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
         const double vconv_norm = norm_2(vconv_gauss);
 
         // Stabilization parameters
-        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*rho*mu)/(h*h));
-        const double tau2 = (rho*mu) + 0.5*h*vconv_norm;
+        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
+        const double tau2 = mu + 0.5*h*vconv_norm;
 
         const double clhs0 =             pow(DN(0,0), 2)*rho;
         const double clhs1 =             N[0]*rho;
@@ -1646,8 +1646,8 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
         const double vconv_norm = norm_2(vconv_gauss);
 
         // Stabilization parameters
-        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*rho*mu)/(h*h));
-        const double tau2 = (rho*mu) + 0.5*h*vconv_norm;
+        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
+        const double tau2 = mu + 0.5*h*vconv_norm;
 
         // Auxiliary variables used in the calculation of the RHS
         const array_1d<double,dim> f_gauss = prod(trans(f), N);
@@ -1784,8 +1784,8 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
         const double vconv_norm = norm_2(vconv_gauss);
 
         // Stabilization parameters
-        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*rho*mu)/(h*h));
-        const double tau2 = (rho*mu) + 0.5*h*vconv_norm;
+        const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
+        const double tau2 = mu + 0.5*h*vconv_norm;
 
         // Auxiliary variables used in the calculation of the RHS
         const array_1d<double,dim> f_gauss = prod(trans(f), N);
@@ -1848,6 +1848,6 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
         rhs[7]=-DN(2,0)*stress[2] + DN(2,1)*crhs0 + DN(2,1)*crhs13 - DN(2,1)*crhs5 - DN(2,1)*stress[1] + N[2]*crhs21 - crhs15*crhs36 - crhs16*crhs40 - crhs22*crhs35 - crhs23*crhs35 + crhs24*crhs37;
         rhs[8]=-N[2]*crhs27 - crhs28*crhs38 - crhs28*crhs39 - crhs36;
 
-}
+    }
 
 }
