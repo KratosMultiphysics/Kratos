@@ -320,6 +320,40 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
+void ElementCalculateLocalSystem1(Element& dummy,
+        Matrix& rLeftHandSideMatrix,
+        Vector& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+void ElementGetFirstDerivativesVector1(Element& dummy,
+        Vector& rOutput)
+{
+    dummy.GetFirstDerivativesVector(rOutput,0);
+}
+
+void ElementGetFirstDerivativesVector2(Element& dummy,
+        Vector& rOutput,
+        int step)
+{
+    dummy.GetFirstDerivativesVector(rOutput,step);
+}
+
+void ElementGetSecondDerivativesVector1(Element& dummy,
+        Vector& rOutput)
+{
+    dummy.GetSecondDerivativesVector(rOutput,0);
+}
+
+void ElementGetSecondDerivativesVector2(Element& dummy,
+        Vector& rOutput,
+        int step)
+{
+    dummy.GetSecondDerivativesVector(rOutput,step);
+}
+
 
 void  AddMeshToPython()
 {
@@ -404,16 +438,18 @@ void  AddMeshToPython()
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
-
     .def("Calculate", &ElementCalculateInterface<double>)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
     .def("Calculate", &ElementCalculateInterface<Vector >)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
-
-
-
-
-
+    .def("CalculateMassMatrix", &Element::CalculateMassMatrix)
+    .def("CalculateDampingMatrix", &Element::CalculateDampingMatrix)
+    .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
+    .def("CalculateLocalVelocityContribution", &Element::CalculateLocalVelocityContribution)
+    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
+    .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
+    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
+    .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
