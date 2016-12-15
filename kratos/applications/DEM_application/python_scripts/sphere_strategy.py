@@ -396,7 +396,7 @@ class ExplicitStrategy:
         elif name == 'Verlet_Velocity':
             class_name = 'VerletVelocityScheme'
         else:
-            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            self.Procedures.KRATOSprint('Error: selected scheme (' + name + ') not available. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return class_name
 
@@ -441,10 +441,10 @@ class ExplicitStrategy:
             [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-            print(properties)
+            self.Procedures.KRATOSprint(properties)
             
         if properties.Has(DEM_INTEGRATION_SCHEME_NAME):  
-            scheme_name = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
             scheme_name = self.Parameters.IntegrationScheme
             
