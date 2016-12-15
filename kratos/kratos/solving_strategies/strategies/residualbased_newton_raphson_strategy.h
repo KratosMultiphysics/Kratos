@@ -289,6 +289,16 @@ public:
         return mpBuilderAndSolver;
     };
 
+    void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
+    {
+        mInitializeWasPerformed = InitializePerformedFlag;
+    }
+
+    bool GetInitializePerformedFlag()
+    {
+        return mInitializeWasPerformed;
+    }
+
     void SetCalculateReactionsFlag(bool CalculateReactionsFlag) 
     {
         mCalculateReactionsFlag = CalculateReactionsFlag;
