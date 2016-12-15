@@ -112,6 +112,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if  self.settings["compute_mortar_contact"].GetInt() > 0:
             # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            # Add nodal area
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
             # Add lagrange multiplier
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
             # Add weighted gap

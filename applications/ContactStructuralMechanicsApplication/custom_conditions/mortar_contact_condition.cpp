@@ -2974,7 +2974,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
 //          }
 //       }
 //     }
-//     
+
     // Calculate Delta Gap
     for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
