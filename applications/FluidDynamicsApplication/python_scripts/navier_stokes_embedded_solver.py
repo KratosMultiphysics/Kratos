@@ -232,7 +232,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = self.main_model_part.Properties[1][KratosMultiphysics.SOUND_VELOCITY]
         else:
             # If the wave velocity is not defined take a large enough value to consider the fluid as incompressible
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = 1e+12
+            default_sound_velocity = 1e+12
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = default_sound_velocity
+            # Set the wave velocity in the model part nodes
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.SOUND_VELOCITY, default_sound_velocity, self.main_model_part.Nodes)
 
         ## Set the DYNAMIC_VISCOSITY variable needed for the embedded element
         for element in self.main_model_part.Elements:
