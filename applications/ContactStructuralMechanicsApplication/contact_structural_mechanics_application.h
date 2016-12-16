@@ -200,18 +200,18 @@ private:
     /* CONDITIONS*/
     // Mortar conditions
 //     const MortarContact2DCondition mMortarContactCondition2D2N;
-//     const MortarContact2DCondition mMortarContactCondition2D3N;
-    const MortarContact3DCondition mMortarContactCondition3D3N;
-    const MortarContact3DCondition mMortarContactCondition3D6N;
-    const MortarContact3DCondition mMortarContactCondition3D4N;
-    const MortarContact3DCondition mMortarContactCondition3D8N;
-    const MortarContact3DCondition mMortarContactCondition3D9N;
     const MortarContactCondition<2, 2, false> mMortarContactCondition2D2N;
+//     const MortarContact2DCondition mMortarContactCondition2D3N;
     const MortarContactCondition<2, 3, false> mMortarContactCondition2D3N;
-//     const MortarContactCondition<3, 3, false> mMortarContactCondition3D3N;
+//     const MortarContact3DCondition mMortarContactCondition3D3N;
+    const MortarContactCondition<3, 3, false> mMortarContactCondition3D3N;
+    const MortarContact3DCondition mMortarContactCondition3D6N;
 //     const MortarContactCondition<3, 6, false> mMortarContactCondition3D6N;
-//     const MortarContactCondition<3, 4, false> mMortarContactCondition3D4N;
+//     const MortarContact3DCondition mMortarContactCondition3D4N;
+    const MortarContactCondition<3, 4, false> mMortarContactCondition3D4N;
+    const MortarContact3DCondition mMortarContactCondition3D8N;
 //     const MortarContactCondition<3, 8, false> mMortarContactCondition3D8N;
+    const MortarContact3DCondition mMortarContactCondition3D9N;
 //     const MortarContactCondition<3, 9, false> mMortarContactCondition3D9N;
     const MortarContactCondition<2, 2, true> mMortarContactCondition2D2NDLM;
     const MortarContactCondition<2, 3, true> mMortarContactCondition2D3NDLM;

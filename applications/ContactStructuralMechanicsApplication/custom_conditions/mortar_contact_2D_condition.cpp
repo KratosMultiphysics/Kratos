@@ -164,7 +164,7 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
     mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
-    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR); 
+//     const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR); 
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
