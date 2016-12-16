@@ -28,7 +28,7 @@ proc EmbeddedFluid::write::writeCustomFilesEvent { } {
 
 proc EmbeddedFluid::write::writeDistances { } {
     set must_write [write::getValue EMBFLDistanceReading ReadingMode]
-    if {$must_write eq "MDPA"} {
+    if {$must_write eq "from_mdpa"} {
         set go 0
         set distfilepath [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]
         set a [open $distfilepath r]
@@ -43,6 +43,7 @@ proc EmbeddedFluid::write::writeDistances { } {
             
         }
         write::WriteString "End NodalData"
+        close $a
     }
 }
 
