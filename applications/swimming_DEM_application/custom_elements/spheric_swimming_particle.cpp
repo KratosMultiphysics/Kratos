@@ -97,7 +97,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     // The Basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
     // and then we add the Basset force (minus the term proportional to the current acceleration, which is treted implicitly)
     noalias(non_contact_force) += basset_force;
-    non_contact_force *= force_reduction_coeff;
+    non_contact_force *= force_reduction_coeff; //TODO: put noalias here?
     mFirstStep = false;
     KRATOS_CATCH( "" )
 }
