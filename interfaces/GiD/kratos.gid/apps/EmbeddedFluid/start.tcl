@@ -3,6 +3,7 @@ namespace eval ::EmbeddedFluid {
     variable dir
     variable prefix
     variable attributes
+    variable oldVolumeMesher
 }
 
 proc ::EmbeddedFluid::Init { } {
@@ -58,13 +59,18 @@ proc ::EmbeddedFluid::CustomToolbarItems { } {
 }
 
 proc ::EmbeddedFluid::BeforeMeshGeneration {elementsize} {
+    variable oldVolumeMesher
     catch {file delete -force [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]}
     GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 1 escape escape 
-
+    # Set Octree
+    set oldVolumeMesher [GiD_Set VolumeMesher]
+    ::GiD_Set VolumeMesher 3
 }
 
 proc ::EmbeddedFluid::AfterMeshGeneration {fail} {
-    GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 0 escape escape 
+    variable oldVolumeMesher
+    GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 0 escape escape
+    GiD_Set VolumeMesher $oldVolumeMesher
 }
 
 ::EmbeddedFluid::Init
