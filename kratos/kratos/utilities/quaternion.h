@@ -135,6 +135,19 @@ namespace Kratos
 			}
 			return *this;
 		}
+                
+                
+                template<class AE>
+                BOOST_UBLAS_INLINE
+                Quaternion& operator = (const boost::numeric::ublas::vector_expression<AE> &ae)
+                {
+                    mX = ae()(0);
+                    mY = ae()(1);
+                    mZ = ae()(2);
+                    mW = ae()(3);
+                    
+                    return *this;
+                }
 		
 		///@}
 		

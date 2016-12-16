@@ -563,6 +563,7 @@ namespace Kratos
     mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
     mpDoubleVariables( KratosComponents<Variable<double> >::pGetComponents() ),
     mpArray1DVariables( KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents() ),
+    mpQuaternionVariables( KratosComponents<Variable<Quaternion<double> > >::pGetComponents() ),
     mpVectorVariables( KratosComponents<Variable<Vector> >::pGetComponents() ),
     mpMatrixVariables( KratosComponents<Variable<Matrix> >::pGetComponents() ),
     mpArray1DVariableComponents( KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::pGetComponents() ),

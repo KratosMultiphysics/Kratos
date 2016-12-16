@@ -31,6 +31,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -58,6 +59,11 @@ void AddKratosComponent(std::string const& Name, Variable<double> const& ThisCom
 void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > const& ThisComponent)
 {
     KratosComponents<Variable<array_1d<double, 3> > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<Quaternion<double> > const& ThisComponent)
+{
+    KratosComponents<Variable<Quaternion<double> > >::Add(Name, ThisComponent);
 }
 
 void AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent)

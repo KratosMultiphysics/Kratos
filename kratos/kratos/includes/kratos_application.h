@@ -34,6 +34,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -144,6 +145,11 @@ public:
     KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType& GetComponents(Variable<array_1d<double, 3> >  const& rComponentType)
     {
         return *mpArray1DVariables;
+    }
+    
+    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType& GetComponents(Variable<Quaternion<double> >  const& rComponentType)
+    {
+        return *mpQuaternionVariables;
     }
 
     KratosComponents<Variable<Vector> >::ComponentsContainerType& GetComponents(Variable<Vector> const& rComponentType)
@@ -405,6 +411,8 @@ protected:
     KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
 
     KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType* mpArray1DVariables;
+    
+    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType* mpQuaternionVariables;
 
     KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
 
