@@ -42,8 +42,8 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     
     set root [customlib::GetBaseRoot]
-    if {[$root selectNodes $xp] eq "[spdAux::getRoute NodalResults]/value\[@n='DISTANCE'\]"} {gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]}
-    if {[$root selectNodes $xp] eq [spdAux::getRoute EMBFLSolutionParameters]} {gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]}
+    if {[$root selectNodes "[spdAux::getRoute NodalResults]/value\[@n='DISTANCE'\]"] eq ""} {gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]}
+    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceReading'\]"] eq ""} {gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]}
     customlib::ProcessIncludes $::Kratos::kratos_private(Path)
     spdAux::parseRoutes
     # Erase when Fractional step is available
