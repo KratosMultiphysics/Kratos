@@ -160,19 +160,12 @@ proc write::writeMaterials { {appid ""}} {
 }
 
 proc write::writeNodalCoordinatesOnParts { } {
-    variable parts
-    
-    set f "%5d %14.5f %14.5f %14.5f"
-    set objarray [objarray new intarray 0]
+    set formats [dict create]
     foreach group [getPartsGroupsId] {
-        set objarray [objarray union -sorted $objarray [GiD_EntitiesGroups get $group nodes]]
+        dict set formats $group "%5d %14.5f %14.5f %14.5f\n"
     }
     WriteString "Begin Nodes"
-    set numnodes [objarray length $objarray]
-    for {set i 0} {$i < $numnodes} {incr i} {
-        set node_id [objarray get $objarray $i]  
-        WriteString [format $f $node_id {*}[lrange [GiD_Mesh get node $node_id] 1 end] ]
-    }
+    GiD_WriteCalculationFile nodes $formats
     WriteString "End Nodes"
     WriteString "\n"
 }

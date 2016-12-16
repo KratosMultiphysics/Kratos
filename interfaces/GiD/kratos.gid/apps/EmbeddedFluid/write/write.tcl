@@ -15,7 +15,7 @@ proc EmbeddedFluid::write::writeModelPartEvent { } {
     write::writeModelPartData
     Fluid::write::writeProperties
     write::writeMaterials $Fluid::write::validApps
-    write::writeNodalCoordinates
+    write::writeNodalCoordinatesOnParts
     write::writeElementConnectivities
     Fluid::write::writeConditions
     Fluid::write::writeMeshes
