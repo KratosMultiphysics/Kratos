@@ -20,6 +20,11 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
         gravity[1] = pp.CFD_DEM.GravityY
         gravity[2] = pp.CFD_DEM.GravityZ
     fluid_model_part.ProcessInfo.SetValue(GRAVITY, gravity)
+    if pp.CFD_DEM.laplacian_calculation_type == 3: # recovery through solving a system
+        fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 1)
+    elif pp.CFD_DEM.laplacian_calculation_type == 4: # recovery through solving a system
+        fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
+
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
