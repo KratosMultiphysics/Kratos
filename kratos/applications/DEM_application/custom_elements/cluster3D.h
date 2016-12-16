@@ -57,7 +57,7 @@ namespace Kratos
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
-        virtual void SetOrientation(const double& OrientationReal, const array_1d<double, 3>& OrientationImag);
+        virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties);
         virtual void UpdatePositionOfSpheres();
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
