@@ -192,7 +192,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, arr
         return;
     }
 
-    else { // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
+    else { // calculating the 'dimensional drag coefficient', i.e., the factor by which the slip velocity must be multiplied to yield the drag force
         double drag_coeff = ComputeDragCoefficient(r_current_process_info);
 
         ApplyDragPorosityModification(drag_coeff);
