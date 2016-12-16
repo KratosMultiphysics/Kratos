@@ -98,15 +98,15 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 ##############################################################################
 n_div = 20
 material_derivative_type = 2
-laplacian_type = 3
-#file_name, mesh_size, material_derivative_type, laplacian_type = sys.argv
+laplacian_type = 2
+file_name, n_div, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
-pp.CFD_DEM.gradient_calculation_type = int(material_derivative_type)
+pp.CFD_DEM.gradient_calculation_type = 0
 pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
-pp.CFD_DEM.material_acceleration_calculation_type = 2
+pp.CFD_DEM.material_acceleration_calculation_type = int(material_derivative_type)
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
@@ -700,7 +700,7 @@ mesh_motion = DEMFEMUtilities()
 # creating a Post Utils object that executes several post-related tasks
 post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # all variables are set to 0 by default
+swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # otherwise variables are set to 0 by default
 
 
 # ANALYTICS BEGIN
@@ -746,22 +746,15 @@ for node in fluid_model_part.Nodes:
 N_steps = int(final_time / Dt_DEM) + 20
 
 if pp.CFD_DEM.basset_force_type > 0:
-    print(N_steps)
     basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
 post_utils.Writeresults(time)
 
-def NormOfDifference(v1, v2):
-    return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
-
-def Norm(v):
-    return math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
-
 mat_deriv_errors = []
 laplacian_errors = []
-fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
+#fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
 
 while (time <= final_time):
 
@@ -885,17 +878,17 @@ while (time <= final_time):
             #laplacian[2] = 0
             #nodal_volume = node.GetSolutionStepValue(NODAL_AREA) 
             #total_volume += nodal_volume
-            error_mat_deriv += NormOfDifference(calc_mat_deriv, mat_deriv)
-            error_laplacian += NormOfDifference(calc_laplacian, laplacian)
+            error_mat_deriv += swim_proc.NormOfDifference(calc_mat_deriv, mat_deriv)
+            error_laplacian += swim_proc.NormOfDifference(calc_laplacian, laplacian)
             diff_mat_deriv = [calc_mat_deriv[i] - mat_deriv[i] for i in range(len(calc_mat_deriv))]
             diff_laplacian = [calc_laplacian[i] - laplacian[i] for i in range(len(calc_laplacian))]
-            #mat_deriv_averager.Norm(diff_mat_deriv)
-            #laplacian_averager.Norm(diff_laplacian)
+            #mat_deriv_averager.swim_proc.Norm(diff_mat_deriv)
+            #laplacian_averager.swim_proc.Norm(diff_laplacian)
             #for k in range(3):
                 #mat_deriv_average[k] += mat_deriv[k]
                 #laplacian_average[k] += laplacian[k]
-            norm_mat_deriv_average += Norm(mat_deriv)
-            norm_laplacian_average += Norm(laplacian)
+            norm_mat_deriv_average += swim_proc.Norm(mat_deriv)
+            norm_laplacian_average += swim_proc.Norm(laplacian)
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
@@ -953,7 +946,7 @@ while (time <= final_time):
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
 
                 if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-                    #solver.Solve() # only advance in space  
+                    solver.Solve() # only advance in space  
                     projection_module.InterpolateVelocity()
         
                 if quadrature_counter.Tick():            
@@ -999,8 +992,6 @@ while (time <= final_time):
     # applying DEM-to-fluid coupling
 
     if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
-        print("Projecting from particles to the fluid...")
-        sys.stdout.flush()
         projection_module.ProjectFromParticles()
 
     # coupling checks (debugging)
@@ -1041,7 +1032,7 @@ print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 if not os.path.exists('../errors_recorded'):
     os.makedirs('../errors_recorded')
     
-with open('../errors_recorded/mat_deriv_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.gradient_calculation_type) + '.txt', 'w') as mat_errors_file:
+with open('../errors_recorded/mat_deriv_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.material_acceleration_calculation_type) + '.txt', 'w') as mat_errors_file:
     for error in mat_deriv_errors:
         mat_errors_file.write(str(error) + '\n')
 with open('../errors_recorded/laplacian_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
