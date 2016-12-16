@@ -34,7 +34,6 @@
 #include "contact_structural_mechanics_application_variables.h"
 
 // TODO: Add parallellization!!!
-// TODO: Check geometry creation
 
 namespace Kratos
 {
@@ -87,7 +86,7 @@ public:
      * @param rOriginPart: The original model part
      * @param ConditionName: Name of the condition to be created
      * @return InterfacePart: The interface model part
-     */
+     */ // TODO: Add the possibilty to select different resulting geometries
     
     void GenerateInterfacePart(
             ModelPart& rOriginPart,
@@ -130,7 +129,7 @@ public:
                 for (unsigned int it_edge = 0; it_edge < (*elem_it).GetGeometry().EdgesNumber(); it_edge++)
                 {
                     unsigned int count = 0;
-                    unsigned int number_points = (*elem_it).GetGeometry().Edges()[it_edge].PointsNumber();
+                    const unsigned int number_points = (*elem_it).GetGeometry().Edges()[it_edge].PointsNumber();
                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
                     {
                         if ((*elem_it).GetGeometry().Edges()[it_edge][node_it].IsDefined(INTERFACE) == true)  
@@ -184,7 +183,7 @@ public:
                 for (unsigned int it_face = 0; it_face < (*elem_it).GetGeometry().FacesNumber(); it_face++)
                 {
                     unsigned int count = 0;
-                    unsigned int number_points = (*elem_it).GetGeometry().Faces()[it_face].PointsNumber();
+                    const unsigned int number_points = (*elem_it).GetGeometry().Faces()[it_face].PointsNumber();
                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
                     {
                         if ((*elem_it).GetGeometry().Faces()[it_face][node_it].IsDefined(INTERFACE) == true)  
