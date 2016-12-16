@@ -13,6 +13,7 @@
 // Project includes
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -701,6 +702,12 @@ namespace Kratos
                 ReadVectorialValue(temp_vector);
                 rModelPart[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
             }
+            else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                rModelPart[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
+            }
             else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
             {
                 ReadVectorialValue(rModelPart[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
@@ -1101,6 +1108,12 @@ namespace Kratos
                 ReadVectorialValue(temp_vector);
                 temp_properties[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
             }
+            else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                temp_properties[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
+            }
             else if(KratosComponents<Variable<Vector> >::Has(variable_name))
             {
                 ReadVectorialValue(temp_properties[KratosComponents<Variable<Vector> >::Get(variable_name)]);
@@ -1317,6 +1330,18 @@ namespace Kratos
                 ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
             }
         }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+        {
+            bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)) ;
+            if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
+                std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
+            }
+            else if (!has_been_added)
+                KRATOS_THROW_ERROR(std::invalid_argument,"The nodal solution step container deos not have this variable: ", variable_name)
+            else {
+                ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+            }
+        }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
@@ -1519,6 +1544,10 @@ namespace Kratos
         {
             ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
         }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+        {
+            ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+        }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
@@ -1630,6 +1659,10 @@ namespace Kratos
         else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
         {
             ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+        }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+        {
+            ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
         }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
@@ -2260,6 +2293,12 @@ namespace Kratos
                 ReadVectorialValue(temp_vector);
                 rMesh[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
             }
+            else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                rMesh[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
+            }
             else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
             {
                 ReadVectorialValue(rMesh[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
@@ -2425,6 +2464,12 @@ namespace Kratos
                 Vector temp_vector; // defining a Vector because for array_1d the operator >> is not defined yet!
                 ReadVectorialValue(temp_vector);
                 temp_properties[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
+            }
+            else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for Quaternion the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                temp_properties[KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)] = temp_vector;
             }
             else if(KratosComponents<Variable<Vector> >::Has(variable_name))
             {
@@ -2907,6 +2952,10 @@ namespace Kratos
         {
             DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
         }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+        {
+            DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+        }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
@@ -3092,6 +3141,10 @@ namespace Kratos
         {
             DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
         }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
+        {
+            DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+        }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
@@ -3211,6 +3264,10 @@ namespace Kratos
             DivideScalarVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
         }
         else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+        {
+            DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+        }
+        else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
         {
             DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
         }
