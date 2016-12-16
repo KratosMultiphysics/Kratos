@@ -57,6 +57,8 @@ proc SorterWindow::Window { } {
     wm deiconify $w
     wm title $w [= "Sort conditions window"]
     set Delta 30
+    wm attribute $w -topmost 1
+
     
     SorterWindow::RefreshWindow
     
@@ -198,12 +200,12 @@ proc SorterWindow::SortByDragListboxScroll { w {was moveto} {Zahl 0.0} {Einheit 
     set yPos [expr 32 - $Scrollposition]
     for {set i 0} {$i < [array size Listado]} {incr i} {
         $Canv delete ent$i
-        if {$yPos < 20} {
+        if {$yPos < 1} {
             incr yPos $Schrifthoehe
             continue
         }
         #
-        if {$yPos < [expr $height - 20]} {
+        if {$yPos < [expr $height - 1]} {
             $Canv create text 24 $yPos -text $Listado($Index($i)) -anchor w -fill black -tags ent$i
             incr yPos $Schrifthoehe
             
@@ -266,15 +268,19 @@ proc SorterWindow::plotCopy { w Cv x y i } {
     variable Scrollarea
     
     set Schrifthoehe 16
-    #
-    # Get the new position. Delta is a fudge factor which is different
-    # between different operating systems.
-    #
+    
+    W $i
+    set max [expr [array size Index] -1]
+    W "max $max"
+    set min 0
     set Rang [expr int(($y - $Delta + $Scrollposition) / $Schrifthoehe)]
     set Temp $Index($i)
     if {$Rang > $i} {
-        for {set j $i} {$j < $Rang} {incr j} {
-            set Index($j) $Index([expr $j + 1])
+        if {$Rang > $max} {set Rang $max}
+        for {set j $i} {$j < $Rang && $j} {incr j} {
+            set k [expr $j + 1]
+            W "AP j $j k $k"
+            set Index($j) $Index($k)
         }
     } elseif {$Rang == $i} {
         set number [expr double($Scrollposition) / $Scrollarea]
@@ -282,8 +288,13 @@ proc SorterWindow::plotCopy { w Cv x y i } {
         return
     } else {
         set Rang [expr $Rang + 1]
+        if {$Rang < $min} {set Rang $min}
+        W "Rang $Rang"
         for {set j $i} {$j > $Rang} {incr j -1} {
-            set Index($j) $Index([expr $j - 1])
+            set k [expr $j - 1]
+            W "DA j $j k $k"
+
+            set Index($j) $Index($k)
         }
     }
     set Index($Rang) $Temp
@@ -310,9 +321,13 @@ proc SorterWindow::FillListado { } {
     set size [llength $Items]
     set i 0
     foreach {item groups} $Items {
-        set Listado($i) "$item"
-        lappend Index($i) $i
-        incr i     
+        W "$item $groups"
+        foreach {group num} $groups {
+            W "- $item $group"
+            set Listado($i) "$item $group"
+            lappend Index($i) $i
+            incr i
+        }
     }
 }
 
