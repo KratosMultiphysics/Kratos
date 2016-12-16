@@ -73,10 +73,7 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
         GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
 
-        const double& OrientationReal = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_REAL);
-        const array_1d<double, 3>& OrientationImag = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG);
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
-        Orientation = Quaternion<double>(OrientationReal, OrientationImag[0], OrientationImag[1], OrientationImag[2]);
         Orientation.normalize();
 
         array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
