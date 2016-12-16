@@ -41,7 +41,7 @@ namespace Kratos {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
-                vel[k] = fluid_vel[k] + drag_coefficient_inv * contact_force[k]; // all forces are allways in equilibrium with the drag force
+                vel[k] = fluid_vel[k] + drag_coefficient_inv * contact_force[k]; // all forces are always in equilibrium with the drag force
 
             } else {
                 delta_displ[k] = delta_t * vel[k];
