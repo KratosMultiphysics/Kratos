@@ -134,6 +134,7 @@ class ContactProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP, False)
+                node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
                 node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
