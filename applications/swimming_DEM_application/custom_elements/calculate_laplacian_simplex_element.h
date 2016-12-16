@@ -468,24 +468,26 @@ private:
         boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
-
         // Add 'classical' mass matrix (lumped)
-//        double Coeff = Area / TNumNodes; //Optimize!
-//        this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
-
-        // Add 'consistent' mass matrix
-        MatrixType NContainer;
-        ShapeFunctionDerivativesArrayType DN_DXContainer;
-        VectorType GaussWeights;
-        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-        const SizeType NumGauss = NContainer.size1();
-
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
+        if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
+            double Coeff = Area / TNumNodes; //Optimize!
+            this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
         }
 
+        else {
+            // Add 'consistent' mass matrix
+            MatrixType NContainer;
+            ShapeFunctionDerivativesArrayType DN_DXContainer;
+            VectorType GaussWeights;
+            this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
+            const SizeType NumGauss = NContainer.size1();
+
+            for (SizeType g = 0; g < NumGauss; g++){
+                const double GaussWeight = GaussWeights[g];
+                const ShapeFunctionsType& Ng = row(NContainer, g);
+                this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
+            }
+        }
     }
 
     void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
