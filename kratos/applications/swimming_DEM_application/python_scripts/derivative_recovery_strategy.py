@@ -16,18 +16,24 @@ class DerivativeRecoveryStrategy:
         self.do_recover_acceleration = False
         self.do_recover_laplacian = False
 
-        if pp.CFD_DEM.material_acceleration_calculation_type == 3:
+        if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4:
             self.do_recover_acceleration = True
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeMaterialDerivativeSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
-        if pp.CFD_DEM.laplacian_calculation_type == 3:
+        if pp.CFD_DEM.laplacian_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4:
             self.do_recover_laplacian = True
             self.lapl_model_part = ModelPart("PostLaplacianFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.lapl_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
         self.AddDofs(fluid_model_part)
         self.CreateCPluPlusStrategies(pp.CFD_DEM.recovery_echo_level)
+
+        if pp.CFD_DEM.material_acceleration_calculation_type == 3:
+            fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 4:
+            fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 0
+
 
     def AddDofs(self, model_part, config = None):
         if self.do_recover_acceleration:
@@ -89,18 +95,18 @@ class DerivativeRecoveryStrategy:
             self.custom_functions_tool.CalculatePressureGradient(self.fluid_model_part)
         elif self.pp.CFD_DEM.gradient_calculation_type == 2:
             self.derivative_recovery_tool.RecoverSuperconvergentGradient(self.fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
-        if self.pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            self.derivative_recovery_tool.CalculateVectorMaterialDerivative(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
-        elif self.pp.CFD_DEM.material_acceleration_calculation_type == 2 and self.pp.CFD_DEM.laplacian_calculation_type == 2:
-            self.derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)
+        if self.pp.CFD_DEM.material_acceleration_calculation_type == 2 and self.pp.CFD_DEM.laplacian_calculation_type == 2:
+            self.derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)
         else:
             if self.pp.CFD_DEM.laplacian_calculation_type == 1:
                 self.derivative_recovery_tool.CalculateVectorLaplacian(self.fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
             elif self.pp.CFD_DEM.laplacian_calculation_type == 2:
                 self.derivative_recovery_tool.RecoverSuperconvergentLaplacian(self.fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 2:
+            if self.pp.CFD_DEM.material_acceleration_calculation_type == 2:
                 self.derivative_recovery_tool.RecoverSuperconvergentMatDeriv(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
-        if self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3:
-            self.Solve()
+            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 1:
+                self.derivative_recovery_tool.CalculateVectorMaterialDerivative(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
+            if self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
+                self.Solve()
 
 
