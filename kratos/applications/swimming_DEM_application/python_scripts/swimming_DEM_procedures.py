@@ -102,6 +102,12 @@ def TransferFacePressuresToPressure(model_part):
 def Norm(my_list):
     return math.sqrt(sum([value ** 2 for value in my_list]))
 
+def NormOfDifference(v1, v2):
+    return math.sqrt((v1[0] - v2[0]) ** 2 + (v1[1] - v2[1]) ** 2 + (v1[2] - v2[2]) ** 2)
+
+def Norm(v):
+    return math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
+
 def FindClosestNode(model_part, coors):
      relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
      nodes = [node for node in model_part.Nodes]
