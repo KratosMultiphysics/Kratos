@@ -5,6 +5,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+import sys
 
 class ProjectionModule:
 
@@ -79,6 +80,8 @@ class ProjectionModule:
         self.projector.ImposeVelocityOnDEMFromField(self.flow_field, self.particles_model_part)
 
     def ProjectFromParticles(self, recalculate_neigh = True):
+        print("\nProjecting from particles to the fluid...")
+        sys.stdout.flush()
 
         if (self.coupling_type != 3):
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
@@ -86,6 +89,8 @@ class ProjectionModule:
         else:
             self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor, recalculate_neigh)
 
+        print("\nFinished projecting from particles to the fluid...")
+        sys.stdout.flush()
     def InterpolateVelocity(self):
         self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
