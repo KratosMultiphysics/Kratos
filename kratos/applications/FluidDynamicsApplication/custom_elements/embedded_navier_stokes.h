@@ -27,8 +27,8 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
 #include "custom_elements/navier_stokes.h"
-//~ #include "utilities/enrichment_utilities_duplicate_dofs.h"      // Tetrahedra splitting
-#include "utilities/split_tetrahedra_utilities.h"      // Tetrahedra splitting
+//~ #include "utilities/enrichment_utilities_duplicate_dofs.h"  // Tetrahedra splitting
+#include "utilities/split_tetrahedra_utilities.h"               // Tetrahedra splitting
 //~ #include "utilities/enrich_2d_2dofs.h"                      // Triangle splitting
 //~ #include "utilities/discont_utils.h"                        // Tetrahedra splitting
 
@@ -165,6 +165,8 @@ public:
         data.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only needed if the temporal dependent term is considered in the subscales
         data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only needed if the temporal dependent term is considered in the subscales
 
+        data.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
+
         array_1d<double, TNumNodes> distances;                  // Array to store the nodal value of the distance function
 
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -186,6 +188,8 @@ public:
             }
 
             data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            data.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
+            data.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
             data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
             data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
             distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
