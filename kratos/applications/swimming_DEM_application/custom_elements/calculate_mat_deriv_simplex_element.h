@@ -203,7 +203,7 @@ public:
         //getting data for the given geometry
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
-        this->AddRHSMatAcceleration(rRightHandSideVector, N, DN_DX, Area);
+        CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
     }
 
 
@@ -506,6 +506,28 @@ private:
 //            ++DofIndex; // Skip pressure Dof
 //Z
         }
+    }
+
+    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+    {
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        MatrixType NContainer;
+        ShapeFunctionDerivativesArrayType DN_DXContainer;
+        VectorType GaussWeights;
+        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
+        const SizeType NumGauss = NContainer.size1();
+
+        for (SizeType g = 0; g < NumGauss; g++){
+            const double GaussWeight = GaussWeights[g];
+            const ShapeFunctionsType& Ng = row(NContainer, g);
+            this->AddRHSMatAcceleration(F, Ng, DN_DX, GaussWeight);
+        }
+
     }
 
     void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
