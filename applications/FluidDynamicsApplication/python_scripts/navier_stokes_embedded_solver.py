@@ -94,8 +94,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             raise Exception("Domain size is not 2 or 3!!")
 
         ## Set the distance reading filename
-        # self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+"_distance.post.res")
-        self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
+        # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
+        if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
+            self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
         print("Construction of NavierStokesEmbeddedSolver finished.")
 
@@ -257,3 +258,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             print("Distance function took from the .mdpa input file.")
+            # Recall to swap the distance sign (GiD considers d<0 in the fluid region)
+            for node in self.main_model_part.Nodes:
+                distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
