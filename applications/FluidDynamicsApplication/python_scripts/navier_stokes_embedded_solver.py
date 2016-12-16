@@ -28,8 +28,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "input_filename": "unknown_name"
             },
             "distance_reading_settings"    : {
-                "import_mode"         : "from_GID_file",
-                "distance_file_name"  : "distance_file"
+                "import_mode"         : "from_mdpa",
+                "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 10,
             "dynamic_tau": 0.0,
@@ -248,10 +248,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian2DLaw()
 
         ## Setting the nodal distance
-        try:
+        if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             import read_distance_from_file
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
-        except FileNotFoundError:
-            ####### NOTE: TEMPORAL SOLUTION. RECALL TO SUPRESS THE try AS SOON AS THE INTERFACE IS FINISHED #######
-            print("DISTANCE FILE NOT FOUND. DISTANCE IS MANUALLY SET.")
+        elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
+            print("Distance function took from the .mdpa input file.")
