@@ -2825,19 +2825,43 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
       const array_1d<double, TNumNodes > vector_nodes =  prod(trans(X2 + u2), N2) - prod(trans(X1 + u1), N1);
       const double Dist = inner_prod(vector_nodes, Normal_mg)/(inner_prod(Normal_sg, Normal_mg) + tol);
       
-      double div = 1.0;
+      double div1,div2 = 1.0;
+      double mult1,mult2,mult3,mult4,mult5 = 0.0;
       if (TDim == 2)
       {
          if (TNumNodes == 2)
          {
-            div = (X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + tol;
+            div1 = (X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + tol;
          }
       }
       else
       {
          if (TNumNodes == 3)
          {
-         	// TODO: Finish this!!!
+             div1 = ((u2(0, 0) + u2(0, 2) - u2(1, 0) - u2(1, 2) + X2(0, 0) + 
+                      X2(0, 2) - X2(1, 0) - X2(1, 2)) * (u2(0, 0) + u2(0, 1) - 
+                      u2(2, 0) - u2(2, 1) + X2(0, 0) + X2(0, 1) - X2(2, 0) - 
+                      X2(2, 1)) - (u2(0, 0) + u2(0, 1) - u2(1, 0) - u2(1, 1) + 
+                      X2(0, 0) + X2(0, 1) - X2(1, 0) - X2(1, 1)) * (u2(0, 0) + 
+                      u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - 
+                      X2(2, 0) - X2(2, 2))) + tol;
+             div2 = (-(u2(1, 1) + X2(1, 1)) * (u2(2, 0) + X2(2, 0)) + (u2(1, 2) + 
+                       X2(1, 2)) * (u2(2, 0) + X2(2, 0)) + (u2(0, 2) + 
+                       X2(0, 2)) * (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + 
+                       X2(1, 0) + X2(1, 1) - X2(2, 0) - X2(2, 1)) + (u2(1, 0) + 
+                       X2(1, 0)) * (u2(2, 1) + X2(2, 1)) + (u2(1, 2) + 
+                       X2(1, 2)) * (u2(2, 1) + X2(2, 1)) - (u2(1, 0) + u2(1, 1) + 
+                       X2(1, 0) + X2(1, 1)) * (u2(2, 2) + X2(2, 2)) + (u2(0, 1) + 
+                       X2(0, 1)) * (-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - 
+                       X2(1, 0) - X2(1, 2) + X2(2, 0) + X2(2, 2)) + (u2(0, 0) + 
+                       X2(0, 0)) * (u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + 
+                       X2(1, 1) - X2(1, 2) - X2(2, 1) + X2(2, 2))) + tol;
+                        
+             mult1 = (-(u2(0, 0) + u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - X2(2, 0) - X2(2, 2)));
+             mult2 = ( (u2(0, 0) + u2(0, 1) - u2(2, 0) - u2(2, 1) + X2(0, 0) + X2(0, 1) - X2(2, 0) - X2(2, 1)));
+             mult3 = ( (u2(0, 1) - u2(0, 2) - u2(1, 1) + u2(1, 2) + X2(0, 1) - X2(0, 2) - X2(1, 1) + X2(1, 2)));
+             mult4 = ((-u2(0, 0) - u2(0, 2) + u2(1, 0) + u2(1, 2) - X2(0, 0) - X2(0, 2) + X2(1, 0) + X2(1, 2)));
+             mult5 = ( (u2(0, 0) + u2(0, 1) - u2(1, 0) - u2(1, 1) + X2(0, 0) + X2(0, 1) - X2(1, 0) - X2(1, 1)));
          }
       }
       
@@ -2854,13 +2878,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
             const double DeltaDist = ((inner_prod(Deltavector_nodes, Normal_mg))* inner_prod(Normal_sg, Normal_mg) - inner_prod(vector_nodes, Normal_mg) * (inner_prod(DNormal_sg, Normal_mg)))/std::pow(inner_prod(Normal_sg, Normal_mg) + tol, 2);
             const array_1d<double, TNumNodes > Deltax1g = N1[i_slave] * aux_vector;
             const array_1d<double, TNumNodes > Deltax2g = Deltax1g + DeltaDist * Normal_sg + Dist * DNormal_sg;
-             
+            
             if (TDim == 2)
             {
                if (TNumNodes == 2)
                {
-                  rContactData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div;
-
+                  rContactData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div1;
                   rContactData.DeltaN2[i_dof][1] =  - rContactData.DeltaN2[i_dof][0];
                }
             }
@@ -2868,8 +2891,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
             {
                if (TNumNodes == 3)
                {
-               	  // TODO: Finish this!!!
-                  // rContactData.DeltaN2[i_dof][0] =  - rContactData.DeltaN2[i_dof][1] - rContactData.DeltaN2[i_dof][2];
+                  rContactData.DeltaN2[i_dof][1] = - (mult1 * (Deltax2g[0] + Deltax2g[1]) + mult2 * (Deltax2g[0] + Deltax2g[2]))/div1;
+                  rContactData.DeltaN2[i_dof][2] =   (mult3 *  Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2])/div2;
+                  rContactData.DeltaN2[i_dof][0] =  - rContactData.DeltaN2[i_dof][1] - rContactData.DeltaN2[i_dof][2];
                }
             }
          }
@@ -2889,20 +2913,20 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
 //             }
             const array_1d<double, TNumNodes > Deltavector_nodes = N2[i_master] * aux_vector;
             const double DeltaDist = ((inner_prod(Deltavector_nodes, Normal_mg) + inner_prod(vector_nodes, DNormal_mg))* inner_prod(Normal_sg, Normal_mg) - inner_prod(vector_nodes, Normal_mg) * (inner_prod(Normal_sg, DNormal_mg)))/std::pow(inner_prod(Normal_sg, Normal_mg) + tol, 2);;
-            array_1d<double, TNumNodes > Deltax2g = DeltaDist * Normal_sg;
+            const array_1d<double, TNumNodes > x2g = prod(trans(X2 + u2), N2);
+            const array_1d<double, TNumNodes > Deltax2g = DeltaDist * Normal_sg;
             
             if (TDim == 2)
             {
                if (TNumNodes == 2)
                {
-                   const array_1d<double, TNumNodes > x2g = prod(trans(X2 + u2), N2);
                    if (i_master == 0)
                    {
-                       rContactData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div * (Deltax2g[0] + Deltax2g[1]))/std::pow(div, 2);
+                       rContactData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div1 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div1, 2);
                    }
                    else 
                    {
-                       rContactData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div * (Deltax2g[0] + Deltax2g[1]))/std::pow(div, 2);
+                       rContactData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div1 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div1, 2);
                    }
                   
                   rContactData.DeltaN2[i_dof][1] =  - rContactData.DeltaN2[i_dof][0];
@@ -2911,9 +2935,138 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
             else
             {
                if (TNumNodes == 3)
-               {
-               	  // TODO: Finish this!!!
-                  // rContactData.DeltaN2[i_dof][0] =  - rContactData.DeltaN2[i_dof][1] - rContactData.DeltaN2[i_dof][2];
+               {    
+                   const double multmaster0 = ( (u2(0, 0) + u2(0, 2) - u2(2, 0) - u2(2, 2) + X2(0, 0) + X2(0, 2) - X2(2, 0) - X2(2, 2)));
+                   const double multmaster1 = ((-u2(0, 0) - u2(0, 1) + u2(2, 0) + u2(2, 1) - X2(0, 0) - X2(0, 1) + X2(2, 0) + X2(2, 1)) );
+                   const double multmaster2 = ( (u2(0, 0) + u2(0, 1) + X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1]));
+                   const double multmaster3 = ( (u2(0, 0) + u2(0, 2) + X2(0, 0) + X2(0, 2) - x2g[0] - x2g[2]));
+                   const double multmaster4 = ( (u2(1, 0) + u2(1, 1) + X2(1, 0) + X2(1, 1)) * x2g[2] + (u2(0, 0) + X2(0, 0)));
+                   const double multmaster5 = ((u2(1, 0) + u2(1, 1) + X2(1, 0) + X2(1, 1) - x2g[0] - x2g[1]));
+                   const double multmaster6 = ( (u2(1, 1) - u2(1, 2) + X2(1, 1) - X2(1, 2) - x2g[1] + x2g[2]));
+                   const double coefmaster1 = ( (u2(1, 0) + X2(1, 0)) * x2g[1] + (u2(1, 2) + X2(1, 2)) * x2g[1]);
+                   const double coefmaster2 = ( -(u2(1, 1) + X2(1, 1)) * x2g[0] + (u2(1, 2) + X2(1, 2)) * x2g[0]);
+                   const double coefmaster3 = ( u2(0, 0) + u2(0, 2) + X2(0, 0) + X2(0, 2) - x2g[0] - x2g[2]);
+                   const double coefmaster4 = ( -u2(0, 0) - u2(0, 1) - X2(0, 0) - X2(0, 1) + x2g[0] + x2g[1]);
+                   const double coefmaster5 = ( (u2(0, 1) + X2(0, 1)) * (u2(1, 0) + u2(1, 2) + X2(1, 0) + X2(1, 2) - x2g[0] - x2g[2]));
+                   
+                   if ((i_dof - TDim * TNumNodes) == 0)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ((u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
+                                                           X2(1, 2) - X2(2, 1) + X2(2, 2)) * (multmaster0*multmaster2 + 
+                                                           multmaster1*multmaster3) - (div1) * (u2(0, 1) - u2(0, 2) + 
+                                                           X2(0, 1) - X2(0, 2) - x2g[1] + x2g[2] + 
+                                                           mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
+                                                           mult2 * (-1 + Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
+                                                           
+                       rContactData.DeltaN2[i_dof][2] =  ( -(u2(1, 1) - u2(1, 2) - u2(2, 1) + u2(2, 2) + X2(1, 1) - 
+                                                            X2(1, 2) - X2(2, 1) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                            multmaster5 + coefmaster1 - coefmaster5 - 
+                                                            multmaster4 * multmaster6) + (div2) * (u2(1, 1) - u2(1, 2) + 
+                                                            X2(1, 1) - X2(1, 2) - x2g[1] + x2g[2] + mult3 * Deltax2g[0] + 
+                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 1)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ((-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
+                                                            X2(1, 2) + X2(2, 0) + X2(2, 2)) * (multmaster0*multmaster2 + 
+                                                            multmaster1*multmaster3) - (div1) * (-u2(0, 0) - u2(0, 2) - 
+                                                            X2(0, 0) - X2(0, 2) + x2g[0] + x2g[2] + 
+                                                            mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
+                                                            mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
+                                                            
+                        rContactData.DeltaN2[i_dof][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
+                                                              X2(1, 2) + X2(2, 0) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                              multmaster5 + coefmaster1 - coefmaster5 - 
+                                                              multmaster4 * multmaster6) + (div2) * (-u2(1, 0) - u2(1, 2) - 
+                                                              X2(1, 0) - X2(1, 2) + x2g[0] + x2g[2] + mult3 * Deltax2g[0] + 
+                                                              mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 2)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ( (u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
+                                                            X2(1, 1) - X2(2, 0) - X2(2, 1)) * (multmaster0*multmaster2 + 
+                                                            multmaster1*multmaster3) - (div1) * (u2(0, 0) + u2(0, 1) + 
+                                                            X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1] + 
+                                                            mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                            mult2 * (-1 + Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                            
+                        rContactData.DeltaN2[i_dof][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
+                                                            X2(1, 1) - X2(2, 0) - X2(2, 1)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                            multmaster5 + coefmaster1 - coefmaster5 - 
+                                                            multmaster4 * multmaster6) + (div2) * (u2(1, 0) + u2(1, 1) + 
+                                                            X2(1, 0) + X2(1, 1) - x2g[0] - x2g[1] + mult3 * Deltax2g[0] + 
+                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 3)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ( (-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
+                                                            X2(0, 2) + X2(2, 1) - X2(2, 2)) * (multmaster0*multmaster2 + 
+                                                            multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                            mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                            
+                        rContactData.DeltaN2[i_dof][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
+                                                               X2(0, 2) + X2(2, 1) - X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                               multmaster5 + coefmaster1 - coefmaster5 - 
+                                                               multmaster4 * multmaster6) + (div2) * (-u2(0, 1) + u2(0, 2) - 
+                                                               X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + mult3 * Deltax2g[0] + 
+                                                               mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 4)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ( multmaster0*(multmaster0*multmaster2 + 
+                                                           multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                           
+                       rContactData.DeltaN2[i_dof][2] =  ( +mult1 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (coefmaster3 + 
+                                                            mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 5)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  ( multmaster1 *(multmaster0*multmaster2 + 
+                                                           multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                           
+                       rContactData.DeltaN2[i_dof][2] =  ( -multmaster1 *  (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 +
+                                                            coefmaster1 - coefmaster5 -  multmaster4 * multmaster6) + (div2) * (coefmaster4 + 
+                                                            mult3 * Deltax2g[0] + mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 6)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  (mult3 *(multmaster0*multmaster2 + 
+                                                          multmaster1*multmaster3) - (div1) * (-u2(0, 1) + u2(0, 2) - 
+                                                          X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + 
+                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                          mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
+                                                          
+                       rContactData.DeltaN2[i_dof][2] =  ( -mult3 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
+                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 7)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  (mult4 *(multmaster0*multmaster2 + 
+                                                          multmaster1*multmaster3) - (div1) * (coefmaster3 + 
+                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                          mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                          
+                        rContactData.DeltaN2[i_dof][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                                                             coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
+                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                   }
+                   else if ((i_dof - TDim * TNumNodes) == 8)
+                   {
+                       rContactData.DeltaN2[i_dof][1] =  (mult5 *(multmaster0*multmaster2 + 
+                                                          multmaster1*multmaster3) - (div1) * (coefmaster4 + 
+                                                          mult1 * (Deltax2g[0] + Deltax2g[1]) + 
+                                                          mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
+                                                          
+                       rContactData.DeltaN2[i_dof][2] =  (-mult5 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                                                          coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
+                                                          mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
+                   }
+
+                  rContactData.DeltaN2[i_dof][0] =  - rContactData.DeltaN2[i_dof][1] - rContactData.DeltaN2[i_dof][2];
                }
             }
          }
