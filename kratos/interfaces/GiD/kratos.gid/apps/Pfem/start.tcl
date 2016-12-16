@@ -38,7 +38,9 @@ proc ::Pfem::GetAttribute {name} {
 }
 
 proc ::Pfem::CustomToolbarItems { } {
-    Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- SorterWindow::SorterWindow] [= "Sort the conditions"]   
+    if {[GiD_Info problemtypepath] eq "E:/PROYECTOS/Kratos/interfaces/GiD/kratos.gid"} {
+        Kratos::ToolbarAddItem "Conditions" "list.png" [list -np- Pfem::xml::StartSortingWindow] [= "Sort the conditions"]
+    }
 }
 
 ::Pfem::Init

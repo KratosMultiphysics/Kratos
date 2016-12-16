@@ -12,6 +12,8 @@ namespace eval SorterWindow {
     variable window_state
     variable data_source
     variable data_source_list
+    variable update_proc
+    variable data
 }
 
 proc SorterWindow::Init {} {
@@ -26,9 +28,9 @@ proc SorterWindow::Init {} {
     set window_state "unlocked"
     
     variable data_source
-    set data_source "Origin"
+    set data_source ""
     variable data_source_list
-    set data_source_list [list "Origin" "Source"]
+    set data_source_list [list ]
 }
 
 #
@@ -48,7 +50,7 @@ proc SorterWindow::Window { } {
     # CREATING WIDGETS
     ###################
     toplevel $w -class Toplevel -relief groove 
-    wm maxsize $w 500 300
+    #wm maxsize $w 500 300
     wm minsize $w 500 300
     wm overrideredirect $w 0
     wm resizable $w 1 1
@@ -72,12 +74,12 @@ proc SorterWindow::RefreshWindow { } {
     
     # One call creates the listbox
     #
-    set Canv [SortByDragListbox $fr1 20 20 150 240]
+    set Canv [SortByDragListbox $fr1 10 10 400 240]
     #
     # Widgets on the right side
     #
     ttk::button $buts.q -text Cancel -command [list destroy $w] -style BottomFrame.TButton
-    ttk::button $buts.ok -text Ok -command [list destroy $w] -style BottomFrame.TButton
+    ttk::button $buts.ok -text Ok -command [list SorterWindow::ReturnData] -style BottomFrame.TButton
     SorterWindow::ConfigurationFrame $fr2
     
     
@@ -86,7 +88,7 @@ proc SorterWindow::RefreshWindow { } {
     grid $fr1 -sticky nsew -row 0 -column 0
     grid $fr2 -sticky nw -row 0 -column 1 -padx 20
     grid $buts -sticky sew -columnspan 2
-    grid columnconfigure $w 0 -weight 1 
+    grid columnconfigure $w 1 -weight 1 
     grid rowconfigure $w 0 -weight 1
     if { $::tcl_version >= 8.5 } { grid anchor $buts center }
 }
@@ -146,7 +148,7 @@ proc SorterWindow::SortByDragListbox { w XNull YNull width height } {
     
     catch {destroy $w.lbscroll}
     ttk::scrollbar $w.lbscroll -command "SorterWindow::SortByDragListboxScroll $w" -orient vert
-    grid $Canv -row 0 -column 0 -sticky nw
+    grid $Canv -row 0 -column 0 -sticky nsew
     grid $w.lbscroll -row 0 -column 1 -sticky wns
     
     SorterWindow::FillListado
@@ -296,84 +298,41 @@ proc SorterWindow::FillListado { } {
     variable Index
     variable Listado
     variable data_source
+    variable data
     catch {unset Index }
     set Items [list ]
     
-    set word "Item"
-    if {$data_source eq "Origin"} {set word "Ejemplar"}
-    for {set i 1} {$i < 21} {incr i} {
-        lappend Items "$word $i"
-    }
-    for {set i 0} {$i < [llength $Items]} {incr i} {
-        set Listado($i) "[lindex $Items $i]"        
-        lappend Index($i) $i        
-    }
+    if {$data_source ni [dict keys $data]} {set data_source [lindex [dict keys $data] 0]}
     
-}
-
-
-proc SorterWindow::SorterWindow {{init default}} {
-    
-    if {[GiD_Info problemtypepath] ne "E:/PROYECTOS/Kratos/interfaces/GiD/kratos.gid"} {
-        catch {SorterWindow::TMP_Cards $w}
-    } {
-        #SorterWindow::Window show $w
-        SorterWindow::Window 
+    foreach item [dict get $data $data_source] {
+        lappend Items "$item"
+    }
+    set size [llength $Items]
+    set i 0
+    foreach {item groups} $Items {
+        set Listado($i) "$item"
+        lappend Index($i) $i
+        incr i     
     }
 }
 
-proc SorterWindow::TMP_Cards { } {
-    catch {destroy .gid.w1.c}
-    catch {destroy .gid.w1}
-    toplevel .gid.w1
-    pack [canvas .gid.w1.c -bg darkgreen -borderwidth 0 -highlightthickness 0] -expand 1 -fill both
+proc SorterWindow::ReturnData { } {
+    variable update_proc
+    variable data
+    variable winpath
     
-    image create photo ::SorterWindow::ah -format gif -data {
-        R0lGODlhRwBgAKEAAH//1AAAAP////8AACH5BAEAAAAALAAAAABHAGAAAAL/BIKpy+0PYzBH2I
-        uz3rz7L0wBSJamiZzquqbawMZyOL7zfbrYwOP+p7vwYL+iJijo9YxMWkZJbBaDy2RUiqMOh9if
-        bgvuZmvW51XMcm2FXHRM3bZW3SokfUq+G+36MRsW15dTs7YmOGgBZnhYAqd4xujhqBjZSPZYab
-        mzmAmUJ9ep+RQqStryaVqaioK66umKCKsqK9lKe2R7i8Gnu5vb6wTMwStMLLPI6WdESen1u4KJ
-        6WMM/Sit/GN9fUOtot2M7fMdNv1cPY7HND7HbX5uvef+Tp4ute3cRR8vFrjP39XtVkBaA2UVhH
-        XQVcJVC1M1NPWQVMRQEztVzHTxDqSMYm76ceTH6SOWayKbaLNQUh28YLROspRVqE1KlYCqzLxz
-        k05ONztnIJMp79DPJT19nrEZVOjKl7C2FTXKxlcvKBmeQmVn1ejGpJH6MW25IavPsFwZlnVYQV
-        hVChLaun3b1kABADs=}
-    image create photo ::SorterWindow::as -format gif -data {
-        R0lGODlhRwBgAKEAAH//1AAAAP///////yH5BAEAAAAALAAAAABHAGAAAAL/BIKpy+0PYzBH2I
-        uz3rz7L0wBSJamiZzquqbZyMZyCGP1jJfuleQ+uLP0fsRNMBUsFo+jpPK3i96ePumCuoQ9sFDt
-        1MllIYc0cPg0tk7PKjO7un535VRnnI7+uvHA25XfUtMA2OY1SKhjyICYKOSQcwfH00QDuTeTRI
-        apUKcXibKodBnDyZn1VFr2GSja46qJM5qXRjvXRfsq23fblNur6wEc7BuiarxpWUtsSrrap9xr
-        zMwqU/paDC1s49xhPVZW6c2toT2ZDb4MS1Iu7Ut5JV4YiPuLq1oLOn+fi02fllfoHzx099Cp6z
-        bOXMFvDKPBA6bNnTSC4n7lA1XPkUCD3y68NcLI0d5DfgeNJOTYLkJKcOtOkhQJ02JJci7xLcRW
-        UKPFlrP2jQw5aOaLmvUWbYHAchfGou6MBhW6LaBORSGnary41FPHrbD+8AyI9OrUR1hnkc3pc9
-        pXMaHMZWoLsJNXIuxazrXV6hDdk4m27GVkCXAsvoKHFrZr+DAQmooR9pvU2OShunL8Un5jmTAf
-        vZcrT+vsWU/kYIxHlzX9ATQj1XIFDWGNiowp2LETV0Kd1jXusX4005ESdXc40cK/BS9uxzcedb
-        S5xGmO5bnywtB/VxDOYYIBCdy7e+duoAAAOw==}
-    
-    bind .gid.w1.c <ButtonPress-1> { SorterWindow::bPress1 %W %x %y}
-    bind .gid.w1 <Configure> {wm title .gid.w1 "Merry Christmas"}
-}
-proc  SorterWindow::bPress1 {w x y} {
-    
-    set i [lindex [$w find overlapping $x $y $x $y] end]
-    if { $i == "" } {
-        set i [$w create image $x $y -anchor nw -image ::SorterWindow::ah -tags card]
-        SorterWindow::setFocus $w $i
-    } else {
-        SorterWindow::setFocus $w $i
-    }
-    
+    $update_proc $data
+    destroy $winpath
 }
 
-
-proc SorterWindow::setFocus {w i} {
+proc SorterWindow::SorterWindow {{datadict ""} {up_pr default}} {
+    variable update_proc
+    set update_proc $up_pr
+    variable data
+    if {$datadict eq ""} {set datadict [dict create]}
+    set data $datadict
     
-    if { [.gid.w1.c find withtag hasfocus] != "" } {
-        $w itemconfigure [.gid.w1.c find withtag hasfocus] -image ::SorterWindow::ah
-        $w dtag [.gid.w1.c find withtag hasfocus] hasfocus
-    }
-    $w focus $i
-    $w itemconfigure $i -image ::SorterWindow::as
-    $w addtag hasfocus withtag $i
+    SorterWindow::Window 
     
 }
 

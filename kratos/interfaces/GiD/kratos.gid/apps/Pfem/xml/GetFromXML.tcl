@@ -289,5 +289,35 @@ proc Pfem::xml::ProcGetBodiesValues {$domNode $args} {
     return [join $bodies ","]
 }
 
+proc Pfem::xml::StartSortingWindow { } {
+    set data_dict [dict create]
+    set conds [Pfem::xml::GetConditionsAndGroups PFEM_Loads]
+    set nodalconds [Pfem::xml::GetConditionsAndGroups PFEM_NodalConditions]
+    if {[dict size $conds]} {dict set data_dict Loads $conds}
+    if {[dict size $nodalconds]} {dict set data_dict Constraints $nodalconds}
+    SorterWindow::SorterWindow $data_dict "Pfem::xml::GetDataFromSortingWindow"
+}
+proc Pfem::xml::GetDataFromSortingWindow { data_dict } {
+    W $data_dict
+}
+proc Pfem::xml::GetConditionsAndGroups { cnd_UN } {
+    customlib::UpdateDocument
+    set data_dict [dict create]
+    set root [customlib::GetBaseRoot]
+    foreach {cond_type cond_item cond_item_name} {container blockdata name condition group n} {
+        set xp1 "[spdAux::getRoute $cnd_UN]/$cond_type"
+        foreach cnd_cont_node [$root selectNodes $xp1] {
+            set cnd_cont_name [$cnd_cont_node @n]
+            set xp2 "./$cond_item"
+            foreach cnd_node [$cnd_cont_node selectNodes $xp2] {
+                set cnd_name [$cnd_node getAttribute $cond_item_name]
+                set num 0
+                if {[$cnd_node hasAttribute order]} {set num [$cnd_node @order]}
+                dict set data_dict $cnd_cont_name $cnd_name $num
+            }
+        }
+    }
+    return $data_dict
+}
 
 Pfem::xml::Init
