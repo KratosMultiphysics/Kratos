@@ -587,9 +587,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         double min_radius = 0.5 * radius; //TODO: this is a little bit arbitrary
         double max_radius = 1.5 * radius; //TODO: this is a little bit arbitrary
 
-        double OrientationReal;
-        array_1d<double, 3> OrientationImag;
-        
+        Quaternion<double> Orientation;
+
         double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
         std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
 
@@ -609,19 +608,15 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
            
         if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
-            OrientationReal    = ((double) rand() / (RAND_MAX));
-            OrientationImag[0] = ((double) rand() / (RAND_MAX));
-            OrientationImag[1] = ((double) rand() / (RAND_MAX));
-            OrientationImag[2] = ((double) rand() / (RAND_MAX));
+
+            Orientation = Quaternion<double>(((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)), ((double) rand() / (RAND_MAX)));
         }
         else {
-            OrientationReal = r_sub_model_part_with_parameters[ORIENTATION_REAL];
-            OrientationImag[0] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][0];
-            OrientationImag[1] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][1];
-            OrientationImag[2] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][2];
+
+            Orientation = Quaternion<double>(r_sub_model_part_with_parameters[ORIENTATION_REAL], r_sub_model_part_with_parameters[ORIENTATION_IMAG][0], r_sub_model_part_with_parameters[ORIENTATION_IMAG][1], r_sub_model_part_with_parameters[ORIENTATION_IMAG][2]); // JIG: SHOULD BE CHANGED IN THE FUTURE
         }        
 
-        p_cluster->SetOrientation(OrientationReal, OrientationImag);
+        p_cluster->SetOrientation(Orientation);
         
         p_cluster->Initialize(r_process_info); 
         
