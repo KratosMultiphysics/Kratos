@@ -78,6 +78,9 @@ class HertzSphereTestContact(StructuralMechanichsTestFactory):
 class HertzCompleteTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/hertz_complete_test"
 
+class ThreeDSimplestPatchMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_3D/3D_contact_simplest_patch_matching_test"
+    
 class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_matching_test"
 

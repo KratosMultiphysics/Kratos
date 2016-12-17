@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "3D_contact_patch_nonmatching_test",
+        "problem_name"    : "3D_contact_patch_matching_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.1,

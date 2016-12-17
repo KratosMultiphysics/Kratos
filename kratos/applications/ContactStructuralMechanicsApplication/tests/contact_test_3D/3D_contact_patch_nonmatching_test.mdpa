@@ -459,7 +459,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Part_foundation
+Begin Elements UpdatedLagrangianElement3D8N// GUI group identifier: Part_foundation
 9	3	179	206	241	210	138	168	195	167
 10	3	157	179	210	188	115	138	167	148
 11	3	144	157	188	176	103	115	148	129
@@ -718,7 +718,7 @@ Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Part_foundatio
 264	3	218	190	193	223	170	136	141	175
 End Elements
 
-Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Part_punch
+Begin Elements UpdatedLagrangianElement3D8N// GUI group identifier: Part_punch
 1	4	329	287	341	370	286	244	298	342
 2	4	368	329	370	394	339	286	342	373
 3	4	285	242	287	329	243	196	244	286
