@@ -1838,43 +1838,6 @@ public:
     
     return rhs;
 }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    static inline bounded_matrix<double,2,2> ComputeDeltaDe(
-        const Vector N1, 
-        const ContactData& rContactData,
-        const unsigned int derivative_index
-        )
-{
-    bounded_matrix<double,2,2> DeltaDe;
-    
-    const double DeltaDetJ = rContactData.DeltaJ_s[derivative_index];
-    
-    DeltaDe(0,0) = DeltaDetJ * N1[0];
-    DeltaDe(0,1) = 0;
-    DeltaDe(1,0) = 0;
-    DeltaDe(1,1) = DeltaDetJ * N1[1];
-    
-    return DeltaDe;
-}
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    static inline bounded_matrix<double,2,2> ComputeDeltaMe(
-        const Vector N1, 
-        const ContactData& rContactData,
-        const unsigned int derivative_index
-        )
-{
-    bounded_matrix<double,2,2> DeltaMe;
-
-    const double DeltaDetJ = rContactData.DeltaJ_s[derivative_index];
-    
-    DeltaMe = DeltaDetJ * outer_prod(N1, N1);
-    
-    return DeltaMe;
-}
 
 private:
 };// class Contact2D2N2NDLM

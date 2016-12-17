@@ -1308,8 +1308,8 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< >
-void MortarContactCondition<2, 2, false>::CalculateDeltaAeComponents(
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAeComponents(
     GeneralVariables& rVariables,
     ContactData& rContactData,
     const double& rIntegrationWeight
@@ -1322,179 +1322,31 @@ void MortarContactCondition<2, 2, false>::CalculateDeltaAeComponents(
     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
     
-    for (unsigned int i = 0; i < 2 * 2; i++)
+    for (unsigned int i = 0; i < TDim * TNumNodes; i++)
     {
-        rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D2N2N::ComputeDeltaDe( N1, rContactData, i );
-        rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D2N2N::ComputeDeltaMe( N1, rContactData, i );
+        const double DeltaDetJ = rContactData.DeltaJ_s[i];
+        
+        bounded_matrix<double, TNumNodes, TNumNodes> DeltaDe;
+        const bounded_matrix<double, TNumNodes, TNumNodes> DeltaMe  = DeltaDetJ * outer_prod(N1, N1);
+        
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            for (unsigned int j_slave = 0; j_slave < TNumNodes; j_slave++)
+            {
+                if (i_slave == j_slave)
+                {
+                    DeltaDe(i_slave, i_slave) = DeltaDetJ * N1[i_slave];
+                }
+                else
+                {
+                    DeltaDe(i_slave, j_slave) = 0.0;
+                }
+            }
+        }
+        
+        rContactData.DeltaDe[i] += rIntegrationWeight * DeltaDe;
+        rContactData.DeltaMe[i] += rIntegrationWeight * DeltaMe;
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<2, 3, false>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-//     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const double detJ         = rVariables.DetJSlave; 
-//      
-//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-//     
-//     for (unsigned int i = 0; i < 3 * 3; i++)
-//     {
-//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaDe( N1, rContactData, i );
-//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaMe( N1, rContactData, i );
-//     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<3, 3, false>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const double detJ         = rVariables.DetJSlave; 
-     
-    rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-    rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-    
-    for (unsigned int i = 0; i < 3 * 3; i++)
-    {
-        rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
-        rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<3, 4, false>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const double detJ         = rVariables.DetJSlave; 
-     
-    rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-    rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-    
-    for (unsigned int i = 0; i < 3 * 4; i++)
-    {
-        rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D4N4N::ComputeDeltaDe( N1, rContactData, i );
-        rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D4N4N::ComputeDeltaMe( N1, rContactData, i );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<2, 2, true>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-    /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const double detJ         = rVariables.DetJSlave; 
-     
-    rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-    rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-    
-    for (unsigned int i = 0; i < 2 * 2; i++)
-    {
-        rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D2N2NDLM::ComputeDeltaDe( N1, rContactData, i );
-        rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D2N2NDLM::ComputeDeltaMe( N1, rContactData, i );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<2, 3, true>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-//     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const double detJ         = rVariables.DetJSlave; 
-//      
-//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-//     
-//     for (unsigned int i = 0; i < 3 * 3; i++)
-//     {
-//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaDe( N1, rContactData, i );
-//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact2D3N3N::ComputeDeltaMe( N1, rContactData, i );
-//     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<3, 3, true>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-//     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const double detJ         = rVariables.DetJSlave; 
-//      
-//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-//     
-//     for (unsigned int i = 0; i < 3 * 3; i++)
-//     {
-//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaDe( N1, rContactData, i );
-//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D3N3N::ComputeDeltaMe( N1, rContactData, i );
-//     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-void MortarContactCondition<3, 4, true>::CalculateDeltaAeComponents(
-    GeneralVariables& rVariables,
-    ContactData& rContactData,
-    const double& rIntegrationWeight
-    )
-{
-//     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const double detJ         = rVariables.DetJSlave; 
-//      
-//     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
-//     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
-//     
-//     for (unsigned int i = 0; i < 3 * 4; i++)
-//     {
-//         rContactData.DeltaDe[i] += rIntegrationWeight * Contact3D4N4N::ComputeDeltaDe( N1, rContactData, i );
-//         rContactData.DeltaMe[i] += rIntegrationWeight * Contact3D4N4N::ComputeDeltaMe( N1, rContactData, i );
-//     }
 }
 
 /***********************************************************************************/
