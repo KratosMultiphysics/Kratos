@@ -6474,55 +6474,7 @@ public:
 //     
 //     return rhs;
 // }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    static inline bounded_matrix<double,4,4> ComputeDeltaDe(
-        const Vector N1, 
-        const ContactData& rContactData,
-        const unsigned int derivative_index
-        )
-{
-    bounded_matrix<double,4,4> DeltaDe;
-    
-    const double DeltaDetJ = rContactData.DeltaJ_s[derivative_index];
-    
-    DeltaDe(0,0) = DeltaDetJ * N1[0];
-    DeltaDe(0,1) = 0;
-    DeltaDe(0,2) = 0;
-    DeltaDe(0,3) = 0;
-    DeltaDe(1,0) = 0;
-    DeltaDe(1,1) = DeltaDetJ * N1[1];
-    DeltaDe(1,2) = 0;
-    DeltaDe(1,3) = 0;
-    DeltaDe(2,0) = 0;
-    DeltaDe(2,1) = 0;
-    DeltaDe(2,2) = DeltaDetJ * N1[2];
-    DeltaDe(2,3) = 0;
-    DeltaDe(3,0) = 0;
-    DeltaDe(3,1) = 0;
-    DeltaDe(3,2) = 0;
-    DeltaDe(3,3) = DeltaDetJ * N1[3];
-    
-    return DeltaDe;
-}
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    static inline bounded_matrix<double,4,4> ComputeDeltaMe(
-        const Vector N1, 
-        const ContactData& rContactData,
-        const unsigned int derivative_index
-        )
-{
-    bounded_matrix<double,4,4> DeltaMe;
 
-    const double DeltaDetJ = rContactData.DeltaJ_s[derivative_index];
-    
-    DeltaMe = DeltaDetJ * outer_prod(N1, N1);
-    
-    return DeltaMe;
-}
 private:
 };// class Contact3D4N4N
 }
