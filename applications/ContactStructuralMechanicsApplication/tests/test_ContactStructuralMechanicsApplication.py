@@ -21,9 +21,10 @@ from SmallTests import TaylorPatchDynamicTestContact as TTaylorPatchDynamicTestC
 from SmallTests import HertzSimpleTestContact as THertzSimpleTestContact
 from SmallTests import HertzSimpleSphereTestContact as THertzSimpleSphereTestContact
 from SmallTests import HertzSphereTestContact as THertzSphereTestContact
-from SmallTests import HertzCompleteTestContact as THertzCompleteTestContact
-#from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
-#from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
+#from SmallTests import HertzCompleteTestContact as THertzCompleteTestContact
+from SmallTests import ThreeDSimplestPatchMatchingTestContact as TThreeDSimplestPatchMatchingTestContact
+from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
+from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
 
 ## NIGTHLY TESTS
 from NightlyTests import IroningTestContact as TIroningTestContact
@@ -59,8 +60,9 @@ def AssambleTestSuites():
     smallSuite.addTest(THertzSphereTestContact('test_execution'))
     smallSuite.addTest(THertzSimpleTestContact('test_execution'))
     #smallSuite.addTest(THertzCompleteTestContact('test_execution'))
-    #smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
-    #smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
+    smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -86,8 +88,9 @@ def AssambleTestSuites():
             THertzSimpleTestContact,
             THertzSimpleSphereTestContact,
             THertzSphereTestContact,
-            ##TThreeDPatchMatchingTestContact,
-            ##TThreeDPatchNonMatchingTestContact,
+            TThreeDSimplestPatchMatchingTestContact,
+            TThreeDPatchMatchingTestContact,
+            TThreeDPatchNonMatchingTestContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,

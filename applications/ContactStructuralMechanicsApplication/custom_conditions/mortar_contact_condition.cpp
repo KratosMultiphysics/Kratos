@@ -1554,6 +1554,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactD
     {
         StructuralMechanicsMathUtilities::InvMat3x3(rContactData.Me, InvMe);
     }   
+    else
+    {
+        StructuralMechanicsMathUtilities::InvertMatrix(rContactData.Me, InvMe);
+    }   
     
 //     // Inversion using the QR decompisition // NOTE: Giving problems in the cases of almost singular matrix
 //     QR<double, row_major> QR_decomposition;     
