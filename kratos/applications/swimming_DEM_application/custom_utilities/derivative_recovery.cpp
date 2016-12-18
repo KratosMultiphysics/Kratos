@@ -25,7 +25,7 @@ void DerivativeRecovery<TDim>::RecoverGradientOfAScalar(const VariableData& orig
 //***************************************************************************************************************
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
-{
+{  //STILL THE TIME DERIVATIVE HAS TO BE ADDED!!!!!!!!!!!!!!!!!!!
     std::cout << "Constructing the material derivative by derivating nodal averages...\n";
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
@@ -93,6 +93,25 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
     }
 
     std::cout << "Finished constructing the material derivative by derivating nodal averages...\n";
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+// This function modifies one component of the material derivative
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container)
+{//STILL THE TIME DERIVATIVE HAS TO BE ADDED!!!!!!!!!!!!!!!!!!!
+    int current_component = r_model_part.GetProcessInfo()[CURRENT_COMPONENT];
+
+    if (current_component != 0 && current_component != 1 && current_component != 2){
+        KRATOS_THROW_ERROR(std::invalid_argument,"The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", current_component);
+    }
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        const array_1d <double, 3>& gradient_of_component = inode->FastGetSolutionStepValue(vector_component_gradient_container);
+        const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
+        material_derivative[current_component] = DEM_INNER_PRODUCT_3(velocity, gradient_of_component);
+    }
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
