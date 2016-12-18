@@ -29,6 +29,7 @@
 #include "custom_elements/monolithic_dem_coupled_weak.h"
 #include "custom_elements/calculate_laplacian_simplex_element.h"
 #include "custom_elements/calculate_mat_deriv_simplex_element.h"
+#include "custom_elements/calculate_component_gradient_simplex_element.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
@@ -119,6 +120,9 @@ private:
 
     const ComputeMaterialDerivativeSimplex<2> mComputeMaterialDerivativeSimplex2D;
     const ComputeMaterialDerivativeSimplex<3> mComputeMaterialDerivativeSimplex3D;
+
+    const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
+    const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
 
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
