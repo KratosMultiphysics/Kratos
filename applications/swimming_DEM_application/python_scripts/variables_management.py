@@ -25,6 +25,9 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
     elif pp.CFD_DEM.laplacian_calculation_type == 4: # recovery through solving a system
         fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
 
+    if pp.CFD_DEM.material_acceleration_calculation_type == 5:
+         fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
+
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
@@ -91,6 +94,9 @@ def ConstructListsOfVariables(pp):
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
+
+    if pp.CFD_DEM.material_acceleration_calculation_type == 5:
+        pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
     if pp.CFD_DEM.drag_force_type >= 0:
         pp.fluid_vars += [POWER_LAW_N]
