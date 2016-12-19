@@ -14,6 +14,7 @@ class DerivativeRecoveryStrategy:
         self.pp = pp
         model_part_cloner = ConnectivityPreserveModeler()
         self.do_recover_acceleration = False
+        self.do_recover_gradient = False        
         self.do_recover_laplacian = False
 
         if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4:
@@ -21,7 +22,7 @@ class DerivativeRecoveryStrategy:
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeMaterialDerivativeSimplex3D", "ComputeLaplacianSimplexCondition3D")
         elif pp.CFD_DEM.material_acceleration_calculation_type == 5:
-            self.do_recover_acceleration = True
+            self.do_recover_gradient = True
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeComponentGradientSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
@@ -33,24 +34,24 @@ class DerivativeRecoveryStrategy:
         self.AddDofs(fluid_model_part)
         self.CreateCPluPlusStrategies(pp.CFD_DEM.recovery_echo_level)
 
-        if pp.CFD_DEM.material_acceleration_calculation_type == 3:
+        if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.material_acceleration_calculation_type == 5:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
-        elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5:
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 4:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 0
 
 
     def AddDofs(self, model_part, config = None):
         if self.do_recover_acceleration:
             for node in self.acc_model_part.Nodes:
-                if self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
-                    node.AddDof(VELOCITY_COMPONENT_GRADIENT_X)
-                    node.AddDof(VELOCITY_COMPONENT_GRADIENT_Y)
-                    node.AddDof(VELOCITY_COMPONENT_GRADIENT_Z)    
-                else:
-                    node.AddDof(MATERIAL_ACCELERATION_X)
-                    node.AddDof(MATERIAL_ACCELERATION_Y)
-                    node.AddDof(MATERIAL_ACCELERATION_Z)
-                                   
+                node.AddDof(MATERIAL_ACCELERATION_X)
+                node.AddDof(MATERIAL_ACCELERATION_Y)
+                node.AddDof(MATERIAL_ACCELERATION_Z)
+        if self.do_recover_gradient:
+            for node in self.acc_model_part.Nodes:
+                node.AddDof(VELOCITY_COMPONENT_GRADIENT_X)
+                node.AddDof(VELOCITY_COMPONENT_GRADIENT_Y)
+                node.AddDof(VELOCITY_COMPONENT_GRADIENT_Z)    
+
         if self.do_recover_laplacian:
             for node in self.lapl_model_part.Nodes:
                 node.AddDof(VELOCITY_LAPLACIAN_X)
@@ -60,10 +61,18 @@ class DerivativeRecoveryStrategy:
         print("dofs for the derivative recovery solvers added correctly")
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
-        linear_solver = CGSolver()
-        scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+        linear_solver = SuperLUIterativeSolver()
+        scheme = ResidualBasedIncrementalUpdateStaticScheme()        
+        #amgcl_smoother = AMGCLSmoother.ILU0
+        #amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
+        #tolerance = 1e-6
+        #max_iterations = 1000
+        #verbosity = 0 #0->shows no information, 1->some information, 2->all the information
+        #gmres_size = 50
+        #linear_solver = AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
 
-        if self.do_recover_acceleration:
+        if self.do_recover_acceleration or self.do_recover_gradient:
             self.acc_strategy = ResidualBasedLinearStrategy(self.acc_model_part, scheme, linear_solver, False, True, False, False)
             self.acc_strategy.SetEchoLevel(echo_level)
 
@@ -72,7 +81,7 @@ class DerivativeRecoveryStrategy:
             self.lapl_strategy.SetEchoLevel(echo_level)
 
     def Solve(self, component = None):
-        if self.do_recover_acceleration:
+        if self.do_recover_acceleration or self.do_recover_gradient:
             print("\nSolving for the fluid acceleration...")
             sys.stdout.flush()
             if component == None:
@@ -95,7 +104,7 @@ class DerivativeRecoveryStrategy:
 
             self.acc_strategy.Solve()
 
-            print("\nFinished solving for the fluid acceleratio.\n")
+            print("\nFinished solving for the fluid acceleration.\n")
             sys.stdout.flush()
 
         if self.do_recover_laplacian:
@@ -138,7 +147,7 @@ class DerivativeRecoveryStrategy:
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
                 self.Solve(2)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
-            if self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
+            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
                 self.Solve()
 
 
