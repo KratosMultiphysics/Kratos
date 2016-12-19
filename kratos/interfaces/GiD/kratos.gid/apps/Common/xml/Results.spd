@@ -16,11 +16,11 @@
     <container n="OnNodes" pn="On nodes" un="NodalResults" help="Activate the results you want to see in the nodes" open_window="0">
         <dynamicnode command="injectNodalConditionsOutputs" args=""/>
     </container>
-    <container n="GiDOptions" pn="Options" help="GiD postprocess options" open_window="0">
+    <container n="GiDOptions" pn="Options" un="GiDOptions" help="GiD postprocess options" open_window="0">
         <value n="GiDPostMode" pn="Result format" v="GiD_PostBinary" values="GiD_PostBinary,GiD_PostAscii,GiD_PostAsciiZipped" dict="GiD_PostBinary,Binary,GiD_PostAscii,Ascii,GiD_PostAsciiZipped,Ascii zipped" help="GiD result file format" />
         <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="WriteDeformed" values="WriteDeformed,WriteUndeformed" dict="WriteDeformed,Write deformed,WriteUndeformed, Write undeformed" help="Write the GiD deformed or undeformed mesh"/>
         <value n="GiDWriteConditionsFlag" pn="Write conditions" v="WriteConditions" values="WriteConditions,WriteElementsOnly,WriteConditionsOnly" dict="WriteConditions,Write conditions,WriteElementsOnly,Write elements only,WriteConditionsOnly,Write conditions only" help="Write the conditions or only element to the GiD result file"/>
-        <value n="GiDMultiFileFlag" pn="Result file" v="MultipleFiles" values="SingleFile,MultipleFiles" help="Write one GiD result file or multiple files"/>
+        <value n="GiDMultiFileFlag" pn="Result file" v="MultipleFiles" values="SingleFile,MultipleFiles" dict="SingleFile,Single,MultipleFiles,Multiple" help="Write one GiD result file or multiple files"/>
         <value n="EchoLevel" pn="Verbosity of terminal output" v="0" values="0,1,2,3" help="Verbosity on screen output during process. \n0 -> Low verbosity \n3 -> High verbosity"/>
     </container>
     <container n="CutPlanes" pn="Cut planes"  icon="material16" state="[checkStateByUniqueName nDim 3D]" open_window="0">
