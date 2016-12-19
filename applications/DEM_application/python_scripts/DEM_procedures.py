@@ -419,9 +419,11 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
 
         # FORCES
