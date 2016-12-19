@@ -36,7 +36,8 @@ proc EmbeddedFluid::write::writeDistances { } {
         while {[gets $a line]>=0} {
             if {$line eq "End Values"} {set go 0}
             if {$go == 2} {
-                write::WriteString $line
+                lassign [split $line " "] node dist
+                write::WriteString "$node 0 $dist"
             }
             if {$line eq {Result "Distance" "Signed distance" 1 Scalar OnNodes}} {incr go 1}
             if {$line eq "Values"} {incr go 1}
