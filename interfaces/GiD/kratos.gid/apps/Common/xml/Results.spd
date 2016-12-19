@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Results" pn="Results" un="Results" state="normal" open="1" open_window="0">
     <value n="FileLabel" pn="File Label" v="step" values="time,step" dict="time,Time,step,Step" help=""/>
-    <value n="OutputControlType" pn="Output control" v="step" values="time,step" dict="time,Time,step,Step" help="" update_proc="spdAux::RequestRefresh">
+    <value n="OutputControlType" pn="Units used for output frequency" v="step" values="time,step" dict="time,Time (s),step,Steps" help="" update_proc="spdAux::RequestRefresh">
         <dependencies node="../value" actualize="1"/>
     </value>
-    <value n="OutputDeltaTime" pn="Time between outputs" v="1.0" help="Output will be printed in intervals of this time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
+    <value n="OutputDeltaTime" pn="Time between outputs (s)" v="1.0" help="Output will be printed in intervals of this time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
     <value n="OutputDeltaStep" pn="Time steps between outputs" v="1" help="Output will be printed in intervals of this number of steps" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
     <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="The interior of the volume is printed" state="[ShowInMode Developer]"/>
     <value n="NodeOutput" pn="Node output" v="Yes" values="Yes,No" help="The nodes are printed as a separate layer" state="[ShowInMode Developer]"/>
