@@ -88,12 +88,13 @@ namespace Kratos {
 				     2
 				   End SubModelPartNodes
                                    Begin SubModelPart inner_part
-                                   Begin SubModelPartNodes
-				       1
-				   End SubModelPartNodes
-                                   Begin SubModelPartConditions
-				       1
-				   End SubModelPartConditions
+                                        Begin SubModelPartNodes
+                                            1
+                                        End SubModelPartNodes
+                                        Begin SubModelPartConditions
+                                            1
+                                        End SubModelPartConditions
+                                    End SubModelPart
                                 End SubModelPart
 			)input"));
 
