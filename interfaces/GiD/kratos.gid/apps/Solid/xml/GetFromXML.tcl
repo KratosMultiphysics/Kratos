@@ -25,6 +25,7 @@ proc Solid::xml::getUniqueName {name} {
 proc Solid::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem state hidden Results CutPlanes
+    spdAux::SetValueOnTreeItem v SingleFile GiDOptions GiDMultiFileFlag
 }
 
 Solid::xml::Init
