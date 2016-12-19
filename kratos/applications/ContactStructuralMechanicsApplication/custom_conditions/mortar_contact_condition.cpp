@@ -174,7 +174,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    ContactData rContactData;
+    ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -950,7 +950,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    ContactData rContactData;
+    ContactData<TDim, TNumNodes> rContactData;
 
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -1092,7 +1092,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeGeneralVariable
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
-    ContactData& rContactData,
+    ContactData<TDim, TNumNodes>& rContactData,
     GeneralVariables& rVariables,
     const GeometryType::IntegrationPointsArrayType& integration_points,
     const ProcessInfo& rCurrentProcessInfo
@@ -1137,7 +1137,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
-    ContactData& rContactData,
+    ContactData<TDim, TNumNodes>& rContactData,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1198,7 +1198,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
-    ContactData& rContactData,
+    ContactData<TDim, TNumNodes>& rContactData,
     const unsigned int& rMasterElementIndex
     )
 {    
@@ -1226,7 +1226,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateKinematics( 
     GeneralVariables& rVariables,
-    const ContactData rContactData,
+    const ContactData<TDim, TNumNodes> rContactData,
     const double& rPointNumber,
     const unsigned int& rPairIndex,
     const GeometryType::IntegrationPointsArrayType& integration_points
@@ -1243,14 +1243,14 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateKinematics(
     /// SLAVE CONDITION ///
     
     // SHAPE FUNCTIONS 
-    rVariables.N_Slave = slave_nodes.ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
+    slave_nodes.ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
     rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, rVariables.N_Slave);
 //     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
 //     rVariables.Phi_LagrangeMultipliers = LagrangeMultiplierShapeFunctionValue( local_point.Coordinate(1), local_point.Coordinate(2) );
     
     // SHAPE FUNCTION DERIVATIVES
-    rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );
-//     rVariables.DPhi_De_LagrangeMultipliers = slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );// TODO: This could be needed in the future to be different than the standart shape functions
+    slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave, local_point );
+//     slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );// TODO: This could be needed in the future to be different than the standart shape functions
 //     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( local_point.Coordinate(1), local_point.Coordinate(2) );
     
     // MASTER CONDITION
@@ -1280,11 +1280,11 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
     )
 {    
     GeometryType& master_seg = rVariables.GetMasterElement( );
-    rVariables.N_Master.clear();
-    rVariables.DN_De_Master.clear();
+//     rVariables.N_Master.clear();
+//     rVariables.DN_De_Master.clear();
 
     PointType projected_gp_global;
-    const VectorType normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
+    const array_1d<double,3> normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     double aux_dist = 0.0;
@@ -1298,8 +1298,8 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
     if( inside == true )
     {
         // SHAPE FUNCTIONS 
-        rVariables.N_Master     = master_seg.ShapeFunctionsValues(         rVariables.N_Master,     projected_gp_local );         
-        rVariables.DN_De_Master = master_seg.ShapeFunctionsLocalGradients( rVariables.DN_De_Master, projected_gp_local );
+        master_seg.ShapeFunctionsValues(         rVariables.N_Master,     projected_gp_local );         
+        master_seg.ShapeFunctionsLocalGradients( rVariables.DN_De_Master, projected_gp_local );
     }
     
     return inside;
@@ -1311,13 +1311,13 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAeComponents(
     GeneralVariables& rVariables,
-    ContactData& rContactData,
+    ContactData<TDim, TNumNodes>& rContactData,
     const double& rIntegrationWeight
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const double detJ         = rVariables.DetJSlave; 
+    const VectorType N1 = rVariables.N_Slave;
+    const double detJ = rVariables.DetJSlave; 
      
     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
     rContactData.Me += rIntegrationWeight * this->ComputeMe( N1, detJ);
@@ -1353,16 +1353,22 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAeComponent
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeDe(
-        const Vector N1, 
+bounded_matrix<double, TNumNodes, TNumNodes> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeDe(
+        const VectorType N1, 
         const double detJ 
         )
 {
-    Matrix De = ZeroMatrix(TNumNodes, TNumNodes);
+    bounded_matrix<double, TNumNodes, TNumNodes> De;
     
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        De(i,i) = detJ * N1[i];
+        for (unsigned int j = 0; j < TNumNodes; j++)
+        {
+            if (i == j)
+            {
+                De(i,i) = detJ * N1[i];
+            }
+        }
     }
     
     return De;
@@ -1372,12 +1378,12 @@ Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeDe(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
-        const Vector N1, 
+bounded_matrix<double, TNumNodes, TNumNodes> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
+        const VectorType N1, 
         const double detJ 
         )
 {
-    Matrix Me = ZeroMatrix(TNumNodes, TNumNodes);
+    bounded_matrix<double, TNumNodes, TNumNodes>  Me;
     
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
@@ -1394,7 +1400,7 @@ Matrix MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactData& rContactData)
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAe(ContactData<TDim, TNumNodes>& rContactData)
 {        
     Matrix InvMe = ZeroMatrix(TNumNodes, TNumNodes);
     // NOTE: Legacy inversion. In case Me is almost singular or singular (few GP integrated), will be considered as ZeroMatrix 
@@ -1557,7 +1563,7 @@ template< >
 void MortarContactCondition<2, 2, false>::CalculateLocalLHS<12>(
     bounded_matrix<double, 12, 12>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1566,10 +1572,10 @@ void MortarContactCondition<2, 2, false>::CalculateLocalLHS<12>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave; 
+    const array_1d<double, 2> N1  = rVariables.N_Slave;
+    const array_1d<double, 2> N2  = rVariables.N_Master;
+    const array_1d<double, 2> Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave; 
 
     if (augmented_normal_lm < 0.0)
     {                                
@@ -1602,7 +1608,7 @@ template< >
 void MortarContactCondition<2, 3, false>::CalculateLocalLHS<18>(
     bounded_matrix<double, 18, 18>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1611,10 +1617,10 @@ void MortarContactCondition<2, 3, false>::CalculateLocalLHS<18>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const double detJ         = rVariables.DetJSlave; 
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ = rVariables.DetJSlave; 
 // 
     // TODO: Finish this!!!!
 }
@@ -1627,7 +1633,7 @@ template< >
 void MortarContactCondition<3, 3, false>::CalculateLocalLHS<27>(
     bounded_matrix<double, 27, 27>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1636,9 +1642,9 @@ void MortarContactCondition<3, 3, false>::CalculateLocalLHS<27>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+    const array_1d<double, 3> N1  = rVariables.N_Slave;
+    const array_1d<double, 3> N2  = rVariables.N_Master;
+    const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave; 
 
     if (augmented_normal_lm < 0.0)
@@ -1672,7 +1678,7 @@ template< >
 void MortarContactCondition<3, 4, false>::CalculateLocalLHS<36>(
     bounded_matrix<double, 36, 36>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1681,10 +1687,10 @@ void MortarContactCondition<3, 4, false>::CalculateLocalLHS<36>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave; 
+    const array_1d<double, 4> N1  = rVariables.N_Slave;
+    const array_1d<double, 4> N2  = rVariables.N_Master;
+    const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave; 
 
     if (augmented_normal_lm < 0.0)
     {                                
@@ -1717,7 +1723,7 @@ template< >
 void MortarContactCondition<2, 2, true>::CalculateLocalLHS<16>(
     bounded_matrix<double, 16, 16>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1726,10 +1732,10 @@ void MortarContactCondition<2, 2, true>::CalculateLocalLHS<16>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave; 
+    const array_1d<double, 2>  N1  = rVariables.N_Slave;
+    const array_1d<double, 2>  N2  = rVariables.N_Master;
+    const array_1d<double, 2>  Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave; 
 
     if (augmented_normal_lm < 0.0)
     {                                
@@ -1762,7 +1768,7 @@ template< >
 void MortarContactCondition<2, 3, true>::CalculateLocalLHS<24>(
     bounded_matrix<double, 24, 24>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1771,9 +1777,9 @@ void MortarContactCondition<2, 3, true>::CalculateLocalLHS<24>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ         = rVariables.DetJSlave; 
 // 
     // TODO: Finish this!!!!
@@ -1787,7 +1793,7 @@ template< >
 void MortarContactCondition<3, 3, true>::CalculateLocalLHS<36>(
     bounded_matrix<double, 36, 36>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1796,9 +1802,9 @@ void MortarContactCondition<3, 3, true>::CalculateLocalLHS<36>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ         = rVariables.DetJSlave; 
 // 
 //     if (augmented_normal_lm < 0.0)
@@ -1832,7 +1838,7 @@ template< >
 void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
     bounded_matrix<double, 48, 48>& rPairLHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1841,13 +1847,10 @@ void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Matrix DN1          = rVariables.DN_De_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Matrix DN2          = rVariables.DN_De_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
-//     const double detJ         = rVariables.DetJSlave; 
+//     const array_1d<double, 4> N1  = rVariables.N_Slave;
+//     const array_1d<double, 4> N2  = rVariables.N_Master;
+//     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ = rVariables.DetJSlave; 
 // 
 //     if (augmented_normal_lm < 0.0)
 //     {                                
@@ -1988,7 +1991,7 @@ template< >
 void MortarContactCondition<2, 2, false>::CalculateLocalRHS<12>(
     array_1d<double,12>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -1997,10 +2000,10 @@ void MortarContactCondition<2, 2, false>::CalculateLocalRHS<12>(
     )
 {
     /* DEFINITIONS */    
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave;
+    const array_1d<double, 2> N1  = rVariables.N_Slave;
+    const array_1d<double, 2> N2  = rVariables.N_Master;
+    const array_1d<double, 2> Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave;
     
     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
@@ -2033,7 +2036,7 @@ template< >
 void MortarContactCondition<2, 3, false>::CalculateLocalRHS<18>(
     array_1d<double,18>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2042,9 +2045,9 @@ void MortarContactCondition<2, 3, false>::CalculateLocalRHS<18>(
     )
 {
 //     /* DEFINITIONS */     
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ         = rVariables.DetJSlave;
 //     
     // TODO: Finish this!!!
@@ -2058,7 +2061,7 @@ template< >
 void MortarContactCondition<3, 3, false>::CalculateLocalRHS<27>(
     array_1d<double,27>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2067,10 +2070,10 @@ void MortarContactCondition<3, 3, false>::CalculateLocalRHS<27>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave;
+    const array_1d<double, 3> N1  = rVariables.N_Slave;
+    const array_1d<double, 3> N2  = rVariables.N_Master;
+    const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave;
     
     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
@@ -2103,7 +2106,7 @@ template< >
 void MortarContactCondition<3, 4, false>::CalculateLocalRHS<36>(
     array_1d<double,36>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2112,10 +2115,10 @@ void MortarContactCondition<3, 4, false>::CalculateLocalRHS<36>(
     )
 {
     /* DEFINITIONS */
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave;
+    const array_1d<double, 4> N1  = rVariables.N_Slave;
+    const array_1d<double, 4> N2  = rVariables.N_Master;
+    const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave;
     
     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
@@ -2148,7 +2151,7 @@ template< >
 void MortarContactCondition<2, 2, true>::CalculateLocalRHS<16>(
     array_1d<double,16>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2157,10 +2160,10 @@ void MortarContactCondition<2, 2, true>::CalculateLocalRHS<16>(
     )
 {
     /* DEFINITIONS */    
-    const Vector N1           = rVariables.N_Slave;
-    const Vector N2           = rVariables.N_Master;
-    const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-    const double detJ         = rVariables.DetJSlave;
+    const array_1d<double, 2>  N1  = rVariables.N_Slave;
+    const array_1d<double, 2>  N2  = rVariables.N_Master;
+    const array_1d<double, 2>  Phi = rVariables.Phi_LagrangeMultipliers;
+    const double detJ = rVariables.DetJSlave;
     
     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
@@ -2193,7 +2196,7 @@ template< >
 void MortarContactCondition<2, 3, true>::CalculateLocalRHS<24>(
     array_1d<double,24>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2202,9 +2205,9 @@ void MortarContactCondition<2, 3, true>::CalculateLocalRHS<24>(
     )
 {
 //     /* DEFINITIONS */     
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ         = rVariables.DetJSlave;
 //     
     // TODO: Finish this!!!
@@ -2218,7 +2221,7 @@ template< >
 void MortarContactCondition<3, 3, true>::CalculateLocalRHS<36>(
     array_1d<double,36>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2227,10 +2230,10 @@ void MortarContactCondition<3, 3, true>::CalculateLocalRHS<36>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const double detJ         = rVariables.DetJSlave;
+//     const array_1d<double, 3> N1  = rVariables.N_Slave;
+//     const array_1d<double, 3> N2  = rVariables.N_Master;
+//     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ = rVariables.DetJSlave;
 //     
 //     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
 //     {
@@ -2263,7 +2266,7 @@ template< >
 void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
     array_1d<double,48>& rPairRHS,
     GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<3,4>& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
     const double& augmented_tangent_lm,
@@ -2272,34 +2275,31 @@ void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
     )
 {
 //     /* DEFINITIONS */
-//     const Vector N1           = rVariables.N_Slave;
-//     const Matrix DN1          = rVariables.DN_De_Slave;
-//     const Vector N2           = rVariables.N_Master;
-//     const Matrix DN2          = rVariables.DN_De_Master;
-//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
-//     const double detJ         = rVariables.DetJSlave;
+//     const array_1d<double, 4> N1  = rVariables.N_Slave;
+//     const array_1d<double, 4> N2  = rVariables.N_Master;
+//     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ = rVariables.DetJSlave;
 //     
 //     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
 //     {
 //         // Contact active
-//         rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointActiveRHS(N1, DN1, N2, DN2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //         
 //         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
 //         {
 //             // Slip
-//             rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointSlipRHS(N1, DN1, N2, DN2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//             rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //         }
 //         else
 //         {
 //             // Stick
-//             rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointStickRHS(N1, DN1, N2, DN2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//             rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //         }
 //     }
 // //     else
 // //     {
 // //         // Contact inactive
-// //         rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointInactiveRHS(N1, DN1, N2, DN2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+// //         rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 // //     }
 }
 
@@ -2309,7 +2309,7 @@ void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaDetJSlave(
    GeneralVariables& rVariables,
-   ContactData& rContactData
+   ContactData<TDim, TNumNodes>& rContactData
    )
 {
     if (TDim == 2)
@@ -2323,14 +2323,15 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaDetJSlave(
     }
     else
     {
-        const VectorType& DN_Dxi  = column( rVariables.DN_De_Slave, 0 );
-        const VectorType& DN_Deta = column( rVariables.DN_De_Slave, 1 );
-        const VectorType& J_xi    = column( rVariables.j_Slave, 0 );
-        const VectorType& J_eta   = column( rVariables.j_Slave, 1 );
+        const array_1d<double,TNumNodes>& DN_Dxi  = column( rVariables.DN_De_Slave, 0 );
+        const array_1d<double,TNumNodes>& DN_Deta = column( rVariables.DN_De_Slave, 1 );
         
-        const VectorType& n = prod(trans(rContactData.Normal_m), rVariables.N_Slave);
+        const array_1d<double,TDim>& J_xi    = column( rVariables.j_Slave, 0 );
+        const array_1d<double,TDim>& J_eta   = column( rVariables.j_Slave, 1 );
         
-        MatrixType Delta_Jxi_x_Jeta = Matrix(TDim, TDim);
+        const array_1d<double,TDim>& n = prod(trans(rContactData.Normal_m), rVariables.N_Slave);
+        
+        bounded_matrix<double, TDim, TDim> Delta_Jxi_x_Jeta;
         
         for ( unsigned int i_slave = 0, i = 0; i_slave < TNumNodes; ++i_slave, i += TDim )
         {
@@ -2401,7 +2402,7 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
     {
         const double ne_norm = this->GetGeometry( ).Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
         
-        Matrix J = ZeroMatrix( 3, 2 ); // Jacobian [ 3D global x 2D local ]
+        MatrixType J = ZeroMatrix( 3, 2 ); // Jacobian [ 3D global x 2D local ]
         array_1d<double, 2> DN_De_j;
         array_1d<double, 3> local_coords_j;
         
@@ -2493,7 +2494,7 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTangentSlave(ContactData& rContactData)
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTangentSlave(ContactData<TDim, TNumNodes>& rContactData)
 {
     if (TDim == 2)
     {
@@ -2592,7 +2593,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalTange
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM > // NOTE: Formulation taken from Mohamed Khalil work
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaster(ContactData& rContactData)
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaster(ContactData<TDim, TNumNodes>& rContactData)
 {
     if (TDim == 2)
     {
@@ -2632,25 +2633,25 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaste
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaGap(
    GeneralVariables& rVariables,
-   ContactData& rContactData
+   ContactData<TDim, TNumNodes>& rContactData
    )
 {
     // Shape functions
-    const Vector N1 = rVariables.N_Slave;
-    const Vector N2 = rVariables.N_Master;
+    const array_1d<double, TNumNodes >  N1 = rVariables.N_Slave;
+    const array_1d<double, TNumNodes >  N2 = rVariables.N_Master;
     
     // Coordinates
-    const Matrix u1 = rContactData.u1;
-    const Matrix X1 = rContactData.X1;
-    const Matrix u2 = rContactData.u2;
-    const Matrix X2 = rContactData.X2;
+    const bounded_matrix<double, TNumNodes, TDim> u1 = rContactData.u1;
+    const bounded_matrix<double, TNumNodes, TDim> X1 = rContactData.X1;
+    const bounded_matrix<double, TNumNodes, TDim> u2 = rContactData.u2;
+    const bounded_matrix<double, TNumNodes, TDim> X2 = rContactData.X2;
     
     // Normals
-    const Vector Normal_sg = prod(trans(rContactData.Normal_s), N1);
-    const Vector Normal_mg = prod(trans(rContactData.Normal_m), N2);
+    const array_1d<double, TDim >  Normal_sg = prod(trans(rContactData.Normal_s), N1);
+    const array_1d<double, TDim >  Normal_mg = prod(trans(rContactData.Normal_m), N2);
     
-    const std::vector<Matrix> DNormal_s = rContactData.Delta_Normal_s;
-    const std::vector<Matrix> DNormal_m = rContactData.Delta_Normal_m;
+    const std::vector<bounded_matrix<double, TNumNodes, TDim>> DNormal_s = rContactData.Delta_Normal_s;
+    const std::vector<bounded_matrix<double, TNumNodes, TDim>> DNormal_m = rContactData.Delta_Normal_m;
     
     bool compute = false;
     if (TDim == 2)
@@ -2826,12 +2827,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
                                                             mult1 * (-1 + Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (Deltax2g[0] + Deltax2g[2])) )/std::pow(div1, 2);
                                                             
-                        rContactData.DeltaN2[i_dof][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
-                                                              X2(1, 2) + X2(2, 0) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                              multmaster5 + coefmaster1 - coefmaster5 - 
-                                                              multmaster4 * multmaster6) + (div2) * (-u2(1, 0) - u2(1, 2) - 
-                                                              X2(1, 0) - X2(1, 2) + x2g[0] + x2g[2] + mult3 * Deltax2g[0] + 
-                                                              mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
+                       rContactData.DeltaN2[i_dof][2] =  (-(-u2(1, 0) - u2(1, 2) + u2(2, 0) + u2(2, 2) - X2(1, 0) - 
+                                                             X2(1, 2) + X2(2, 0) + X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                             multmaster5 + coefmaster1 - coefmaster5 - 
+                                                             multmaster4 * multmaster6) + (div2) * (-u2(1, 0) - u2(1, 2) - 
+                                                             X2(1, 0) - X2(1, 2) + x2g[0] + x2g[2] + mult3 * Deltax2g[0] + 
+                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]) )/std::pow(div2, 2);
                    }
                    else if ((i_dof - TDim * TNumNodes) == 2)
                    {
@@ -2841,8 +2842,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
                                                             X2(0, 0) + X2(0, 1) - x2g[0] - x2g[1] + 
                                                             mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (-1 + Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
-                                                            
-                        rContactData.DeltaN2[i_dof][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
+                        
+                       rContactData.DeltaN2[i_dof][2] =  (-(u2(1, 0) + u2(1, 1) - u2(2, 0) - u2(2, 1) + X2(1, 0) + 
                                                             X2(1, 1) - X2(2, 0) - X2(2, 1)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
                                                             multmaster5 + coefmaster1 - coefmaster5 - 
                                                             multmaster4 * multmaster6) + (div2) * (u2(1, 0) + u2(1, 1) + 
@@ -2856,12 +2857,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
                                                             multmaster1 * multmaster3) - (div1) * (+mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                             mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                             
-                        rContactData.DeltaN2[i_dof][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
-                                                               X2(0, 2) + X2(2, 1) - X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
-                                                               multmaster5 + coefmaster1 - coefmaster5 - 
-                                                               multmaster4 * multmaster6) + (div2) * (-u2(0, 1) + u2(0, 2) - 
-                                                               X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + mult3 * Deltax2g[0] + 
-                                                               mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                       rContactData.DeltaN2[i_dof][2] =  ( -(-u2(0, 1) + u2(0, 2) + u2(2, 1) - u2(2, 2) - X2(0, 1) + 
+                                                              X2(0, 2) + X2(2, 1) - X2(2, 2)) * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * 
+                                                              multmaster5 + coefmaster1 - coefmaster5 - 
+                                                              multmaster4 * multmaster6) + (div2) * (-u2(0, 1) + u2(0, 2) - 
+                                                              X2(0, 1) + X2(0, 2) + x2g[1] - x2g[2] + mult3 * Deltax2g[0] + 
+                                                              mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
                    else if ((i_dof - TDim * TNumNodes) == 4)
                    {
@@ -2902,9 +2903,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
                                                           mult1 * (Deltax2g[0] + Deltax2g[1]) + 
                                                           mult2 * (Deltax2g[0] + Deltax2g[2])))/std::pow(div1, 2);
                                                           
-                        rContactData.DeltaN2[i_dof][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
-                                                             coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
-                                                             mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
+                       rContactData.DeltaN2[i_dof][2] =  ( -mult4 * (coefmaster2 + (u2(0, 2) + X2(0, 2)) * multmaster5 + 
+                                                            coefmaster1 - coefmaster5 - multmaster4 * multmaster6) + (div2) * (mult3 * Deltax2g[0] + 
+                                                            mult4 * Deltax2g[1] + mult5 * Deltax2g[2]))/std::pow(div2, 2);
                    }
                    else if ((i_dof - TDim * TNumNodes) == 8)
                    {
@@ -2932,11 +2933,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
         {
             const unsigned int i_dof = i_slave * TDim + i_dim;
             
-            const Vector DN2 = rContactData.DeltaN2[i_dof];
+            const array_1d<double, TNumNodes > DN2 = rContactData.DeltaN2[i_dof];
             
-            const Vector DeltaNormal = prod(trans(rContactData.Delta_Normal_s[i_dof]), N1);
+            const array_1d<double, TDim >  DeltaNormal = prod(trans(rContactData.Delta_Normal_s[i_dof]), N1);
             
-            const Vector RelPos = prod(trans(X1 + u1), N1) - prod(trans(X2 + u2), N2);
+            const array_1d<double, TDim >  RelPos = prod(trans(X1 + u1), N1) - prod(trans(X2 + u2), N2);
             
             rContactData.DeltaGap[i_dof] = - inner_prod(DeltaNormal, RelPos) - Normal_sg[i_dim] * N1[i_slave] + inner_prod(Normal_sg, prod(trans(X2 + u2), DN2));
         }
@@ -2948,7 +2949,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
         {
             const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
             
-            const Vector DN2 = rContactData.DeltaN2[i_dof];
+            const array_1d<double, TNumNodes >  DN2 = rContactData.DeltaN2[i_dof];
             
             rContactData.DeltaGap[i_dof] = Normal_sg[i_dim] * N2[i_master] +  inner_prod(Normal_sg, prod(trans(X2 + u2), DN2));
         }
@@ -2961,7 +2962,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaG
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaPhi(
    GeneralVariables& rVariables,
-   ContactData& rContactData
+   ContactData<TDim, TNumNodes>& rContactData
    )
 {
     // Shape functions
@@ -3202,7 +3203,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    ContactData rContactData;
+    ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -3301,7 +3302,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    ContactData rContactData;
+    ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -3435,7 +3436,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedNormalLM(
     const GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<TDim, TNumNodes>& rContactData,
     const double& integration_point_gap
     )
 {
@@ -3462,7 +3463,7 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedNormalLM(
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
     const GeneralVariables& rVariables,
-    const ContactData& rContactData,
+    const ContactData<TDim, TNumNodes>& rContactData,
     const GeometryType& current_master_element, 
     double& integration_point_slip
     )
@@ -3483,8 +3484,8 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
     const array_1d<double, TDim>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
     
     // The velocities matrices
-    const Matrix v1 = GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-    const Matrix v2 = GetVariableMatrix(current_master_element, VELOCITY, 0);
+    const bounded_matrix<double, TNumNodes, TDim> v1 = GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
+    const bounded_matrix<double, TNumNodes, TDim> v2 = GetVariableMatrix(current_master_element, VELOCITY, 0);
     
     // The slip of the LM
     const array_1d<double, TDim> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));

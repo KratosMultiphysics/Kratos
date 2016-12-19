@@ -144,6 +144,7 @@ namespace Kratos
 /** \brief ContactData 
  * This data will be used to compute de external condition files
  */ 
+template< unsigned int TDim, unsigned int TNumNodes>
 struct ContactData
 {
 public:
@@ -153,46 +154,46 @@ public:
     GeometryType MasterGeometry;
     
     // Gap function and its derivative variables
-    Vector Gaps;
+    array_1d<double, TNumNodes > Gaps;
     
     // The current Lagrange Multipliers
-    Matrix LagrangeMultipliers;
-    Matrix DoubleLagrangeMultipliers;
+    bounded_matrix<double, TNumNodes, TDim> LagrangeMultipliers;
+    bounded_matrix<double, TNumNodes, TDim> DoubleLagrangeMultipliers;
     
     // The normals of the nodes
-    Matrix Normal_m;
-    Matrix Normal_s;
+    bounded_matrix<double, TNumNodes, TDim> Normal_m;
+    bounded_matrix<double, TNumNodes, TDim> Normal_s;
     
-    Matrix Tangent_xi_s;
-    Matrix Tangent_eta_s;
+    bounded_matrix<double, TNumNodes, TDim> Tangent_xi_s;
+    bounded_matrix<double, TNumNodes, TDim> Tangent_eta_s;
     
     // Displacements and velocities
-    Matrix X1;
-    Matrix X2;
-    Matrix u1;
-    Matrix u2;
-    Matrix v1;
-    Matrix v2;
+    bounded_matrix<double, TNumNodes, TDim> X1;
+    bounded_matrix<double, TNumNodes, TDim> X2;
+    bounded_matrix<double, TNumNodes, TDim> u1;
+    bounded_matrix<double, TNumNodes, TDim> u2;
+    bounded_matrix<double, TNumNodes, TDim> v1;
+    bounded_matrix<double, TNumNodes, TDim> v2;
     
     // Derivatives 
     std::vector<double> DeltaJ_s;
     std::vector<double> DeltaGap;
-    std::vector<Vector> DeltaPhi;
-    std::vector<Vector> DeltaN2;
-    std::vector<Matrix> Delta_Normal_s;
-    std::vector<Matrix> Delta_Tangent_xi_s;
-    std::vector<Matrix> Delta_Tangent_eta_s;
-    std::vector<Matrix> Delta_Normal_m;
+    std::vector<array_1d<double, TNumNodes >> DeltaPhi;
+    std::vector<array_1d<double, TNumNodes >> DeltaN2;
+    std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_s;
+    std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_xi_s;
+    std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_eta_s;
+    std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_m;
     
     // Ae
     Matrix Me;
     Matrix De;
-    Matrix Ae;
+    bounded_matrix<double, TNumNodes, TNumNodes> Ae;
     
     // Derivatives Ae
-    std::vector<Matrix> DeltaMe;
-    std::vector<Matrix> DeltaDe;
-    std::vector<Matrix> DeltaAe;
+    std::vector<bounded_matrix<double, TNumNodes, TNumNodes>> DeltaMe;
+    std::vector<bounded_matrix<double, TNumNodes, TNumNodes>> DeltaDe;
+    std::vector<bounded_matrix<double, TNumNodes, TNumNodes>> DeltaAe;
     
     // Delta time
     double Dt;
@@ -220,20 +221,17 @@ public:
         Gaps = ZeroVector(rNumberOfSlaveNodes);
         
         // The current Lagrange Multipliers
-        LagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        LagrangeMultipliers       = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         DoubleLagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // The normals of the nodes
-        Normal_s  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        Tangent_xi_s = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Normal_s      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Tangent_xi_s  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         Tangent_eta_s = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         
         // Displacements and velocities of the slave
-        X1.resize(rNumberOfSlaveNodes, rDimension, false);
         X1 = GetCoordinates(GeometryInput, false);
-        u1.resize(rNumberOfSlaveNodes, rDimension, false);
         u1 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
-        v1.resize(rNumberOfSlaveNodes, rDimension, false);
         v1 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Derivatives 
@@ -314,7 +312,7 @@ public:
         
         for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
         {
-            array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
+            const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
 //             array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
 
             for (unsigned int iDof = 0; iDof < rDimension; iDof++)
@@ -324,11 +322,8 @@ public:
         }
         
         // Displacements and velocities of the master
-        X2.resize(rNumberOfMasterNodes, rDimension, false);
         X2 = GetCoordinates(GeometryInput, false);
-        u2.resize(rNumberOfMasterNodes, rDimension, false);
         u2 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
-        v2.resize(rNumberOfMasterNodes, rDimension, false);
         v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Derivative of master's normal
@@ -383,14 +378,14 @@ public:
 
     public:
         // Shape functions for contact pair
-        Vector N_Master;
-        Vector N_Slave;
-        Vector Phi_LagrangeMultipliers;
+        VectorType N_Master;
+        VectorType N_Slave;
+        VectorType Phi_LagrangeMultipliers;
 
         // Shape functions local derivatives for contact pair
-        Matrix DN_De_Master;
-        Matrix DN_De_Slave;
-//         Matrix DPhi_De_LagrangeMultipliers;
+        MatrixType DN_De_Master;
+        MatrixType DN_De_Slave;
+//         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
         double DetJSlave;
@@ -400,7 +395,7 @@ public:
          * Only those two variables contain info on all GP
          * other variables contain info only on the currently-calculated GP
          */
-        Matrix j_Slave;
+        MatrixType j_Slave;
         
         // Friction coefficient
         double mu;
@@ -416,27 +411,20 @@ public:
             mMasterElementIndex = 0;
 
             // Shape functions
-            N_Master.resize(TNumNodes, false);
-//             N_Master.clear( );
-            N_Slave.resize(TNumNodes, false);
-//             N_Slave.clear( );
-            Phi_LagrangeMultipliers.resize(TNumNodes, false);
-//             Phi_LagrangeMultipliers.clear( );
+            N_Master                = ZeroVector(TNumNodes);
+            N_Slave                 = ZeroVector(TNumNodes);
+            Phi_LagrangeMultipliers = ZeroVector(TNumNodes);
 
             // Shape functions local derivatives
-            DN_De_Master.resize(TNumNodes, TDim - 1, false);
-//             DN_De_Master.clear( );
-            DN_De_Slave.resize(TNumNodes, TDim - 1, false);
-//             DN_De_Slave.clear( );
-//             DPhi_De_LagrangeMultipliers.resize(TNumNodes, TDim - 1, false);
-//             DPhi_De_LagrangeMultipliers.clear( );
-
+            DN_De_Master                 = ZeroMatrix(TNumNodes, TDim - 1);
+            DN_De_Slave                  = ZeroMatrix(TNumNodes, TDim - 1);
+//             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
+            
             // Jacobian of slave
             DetJSlave = 0.0;
            
             // Jacobians on all integration points
-            j_Slave.resize(TDim, TDim - 1, false);
-            j_Slave.clear( );
+            j_Slave = ZeroMatrix(TDim, TDim - 1);
             
             // Friction coefficient
             mu = 0.0;
@@ -472,8 +460,7 @@ public:
 //             KRATOS_WATCH( DN_De_Slave );
 //             KRATOS_WATCH( DN_De_Master );
 //             KRATOS_WATCH( DPhi_De_LagrangeMultipliers );
-            
-//             KRATOS_WATCH( ColocationWeightCoeff );
+
 //             KRATOS_WATCH( pMasterElement->Center( ).Coordinates( ) );
 //             KRATOS_WATCH( mMasterElementIndex );
             
@@ -482,7 +469,6 @@ public:
 //             KRATOS_WATCH( j_Master );
             KRATOS_WATCH( j_Slave );
             KRATOS_WATCH( DetJSlave );
-//             KRATOS_WATCH( SegmentProportion );
         }
     };
          
@@ -994,7 +980,7 @@ protected:
      * Initialize Contact data
      */
     void InitializeContactData( 
-        ContactData& rContactData,
+        ContactData<TDim, TNumNodes>& rContactData,
         const ProcessInfo& rCurrentProcessInfo
         );
     
@@ -1002,7 +988,7 @@ protected:
      * Calculate Ae and DeltaAe matrices
      */
     void CalculateAeAndDeltaAe( 
-        ContactData& rContactData,
+        ContactData<TDim, TNumNodes>& rContactData,
         GeneralVariables& rVariables,
         const GeometryType::IntegrationPointsArrayType& integration_points,
         const ProcessInfo& rCurrentProcessInfo
@@ -1012,7 +998,7 @@ protected:
      * Initialize General Variables
      */
     void UpdateContactData( 
-        ContactData& rContactData,
+        ContactData<TDim, TNumNodes>& rContactData,
         const unsigned int& rMasterElementIndex
         );
     
@@ -1028,7 +1014,7 @@ protected:
      */
     bool CalculateKinematics( 
         GeneralVariables& rVariables,
-        const ContactData rContactData,
+        const ContactData<TDim, TNumNodes> rContactData,
         const double& rPointNumber,
         const unsigned int& rPairIndex,
         const GeometryType::IntegrationPointsArrayType& integration_points
@@ -1066,7 +1052,7 @@ protected:
     void CalculateLocalLHS(
         bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         GeneralVariables& rVariables,
-        const ContactData& rContactData,
+        const ContactData<TDim, TNumNodes>& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
@@ -1102,7 +1088,7 @@ protected:
     void CalculateLocalRHS(
         array_1d<double, MatrixSize>& rPairRHS,
         GeneralVariables& rVariables,
-        const ContactData& rContactData,
+        const ContactData<TDim, TNumNodes>& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
@@ -1116,7 +1102,7 @@ protected:
     
     void CalculateDeltaDetJSlave(
         GeneralVariables& rVariables,
-        ContactData& rContactData
+        ContactData<TDim, TNumNodes>& rContactData
         );
     
     bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
@@ -1124,18 +1110,18 @@ protected:
         const unsigned int node_index
         );
     
-    void CalculateDeltaNormalTangentSlave(ContactData& rContactData);
+    void CalculateDeltaNormalTangentSlave(ContactData<TDim, TNumNodes>& rContactData);
     
-    void CalculateDeltaNormalMaster(ContactData& rContactData);
+    void CalculateDeltaNormalMaster(ContactData<TDim, TNumNodes>& rContactData);
     
     void CalculateDeltaN2AndDeltaGap(
         GeneralVariables& rVariables,
-        ContactData& rContactData
+        ContactData<TDim, TNumNodes>& rContactData
         );
     
     void CalculateDeltaPhi(
         GeneralVariables& rVariables,
-        ContactData& rContactData
+        ContactData<TDim, TNumNodes>& rContactData
         );
     
     /***********************************************************************************/
@@ -1155,30 +1141,30 @@ protected:
      */
     void CalculateDeltaAeComponents(
         GeneralVariables& rVariables,
-        ContactData& rContactData,
+        ContactData<TDim, TNumNodes>& rContactData,
         const double& rIntegrationWeight
     );
     
     /*
      * Calculates the matrix De
      */
-    Matrix ComputeDe(        
-        const Vector N1, 
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+        const VectorType N1, 
         const double detJ 
         );
     
     /*
      * Calculates the matrix De
      */
-    Matrix ComputeMe(        
-        const Vector N1, 
+    bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
+        const VectorType N1, 
         const double detJ 
         );
     
     /*
      * Calculates the matrix DeltaAe
      */
-    void CalculateDeltaAe(ContactData& rContactData);
+    void CalculateDeltaAe(ContactData<TDim, TNumNodes>& rContactData);
     
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
@@ -1186,13 +1172,13 @@ protected:
     
     double AugmentedNormalLM(
         const GeneralVariables& rVariables,
-        const ContactData& rContactData,
+        const ContactData<TDim, TNumNodes>& rContactData,
         const double& integration_point_gap
     );
     
     double AugmentedTangentLM(
         const GeneralVariables& rVariables,
-        const ContactData& rContactData,
+        const ContactData<TDim, TNumNodes>& rContactData,
         const GeometryType& current_master_element, 
         double& integration_point_slip
     );
@@ -1239,7 +1225,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization // FIXME: Not working!!
+    // Serialization 
     
     friend class Serializer;
     
