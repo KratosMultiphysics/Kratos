@@ -31,6 +31,7 @@ proc EmbeddedFluid::write::writeDistances { } {
     if {$must_write eq "from_mdpa"} {
         set go 0
         set distfilepath [file join $::write::dir "[file tail [GiD_Info project modelname] ].post.res"]
+        if {![file exists $distfilepath]} {error [= "Distances file does not exist. Please check meshing parameters and mesh again."]}
         set a [open $distfilepath r]
         write::WriteString "Begin NodalData DISTANCE"
         while {[gets $a line]>=0} {

@@ -97,7 +97,7 @@ proc write::writeEvent { filename } {
 proc write::writeAppMDPA {appid} {
     variable MDPA_loop_control
     incr MDPA_loop_control
-    if {$MDPA_loop_control > 10} {error "Infinite loop on MDPA - Check recursive or cyclic calls"}
+    if {$MDPA_loop_control > 10} {error [= "Infinite loop on MDPA - Check recursive or cyclic calls"]}
     
     set errcode 0
     set activeapp [::apps::getAppById $appid]
