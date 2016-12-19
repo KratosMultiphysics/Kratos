@@ -32,7 +32,8 @@ namespace Kratos {
 			boost::shared_ptr<std::iostream> p_input(new std::stringstream( 
 				R"input(
 				Begin ModelPartData
-				//  nothing here
+                                 DENSITY 2700.000000
+				 BODY_FORCE [3] (0.000000,0.000000,0.000000)				
 				End ModelPartData
 
 
@@ -63,6 +64,10 @@ namespace Kratos {
 				Begin NodalData DISPLACEMENT_Y          
 				1 1 100.0              
 				End NodalData
+                        
+                                Begin NodalData VELOCITY
+                                1 0 [3] (0.1, 0.2, 0.3)
+                                End NodalData
 
 				Begin NodalData FORCE_Y             
 				3    0    5.0             //fixing it or not does not change anything since it is not a degree of freedom, it's just info that will be used by the condition  
@@ -70,23 +75,26 @@ namespace Kratos {
 
 				Begin Conditions Condition2D2N
 				1 1 1 2
-                2 1 3 4                   
+                                2 1 3 4                   
 				End Conditions
 
 				Begin SubModelPart BasePart // Note that this would be a sub sub modelpart
+                                   Begin SubModelPartData
+                                     DENSITY 1700.000000
+                                     BODY_FORCE [3] (1.000000,1.000000,1.000000)
+                                   End SubModelPartData
 				   Begin SubModelPartNodes
 				     1
 				     2
 				   End SubModelPartNodes
-                   Begin SubModelPart inner_part
-                     Begin SubModelPartNodes
+                                   Begin SubModelPart inner_part
+                                   Begin SubModelPartNodes
 				       1
-				     End SubModelPartNodes
-                     Begin SubModelPartConditions
+				   End SubModelPartNodes
+                                   Begin SubModelPartConditions
 				       1
-				     End SubModelPartConditions
-                   End SubModelPart
-				End SubModelPart
+				   End SubModelPartConditions
+                                End SubModelPart
 			)input"));
 
 			Kernel kernel;
