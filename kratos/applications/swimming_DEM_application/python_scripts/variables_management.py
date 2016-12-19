@@ -20,9 +20,10 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
         gravity[1] = pp.CFD_DEM.GravityY
         gravity[2] = pp.CFD_DEM.GravityZ
     fluid_model_part.ProcessInfo.SetValue(GRAVITY, gravity)
+
     if pp.CFD_DEM.laplacian_calculation_type == 3: # recovery through solving a system
         fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 1)
-    elif pp.CFD_DEM.laplacian_calculation_type == 4: # recovery through solving a system
+    elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5: # recovery through solving a system
         fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
 
     if pp.CFD_DEM.material_acceleration_calculation_type == 5:
@@ -88,15 +89,14 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM.material_acceleration_calculation_type:
         pp.fluid_vars += [MATERIAL_ACCELERATION]
+        if pp.CFD_DEM.material_acceleration_calculation_type == 5:
+            pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
     if pp.CFD_DEM.laplacian_calculation_type:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
-
-    if pp.CFD_DEM.material_acceleration_calculation_type == 5:
-        pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
     if pp.CFD_DEM.drag_force_type >= 0:
         pp.fluid_vars += [POWER_LAW_N]
