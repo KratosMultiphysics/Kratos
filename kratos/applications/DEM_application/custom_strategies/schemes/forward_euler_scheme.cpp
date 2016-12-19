@@ -41,7 +41,7 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
-        } // dimensions  
+        } // dimensions
     }
 
     void ForwardEulerScheme::UpdateRotationalVariables(
@@ -93,6 +93,18 @@ namespace Kratos {
                 angular_velocity[j] = angular_velocity_aux[j];
             }
         }
+    }
+    
+    void ForwardEulerScheme::UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        
+        delta_rotation = angular_velocity * delta_t;
+        rotated_angle += delta_rotation;
     }
     
     void ForwardEulerScheme::QuaternionCalculateMidAngularVelocities(
