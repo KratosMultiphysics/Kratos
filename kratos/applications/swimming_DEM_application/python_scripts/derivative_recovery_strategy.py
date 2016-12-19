@@ -25,7 +25,7 @@ class DerivativeRecoveryStrategy:
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeComponentGradientSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
-        if pp.CFD_DEM.laplacian_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4:
+        if pp.CFD_DEM.laplacian_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4 or pp.CFD_DEM.laplacian_calculation_type == 5:
             self.do_recover_laplacian = True
             self.lapl_model_part = ModelPart("PostLaplacianFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.lapl_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
@@ -35,22 +35,22 @@ class DerivativeRecoveryStrategy:
 
         if pp.CFD_DEM.material_acceleration_calculation_type == 3:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
-        elif pp.CFD_DEM.material_acceleration_calculation_type == 4:
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 0
 
 
     def AddDofs(self, model_part, config = None):
         if self.do_recover_acceleration:
             for node in self.acc_model_part.Nodes:
-                node.AddDof(MATERIAL_ACCELERATION_X)
-                node.AddDof(MATERIAL_ACCELERATION_Y)
-                node.AddDof(MATERIAL_ACCELERATION_Z)
-                
                 if self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
                     node.AddDof(VELOCITY_COMPONENT_GRADIENT_X)
                     node.AddDof(VELOCITY_COMPONENT_GRADIENT_Y)
-                    node.AddDof(VELOCITY_COMPONENT_GRADIENT_Z)
-                    
+                    node.AddDof(VELOCITY_COMPONENT_GRADIENT_Z)    
+                else:
+                    node.AddDof(MATERIAL_ACCELERATION_X)
+                    node.AddDof(MATERIAL_ACCELERATION_Y)
+                    node.AddDof(MATERIAL_ACCELERATION_Z)
+                                   
         if self.do_recover_laplacian:
             for node in self.lapl_model_part.Nodes:
                 node.AddDof(VELOCITY_LAPLACIAN_X)
@@ -71,17 +71,24 @@ class DerivativeRecoveryStrategy:
             self.lapl_strategy = ResidualBasedLinearStrategy(self.lapl_model_part, scheme, linear_solver, False, True, False, False)
             self.lapl_strategy.SetEchoLevel(echo_level)
 
-    def Solve(self):
+    def Solve(self, component = None):
         if self.do_recover_acceleration:
             print("\nSolving for the fluid acceleration...")
             sys.stdout.flush()
-
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, 0.0)
-                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, 0.0)
-                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, 0.0)
-                
-                if self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
+            if component == None:
+                for node in self.fluid_model_part.Nodes:
+                    node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, 0.0)
+                    node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, 0.0)
+                    node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, 0.0)
+            else:
+                for node in self.fluid_model_part.Nodes:
+                    if component == 0:
+                        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, 0.0)
+                    elif component == 1:
+                        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, 0.0)
+                    elif component == 2:
+                        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, 0.0)   
+                        
                     node.SetSolutionStepValue(VELOCITY_COMPONENT_GRADIENT_X, 0.0)
                     node.SetSolutionStepValue(VELOCITY_COMPONENT_GRADIENT_Y, 0.0)
                     node.SetSolutionStepValue(VELOCITY_COMPONENT_GRADIENT_Z, 0.0)                
@@ -123,13 +130,13 @@ class DerivativeRecoveryStrategy:
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivative(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
             elif self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
-                self.Solve()
+                self.Solve(0)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
-                self.Solve()
+                self.Solve(1)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
-                self.Solve()
+                self.Solve(2)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
             if self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
                 self.Solve()
