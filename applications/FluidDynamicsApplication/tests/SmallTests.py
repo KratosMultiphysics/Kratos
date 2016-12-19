@@ -23,7 +23,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class EmbeddedCouetteTestFactory(KratosUnittest.TestCase):
+class EmbeddedTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -42,36 +42,40 @@ class EmbeddedCouetteTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
+#
+#
+# class EmbeddedReservoirTestFactory(KratosUnittest.TestCase):
+#
+#     def setUp(self):
+#         # Within this location context:
+#         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+#             # Get the ProjectParameters file
+#             parameter_file = open(self.file_name + "_parameters.json", 'r')
+#             ProjectParameters = Parameters(parameter_file.read())
+#
+#             # Create the test
+#             self.test = ExecuteEmbeddedTest.KratosExecuteEmbeddedTest(ProjectParameters)
+#
+#     def test_execution(self):
+#         # Within this location context:
+#         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+#             self.test.Solve()
+#
+#     def tearDown(self):
+#         pass
 
 
-class EmbeddedReservoirTestFactory(KratosUnittest.TestCase):
+class EmbeddedArtificialCompressibilityTest(EmbeddedTestFactory):
+    file_name = "EmbeddedArtificialCompressibilityTest/EmbeddedArtificialCompressibilityTest"
 
-    def setUp(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Get the ProjectParameters file
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
 
-            # Create the test
-            self.test = ExecuteEmbeddedTest.KratosExecuteEmbeddedTest(ProjectParameters)
-
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
-
-    def tearDown(self):
-        pass
-        
-
-class EmbeddedCouetteTest(EmbeddedCouetteTestFactory):
+class EmbeddedCouetteTest(EmbeddedTestFactory):
     file_name = "EmbeddedCouetteTest/EmbeddedCouetteTest"
-        
 
-class EmbeddedCouetteImposedTest(EmbeddedCouetteTestFactory):
+
+class EmbeddedCouetteImposedTest(EmbeddedTestFactory):
     file_name = "EmbeddedCouetteImposedTest/EmbeddedCouetteImposedTest"
-        
 
-class EmbeddedReservoirTest(EmbeddedReservoirTestFactory):
+
+class EmbeddedReservoirTest(EmbeddedTestFactory):
     file_name = "EmbeddedReservoirTest/EmbeddedReservoirTest"
