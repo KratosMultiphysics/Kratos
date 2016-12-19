@@ -613,7 +613,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         }
         else {
 
-            Orientation = Quaternion<double>(r_sub_model_part_with_parameters[ORIENTATION_REAL], r_sub_model_part_with_parameters[ORIENTATION_IMAG][0], r_sub_model_part_with_parameters[ORIENTATION_IMAG][1], r_sub_model_part_with_parameters[ORIENTATION_IMAG][2]); // JIG: SHOULD BE CHANGED IN THE FUTURE
+            Orientation = Quaternion<double>(r_sub_model_part_with_parameters[ORIENTATION]); // JIG: SHOULD BE CHANGED IN THE FUTURE
         }        
 
         p_cluster->SetOrientation(Orientation);
