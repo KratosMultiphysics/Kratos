@@ -1,4 +1,4 @@
-//Authors: M.A. Celigueta and S. Latorre (CIMNE)
+//Authors: J. Irazábal (CIMNE)
 //   Date: July 2015
 
 #if !defined(DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED)
@@ -15,6 +15,7 @@ namespace Kratos {
     class DEM_D_Conical_damage : public DEMDiscontinuumConstitutiveLaw {
     
     public:
+        using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Conical_damage);
 
@@ -33,9 +34,9 @@ namespace Kratos {
         void InitializeDamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
         void DamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
-        
+
         void InitializeDamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
-        
+
         void DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
 
         void CalculateForces(const ProcessInfo& r_process_info,
@@ -65,7 +66,6 @@ namespace Kratos {
                                     bool& sliding);
                 
         double CalculateNormalForce(const double indentation);
-
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
