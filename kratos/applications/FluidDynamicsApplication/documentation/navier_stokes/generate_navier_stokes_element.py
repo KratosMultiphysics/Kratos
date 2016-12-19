@@ -3,6 +3,9 @@ from KratosMultiphysics import *
 from sympy_fe_utilities import *
 
 ## Settings explanation
+# DIMENSION TO COMPUTE:
+# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
+# it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
 # Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
