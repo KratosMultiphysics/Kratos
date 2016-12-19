@@ -208,7 +208,6 @@ public:
             for (unsigned int j=0; j<LocalSize; ++j){
                 rLeftHandSideMatrix(i, j) = 0.0;
             }
-            rLeftHandSideMatrix(i, i) = 0.0;
             rRightHandSideVector(i) = 0.0;
         }
 
@@ -237,16 +236,16 @@ public:
 
         const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
         unsigned int LocalIndex = 0;
-        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_COMPONENT_GRADIENT_X);
+        unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_COMPONENT_GRADIENT_X);
 
         if (rResult.size() != LocalSize)
             rResult.resize(LocalSize, false);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
         {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,lappos).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,lappos+1).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,lappos+2).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,pos).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,pos+1).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,pos+2).EquationId();
         }
 //Z
     }
@@ -525,28 +524,6 @@ private:
         }
     }
 
-    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
-    {
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        MatrixType NContainer;
-        ShapeFunctionDerivativesArrayType DN_DXContainer;
-        VectorType GaussWeights;
-        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-        const SizeType NumGauss = NContainer.size1();
-
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddRHSGradient(F, Ng, DN_DX, GaussWeight);
-        }
-
-    }
-
     void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
             const array_1d<double,TNumNodes>& rShapeFunc,
             const double Weight)
@@ -581,6 +558,28 @@ private:
             FirstRow += BlockSize;
             FirstCol = 0;
         }
+    }
+
+    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+    {
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        MatrixType NContainer;
+        ShapeFunctionDerivativesArrayType DN_DXContainer;
+        VectorType GaussWeights;
+        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
+        const SizeType NumGauss = NContainer.size1();
+
+        for (SizeType g = 0; g < NumGauss; g++){
+            const double GaussWeight = GaussWeights[g];
+            const ShapeFunctionsType& Ng = row(NContainer, g);
+            this->AddRHSGradient(F, Ng, DN_DX, GaussWeight);
+        }
+
     }
 
     void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
