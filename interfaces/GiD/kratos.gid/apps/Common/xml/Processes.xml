@@ -35,8 +35,8 @@
     <Process n="ImposeVectorValueByDirectionProcess" pn="Impose vector value by direction process" python_module="impose_vector_value_by_direction_process"
 		kratos_module="KratosMultiphysics" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction"> 
     <inputs>
-        <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
-        <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0"  />
+		<parameter n="modulus" pn="Modulus" type="double"  v="1.0" function="1" has_units="1"/>
+		<parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0"  />
     </inputs>
     </Process>
     

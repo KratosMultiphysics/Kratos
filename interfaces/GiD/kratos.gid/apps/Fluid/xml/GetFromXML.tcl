@@ -13,6 +13,7 @@ proc Fluid::xml::Init { } {
     Model::getMaterials Materials.xml
     Model::getNodalConditions NodalConditions.xml
     Model::getConstitutiveLaws ConstitutiveLaws.xml
+    Model::getProcesses "../../Common/xml/Processes.xml"
     Model::getProcesses Processes.xml
     Model::getConditions Conditions.xml
     Model::getSolvers "../../Common/xml/Solvers.xml"
