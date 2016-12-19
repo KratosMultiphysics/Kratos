@@ -20,6 +20,7 @@ proc EndGIDProject {} {
     spdAux::EndRefreshTree
     Kratos::RegisterEnvironment
     Model::DestroyEverything
+    Kratos::EndCreatePreprocessTBar
     gid_groups_conds::end_problemtype [Kratos::GiveKratosDefaultsFile]
     unset -nocomplain ::Kratos::kratos_private
 }
@@ -39,7 +40,7 @@ proc EndGIDPostProcess {} {
         gid_groups_conds::open_conditions check_default
         gid_groups_conds::open_conditions menu
     }
-    ::Kratos::EndCreatePreprocessTBar
+    ::Kratos::CreatePreprocessModelTBar
 }
  
 # Load GiD project files (initialise XML Tdom structure)
