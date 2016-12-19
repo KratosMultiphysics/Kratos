@@ -86,14 +86,15 @@ public:
      * @param rOriginPart: The original model part
      * @param ConditionName: Name of the condition to be created
      * @return InterfacePart: The interface model part
-     */ // TODO: Add the possibilty to select different resulting geometries
+     */
     
     void GenerateInterfacePart(
             ModelPart& rOriginPart,
             ModelPart& rInterfacePart,
             std::string ConditionName,
             unsigned int CondId,
-            std::string final_string
+            std::string final_string,
+            const bool simplest_geometry
             )
     {
         KRATOS_TRY;
@@ -143,29 +144,42 @@ public:
                     
                     if (count == number_points)
                     {
-                        CondId += 1; // NOTE: Para paralelizar cuidado con esta ID
                         std::string EdgeConditionName = ConditionName;
                         if (number_points == 2)
                         {
                             EdgeConditionName.append("Condition2D2N");
                             EdgeConditionName.append(final_string);
+                            
+                            CondId += 1; // NOTE: To paralellize be careful with this ID
+                            CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Edges()[it_edge], CondId, EdgeConditionName);
+                            CondCounter ++;
                         }
                         else
-                        {
-                            EdgeConditionName.append("Condition2D3N"); 
-                            EdgeConditionName.append(final_string); 
+                        {                            
+                            if (simplest_geometry == false)
+                            {
+                                EdgeConditionName.append("Condition2D3N"); 
+                                EdgeConditionName.append(final_string); 
+                                
+                                CondId += 1; 
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Edges()[it_edge], CondId, EdgeConditionName);
+                                CondCounter ++;
+                            }
+                            else
+                            {
+                                EdgeConditionName.append("Condition2D2N"); 
+                                EdgeConditionName.append(final_string); 
+                                
+                                CondId += 1;
+                                Line2D2< Node<3> > Lin1((*elem_it).GetGeometry().Edges()[it_edge](0), (*elem_it).GetGeometry().Edges()[it_edge](1));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Lin1, CondId, EdgeConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Line2D2< Node<3> > Lin2((*elem_it).GetGeometry().Edges()[it_edge](1), (*elem_it).GetGeometry().Edges()[it_edge](2));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Lin2, CondId, EdgeConditionName);
+                                CondCounter ++;
+                            }
                         }
-                        
-                        Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionName);
-                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
-                        rInterfacePart.AddCondition(pCond);
-                        if (ConditionName.find("Mortar") != std::string::npos)
-                        {
-                             Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
-                             pElem = *(elem_it.base());
-                             // KRATOS_WATCH(pElem->Id());
-                        }
-                        CondCounter ++;
                     }
                 }
             }
@@ -197,44 +211,168 @@ public:
                     
                     if (count == number_points)
                     {
-                        CondId += 1;
                         std::string FaceConditionName = ConditionName;
                         if (number_points == 3)
                         {
                             FaceConditionName.append("Condition3D3N");
                             FaceConditionName.append(final_string);
+                            
+                            CondId += 1;
+                            CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Faces()[it_face], CondId, FaceConditionName);
+                            CondCounter ++;
                         }
                         else if (number_points == 4)
                         {
-                            FaceConditionName.append("Condition3D4N");
-                            FaceConditionName.append(final_string);
+                            if (simplest_geometry == false)
+                            {
+                                FaceConditionName.append("Condition3D4N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Faces()[it_face], CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
+                            else
+                            {
+                                FaceConditionName.append("Condition3D3N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri1((*elem_it).GetGeometry().Faces()[it_face](0), (*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](2));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri1, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri2((*elem_it).GetGeometry().Faces()[it_face](2), (*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](0));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri2, CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
                         }
                         else if (number_points == 6)
                         {
-                            FaceConditionName.append("Condition3D6N");
-                            FaceConditionName.append(final_string);
+                              if (simplest_geometry == false)
+                            {
+                                FaceConditionName.append("Condition3D6N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Faces()[it_face], CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
+                            else
+                            {
+                                FaceConditionName.append("Condition3D3N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri1((*elem_it).GetGeometry().Faces()[it_face](0), (*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri1, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri2((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](2), (*elem_it).GetGeometry().Faces()[it_face](3));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri2, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri3((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri3, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri4((*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](4), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri4, CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
                         }
                         else if (number_points == 8)
                         {
-                            FaceConditionName.append("Condition3D8N");
-                            FaceConditionName.append(final_string);
+                            if (simplest_geometry == false)
+                            {
+                                FaceConditionName.append("Condition3D8N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Faces()[it_face], CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
+                            else
+                            {
+                                FaceConditionName.append("Condition3D3N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri1((*elem_it).GetGeometry().Faces()[it_face](0), (*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](7));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri1, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri2((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](5), (*elem_it).GetGeometry().Faces()[it_face](7));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri2, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri3((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri3, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri4((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](2), (*elem_it).GetGeometry().Faces()[it_face](3));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri4, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri5((*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](4), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri5, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri6((*elem_it).GetGeometry().Faces()[it_face](5), (*elem_it).GetGeometry().Faces()[it_face](6), (*elem_it).GetGeometry().Faces()[it_face](7));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri6, CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
                         }
                         else // Assuming it will not be a very weird geometry
                         {
-                            FaceConditionName.append("Condition3D9N");
-                            FaceConditionName.append(final_string);
+                            if (simplest_geometry == false)
+                            {
+                                FaceConditionName.append("Condition3D4N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), (*elem_it).GetGeometry().Faces()[it_face], CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
+                            else
+                            {
+                                FaceConditionName.append("Condition3D3N");
+                                FaceConditionName.append(final_string);
+                                
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri1((*elem_it).GetGeometry().Faces()[it_face](0), (*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](8));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri1, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri2((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](2), (*elem_it).GetGeometry().Faces()[it_face](3));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri2, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri3((*elem_it).GetGeometry().Faces()[it_face](1), (*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](8));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri3, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri4((*elem_it).GetGeometry().Faces()[it_face](8), (*elem_it).GetGeometry().Faces()[it_face](3), (*elem_it).GetGeometry().Faces()[it_face](4));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri4, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri5((*elem_it).GetGeometry().Faces()[it_face](8), (*elem_it).GetGeometry().Faces()[it_face](4), (*elem_it).GetGeometry().Faces()[it_face](5));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri5, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri6((*elem_it).GetGeometry().Faces()[it_face](5), (*elem_it).GetGeometry().Faces()[it_face](6), (*elem_it).GetGeometry().Faces()[it_face](7));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri6, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri7((*elem_it).GetGeometry().Faces()[it_face](5), (*elem_it).GetGeometry().Faces()[it_face](7), (*elem_it).GetGeometry().Faces()[it_face](8));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri7, CondId, FaceConditionName);
+                                CondCounter ++;
+                                CondId += 1;
+                                Triangle3D3< Node<3> > Tri8((*elem_it).GetGeometry().Faces()[it_face](0), (*elem_it).GetGeometry().Faces()[it_face](8), (*elem_it).GetGeometry().Faces()[it_face](7));
+                                CreateNewCondition(rInterfacePart, *(elem_it.base()), Tri8, CondId, FaceConditionName);
+                                CondCounter ++;
+                            }
                         }
-  
-                        Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionName); 
-                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
-                        rInterfacePart.AddCondition(pCond);
-                        if (ConditionName.find("Mortar") != std::string::npos)
-                        {
-                             Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
-                             pElem = *(elem_it.base());
-                             // KRATOS_WATCH(pElem->Id());
-                        }
-                        CondCounter ++;
                     }
                 }
             }
@@ -244,6 +382,37 @@ public:
       
         PrintNodesAndConditions(NodesCounter, CondCounter);
       
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Creates a new condition with a giving name
+     * @return InterfacePart: The interface model part
+     */
+
+    void CreateNewCondition(
+            ModelPart& rInterfacePart,
+            Element::Pointer rpElem,
+            Geometry<Node<3> > & rGeometry,
+            const unsigned int CondId,
+            const std::string ConditionName
+            )
+    {
+        KRATOS_TRY;
+    
+        Condition const & rCondition = KratosComponents<Condition>::Get(ConditionName); 
+        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId, rGeometry, rpElem->pGetProperties()));
+        rInterfacePart.AddCondition(pCond);
+        if (ConditionName.find("Mortar") != std::string::npos)
+        {
+                Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
+                pElem = rpElem;
+                // KRATOS_WATCH(pElem->Id());
+        }
+        
         KRATOS_CATCH("");
     }
     
