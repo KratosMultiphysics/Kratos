@@ -607,6 +607,8 @@ public:
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
+    void ComputeSelectiveIntegrationMethod(const GeometryType& master_seg);
+    
     void InitializeIntegrationMethod();
 
     /**

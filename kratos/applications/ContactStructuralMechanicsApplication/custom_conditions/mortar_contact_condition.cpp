@@ -952,7 +952,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     // Initialize the current contact data
     ContactData<TDim, TNumNodes> rContactData;
 
-    // Reading integration points
+    // Reading integration points  // TODO: Move this to inside the loop and create the selective collocations
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
@@ -960,7 +960,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo); // NOTE: This will be conditioned by the selective integration
     
     // Compute the normal and tangent derivatives of the slave
     this->CalculateDeltaNormalTangentSlave(rContactData);
@@ -1280,11 +1280,10 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::MasterShapeFunctionValue(
     )
 {    
     GeometryType& master_seg = rVariables.GetMasterElement( );
-//     rVariables.N_Master.clear();
-//     rVariables.DN_De_Master.clear();
 
     PointType projected_gp_global;
-    const array_1d<double,3> normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
+    const array_1d<double,3> normal = this->GetValue(NORMAL);
+//     const array_1d<double,3> normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     double aux_dist = 0.0;
@@ -3495,6 +3494,54 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
     const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
 
     return augmented_tangent_lm;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrationMethod(const GeometryType& master_seg)
+{
+    if (TDim == 2)
+    {
+        if (TNumNodes == 2)
+        {
+            // TODO: Finish this!!!!
+        }
+        else
+        {
+            // Using standart integration methods
+            this->InitializeIntegrationMethod();
+        }
+    }
+    else
+    {
+        if (TNumNodes == 3)
+        {
+//             // TODO: Finish this
+//             // Compute the local Coordinates of the master condition
+//             PointType projected_gp_global;
+//             const array_1d<double,3> normal = this->GetValue(NORMAL);
+//             
+//             GeometryType::CoordinatesArrayType slave_gp_global;
+//             double aux_dist = 0.0;
+//             
+//             for (unsigned int i = 0; i < 3; i++)
+//             {
+//                 this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
+//                 ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, -normal ); // The opposite direction
+//                 
+//                 GeometryType::CoordinatesArrayType projected_gp_local;
+//                 
+//                 const bool inside = master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local ) ;
+//             }
+        }
+        else
+        {
+            // Using standart integration methods
+            this->InitializeIntegrationMethod();
+        }
+    }
 }
 
 /***********************************************************************************/
