@@ -38,6 +38,7 @@ class ContactProcess(KratosMultiphysics.Process):
             "augmentation_tangent"        : 0.0e0,
             "epsilon_DLM"                 : 1.0e3,
             "double_LM"                   : false,  
+            "simplify_geometry"           : false,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }
@@ -62,6 +63,7 @@ class ContactProcess(KratosMultiphysics.Process):
         self.augmentation_tangent     = self.params["augmentation_tangent"].GetDouble()
         self.epsilon_DLM              = self.params["epsilon_DLM"].GetDouble()
         self.consider_double_lm       = self.params["double_LM"].GetBool()
+        self.simplify_geometry        = self.params["simplify_geometry"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -104,9 +106,9 @@ class ContactProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string) 
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
