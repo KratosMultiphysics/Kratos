@@ -703,6 +703,9 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             foreach key [$cnd getDefaults $inName] {
                 set $key [$cnd getDefault $inName $key]
             }
+            
+            set has_units [$in getAttribute "has_units"]
+            if {$has_units ne ""} { set has_units "units='$units'  unit_magnitude='$um'"}
             if {$type eq "vector"} {
                 set vector_type [$in getAttribute "vectorType"]
                 lassign [split $v ","] v1 v2 v3
@@ -760,7 +763,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                                 </value>"
                             append node "<value n='$fname' pn='$i function' v='' help='$help'  $zstate />"
                         }
-                        append node "<value n='${inName}$i' wn='[concat $n "_$i"]' pn='$i ${pn}' v='$v1'  units='$units'  unit_magnitude='$um'  help='$help'  $zstate />"
+                        append node "<value n='${inName}$i' wn='[concat $n "_$i"]' pn='$i ${pn}' v='$v1' $has_units help='$help'  $zstate />"
                     }
                 }
                 
@@ -773,12 +776,10 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             } elseif { $type eq "file" || $type eq "tablefile" } {
                 append node "<value n='$inName' pn='$pn' v='$v' values='\[GetFilesValues\]' update_proc='AddFile' help='$help' state='$state' type='$type'/>"
             } else {
-                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
                 if {[$in getAttribute "function"] eq "1"} {
                     set fname "function_$inName"
                     set nodev "../value\[@n='$inName'\]"
                     set nodef "../value\[@n='$fname'\]"
-                    append node "<value n='$fname' pn='Function' v='' help='$help'/>"
                     append node "<value n='ByFunction' pn='By function' v='No' values='Yes,No'  actualize_tree='1'>
                         <dependencies value='No' node=\""
                     append node $nodev
@@ -793,7 +794,11 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                     append node $nodef
                     append node "\" att1='state' v1='normal'/>
                         </value>"
+                        
+                    append node "<value n='$fname' pn='Function' v='' help='$help'/>"
                 }
+                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
+
                 #append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
             }
         }
