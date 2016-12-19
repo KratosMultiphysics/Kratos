@@ -155,28 +155,31 @@ class StrainEnergyResponseFunction : ResponseFunction
     // ==============================================================================
     void initialize()
     {
-        // Check if specified elements in model_part allow for computation of the necessary sensitivity information
+        // In case of analytic sensitivity analysis, check if specified elements in model_part provide necessary sensitivity information.
         // To check, we compare if the class type of all the given elements in the model_part is among the elements
         // that provide the required sensitivity information (reference elements)
         // The reference class type is: "SmallDisplacementAnalyticSensitivityElement"
 
-        const char element_name[] = "SmallDisplacementAnalyticSensitivityElement3D4N";
-        Element const &reference_element = KratosComponents<Element>::Get(element_name);
+    	if(m_gradient_mode==1)
+    	{
+    		const char element_name[] = "SmallDisplacementAnalyticSensitivityElement3D4N";
+    		Element const &reference_element = KratosComponents<Element>::Get(element_name);
 
-        bool sensitivity_analysis_implemented = true;
-        for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-        {
-            Element const &given_element = mr_model_part.Elements()[elem_i->Id()];
+    		bool sensitivity_analysis_implemented = true;
+    		for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
+    		{
+    			Element const &given_element = mr_model_part.Elements()[elem_i->Id()];
 
-            if (typeid(given_element) != typeid(reference_element))
-            {
-                sensitivity_analysis_implemented = false;
-                break;
-            }
-        }
+    			if (typeid(given_element) != typeid(reference_element))
+    			{
+    				sensitivity_analysis_implemented = false;
+    				break;
+    			}
+    		}
 
-        if (!sensitivity_analysis_implemented)
-            KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
+    		if (!sensitivity_analysis_implemented)
+    			KRATOS_THROW_ERROR(std::logic_error, "Analytic sensitivity analysis for given element type not implemented. Please choose for complete model part elements that support an analytic sensitivity analysis", "");
+    	}
     }
 
     // --------------------------------------------------------------------------
@@ -184,9 +187,11 @@ class StrainEnergyResponseFunction : ResponseFunction
     {
         KRATOS_TRY;
 
-        // Working variables
+        // Working variables / vectors
         ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
         m_strain_energy = 0.0;
+		Vector u;
+		Vector RHS;
 
         // Computation of strain_energy = 1/2*u*f
         const int nconditions = static_cast<int>(mr_model_part.Conditions().size());
@@ -203,20 +208,8 @@ class StrainEnergyResponseFunction : ResponseFunction
 
             if (condition_is_active)
             {
-                // Matrices and vectors for this loop
-                const unsigned int local_size = cond_i->GetGeometry().size() * 3;
-                Vector u = Vector(local_size);
-                Vector RHS = Vector(0);
-
-                // Build displacement vector
-                int i = 0;
-                for (ModelPart::NodeIterator node_i = cond_i->GetGeometry().begin(); node_i != cond_i->GetGeometry().end(); ++node_i)
-                {
-                    u[3 * i + 0] = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
-                    u[3 * i + 1] = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);
-                    u[3 * i + 2] = node_i->FastGetSolutionStepValue(DISPLACEMENT_Z);
-                    i++;
-                }
+                // Get state solution relevant for energy calculation
+                cond_i->GetValuesVector(u,0);
 
                 // Calculate RHS
                 cond_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
@@ -366,8 +359,7 @@ class StrainEnergyResponseFunction : ResponseFunction
     {
         KRATOS_TRY;
 
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-            noalias(node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = 0.5 * node_i->FastGetSolutionStepValue(DISPLACEMENT);
+        // Adjoint field may be directly obtained from state solution
 
         KRATOS_CATCH("");
     }
@@ -383,40 +375,31 @@ class StrainEnergyResponseFunction : ResponseFunction
         // Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
         for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
         {
-            // Matrices and vectors for this loop
-            const unsigned int number_of_dofs = elem_i->GetGeometry().WorkingSpaceDimension() * elem_i->GetGeometry().size();
-            Vector u = ZeroVector(number_of_dofs);
-            Vector lambda = ZeroVector(number_of_dofs);
+    		Vector u;
+    		Vector lambda;
 
-            // Get adjoint variables
-            int i = 0;
-            for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
-            {
-                u[3 * i + 0] = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
-                u[3 * i + 1] = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);
-                u[3 * i + 2] = node_i->FastGetSolutionStepValue(DISPLACEMENT_Z);
-                lambda[3 * i + 0] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
-                lambda[3 * i + 1] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
-                lambda[3 * i + 2] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
-                i++;
-            }
+            // Get state solution
+        	elem_i->GetValuesVector(u,0);
+
+        	// Get adjoint variables (Corresponds to 1/2*u)
+        	lambda = 0.5*u;
 
             // Analytic computation of partial derivative of state equation w.r.t. node coordinates
             for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
             {
-                array_3d nodal_gradient(3, 0.0);
+                array_3d gradient_contribution(3, 0.0);
                 int node_index = node_i - elem_i->GetGeometry().begin();
 
                 // Specify node for which DKDXU (including DKDXU_X,DKDXU_Y,DKDXU_Z) shall be computed
                 elem_i->SetValue(ACTIVE_NODE_INDEX, node_index);
                 elem_i->Calculate(DKDXU, u, CurrentProcessInfo);
 
-                nodal_gradient[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
-                nodal_gradient[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
-                nodal_gradient[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
+                gradient_contribution[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
+                gradient_contribution[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
+                gradient_contribution[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
 
                 // Assemble gradient to node
-                noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += nodal_gradient;
+                noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
             }
         }
 
@@ -434,32 +417,27 @@ class StrainEnergyResponseFunction : ResponseFunction
         // Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
         for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
         {
-            // Matrices and vectors for this loop
-            const unsigned int local_size = elem_i->GetGeometry().size() * 3;
-            Vector lambda = Vector(local_size);
-            Vector RHS = Vector(0);
+    		Vector u;
+    		Vector lambda;
+    		Vector RHS;
 
-            // Get adjoint variables
-            int i = 0;
-            for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
-            {
-                lambda[3 * i + 0] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
-                lambda[3 * i + 1] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
-                lambda[3 * i + 2] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
-                i++;
-            }
+            // Get state solution
+        	elem_i->GetValuesVector(u,0);
 
-            // Semi-analytic approach (Finite difference of RHS)
+        	// Get adjoint variables (Corresponds to 1/2*u)
+        	lambda = 0.5*u;
+
+            // Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
             elem_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
             for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
             {
-                array_3d nodal_gradient(3, 0.0);
+                array_3d gradient_contribution(3, 0.0);
                 Vector perturbed_RHS = Vector(0);
 
                 // Pertubation, gradient analysis and recovery of x
                 node_i->X0() += m_delta;
                 elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                nodal_gradient[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                 node_i->X0() -= m_delta;
 
                 // Reset pertubed vector
@@ -468,7 +446,7 @@ class StrainEnergyResponseFunction : ResponseFunction
                 // Pertubation, gradient analysis and recovery of y
                 node_i->Y0() += m_delta;
                 elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                nodal_gradient[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                 node_i->Y0() -= m_delta;
 
                 // Reset pertubed vector
@@ -477,11 +455,11 @@ class StrainEnergyResponseFunction : ResponseFunction
                 // Pertubation, gradient analysis and recovery of z
                 node_i->Z0() += m_delta;
                 elem_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                nodal_gradient[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                 node_i->Z0() -= m_delta;
 
                 // Assemble sensitivity to node
-                noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += nodal_gradient;
+                noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
             }
         }
 
@@ -500,33 +478,25 @@ class StrainEnergyResponseFunction : ResponseFunction
 
             if (condition_is_active)
             {
+        		Vector u;
+        		Vector lambda;
+        		Vector RHS;
 
-                // Matrices and vectors for this loop
-                const unsigned int local_size = cond_i->GetGeometry().size() * 3;
-                Vector lambda = Vector(local_size);
-                Vector RHS = Vector(0);
+            	// Get adjoint variables (Corresponds to 1/2*u)
+        		cond_i->GetValuesVector(u,0);
+            	lambda = 0.5*u;
 
-                // Get adjoint variable
-                int i = 0;
-                for (ModelPart::NodeIterator node_i = cond_i->GetGeometry().begin(); node_i != cond_i->GetGeometry().end(); ++node_i)
-                {
-                    lambda[3 * i + 0] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
-                    lambda[3 * i + 1] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
-                    lambda[3 * i + 2] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
-                    i++;
-                }
-
-                // Semi-analytic approach (Finite difference of RHS)
+                // Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
                 cond_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
                 for (ModelPart::NodeIterator node_i = cond_i->GetGeometry().begin(); node_i != cond_i->GetGeometry().end(); ++node_i)
                 {
-                    array_3d nodal_gradient(3, 0.0);
+                    array_3d gradient_contribution(3, 0.0);
                     Vector perturbed_RHS = Vector(0);
 
                     // Pertubation, gradient analysis and recovery of x
                     node_i->X0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    nodal_gradient[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                     node_i->X0() -= m_delta;
 
                     // Reset pertubed vector
@@ -535,7 +505,7 @@ class StrainEnergyResponseFunction : ResponseFunction
                     // Pertubation, gradient analysis and recovery of y
                     node_i->Y0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    nodal_gradient[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                     node_i->Y0() -= m_delta;
 
                     // Reset pertubed vector
@@ -544,11 +514,11 @@ class StrainEnergyResponseFunction : ResponseFunction
                     // Pertubation, gradient analysis and recovery of z
                     node_i->Z0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    nodal_gradient[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
                     node_i->Z0() -= m_delta;
 
                     // Assemble shape gradient to node
-                    noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += nodal_gradient;
+                    noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
                 }
             }
         }
@@ -579,23 +549,13 @@ class StrainEnergyResponseFunction : ResponseFunction
 
             if (condition_is_active)
             {
+        		Vector u;
+        		Vector RHS;
 
-                // Matrices and vectors for this loop
-                const unsigned int local_size = cond_i->GetGeometry().size() * 3;
-                Vector lambda = Vector(local_size);
-                Vector RHS = Vector(0);
+            	// Get state solution
+        		cond_i->GetValuesVector(u,0);
 
-                // Get adjoint variable
-                int i = 0;
-                for (ModelPart::NodeIterator node_i = cond_i->GetGeometry().begin(); node_i != cond_i->GetGeometry().end(); ++node_i)
-                {
-                    lambda[3 * i + 0] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
-                    lambda[3 * i + 1] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
-                    lambda[3 * i + 2] = node_i->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
-                    i++;
-                }
-
-                // Semi-analytic approach (Finite difference of RHS)
+                // Perform finite differencing of RHS vector
                 cond_i->CalculateRightHandSide(RHS, CurrentProcessInfo);
                 for (ModelPart::NodeIterator node_i = cond_i->GetGeometry().begin(); node_i != cond_i->GetGeometry().end(); ++node_i)
                 {
@@ -605,7 +565,7 @@ class StrainEnergyResponseFunction : ResponseFunction
                     // Pertubation, gradient analysis and recovery of x
                     node_i->X0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[0] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
                     node_i->X0() -= m_delta;
 
                     // Reset pertubed vector
@@ -614,7 +574,7 @@ class StrainEnergyResponseFunction : ResponseFunction
                     // Pertubation, gradient analysis and recovery of y
                     node_i->Y0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[1] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
                     node_i->Y0() -= m_delta;
 
                     // Reset pertubed vector
@@ -623,7 +583,7 @@ class StrainEnergyResponseFunction : ResponseFunction
                     // Pertubation, gradient analysis and recovery of z
                     node_i->Z0() += m_delta;
                     cond_i->CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-                    gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / m_delta);
+                    gradient_contribution[2] = inner_prod(0.5*u, (perturbed_RHS - RHS) / m_delta);
                     node_i->Z0() -= m_delta;
 
                     // Assemble shape gradient to node

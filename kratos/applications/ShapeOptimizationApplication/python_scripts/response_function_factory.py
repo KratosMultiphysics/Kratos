@@ -81,9 +81,6 @@ def CreateSolver(model_part, opt_settings):
     else:
         raise ValueError("Specified response function not implemented. Implemented response functions are: \"strain_energy\"")
 
-    # Add variables used by every response function
-    model_part.AddNodalSolutionStepVariable(ADJOINT_DISPLACEMENT)
-
     return solver
 
 # ==============================================================================
