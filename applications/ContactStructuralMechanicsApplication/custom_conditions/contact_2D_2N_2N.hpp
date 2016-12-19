@@ -53,11 +53,11 @@ class Contact2D2N2N
 public:
     
     static inline bounded_matrix<double,12,12> ComputeGaussPointActiveLHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -66,24 +66,24 @@ public:
 {
     bounded_matrix<double,12,12> lhs;
     
-    const Matrix normalslave     = rContactData.Normal_s;
-    const Matrix tan1slave       = rContactData.Tangent_xi_s;
-    const Matrix lm              = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave   = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm          = rContactData.LagrangeMultipliers;
 //     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
 
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
-    const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
-    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
-    const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
+    const std::vector<array_1d<double,2>> DeltaPhi = rContactData.DeltaPhi;
+    const std::vector<array_1d<double,2>> DeltaN2  = rContactData.DeltaN2;
+    const std::vector<bounded_matrix<double, 2, 2>> DeltaNormals = rContactData.Delta_Normal_s;
     
     const double clhs0 =     N2[0]; // N2[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
     const double clhs1 =     DeltaN2[4][0]; // DERIVATIVE(N2[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
@@ -359,12 +359,12 @@ public:
     /***********************************************************************************/
     
     static inline bounded_matrix<double,12,12> ComputeGaussPointStickLHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -373,24 +373,24 @@ public:
 {
     bounded_matrix<double,12,12> lhs;
     
-    const Matrix normalslave     = rContactData.Normal_s;
-    const Matrix tan1slave       = rContactData.Tangent_xi_s;
-    const Matrix lm              = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
     
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
-    const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
-    const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
-    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
-    const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
+    const std::vector<array_1d<double,2>> DeltaPhi = rContactData.DeltaPhi;
+    const std::vector<array_1d<double,2>> DeltaN2  = rContactData.DeltaN2;
+    const std::vector<bounded_matrix<double, 2, 2>> DeltaNormals    = rContactData.Delta_Normal_s;
+    const std::vector<bounded_matrix<double, 2, 2>> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
     
     const double clhs0 =     1.0/Dt;
     const double clhs1 =     Phi[0]; // PHI[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -656,12 +656,12 @@ public:
     /***********************************************************************************/
     
     static inline bounded_matrix<double,12,12> ComputeGaussPointSlipLHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -670,26 +670,26 @@ public:
 {
     bounded_matrix<double,12,12> lhs;
     
-    const Matrix normalslave     = rContactData.Normal_s;
-    const Matrix tan1slave       = rContactData.Tangent_xi_s;
-    const Matrix lm              = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
 
     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
-    const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
-    const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
-    const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
-    const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
+    const std::vector<array_1d<double,2>> DeltaPhi = rContactData.DeltaPhi;
+    const std::vector<array_1d<double,2>> DeltaN2  = rContactData.DeltaN2;
+    const std::vector<bounded_matrix<double, 2, 2>> DeltaNormals    = rContactData.Delta_Normal_s;
+    const std::vector<bounded_matrix<double, 2, 2>> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
     
     const double clhs0 =     1.0/Dt;
     const double clhs1 =     Phi[0]; // PHI[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -956,12 +956,12 @@ public:
     /***********************************************************************************/
     
     static inline bounded_matrix<double,12,12> ComputeGaussPointInactiveLHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
 //         const Matrix DPhi, 
         const double detJ, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -970,25 +970,25 @@ public:
 {
     bounded_matrix<double,12,12> lhs;
     
-//     const Matrix normalslave     = rContactData.Normal_s;
-//     const Matrix tan1slave       = rContactData.Tangent_xi_s;
-//     const Matrix lm              = rContactData.LagrangeMultipliers;
+//     const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+//     const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+//     const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
 //     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
 //     
-//     const Vector GPnormal     = prod(trans(normalslave), N1);
-//     const Vector GPtangent1   = prod(trans(tan1slave), N1);
+//     const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+//     const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
 //     
-//     const Matrix v1 = rContactData.v1;
-//     const Matrix v2 = rContactData.v2;
+//     const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+//     const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
 // 
 //     const std::vector<double> DeltaJs         = rContactData.DeltaJ_s;
-//     const std::vector<Matrix> DeltaNormals    = rContactData.Delta_Normal_s;
+//     const std::vector<bounded_matrix<double, 2, 2>> DeltaNormals    = rContactData.Delta_Normal_s;
 //     const std::vector<Matrix> Deltatangentxis = rContactData.Delta_Tangent_xi_s;
 //     const std::vector<double> DeltaGap        = rContactData.DeltaGap;
-//     const std::vector<Vector> DeltaPhi        = rContactData.DeltaPhi;
-//     const std::vector<Vector> DeltaN2         = rContactData.DeltaN2;
+//     const std::vector<array_1d<double,2>> DeltaPhi        = rContactData.DeltaPhi;
+//     const std::vector<array_1d<double,2>> DeltaN2         = rContactData.DeltaN2;
 //
 //substitute_inactive_lhs
     
@@ -999,11 +999,11 @@ public:
     /***********************************************************************************/
     
     static inline array_1d<double,12> ComputeGaussPointActiveRHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -1012,17 +1012,17 @@ public:
 {
     array_1d<double,12> rhs;
     
-    const Matrix normalslave    = rContactData.Normal_s;
-    const Matrix tan1slave      = rContactData.Tangent_xi_s;
-    const Matrix lm             = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave    = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave      = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm             = rContactData.LagrangeMultipliers;
 //     const double Dt             = rContactData.Dt;
 //     const double epsilon_normal = rContactData.epsilon_normal;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
     
     const double crhs0 =     N2[0]; // N2[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
     const double crhs1 =     detJ; // DETJ(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1064,12 +1064,12 @@ public:
     /***********************************************************************************/
     
     static inline array_1d<double,12> ComputeGaussPointStickRHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -1078,18 +1078,18 @@ public:
 {
     array_1d<double,12> rhs;
     
-    const Matrix normalslave     = rContactData.Normal_s;
-    const Matrix tan1slave       = rContactData.Tangent_xi_s;
-    const Matrix lm              = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
     
     const double crhs0 =     tan1slave(0,0); // TAN1SLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
     const double crhs1 =     tan1slave(0,1); // TAN1SLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1124,12 +1124,12 @@ public:
     /***********************************************************************************/
     
     static inline array_1d<double,12> ComputeGaussPointSlipRHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -1138,20 +1138,20 @@ public:
 {
     array_1d<double,12> rhs;
     
-    const Matrix normalslave     = rContactData.Normal_s;
-    const Matrix tan1slave       = rContactData.Tangent_xi_s;
-    const Matrix lm              = rContactData.LagrangeMultipliers;
+    const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+    const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+    const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
     
-    const Vector GPnormal     = prod(trans(normalslave), N1);
-    const Vector GPtangent1   = prod(trans(tan1slave), N1);
+    const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+    const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
     
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
-    const Matrix v1 = rContactData.v1;
-    const Matrix v2 = rContactData.v2;
+    const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+    const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
     
     const double crhs0 =     tan1slave(0,0); // TAN1SLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
     const double crhs1 =     tan1slave(0,1); // TAN1SLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1186,11 +1186,11 @@ public:
     /***********************************************************************************/
     
     static inline array_1d<double,12> ComputeGaussPointInactiveRHS(
-        const Vector N1, 
-        const Vector N2, 
-        const Vector Phi, 
+        const array_1d<double,2> N1, 
+        const array_1d<double,2> N2, 
+        const array_1d<double,2> Phi, 
         const double detJ, 
-        const ContactData& rContactData,
+        const ContactData<2,2>& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
         const double& integration_point_gap,
@@ -1199,18 +1199,18 @@ public:
 {
     array_1d<double,12> rhs;
     
-//     const Matrix normalslave     = rContactData.Normal_s;
-//     const Matrix tan1slave       = rContactData.Tangent_xi_s;
-//     const Matrix lm              = rContactData.LagrangeMultipliers;
+//     const bounded_matrix<double, 2, 2> normalslave     = rContactData.Normal_s;
+//     const bounded_matrix<double, 2, 2> tan1slave       = rContactData.Tangent_xi_s;
+//     const bounded_matrix<double, 2, 2> lm              = rContactData.LagrangeMultipliers;
 //     const double Dt              = rContactData.Dt;
 //     const double epsilon_normal  = rContactData.epsilon_normal;
 //     const double epsilon_tangent = rContactData.epsilon_tangent;
 //     
-//     const Vector GPnormal     = prod(trans(normalslave), N1);
-//     const Vector GPtangent1   = prod(trans(tan1slave), N1);
+//     const array_1d<double,2> GPnormal     = prod(trans(normalslave), N1);
+//     const array_1d<double,2> GPtangent1   = prod(trans(tan1slave), N1);
 //     
-//     const Matrix v1 = rContactData.v1;
-//     const Matrix v2 = rContactData.v2;
+//     const bounded_matrix<double, 2, 2> v1 = rContactData.v1;
+//     const bounded_matrix<double, 2, 2> v2 = rContactData.v2;
 //     
 //substitute_inactive_rhs
     
