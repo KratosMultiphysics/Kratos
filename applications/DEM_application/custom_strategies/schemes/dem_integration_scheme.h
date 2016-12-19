@@ -96,6 +96,14 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
         
+        virtual void UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
+        
         virtual void QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
@@ -111,6 +119,14 @@ namespace Kratos {
                 array_1d<double, 3>& angular_velocity);
 
         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
+        
+        virtual void UpdateLocalAngularVelocity(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& partial_local_angular_velocity,
+                array_1d<double, 3 >& local_angular_velocity,
+                array_1d<double, 3 >& local_angular_acceleration,
+                double dt,
+                const bool Fix_Ang_vel[3]);
         
         virtual void CalculateLocalAngularAccelerationByEulerEquations(
                                     const Node < 3 > & i,

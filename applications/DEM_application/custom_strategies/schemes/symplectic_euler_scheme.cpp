@@ -99,6 +99,25 @@ namespace Kratos {
         }           
     }
     
+    void SymplecticEulerScheme::UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+
+        for (int k = 0; k < 3; k++) {
+            if (Fix_Ang_vel[k] == false) {
+                delta_rotation[k] = angular_velocity[k] * delta_t;
+                rotated_angle[k] += delta_rotation[k];
+            } else {
+                delta_rotation[k] = angular_velocity[k] * delta_t;
+                rotated_angle[k] += delta_rotation[k];
+            }
+        }
+    }
+    
     void SymplecticEulerScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],

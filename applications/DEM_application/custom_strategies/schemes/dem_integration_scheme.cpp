@@ -43,8 +43,8 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
         r_model_part.AddNodalSolutionStepVariable(ORIENTATION);
-        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL);
-        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG);
+        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL); // JIG: SHOULD BE REMOVED IN THE FUTURE
+        r_model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG); // JIG: SHOULD BE REMOVED IN THE FUTURE
         r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA);
         r_model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM); 
         
@@ -134,6 +134,16 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
     }    
     
+    void DEMIntegrationScheme::UpdateLocalAngularVelocity(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& partial_local_angular_velocity,
+                array_1d<double, 3 >& local_angular_velocity,
+                array_1d<double, 3 >& local_angular_acceleration,
+                double dt,
+                const bool Fix_Ang_vel[3]) {
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateLocalAngularVelocity) shouldn't be accessed, use derived class instead", 0);            
+    }
+    
     void DEMIntegrationScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
@@ -166,6 +176,16 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariablesOfCluster) shouldn't be accessed, use derived class instead", 0);
+    }
+    
+    void DEMIntegrationScheme::UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
     
     void DEMIntegrationScheme::QuaternionCalculateMidAngularVelocities(
@@ -290,39 +310,75 @@ namespace Kratos {
         Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+                
+        if (StepFlag != 1 && StepFlag != 2) {
 
-        array_1d<double, 3 > angular_momentum_aux;
-        angular_momentum_aux[0] = 0.0;
-        angular_momentum_aux[1] = 0.0;
-        angular_momentum_aux[2] = 0.0;
+            array_1d<double, 3 > angular_momentum_aux;
+            angular_momentum_aux[0] = 0.0;
+            angular_momentum_aux[1] = 0.0;
+            angular_momentum_aux[2] = 0.0;
 
-        if (Fix_Ang_vel[0] == true || Fix_Ang_vel[1] == true || Fix_Ang_vel[2] == true) {
-            double LocalTensor[3][3];
-            double GlobalTensor[3][3];
-            GeometryFunctions::ConstructLocalTensor(moments_of_inertia, LocalTensor);
-            GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
-            GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum_aux);
-        }
-
-        double dt = 0.0;
-
-        if (StepFlag == 1 || StepFlag == 2) {dt = 0.5*delta_t;}
-
-        else {dt = delta_t;}
-
-        for (int j = 0; j < 3; j++) {
-            if (Fix_Ang_vel[j] == false){
-                angular_momentum[j] += moment_reduction_factor * torque[j] * dt;
+            if (Fix_Ang_vel[0] == true || Fix_Ang_vel[1] == true || Fix_Ang_vel[2] == true) {
+                double LocalTensor[3][3];
+                double GlobalTensor[3][3];
+                GeometryFunctions::ConstructLocalTensor(moments_of_inertia, LocalTensor);
+                GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
+                GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum_aux);
             }
-            else {
-                angular_momentum[j] = angular_momentum_aux[j];
-            }
-        }                   
 
-        CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, dt, Fix_Ang_vel);
-        UpdateRotationalVariablesOfCluster(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, dt, Fix_Ang_vel);
-        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        
+
+            for (int j = 0; j < 3; j++) {
+                if (Fix_Ang_vel[j] == false){
+                    angular_momentum[j] += moment_reduction_factor * torque[j] * delta_t;
+                }
+                else {
+                    angular_momentum[j] = angular_momentum_aux[j];
+                }
+            }
+
+            CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            UpdateRotationalVariablesOfCluster(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, delta_t, Fix_Ang_vel);
+            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+
+        }//if (StepFlag != 1 && StepFlag != 2)
+                
+        if (StepFlag == 1 || StepFlag == 2) {
+            array_1d<double, 3 > local_angular_acceleration, local_torque, quarter_local_angular_velocity, quarter_angular_velocity, AuxAngularVelocity;
+            Quaternion<double  > & AuxOrientation = i.FastGetSolutionStepValue(AUX_ORIENTATION);
+            array_1d<double, 3 > & LocalAuxAngularVelocity = i.FastGetSolutionStepValue(LOCAL_AUX_ANGULAR_VELOCITY);
+
+            if (StepFlag == 1) { //PREDICT
+                //Angular velocity and torques are saved in the local framework:
+                GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+                CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque,moment_reduction_factor,local_angular_acceleration);
+
+                quarter_local_angular_velocity = local_angular_velocity + 0.25 * local_angular_acceleration * delta_t;
+                LocalAuxAngularVelocity        = local_angular_velocity + 0.5  * local_angular_acceleration * delta_t;
+
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, quarter_local_angular_velocity, quarter_angular_velocity);
+
+                array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
+                GeometryFunctions::UpdateOrientation(Orientation, AuxOrientation, rotation_aux);
+
+                GeometryFunctions::QuaternionVectorLocal2Global(AuxOrientation, LocalAuxAngularVelocity, AuxAngularVelocity);
+                UpdateRotationalVariables(i, rotated_angle, delta_rotation, AuxAngularVelocity, delta_t, Fix_Ang_vel);
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            }//if StepFlag == 1
+                    
+            if (StepFlag == 2) { //CORRECT
+                //Angular velocity and torques are saved in the local framework:
+                GeometryFunctions::QuaternionVectorGlobal2Local(AuxOrientation, torque, local_torque);
+                CalculateLocalAngularAccelerationByEulerEquations(i,LocalAuxAngularVelocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);
+                        
+                local_angular_velocity += local_angular_acceleration * delta_t;
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_velocity, angular_velocity);
+                        
+                GeometryFunctions::QuaternionVectorLocal2Global(AuxOrientation, LocalAuxAngularVelocity, AuxAngularVelocity);
+                UpdateRotationalVariables(i, rotated_angle, delta_rotation, AuxAngularVelocity, delta_t, Fix_Ang_vel);
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            }//if StepFlag == 2
+        }//if (StepFlag == 1 || StepFlag == 2)
+
         KRATOS_CATCH(" ")
     }
 }

@@ -126,6 +126,27 @@ namespace Kratos {
         }
     }
     
+    void VerletVelocityScheme::UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                const array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+        
+        double dt = 0.5 * delta_t;
+
+        for (int k = 0; k < 3; k++) {
+            if (Fix_Ang_vel[k] == false) {
+                delta_rotation[k] = angular_velocity[k] * dt;
+                rotated_angle[k] += delta_rotation[k];
+            } else {
+                delta_rotation[k] = angular_velocity[k] * dt;
+                rotated_angle[k] += delta_rotation[k];
+            }
+        }
+    }
+    
     void VerletVelocityScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
