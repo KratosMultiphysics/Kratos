@@ -69,7 +69,7 @@ proc ::EmbeddedFluid::BeforeMeshGeneration {elementsize} {
 
 proc ::EmbeddedFluid::AfterMeshGeneration {fail} {
     variable oldVolumeMesher
-    # GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 0 escape escape
+    GiD_Process Escape Escape Utilities Variables EmbeddedMesh Activated 0 escape escape
     GiD_Set VolumeMesher $oldVolumeMesher
 }
 
