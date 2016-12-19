@@ -70,21 +70,22 @@ void ComputeComponentGradientSimplex<2,3>::AddRHSGradient(VectorType& F,
 {
     double Coef = Weight;
     int LocalIndex = 0;
+
     for (unsigned int iNodeB = 0; iNodeB < 3; ++iNodeB){
 
-        for (unsigned int iNodeA = 0; iNodeA < 3; ++iNodeA){
-            double NodalComponent = 0.0;
-
-            if (mCurrentComponent == 'X'){
-                NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X);
-            }
-            else if (mCurrentComponent == 'Y'){
-                NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y);
-            }
-
+        for (unsigned int di = 0; di < 2; ++di){
             double value = 0.0;
 
-            for (unsigned int di = 0; di < 2; ++di){
+            for (unsigned int iNodeA = 0; iNodeA < 3; ++iNodeA){
+                double NodalComponent = 0.0;
+
+                if (mCurrentComponent == 'X'){
+                    NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X);
+                }
+                else if (mCurrentComponent == 'Y'){
+                    NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y);
+                }
+
                 value += rShapeFunc[iNodeB] * rShapeDeriv(iNodeA, di) * NodalComponent;
             }
 
@@ -101,24 +102,24 @@ void ComputeComponentGradientSimplex<3,4>::AddRHSGradient(VectorType& F,
 {
     double Coef = Weight;
     int LocalIndex = 0;
+
     for (unsigned int iNodeB = 0; iNodeB < 4; ++iNodeB){
 
-        for (unsigned int iNodeA = 0; iNodeA < 4; ++iNodeA){
-            double NodalComponent = 0.0;
-
-            if (mCurrentComponent == 'X'){
-                NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X);
-            }
-            else if (mCurrentComponent == 'Y'){
-                NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y);
-            }
-            else if (mCurrentComponent == 'Z'){
-                NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z);
-            }
-
+        for (unsigned int di = 0; di < 3; ++di){
             double value = 0.0;
 
-            for (unsigned int di = 0; di < 3; ++di){
+            for (unsigned int iNodeA = 0; iNodeA < 4; ++iNodeA){
+                double NodalComponent = 0.0;
+
+                if (mCurrentComponent == 'X'){
+                    NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X);
+                }
+                else if (mCurrentComponent == 'Y'){
+                    NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y);
+                }
+                else if (mCurrentComponent == 'Z'){
+                    NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z);
+                }
                 value += rShapeFunc[iNodeB] * rShapeDeriv(iNodeA, di) * NodalComponent;
             }
 
