@@ -123,8 +123,8 @@ public:
      * @param ThisNodes An array containing the nodes of the new element
      */
     ComputeComponentGradientSimplex(IndexType NewId, const NodesArrayType& ThisNodes) :
-        Element(NewId), mCurrentComponent('X')
-    {}
+        Element(NewId, ThisNodes), mCurrentComponent('X')
+    {}	
 
     /// Constructor using a geometry object.
     /**
@@ -132,7 +132,7 @@ public:
      * @param pGeometry Pointer to a geometry object
      */
     ComputeComponentGradientSimplex(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId), mCurrentComponent('X')
+        Element(NewId, pGeometry), mCurrentComponent('X')
     {}
 
     /// Constuctor using geometry and properties.
@@ -142,7 +142,7 @@ public:
      * @param pProperties Pointer to the element's properties
      */
     ComputeComponentGradientSimplex(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId), mCurrentComponent('X')
+       Element(NewId, pGeometry, pProperties), mCurrentComponent('X')
     {}
 
     /// Destructor.
@@ -188,12 +188,12 @@ public:
             mCurrentComponent = 'Y';
         }
 
-        else if (current_component == 1){
+        else if (current_component == 2){
             mCurrentComponent = 'Z';
         }
 
         else {
-            KRATOS_THROW_ERROR(std::invalid_argument,"The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", mCurrentComponent);
+            KRATOS_THROW_ERROR(std::invalid_argument, "The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", current_component);
         }
 
         const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
