@@ -1162,8 +1162,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
         {
-            rContactData.Normal_s(i_slave, i_dim)  = normal[i_dim];
-            rContactData.Tangent_xi_s(i_slave, i_dim) = tangent_xi[i_dim];
+            rContactData.Normal_s(i_slave, i_dim)      = normal[i_dim];
+            rContactData.Tangent_xi_s(i_slave, i_dim)  = tangent_xi[i_dim];
             rContactData.Tangent_eta_s(i_slave, i_dim) = tangent_eta[i_dim];
         }
     }
@@ -1478,8 +1478,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
                 Matrix tangent_matrix;
                 tangent_matrix.resize(TDim - 1, TDim);
 
-                const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-                const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+                const array_1d<double, 3> tangent1 = this->GetValue(TANGENT_XI);
+                const array_1d<double, 3> tangent2 = this->GetValue(TANGENT_ETA);
+//                 const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+//                 const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
                 for (unsigned int i = 0; i < TDim; i++)
                 {
                     tangent_matrix(0, i) = tangent1[i];
