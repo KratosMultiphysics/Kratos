@@ -74,7 +74,7 @@ namespace Kratos {
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
         
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
-                
+        
         if (normal_contact_force < 0.0) {
             normal_contact_force = 0.0;
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
@@ -184,11 +184,11 @@ namespace Kratos {
         
         LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
-        
+
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
         
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
-                
+
         if (normal_contact_force < 0.0) {
             normal_contact_force = 0.0;
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
@@ -230,13 +230,13 @@ namespace Kratos {
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         
-        AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-        
         if (previous_indentation > indentation) {
             const double minoring_factor = sqrt (indentation / previous_indentation);
             LocalElasticContactForce[0] = OldLocalElasticContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
             LocalElasticContactForce[1] = OldLocalElasticContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
         }
+        
+        AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
         const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
         const double neighbour_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
