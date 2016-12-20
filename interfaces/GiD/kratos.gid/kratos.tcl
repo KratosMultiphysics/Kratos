@@ -86,6 +86,21 @@ proc AfterMeshGeneration { fail } {
     Kratos::AfterMeshGeneration $fail
 }
 
+proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
+    set run 1
+    
+    catch {
+        set paralleltype [write::getValue ParallelType]
+        if {$paralleltype eq "MPI"} {set run 0}
+    }
+    if {$run} {
+        return ""
+    } {
+        return [list "-cancel-" [= "You have selected MPI parallelism system.\nInput files have been written." ]]
+    }
+    
+}
+
 ##########################################################
 #################### Kratos namespace ####################
 ##########################################################

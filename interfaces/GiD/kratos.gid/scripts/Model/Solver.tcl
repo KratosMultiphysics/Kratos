@@ -9,9 +9,15 @@ catch {Solver destroy}
 oo::class create Solver {
     superclass Entity
     
+    variable parallelism 
     constructor {n} {
         next $n
+        variable parallelism
+        set parallelism OpenMP
     }
+    
+    method setParallelism {partype} {variable parallelism; set parallelism $partype}
+    method getParallelism { } {variable parallelism; return $parallelism}
 }
 
 # Clase Solution Strategey
@@ -61,6 +67,7 @@ proc Model::ParseSolverNode { node } {
     
     set sl [::Model::Solver new $name]
     $sl setPublicName [$node getAttribute pn]
+    if {[$node hasAttribute Parallelism]} {$sl setParallelism [$node getAttribute Parallelism]}
     foreach attr [$node attributes] {
         $sl setAttribute $attr [$node getAttribute $attr]
     }
