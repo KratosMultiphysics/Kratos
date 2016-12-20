@@ -179,6 +179,7 @@ public:
     std::vector<double> DeltaJ_s;
     std::vector<double> DeltaGap;
     std::vector<array_1d<double, TNumNodes >> DeltaPhi;
+    std::vector<array_1d<double, TNumNodes >> DeltaN1;
     std::vector<array_1d<double, TNumNodes >> DeltaN2;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_xi_s;
@@ -238,6 +239,7 @@ public:
         DeltaJ_s.resize(rNumberOfSlaveNodes * rDimension);
         DeltaGap.resize(2 * rNumberOfSlaveNodes * rDimension);
         DeltaPhi.resize(rNumberOfSlaveNodes * rDimension);
+        DeltaN1.resize(2 * rNumberOfSlaveNodes * rDimension);
         DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension);
         Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
@@ -245,6 +247,8 @@ public:
         for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
         {
             DeltaPhi[i] = ZeroVector(rNumberOfSlaveNodes);
+            DeltaN1[i] = ZeroVector(rNumberOfSlaveNodes);
+            DeltaN1[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
             DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
             DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
             Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
@@ -1116,7 +1120,7 @@ protected:
     
     void CalculateDeltaNormalMaster(ContactData<TDim, TNumNodes>& rContactData);
     
-    void CalculateDeltaN2AndDeltaGap(
+    void CalculateDeltaNAndDeltaGap(
         GeneralVariables& rVariables,
         ContactData<TDim, TNumNodes>& rContactData
         );
@@ -1151,7 +1155,7 @@ protected:
      * Calculates the matrix De
      */
     bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
-        const VectorType N1, 
+        const array_1d<double, TNumNodes> N1, 
         const double detJ 
         );
     
@@ -1159,7 +1163,7 @@ protected:
      * Calculates the matrix De
      */
     bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
-        const VectorType N1, 
+        const array_1d<double, TNumNodes> N1, 
         const double detJ 
         );
     

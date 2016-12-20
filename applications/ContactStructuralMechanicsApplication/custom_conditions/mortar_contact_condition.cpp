@@ -997,7 +997,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 
                 // Update the derivatives
                 this->CalculateDeltaDetJSlave(rVariables, rContactData);
-                this->CalculateDeltaN2AndDeltaGap(rVariables, rContactData);
+                this->CalculateDeltaNAndDeltaGap(rVariables, rContactData);
                 this->CalculateDeltaPhi(rVariables, rContactData);
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
@@ -1315,7 +1315,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAeComponent
     )
 {
     /* DEFINITIONS */
-    const VectorType N1 = rVariables.N_Slave;
+    const array_1d<double, TNumNodes> N1 = rVariables.N_Slave;
     const double detJ = rVariables.DetJSlave; 
      
     rContactData.De += rIntegrationWeight * this->ComputeDe( N1, detJ);
@@ -1353,7 +1353,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaAeComponent
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 bounded_matrix<double, TNumNodes, TNumNodes> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeDe(
-        const VectorType N1, 
+        const array_1d<double, TNumNodes> N1, 
         const double detJ 
         )
 {
@@ -1378,7 +1378,7 @@ bounded_matrix<double, TNumNodes, TNumNodes> MortarContactCondition<TDim,TNumNod
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 bounded_matrix<double, TNumNodes, TNumNodes> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeMe(
-        const VectorType N1, 
+        const array_1d<double, TNumNodes> N1, 
         const double detJ 
         )
 {
@@ -2630,7 +2630,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaste
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaN2AndDeltaGap(
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGap(
    GeneralVariables& rVariables,
    ContactData<TDim, TNumNodes>& rContactData
    )
