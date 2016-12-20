@@ -40,6 +40,10 @@ from KratosMultiphysics.ExternalSolversApplication import *
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
+parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
+if parallel_type == "MPI":
+    import KratosMultiphysics.mpi as KratosMPI
+
 # Set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 
@@ -101,7 +105,7 @@ list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOf
 #    p = interface_file.Factory(item, Model)
 #    list_of_processes.append( p )
 #    print("done ",i)
-            
+
 #print list of constructed processes
 if(echo_level>1):
     for process in list_of_processes:
@@ -120,13 +124,19 @@ computing_model_part = solver.GetComputingModelPart()
 
 problem_path = os.getcwd()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
+output_settings = ProjectParameters["output_configuration"]
 
 # Initialize GiD  I/O (gid outputs, file_lists)
-from gid_output_process import GiDOutputProcess
-output_settings = ProjectParameters["output_configuration"]
-gid_output = GiDOutputProcess(computing_model_part,
-                              problem_name,
-                              output_settings)
+if parallel_type == "OpenMP":
+    from gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(computing_model_part,
+                                  problem_name,
+                                  output_settings)
+elif parallel_type == "MPI":
+    from gid_output_process_mpi import GiDOutputProcessMPI
+    gid_output = GiDOutputProcessMPI(computing_model_part,
+                                     problem_name,
+                                     output_settings)
 
 gid_output.ExecuteInitialize()
 
@@ -136,8 +146,9 @@ gid_output.ExecuteInitialize()
 solver.Initialize()
 solver.SetEchoLevel(echo_level)
 
-print(" ")
-print("::[KSM Simulation]:: Analysis -START- ")
+if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+    print(" ")
+    print("::[KSM Simulation]:: Analysis -START- ")
 
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
@@ -176,27 +187,30 @@ while(time <= end_time):
     main_model_part.ProcessInfo[TIME_STEPS] = step
     main_model_part.CloneTimeStep(time)
 
+    if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print(" [STEP:",step," TIME:",time,"]")
+
     # Print process info
 
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
-        
+
     solver.Solve()
 
     gid_output.ExecuteFinalizeSolutionStep()
-        
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-    
+
     # Write results and restart files: (frequency writing is controlled internally by the gid_io)
     if gid_output.IsOutputStep():
         gid_output.PrintOutput()
-                      
+
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
@@ -207,23 +221,20 @@ gid_output.ExecuteFinalize()
 for process in list_of_processes:
     process.ExecuteFinalize()
 
-print("::[KSM Simulation]:: Analysis -END- ")
-print(" ")
-
 # Check solving information for any problem
 #~ solver.InfoCheck() # InfoCheck not implemented yet.
 
 #### END SOLUTION ####
 
-# Measure process time
-tfp = timer.clock()
-# Measure wall time
-tfw = timer.time()
+if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+    print("::[KSM Simulation]:: Analysis -END- ")
+    print(" ")
 
-print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+    # Measure process time
+    tfp = timer.clock()
+    # Measure wall time
+    tfw = timer.time()
 
-print(timer.ctime())
+    print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
-
-
-
+    print(timer.ctime())
