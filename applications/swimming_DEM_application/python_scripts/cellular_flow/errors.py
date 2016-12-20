@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 
 regular_mesh = True
-n_divs = [10, 20]
+n_divs = [10, 20, 40, 80]
 if regular_mesh:
     sizes = [1.0 / n_div for n_div in n_divs]
 else:
@@ -33,8 +33,7 @@ def FillVectors(recovery_type, mat_deriv_average_errors, mat_deriv_max_errors, l
                 mat_deriv_average_errors[i_size] += error
                 mat_deriv_max_errors[i_size] = max(mat_deriv_max_errors[i_size], error)
         mat_deriv_average_errors[i_size] /= i_line
-        if recovery_type == 5:
-            recovery_type = 4
+
         with open('errors_recorded/laplacian_errors_' + mesh_tag + '_type_' + str(recovery_type) + '.txt', 'r') as errors_file:
             i_line = 0
             for line in errors_file:                
@@ -61,28 +60,28 @@ for method in recovery_types:
         mat_deriv_type = 'standard'
         line_width = 1
         color = 'r'
-        marker_type = '-o'
-        marker_size = 10
+        marker_type = '--'
+        marker_size = 20
     elif method == 2:
         mat_deriv_type = 'superconvergent'
         line_width = 1
         color = 'k'
-        marker_type = '-o'
-        marker_size = 10
+        marker_type = '-+'
+        marker_size = 20
         
     elif method == 3:
         mat_deriv_type = 'L2 (lumped)'
         line_width = 1
         color = 'b'
         marker_type = '-*'
-        marker_size = 10
+        marker_size = 5
         
     elif method == 4:
         mat_deriv_type = 'L2'
         line_width = 1
         color = 'b'
         marker_type = '-*'
-        marker_size = 20
+        marker_size = 15
         
     elif method == 5:
         mat_deriv_type = 'L2 only gradient'
@@ -92,7 +91,7 @@ for method in recovery_types:
         marker_size = 30
 
     plt.plot(sizes, mat_deriv_average_errors, marker_type, ms = marker_size, color=color, label= mat_deriv_type + ' material derivative (average)', linewidth = line_width, linestyle='solid', markersize = 20)
-    #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
+    #plt.plot(sizes, mat_deriv_max_errors, marker_type, ms = marker_size, color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     #plt.plot(sizes, laplacian_average_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (average)', linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     min_error = min(min_error, mat_deriv_average_errors[-1], laplacian_average_errors[-1])
