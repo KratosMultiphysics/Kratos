@@ -33,6 +33,7 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
+    spdAux::SetValueOnTreeItem values OpenMP ParallelType 
     
 }
 
