@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolStrat" pn="Solution" un="SLStratSection" help="Solution Strategy" open_window="0">
+<container n="SolStrat" pn="Solution" un="SLStratSection" help="Solution Strategy" icon="solution" open_window="0">
       <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" open_window="0">
 			<value n="StartTime" pn="Start time" v="0.0" help=""/>
 			<value n="EndTime" pn="End time" v="1.0" help=""/>

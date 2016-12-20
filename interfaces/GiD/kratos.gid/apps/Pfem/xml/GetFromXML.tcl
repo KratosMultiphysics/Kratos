@@ -34,10 +34,6 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
     
-    for {set i 0} {$i < 3} {incr i} {
-        GiD_Groups create "Group $i"
-        spdAux::AddConditionGroupOnXPath "[spdAux::getRoute "PFEM_NodalConditions"]/condition\[@n='PRESSURE'\]" "Group $i"
-    }
 }
 
 proc Pfem::xml::CheckElementOutputState { domNode args } {
