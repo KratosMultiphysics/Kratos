@@ -33,10 +33,10 @@ class DerivativeRecoveryStrategy:
 
         self.AddDofs(fluid_model_part)
         self.CreateCPluPlusStrategies(pp.CFD_DEM.recovery_echo_level)
-
-        if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.material_acceleration_calculation_type == 5:
+        
+        if pp.CFD_DEM.material_acceleration_calculation_type == 3:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
-        elif pp.CFD_DEM.material_acceleration_calculation_type == 4:
+        elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5:
             fluid_model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 0
 
 
@@ -62,15 +62,15 @@ class DerivativeRecoveryStrategy:
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-        linear_solver = SuperLUIterativeSolver()
+        #linear_solver = CGSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()        
-        #amgcl_smoother = AMGCLSmoother.ILU0
-        #amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-        #tolerance = 1e-6
-        #max_iterations = 1000
-        #verbosity = 0 #0->shows no information, 1->some information, 2->all the information
-        #gmres_size = 50
-        #linear_solver = AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
+        amgcl_smoother = AMGCLSmoother.ILU0
+        amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
+        tolerance = 1e-6
+        max_iterations = 1000
+        verbosity = 0 #0->shows no information, 1->some information, 2->all the information
+        gmres_size = 50
+        linear_solver = AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
 
         if self.do_recover_acceleration or self.do_recover_gradient:
             self.acc_strategy = ResidualBasedLinearStrategy(self.acc_model_part, scheme, linear_solver, False, True, False, False)
@@ -82,8 +82,10 @@ class DerivativeRecoveryStrategy:
 
     def Solve(self, component = None):
         if self.do_recover_acceleration or self.do_recover_gradient:
-            print("\nSolving for the fluid acceleration...")
-            sys.stdout.flush()
+            if self.do_recover_acceleration:
+                print("\nSolving for the fluid acceleration...")
+                sys.stdout.flush()
+
             if component == None:
                 for node in self.fluid_model_part.Nodes:
                     node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, 0.0)
@@ -103,23 +105,25 @@ class DerivativeRecoveryStrategy:
                     node.SetSolutionStepValue(VELOCITY_COMPONENT_GRADIENT_Z, 0.0)                
 
             self.acc_strategy.Solve()
+            
+            if self.do_recover_acceleration:
+                print("\nFinished solving for the fluid acceleration.\n")
+                sys.stdout.flush()
 
-            print("\nFinished solving for the fluid acceleration.\n")
-            sys.stdout.flush()
+        if component == None:                
+            if self.do_recover_laplacian:
+                print("\nSolving for the velocity laplacian...")
+                sys.stdout.flush()
 
-        if self.do_recover_laplacian:
-            print("\nSolving for the velocity laplacian...")
-            sys.stdout.flush()
+                for node in self.fluid_model_part.Nodes:
+                    node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, 0.0)
 
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, 0.0)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, 0.0)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, 0.0)
+                self.lapl_strategy.Solve()
 
-            self.lapl_strategy.Solve()
-
-            print("\nFinished solving for the velocity laplacian.\n")
-            sys.stdout.flush()
+                print("\nFinished solving for the velocity laplacian.\n")
+                sys.stdout.flush()
 
     def Recover(self):
         if self.pp.CFD_DEM.gradient_calculation_type == 1:
@@ -137,7 +141,11 @@ class DerivativeRecoveryStrategy:
                 self.derivative_recovery_tool.RecoverSuperconvergentMatDeriv(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
             elif self.pp.CFD_DEM.material_acceleration_calculation_type == 1:
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivative(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
-            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
+            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
+                self.Solve()
+            if self.pp.CFD_DEM.material_acceleration_calculation_type == 5:
+                print("\nSolving for the fluid acceleration...")
+                sys.stdout.flush()
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
                 self.Solve(0)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
@@ -147,7 +155,7 @@ class DerivativeRecoveryStrategy:
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
                 self.Solve(2)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
-            elif self.pp.CFD_DEM.material_acceleration_calculation_type == 3 or self.pp.CFD_DEM.laplacian_calculation_type == 3 or self.pp.CFD_DEM.material_acceleration_calculation_type == 4 or self.pp.CFD_DEM.laplacian_calculation_type == 4:
-                self.Solve()
+                print("\nFinished solving for the fluid acceleration.\n")
+                sys.stdout.flush()
 
 
