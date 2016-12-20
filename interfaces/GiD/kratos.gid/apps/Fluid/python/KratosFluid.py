@@ -16,7 +16,7 @@ parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
 
-## Fluid model part definition 
+## Fluid model part definition
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
@@ -36,10 +36,16 @@ solver.ImportModelPart()
 solver.AddDofs()
 
 ## Initialize GiD  I/O
-from gid_output_process import GiDOutputProcess
-gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
-                              ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                              ProjectParameters["output_configuration"])
+if ProjectParameters["problem_data"]["parallel_type"].GetString() == "OpenMP":
+    from gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
+                                  ProjectParameters["problem_data"]["problem_name"].GetString() ,
+                                  ProjectParameters["output_configuration"])
+elif ProjectParameters["problem_data"]["parallel_type"].GetString() == "MPI":
+    from gid_output_process_mpi import GiDOutputProcessMPI
+    gid_output = GiDOutputProcessMPI(solver.GetComputingModelPart(),
+                                     ProjectParameters["problem_data"]["problem_name"].GetString() ,
+                                     ProjectParameters["output_configuration"])
 
 gid_output.ExecuteInitialize()
 
@@ -52,7 +58,7 @@ solver.Initialize()
 for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
     skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
     Model.update({skin_part_name: main_model_part.GetSubModelPart(skin_part_name)})
-    
+
 #~ ## Get the list of the no-skin submodel parts in the object Model
 #~ for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
     #~ no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
@@ -62,16 +68,16 @@ for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
 for i in range(ProjectParameters["initial_conditions_process_list"].size()):
     initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
     Model.update({initial_cond_part_name: main_model_part.GetSubModelPart(initial_cond_part_name)})
-    
+
 ## Get the gravity submodel part in the object Model
-for i in range(ProjectParameters["gravity"].size()):   
+for i in range(ProjectParameters["gravity"].size()):
     gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
     Model.update({gravity_part_name: main_model_part.GetSubModelPart(gravity_part_name)})
 
 
-## Processes construction    
+## Processes construction
 import process_factory
-# "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity) 
+# "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
 # Note 1: gravity is firstly constructed. Outlet process might need its information.
 # Note 2: conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
@@ -110,23 +116,23 @@ while(time <= end_time):
     if(step >= 3):
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-        
+
         gid_output.ExecuteInitializeSolutionStep()
-        
+
         solver.Solve()
-        
+
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
-            
+
         gid_output.ExecuteFinalizeSolutionStep()
 
         #TODO: decide if it shall be done only when output is processed or not
         for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
-    
+
         if gid_output.IsOutputStep():
             gid_output.PrintOutput()
-        
+
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()
 
@@ -134,18 +140,5 @@ while(time <= end_time):
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-    
+
 gid_output.ExecuteFinalize()
-
-
-
-
-
-
-
-
-
-
-
-
-
