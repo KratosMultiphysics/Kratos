@@ -191,7 +191,6 @@ public:
             for (unsigned int j=0; j<LocalSize; ++j){
                 rLeftHandSideMatrix(i, j) = 0.0;
             }
-            rLeftHandSideMatrix(i, i) = 0.0;
             rRightHandSideVector(i) = 0.0;
         }
 
@@ -202,8 +201,7 @@ public:
         CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         //getting data for the given geometry
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-        this->AddRHSLaplacian(rRightHandSideVector, DN_DX, Area);
+        CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
     }
 
 
@@ -543,10 +541,29 @@ private:
         }
     }
 
-    void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
+    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+    {
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
+        MatrixType NContainer;
+        ShapeFunctionDerivativesArrayType DN_DXContainer;
+        VectorType GaussWeights;
+        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
+        const SizeType NumGauss = NContainer.size1();
 
-    void AddRHSLaplacian(VectorType& F,
+        for (SizeType g = 0; g < NumGauss; g++){
+            const double GaussWeight = GaussWeights[g];
+            this->AddRHSLaplacian(F, DN_DX, GaussWeight);
+        }
+
+    }
+
+   void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
+   void AddRHSLaplacian(VectorType& F,
                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                          const double Weight);
     ///@}
