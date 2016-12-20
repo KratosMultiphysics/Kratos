@@ -89,7 +89,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if self.settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = self.settings["value"].GetDouble()
-        else:            
+        else:   
+            self.value = self.settings["value"].GetString()
             self.function_expression = self.settings["value"].GetString()
             
             if (sys.version_info > (3, 0)):
