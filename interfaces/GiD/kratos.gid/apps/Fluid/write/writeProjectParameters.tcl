@@ -1,9 +1,9 @@
 # Project Parameters
 proc ::Fluid::write::getParametersDict { } {
     variable BCUN
-    
+
     set projectParametersDict [dict create]
-    
+
     # First section -> Problem data
     set problemDataDict [dict create]
     set model_name [file tail [GiD_Info Project ModelName]]
@@ -11,19 +11,29 @@ proc ::Fluid::write::getParametersDict { } {
     dict set problemDataDict model_part_name "MainModelPart"
     set nDim [expr [string range [write::getValue nDim] 0 0]]
     dict set problemDataDict domain_size $nDim
-    
-   
+
+    # Parallelization
+    set paralleltype [write::getValue ParallelType]
+    dict set problemDataDict "parallel_type" $paralleltype
+    if {$paralleltype eq "OpenMP"} {
+        #set nthreads [write::getValue Parallelization OpenMPNumberOfThreads]
+        #dict set problemDataDict NumberofThreads $nthreads
+    } else {
+        #set nthreads [write::getValue Parallelization MPINumberOfProcessors]
+        #dict set problemDataDict NumberofProcessors $nthreads
+    }
+
     # Time Parameters
-    dict set problemDataDict start_step [write::getValue FLTimeParameters StartTime] 
+    dict set problemDataDict start_step [write::getValue FLTimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue FLTimeParameters EndTime]
     dict set problemDataDict time_step [write::getValue FLTimeParameters DeltaTime]
     #dict set problemDataDict divergence_step [expr [write::getValue FLTimeParameters DivergenceCleareanceStep]]
-    
+
     dict set projectParametersDict problem_data $problemDataDict
-    
+
     # output configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
-    
+
     # restart options
     set restartDict [dict create]
     dict set restartDict SaveRestart False
@@ -31,19 +41,19 @@ proc ::Fluid::write::getParametersDict { } {
     dict set restartDict LoadRestart False
     dict set restartDict Restart_Step 0
     dict set projectParametersDict restart_options $restartDict
-    
+
     # Solver settings
     set solverSettingsDict [dict create]
     set currentStrategyId [write::getValue FLSolStrat]
     set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
     dict set solverSettingsDict solver_type $strategy_write_name
-    
+
     # model import settings
     set modelDict [dict create]
     dict set modelDict input_type "mdpa"
     dict set modelDict input_filename $model_name
     dict set solverSettingsDict model_import_settings $modelDict
-    
+
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Fluid] ]
     # Parts
@@ -52,15 +62,15 @@ proc ::Fluid::write::getParametersDict { } {
     dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
     # No skin parts
     dict set solverSettingsDict no_skin_parts [getNoSkinConditionMeshId]
-    
+
     dict set projectParametersDict solver_settings $solverSettingsDict
-        
+
     # Boundary conditions processes
     dict set projectParametersDict initial_conditions_process_list [write::getConditionsParametersDict "FLNodalConditions" "Nodal"]
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
     dict set projectParametersDict gravity [list [getGravityProcessDict] ]
- 
-    return $projectParametersDict   
+
+    return $projectParametersDict
 }
 
 proc Fluid::write::writeParametersEvent { } {
@@ -73,8 +83,8 @@ proc Fluid::write::writeParametersEvent { } {
 proc Fluid::write::getGravityProcessDict {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
-    set value [write::getValue FLGravity GravityValue] 
+
+    set value [write::getValue FLGravity GravityValue]
     set cx [write::getValue FLGravity Cx]
     set cy [write::getValue FLGravity Cy]
     set cz [write::getValue FLGravity Cz]
@@ -91,7 +101,7 @@ proc Fluid::write::getGravityProcessDict {} {
     dict set params "modulus" $value
     dict set params "direction" [list $cx $cy $cz]
     dict set pdict "Parameters" $params
-    
+
     return $pdict
 }
 
@@ -100,10 +110,10 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
     variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set listOfBCGroups [list ]
     set xp1 "[spdAux::getRoute $BCUN]/condition/group"
-    set groups [$root selectNodes $xp1]    
+    set groups [$root selectNodes $xp1]
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
@@ -113,7 +123,7 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
             if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
         }
     }
-    
+
     return $listOfBCGroups
 }
 
@@ -122,10 +132,10 @@ proc Fluid::write::getNoSkinConditionMeshId {} {
     variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set listOfNoSkinGroups [list ]
     set xp1 "[spdAux::getRoute $BCUN]/condition/group"
-    set groups [$root selectNodes $xp1]    
+    set groups [$root selectNodes $xp1]
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
@@ -135,7 +145,6 @@ proc Fluid::write::getNoSkinConditionMeshId {} {
             if {$gname ni $listOfNoSkinGroups} {lappend listOfNoSkinGroups $gname}
         }
     }
-    
+
     return $listOfNoSkinGroups
 }
-
