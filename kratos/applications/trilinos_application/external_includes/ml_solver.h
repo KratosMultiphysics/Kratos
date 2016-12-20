@@ -55,7 +55,7 @@ public:
     typedef typename BaseType::DenseMatrixType DenseMatrixType;
 
     typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
-  
+
     typedef typename BaseType::VectorPointerType VectorPointerType;
 
     typedef typename boost::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
@@ -75,17 +75,17 @@ public:
         "trilinos_aztec_parameter_list": {},
         "trilinos_ml_parameter_list": {}
         }  )" );
-              
+
         settings.ValidateAndAssignDefaults(default_settings);
-        
+
         //settings for the AZTEC solver
         mtol = settings["tolerance"].GetDouble();
         mmax_iter = settings["max_iteration"].GetDouble();
         mMLPrecIsInitialized = false;
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
-       
+
         mScalingType = LeftScaling; //TODO: actually use the "scaling" parameters
-        
+
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
         if(settings["verbosity"].GetInt() == 0)
@@ -98,7 +98,7 @@ public:
             mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
             mAztecParameterList.set("AZ_solver", "AZ_gmres");
         }
-        
+
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
         for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
         {
@@ -107,10 +107,10 @@ public:
             else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
         }
-        
+
         mMLParameterList = Teuchos::ParameterList();
-        
-        if(settings["reform_preconditioner_at_each_step"].GetBool() == false)
+
+        if(settings["symmetric"].GetBool() == false)
         {
             ML_Epetra::SetDefaults("NSSA",mMLParameterList);
             mMLParameterList.set("ML output", settings["verbosity"].GetInt());
@@ -130,7 +130,7 @@ public:
             mMLParameterList.set("smoother: sweeps", 3);
             mMLParameterList.set("smoother: pre or post", "both");
         }
-        
+
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
         for(auto it = settings["trilinos_ml_parameter_list"].begin(); it != settings["trilinos_ml_parameter_list"].end(); it++)
         {
@@ -139,10 +139,10 @@ public:
             else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mMLParameterList.set(it.name(), it->GetDouble());
         }
-        
-        
+
+
     }
-    
+
     MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
     {
         mAztecParameterList = aztec_parameter_list;
@@ -150,7 +150,7 @@ public:
         mtol = tol;
         mmax_iter = nit_max;
         mScalingType = LeftScaling;
-        
+
     }
 
     /**
@@ -207,7 +207,7 @@ public:
           rA.InvColSums(scaling_vect);
           AztecProblem.LeftScale(scaling_vect);
         }
-	
+
         mMLParameterList.set("PDE equations", mndof);
 
         // create the preconditioner now. this is expensive.
@@ -231,7 +231,7 @@ public:
 
         // set preconditioner and solve
         aztec_solver.SetPrecOperator(&(*mpMLPrec));
- 
+
         aztec_solver.Iterate(mmax_iter, mtol);
 
         return true;
@@ -251,7 +251,7 @@ public:
 
         return false;
     }
-    
+
     	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -294,7 +294,7 @@ public:
             old_ndof = -1;
             break;
           }
-          
+
           ndof=1;
         }
         else
@@ -303,10 +303,10 @@ public:
         }
         //			}
       }
-      
+
       r_model_part.GetCommunicator().MinAll(old_ndof);
-		
-      if(old_ndof == -1) 
+
+      if(old_ndof == -1)
         mndof = 1;
       else
         mndof = ndof;
@@ -381,6 +381,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MULTILEVEL_SOLVER_H_INCLUDED  defined
