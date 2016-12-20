@@ -68,7 +68,6 @@ void ComputeLaplacianSimplex<3,4>::AddRHSLaplacian(VectorType& F,
                              const double Weight)
 {
     double Coef = Weight;
-    array_1d<double, 3 > Velocity;
 
     int LocalIndex = 0;
     for (unsigned int iNodeB = 0; iNodeB < 4; ++iNodeB){
@@ -77,7 +76,7 @@ void ComputeLaplacianSimplex<3,4>::AddRHSLaplacian(VectorType& F,
             double value = 0.0;
 
             for (unsigned int iNodeA = 0; iNodeA < 4; ++iNodeA){
-                Velocity = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double, 3 >& Velocity = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY);
 
                 for (unsigned int di = 0; di < 3; ++di){
                     value -= rShapeDeriv(iNodeB, di) * Velocity[dj] * rShapeDeriv(iNodeA, di);
