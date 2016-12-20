@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Restart" pn="Restart" un="Restart" state="normal" open_window="0">
+<container n="Restart" pn="Restart" un="Restart" state="normal" icon="restart" open_window="0">
     <value n="SaveRestart" pn="Save restart" v="No" values="Yes,No" actualize_tree="1" state="[ActiveIfRestartAvailable]" />
     <container n="RestartOptions" pn="Save restart options" state="[getStateFromXPathValue {string(../value[@n='SaveRestart']/@v)} Yes]" open_window="0"  tree_state="open">
       <value n="RestartFileLabel" pn="Restart file label" v="step" values="step" dict="step,Step"/>

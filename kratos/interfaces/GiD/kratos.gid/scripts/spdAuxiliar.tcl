@@ -780,7 +780,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                     set fname "function_$inName"
                     set nodev "../value\[@n='$inName'\]"
                     set nodef "../value\[@n='$fname'\]"
-                    append node "<value n='ByFunction' pn='By function' v='No' values='Yes,No'  actualize_tree='1'>
+                    append node "<value n='ByFunction' pn='by function -> f(x,y,z,t)' v='No' values='Yes,No'  actualize_tree='1'>
                         <dependencies value='No' node=\""
                     append node $nodev
                     append node "\" att1='state' v1='normal'/>
