@@ -1068,7 +1068,7 @@ proc write::SetParallelismConfiguration {{un "Parallelization"} {n "OpenMPNumber
         catch {set nt [write::getValue $un $n]}
         if {$nt} {write::SetEnvironmentVariable OMP_NUM_THREADS $nt} {return 0}
     } else {
-        write::SetEnvironmentVariable OMP_NUM_THREADS 1
+        #write::SetEnvironmentVariable OMP_NUM_THREADS 1
     }
 }
 

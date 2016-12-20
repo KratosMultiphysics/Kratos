@@ -69,6 +69,11 @@
 	return [spdAux::ProcGetSolvers $domNode $args]
 	  ]]>
 	</proc>
+		<proc n='GetSolversValues' args='args'>
+	  <![CDATA[
+	return [spdAux::ProcGetSolversValues $domNode $args]
+	  ]]>
+	</proc>
 	  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 		return [spdAux::ProcCheckNodalConditionState $domNode $args]
