@@ -16,16 +16,20 @@ sys.path.insert(0,'')
 
 benchmark_number = int(sys.argv[1])
 
-listDISCONT = list(range(1,12))
-listROLLFR  = list(range(12,13))
-listDEMFEM  = list(range(13,18))
-listCONT    = list(range(20,27))
+listDISCONT   = list(range(1,12))
+listROLLFR    = list(range(12,13))
+listDEMFEM    = list(range(13,18))
+listCONT      = list(range(20,27))
+listDISclZHAO = [30,32]
+listDISclRK   = [31,33]
 
 '''
-listDISCONT = list(range(3,4)) #list(range(1,12))
-listROLLFR  = [] #list(range(12,13))
-listDEMFEM  = [] #list(range(13,18))
-listCONT    = [] #list(range(20,27))
+listDISCONT   = [] #list(range(1,12))
+listROLLFR    = [] #list(range(12,13))
+listDEMFEM    = [] #list(range(13,18))
+listCONT      = [] #list(range(20,27))
+listDISclZHAO = [] #[30,32]
+listDISclRK   = [] #[31,33]
 '''
 
 if benchmark_number in listDISCONT:
@@ -40,8 +44,12 @@ elif benchmark_number == 27:
     import DEM_explicit_solver_var_UCS as DEM_parameters
 elif benchmark_number == 28:
     import DEM_explicit_solver_var_PENDULO3D as DEM_parameters
+elif benchmark_number in listDISclZHAO:
+    import DEM_explicit_solver_var_DISclZHAO as DEM_parameters
+elif benchmark_number in listDISclRK:
+    import DEM_explicit_solver_var_DISclRK as DEM_parameters
 else:
-    print('Benchmark number does not exist')    
+    print('Benchmark number does not exist')
     sys.exit()
 
 # Strategy object
@@ -176,7 +184,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
         max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
         max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)        
-        clusters_mp_filename = 'benchmark' + "DEM_Clusters"
+        clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
         model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_clusters.ReadModelPart(cluster_model_part)
 
@@ -326,7 +334,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
             #### GENERAL FORCE GRAPHS ############################
             DEMFEMProcedures.PrintGraph(time)
-            benchmark.generate_graph_points(spheres_model_part, rigid_face_model_part, time, output_time_step, dt)
+            benchmark.generate_graph_points(spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt)
 
             #### GiD IO ##########################################
             time_to_print = time - time_old_print
@@ -367,7 +375,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         #
         ###################################################### CHUNG, OOI BENCHMARKS
 
-        benchmark.get_final_data(spheres_model_part, rigid_face_model_part)
+        benchmark.get_final_data(spheres_model_part, rigid_face_model_part, cluster_model_part)
 
         ###################################################### CHUNG, OOI BENCHMARKS
         #
