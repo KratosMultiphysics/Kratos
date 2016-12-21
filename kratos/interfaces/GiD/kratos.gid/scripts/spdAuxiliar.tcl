@@ -905,7 +905,7 @@ proc spdAux::injectNodalConditionsOutputs { basenode args} {
         set pn [$nc getPublicName]
         set v [$nc getAttribute v]
         if {$v eq ""} {set v "Yes"}
-        set node "<value n='$n' pn='$pn' v='$v' values='Yes,No' state='\[CheckNodalConditionState\]'/>"
+        set node "<value n='$n' pn='$pn' v='$v' values='Yes,No' state='\[CheckNodalConditionOutputState $n\]'/>"
         catch {$parts appendXML $node}
         foreach {n1 output} [$nc getOutputs] {
             set nout [$output getName]
