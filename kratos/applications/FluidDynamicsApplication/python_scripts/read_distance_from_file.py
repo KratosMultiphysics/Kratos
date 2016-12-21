@@ -10,7 +10,7 @@ class DistanceImportUtility:
     def ImportDistance(self):
         import_mode = self.settings["import_mode"].GetString()
 
-        if(import_mode == "from_GID_file"):
+        if(import_mode == "from_GiD_file"):
             distance_file_name = self.settings["distance_file_name"].GetString()
 
             distance_file = open(distance_file_name, "r")
