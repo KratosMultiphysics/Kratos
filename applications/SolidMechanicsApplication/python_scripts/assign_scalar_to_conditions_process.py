@@ -32,7 +32,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
            
             self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
         else:
-            print(" function value ", self.value)
+            print(" function value ", self.function_expression)
             
             #function values are assigned to a vector variable :: transformation is needed
             if(type(self.var) == KratosMultiphysics.DoubleVariable):

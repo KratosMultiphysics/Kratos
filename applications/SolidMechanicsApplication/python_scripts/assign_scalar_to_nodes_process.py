@@ -90,7 +90,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.value_is_numeric = True
             self.value = self.settings["value"].GetDouble()
         else:   
-            self.value = self.settings["value"].GetString()
             self.function_expression = self.settings["value"].GetString()
             
             if (sys.version_info > (3, 0)):
@@ -102,7 +101,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             
             if(self.function_expression.find("x") == -1 and 
                self.function_expression.find("y") == -1 and
-               self.function_expression.find("z") == -1): #depends on time alone!
+               self.function_expression.find("z") == -1): #depends on time only
                     self.value_is_spatial_function = False                    
 
                     

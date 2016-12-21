@@ -43,6 +43,7 @@ Import_MultiScaleApplication = False
 Import_ContactMechanicsApplication = False
 Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
+Import_ConstitutiveModelsApplication = False
 
 print("Applications Available:")
 print("Import_SolidMechanicsApplication: False")
@@ -84,6 +85,7 @@ print("Import_MultiScaleApplication: False")
 print("Import_ContactMechanicsApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
+print("Import_ConstitutiveModelsApplication: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -128,6 +130,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_ContactMechanicsApplication: " + str(Import_ContactMechanicsApplication))
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))    
+    print("Import_ConstitutiveModelsApplication: " + str(Import_ConstitutiveModelsApplication))
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -471,6 +474,15 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(mapping_application)
         print("KratosMappingApplication Succesfully imported")     
 
+    if(Import_ConstitutiveModelsApplication):
+        print("importing KratosConstitutiveModelsApplication ...")
+        sys.path.append(applications_path + '/ConstitutiveModels/python_scripts')
+        sys.path.append(applications_path + '/ConstitutiveModels/Linux')
+        from KratosConstitutiveModelsApplication import *
+        constitutive_models_application = KratosConstitutiveModelsApplication()
+        kernel.AddApplication(constitutive_models_application)
+        print("KratosConstitutiveModelsApplication Succesfully imported")
+
 
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -554,6 +566,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(contact_structural_mechanics_application)
     if(Import_KratosMappingApplication):
         kernel.InitializeApplication(mapping_application)    
+    if(Import_ConstitutiveModelsApplication):
+        kernel.InitializeApplication(constitutive_models_application)
 
 # def ImportApplications(kernel  ):
     # import os.path
