@@ -82,4 +82,4 @@ PostExportId                     = 0
 PostStressStrainOption           = 0
 
 #
-problem_name="benchmark31"
+problem_name="benchmark30"
