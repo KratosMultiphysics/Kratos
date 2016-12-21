@@ -524,7 +524,7 @@ namespace Kratos
 
 
       //update results
-      rDofSet.clear(); // = pBuilderAndSolver->GetDofSet();
+      //rDofSet.clear(); // = pBuilderAndSolver->GetDofSet();
       pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
       pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
@@ -1066,5 +1066,5 @@ namespace Kratos
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_LINE_SEARCH_STRATEGY  defined */
+#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_LINE_SEARCH_IMPLEX_STRATEGY  defined */
 
