@@ -3932,6 +3932,8 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Vel
 
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
+        error_file.write("\n\n")
+        error_file.write("===== DISCONTINUUM CLUSTERS TESTS =====\n\n")
         error_file.write("DEM Benchmark 30:")
 
         if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
@@ -4313,7 +4315,7 @@ def delete_archives():
 
     #.......................Removing extra files
     files_to_delete_list = glob('*.time')
-    #files_to_delete_list.extend(glob('*.dat'))
+    files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
 
     for to_erase_file in files_to_delete_list:
@@ -4325,6 +4327,7 @@ def delete_archives():
     folders_to_delete_list.extend(glob('*ults'))
     folders_to_delete_list.extend(glob('*he__'))
     folders_to_delete_list.extend(glob('*aphs'))
+    folders_to_delete_list.extend(glob('*iles'))
 
     for to_erase_folder in folders_to_delete_list:
         shutil.rmtree(to_erase_folder)
