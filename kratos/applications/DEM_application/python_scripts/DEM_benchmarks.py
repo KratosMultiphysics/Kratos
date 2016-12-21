@@ -129,32 +129,17 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 # Constructing a utilities objects
         creator_destructor = ParticleCreatorDestructor()
         dem_fem_search = DEM_FEM_Search()
-        
-        #Getting chosen scheme:
-        if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
-            scheme = ForwardEulerScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
-            scheme = SymplecticEulerScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
-            scheme = TaylorScheme()
-        elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
-            scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
-            scheme = VerletVelocityScheme()
-        else:
-            KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
-
-        # Creating a solver object and set the search strategy
+        scheme = procedures.SetScheme()
+        #solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, contact_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
         solver = SolverStrategy.ExplicitStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
-        
+
         procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 
-        problem_name                = 'benchmark' + str(benchmark_number)
-        spheres_mp_filename         = problem_name + "DEM"
-        DEM_parameters.problem_name = problem_name
-
         os.chdir(main_path)
+        DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
+        # Reading the model_part
+        spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
         model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
         if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
@@ -204,7 +189,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         os.chdir(main_path)
 
-        KRATOSprint("Initializing Problem....")
+        KRATOSprint("\nInitializing Problem...")
 
         demio.Initialize(DEM_parameters)
 
@@ -216,20 +201,12 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         solver.BeforeInitialize()
         parallelutils.Repart(spheres_model_part)
 
-        # Setting up the BoundingBox
-        bounding_box_time_limits = []
-        if (DEM_parameters.BoundingBoxOption == "ON"):
-            procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
-            bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
+        #Setting up the BoundingBox
+        bounding_box_time_limits = procedures.SetBoundingBoxLimits(all_model_parts, creator_destructor)
         
-        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.
-        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
-        max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-        max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
-
-        max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
-        creator_destructor.SetMaxNodeId(max_Id)    
+        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
+        max_Id = procedures.FindMaxNodeIdAccrossModelParts(creator_destructor, all_model_parts)
+        creator_destructor.SetMaxNodeId(max_Id)
 
         #Strategy Initialization
         os.chdir(main_path)
@@ -244,10 +221,8 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
-        if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-            if (DEM_parameters.EnergyCalculationOption):
-                os.chdir(graphs_path)
-                DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
+        os.chdir(graphs_path)
+        DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
 
         materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -259,34 +234,14 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         report.Prepare(timer,DEM_parameters.ControlTime)
 
-        first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
-
-        coordination_number = procedures.ModelData(spheres_model_part, solver)
-        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+        procedures.ModelData(spheres_model_part, solver)
 
         materialTest.PrintChart()
         materialTest.PrepareDataForGraph()
 
         post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-        step = 0
-
-        ##############################################################################
-        #                                                                            #
-        #    MAIN LOOP                                                               #
-        #                                                                            #
-        ##############################################################################
-
-        report.total_steps_expected = int(final_time / dt)
-
-        KRATOSprint(report.BeginReport(timer))
-
         print("Computing points in the curve...", 1 + number_of_points_in_the_graphic - iteration, "point(s) left to finish....",'\n')
-
-        mesh_motion = DEMFEMUtilities()
-
-        # creating a Post Utils object that executes several post-related tasks
-        post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
         list_of_nodes_ids = [1]
 
@@ -295,10 +250,16 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to Benchmarks
             tang_plotter = plot_variables.tangential_force_plotter(spheres_model_part, list_of_nodes_ids, iteration) #Related to Benchmarks
 
-        step = 0  
+        step = 0
+
+        ##############################################################################
+        #    MAIN LOOP                                                               #
+        ##############################################################################
+        report.total_steps_expected = int(final_time / dt)
+        KRATOSprint(report.BeginReport(timer))
 
         while (time < final_time):
-            #
+
             #SLS dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
             time = time + dt
             step += 1
@@ -306,15 +267,14 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             DEMFEMProcedures.UpdateTimeInModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step) 
 
             benchmark.ApplyNodalRotation(time, dt, spheres_model_part)            
+    
             #### SOLVE #########################################
-            
-            #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
             solver.Solve()
-            #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
+            ####################################################
             
             DEMFEMProcedures.MoveAllMeshes(rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt)
-
-            # adding DEM elements by the inlet:
+       
+            ##### adding DEM elements by the inlet ######
             if (DEM_parameters.dem_inlet_option):
                 DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
@@ -324,32 +284,33 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
-            # measuring mean velocities in a certain control volume (the 'velocity trap')
-            if (DEM_parameters.VelocityTrapOption):
-                post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+            post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
-            #### MATERIAL TEST GRAPHS ############################
             materialTest.MeasureForcesAndPressure()
             materialTest.PrintGraph(time)
-
-            #### GENERAL FORCE GRAPHS ############################
+    
             DEMFEMProcedures.PrintGraph(time)
+            DEMFEMProcedures.PrintBallsGraph(time)
+
+            DEMEnergyCalculator.CalculateEnergyAndPlot(time)
+
             benchmark.generate_graph_points(spheres_model_part, rigid_face_model_part, cluster_model_part, time, output_time_step, dt)
 
             #### GiD IO ##########################################
             time_to_print = time - time_old_print
 
-            if (output_time_step - time_to_print < 1e-2*dt):            
+            if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
+        
+                if solver.poisson_ratio_option:
+                    DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
+            
+                if DEM_parameters.PostEulerAngles:
+                    post_utils.PrintEulerAngles(spheres_model_part, cluster_model_part)
 
-                '''KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-                KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
-                KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
-                KRATOSprint("")'''
+                demio.ShowPrintingResultsOnScreen(all_model_parts)
 
                 os.chdir(data_and_results)
-
                 demio.PrintMultifileLists(time, post_path)
-
                 os.chdir(post_path)
 
                 solver.PrepareElementsForPrinting()
@@ -366,24 +327,20 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
                 tang_plotter.plot_tangential_force(time)
 
-        ############################################################################
-        #                                                                          #
-        #    FINALIZATION                                                          #
-        #                                                                          #
-        ############################################################################
-        #
-        #
         ###################################################### CHUNG, OOI BENCHMARKS
 
         benchmark.get_final_data(spheres_model_part, rigid_face_model_part, cluster_model_part)
 
         ###################################################### CHUNG, OOI BENCHMARKS
-        #
+
+        KRATOSprint(report.FinalReport(timer))
 
         demio.FinalizeMesh()
         materialTest.FinalizeGraphs()
         DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
         DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
+
+        DEMEnergyCalculator.FinalizeEnergyPlot()
 
         demio.CloseMultifiles()
 
@@ -393,10 +350,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             tang_plotter.close_files()
 
         os.chdir(main_path)
-
-        # Print times and more info
-
-        KRATOSprint(report.FinalReport(timer))
     
     benchmark.print_results(number_of_points_in_the_graphic, dt)
 
@@ -409,4 +362,7 @@ objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, sol
 if (DEM_parameters.dem_inlet_option):
     objects_to_destroy.append(DEM_inlet)
 
-del objects_to_destroy[:]
+for obj in objects_to_destroy:
+    del obj
+
+procedures.DeleteFiles()
