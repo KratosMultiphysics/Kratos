@@ -407,35 +407,13 @@ private:
 }; // Class DistanceModificationProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-//~ template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
-//~ inline std::istream& operator >> (std::istream& rIStream,
-                                  //~ FractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
-//~ {
-    //~ return rIStream;
-//~ }
-
-/// output stream function
-//~ template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
-//~ inline std::ostream& operator << (std::ostream& rOStream,
-                                  //~ const FractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
-//~ {
-    //~ rThis.PrintInfo(rOStream);
-    //~ rOStream << std::endl;
-    //~ rThis.PrintData(rOStream);
-
-    //~ return rOStream;
-//~ }
 ///@}
 
 ///@} addtogroup block
