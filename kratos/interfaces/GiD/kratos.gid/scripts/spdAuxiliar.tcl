@@ -685,6 +685,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
         set um [$cnd getAttribute "unit_magnitude"]
         set process [::Model::GetProcess [$cnd getProcessName]]
         set check [$process getAttribute "check"]
+        if {$check eq ""} {set check "UpdateTree"}
         set state "ConditionState"
         if {$cond_type eq "nodal"} {
             set state [$cnd getAttribute state]
