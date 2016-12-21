@@ -302,6 +302,10 @@ namespace Kratos
                   return mCalculateReactionsFlag;
                }
 
+               virtual bool GetImplexSetToConstitutiveEquations()
+               {
+                  return false; 
+               }
                void SetReformDofSetAtEachStepFlag(bool flag)
                {
                   mReformDofSetAtEachStep = flag;
@@ -752,7 +756,7 @@ namespace Kratos
                   //}
 
                   //calculate reactions if required
-                  if (mCalculateReactionsFlag == true)
+                  if (mCalculateReactionsFlag == true && this->GetImplexSetToConstitutiveEquations() == false )
                   {
                      pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                   }
@@ -902,6 +906,20 @@ namespace Kratos
                   TSystemMatrixType& mA = *mpA;
 
                   return mA;
+               }
+
+               TSystemVectorType& GetSystemDx()
+               {
+                  TSystemVectorType& mDx = *mpDx;
+
+                  return mDx; 
+               }
+
+               TSystemVectorType& GetSystemb()
+               {
+                  TSystemVectorType& mb = *mpb;
+
+                  return mb; 
                }
 
                void SetKeepSystemConstantDuringIterations(bool value)
