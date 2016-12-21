@@ -4,13 +4,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <cmath>
 
 void Diagonalize(const double (&A)[3][3], double (&Q)[3][3], double (&D)[3][3]);
 
 int main() {
-    std::ifstream infile("cubo1x2x3_debug.msh");
-    std::string line;
+    std::ifstream infile("ballast6cluster3Dred.msh");
+    std::ifstream infilesph("ballast6cluster3Dred.sph");
+    std::string line, linesph;
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
 
     // Hacer una primera pasada para saber NUM_OF_NODES y NUM_OF_ELEMENTS
@@ -46,10 +48,20 @@ int main() {
         } else break;
     }
     std::cout << "Number of elements: " << element_counter << '\n';
+    
+    int spheres_counter = 0;
+    while (std::getline(infilesph, linesph)) {
+        std::istringstream iss(linesph);
+        double Xcoord, Ycoord, Zcoord, Rad;
+        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad) {
+            spheres_counter++;
+        } else break;
+    }
+    std::cout << "Number of spheres: " << spheres_counter << '\n';
 
     infile.seekg(0, std::ios::beg);
     infile.ignore(80,'\n'); infile.ignore(80,'\n');
-    
+
     const int NUM_OF_NODES = node_counter;
     const int NUM_OF_ELEMENTS = element_counter;
     const double density = 1;
@@ -59,14 +71,12 @@ int main() {
     double Volum[NUM_OF_ELEMENTS];
     double Vmass[NUM_OF_ELEMENTS];
     double BARIC[3][NUM_OF_ELEMENTS];
-    double Xlocal[NUM_OF_ELEMENTS];
-    double Ylocal[NUM_OF_ELEMENTS];
-    double Zlocal[NUM_OF_ELEMENTS];
+    double Local[3][NUM_OF_ELEMENTS];
     double VNERT[9];
     double I[3][3];
     double Q[3][3];
     double D[3][3];
- 
+
     node_counter = 0;
     while (std::getline(infile, line)) {
         std::istringstream iss(line);
@@ -92,6 +102,27 @@ int main() {
             Nconec[2][element_counter] = d;
             Nconec[3][element_counter] = e;
             element_counter++;
+        } else break;
+    }
+
+    infilesph.clear();
+    infilesph.seekg(0, std::ios::beg);
+    
+    const int NUM_OF_SPHERES = spheres_counter;
+    
+    double sphcoord[3][NUM_OF_SPHERES];
+    double sphrad[NUM_OF_SPHERES];
+
+    spheres_counter = 0;
+    while (std::getline(infilesph, linesph)) {
+        std::istringstream iss(linesph);
+        double Xcoord, Ycoord, Zcoord, Rad;
+        if (iss >> Xcoord >> Ycoord >> Zcoord >> Rad) {
+            sphcoord[0][spheres_counter] = Xcoord;
+            sphcoord[1][spheres_counter] = Ycoord;
+            sphcoord[2][spheres_counter] = Zcoord;
+            sphrad[spheres_counter]      = Rad;
+            spheres_counter++;
         } else break;
     }
 
@@ -158,21 +189,28 @@ int main() {
         tcoord[2][node_counter] -= Zcdgrav;
     }
     
+    // Movemos las esferas y las dejamos colocadas tal que su centroide coincida con el origen:
+    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+        sphcoord[0][spheres_counter] -= Xcdgrav;
+        sphcoord[1][spheres_counter] -= Ycdgrav;
+        sphcoord[2][spheres_counter] -= Zcdgrav;
+    }
+
     // Cálculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
 
-        Xlocal[element_counter]= BARIC[0][element_counter]-Xcdgrav;
-        Ylocal[element_counter]= BARIC[1][element_counter]-Ycdgrav;
-        Zlocal[element_counter]= BARIC[2][element_counter]-Zcdgrav;
-        Vnerc[0][element_counter]= Vmass[element_counter]*(Ylocal[element_counter]*Ylocal[element_counter]+Zlocal[element_counter]*Zlocal[element_counter]);
-        Vnerc[1][element_counter]= -Vmass[element_counter]*Xlocal[element_counter]*Ylocal[element_counter];
-        Vnerc[2][element_counter]= -Vmass[element_counter]*Xlocal[element_counter]*Zlocal[element_counter];
-        Vnerc[3][element_counter]= -Vmass[element_counter]*Ylocal[element_counter]*Xlocal[element_counter];
-        Vnerc[4][element_counter]= Vmass[element_counter]*(Xlocal[element_counter]*Xlocal[element_counter]+Zlocal[element_counter]*Zlocal[element_counter]);
-        Vnerc[5][element_counter]= -Vmass[element_counter]*Ylocal[element_counter]*Zlocal[element_counter];
-        Vnerc[6][element_counter]= -Vmass[element_counter]*Zlocal[element_counter]*Xlocal[element_counter];
-        Vnerc[7][element_counter]= -Vmass[element_counter]*Zlocal[element_counter]*Ylocal[element_counter];
-        Vnerc[8][element_counter]= Vmass[element_counter]*(Xlocal[element_counter]*Xlocal[element_counter]+Ylocal[element_counter]*Ylocal[element_counter]);
+        Local[0][element_counter]= BARIC[0][element_counter]-Xcdgrav;
+        Local[1][element_counter]= BARIC[1][element_counter]-Ycdgrav;
+        Local[2][element_counter]= BARIC[2][element_counter]-Zcdgrav;
+        Vnerc[0][element_counter]= Vmass[element_counter]*(Local[1][element_counter]*Local[1][element_counter]+Local[2][element_counter]*Local[2][element_counter]);
+        Vnerc[1][element_counter]= -Vmass[element_counter]*Local[0][element_counter]*Local[1][element_counter];
+        Vnerc[2][element_counter]= -Vmass[element_counter]*Local[0][element_counter]*Local[2][element_counter];
+        Vnerc[3][element_counter]= -Vmass[element_counter]*Local[1][element_counter]*Local[0][element_counter];
+        Vnerc[4][element_counter]= Vmass[element_counter]*(Local[0][element_counter]*Local[0][element_counter]+Local[2][element_counter]*Local[2][element_counter]);
+        Vnerc[5][element_counter]= -Vmass[element_counter]*Local[1][element_counter]*Local[2][element_counter];
+        Vnerc[6][element_counter]= -Vmass[element_counter]*Local[2][element_counter]*Local[0][element_counter];
+        Vnerc[7][element_counter]= -Vmass[element_counter]*Local[2][element_counter]*Local[1][element_counter];
+        Vnerc[8][element_counter]= Vmass[element_counter]*(Local[0][element_counter]*Local[0][element_counter]+Local[1][element_counter]*Local[1][element_counter]);
     }
 
     for (int i = 0; i < 9; i++) VNERT[i]=0.0;
@@ -216,7 +254,7 @@ int main() {
     std::cout << "Eigenvalues: " << D[1][0] << " " << D[1][1] << " " << D[1][2] << '\n';
     std::cout << "Eigenvalues: " << D[2][0] << " " << D[2][1] << " " << D[2][2] << "\n\n";
     
-    // Finalmente, rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia
+    // Rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia
     
     for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
         
@@ -228,45 +266,97 @@ int main() {
         tcoord[1][node_counter] = temporal_array[1][0];
         tcoord[2][node_counter] = temporal_array[2][0];
     }
-    
-    // Calculamos el Size
-    double min_X = 0.0;
-    double max_X = 0.0;
-    double min_Y = 0.0;
-    double max_Y = 0.0;
-    double min_Z = 0.0;
-    double max_Z = 0.0;
 
-    for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
-        if (tcoord[0][node_counter] < min_X) min_X = tcoord[0][node_counter];   
-        if (tcoord[0][node_counter] > max_X) max_X = tcoord[0][node_counter];
-        if (tcoord[1][node_counter] < min_Y) min_Y = tcoord[1][node_counter];   
-        if (tcoord[1][node_counter] > max_Y) max_Y = tcoord[1][node_counter];
-        if (tcoord[2][node_counter] < min_Z) min_Z = tcoord[2][node_counter];   
-        if (tcoord[2][node_counter] > max_Z) max_Z = tcoord[2][node_counter];
+    // Rotamos las esferas y las colocamos paralelas a sus ejes principales de inercia
+    
+    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+        
+        double temporal_array_sph[3][1];
+        temporal_array_sph[0][0] = Q[0][0] * sphcoord[0][spheres_counter] + Q[1][0] * sphcoord[1][spheres_counter] + Q[2][0] * sphcoord[2][spheres_counter];
+        temporal_array_sph[1][0] = Q[0][1] * sphcoord[0][spheres_counter] + Q[1][1] * sphcoord[1][spheres_counter] + Q[2][1] * sphcoord[2][spheres_counter];
+        temporal_array_sph[2][0] = Q[0][2] * sphcoord[0][spheres_counter] + Q[1][2] * sphcoord[1][spheres_counter] + Q[2][2] * sphcoord[2][spheres_counter];
+        sphcoord[0][spheres_counter] = temporal_array_sph[0][0];
+        sphcoord[1][spheres_counter] = temporal_array_sph[1][0];
+        sphcoord[2][spheres_counter] = temporal_array_sph[2][0];
     }
     
-    std::cout << "The smallest number in X is: " << min_X << '\n';   
-    std::cout << "The biggest number in X is: " << max_X << '\n';
-    std::cout << "The smallest number in Y is: " << min_Y << '\n';   
-    std::cout << "The biggest number in Y is: " << max_Y << '\n';
-    std::cout << "The smallest number in Z is: " << min_Z << '\n';   
-    std::cout << "The biggest number in Z is: " << max_Z << '\n';
+    double Distance, CenterX, CenterY, CenterZ, Radius = 0.0;
+    int extreme_node_1, extreme_node_2;
+    std::vector<int> extreme_node;
+    for (int node_counter_1 = 0; node_counter_1 < NUM_OF_NODES; node_counter_1++) {
+        for (int node_counter_2 = 0; node_counter_2 < NUM_OF_NODES; node_counter_2++) {
+            if (node_counter_2 < node_counter_1) {
+                Distance  = sqrt((tcoord[0][node_counter_2] - tcoord[0][node_counter_1]) * (tcoord[0][node_counter_2] - tcoord[0][node_counter_1]) + (tcoord[1][node_counter_2] - tcoord[1][node_counter_1]) * (tcoord[1][node_counter_2] - tcoord[1][node_counter_1]) + (tcoord[2][node_counter_2] - tcoord[2][node_counter_1]) * (tcoord[2][node_counter_2] - tcoord[2][node_counter_1]));
+                if (Distance > 2 * Radius) {
+                    Radius = 0.5 * Distance;
+                    extreme_node_1 = node_counter_1;
+                    extreme_node_2 = node_counter_2;
+                }
+            }
+        }
+    }
     
-    double size = sqrt((max_X - min_X)*(max_X - min_X) + (max_Y - min_Y)*(max_Y - min_Y) + (max_Z - min_Z)*(max_Z - min_Z));
-    std::cout << "\nThe size is: " << size << "\n\n";
+    extreme_node.push_back(extreme_node_1);
+    extreme_node.push_back(extreme_node_2);
     
-    std::ofstream outputfile("prism1cluster3D.clu", std::ios_base::out);
-    outputfile << "//\n//   Cluster Name: \"prism1cluster3D\"\n";
-    outputfile << "//   Author: Salva Latorre\n";
-    outputfile << "//   Date:   2016-09-27\n//\n\n";
+    CenterX = 0.5 * (tcoord[0][extreme_node[0]] + tcoord[0][extreme_node[1]]);
+    CenterY = 0.5 * (tcoord[1][extreme_node[0]] + tcoord[1][extreme_node[1]]);
+    CenterZ = 0.5 * (tcoord[2][extreme_node[0]] + tcoord[2][extreme_node[1]]);
     
-    outputfile << "Name\nprism1cluster3D\n\nBegin centers_and_radii\n";
-    for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
-        outputfile << tcoord[0][node_counter] << " " << tcoord[1][node_counter] << " " << tcoord[2][node_counter] << " 0.25" << '\n';
+    double CheckX, CheckY, CheckZ, TempRad;
+    std::vector<double> extreme_radius;
+    int node_counter_check = 0;
+    
+    while (node_counter_check < (NUM_OF_NODES)) {  //CHECK that all nodes are inside the big sphere
+        CheckX = tcoord[0][node_counter_check] - CenterX;
+        CheckY = tcoord[1][node_counter_check] - CenterY;
+        CheckZ = tcoord[2][node_counter_check] - CenterZ;
+        TempRad  = sqrt(CheckX * CheckX + CheckY * CheckY + CheckZ * CheckZ);
+        
+        if (TempRad > Radius) {
+            extreme_node.push_back(node_counter_check);
+            CenterX = CenterX + CheckX - (Radius * (CheckX/TempRad));
+            CenterY = CenterY + CheckY - (Radius * (CheckY/TempRad));
+            CenterZ = CenterZ + CheckZ - (Radius * (CheckZ/TempRad));
+            
+            extreme_radius.clear();
+            
+            for(int i = 0; i < extreme_node.size(); i++) {
+                extreme_radius.push_back(sqrt((tcoord[0][extreme_node[i]] - CenterX) * (tcoord[0][extreme_node[i]] - CenterX) + (tcoord[1][extreme_node[i]] - CenterY) * (tcoord[1][extreme_node[i]] - CenterY) + (tcoord[2][extreme_node[i]] - CenterZ) * (tcoord[2][extreme_node[i]] - CenterZ)));
+            }
+            
+            for(int i = 0; i < extreme_radius.size(); i++) {
+                if (extreme_radius[i] > Radius) {
+                    Radius = extreme_radius[i];
+                }
+            }
+            node_counter_check = 0;
+        }
+        else {
+            node_counter_check++;
+        }
+    }
+    
+    double diameter = 2 * Radius;
+    
+    double characteristic_size = 2 * std::pow(3 * total_volume / (4 * M_PI), 1/3.);
+    
+    std::cout << "\nThe diameter is: " << diameter << "\n\n";
+    
+    std::cout << "\nThe characteristic size is: " << characteristic_size << "\n\n";
+
+    std::ofstream outputfile("ballast6cluster3Dred.clu", std::ios_base::out);
+    outputfile << "//\n//   Cluster Name: \"ballast6cluster3Dred\"\n";
+    outputfile << "//   Author: Joaquin Irazabal\n";
+    outputfile << "//   Date:   2016-10-26\n//\n\n";
+    
+    outputfile << "Name\nballast6cluster3Dred\n\nBegin centers_and_radii\n";
+    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+        outputfile << sphcoord[0][spheres_counter] << " " << sphcoord[1][spheres_counter] << " " << sphcoord[2][spheres_counter] << " " << sphrad[spheres_counter] << '\n';
     }
     outputfile << "End centers_and_radii\n\n";
-    outputfile << "Size\n" << size << "\n\n" << "Volume\n" << total_volume << "\n\n";
+    outputfile << "Particle_center_and_diameter\n" << CenterX << " " << CenterY << " " << CenterZ << " " << diameter << "\n\n";
+    outputfile << "Size\n" << characteristic_size << "\n\n" << "Volume\n" << total_volume << "\n\n";
     outputfile << "Inertia per unit mass\n" << D[0][0] << '\n' << D[1][1] << '\n' << D[2][2] << '\n';
  
     outputfile.close();
