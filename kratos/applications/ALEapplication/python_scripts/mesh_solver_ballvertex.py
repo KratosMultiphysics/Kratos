@@ -6,15 +6,15 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):
-    
+
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-    
+
     print("Mesh solver variables added correctly.")
 
 
 def AddDofs(model_part):
-    
+
     for node in model_part.Nodes:
 
         node.AddDof(DISPLACEMENT_X)
@@ -22,19 +22,28 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_Z)
 
     print("Mesh solver DOFs added correctly.")
-    
-    
-def CreateMeshSolver(model_part, reform_dof_at_every_step):
-    return MeshSolver(model_part,reform_dof_at_every_step)
+
+
+def CreateMeshSolver(model_part, custom_settings):
+    return MeshSolver(model_part,custom_settings)
 
 
 class MeshSolver:
 
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
+    def __init__(self, model_part, custom_settings):
 
+        # default settings for ballvertex mesh solver
+        default_settings = Parameters("""
+        {
+            "mesh_reform_dofs_each_step": false
+        }""")
+
+        custom_settings.ValidateAndAssignDefaults(default_settings)
+
+        # assign parameters
         self.model_part = model_part
         self.domain_size = model_part.ProcessInfo[DOMAIN_SIZE]
-        self.reform_dof_at_every_step = reform_dof_at_every_step
+        self.mesh_reform_dofs_each_step = custom_settings["mesh_reform_dofs_each_step"].GetBool()
 
         # neighbour search
         number_of_avg_elems = 10
@@ -61,11 +70,11 @@ class MeshSolver:
 
         self.move_mesh_utilities = MoveMeshUtilities()
 
-        if(self.reform_dof_at_every_step == False):
+        if(self.mesh_reform_dofs_each_step == False):
             self.solver.ConstructSystem(self.model_part)
 
     def Solve(self):
-        if(self.reform_dof_at_every_step):
+        if(self.mesh_reform_dofs_each_step):
             (self.neighbour_search).Execute()
 
             self.solver.ConstructSystem(self.model_part)

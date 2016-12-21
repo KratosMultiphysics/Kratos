@@ -26,20 +26,29 @@ def AddDofs(model_part):
     print("Mesh solver DOFs added correctly.")
 
 
-def CreateMeshSolver(model_part, reform_dof_at_every_step):
-    return MeshSolverStructuralSimilarity(model_part,reform_dof_at_every_step)
+def CreateMeshSolver(model_part, custom_settings):
+    return MeshSolverStructuralSimilarity(model_part, custom_settings)
 
 
 class MeshSolverStructuralSimilarity:
 
-    def __init__(self, model_part, reform_dof_at_every_step, compute_reactions):
+    def __init__(self, model_part, custom_settings):
+
+        # default settings for structural similarity mesh solver
+        default_settings = Parameters("""
+        {
+            "time_order"              : 2,
+            "mesh_reform_dofs_each_step": false,
+            "mesh_compute_reactions"       : false
+        }""")
+
+        custom_settings.ValidateAndAssignDefaults(default_settings)
 
         # set parameters
-        self.time_order = 2
         self.model_part = model_part
-        self.reform_dof_at_every_step = reform_dof_at_every_step
-        self.compute_reactions = compute_reactions
-
+        self.time_order = custom_settings["time_order"].GetInt()
+        self.mesh_compute_reactions = custom_settings["mesh_compute_reactions"].GetBool()
+        self.mesh_reform_dofs_each_step = custom_settings["mesh_reform_dofs_each_step"].GetBool()
 
         # neighbour search
         number_of_avg_elems = 10
@@ -69,11 +78,11 @@ class MeshSolverStructuralSimilarity:
             node.SetSolutionStepValue(MESH_DISPLACEMENT,0,zero)
             node.SetSolutionStepValue(MESH_RHS,0,zero)
 
-        self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step, self.compute_reactions)
+        self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.mesh_reform_dofs_each_step, self.mesh_compute_reactions)
         (self.solver).SetEchoLevel(0)
 
     def Solve(self):
-        if(self.reform_dof_at_every_step):
+        if(self.mesh_reform_dofs_each_step):
             (self.neighbour_search).Execute()
         (self.solver).Solve()
 
