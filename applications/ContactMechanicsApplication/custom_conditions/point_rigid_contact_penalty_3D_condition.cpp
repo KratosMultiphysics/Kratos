@@ -280,8 +280,11 @@ namespace Kratos
 	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
-	if( dimension == 2 )
+            if( dimension == 2 ) {
 	  noalias(rLeftHandSideMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+            } else {
+               noalias( rLeftHandSideMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( rVariables.Gap.Normal/ rVariables.Gap.Tangent) * ( outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent) );
+            }
 	
 	//std::cout<<" A:Kuug "<<rLeftHandSideMatrix<<std::endl;
 	
@@ -422,7 +425,7 @@ namespace Kratos
       }
     }
 
-    rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( TangentForceModulus * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent) , rVariables.ContactStressVector.size() );
+      rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( TangentForceModulus * ( outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
     
     GetGeometry()[0].UnSetLock();
 
