@@ -26,19 +26,27 @@ def AddDofs(model_part):
     print("Mesh solver DOFs added correctly.")
 
 
-def CreateMeshSolver(model_part, reform_dof_at_every_step):
-    return MeshSolverLaplacian(model_part,reform_dof_at_every_step)
+def CreateMeshSolver(model_part, custom_settings):
+    return MeshSolverLaplacian(model_part, custom_settings)
 
 
 class MeshSolverLaplacian:
 
-    def __init__(self, model_part, reform_dof_at_every_step):
+    def __init__(self, model_part, custom_settings):
 
-        # Assign parameters
-        self.time_order = 2
+        # default settings for laplacian mesh solver
+        default_settings = Parameters("""
+        {
+            "time_order"              : 2,
+            "mesh_reform_dofs_each_step": false
+        }""")
+
+        custom_settings.ValidateAndAssignDefaults(default_settings)
+
+        # assign parameters
         self.model_part = model_part
-        self.reform_dof_at_every_step = reform_dof_at_every_step
-        self.time_order = 2
+        self.time_order = custom_settings["time_order"].GetInt()
+        self.mesh_reform_dofs_each_step = custom_settings["mesh_reform_dofs_each_step"].GetBool()
 
         # neighbour search
         number_of_avg_elems = 10
@@ -59,12 +67,12 @@ class MeshSolverLaplacian:
     def Initialize(self):
         (self.neighbour_search).Execute()
 
-        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
+        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.mesh_reform_dofs_each_step)
         (self.solver).SetEchoLevel(0)
         print("finished moving the mesh")
 
     def Solve(self):
-        if(self.reform_dof_at_every_step):
+        if(self.mesh_reform_dofs_each_step):
             (self.neighbour_search).Execute()
 
         (self.solver).Solve()
