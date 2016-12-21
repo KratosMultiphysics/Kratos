@@ -223,6 +223,9 @@ protected:
                     std::cout << " modified to " << d << std::endl;
                 }
             }
+
+            // Syncronize data between partitions (the modified distance has always a lower value)
+            mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
         }
         else // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
         {
@@ -244,6 +247,9 @@ protected:
                     std::cout << " modified to " << d << std::endl;
                 }
             }
+
+            // Syncronize data between partitions (the modified distance has always a lower value)
+            mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
         }
 
         // Check if there still exist bad cuts
@@ -300,7 +306,7 @@ protected:
         mModifiedDistancesValues.resize(0);
         mModifiedDistancesIDs.shrink_to_fit();
         mModifiedDistancesValues.shrink_to_fit();
-        
+
     }
 
 
