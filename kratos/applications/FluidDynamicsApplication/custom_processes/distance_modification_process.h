@@ -211,7 +211,7 @@ protected:
         {
             for (auto itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); itNode++)
             {
-                double h = itNode->FastGetSolutionStepValue(NODAL_H);
+                const double h = itNode->FastGetSolutionStepValue(NODAL_H);
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 
@@ -231,7 +231,7 @@ protected:
         {
             for (auto itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); itNode++)
             {
-                double h = itNode->GetValue(NODAL_H);
+                const double h = itNode->GetValue(NODAL_H);
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 
@@ -278,7 +278,7 @@ protected:
             {
                 for(unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
                 {
-                    double h = rGeometry[itNode].GetValue(NODAL_H);
+                    const double h = rGeometry[itNode].GetValue(NODAL_H);
                     double d = rGeometry[itNode].FastGetSolutionStepValue(DISTANCE);
                     tol_d = (factor*mFactorCoeff)*h;
 
