@@ -9,11 +9,11 @@
     <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="The interior of the volume is printed" state="[ShowInMode Developer]"/>
     <value n="NodeOutput" pn="Node output" v="Yes" values="Yes,No" help="The nodes are printed as a separate layer" state="[ShowInMode Developer]"/>
     <value n="SkinOutput" pn="Skin output" v="No" values="Yes,No" help="" state="[ShowInMode Developer]"/>
-    <container n="OnElement" pn="On element" un="ElementResults" help="Activate the results you want to see in the elements" state="[ActiveIfAnyPartState]" open_window="0">
+    <container n="OnElement" pn="On element" un="ElementResults" icon="triangle" help="Activate the results you want to see in the elements" state="[ActiveIfAnyPartState]" open_window="0">
         <dynamicnode command="injectElementOutputs" args=""/>
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
     </container>
-    <container n="OnNodes" pn="On nodes" un="NodalResults" help="Activate the results you want to see in the nodes" open_window="0">
+    <container n="OnNodes" pn="On nodes" un="NodalResults" icon="point3d" help="Activate the results you want to see in the nodes" open_window="0">
         <dynamicnode command="injectNodalConditionsOutputs" args=""/>
     </container>
     <container n="GiDOptions" pn="Options" un="GiDOptions" help="GiD postprocess options" open_window="0">
