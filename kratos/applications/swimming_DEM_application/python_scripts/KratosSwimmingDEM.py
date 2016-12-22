@@ -91,6 +91,9 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.recovery_echo_level = 1
+pp.CFD_DEM.gradient_calculation_type = 0
+pp.CFD_DEM.laplacian_calculation_type = 4
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
@@ -614,7 +617,7 @@ embedded_counter             = swim_proc.Counter(1,
 DEM_to_fluid_counter         = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type > 1)
-pressure_gradient_counter    = swim_proc.Counter(1, 
+derivative_recovery_counter    = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
@@ -632,6 +635,8 @@ particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_
 quadrature_counter           = swim_proc.Counter(pp.CFD_DEM.time_steps_per_quadrature_step, 
                                                  1, 
                                                  pp.CFD_DEM.print_BASSET_FORCE_option)
+mat_deriv_averager           = swim_proc.Averager(1, 3)
+laplacian_averager           = swim_proc.Averager(1, 3)
 #G
 
 # NANO BEGIN
@@ -677,7 +682,7 @@ mesh_motion = DEMFEMUtilities()
 # creating a Post Utils object that executes several post-related tasks
 post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # all variables are set to 0 by default
+swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # otherwise variables are set to 0 by default
 
 
 # ANALYTICS BEGIN
@@ -711,16 +716,9 @@ if pp.CFD_DEM.drag_force_type == 9:
 # NANO END
 
 #G
-post_process_model_part = ModelPart("PostFluidPart")
-model_part_cloner = ConnectivityPreserveModeler()
-model_part_cloner.GenerateModelPart(fluid_model_part, post_process_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
-import derivative_recovery_solver
-derivative_recovery_solver.AddVariables(post_process_model_part)
-derivative_recovery_solver.AddDofs(post_process_model_part)
-linear_solver = CGSolver()
-scheme = ResidualBasedIncrementalUpdateStaticScheme()
+import derivative_recovery_strategy
+recovery = derivative_recovery_strategy.DerivativeRecoveryStrategy(pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
 
-post_process_strategy = ResidualBasedLinearStrategy(post_process_model_part, scheme, linear_solver, False, True, False, False)
 number=0
 for node in fluid_model_part.Nodes:
     number += 1
@@ -729,7 +727,6 @@ for node in fluid_model_part.Nodes:
 N_steps = int(final_time / Dt_DEM) + 20
 
 if pp.CFD_DEM.basset_force_type > 0:
-    print(N_steps)
     basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
@@ -767,17 +764,7 @@ while (time <= final_time):
 
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
-#G                     
-            if pp.CFD_DEM.laplacian_calculation_type == 3 and VELOCITY_LAPLACIAN in pp.fluid_vars:
-                current_step = post_process_model_part.ProcessInfo[FRACTIONAL_STEP]
-                print("\nSolving for the Laplacian...")
-                sys.stdout.flush()
-
-                post_process_strategy.Solve()
-
-                print("\nFinished solving for the Laplacian.")
-                sys.stdout.flush()
-                
+               
     # assessing stationarity
 
         if stationarity_counter.Tick():
@@ -806,21 +793,12 @@ while (time <= final_time):
         out = 0
 
     # solving the DEM part
-    pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
+    derivative_recovery_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
-    if pressure_gradient_counter.Tick():
-        if pp.CFD_DEM.gradient_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
-        elif pp.CFD_DEM.gradient_calculation_type == 1:            
-            custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
-        if pp.CFD_DEM.laplacian_calculation_type == 1:
-            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-        if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+    if derivative_recovery_counter.Tick():
+        recovery.Recover()
 
-    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")    
+    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
     first_dem_iter = True
 
@@ -893,8 +871,6 @@ while (time <= final_time):
     # applying DEM-to-fluid coupling
 
     if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
-        print("Projecting from particles to the fluid...")
-        sys.stdout.flush()
         projection_module.ProjectFromParticles()
 
     # coupling checks (debugging)
