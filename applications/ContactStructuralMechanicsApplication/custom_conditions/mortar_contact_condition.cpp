@@ -177,17 +177,24 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
     ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
-                                                                         mColocationIntegration.IntegrationPoints( ) :
-                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+//     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+//                                                                          mColocationIntegration.IntegrationPoints( ) :
+//                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
+//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
+        // Reading integration points
+        this->ComputeSelectiveIntegrationMethod(PairIndex);
+        const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+                                                                         mColocationIntegration.IntegrationPoints( ) :
+                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+        
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
@@ -262,6 +269,68 @@ template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 IntegrationMethod MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetIntegrationMethod()
 {   
     return mThisIntegrationMethod;
+}
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+IntegrationMethod MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetIntegrationMethod(
+    const unsigned int integration_order, 
+    const bool collocation
+    )
+{
+    if (collocation == false)
+    {
+        if (integration_order == 1)
+        {
+            return GeometryData::GI_GAUSS_1;
+        }
+        else if (integration_order == 2)
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
+        else if (integration_order == 3)
+        {
+            return GeometryData::GI_GAUSS_3;
+        }
+        else if (integration_order == 4)
+        {
+            return GeometryData::GI_GAUSS_4;
+        }
+        else if (integration_order == 5)
+        {
+            return GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            return GetGeometry().GetDefaultIntegrationMethod();
+        }
+    }
+    else
+    {
+        if (integration_order == 1)
+        {
+            return GeometryData::GI_EXTENDED_GAUSS_1;
+        }
+        else if (integration_order == 2)
+        {
+            return GeometryData::GI_EXTENDED_GAUSS_2;
+        }
+        else if (integration_order == 3)
+        {
+            return GeometryData::GI_EXTENDED_GAUSS_3;
+        }
+        else if (integration_order == 4)
+        {
+            return GeometryData::GI_EXTENDED_GAUSS_4;
+        }
+        else if (integration_order == 5)
+        {
+            return GeometryData::GI_EXTENDED_GAUSS_5;
+        }
+        else
+        {
+            return this->GetIntegrationMethod();
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -952,21 +1021,28 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     // Initialize the current contact data
     ContactData<TDim, TNumNodes> rContactData;
 
-    // Reading integration points  // TODO: Move this to inside the loop and create the selective collocations
-    const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
-                                                                         mColocationIntegration.IntegrationPoints( ) :
-                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+//     // Reading integration points 
+//     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+//                                                                          mColocationIntegration.IntegrationPoints( ) :
+//                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
                                                                                   
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo); // NOTE: This will be conditioned by the selective integration
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo); 
+//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     // Compute the normal and tangent derivatives of the slave
     this->CalculateDeltaNormalTangentSlave(rContactData);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
+        // Reading integration points
+        this->ComputeSelectiveIntegrationMethod(PairIndex);
+        const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+                                                                         mColocationIntegration.IntegrationPoints( ) :
+                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+                                                                         
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
@@ -985,6 +1061,39 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         bounded_matrix<double, TMatrixSize, TMatrixSize> LHS_contact_pair = ZeroMatrix(TMatrixSize, TMatrixSize);
         array_1d<double, TMatrixSize> RHS_contact_pair = ZeroVector(TMatrixSize);
         
+        // We check the case to compute // NOTE: Just in 2D
+        unsigned int compute = 0;
+        if (TDim == 2)
+        {
+            if (TNumNodes == 2)
+            {
+                if (integration_points.size() > 0)
+                {
+                    const double xi_0 = integration_points[0].Coordinate(1);
+                    const double xi_1 = (integration_points.back()).Coordinate(1);
+                    
+                    if (xi_0 == -1.0)
+                    {
+                        if (xi_1 < 1.0)
+                        {
+                            compute = 1;
+                        }
+                    }
+                    else if (xi_0 > -1.0)
+                    {
+                        if (xi_1 == 1.0)
+                        {
+                            compute = 2;
+                        }
+                        else
+                        {
+                            compute = 3;
+                        }
+                    }
+                }
+            }
+        }
+        
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
@@ -997,7 +1106,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 
                 // Update the derivatives
                 this->CalculateDeltaDetJSlave(rVariables, rContactData);
-                this->CalculateDeltaNAndDeltaGap(rVariables, rContactData);
+                this->CalculateDeltaNAndDeltaGap(rVariables, rContactData, compute);
                 this->CalculateDeltaPhi(rVariables, rContactData);
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
@@ -1094,7 +1203,7 @@ template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
     ContactData<TDim, TNumNodes>& rContactData,
     GeneralVariables& rVariables,
-    const GeometryType::IntegrationPointsArrayType& integration_points,
+//     const GeometryType::IntegrationPointsArrayType& integration_points,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1103,6 +1212,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
     rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
+        // Reading integration points
+        this->ComputeSelectiveIntegrationMethod(PairIndex);
+        const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+                                                                         mColocationIntegration.IntegrationPoints( ) :
+                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
@@ -2632,9 +2747,17 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNormalMaste
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGap(
    GeneralVariables& rVariables,
-   ContactData<TDim, TNumNodes>& rContactData
+   ContactData<TDim, TNumNodes>& rContactData,
+   const unsigned int case_to_compute // NOTE: Just in 2D
    )
 {
+    /* IMPORTANT: The meaning of the case_to_compute: 
+     * case_to_compute == 0: The slave is enterely integrated and just DeltaN2 is calculated
+     * case_to_compute == 1: Just the first node of the slave is inside, then we calculate DeltaN2 of the first and DeltaN1 of the second node
+     * case_to_compute == 2: Just the second node of the slave is inside, then we calculate DeltaN2 of the second and DeltaN1 of the first node
+     * case_to_compute == 3: The master is enterely integrated and just DeltaN1 is calculated
+     */
+    
     // Shape functions
     const array_1d<double, TNumNodes >  N1 = rVariables.N_Slave;
     const array_1d<double, TNumNodes >  N2 = rVariables.N_Master;
@@ -2668,7 +2791,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
        }
     }
     
-   // Calculate Delta N2
+   // Calculate Delta N2 // TODO: Do the same for the N1
    if (compute == true)
    {
       const double tol = 1.0e-18;
@@ -2683,7 +2806,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
       {
          if (TNumNodes == 2)
          {
-            div1 = (X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + tol;
+//             div1 = (X1(0,0) + X1(0,1) - X1(1,0) - X1(1,1) + u1(0,0) + u1(0,1) - u1(1,0) - u1(1,1)) + tol; // NOTE: You will need to compute DeltaN1
+            div2 = (X2(0,0) + X2(0,1) - X2(1,0) - X2(1,1) + u2(0,0) + u2(0,1) - u2(1,0) - u2(1,1)) + tol;
          }
       }
       else
@@ -2735,7 +2859,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
             {
                if (TNumNodes == 2)
                {
-                  rContactData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div1;
+                  rContactData.DeltaN2[i_dof][0] =  (Deltax2g[0] + Deltax2g[1])/div2;
                   rContactData.DeltaN2[i_dof][1] =  - rContactData.DeltaN2[i_dof][0];
                }
             }
@@ -2774,11 +2898,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
                {
                    if (i_master == 0)
                    {
-                       rContactData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div1 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div1, 2);
+                       rContactData.DeltaN2[i_dof][0] =  ( ((u2(1,0) + X2(1,0) + u2(1,1) + X2(1,1)) - x2g[0] - x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
                    }
                    else 
                    {
-                       rContactData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div1 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div1, 2);
+                       rContactData.DeltaN2[i_dof][0] =  ((-(u2(0,0) + X2(0,0) + u2(0,1) + X2(0,1)) + x2g[0] + x2g[1]) + div2 * (Deltax2g[0] + Deltax2g[1]))/std::pow(div2, 2);
                    }
                   
                   rContactData.DeltaN2[i_dof][1] =  - rContactData.DeltaN2[i_dof][0];
@@ -2925,7 +3049,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
       }
     }
 
-    // Calculate Delta Gap
+    // Calculate Delta Gap // TODO: Consider DeltaN1
     for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
@@ -3205,6 +3329,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
+    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    mColocationIntegration.Initialize( integration_order);
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
@@ -3220,7 +3346,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
+//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
@@ -3304,6 +3431,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
+    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    mColocationIntegration.Initialize( integration_order);
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
@@ -3322,7 +3451,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
+    this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
+//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     if (rVariable == NORMAL_GP || rVariable == TANGENT_GP)
     {
@@ -3500,24 +3630,157 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrationMethod(const GeometryType& master_seg)
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex)
 {
+    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    mUseManualColocationIntegration = true;
+    
     if (TDim == 2)
     {
-        if (TNumNodes == 2)
+        if (TNumNodes == 2) // NOTE: Total weight of a  line is 2.0
         {
-            // TODO: Finish this!!!!
+            // Using standart integration methods (I am using collocation)
+            mColocationIntegration.Initialize( integration_order);
+//             const double tol = 1.0e-12; 
+//             const IntegrationMethod AuxIntegrationMethod = GetIntegrationMethod(integration_order, false);
+//             GeometryType::IntegrationPointsArrayType IntegrationPointsConsidered;
+//             
+//             double total_weight = 0.0;
+//             array_1d<double,2> coor_aux = ZeroVector(2);
+//             
+//             // Declaring auxiliar values
+//             PointType projected_gp_global;
+//             GeometryType::CoordinatesArrayType projected_gp_local;
+//             const array_1d<double, 3> normal = this->GetValue(NORMAL);
+//             double aux_dist = 0.0;
+//             
+//             // The master geometry
+//             GeometryType& master_seg = mThisMasterElements[rPairIndex]->GetGeometry();
+//             
+//             // Declare the boolean of full integral
+//             bool full_int = true;
+//             
+//             // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
+//             for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+//             {
+//                 ContactUtilities::ProjectDirection(master_seg, GetGeometry()[i_slave].Coordinates(), projected_gp_global, aux_dist, -normal ); // The opposite direction
+//                 
+//                 const bool inside = master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local );
+//                 
+//                 if (inside == false)
+//                 {
+//                     full_int = false;
+//                 }
+//                 else
+//                 {
+//                     if (i_slave == 0)
+//                     {
+//                         coor_aux[0] = - 1.0;
+//                     }
+//                     else if (i_slave == 1)
+//                     {
+//                         coor_aux[1] =   1.0;
+//                     }
+//                 }
+//             }
+//             
+//             if (full_int == true)
+//             {
+//                 total_weight = 2.0;
+//             }
+//             else
+//             {
+//                 std::vector<double> aux_xi;
+//                 for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
+//                 {
+//                     ContactUtilities::ProjectDirection(GetGeometry(), master_seg[i_master].Coordinates(), projected_gp_global, aux_dist, normal );
+// 
+//                     const bool inside = GetGeometry().IsInside( projected_gp_global.Coordinates( ), projected_gp_local );
+//                     
+//                     if (inside == true)
+//                     {
+//                         aux_xi.push_back(projected_gp_local[0]);
+//                     }
+//                 }
+//                 
+//                 if (aux_xi.size() == 1)
+//                 {
+//                     if (coor_aux[0] == - 1.0)
+//                     {
+//                         coor_aux[1] = aux_xi[0];
+//                     }
+//                     else if (coor_aux[1] == 1.0)
+//                     {
+//                         coor_aux[0] = aux_xi[0];
+//                     }
+//                     else
+//                     {
+//                         KRATOS_WATCH("WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!");
+//                     }
+//                 }
+//                 else  if (aux_xi.size() == 2)
+//                 {
+//                     if (aux_xi[0] < aux_xi[1])
+//                     {
+//                         coor_aux[0] = aux_xi[0];
+//                         coor_aux[1] = aux_xi[1];
+//                     }
+//                     else
+//                     {
+//                         coor_aux[1] = aux_xi[0];
+//                         coor_aux[0] = aux_xi[1];
+//                     }
+//                 }
+//                 
+//                 total_weight = coor_aux[1] - coor_aux[0];
+//             }
+//             
+//             if(total_weight < 0.0)
+//             {
+//                 KRATOS_THROW_ERROR( std::logic_error, "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates", coor_aux);
+//             }
+//             
+//             if (total_weight > tol)
+// //             if (total_weight > 0.0)
+//             {
+//                 // With the proportion of the weigth you recalculate the integration weight. Change the coordinates of the integration to accomodate
+//                 const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(AuxIntegrationMethod);
+//                 IntegrationPointsConsidered.resize(integration_points.size());
+//                 for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+//                 {
+//                     const double weight = integration_points[PointNumber].Weight() * total_weight/2.0;
+//                     const double xi = 0.5 * (1.0 - integration_points[PointNumber].Coordinate(1)) * coor_aux[0] 
+//                                     + 0.5 * (1.0 + integration_points[PointNumber].Coordinate(1)) * coor_aux[1];
+//                     
+//                     IntegrationPointsConsidered[PointNumber] = IntegrationPoint<2>( xi, weight );
+//                 }
+//             }
+//             else
+//             {
+// //                 IntegrationPointsConsidered.resize(0); // An empty std::vector
+//                 IntegrationPointsConsidered.clear(); // An empty std::vector
+//             }
+//             
+//             mColocationIntegration.SetIntegrationPoints(IntegrationPointsConsidered);
+// //             if (IntegrationPointsConsidered.size() > 0)
+// //             {
+// // //                 std::cout <<  GetGeometry()[0].X() << " " << GetGeometry()[0].Y() << " " << GetGeometry()[1].X() << " " << GetGeometry()[1].Y() << std::endl;
+// // //                 std::cout <<  master_seg[0].X() << " " << master_seg[0].Y() << " " << master_seg[1].X() << " " << master_seg[1].Y() << std::endl;
+// //                 KRATOS_WATCH(coor_aux);
+// //                 mColocationIntegration.print();
+// //             }
         }
         else
         {
-            // Using standart integration methods
-            this->InitializeIntegrationMethod();
+            // Using standart integration methods (I am using collocation)
+            mColocationIntegration.Initialize( integration_order);
         }
     }
     else
     {
-        if (TNumNodes == 3)
+        if (TNumNodes == 3) // NOTE: Total weight of a line is 0.5
         {
+            mColocationIntegration.Initialize( integration_order);
 //             // TODO: Finish this
 //             // Compute the local Coordinates of the master condition
 //             PointType projected_gp_global;
@@ -3538,8 +3801,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrati
         }
         else
         {
-            // Using standart integration methods
-            this->InitializeIntegrationMethod();
+            // Using standart integration methods (I am consideing collocation)
+            mColocationIntegration.Initialize( integration_order);
         }
     }
 }

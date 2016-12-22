@@ -538,6 +538,11 @@ public:
      */
     IntegrationMethod GetIntegrationMethod();
     
+    IntegrationMethod GetIntegrationMethod(
+        const unsigned int integration_order, 
+        const bool collocation
+        );
+    
     /**
     * Initialize System Matrices
     */
@@ -611,7 +616,7 @@ public:
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
-    void ComputeSelectiveIntegrationMethod(const GeometryType& master_seg);
+    void ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex);
     
     void InitializeIntegrationMethod();
 
@@ -851,6 +856,11 @@ protected:
             return mIntegrationPoints;
         }
         
+        void SetIntegrationPoints( GeometryType::IntegrationPointsArrayType rIntegrationPoints)
+        {
+            mIntegrationPoints = rIntegrationPoints;
+        }
+        
         void print( )
         {
             std::cout << "mIntegrationPoints : " << mIntegrationPoints.size( ) << std::endl;
@@ -869,7 +879,7 @@ protected:
     IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
     unsigned int mPairSize;                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
-    
+   
     bool mUseManualColocationIntegration;                // Use the manual collocation integration
     ColocationIntegration mColocationIntegration;        // The manual collocation integration
     
@@ -996,7 +1006,7 @@ protected:
     void CalculateAeAndDeltaAe( 
         ContactData<TDim, TNumNodes>& rContactData,
         GeneralVariables& rVariables,
-        const GeometryType::IntegrationPointsArrayType& integration_points,
+//         const GeometryType::IntegrationPointsArrayType& integration_points,
         const ProcessInfo& rCurrentProcessInfo
         );
     
@@ -1122,7 +1132,8 @@ protected:
     
     void CalculateDeltaNAndDeltaGap(
         GeneralVariables& rVariables,
-        ContactData<TDim, TNumNodes>& rContactData
+        ContactData<TDim, TNumNodes>& rContactData,
+        const unsigned int case_to_compute 
         );
     
     void CalculateDeltaPhi(
