@@ -301,7 +301,8 @@ IntegrationMethod MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetIntegrati
         }
         else
         {
-            return GetGeometry().GetDefaultIntegrationMethod();
+            return GeometryData::GI_GAUSS_5; // NOTE: Maximium by default
+//             return GetGeometry().GetDefaultIntegrationMethod();
         }
     }
     else
@@ -1598,10 +1599,10 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
                 Matrix tangent_matrix;
                 tangent_matrix.resize(TDim - 1, TDim);
 
-                const array_1d<double, 3> tangent1 = this->GetValue(TANGENT_XI);
-                const array_1d<double, 3> tangent2 = this->GetValue(TANGENT_ETA);
-//                 const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-//                 const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+//                 const array_1d<double, 3> tangent1 = this->GetValue(TANGENT_XI);
+//                 const array_1d<double, 3> tangent2 = this->GetValue(TANGENT_ETA);
+                const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+                const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
                 for (unsigned int i = 0; i < TDim; i++)
                 {
                     tangent_matrix(0, i) = tangent1[i];
@@ -3641,7 +3642,9 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrati
         {
             // Using standart integration methods (I am using collocation)
             mColocationIntegration.Initialize( integration_order);
-//             const double tol = 1.0e-12; 
+            
+//             // Using exact integration
+//             const double tol = 1.0e-4; 
 //             const IntegrationMethod AuxIntegrationMethod = GetIntegrationMethod(integration_order, false);
 //             GeometryType::IntegrationPointsArrayType IntegrationPointsConsidered;
 //             
@@ -3764,8 +3767,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrati
 //             mColocationIntegration.SetIntegrationPoints(IntegrationPointsConsidered);
 // //             if (IntegrationPointsConsidered.size() > 0)
 // //             {
-// // //                 std::cout <<  GetGeometry()[0].X() << " " << GetGeometry()[0].Y() << " " << GetGeometry()[1].X() << " " << GetGeometry()[1].Y() << std::endl;
-// // //                 std::cout <<  master_seg[0].X() << " " << master_seg[0].Y() << " " << master_seg[1].X() << " " << master_seg[1].Y() << std::endl;
+// //                 std::cout <<  GetGeometry()[0].X() << " " << GetGeometry()[0].Y() << " " << GetGeometry()[1].X() << " " << GetGeometry()[1].Y() << std::endl;
+// //                 std::cout <<  master_seg[0].X() << " " << master_seg[0].Y() << " " << master_seg[1].X() << " " << master_seg[1].Y() << std::endl;
 // //                 KRATOS_WATCH(coor_aux);
 // //                 mColocationIntegration.print();
 // //             }

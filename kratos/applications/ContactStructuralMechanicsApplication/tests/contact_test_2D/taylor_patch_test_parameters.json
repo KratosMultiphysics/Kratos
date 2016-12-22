@@ -118,7 +118,7 @@
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
             "double_LM"                   : false,  
-            "integration_order"           : 10
+            "integration_order"           : 5
         }
     }
     ],

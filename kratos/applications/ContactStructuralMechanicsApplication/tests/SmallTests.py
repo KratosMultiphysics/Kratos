@@ -54,6 +54,9 @@ class HyperSimplePatchTestContact(StructuralMechanichsTestFactory):
 class SimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_test"
     
+class SimpleSlopePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_2D/simple_slope_patch_test"
+    
 class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_notmatching_a_test"
     

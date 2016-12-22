@@ -5,7 +5,7 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    DENSITY   1.00000E+03 
+    DENSITY   1.00000E+03
     YOUNG_MODULUS   2.06900E+11 
     POISSON_RATIO   2.90000E-01 
 End Properties
@@ -25,18 +25,18 @@ Begin Nodes
     6        1.00000        0.00000        0.00000
     7        1.50000        1.00000        0.00000
     8        1.00000        0.50000        0.00000
-    9        1.60000        1.00001        0.00000
-   10        1.00000        1.00000        0.00000
-   11        1.00000        1.00001        0.00000
+    9        1.50000        1.00001        0.00000
+   10        1.00000        0.70000        0.00000
+   11        1.00000        0.70001        0.00000
    12        0.50000        0.00000        0.00000
    13        0.50000        0.50000        0.00000
-   14        1.60000        1.50000        0.00000
+   14        1.50000        1.50000        0.00000
    15        0.50000        1.00000        0.00000
    16        0.50000        1.00001        0.00000
    17        1.00000        1.50000        0.00000
    18        0.00000        0.00000        0.00000
    19        0.00000        0.50000        0.00000
-   20        1.60000        2.00000        0.00000
+   20        1.50000        2.00000        0.00000
    21        0.50000        1.50000        0.00000
    22        0.00000        1.00000        0.00000
    23        1.00000        2.00000        0.00000
@@ -44,7 +44,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
+Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto2
          1          2         12         13         19         18 
          2          2          6          8         13         12 
          3          2          2          4          8          6 
@@ -55,7 +55,7 @@ Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
          8          2          3          5          7          4 
 End Elements
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto3
+Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto3
          9          1         11         17         21         16 
         10          1          9         14         17         11 
         11          1         17         23         24         21 

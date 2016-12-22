@@ -125,7 +125,7 @@
             "augmentation_normal"         : 1e7,
             "augmentation_tangent"        : 1e7,
             "double_LM"                   : false,  
-            "integration_order"           : 11
+            "integration_order"           : 5
         }
     }
     ],
