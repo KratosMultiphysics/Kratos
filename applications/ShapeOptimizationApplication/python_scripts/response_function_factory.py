@@ -75,11 +75,17 @@ def CreateSolver(model_part, opt_settings):
         specified_responses[response_id] = opt_settings.constraints[response_id]
 
     # Creat response function solver according to specified settings and add relevant variables
+    in_active_responses = True
     if "strain_energy" in specified_responses.keys():
+        in_active_responses = False
         model_part.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
         solver["strain_energy"] = StrainEnergyResponseFunction(model_part, specified_responses["strain_energy"])
-    else:
-        raise ValueError("Specified response function not implemented. Implemented response functions are: \"strain_energy\"")
+    if "mass" in specified_responses.keys():
+        in_active_responses = False
+        model_part.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
+        solver["mass"] = MassResponseFunction(model_part, specified_responses["mass"])        
+    if in_active_responses:
+        raise ValueError("Specified response function not implemented. Implemented response functions are: \"strain_energy\", \"mass\"")
 
     return solver
 
