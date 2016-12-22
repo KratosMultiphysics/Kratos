@@ -40,9 +40,9 @@ KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_RHS_VECTOR,                
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_LHS_MATRIX,                 1 );
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, EAS_IMPLICIT_EXPLICIT,              4 ); // True means implicit
-KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, TOTAL_UPDATED_LAGRANGIAN,           5 ); // True means total lagrangian
-KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, QUADRATIC_ELEMENT,                  6 ); // True means quadratic in-plane behaviour
+KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, EAS_IMPLICIT_EXPLICIT,              4 ); // True means implicit // TODO: change this using templates!!!
+KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, TOTAL_UPDATED_LAGRANGIAN,           5 ); // True means total lagrangian // TODO: change this using templates!!!
+KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, QUADRATIC_ELEMENT,                  6 ); // True means quadratic in-plane behaviour // TODO: Idem
 
 // ------------------------------------------------------------------------- //
 // ------------------------------ PUBLIC ----------------------------------- //
