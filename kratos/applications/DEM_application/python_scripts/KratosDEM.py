@@ -264,7 +264,7 @@ while (time < DEM_parameters.FinalTime):
 
         time_old_print = time
    
-KRATOSprint(report.FinalReport(timer))
+KRATOSprint("Finalizing execution...")
 
 demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
@@ -287,3 +287,5 @@ for obj in objects_to_destroy:
     del obj
 
 procedures.DeleteFiles()
+
+KRATOSprint(report.FinalReport(timer))
