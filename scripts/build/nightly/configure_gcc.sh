@@ -13,7 +13,7 @@ cmake .. \
 -DPYTHON_LIBRARY="/usr/lib/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}/config-${PYTHON_VERSION_S}.${PYTHON_VERSION_M}m-x86_64-linux-gnu/libpython${PYTHON_VERSION_S}.${PYTHON_VERSION_M}m.so"                            \
 -DPYTHON_INCLUDE_DIR="/usr/include/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"               \
 -DALE_APPLICATION=ON                                                                            \
--DADJOINT_FLUID_APPLICATION=ON                                                                  \
+-DADJOINT_FLUID_APPLICATION=OFF                                                                 \
 -DCONVECTION_DIFFUSION_APPLICATION=ON                                                           \
 -DDAM_APPLICATION=ON                                                                            \
 -DDEM_APPLICATION=ON                                                                            \
