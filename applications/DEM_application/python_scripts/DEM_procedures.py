@@ -724,7 +724,10 @@ class Procedures(object):
     def DeleteFiles(self):
         files_to_delete_list = glob('*.time')
         for to_erase_file in files_to_delete_list:
-            os.remove(to_erase_file)
+            try:
+                os.remove(to_erase_file)
+            except OSError:
+                pass            
 
     def PreProcessModel(self, DEM_parameters):
         pass
