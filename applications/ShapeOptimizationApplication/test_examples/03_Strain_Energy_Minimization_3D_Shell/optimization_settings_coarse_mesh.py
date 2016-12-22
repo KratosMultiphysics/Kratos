@@ -13,18 +13,16 @@ design_history_file = "design_history.csv"
 # Define container of objective functions
 # Format: objectives = { "unique_func_id": {"gradient_mode": "analytic"},
 #                        "unique_func_id": {"gradient_mode": "semi_analytic", "step_size": 1e-5},
-#                        "unique_func_id": {"gradient_mode": "finite_differencing", "step_size": 1e-5},
 #                        "unique_func_id": {"gradient_mode": "external"},
 #                        ... }
-objectives = { "some_objective_name": {"gradient_mode": "external"} }
+objectives = { "strain_energy": {"gradient_mode": "semi_analytic", "step_size": 1e-8} }
 
 # Define container of constraint functions
-# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "analytic"},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "semi_analytic", "step_size": 1e-5},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "finite_differencing", "step_size": 1e-5},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "external"},
+# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "analytic"},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "semi_analytic", "step_size": 1e-5},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "external"},
 #                         ... }    
-constraints = { "some_constraint_name": {"type": "eq", "gradient_mode": "external"} }
+constraints = {  }
     
 # ================================================================================================================  
 # Design variables 
@@ -42,14 +40,14 @@ domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 
 # Case: design_control = "vertex_morphing"
-design_surface_name = "path/to/your/mpda/some_mesh_name"
+design_surface_name = "design_surface_coarse"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-filter_size = 50
+filter_size = 3
 
 # ================================================================================================================
 # Optimization algorithm 
@@ -61,7 +59,7 @@ optimization_algorithm = "steepest_descent"
 #          "penalized_projection",
     
 # General convergence criterions
-max_opt_iterations = 100
+max_opt_iterations = 300
     
 # Case: "steepest descent"
 relative_tolerance_objective = 1e-1 # [%]
@@ -79,24 +77,20 @@ lambda_0 = 0.0
 # ================================================================================================================
 
 # Only constant step-size is implemented yet
-normalize_search_direction = False
-step_size = 0.1
+normalize_search_direction = True
+step_size = .1 # e.g. 5 for active normalization or 1e7 for inactive normalization
 
 # ================================================================================================================
 # For GID output 
 # ================================================================================================================
 
 nodal_results=[ "NORMALIZED_SURFACE_NORMAL",
-                "IS_ON_BOUNDARY",
-                "SENSITIVITIES_DEACTIVATED",
-                "SHAPE_UPDATES_DEACTIVATED",
                 "OBJECTIVE_SENSITIVITY",
                 "MAPPED_OBJECTIVE_SENSITIVITY",
-                "CONSTRAINT_SENSITIVITY",
-                "MAPPED_CONSTRAINT_SENSITIVITY",
                 "DESIGN_UPDATE",
                 "DESIGN_CHANGE_ABSOLUTE",
                 "SHAPE_UPDATE",
+                "SHAPE_UPDATES_DEACTIVATED",
                 "SHAPE_CHANGE_ABSOLUTE"]
 VolumeOutput = True
 GiDPostMode = "Binary"
