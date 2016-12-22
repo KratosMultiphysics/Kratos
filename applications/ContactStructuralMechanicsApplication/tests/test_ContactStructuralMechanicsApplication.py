@@ -14,6 +14,7 @@ from SmallTests import BasicCATest as TBasicCATest
 from SmallTests import SolidCATest as TSolidCATest
 from SmallTests import HyperSimplePatchTestContact as THyperSimplePatchTestContact
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
+from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
 from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
@@ -53,6 +54,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TSolidCATest('test_execution'))
     smallSuite.addTest(THyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
@@ -83,6 +85,7 @@ def AssambleTestSuites():
             TSolidCATest,
             THyperSimplePatchTestContact,
             TSimplePatchTestContact,
+            TSimpleSlopePatchTestContact,
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
             TTaylorPatchTestContact,

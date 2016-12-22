@@ -148,7 +148,8 @@ public:
         
         GeometryNormal(Normal, Geom);
         
-        array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
+//         const array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
+        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
         if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
         {

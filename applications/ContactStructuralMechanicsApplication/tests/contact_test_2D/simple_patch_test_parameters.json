@@ -19,24 +19,24 @@
         },
         "compute_mortar_contact"             : 1,
         "block_builder"                      : true,
+        "clear_storage"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : false,
-        "reform_dofs_at_each_step"      : true,
+        "compute_reactions"                  : false,
         "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_relative_tolerance"    : 0.001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "split_factor"                       : 10.0,
-        "max_number_splits"             : 3,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false,
-            "verbosity"   : 0
+                "solver_type": "SuperLUSolver",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1","DISPLACEMENT_Rolling_Punch"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -97,7 +97,6 @@
             "search_factor"               : 2.0,
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
-            "double_LM"                   : false,  
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 5

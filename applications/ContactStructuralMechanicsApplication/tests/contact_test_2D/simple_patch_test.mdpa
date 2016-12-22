@@ -5,17 +5,15 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    DENSITY   7.85000E+03 
+    DENSITY   1.00000E+03
     YOUNG_MODULUS   2.06900E+11 
     POISSON_RATIO   2.90000E-01 
-    INTEGRATION_ORDER_CONTACT 11
 End Properties
 
 Begin Properties 2
-    DENSITY   7.85000E+03 
+    DENSITY   1.00000E+03 
     YOUNG_MODULUS   2.06900E+11 
     POISSON_RATIO   2.90000E-01 
-    INTEGRATION_ORDER_CONTACT 11
 End Properties
 
 Begin Nodes
@@ -46,7 +44,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
+Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto2
          1          2         12         13         19         18 
          2          2          6          8         13         12 
          3          2          2          4          8          6 
@@ -57,7 +55,7 @@ Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto2
          8          2          3          5          7          4 
 End Elements
 
-Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto3
+Begin Elements UpdatedLagrangianElement2D4N// GUI group identifier: Parts Auto3
          9          1         11         17         21         16 
         10          1          9         14         17         11 
         11          1         17         23         24         21 
@@ -174,15 +172,6 @@ Begin SubModelPart IMPOSE_DISP_Auto1 // Group Load on lines Auto1
     Begin SubModelPartNodes
         20
         23
-        24
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart DISPLACEMENT_Rolling_Punch // Group Rolling Punch // Subtree DISPLACEMENT
-    Begin SubModelPartNodes
         24
     End SubModelPartNodes
     Begin SubModelPartElements
