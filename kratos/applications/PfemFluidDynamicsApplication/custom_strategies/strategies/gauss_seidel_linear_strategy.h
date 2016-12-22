@@ -330,7 +330,7 @@ public:
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
-	BaseType::MoveMesh(); 
+	/* BaseType::MoveMesh();  */
 
         //calculate if needed the norm of Dx
         double normDx = 0.00;
@@ -583,8 +583,8 @@ private:
     	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         //initial operations ... things that are constant over the Solution Step
-    	boost::timer scheme_initialize_solution_step;
-    	pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+    	/* boost::timer scheme_initialize_solution_step; */
+    	/* pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb); */
 
 
         KRATOS_CATCH("")

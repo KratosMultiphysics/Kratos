@@ -231,7 +231,7 @@ namespace Kratos
        */
 
 
-      virtual void UpdateCauchyStress(unsigned int g);
+      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
 
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
 
@@ -328,8 +328,10 @@ namespace Kratos
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
 						 const double secondLame,
-						 const double bulkModulus,
-						 const double Weight){};
+						 double& bulkModulus,
+						 const double Weight,
+						 double& MeanValueMass,
+						 const double TimeStep){};
 
       void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 				  MatrixType& rDampingMatrix,
@@ -358,11 +360,13 @@ namespace Kratos
 
      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
-				const double Weight){std::cout<<"ComputeBoundLHSMatrix solid"<<std::endl;};
+				const double Weight){};
 
      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
-				const double Weight){std::cout<<"ComputeBoundRHSvector solid"<<std::endl;};
+				const double TimeStep,
+				const double BoundRHSCoeffAcc,
+				const double BoundRHSCoeffDev){};
 
       void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				      const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -405,6 +409,11 @@ namespace Kratos
 					 const ShapeFunctionDerivativesType& rDN_DX,
 					 const SizeType i);
 
+      
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+      
      /// Write the value of a variable at a point inside the element to a double
       /**
        * Evaluate a nodal variable in the point where the form functions take the

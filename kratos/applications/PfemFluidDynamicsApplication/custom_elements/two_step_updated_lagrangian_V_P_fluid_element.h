@@ -230,7 +230,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
 
-      virtual void UpdateCauchyStress(unsigned int g);
+      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
 
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
       /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
@@ -320,13 +320,14 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
    
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
+      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
 						 const double secondLame,
-						 const double bulkModulus,
-						 const double Weight);
-
+						 double& bulkModulus,
+						 const double Weight,
+						 double& MeanValueMass,
+						 const double TimeStep);   
 
      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 				 MatrixType& rDampingMatrix,
@@ -358,7 +359,9 @@ namespace Kratos
 
      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
-				const double Weight);
+				const double TimeStep,
+				const double BoundRHSCoeffAcc,
+				const double BoundRHSCoeffDev);
 
      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				     const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -400,6 +403,10 @@ namespace Kratos
 					 const double Weight,
 					 const ShapeFunctionDerivativesType& rDN_DX,
 					 const SizeType i);
+
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);     
 
       /// Write the value of a variable at a point inside the element to a double
       /**

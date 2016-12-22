@@ -213,7 +213,7 @@ public:
 		    numrigid++;
 		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
-		  if(!vertices.back().Is(RIGID) && vertices.back().Is(BOUNDARY)){
+		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
 		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
@@ -265,10 +265,7 @@ public:
 	      //     if(numsurf>0)
 	      // 	Alpha*=1.3;
 	      
-	      //     //2.4.- correction to avoid voids in the next layer after fixed boundaries
-	      //     if(numlayer>0 && !numsurf)
-	      // 	Alpha*=1.2;
-	      //   }
+
 	      
 	      // }
 	      
@@ -285,18 +282,8 @@ public:
 	      if(numfreesurf==0){
 		if(dimension==2){
 		  if(numrigid==0){
-		    // if(numfirstlayer==0){
-		    //   Alpha*=1.05;
-		    // }else{
-		    //   Alpha*=1.025;
-		    // }
 		    Alpha*=1.025;
 		  }else{
-		    // if(numfirstlayer==0){
-		    //   Alpha*=1.1;
-		    // }else{
-		    //   Alpha*=1.05;
-		    // }
 		    Alpha*=1.1;
 		  }
 
