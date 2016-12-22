@@ -205,12 +205,12 @@ class VertexMorphingMethod:
         with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("itr")
-            row.append("\tf")
-            row.append("\tdf_absolute[%]")
-            row.append("\tdf_relative[%]")
-            row.append("\tstep_size[-]")
-            row.append("\tt_iteration[s]")
+            row.append("itr\t")
+            row.append("\tf\t")
+            row.append("\tdf_absolute[%]\t")
+            row.append("\tdf_relative[%]\t")
+            row.append("\tstep_size[-]\t")
+            row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
         
@@ -307,7 +307,7 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
                 row.append("\t"+str(self.config.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
-                row.append("\t"+str("%.1f"%(time_optimization))+"\t")
+                row.append("\t"+str("%.1f"%(time_optimization)))
                 historyWriter.writerow(row)              
 
             # Check convergence
@@ -378,7 +378,7 @@ class VertexMorphingMethod:
             row.append("\tdf_absolute[%]\t")
             row.append("\tpenalty_fac\t")
             row.append("\tC["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t") 
-            row.append("\tlambda["+str(only_C_id)+"]\t")
+            row.append("\tlambda["+str(only_C_id)+"]")
             historyWriter.writerow(row)  
 
         # Define initial design (initial design corresponds to a zero shape update)
@@ -478,7 +478,7 @@ class VertexMorphingMethod:
                    row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                    row.append("\t"+str("%.2f"%(self.vm_utils.get_penalty_fac()))+"\t")
                    row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
-                   row.append("\t"+str("%.12f"%(self.vm_utils.get_lambda(only_C_id)))+"\t")
+                   row.append("\t"+str("%.12f"%(self.vm_utils.get_lambda(only_C_id))))
                    historyWriter.writerow(row)
 
                 # Write design in GID format
@@ -558,14 +558,15 @@ class VertexMorphingMethod:
         with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("itr")
-            row.append("\tf")
-            row.append("\tdf_absolute[%]")
-            row.append("\tdf_relative[%]")
-            row.append("\tc["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t")          
-            row.append("\tcorrection_scaling[-]")
-            row.append("\tstep_size[-]")
-            row.append("\tt_iteration[s]")
+            row.append("itr\t")
+            row.append("\tf\t")
+            row.append("\tdf_absolute[%]\t")
+            row.append("\tdf_relative[%]\t")
+            row.append("\tc["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t")    
+            row.append("\tc["+str(only_C_id)+"] / reference_value[%]"+"\t")        
+            row.append("\tcorrection_scaling[-]\t")
+            row.append("\tstep_size[-]\t")
+            row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
         
@@ -648,7 +649,7 @@ class VertexMorphingMethod:
             # Map design update to geometry space
             self.mapper.map_design_update_to_geometry_space()
 
-            # Compute and output some measures to track changes in the objective function
+            # Compute and output some measures to track objective function
             delta_f_absolute = 0.0
             delta_f_relative = 0.0
             print("\n> Current value of objective function = ",response[only_F_id]["value"])
@@ -656,8 +657,10 @@ class VertexMorphingMethod:
                 delta_f_absolute = 100*(response[only_F_id]["value"]-initial_f)/initial_f
                 delta_f_relative = 100*(response[only_F_id]["value"]-previous_f)/initial_f
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
-                print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")           
-                print("\n> Current value of constraint function = ",round(response[only_C_id]["value"],12))
+                print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")  
+
+            # Compute and output some measures to track function
+            print("\n> Current value of constraint function = ",round(response[only_C_id]["value"],12))
 
             # Take time needed for current optimization step
             end_time = time.time()
@@ -678,10 +681,15 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
                 row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
+                if not response[only_C_id]["reference_value"]:
+                    row.append("\t"+str("-\t"))
+                else: 
+                    percentage_of_reference = 100*(response[only_C_id]["value"]/response[only_C_id]["reference_value"])
+                    row.append("\t"+str("%.6f"%(percentage_of_reference)))
                 row.append("\t"+str("%.12f"%(correction_scaling[0]))+"\t")
                 row.append("\t"+str(self.config.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
-                row.append("\t"+str("%.1f"%(time_optimization))+"\t")
+                row.append("\t"+str("%.1f"%(time_optimization)))
                 historyWriter.writerow(row)       
 
             # Check convergence (Further convergence criterions to be implemented )
@@ -690,6 +698,11 @@ class VertexMorphingMethod:
                 # Check if maximum iterations were reached
                 if(opt_itr==self.config.max_opt_iterations):
                     print("\n> Maximal iterations of optimization problem reached!")
+                    break
+
+                # Check for relative tolerance
+                if(abs(delta_f_relative)<self.config.relative_tolerance_objective):
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,"%.")
                     break
 
             # Update design
@@ -778,9 +791,9 @@ class Controller:
         # Initialize response container to provide storage for any response
         self.response_container = {}       
         for func_id in config.objectives:
-            self.response_container[func_id] = {"value": None, "gradient": None}
+            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
         for func_id in config.constraints:
-            self.response_container[func_id] = {"value": None, "gradient": None}            
+            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}            
 
     # --------------------------------------------------------------------------
     def initialize_controls( self ):

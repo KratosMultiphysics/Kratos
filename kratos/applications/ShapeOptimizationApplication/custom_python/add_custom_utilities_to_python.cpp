@@ -62,6 +62,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/vertex_morphing_mapper.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
+#include "custom_utilities/response_functions/mass_response_function.h"
 
 // ==============================================================================
 
@@ -121,7 +122,6 @@ void  AddCustomUtilitiesToPython()
     // For pre- and post-processing of geometry data
     // ========================================================================
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
-
             .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
             .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
 			.def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
@@ -133,10 +133,19 @@ void  AddCustomUtilitiesToPython()
     class_<StrainEnergyResponseFunction, bases<Process> >("StrainEnergyResponseFunction", init<ModelPart&, boost::python::dict>())
             .def("initialize", &StrainEnergyResponseFunction::initialize)
             .def("calculate_value", &StrainEnergyResponseFunction::calculate_value)
-            .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient)   
+            .def("calculate_gradient", &StrainEnergyResponseFunction::calculate_gradient) 
             .def("get_value", &StrainEnergyResponseFunction::get_value)
+            .def("get_initial_value", &StrainEnergyResponseFunction::get_initial_value)  
             .def("get_gradient", &StrainEnergyResponseFunction::get_gradient)                              
-            ;    
+            ; 
+    class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, boost::python::dict>())
+            .def("initialize", &MassResponseFunction::initialize)
+            .def("calculate_value", &MassResponseFunction::calculate_value)
+            .def("calculate_gradient", &MassResponseFunction::calculate_gradient)  
+            .def("get_value", &MassResponseFunction::get_value)
+            .def("get_initial_value", &MassResponseFunction::get_initial_value) 
+            .def("get_gradient", &MassResponseFunction::get_gradient)                              
+            ;
 }
 
 

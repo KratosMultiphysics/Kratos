@@ -498,19 +498,23 @@ public:
     // ==============================================================================
     void correct_projected_search_direction( double c, double previous_c, boost::python::list& py_correction_scaling )
     {
+        // Check correction necessary
+        if(c==0)
+         return;
+
         // Calucation of vector norms 
     	double norm_correction_term = 0.0;
-    	double norm_design_update_term = 0.0;
+    	double norm_search_direction = 0.0;
     	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
     	{
     		array_3d correction_term = c * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
     		norm_correction_term += inner_prod(correction_term,correction_term);
 
-    		array_3d ds = node_i->FastGetSolutionStepValue(DESIGN_UPDATE);
-    		norm_design_update_term += inner_prod(ds,ds);
+    		array_3d ds = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
+    		norm_search_direction += inner_prod(ds,ds);
     	}
     	norm_correction_term = sqrt(norm_correction_term);
-    	norm_design_update_term = sqrt(norm_design_update_term);
+    	norm_search_direction = sqrt(norm_search_direction);
 
     	// Three cases need to be covered
 
@@ -529,7 +533,7 @@ public:
     		std::cout << "Correction scaling needs to increase...." << std::endl;
     		m_correction_scaling = std::min(m_correction_scaling*2,1.0);
     	}
-    	double correction_factor = m_correction_scaling * norm_design_update_term / norm_correction_term;
+    	double correction_factor = m_correction_scaling * norm_search_direction / norm_correction_term;
 
         // Rewrite value in container to keep track of the value in python
     	py_correction_scaling[0] = m_correction_scaling;
@@ -538,7 +542,9 @@ public:
     	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
     	{
     		array_3d correction_term = correction_factor * c * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
-    		node_i->FastGetSolutionStepValue(DESIGN_UPDATE) -= correction_term;
+            // KRATOS_WATCH(correction_term);
+            // KRATOS_WATCH(node_i->FastGetSolutionStepValue(SEARCH_DIRECTION));
+    		node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
     }
 
