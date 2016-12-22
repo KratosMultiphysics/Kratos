@@ -385,20 +385,42 @@ class ExplicitStrategy:
         return (1-sinAlpha)/sinAlpha
     
     def IntegrationSchemeTranslator(self, name):
+        class_name = None
+
         if name == 'Forward_Euler':
             class_name = 'ForwardEulerScheme'
         elif name == 'Symplectic_Euler':
             class_name = 'SymplecticEulerScheme'
         elif name == 'Taylor_Scheme':
-            class_name = 'TaylorScheme'        
+            class_name = 'TaylorScheme'
         elif name == 'Newmark_Beta_Method':
             class_name = 'NewmarkBetaScheme'
         elif name == 'Verlet_Velocity':
             class_name = 'VerletVelocityScheme'
-        else:
-            self.Procedures.KRATOSprint('Error: selected scheme (' + name + ') not available. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+
         return class_name
+
+    def GetSchemeInstance(self, class_name):
+        return globals().get(class_name)()
+
+    def GetScheme(self, name):
+        class_name = self.IntegrationSchemeTranslator(name)
+        scheme = None
+        error_status = 0
+        summary = ''
+
+        if not class_name == None:
+            try:
+                scheme = self.GetSchemeInstance(class_name)
+                return scheme, error_status, summary
+            except:
+                error_status = 1
+                summary = 'The class corrsponding to the scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
+        else:
+            error_status = 2
+            summary = 'The scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
+
+        return scheme, error_status, summary
 
     def ModifyProperties(self, properties):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
@@ -447,7 +469,7 @@ class ExplicitStrategy:
             scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
             scheme_name = self.Parameters.IntegrationScheme
-            
-        scheme = globals().get(self.IntegrationSchemeTranslator(scheme_name))()
+
+        scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
         scheme.SetIntegrationSchemeInProperties(properties)
         
