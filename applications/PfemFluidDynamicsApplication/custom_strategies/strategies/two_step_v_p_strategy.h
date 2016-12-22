@@ -235,40 +235,42 @@ public:
       bool continuityConverged = false;
       boost::timer solve_step_time;
       // Iterative solution for pressure
-      if(timeStep==1){
-      	unsigned int iter=0;
-      	this->SetActiveLabel();
-      	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations);
-      }else if(timeStep==2){
-      	unsigned int iter=0;
-      	this->SetActiveLabel();
-      	 momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations);
-      }else{
+      /* if(timeStep==1){ */
+      /* 	unsigned int iter=0; */
+      /* 	this->SetActiveLabel(); */
+      /* 	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations); */
+      /* }else if(timeStep==2){ */
+      /* 	unsigned int iter=0; */
+      /* 	this->SetActiveLabel(); */
+      /* 	 momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations); */
+      /* }else{ */
 
-	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
-	  {
-	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-	      std::cout << "----- > iteration: " << it << std::endl;
+      for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
+	{
+	  if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+	    std::cout << "----- > iteration: " << it << std::endl;
 
-	    if(it==0){
-	      this->SetActiveLabel();
-	    }
-
-	    momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations);
-
-	    this->CalculateDisplacements();
-	    /* this->CalculateAccelerations(); */
-
-	    continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
-
-	    if ( (continuityConverged && momentumConverged) && it>2)
-	      {
-		if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-		  std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
-		break;
-	      }
+	  if(it==0){
+	    this->SetActiveLabel();
 	  }
-      }
+
+	  momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations);
+
+	  this->CalculateDisplacements();
+	  BaseType::MoveMesh(); 
+
+	  continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
+
+	  if ( (continuityConverged && momentumConverged) && it>2)
+	    {
+	      if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+		std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+	      break;
+	    }
+	}
+
+      /* } */
+
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	std::cout << "Convergence tolerance not reached." << std::endl;
 

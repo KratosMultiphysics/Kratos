@@ -235,7 +235,8 @@ private:
 
     int ElementsToRefine=0;
     ElementsToRefine=mrRemesh.Info->RemovedNodes;
-    std::cout<<" I will find "<<ElementsToRefine <<" new nodes"<<std::endl;
+    if(ElementsToRefine>0)
+      std::cout<<" I will find "<<ElementsToRefine <<" new nodes"<<std::endl;
     std::vector<array_1d<double,3> > NewPositions;
     std::vector<double > BiggestVolumes;
     std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;

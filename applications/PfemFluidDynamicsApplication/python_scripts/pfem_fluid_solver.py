@@ -134,6 +134,8 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
  
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -303,14 +305,20 @@ class PfemFluidSolver:
             density = el.Properties.GetValue(KratosMultiphysics.DENSITY)
             viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
             bulk_modulus = el.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
+            young_modulus = el.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
+            poisson_ratio = el.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
             break
             
         print ("density: ",density)
         print ("viscosity: ",viscosity)
         print ("bulk_modulus: ",bulk_modulus)
+        print ("young_modulus: ",young_modulus)
+        print ("poisson_ratio: ",poisson_ratio)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, density, self.main_model_part.Nodes)              # Set density
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, self.main_model_part.Nodes)  # Set kinematic viscosity
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.BULK_MODULUS, bulk_modulus, self.main_model_part.Nodes)  # Set kinematic viscosity
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.BULK_MODULUS, bulk_modulus, self.main_model_part.Nodes)  # Set Bulk modulus
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.YOUNG_MODULUS, young_modulus, self.main_model_part.Nodes)  # Set Young modulus
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.POISSON_RATIO, poisson_ratio, self.main_model_part.Nodes)  # Set Poisson ratio
 
 #
 

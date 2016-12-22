@@ -277,7 +277,7 @@ namespace Kratos
     
       virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
     
-      virtual void UpdateCauchyStress(unsigned int g){};
+      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo){};
 
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){
 	KRATOS_TRY;
@@ -368,9 +368,9 @@ namespace Kratos
 					   VectorType& rRightHandSideVector,
 					   ProcessInfo& rCurrentProcessInfo);
 
-      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo);
+      virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo){};
 
       virtual void ComputeMaterialParameters (double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
@@ -403,16 +403,17 @@ namespace Kratos
       void GetVelocityValues(Vector& rValues,
 			     const int Step = 0);
 
-      void GetPositions(Vector& rValues);
-
-      void GetUpdatedPositions(Vector& rValues,
-			       const ProcessInfo& rCurrentProcessInfo);
+      void GetPositions(Vector& rValues,
+			const ProcessInfo& rCurrentProcessInfo,
+			const double theta);
 
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
 
-      void GetMeanAcceleration(Vector& rValues,
-			       const int Step = 0);
+
+      void GetElementalAcceleration(Vector& rValues,
+				    const int Step,
+				    const double TimeStep);
 
       /// Determine integration point weights and shape funcition derivatives from the element's geometry.
       void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
@@ -471,11 +472,13 @@ namespace Kratos
 					const double Weight);
 
       virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-							 double& MeanValue,
-							 const ShapeFunctionDerivativesType& rShapeDeriv,
-							 const double secondLame,
-							 const double bulkModulus,
-							 const double Weight){};
+						 double& MeanValue,
+						 const ShapeFunctionDerivativesType& rShapeDeriv,
+						 const double secondLame,
+						 double& bulkModulus,
+						 const double Weight,
+						 double& MeanValueMass,
+						 const double TimeStep){};
 
      virtual void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 					  MatrixType& rDampingMatrix,
@@ -507,7 +510,9 @@ namespace Kratos
 
       virtual void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 					 const ShapeFunctionsType& rN,
-					 const double Weight){};
+					 const double TimeStep,
+					 const double BoundRHSCoeffAcc,
+					 const double BoundRHSCoeffDev){};
 
       virtual void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -518,24 +523,28 @@ namespace Kratos
 					unsigned int g,
 					const ShapeFunctionsType& N){return true;};
 
-      bool CalcStrainRateUpdated(ElementalVariables & rElementalVariables,
-				 const ProcessInfo& rCurrentProcessInfo,
-				 unsigned int g);
+      bool CalcStrainRate(ElementalVariables & rElementalVariables,
+			  const ProcessInfo& rCurrentProcessInfo,
+			  unsigned int g,
+			  const double theta);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 			  MatrixType &FgradVel,
 			  MatrixType &invFgradVel,
-			  double &FVelJacobian);
+			  double &FVelJacobian,
+			  const double theta);
 
       void CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX,
 		     MatrixType &Fgrad,
 		     MatrixType &invFgrad,
 		     double &FJacobian,
-		     const ProcessInfo& rCurrentProcessInfo);
+		     const ProcessInfo& rCurrentProcessInfo,
+		     const double theta);
 
       void CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
 				 double &volumetricDefRate,
-				 MatrixType &invGradDef);
+				 MatrixType &invGradDef,
+				 const double theta);
 
       void CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
 					    MatrixType &SpatialVelocityGrad);
@@ -558,7 +567,8 @@ namespace Kratos
 
       void CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
 						  double &NormalAcceleration,
-						  double &NormalProjSpatialDefRate);
+						  double &NormalProjSpatialDefRate,
+						  const double TimeStep);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);

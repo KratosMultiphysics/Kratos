@@ -52,6 +52,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         #construct body model parts:
         fluid_body_model_parts = []
+        solid_body_model_parts = []
         rigid_body_model_parts = []
 
         if( self.bodies_list == True ):
@@ -83,6 +84,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         body_model_part.Nodes.append(node)
                         if (body_model_part_type=="Fluid"):
                             node.Set(KratosMultiphysics.FLUID)
+                        if (body_model_part_type=="Solid"):
+                            node.Set(KratosMultiphysics.FLUID)
+                            node.Set(KratosMultiphysics.SOLID)
                         if (body_model_part_type=="Rigid"):
                             node.Set(KratosMultiphysics.RIGID)
                             node.Set(KratosMultiphysics.BOUNDARY)
@@ -102,6 +106,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 if( body_model_part_type == "Fluid" ):
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
+                if( body_model_part_type == "Solid" ):
+                    body_model_part.Set(KratosMultiphysics.FLUID)
+                    body_model_part.Set(KratosMultiphysics.SOLID)
+                    solid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
                 if( body_model_part_type == "Rigid" ):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
