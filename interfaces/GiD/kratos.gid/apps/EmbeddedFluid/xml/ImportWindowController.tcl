@@ -4,7 +4,8 @@ proc EmbeddedFluid::xml::ImportMeshWindow { } {
 		{} [list [list {STL Mesh} {.stl }] [list [_ "All files"] {.*}]] {} 1 \
         [list [_ "Import options"] EmbeddedFluid::xml::MoreImportOptions]]
     if {[llength $filenames] == 0} { return "" }
-    set model_name [file rootname [file tail $filenames]]
+    set filename [lindex $filenames 0]
+    set model_name [file rootname [file tail $filename]]
     if {[GiD_Layers exists $model_name]} {
         set i 0
         set orig $model_name
@@ -18,9 +19,9 @@ proc EmbeddedFluid::xml::ImportMeshWindow { } {
     GiD_Layers edit to_use $model_name
     
     if {[lindex [GiD_Info Mesh] 0]} {
-        GiD_Process Mescape Files STLRead Append $filenames
+        GiD_Process Mescape Files STLRead Append $filename
     } else {
-        GiD_Process Mescape Files STLRead $filenames
+        GiD_Process Mescape Files STLRead $filename
     }
     
 
