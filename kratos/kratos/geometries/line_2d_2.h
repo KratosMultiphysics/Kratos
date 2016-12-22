@@ -866,7 +866,7 @@ public:
         array_1d<double,2> VectorPoint = ZeroVector(2);
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
-        double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
+        const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
         
 //        KRATOS_WATCH(rPoint);
 //        KRATOS_WATCH(Point_projected);
