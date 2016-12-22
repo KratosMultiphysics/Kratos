@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Boundary Conditions" pn="Boundary conditions" icon="nodal" un="PFEM_NodalConditions" open_window="0">
-	  <dynamicnode command="injectNodalConditions" args="App Solid"/>
+	  <dynamicnode command="spdAux::injectNodalConditions" args="App Solid"/>
 	  <container n="BodyDisplacements" pn="Body displacements" icon="shells16" variablename="DISPLACEMENT" processname="AssignVectorComponentsToNodesProcess">
 			<blockdata n="BodyDisplacement" pn="BodyDisplacement" name="Body Displacement 1" sequence="1" editable_name="unique" sequence_type="non_void_disabled" help="Body Displacement" >
 				  <value n="Enabled_X" pn="X component" v="No" values="Yes,No" help="Enables the X value" state="normal" actualize_tree="1">

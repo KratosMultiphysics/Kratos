@@ -3,10 +3,10 @@
 	  
     <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
             
-    <dynamicnode command="injectSolvers" args="ImplementedInApplication FSIApplication"/>
+    <dynamicnode command="spdAux::injectSolvers" args="ImplementedInApplication FSIApplication"/>
             
     <container n="StratParams" pn="Strategy parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
-        <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FSIApplication"/>
+        <dynamicnode command="spdAux::injectSolStratParams" args="ImplementedInApplication FSIApplication"/>
     </container>
 
     <container n="ALEParams" pn="ALE parameters" un="FSIALEParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
@@ -14,12 +14,4 @@
         <value n="ReformDOFs" pn="Reform DOFs at each step" type="bool" values="false,true" v="false" help="Switch on/off the reform DOFs operation at each step."/>
     </container>
     
-    <!--
-
-    <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" open_window="0">
-        <value n="StartTime" pn="Start time" v="0.0" help=""/>
-        <value n="EndTime" pn="End time" v="1" help=""/>
-        <value n="DeltaTime" pn="Delta time" v="0.01" help=""/>
-    </container>
-      -->
 </container>

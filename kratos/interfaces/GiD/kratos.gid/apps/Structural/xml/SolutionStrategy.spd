@@ -9,9 +9,9 @@
       </container>
       
 	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
-                 <dynamicnode command="injectSolStratParams" args="ImplementedInApplication {SolidMechanicsApplication StructuralMechanicsApplication}"/>
+                 <dynamicnode command="spdAux::injectSolStratParams" args="ImplementedInApplication {SolidMechanicsApplication StructuralMechanicsApplication}"/>
 	  </container>
       
 	  <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
-	  <dynamicnode command="injectSolvers" args=""/>
+	  <dynamicnode command="spdAux::injectSolvers" args=""/>
 </container>

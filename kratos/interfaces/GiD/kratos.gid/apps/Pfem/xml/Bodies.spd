@@ -19,7 +19,7 @@
              values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]">
         <dependencies node="../value" actualize="1"/>
       </value>
-      <dynamicnode command="injectPartInputs" args=""/>
+      <dynamicnode command="spdAux::injectPartInputs" args=""/>
     </condition>
   </blockdata>
 </container>

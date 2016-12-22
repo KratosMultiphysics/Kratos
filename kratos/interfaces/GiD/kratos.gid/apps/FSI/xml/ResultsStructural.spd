@@ -7,11 +7,11 @@
     <value n="OutputDeltaTime" pn="Output delta time" v="1.0" help="Output delta time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
     <value n="OutputDeltaStep" pn="Output delta step" v="1.0" help="Output delta step" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
     <container n="OnElement" pn="On element" un="ElementResults" state="normal" open_window="0">
-        <dynamicnode command="injectElementOutputs" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
-        <dynamicnode command="injectConstitutiveLawOutputs"  args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+        <dynamicnode command="spdAux::injectElementOutputs" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+        <dynamicnode command="spdAux::injectConstitutiveLawOutputs"  args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
     </container>
     <container n="OnNodes" pn="On nodes" un="NodalResults" help="On nodes" open_window="0">
-        <dynamicnode command="injectNodalConditionsOutputs"  args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+        <dynamicnode command="spdAux::injectNodalConditionsOutputs"  args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
     </container>
     <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="" state="[ShowInMode Developer]"/>
     <value n="NodeOutput" pn="Node output" v="No" values="Yes,No" help="" state="[ShowInMode Developer]"/>

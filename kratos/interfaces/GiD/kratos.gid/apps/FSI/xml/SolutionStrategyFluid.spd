@@ -3,10 +3,10 @@
     
     <!--<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> -->
     
-    <dynamicnode command="injectSolvers" args="ImplementedInApplication FluidDynamicsApplication"/>
+    <dynamicnode command="spdAux::injectSolvers" args="ImplementedInApplication FluidDynamicsApplication"/>
     
     <container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
-        <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FluidDynamicsApplication"/>
+        <dynamicnode command="spdAux::injectSolStratParams" args="ImplementedInApplication FluidDynamicsApplication"/>
     </container>
 	  
     <container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" open_window="0">

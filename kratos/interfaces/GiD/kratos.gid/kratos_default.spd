@@ -264,7 +264,7 @@
 		return [spdAux::ProcGetFilesValues]
       ]]>
     </proc>
-	<dynamicnode command="injectProcs" args=""/>
+	<dynamicnode command="spdAux::injectProcs" args=""/>
   </procs>
   <container n="files" state="hidden">
   </container>
