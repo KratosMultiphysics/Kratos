@@ -8,7 +8,7 @@
         <value n="SolStratCombo" pn="Solution strategy" un="DamSolStrat,DamSolStratMech" v="" values="" dict="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="normal"/>
         <value n="MechanicalScheme" pn="Scheme" un="DamScheme,DamMechanicalScheme" v="" values="" dict="[GetSchemes Mechanic]" actualize_tree="1"/>
         <container n="SolStrat" pn="Solution strategy parameters"  state="normal" un="DamStratParams">
-            <dynamicnode command="injectSolStratParams" args="App Dam"/>
+            <dynamicnode command="spdAux::injectSolStratParams" args="App Dam"/>
         </container>
         <value n="TypeofBuilder" pn="Type of Builder" un="DamTypeofbuilder" v="Elimination" values="Elimination,Block"></value>
         <value n="TypeofSolver" pn="Type of Solver" un="DamTypeofsolver" v="Direct" values="Direct,Iterative">

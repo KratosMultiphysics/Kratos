@@ -12,8 +12,8 @@
     <value n="Cz" pn="Z value" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
   </container>
   <container n="StratParams" pn="Strategy parameters" un="PFEM_StratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
-    <dynamicnode command="injectSolStratParams" args=""/>
+    <dynamicnode command="spdAux::injectSolStratParams" args=""/>
   </container>
   <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
-  <dynamicnode command="injectSolvers" args=""/>
+  <dynamicnode command="spdAux::injectSolvers" args=""/>
 </container>

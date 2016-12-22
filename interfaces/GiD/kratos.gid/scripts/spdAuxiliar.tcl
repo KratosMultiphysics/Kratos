@@ -82,7 +82,7 @@ proc spdAux::processDynamicNodes { root } {
     foreach elem [$root getElementsByTagName "dynamicnode"] {
         set func [$elem getAttribute command]
         set ar [$elem getAttribute args]
-        spdAux::${func} $elem $ar
+        ${func} $elem $ar
     }
 }
 

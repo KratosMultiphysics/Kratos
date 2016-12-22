@@ -13,5 +13,5 @@
 			<edit_command n="Update material data" pn="Update material data" icon="refresh" proc='edit_database_list'/>
 			<dependencies node="../value" actualize="1"/>
 	  </value>
-	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
+	  <dynamicnode command="spdAux::injectConstitutiveLawInputs" args=""/>
 </condition>

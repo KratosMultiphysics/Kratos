@@ -7,8 +7,8 @@
 			<!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
       </container>
 	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
-			<dynamicnode command="injectSolStratParams" args=""/>
+			<dynamicnode command="spdAux::injectSolStratParams" args=""/>
 	  </container>
 	  <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
-	  <dynamicnode command="injectSolvers" args=""/>
+	  <dynamicnode command="spdAux::injectSolvers" args=""/>
     </container>

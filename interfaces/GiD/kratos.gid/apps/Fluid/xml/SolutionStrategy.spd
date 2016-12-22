@@ -2,9 +2,9 @@
 <container n="SolutionStrat" pn="Solution" un="FLSolutionParameters" icon="solution" help="Solution Strategy" open_window="0">
 	  <!--<container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >-->
 	<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
-	<dynamicnode command="injectSolvers" args=""/>
+	<dynamicnode command="spdAux::injectSolvers" args=""/>
 	<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
-		  <dynamicnode command="injectSolStratParams" args=""/>
+		  <dynamicnode command="spdAux::injectSolStratParams" args=""/>
 	</container>
 <!--            <container n="Advanced" pn="Advanced" help="Advanced Solver Parameters">-->
 <!--				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>-->
