@@ -19,7 +19,9 @@ proc Pfem::write::getParametersDict { } {
     dict set projectParametersDict problem_process_list $problemProcessList
     
     ##### constraints_process_list
-    dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict PFEM_NodalConditions "Nodal"]
+    set group_constraints [write::getConditionsParametersDict PFEM_NodalConditions "Nodal"]
+    set body_constraints [Pfem::write::getBodyConditionsParametersDict PFEM_NodalConditions "Nodal"]
+    dict set projectParametersDict constraints_process_list [concat $group_constraints $body_constraints]
     
     ##### loads_process_list
     dict set projectParametersDict loads_process_list [write::getConditionsParametersDict PFEM_Loads]
@@ -557,3 +559,109 @@ proc Pfem::write::CalculateMyVariables { } {
     variable remesh_domains_dict
     set remesh_domains_dict [Pfem::write::ProcessRemeshDomainsDict]
  }
+
+
+
+proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition"}} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+
+    set bcCondsDict [list ]
+    
+    set xp1 "[spdAux::getRoute $un]/container/blockdata"
+    set blocks [$root selectNodes $xp1]
+
+    foreach block $blocks {
+        set groupName [$block @name]
+        set cid [[$block parent] @n]
+        set bodyId [get_domnode_attribute [$block find n Body] v]
+        set processName [[$block parent] @processname]
+        
+        set process [::Model::GetProcess $processName]
+        set processDict [dict create]
+        set paramDict [dict create]
+        dict set paramDict mesh_id 0
+        dict set paramDict model_part_name $bodyId
+        dict set paramDict variable_name [[$block parent] @variablename]
+        
+        set process_attributes [$process getAttributes]
+        set process_parameters [$process getInputs]
+        
+        dict set process_attributes process_name [dict get $process_attributes n]
+        dict unset process_attributes n
+        dict unset process_attributes pn
+        
+        set processDict [dict merge $processDict $process_attributes]
+        
+        foreach {inputName in_obj} $process_parameters {
+            set in_type [$in_obj getType]
+            if {$in_type eq "vector"} {
+                if {[$in_obj getAttribute vectorType] eq "bool"} {
+                    set ValX [expr [get_domnode_attribute [$block find n ${inputName}X] v] ? True : False]
+                    set ValY [expr [get_domnode_attribute [$block find n ${inputName}Y] v] ? True : False]
+                    set ValZ [expr False]
+                    catch {set ValZ [expr [get_domnode_attribute [$block find n ${inputName}Z] v] ? True : False]}
+                    dict set paramDict $inputName [list $ValX $ValY $ValZ]
+                } {
+                    if {[$in_obj getAttribute "enabled"] in [list "1" "0"]} {
+                        foreach i [list "X" "Y" "Z"] {
+                            if {[expr [get_domnode_attribute [$block find n Enabled_$i] v] ] ne "Yes"} {
+                                set Val$i null
+                            } else {
+                                set printed 0
+                                if {[$in_obj getAttribute "function"] eq "1"} {
+                                    if {[get_domnode_attribute [$block find n "ByFunction$i"] v]  eq "Yes"} {
+                                        set funcinputName "${i}function_$inputName"
+                                        set value [get_domnode_attribute [$block find n $funcinputName] v]
+                                        set Val$i $value
+                                        set printed 1
+                                    }
+                                } 
+                                if {!$printed} {
+                                    set value [expr [get_domnode_attribute [$block find n ${inputName}$i] v] ]
+                                    set Val$i $value
+                                }
+                            }
+                        } 
+                    } else {
+                        set ValX [expr [get_domnode_attribute [$block find n ${inputName}X] v] ]
+                        set ValY [expr [get_domnode_attribute [$block find n ${inputName}Y] v] ] 
+                        set ValZ [expr 0.0]
+                        catch {set ValZ [expr [get_domnode_attribute [$block find n ${inputName}Z] v]]}
+                    }
+                    dict set paramDict $inputName [list $ValX $ValY $ValZ]
+                } 
+            } elseif {$in_type eq "double" || $in_type eq "integer"} {
+                set printed 0
+                if {[$in_obj getAttribute "function"] eq "1"} {
+                    if {[get_domnode_attribute [$block find n "ByFunction"] v]  eq "Yes"} {
+                        set funcinputName "function_$inputName"
+                        set value [get_domnode_attribute [$block find n $funcinputName] v]
+                        dict set paramDict $inputName $value
+                        set printed 1
+                    }
+                } 
+                if {!$printed} {
+                    set value [get_domnode_attribute [$block find n $inputName] v] 
+                    dict set paramDict $inputName [expr $value]
+                }
+            } elseif {$in_type eq "bool"} {
+                set value [get_domnode_attribute [$block find n $inputName] v] 
+                set value [expr $value ? True : False]
+                dict set paramDict $inputName [expr $value]
+            } elseif {$in_type eq "tablefile"} {
+                set value [get_domnode_attribute [$block find n $inputName] v] 
+                dict set paramDict $inputName $value
+            } else {
+                if {[get_domnode_attribute [$block find n $inputName] state] ne "hidden" } {
+                    set value [get_domnode_attribute [$block find n $inputName] v] 
+                    dict set paramDict $inputName $value
+                }
+            }
+        }
+        if {[$block find n Interval] ne ""} {dict set paramDict interval [write::getInterval  [get_domnode_attribute [$block find n Interval] v]] }
+        dict set processDict Parameters $paramDict
+        lappend bcCondsDict $processDict
+    }
+    return $bcCondsDict
+}
