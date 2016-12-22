@@ -570,24 +570,6 @@ public:
     );
     
     /**
-     * Evaluation methods for Lagrange multipliers shape functions
-     * and its local derivatives
-     */
-    const array_1d<double, TNumNodes> LagrangeMultiplierShapeFunctionValue(
-        const double xi_local,
-        const double eta_local
-        );
-    
-    /**
-     * Evaluation methods for Lagrange multipliers shape functions
-     * and its local derivatives
-     */
-    const bounded_matrix<double, TNumNodes, TDim - 1> LagrangeMultiplierShapeFunctionLocalGradient( 
-        const double xi_local,
-        const double eta_local
-        );
-
-    /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
