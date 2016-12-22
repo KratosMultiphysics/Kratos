@@ -6,6 +6,11 @@
 
 namespace Kratos {
 
+//    void HybridBashforthScheme::SetIntegrationSchemeInProperties(Properties::Pointer pProp) const {
+//        std::cout << "Assigning HybridBashforthScheme to properties " << pProp->Id() << std::endl;
+//        pProp->SetValue(DEM_INTEGRATION_SCHEME_POINTER, this->CloneShared());
+//    }
+
     /*void HybridBashforthScheme::AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption){
         DEMIntegrationScheme::AddSpheresVariables(r_model_part, TRotationOption);
     }
@@ -52,56 +57,6 @@ namespace Kratos {
                     coor[k] = initial_coor[k] + displ[k];
                 }
             } // dimensions
-        }
-    }
-
-    void HybridBashforthScheme::UpdateRotationalVariables(
-                int StepFlag,
-                const Node < 3 > & i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) {
-
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-            }
-        }
-    }
-
-    void HybridBashforthScheme::CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque,
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-
-        for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
-        }
-    }
-
-
-    void HybridBashforthScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                                const Node < 3 > & i,
-                                const array_1d<double, 3 >& local_angular_velocity,
-                                const array_1d<double, 3 >& moments_of_inertia,
-                                const array_1d<double, 3 >& local_torque,
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& local_angular_acceleration){
-
-        for (int j = 0; j < 3; j++) {
-            //Euler equations in Explicit (Symplectic Euler) scheme:
-            local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
         }
     }
 } //namespace Kratos
