@@ -219,7 +219,7 @@ public:
       const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double timeStep = rCurrentProcessInfo[STEP];
+      /* double timeStep = rCurrentProcessInfo[STEP]; */
       unsigned int maxNonLinearIterations=mMaxPressureIter;
       if(currentTime<10*timeInterval){
 	if ( BaseType::GetEchoLevel() > 1)
