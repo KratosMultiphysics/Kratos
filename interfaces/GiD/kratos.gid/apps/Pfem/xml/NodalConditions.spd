@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Boundary Conditions" pn="Boundary conditions" icon="nodal" un="PFEM_NodalConditions" open_window="0">
 	  <dynamicnode command="injectNodalConditions" args="App Solid"/>
-	  <container n="BodyDisplacements" pn="Body displacements" icon="shells16">
+	  <container n="BodyDisplacements" pn="Body displacements" icon="shells16" variablename="DISPLACEMENT" processname="AssignVectorComponentsToNodesProcess">
 			<blockdata n="BodyDisplacement" pn="BodyDisplacement" name="Body Displacement 1" sequence="1" editable_name="unique" sequence_type="non_void_disabled" help="Body Displacement" >
 				  <value n="Enabled_X" pn="X component" v="No" values="Yes,No" help="Enables the X value" state="normal" actualize_tree="1">
-                    <dependencies value="No" node="../value[@n='valueX']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='valueX']" att1="state" v1="normal"/>
-                    <dependencies value="No" node="../value[@n='Xfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='ByFunctionX']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='ByFunctionX']" att1="state" v1="normal" att2="v" v2="No"/>
-                </value>
-                <value n="ByFunctionX" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="hidden">
-                    <dependencies value="No" node="../value[@n='valueX']" att1="state" v1="normal"/>
-                    <dependencies value="Yes" node="../value[@n='valueX']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='Xfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='Xfunction_value']" att1="state" v1="normal"/>
-                </value>
-                <value n="Xfunction_value" pn="X function" v="" help="" state="hidden"/>
-                <value n="valueX" wn="DISPLACEMENT _X" pn="X Value" v="0.0" units="m" unit_magnitude="L" help="" state="hidden"/>
-                <value n="Enabled_Y" pn="Y component" v="No" values="Yes,No" help="Enables the Y value" state="normal"  actualize_tree="1">
-                    <dependencies value="No" node="../value[@n='valueY']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='valueY']" att1="state" v1="normal"/>
-                    <dependencies value="No" node="../value[@n='Yfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='ByFunctionY']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='ByFunctionY']" att1="state" v1="normal" att2="v" v2="No"/>
-                </value>
-                <value n="ByFunctionY" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="hidden">
-                    <dependencies value="No" node="../value[@n='valueY']" att1="state" v1="normal"/>
-                    <dependencies value="Yes" node="../value[@n='valueY']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='Yfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='Yfunction_value']" att1="state" v1="normal"/>
-                </value>
-                <value n="Yfunction_value" pn="Y function" v="" help="" state="hidden"/>
-                <value n="valueY" wn="DISPLACEMENT _Y" pn="Y Value" v="0.0" units="m" unit_magnitude="L" help="" state="hidden"/>
-                <value n="Enabled_Z" pn="Z component" v="Yes" values="Yes,No" help="Enables the Z value" state="[CheckDimension 3D]"  actualize_tree="1">
-                    <dependencies value="No" node="../value[@n='valueZ']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='valueZ']" att1="state" v1="normal"/>
-                    <dependencies value="No" node="../value[@n='Zfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='ByFunctionZ']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='ByFunctionZ']" att1="state" v1="normal" att2="v" v2="No"/>
-                </value>
-                <value n="ByFunctionZ" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[CheckDimension 3D]">
-                    <dependencies value="No" node="../value[@n='valueZ']" att1="state" v1="normal"/>
-                    <dependencies value="Yes" node="../value[@n='valueZ']" att1="state" v1="hidden"/>
-                    <dependencies value="No" node="../value[@n='Zfunction_value']" att1="state" v1="hidden"/>
-                    <dependencies value="Yes" node="../value[@n='Zfunction_value']" att1="state" v1="normal"/>
-                </value>
-                <value n="Zfunction_value" pn="Z function" v="" help="" state="[CheckDimension 3D]"/>
-                <value n="valueZ" wn="DISPLACEMENT _Z" pn="Z Value" v="0.0" units="m" unit_magnitude="L" help="" state="[CheckDimension 3D]"/>
-                <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="" state=""/>
-                <value n="Body" pn="Body" v="-" values="[GetBodiesValues]" help="" state=""/>
+					<dependencies value="No" node="../value[@n='valueX']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='valueX']" att1="state" v1="normal"/>
+					<dependencies value="No" node="../value[@n='Xfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='ByFunctionX']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='ByFunctionX']" att1="state" v1="normal" att2="v" v2="No"/>
+				  </value>
+				  <value n="ByFunctionX" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="hidden">
+					<dependencies value="No" node="../value[@n='valueX']" att1="state" v1="normal"/>
+					<dependencies value="Yes" node="../value[@n='valueX']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='Xfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='Xfunction_value']" att1="state" v1="normal"/>
+				  </value>
+				  <value n="Xfunction_value" pn="X function" v="" help="" state="hidden"/>
+				  <value n="valueX" wn="DISPLACEMENT _X" pn="X Value" v="0.0" units="m" unit_magnitude="L" help="" state="hidden"/>
+				  <value n="Enabled_Y" pn="Y component" v="No" values="Yes,No" help="Enables the Y value" state="normal"  actualize_tree="1">
+					<dependencies value="No" node="../value[@n='valueY']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='valueY']" att1="state" v1="normal"/>
+					<dependencies value="No" node="../value[@n='Yfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='ByFunctionY']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='ByFunctionY']" att1="state" v1="normal" att2="v" v2="No"/>
+				  </value>
+				  <value n="ByFunctionY" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="hidden">
+					<dependencies value="No" node="../value[@n='valueY']" att1="state" v1="normal"/>
+					<dependencies value="Yes" node="../value[@n='valueY']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='Yfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='Yfunction_value']" att1="state" v1="normal"/>
+				  </value>
+				  <value n="Yfunction_value" pn="Y function" v="" help="" state="hidden"/>
+				  <value n="valueY" wn="DISPLACEMENT _Y" pn="Y Value" v="0.0" units="m" unit_magnitude="L" help="" state="hidden"/>
+				  <value n="Enabled_Z" pn="Z component" v="Yes" values="Yes,No" help="Enables the Z value" state="[CheckDimension 3D]"  actualize_tree="1">
+					<dependencies value="No" node="../value[@n='valueZ']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='valueZ']" att1="state" v1="normal"/>
+					<dependencies value="No" node="../value[@n='Zfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='ByFunctionZ']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='ByFunctionZ']" att1="state" v1="normal" att2="v" v2="No"/>
+				  </value>
+				  <value n="ByFunctionZ" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[CheckDimension 3D]">
+					<dependencies value="No" node="../value[@n='valueZ']" att1="state" v1="normal"/>
+					<dependencies value="Yes" node="../value[@n='valueZ']" att1="state" v1="hidden"/>
+					<dependencies value="No" node="../value[@n='Zfunction_value']" att1="state" v1="hidden"/>
+					<dependencies value="Yes" node="../value[@n='Zfunction_value']" att1="state" v1="normal"/>
+				  </value>
+				  <value n="Zfunction_value" pn="Z function" v="" help="" state="[CheckDimension 3D]"/>
+				  <value n="valueZ" wn="DISPLACEMENT _Z" pn="Z Value" v="0.0" units="m" unit_magnitude="L" help="" state="[CheckDimension 3D]"/>
+				  <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help="" state=""/>
+				  <value n="Body" pn="Body" v="-" values="[GetBodiesValues]" help="" state=""/>
 			</blockdata>
 	  </container>
 </container>
