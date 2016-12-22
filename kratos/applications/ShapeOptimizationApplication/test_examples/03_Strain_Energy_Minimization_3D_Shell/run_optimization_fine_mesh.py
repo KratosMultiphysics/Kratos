@@ -17,7 +17,7 @@ import time as timer
 #### PARSING THE PARAMETERS ####
 
 #import define_output
-parameter_file = open("ProjectParameters.json",'r')
+parameter_file = open("ProjectParameters_fine_mesh.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
 #set echo level
@@ -43,7 +43,7 @@ CSM_solver.AddVariables()
 # --------------------------------------------------------------------------
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
-import optimization_settings as opt_settings
+import optimization_settings_fine_mesh as opt_settings
 import response_function_factory
 response_function_solver = response_function_factory.CreateSolver( main_model_part, opt_settings )
 

@@ -40,7 +40,7 @@ domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 
 # Case: design_control = "vertex_morphing"
-design_surface_name = "design_surface"
+design_surface_name = "design_surface_fine"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"

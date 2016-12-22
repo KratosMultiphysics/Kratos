@@ -3,9 +3,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-from KratosMultiphysics.ALEApplication import *
 
 # For time measures
 import time as timer
@@ -17,7 +17,7 @@ import time as timer
 #### PARSING THE PARAMETERS ####
 
 #import define_output
-parameter_file = open("ProjectParameters.json",'r')
+parameter_file = open("ProjectParameters_coarse_mesh.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
 #set echo level
@@ -41,28 +41,19 @@ CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solv
 CSM_solver.AddVariables()
 
 # --------------------------------------------------------------------------
-# Import mesh-motion solver and add solution variables
-import mesh_solver_structural_similarity as mesh_solver_class
-mesh_solver_class.AddVariables(main_model_part)
-
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
-import optimization_settings as opt_settings
+import optimization_settings_coarse_mesh as opt_settings
 import response_function_factory
 response_function_solver = response_function_factory.CreateSolver( main_model_part, opt_settings )
 
 # --------------------------------------------------------------------------
-
 #read model_part (note: the buffer_size is set here) (restart can be read here)
 CSM_solver.ImportModelPart()
 
 #add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
 # if we integrate it in the model part we cannot use combined solvers
 CSM_solver.AddDofs()
-
-# --------------------------------------------------------------------------
-# Add Dofs for mesh solver
-mesh_solver_class.AddDofs(main_model_part)
 
 # --------------------------------------------------------------------------
 
@@ -130,12 +121,6 @@ CSM_solver.SetEchoLevel(echo_level)
 
 
 # --------------------------------------------------------------------------
-# Set and initialize mesh-solver
-reform_dofs_at_each_step = False
-compute_reactions = True
-mesh_solver = mesh_solver_class.MeshSolverStructuralSimilarity(main_model_part,reform_dofs_at_each_step,compute_reactions)
-mesh_solver.Initialize()
-
 # Initialize response function solvers
 for response_id in response_function_solver:
     response_function_solver[response_id].initialize()
@@ -191,70 +176,6 @@ def FinalizeKSMProcess():
     gid_output.ExecuteFinalize()
 
 # ======================================================================================================================================
-# Mesh motion part
-# ======================================================================================================================================
-
-def MoveMesh(X, opt_itr):
-    
-    # Extract surface nodes
-    sub_model_part_name = "surface_nodes"     
-    GeometryUtilities(main_model_part).extract_surface_nodes(sub_model_part_name)
-
-    # Apply shape update as boundary condition for computation of mesh displacement 
-    for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
-        if(node.Id in X.keys()):
-            node.Fix(MESH_DISPLACEMENT_X)
-            node.Fix(MESH_DISPLACEMENT_Y)
-            node.Fix(MESH_DISPLACEMENT_Z)              
-            disp = Vector(3)
-            disp[0] = X[node.Id][0]
-            disp[1] = X[node.Id][1]
-            disp[2] = X[node.Id][2]
-            node.SetSolutionStepValue(MESH_DISPLACEMENT,0,disp)
-
-    # Solve for mesh-update
-    mesh_solver.Solve()
-
-    # Update reference mesh (Since shape updates are imposed as incremental quantities)
-    mesh_solver.UpdateReferenceMesh()
-
-# --------------------------------------------------------------------------
-def ComputeAndAddMeshDerivatives(dFdXs, dFdX):
-   
-    # Here we solve the pseudo-elastic mesh-motion system again using modified BCs
-    # The contributions from the mesh derivatives appear as reaction forces
-
-    for node in main_model_part.Nodes:
-
-        # Apply dirichlet conditions
-        if node.Id in dFdXs.keys():
-            node.Fix(MESH_DISPLACEMENT_X)
-            node.Fix(MESH_DISPLACEMENT_Y)
-            node.Fix(MESH_DISPLACEMENT_Z)              
-            xs = Vector(3)
-            xs[0] = 0.0
-            xs[1] = 0.0
-            xs[2] = 0.0
-            node.SetSolutionStepValue(MESH_DISPLACEMENT,0,xs)
-        # Apply RHS conditions       
-        else:
-            rhs = Vector(3)
-            rhs[0] = dFdX[node.Id][0]
-            rhs[1] = dFdX[node.Id][1]
-            rhs[2] = dFdX[node.Id][2]
-            node.SetSolutionStepValue(MESH_RHS,0,rhs)
-
-    # Solve mesh-motion problem with previously modified BCs
-    mesh_solver.Solve()
-
-    # Compute and add gradient contribution from mesh motion
-    for node_id in dFdXs.keys():
-        node = main_model_part.Nodes[node_id]
-        sens_contribution = Vector(3)
-        sens_contribution = node.GetSolutionStepValue(MESH_REACTION)
-        dFdXs[node.Id] = dFdXs[node_id] + sens_contribution
-
-# ======================================================================================================================================
 # Optimization part
 # ======================================================================================================================================
 
@@ -270,25 +191,19 @@ def analyzer(X, controls, opt_itr, response):
 
     if(controls["strain_energy"]["calc_value"]):
 
-        # Advance time iterator of main_model_part (for proper computation of mesh & state)
+        # Advance time iterator of main_model_part
         step = float(opt_itr)
         main_model_part.CloneTimeStep(step)
-    
-        # Move mesh
-        print("\n> Start ALEApplication to move mesh")
-        MoveMesh(X, opt_itr)
 
-        # # Udate mesh coordinates
-        # for node_id in X.keys():
-        #     node = main_model_part.Nodes[node_id]
-        #     node.X0 = node.X0 + X[node_id][0]
-        #     node.Y0 = node.Y0 + X[node_id][1]
-        #     node.Z0 = node.Z0 + X[node_id][2]
-
-
+        # Udate mesh coordinates of main_model_part
+        for node_id in X.keys():
+            node = main_model_part.Nodes[node_id]
+            node.X0 = node.X0 + X[node_id][0]
+            node.Y0 = node.Y0 + X[node_id][1]
+            node.Z0 = node.Z0 + X[node_id][2]
 
         interim_time = timer.time()
-        print("> Time needed for moving the mesh = ",round(interim_time - start_time,2),"s")
+        print("> Time needed for updating the mesh = ",round(interim_time - start_time,2),"s")
 
         # Solve structural problem
         print("\n> Start SolidMechanicsApplication to solve structure")
@@ -314,9 +229,6 @@ def analyzer(X, controls, opt_itr, response):
         dFdXs = {}
         for node_id in X.keys():
             dFdXs[node_id] = dFdX[node_id]
-
-        # If contribution from mesh-motion to gradient shall be considered
-        ComputeAndAddMeshDerivatives(dFdXs, dFdX) 
 
         # Store gradient in response container
         response["strain_energy"]["gradient"] = dFdXs

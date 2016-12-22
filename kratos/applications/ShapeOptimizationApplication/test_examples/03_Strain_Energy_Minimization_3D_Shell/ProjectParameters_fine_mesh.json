@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "3D_Shell",
+        "problem_name"    : "3D_Shell_fine",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.1,
@@ -15,7 +15,7 @@
         "analysis_type"                      : "Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "3D_Shell"
+            "input_filename" : "3D_Shell_fine"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
