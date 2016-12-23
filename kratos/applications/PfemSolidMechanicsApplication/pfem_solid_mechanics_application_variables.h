@@ -1,13 +1,13 @@
 //-------------------------------------------------------------
-//         ___  __           ___      _ _    _ 
+//         ___  __           ___      _ _    _
 //  KRATOS| _ \/ _|___ _ __ / __| ___| (_)__| |
 //        |  _/  _/ -_) '  \\__ \/ _ \ | / _` |
 //        |_| |_| \___|_|_|_|___/\___/_|_\__,_|MECHANICS
-//                                            
+//
 //  License:(BSD)    PfemSolidMechanicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                   Lluis Monforte 
+//                   Lluis Monforte
 //
 //-------------------------------------------------------------
 //
@@ -101,8 +101,8 @@ namespace Kratos
 
 
   //deprecated
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, IMPOSED_DISPLACEMENT )
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, IMPOSED_ROTATION )
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( PFEM_SOLID_MECHANICS_APPLICATION, IMPOSED_DISPLACEMENT )
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( PFEM_SOLID_MECHANICS_APPLICATION, IMPOSED_ROTATION )
 
 
   ///@}
