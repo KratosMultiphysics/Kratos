@@ -415,7 +415,7 @@ class ExplicitStrategy:
                 return scheme, error_status, summary
             except:
                 error_status = 1
-                summary = 'The class corrsponding to the scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
+                summary = 'The class corresponding to the scheme name (' + name + ') has not been added to python. Please, select a different name or add the required class.'
         else:
             error_status = 2
             summary = 'The scheme name (' + name + ') does not designate any available scheme. Please, select a different one'
