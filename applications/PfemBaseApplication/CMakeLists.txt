@@ -114,15 +114,21 @@ set( KRATOS_PFEM_BASE_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemBaseApplication SHARED ${KRATOS_PFEM_BASE_APPLICATION_SOURCES})
 
+if(${MSVC})
+  set(MATLIB "")
+else(${MSVC})
+  set(MATLIB "m")
+endif(${MSVC})
+
 ## define the linkage of libraries
 if( ${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON )
-    set(LIBS KratosCore external_triangle external_tetgen m)
-    #set(LIBS KratosCore external_triangle libextet.a m)
+    set(LIBS KratosCore external_triangle external_tetgen ${MATLIB})
+    #set(LIBS KratosCore external_triangle libextet.a ${MATLIB})
 elseif(${INCLUDE_TRIANGLE} MATCHES ON)
-    set(LIBS KratosCore external_triangle m)
+    set(LIBS KratosCore external_triangle ${MATLIB})
 elseif(${INCLUDE_TETGEN} MATCHES ON)
-    set(LIBS KratosCore external_tetgen m)
-    #set(LIBS KratosCore libextet.a m)
+    set(LIBS KratosCore external_tetgen ${MATLIB})
+    #set(LIBS KratosCore libextet.a ${MATLIB})
 else(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
     set(LIBS KratosCore)
 endif(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
