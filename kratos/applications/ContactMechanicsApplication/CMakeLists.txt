@@ -27,7 +27,7 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 # generate variables with the sources
 set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/contact_mechanics_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/contact_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
@@ -51,8 +51,8 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
 
 	##elements
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
 
 	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/friction_law.cpp
@@ -71,6 +71,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 add_library(KratosContactMechanicsApplication SHARED ${KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES})
 target_link_libraries(KratosContactMechanicsApplication KratosCore KratosPfemBaseApplication)
 set_target_properties(KratosContactMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosContactMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_MECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosContactMechanicsApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
