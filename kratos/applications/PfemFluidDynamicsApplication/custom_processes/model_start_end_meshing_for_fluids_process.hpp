@@ -220,11 +220,11 @@ namespace Kratos
 		  }
 		}
 	    
-	      uint freeSurfaceNodes=0;
-	      uint wallNodes=0;
+	      unsigned int freeSurfaceNodes=0;
+	      unsigned int wallNodes=0;
 	    
-	      uint freeWall=0;
-	      uint freeParticles=0;
+	      unsigned int freeWall=0;
+	      unsigned int freeParticles=0;
 	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
 		{
 		  //i_node->PrintInfo(std::cout);

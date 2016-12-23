@@ -1478,8 +1478,8 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
   GeometryType& rGeom = this->GetGeometry();
 
   const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  uint numBoundary=0;
-  uint numFreeSurf=0;
+  unsigned int numBoundary=0;
+  unsigned int numFreeSurf=0;
   for (SizeType i = 0; i < NumNodes; ++i)
     {
       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){

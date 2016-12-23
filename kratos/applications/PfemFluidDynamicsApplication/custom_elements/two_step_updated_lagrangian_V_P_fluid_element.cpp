@@ -532,9 +532,9 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     double coeff=1.0+2.0;
     double Mij  = Weight/ coeff;
     GeometryType& rGeom = this->GetGeometry();
-    uint numBoundary=0;
-    uint numFreeSurf=0;
-    uint numRigid=0;
+    unsigned int numBoundary=0;
+    unsigned int numFreeSurf=0;
+    unsigned int numRigid=0;
     for (SizeType i = 0; i < NumNodes; ++i)
       {
 	if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
@@ -601,8 +601,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
    double Mij  = Weight/ coeff;
    GeometryType& rGeom = this->GetGeometry();
 
-    uint numBoundary=0;
-    uint numFreeSurf=0;
+    unsigned int numBoundary=0;
+    unsigned int numFreeSurf=0;
     for (SizeType i = 0; i < NumNodes; ++i)
       {
 	if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
@@ -701,8 +701,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 //   double Mij  = Weight/ coeff;
 //   GeometryType& rGeom = this->GetGeometry();
 
-//   uint numBoundary=0;
-//   uint numFreeSurf=0;
+//   unsigned int numBoundary=0;
+//   unsigned int numFreeSurf=0;
 //   for (SizeType i = 0; i < NumNodes; ++i)
 //     {
 //       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
@@ -760,9 +760,9 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundRHSVector(VectorType
   array_1d<double, 3>  AccB(3,0.0);
   AccB.clear();
 
-  uint numBoundary=0;
-  uint numFreeSurf=0;
-  uint numRigid=0;
+  unsigned int numBoundary=0;
+  unsigned int numFreeSurf=0;
+  unsigned int numRigid=0;
   for (SizeType i = 0; i < NumNodes; ++i)
     {
       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
@@ -875,9 +875,9 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
   AccC.clear();
   GeometryType& rGeom = this->GetGeometry();
 
-  uint numBoundary=0;
-  uint numFreeSurf=0;
-  uint numRigid=0;
+  unsigned int numBoundary=0;
+  unsigned int numFreeSurf=0;
+  unsigned int numRigid=0;
   for (SizeType i = 0; i < NumNodes; ++i)
     {
       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
@@ -1050,8 +1050,8 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
 //   double Mij  = Weight/ coeff;
 //   GeometryType& rGeom = this->GetGeometry();
 
-//   uint numBoundary=0;
-//   uint numFreeSurf=0;
+//   unsigned int numBoundary=0;
+//   unsigned int numFreeSurf=0;
 //   for (SizeType i = 0; i < NumNodes; ++i)
 //     {
 //       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){

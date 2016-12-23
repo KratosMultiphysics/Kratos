@@ -589,12 +589,12 @@ private:
 	  }	
       }
 
-    uint erased_nodes=0;
+    unsigned int erased_nodes=0;
     for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(mMeshId);
 	ie != mrModelPart.ElementsEnd(mMeshId); ie++)
       {
 	const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
-	uint rigidNodes=0;
+	unsigned int rigidNodes=0;
 	//coordinates
 	for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 	  {	
@@ -625,8 +625,8 @@ private:
 	   
 	    }
 	    array_1d<double,3> Edges(3,0.0);
-	    array_1d<uint,3> FirstEdgeNode(3,0);
-	    array_1d<uint,3> SecondEdgeNode(3,0);
+	    array_1d<unsigned int,3> FirstEdgeNode(3,0);
+	    array_1d<unsigned int,3> SecondEdgeNode(3,0);
 	    double WallCharacteristicDistance=0;
 	    array_1d<double,2> CoorDifference(3,0.0);
 	    CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
@@ -637,9 +637,9 @@ private:
 	    if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
 	      WallCharacteristicDistance=Edges[0];
 	    }
-	    uint Counter=0;
-	    for (uint i = 2; i < ie->GetGeometry().size(); i++){
-	      for(uint j = 0; j < i; j++)
+	    unsigned int Counter=0;
+	    for (unsigned int i = 2; i < ie->GetGeometry().size(); i++){
+	      for(unsigned int j = 0; j < i; j++)
 		{
 		  CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
 		  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
@@ -655,7 +655,7 @@ private:
 	    }
 	    distWall=WallCharacteristicDistance;
 
-	    for (uint i = 0; i < 3; i++){
+	    for (unsigned int i = 0; i < 3; i++){
 	      if(((ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID)) ||
 		  (ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))) &&
 		 ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
@@ -703,8 +703,8 @@ private:
 	   
 	    }
 	    array_1d<double,6> Edges(6,0.0);
-	    array_1d<uint,6> FirstEdgeNode(6,0);
-	    array_1d<uint,6> SecondEdgeNode(6,0);
+	    array_1d<unsigned int,6> FirstEdgeNode(6,0);
+	    array_1d<unsigned int,6> SecondEdgeNode(6,0);
 	    double WallCharacteristicDistance=0;
 	    array_1d<double,3> CoorDifference(3,0.0);
 	    CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
@@ -717,9 +717,9 @@ private:
 	    if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
 	      WallCharacteristicDistance=Edges[0];
 	    }
-	    uint Counter=0;
-	    for (uint i = 2; i < ie->GetGeometry().size(); i++){
-	      for(uint j = 0; j < i; j++)
+	    unsigned int Counter=0;
+	    for (unsigned int i = 2; i < ie->GetGeometry().size(); i++){
+	      for(unsigned int j = 0; j < i; j++)
 	    	{
 	    	  CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
 	    	  SquaredLength = CoorDifference[0]*CoorDifference[0] +
@@ -739,7 +739,7 @@ private:
 	    distWall=WallCharacteristicDistance;
 
 
-	    for (uint i = 0; i < 6; i++){
+	    for (unsigned int i = 0; i < 6; i++){
 	      if(((ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID)) ||
 	    	  (ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))) &&
 	    	 ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
