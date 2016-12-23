@@ -1408,7 +1408,7 @@ REAL area;                                      /* The area of the triangle. */
 /**                                                                         **/
 
 extern void *__cxa_allocate_exception(size_t thrown_size);
-extern void  __cxa_throw(void *thrown_exception, void*  *tinfo, void (*dest) (void *) );  
+extern void  __cxa_throw(void *thrown_exception, void*  *tinfo, void (*dest) (void *) );
 extern void * _ZTIl;
 
 #ifdef ANSI_DECLARATORS
@@ -1419,7 +1419,7 @@ int status;
 #endif /* not ANSI_DECLARATORS */
 
 {
-   int64_t * p = (int64_t*)__cxa_allocate_exception(8);
+   __int64 * p = (__int64*)__cxa_allocate_exception(8);
    *p = 1976;
    __cxa_throw(p,&_ZTIl,0);
   exit(status);
@@ -6441,7 +6441,7 @@ REAL dheight;
   adxbdy = adx * bdy;
   bdxady = bdx * ady;
 
-  det = adheight * (bdxcdy - cdxbdy) 
+  det = adheight * (bdxcdy - cdxbdy)
       + bdheight * (cdxady - adxcdy)
       + cdheight * (adxbdy - bdxady);
 
@@ -11482,7 +11482,7 @@ FILE *polyfile;
       for (j = 0; j < 2; j++) {
         if ((end[j] < b->firstnumber) ||
             (end[j] >= b->firstnumber + m->invertices)) {
-          printf("Error:  Segment %ld has an invalid vertex index.\n", 
+          printf("Error:  Segment %ld has an invalid vertex index.\n",
                  segmentnumber);
           triexit(1);
         }
@@ -13117,7 +13117,7 @@ int regions;
         } else {
           printf("Spreading regional attributes.\n");
         }
-      } else { 
+      } else {
         printf("Spreading regional area constraints.\n");
       }
     }
