@@ -266,15 +266,15 @@ private:
 
  	    ModelerUtilities ModelerUtils;
  	    double ElementalVolume = 0;	
- 	    uint rigidNodes=0;
- 	    uint freesurfaceNodes=0;
+ 	    unsigned int rigidNodes=0;
+ 	    unsigned int freesurfaceNodes=0;
  	    bool toEraseNodeFound=false;
 
  	    ///////////////// FOR 2D CASE: choose the right (big and safe) elements to refine and compute the new node  position and variables //////////////////////
  	    if(dimension==2)
  	      {
 
- 		for(uint pn=0; pn<nds; pn++)
+ 		for(unsigned int pn=0; pn<nds; pn++)
  		  {
  		    if(ie->GetGeometry()[pn].Is(RIGID)){
  		      rigidNodes++;
@@ -291,8 +291,8 @@ private:
  		ElementalVolume =  ie->GetGeometry().Area();
 
  		array_1d<double,3> Edges(3,0.0);
- 		array_1d<uint,3> FirstEdgeNode(3,0);
- 		array_1d<uint,3> SecondEdgeNode(3,0);
+ 		array_1d<unsigned int,3> FirstEdgeNode(3,0);
+ 		array_1d<unsigned int,3> SecondEdgeNode(3,0);
  		double WallCharacteristicDistance=0;
  		array_1d<double,2> CoorDifference(2,0.0);
  		CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
@@ -303,9 +303,9 @@ private:
  		if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
  		  WallCharacteristicDistance=Edges[0];
  		}
- 		uint Counter=0;
- 		for (uint i = 2; i < nds; i++){
- 		  for(uint j = 0; j < i; j++)
+ 		unsigned int Counter=0;
+ 		for (unsigned int i = 2; i < nds; i++){
+ 		  for(unsigned int j = 0; j < i; j++)
  		    {
  		      CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
  		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
@@ -323,7 +323,7 @@ private:
  		double safetyCoefficient2D=1.5;
  		bool dangerousElement=false;
  		if(rigidNodes>1){
- 		  for (uint i = 0; i < 3; i++){
+ 		  for (unsigned int i = 0; i < 3; i++){
  		    if(Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
  		      Edges[i]=0;
  		    }
@@ -340,10 +340,10 @@ private:
  		  if(count<ElementsToRefine){
 
  		    array_1d<double,2> NewPosition(2,0.0);
- 		    uint maxCount=3;
+ 		    unsigned int maxCount=3;
  		    double LargestEdge=0;
 
- 		    for(uint i=0; i<3; i++)
+ 		    for(unsigned int i=0; i<3; i++)
  		      {
  			if(Edges[i]>LargestEdge){
  			  maxCount=i;
@@ -367,10 +367,10 @@ private:
  			if(ElementalVolume>BiggestVolumes[nn]){
 
  			  array_1d<double,2> NewPosition(2,0.0);
- 			  uint maxCount=3;
+ 			  unsigned int maxCount=3;
  			  double LargestEdge=0;
 
- 			  for(uint i=0; i<3; i++)
+ 			  for(unsigned int i=0; i<3; i++)
  			    {
  			      if(Edges[i]>LargestEdge){
  				maxCount=i;
@@ -413,7 +413,7 @@ private:
 
  	    else if(dimension==3){
 
- 	      for(uint pn=0; pn<nds; pn++)
+ 	      for(unsigned int pn=0; pn<nds; pn++)
  		{
  		  if(ie->GetGeometry()[pn].Is(RIGID)){
  		    rigidNodes++;
@@ -433,8 +433,8 @@ private:
  	      // std::cout<<"  (3D) the rigid nodes are "<< rigidNodes<<std::endl;
 
  	      array_1d<double,6> Edges(6,0.0);
- 	      array_1d<uint,6> FirstEdgeNode(6,0);
- 	      array_1d<uint,6> SecondEdgeNode(6,0);
+ 	      array_1d<unsigned int,6> FirstEdgeNode(6,0);
+ 	      array_1d<unsigned int,6> SecondEdgeNode(6,0);
  	      double WallCharacteristicDistance=0;
  	      array_1d<double,3> CoorDifference(3,0.0);
  	      CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
@@ -445,9 +445,9 @@ private:
  	      if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
  		WallCharacteristicDistance=Edges[0];
  	      }
- 	      uint Counter=0;
- 	      for (uint i = 2; i < nds; i++){
- 		for(uint j = 0; j < i; j++)
+ 	      unsigned int Counter=0;
+ 	      for (unsigned int i = 2; i < nds; i++){
+ 		for(unsigned int j = 0; j < i; j++)
  		  {
  		    CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
  		    SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
@@ -466,7 +466,7 @@ private:
  	      double safetyCoefficient3D=1.8;
  	      bool dangerousElement=false;
  	      if(rigidNodes>1){
- 		for (uint i = 0; i < 6; i++){
+ 		for (unsigned int i = 0; i < 6; i++){
  		  if(Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
  		    Edges[i]=0;
  		  }
@@ -506,10 +506,10 @@ private:
  		if(count<ElementsToRefine){ 
 
  		  array_1d<double,3> NewPosition(3,0.0);
- 		  uint maxCount=6;
+ 		  unsigned int maxCount=6;
  		  double LargestEdge=0;
 
- 		  for(uint i=0; i<6; i++)
+ 		  for(unsigned int i=0; i<6; i++)
  		    {
  		      if(Edges[i]>LargestEdge){
  			maxCount=i;
@@ -529,10 +529,10 @@ private:
  		      if(ElementalVolume>BiggestVolumes[nn]){
 
  			array_1d<double,3> NewPosition(3,0.0);
- 			uint maxCount=6;
+ 			unsigned int maxCount=6;
  			double LargestEdge=0;
 			
- 			for(uint i=0; i<6; i++)
+ 			for(unsigned int i=0; i<6; i++)
  			  {
  			    if(Edges[i]>LargestEdge){
  			      maxCount=i;
@@ -586,7 +586,7 @@ private:
     //assign data to dofs
     VariablesList& VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
-    for(uint nn= 0; nn< NewPositions.size(); nn++)
+    for(unsigned int nn= 0; nn< NewPositions.size(); nn++)
       {
 
     	unsigned int id = initial_node_size + nn ;
