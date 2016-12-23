@@ -14,7 +14,7 @@
 
 namespace Kratos
 {
-   class AxisymPointRigidContactPenaltyWater2DCondition
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) AxisymPointRigidContactPenaltyWater2DCondition
       : public  AxisymPointRigidContactPenalty2DCondition
    {
       public:
@@ -47,7 +47,7 @@ namespace Kratos
          Condition::Pointer Create(IndexType NewId, NodesArrayType const&
                ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    
+
 
          void GetDofList(DofsVectorType& rConditionDofList,
                ProcessInfo& rCurrentProcessInfo );
@@ -96,7 +96,7 @@ namespace Kratos
                double& rIntegrationWeight);
 
          /**
-          * Calculation of the Contact Forces Vector 
+          * Calculation of the Contact Forces Vector
           */
          virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
                GeneralVariables& rVariables,
