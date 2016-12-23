@@ -351,7 +351,9 @@
 #include <float.h>
 #endif /* CPU86 */
 #ifdef LINUX
+#ifndef __APPLE__
 #include <fpu_control.h>
+#endif /* not APPLE */
 #endif /* LINUX */
 #ifdef TRILIBRARY
 #include "triangle.h"
@@ -1407,10 +1409,6 @@ REAL area;                                      /* The area of the triangle. */
 /**                                                                         **/
 /**                                                                         **/
 
-extern void *__cxa_allocate_exception(size_t thrown_size);
-extern void  __cxa_throw(void *thrown_exception, void*  *tinfo, void (*dest) (void *) );
-extern void * _ZTIl;
-
 #ifdef ANSI_DECLARATORS
 void triexit(int status)
 #else /* not ANSI_DECLARATORS */
@@ -1419,9 +1417,6 @@ int status;
 #endif /* not ANSI_DECLARATORS */
 
 {
-   __int64 * p = (__int64*)__cxa_allocate_exception(8);
-   *p = 1976;
-   __cxa_throw(p,&_ZTIl,0);
   exit(status);
 }
 
@@ -4896,7 +4891,9 @@ void exactinit()
   REAL check, lastcheck;
   int every_other;
 #ifdef LINUX
+#ifndef __APPLE__
   int cword;
+#endif /* not APPLE */
 #endif /* LINUX */
 
 #ifdef CPU86
@@ -4907,6 +4904,7 @@ void exactinit()
 #endif /* not SINGLE */
 #endif /* CPU86 */
 #ifdef LINUX
+#ifndef __APPLE__
 #ifdef SINGLE
   /*  cword = 4223; */
   cword = 4210;                 /* set FPU control word for single precision */
@@ -4915,6 +4913,7 @@ void exactinit()
   cword = 4722;                 /* set FPU control word for double precision */
 #endif /* not SINGLE */
   _FPU_SETCW(cword);
+#endif /* not APPLE */
 #endif /* LINUX */
 
   every_other = 1;
