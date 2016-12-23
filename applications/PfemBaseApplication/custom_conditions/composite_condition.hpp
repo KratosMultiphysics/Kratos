@@ -44,7 +44,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) CompositeCondition
+class KRATOS_API(PFEM_BASE_APPLICATION) CompositeCondition
     : public Condition
 {
 public:
@@ -185,7 +185,7 @@ public:
         return mChildConditions.GetContainer();
     }
 
- 
+
     /**
      * creates a new condition pointer
      * @param NewId: the ID of the new condition
@@ -397,11 +397,11 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
      * @param rCurrentProcessInfo: the current process info instance
-     */      
-    void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, 
-				 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
+				 Variable<array_1d<double,3> >& rDestinationVariable,
 				 const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -501,7 +501,7 @@ private:
     ConditionsContainerType mChildConditions;
 
     bool mInitializedChildren;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -512,7 +512,7 @@ private:
 
     //initialize children from set value CHILDREN_CONDITIONS
     void InitializeChildren();
-    
+
     //check problem type definition and if coincides return active true
     bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
 
@@ -522,9 +522,9 @@ private:
       for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
 	{
 	  typename TVariableType::Type const& rValue = this->GetValue(rThisVariable);
-	  cn->SetValue(rThisVariable,rValue);	      
+	  cn->SetValue(rThisVariable,rValue);
 	}
-      
+
     }
     ///@}
     ///@name Private  Access
@@ -543,7 +543,7 @@ private:
     }
 
     virtual void save(Serializer& rSerializer) const;
- 
+
     virtual void load(Serializer& rSerializer);
 
 
@@ -580,4 +580,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_COMPOSITE_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_COMPOSITE_CONDITION_H_INCLUDED  defined
