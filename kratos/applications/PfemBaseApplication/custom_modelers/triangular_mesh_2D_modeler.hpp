@@ -76,7 +76,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) TriangularMesh2DModeler
+class KRATOS_API(PFEM_BASE_APPLICATION) TriangularMesh2DModeler
   : public MeshModeler
 {
 protected:

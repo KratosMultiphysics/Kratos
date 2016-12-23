@@ -48,7 +48,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) MeshDataTransferUtilities
+  class KRATOS_API(PFEM_BASE_APPLICATION) MeshDataTransferUtilities
   {
   public:
 
@@ -64,7 +64,7 @@ namespace Kratos
     typedef ModelPart::NodesContainerType                        NodesContainerType;
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef std::vector<Node<3>::Pointer >                       PointPointerVector;
- 
+
     /**
      * Flags related to the meshing parameters
      */
@@ -76,26 +76,26 @@ namespace Kratos
     KRATOS_DEFINE_LOCAL_FLAG( MASTER_ELEMENT_TO_MASTER_CONDITION );
 
     struct TransferParameters
-    {      
+    {
 
       KRATOS_CLASS_POINTER_DEFINITION(TransferParameters);
 
       Flags    Options;
 
       std::vector<const Variable<double>* >               DoubleVariables;
-      std::vector<const Variable<array_1d<double,3> >* > Array1DVariables;      
+      std::vector<const Variable<array_1d<double,3> >* > Array1DVariables;
       std::vector<const Variable<Vector>* >               VectorVariables;
       std::vector<const Variable<Matrix>* >               MatrixVariables;
 
       bool VariablesSetFlag;
-      
+
       // setting refining variables (generally for python interface)
-      void Set(Flags ThisFlag)                           
+      void Set(Flags ThisFlag)
       {
 	Options.Set(ThisFlag);
       };
 
-      void Reset(Flags ThisFlag)                           
+      void Reset(Flags ThisFlag)
       {
 	Options.Reset(ThisFlag);
       };
@@ -182,20 +182,20 @@ namespace Kratos
 		      std::vector<Geometry<Node<3> > >& list_of_new_vertices,
 		      Flags Options,
 		      ModelPart::IndexType MeshId=0);
-	                  
-      
+
+
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void InitializeBoundaryData(Condition::Pointer rCondition, 
+    void InitializeBoundaryData(Condition::Pointer rCondition,
 				const TransferParameters& rTransferVariables);
 
 
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferBoundaryData(Condition::Pointer rCurrentCondition, 
-			      Condition::Pointer rReferenceCondition, 
+    void TransferBoundaryData(Condition::Pointer rCurrentCondition,
+			      Condition::Pointer rReferenceCondition,
 			      const TransferParameters& rTransferVariables);
 
 
@@ -204,29 +204,29 @@ namespace Kratos
     //*******************************************************************************************
 
     void TransferBoundaryData(const TransferParameters& rTransferVariables,
-			      ModelPart& rModelPart,			      
+			      ModelPart& rModelPart,
 			      ModelPart::IndexType MeshId=0);
-	
+
     //*******************************************************************************************
     //*******************************************************************************************
 
-	
+
     void TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
 				       ModelPart& rModelPart,
 				       ModelPart::IndexType MeshId=0);
-	
-      
+
+
 
     //*******************************************************************************************
     //*******************************************************************************************
 
-	
+
     void TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
 				       const Variable<double>& rCriticalVariable,
 				       const double& CriticalValue,
 				       ModelPart& rModelPart,
 				       ModelPart::IndexType MeshId=0);
-	
+
 
 
     //*******************************************************************************************
@@ -234,7 +234,7 @@ namespace Kratos
     void TransferElementalValuesToNodes( const TransferParameters& rTransferVariables,
 					 ModelPart& rModelPart,
 					 ModelPart::IndexType MeshId=0);
-	
+
 
 
     //*******************************************************************************************
@@ -244,7 +244,7 @@ namespace Kratos
 				       PointPointerVector &list_of_new_centers,
 				       std::vector<Geometry<Node<3> > >& list_of_new_vertices,
 				       ModelPart::IndexType MeshId=0);
-	
+
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -253,7 +253,7 @@ namespace Kratos
 					PointPointerVector &list_of_new_centers,
 					std::vector<Geometry<Node<3> > >& list_of_new_vertices,
 					ModelPart::IndexType MeshId=0);
-	
+
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -261,9 +261,9 @@ namespace Kratos
     void TransferElementalValuesToElements(ModelPart& rModelPart,
 					   const Element & rReferenceElement,
 					   PointPointerVector &list_of_new_centers,
-					   std::vector<Geometry<Node<3> > >& list_of_new_vertices,				       
+					   std::vector<Geometry<Node<3> > >& list_of_new_vertices,
 					   ModelPart::IndexType MeshId=0);
-	
+
 
 
     //*******************************************************************************************
@@ -274,14 +274,14 @@ namespace Kratos
     {
 
       if( rPointCoordinates.size() == 3 ){
-	
+
 	CalculateCenterAndSearchRadius( rPointCoordinates[0][0], rPointCoordinates[0][1],
 					rPointCoordinates[1][0], rPointCoordinates[1][1],
 					rPointCoordinates[2][0], rPointCoordinates[2][1],
 					rCenter[0], rCenter[1], rRadius);
       }
       else if( rPointCoordinates.size() == 4 ){
-	
+
 	CalculateCenterAndSearchRadius( rPointCoordinates[0][0], rPointCoordinates[0][1], rPointCoordinates[0][2],
 					rPointCoordinates[1][0], rPointCoordinates[1][1], rPointCoordinates[1][2],
 					rPointCoordinates[2][0], rPointCoordinates[2][1], rPointCoordinates[2][2],
@@ -291,8 +291,8 @@ namespace Kratos
       else{
 	 KRATOS_THROW_ERROR( std::logic_error,"Number of points supplied out of range ERROR", "" )
       }
-	   
-      
+
+
     }
 
     //*******************************************************************************************
@@ -306,9 +306,9 @@ namespace Kratos
       xc = 0.5*(x0+x1);
       yc = 0.5*(y0+y1);
 
-      R = sqrt( (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) );  
+      R = sqrt( (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) );
     }
-    
+
 
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0, const double z0,
 					       const double x1, const double y1, const double z1,
@@ -322,15 +322,15 @@ namespace Kratos
       double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0);
       double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
       double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
-	  
+
       R = R1;
       if(R2 > R) R = R2;
       if(R3 > R) R = R3;
-	  
+
       R = sqrt(R);
     }
 
-    
+
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0,
 					       const double x1, const double y1,
 					       const double x2, const double y2,
@@ -342,14 +342,14 @@ namespace Kratos
       double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0);
       double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1);
       double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2);
-	  
+
       R = R1;
       if(R2 > R) R = R2;
       if(R3 > R) R = R3;
-	  
+
       R = sqrt(R);
     }
-	
+
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0, const double z0,
 					       const double x1, const double y1, const double z1,
 					       const double x2, const double y2, const double z2,
@@ -360,16 +360,16 @@ namespace Kratos
       yc = 0.25*(y0+y1+y2+y3);
       zc = 0.25*(z0+z1+z2+z3);
 
-      double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0); 
+      double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0);
       double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
       double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
       double R4 = (xc-x3)*(xc-x3) + (yc-y3)*(yc-y3) + (zc-z3)*(zc-z3);
-	  
+
       R = R1;
       if(R2 > R) R = R2;
       if(R3 > R) R = R3;
       if(R4 > R) R = R4;
-	  
+
       R = sqrt(R);
     }
 
@@ -391,19 +391,19 @@ namespace Kratos
 		      VariablesList& rVariablesList,
 		      Node<3>::Pointer pnode,
 		      double& alpha);
-	
+
     VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
 							  const std::vector<double>& N,
 							  VariablesList& rVariablesList,
 							  Node<3>::Pointer pnode,
 							  double& alpha);
-    
+
     void InterpolateData( Geometry<Node<3> >& geom,
 			  const std::vector<double>& N,
 			  unsigned int step_data_size,
 			  Node<3>::Pointer pnode,
 			  double& alpha);
-	
+
 
     VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
 							      const std::vector<double>& N,
@@ -450,7 +450,7 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-      
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -487,7 +487,7 @@ namespace Kratos
     ///@name Static Member Variables
     ///@{
 
-      
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -518,7 +518,7 @@ namespace Kratos
     ///@}
     ///@name Unaccessible methods
     ///@{
-	
+
     ///@}
 
   }; // Class MeshDataTransferUtilities
@@ -553,6 +553,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif //  KRATOS_MESH_DATA_TRANSFER_UTILITITES_H_INCLUDED defined 
-
-
+#endif //  KRATOS_MESH_DATA_TRANSFER_UTILITITES_H_INCLUDED defined

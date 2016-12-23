@@ -62,7 +62,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) MeshModeler
+class KRATOS_API(PFEM_BASE_APPLICATION) MeshModeler
 {
 public:
 
