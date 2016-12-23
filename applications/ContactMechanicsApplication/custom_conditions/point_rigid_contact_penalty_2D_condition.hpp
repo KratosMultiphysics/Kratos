@@ -42,7 +42,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointRigidContactPenalty2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) PointRigidContactPenalty2DCondition
     : public PointRigidContactPenalty3DCondition
 {
 protected:
@@ -50,9 +50,9 @@ protected:
     typedef struct
      {
         bool   Slip;
-        double Sign; 
-       
-        double DeltaTime; 
+        double Sign;
+
+        double DeltaTime;
         double PreviousTangentForceModulus;
 
         double FrictionCoefficient;
@@ -68,13 +68,13 @@ public:
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>    PointType;    
+    typedef bounded_vector<double, 3>    PointType;
 
     ///@{
     // Counted pointer of PointRigidContactPenalty3DCondition
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty2DCondition );
     ///@}
- 
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -88,7 +88,7 @@ public:
     PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     PointRigidContactPenalty2DCondition( PointRigidContactPenalty2DCondition const& rOther);
@@ -125,7 +125,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const;
 
     ///@}
@@ -250,7 +250,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined

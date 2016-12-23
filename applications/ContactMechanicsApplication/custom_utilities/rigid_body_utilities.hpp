@@ -62,7 +62,7 @@ namespace Kratos
 
   /** Computes Volume, Weight and Inertia Tensor of a given Mesh
    *  Mesh elements must have Properties with the variable THICKNESS in 2D in order to compute volume
-   *  Mesh elements must have Properties with the variable DENSITY in order to compute mass 
+   *  Mesh elements must have Properties with the variable DENSITY in order to compute mass
    *  Mesh nodes    must have a the nodal variable VOLUME_ACCELERATION in order to compute weight
    */
 
@@ -72,7 +72,7 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-      
+
     typedef ModelPart::NodesContainerType                        NodesContainerType;
     typedef ModelPart::ElementsContainerType                  ElementsContainerType;
     typedef ModelPart::MeshType::GeometryType                          GeometryType;
@@ -119,7 +119,7 @@ namespace Kratos
       }
 
       //alternative:
-     
+
       // double num_nodes = 0;
 
       // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
@@ -127,11 +127,11 @@ namespace Kratos
 
       // 	  if( in->SolutionStepsDataHas(VOLUME_ACCELERATION) ){ //temporary, will be checked once at the beginning only
       // 	    VolumeAcceleration += in->FastGetSolutionStepValue(VOLUME_ACCELERATION);
-      // 	    num_nodes+=1;      
+      // 	    num_nodes+=1;
       // 	  }
-	  
+
       // 	}
-      
+
       // VolumeAcceleration/=num_nodes;
 
       //std::cout<<" VolumeAcceleration "<<VolumeAcceleration<<std::endl;
@@ -155,7 +155,7 @@ namespace Kratos
       ModelPart::ElementType& rElement = rModelPart.Elements(MeshId).front();
 
       ElasticModulus = rElement.GetProperties()[YOUNG_MODULUS];
-	  
+
       return ElasticModulus;
 
 
@@ -190,12 +190,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelVolumePartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -207,7 +207,7 @@ namespace Kratos
 
 	  for(ModelPart::ElementsContainerType::const_iterator ie = ElemBegin; ie != ElemEnd; ie++)
 	    {
-		
+
 	      const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
 	      if( dimension > 2 )
@@ -218,7 +218,7 @@ namespace Kratos
 		radius += ie->GetGeometry()[i].X();
 
 	      radius/=double(ie->GetGeometry().size());
-		
+
 	      ModelVolumePartition[k] += ie->GetGeometry().Area() * two_pi * radius ;
 
 
@@ -228,7 +228,7 @@ namespace Kratos
 
 	for(int i=0; i<number_of_threads; i++)
 	  ModelVolume += ModelVolumePartition[i];
-	
+
       }
       else{
 
@@ -242,12 +242,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelVolumePartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -273,11 +273,11 @@ namespace Kratos
 	    }
 
 	}
-	  
+
 	for(int i=0; i<number_of_threads; i++)
 	  ModelVolume += ModelVolumePartition[i];
 
-	
+
       }
 
       return ModelVolume;
@@ -314,12 +314,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -331,7 +331,7 @@ namespace Kratos
 
 	  for(ModelPart::ElementsContainerType::const_iterator ie = ElemBegin; ie != ElemEnd; ie++)
 	    {
-		
+
 	      const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
 	      if( dimension > 2 )
@@ -342,16 +342,16 @@ namespace Kratos
 		radius += ie->GetGeometry()[i].X();
 
 	      radius/=double(ie->GetGeometry().size());
-		
+
 	      ModelMassPartition[k] += ie->GetGeometry().Area() * two_pi * radius * ie->GetProperties()[DENSITY];
 
 
 	    }
 	}
-	
+
 	for(int i=0; i<number_of_threads; i++)
-	  ModelMass += ModelMassPartition[i];	
-	
+	  ModelMass += ModelMassPartition[i];
+
       }
       else{
 
@@ -365,12 +365,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -397,9 +397,9 @@ namespace Kratos
 	}
 
 	for(int i=0; i<number_of_threads; i++)
-	  ModelMass += ModelMassPartition[i];	
+	  ModelMass += ModelMassPartition[i];
 
-	  
+
       }
 
       return ModelMass;
@@ -415,10 +415,10 @@ namespace Kratos
     Vector CalculateCenterOfMass(ModelPart& rModelPart,unsigned int MeshId)
     {
       KRATOS_TRY
-	
-	
+
+
       ModelPart::MeshType& rMesh = rModelPart.GetMesh(MeshId);
-      
+
       return this->CenterOfMassCalculation(rMesh);
 
 
@@ -457,12 +457,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -474,7 +474,7 @@ namespace Kratos
 
 	  for(ModelPart::ElementsContainerType::const_iterator ie = ElemBegin; ie != ElemEnd; ie++)
 	    {
-		
+
 	      const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
 	      if( dimension > 2 )
@@ -485,7 +485,7 @@ namespace Kratos
 		radius += ie->GetGeometry()[i].X();
 
 	      radius/=double(ie->GetGeometry().size());
-		
+
 	      ModelMassPartition[k] += ie->GetGeometry().Area() * two_pi * radius * ie->GetProperties()[DENSITY];
 	    }
 	}
@@ -506,12 +506,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 
 	std::vector<Vector> CenterOfMassPartition(number_of_threads);
@@ -542,7 +542,7 @@ namespace Kratos
 	      else{
 		//do nothing.
 	      }
-    
+
 
 	      const unsigned int number_of_nodes  = ie->GetGeometry().PointsNumber();
 
@@ -558,19 +558,19 @@ namespace Kratos
 
 	      //reading integration points
 	      const GeometryType::IntegrationPointsArrayType& integration_points = ie->GetGeometry().IntegrationPoints( IntegrationMethod );
-	    
+
 	      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{
 
 		  MathUtils<double>::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
 
 		  double IntegrationWeight = mDetJ * integration_points[PointNumber].Weight() * Thickness;
-	
+
 		  Vector N = row( Ncontainer, PointNumber);
 
 		  for ( unsigned int i = 0; i < number_of_nodes; i++ )
 		    {
-		    
+
 		      array_1d<double, 3> &CurrentPosition  = ie->GetGeometry()[i].Coordinates();
 
 		      for ( unsigned int j = 0; j < dimension; j++ )
@@ -588,12 +588,12 @@ namespace Kratos
 	  ModelMass += ModelMassPartition[i];
 	  CenterOfMass += CenterOfMassPartition[i];
 	}
-	  
+
       }
 
       if(ModelMass!=0)
 	CenterOfMass /= ModelMass;
-      else	
+      else
 	std::cout<<"   [ WARNING: RIGID BODY WITH NO MASS ] "<<std::endl;
 
       return CenterOfMass;
@@ -610,9 +610,9 @@ namespace Kratos
     Matrix CalculateInertiaTensor(ModelPart& rModelPart,unsigned int MeshId)
     {
       KRATOS_TRY
-      
+
       ModelPart::MeshType& rMesh = rModelPart.GetMesh(MeshId);
-      
+
       return this->InertiaTensorCalculation(rMesh);
 
       KRATOS_CATCH( "" )
@@ -633,7 +633,7 @@ namespace Kratos
       for ( unsigned int k = 0; k < 3; k++ )
 	{
 	  CenterOfMass[k] = Center[k];
-	}		
+	}
 
       Matrix InertiaTensor = ZeroMatrix(3,3);
 
@@ -657,12 +657,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 
         #pragma omp parallel
@@ -674,7 +674,7 @@ namespace Kratos
 
 	  for(ModelPart::ElementsContainerType::const_iterator ie = ElemBegin; ie != ElemEnd; ie++)
 	    {
-		
+
 	      const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
 	      if( dimension > 2 )
@@ -685,7 +685,7 @@ namespace Kratos
 		radius += ie->GetGeometry()[i].X();
 
 	      radius/=double(ie->GetGeometry().size());
-		
+
 	      ModelMassPartition[k] += ie->GetGeometry().Area() * two_pi * radius * ie->GetProperties()[DENSITY];
 	    }
 	}
@@ -693,7 +693,7 @@ namespace Kratos
 	for(int i=0; i<number_of_threads; i++)
 	  ModelMass += ModelMassPartition[i];
 
-	
+
       }
       else{
 
@@ -707,12 +707,12 @@ namespace Kratos
                 int number_of_threads = 1;
         #endif
 
-	if( mParallel == false ) 
+	if( mParallel == false )
 	  number_of_threads = 1;
 
 	vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-		
+
 	Vector ModelMassPartition = ZeroVector(number_of_threads);
 	std::vector<Matrix> InertiaTensorPartition(number_of_threads);
 	for(int i=0; i<number_of_threads; i++)
@@ -742,7 +742,7 @@ namespace Kratos
 	      else{
 		//do nothing.
 	      }
-       
+
 	      const unsigned int number_of_nodes  = ie->GetGeometry().PointsNumber();
 
 	      GeometryType::IntegrationMethod IntegrationMethod = ie->GetGeometry().GetDefaultIntegrationMethod();
@@ -757,16 +757,16 @@ namespace Kratos
 
 	      //reading integration points
 	      const GeometryType::IntegrationPointsArrayType& integration_points = ie->GetGeometry().IntegrationPoints( IntegrationMethod );
-	    
+
 	      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{
 
 		  MathUtils<double>::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
 
 		  double IntegrationWeight = mDetJ * integration_points[PointNumber].Weight() * Thickness;
-	
+
 		  Vector N = row( Ncontainer, PointNumber);
-		
+
 		  double MassAB = 0;
 		  Matrix OuterAB = ZeroMatrix(3,3);
 		  double InnerAB = 0;
@@ -775,30 +775,30 @@ namespace Kratos
 		  for ( unsigned int i = 0; i < number_of_nodes; i++ )
 		    {
 		      array_1d<double, 3> CurrentPositionA  = ie->GetGeometry()[i].Coordinates();
-		    
+
 		      CurrentPositionA -= CenterOfMass;
 
 		      for ( unsigned int j = 0; j < number_of_nodes; j++ )
 			{
 			  array_1d<double, 3> CurrentPositionB  = ie->GetGeometry()[j].Coordinates();
-			
+
 			  CurrentPositionB -= CenterOfMass;
-		    
+
 			  MassAB = IntegrationWeight * N[i] * N[j] * ie->GetProperties()[DENSITY];
-			
+
 			  OuterAB = outer_prod( CurrentPositionA, CurrentPositionB );
 			  InnerAB = inner_prod( CurrentPositionA, CurrentPositionB );
-			      
+
 			  InertiaTensorPartition[k] += MassAB * ( InnerAB * Identity - OuterAB );
-					       
+
 			}
-		    
+
 		    }
 		}
-	    
+
 	    }
 	}
-	
+
 	for(int i=0; i<number_of_threads; i++){
 	  ModelMass += ModelMassPartition[i];
 	  InertiaTensor += InertiaTensorPartition[i];
@@ -828,7 +828,7 @@ namespace Kratos
       InertiaTensor = this->CalculateInertiaTensor(rModelPart,MeshId);
 
       this->InertiaTensorToMainAxes(InertiaTensor, MainAxes);
-     
+
       return InertiaTensor;
 
 
@@ -855,27 +855,27 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
     }
-    
-    
-    
+
+
+
     void TransferRigidBodySkinToModelPart(ModelPart& rSourceModelPart, ModelPart& rDestinationModelPart, const int mesh_id){
-        
+
         ElementsContainerType&  mesh_elements = rSourceModelPart.GetMesh(mesh_id).Elements();
-        
-        for(unsigned int i=0; i<mesh_elements.size(); i++) {  
+
+        for(unsigned int i=0; i<mesh_elements.size(); i++) {
             ElementsContainerType::ptr_iterator pTubeElement = mesh_elements.ptr_begin()+i;
-            (rDestinationModelPart.Elements()).push_back(*pTubeElement); 
+            (rDestinationModelPart.Elements()).push_back(*pTubeElement);
         }
-        
+
         NodesContainerType&  mesh_nodes = rSourceModelPart.GetMesh(mesh_id).Nodes();
-        
-        for(unsigned int i=0; i<mesh_nodes.size(); i++) {  
+
+        for(unsigned int i=0; i<mesh_nodes.size(); i++) {
             NodesContainerType::ptr_iterator pTubeNode = mesh_nodes.ptr_begin()+i;
-            (rDestinationModelPart.Nodes()).push_back(*(pTubeNode.base())); 
+            (rDestinationModelPart.Nodes()).push_back(*pTubeNode); 
         }
-        
+
     }
-    
+
 
     //**************************************************************************
     //**************************************************************************
@@ -889,7 +889,7 @@ namespace Kratos
     {
       mEchoLevel = Level;
     }
-      
+
     int GetEchoLevel()
     {
       return mEchoLevel;
@@ -987,10 +987,10 @@ namespace Kratos
 	      Maximum = fabs(rMatrix(i,j));
 	  }
 	}
-	
+
       //set zero value if value is < Maximum *1e-5
       double Critical = Maximum*1e-5;
-      
+
       for(unsigned int i=0; i<rMatrix.size1(); i++)
 	{
 	for(unsigned int j=0; j<rMatrix.size2(); j++)
@@ -1013,7 +1013,7 @@ namespace Kratos
 
     static inline void EigenVectors3x3(const Matrix& A, Matrix&V, Vector& d)
     {
-      
+
       if(A.size1()!=3 || A.size2()!=3)
 	std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
@@ -1025,14 +1025,14 @@ namespace Kratos
 	  V(i,j) = A(i,j);
 	}
       }
-      
+
       // *******************//
       //Symmetric Housholder reduction to tridiagonal form
-      
+
       for (int j = 0; j < 3; j++) {
 	d[j] = V(2,j);
       }
-    
+
       // Householder reduction to tridiagonal form.
 
       for (int i = 2; i > 0; i--) {
@@ -1135,7 +1135,7 @@ namespace Kratos
       }
       V(2,2) = 1.0;
       e[0] = 0.0;
-      
+
       // *******************//
 
       // Symmetric tridiagonal QL algorithm.
@@ -1227,7 +1227,7 @@ namespace Kratos
 	d[l] = d[l] + f;
 	e[l] = 0.0;
       }
-  
+
       // Sort eigenvalues and corresponding vectors.
 
       for (int i = 0; i < 2; i++) {
@@ -1280,19 +1280,18 @@ namespace Kratos
 
 
   }; // Class RigidBodyUtilities
-  
+
   ///@}
   ///@name Type Definitions
   ///@{
-  
-  
+
+
   ///@}
   ///@name Input and output
   ///@{
-  
+
   ///@}
 
 } // namespace Kratos.
 
-#endif // KRATOS_RIGID_BODY_UTILITIES_H_INCLUDED defined 
-
+#endif // KRATOS_RIGID_BODY_UTILITIES_H_INCLUDED defined

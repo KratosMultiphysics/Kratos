@@ -42,7 +42,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class AxisymPointRigidContactPenalty2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) AxisymPointRigidContactPenalty2DCondition
     : public PointRigidContactPenalty2DCondition
 {
 public:
@@ -56,7 +56,7 @@ public:
     // Counted pointer of PointRigidContactPenalty2DCondition
     KRATOS_CLASS_POINTER_DEFINITION( AxisymPointRigidContactPenalty2DCondition );
     ///@}
- 
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -70,7 +70,7 @@ public:
     AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     AxisymPointRigidContactPenalty2DCondition( AxisymPointRigidContactPenalty2DCondition const& rOther);
@@ -99,7 +99,7 @@ public:
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-  
+
     /**
      * clones the selected condition variables, creating a new one
      * @param NewId: the ID of the new condition
@@ -107,7 +107,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const;
 
 
@@ -258,7 +258,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AXISYM_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_AXISYM_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined

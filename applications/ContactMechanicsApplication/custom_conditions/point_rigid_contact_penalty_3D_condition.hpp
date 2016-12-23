@@ -42,7 +42,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointRigidContactPenalty3DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) PointRigidContactPenalty3DCondition
     : public PointRigidContactCondition
 {
 public:
@@ -56,7 +56,7 @@ public:
     // Counted pointer of PointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty3DCondition );
     ///@}
- 
+
     ///@name Life Cycle
     ///@{
 
@@ -69,7 +69,7 @@ public:
     PointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     PointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     PointRigidContactPenalty3DCondition( PointRigidContactPenalty3DCondition const& rOther);
@@ -105,7 +105,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const;
 
     ///@name Access
@@ -158,7 +158,7 @@ protected:
 				     double& rIntegrationWeight);
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      GeneralVariables& rVariables,
@@ -173,9 +173,9 @@ protected:
 
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
-  
-    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, GeneralVariables& rVariables );    
-  
+
+    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, GeneralVariables& rVariables );
+
 
 
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
@@ -274,7 +274,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED  defined

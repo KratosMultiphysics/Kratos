@@ -100,7 +100,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const;
 
 
@@ -143,12 +143,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo);
 
     //************************************************************************************
@@ -198,7 +198,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-  
+
     /**
      * Initialize System Matrices
      */
@@ -214,7 +214,7 @@ protected:
 				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
- 
+
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
@@ -227,7 +227,7 @@ protected:
 				     double& rIntegrationWeight);
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      GeneralVariables& rVariables,
@@ -242,7 +242,7 @@ protected:
 
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
-    
+
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
 
     double CalculateFrictionCoefficient( const double& rTangentRelativeMovement, const double& rDeltaTime );
@@ -255,9 +255,9 @@ protected:
 
 
     /**
-     * Calculation of an SkewSymmetricTensor from a vector 
+     * Calculation of an SkewSymmetricTensor from a vector
      */
-     void VectorToSkewSymmetricTensor( const Vector& rVector, 
+     void VectorToSkewSymmetricTensor( const Vector& rVector,
 				       Matrix& rSkewSymmetricTensor );
 
 
@@ -329,4 +329,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_RIGID_BODY_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_RIGID_BODY_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED defined
