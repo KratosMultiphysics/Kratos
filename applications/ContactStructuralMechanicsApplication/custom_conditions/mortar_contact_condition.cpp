@@ -1001,6 +1001,7 @@ bool MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateKinematics(
     // SHAPE FUNCTION DERIVATIVES
     slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave, local_point );
 //     slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );// TODO: This could be needed in the future to be different than the standart shape functions
+    
     // MASTER CONDITION
     const bool inside = this->MasterShapeFunctionValue( rVariables, local_point);
     
@@ -1205,7 +1206,23 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
     for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
         index_1 = (number_of_total_nodes + i_slave) * TDim;
-                    
+        
+        const bounded_matrix<double, TDim, TDim> RotationMatrix = GetRotationMatrixSlave(i_slave);
+        for (unsigned int i_node = 0; i_node < number_of_total_nodes; i_node++)
+        {
+            const unsigned index_rot = i_node * TDim;
+            subrange(LHS_contact_pair, index_1, index_1 + TDim, index_rot, index_rot + TDim) = prod(RotationMatrix, subrange(LHS_contact_pair, index_1, index_1 + TDim, index_rot, index_rot + TDim));
+        }
+        if (TDoubleLM == true) // TODO: For a consistent Double LM calculate an independent rotationmatrix
+        {
+            const unsigned int index_2 = index_1 + TNumNodes * TDim;
+            for (unsigned int i_node = 0; i_node < number_of_total_nodes; i_node++)
+            {
+                const unsigned index_rot = i_node * TDim;
+                subrange(LHS_contact_pair, index_2, index_2 + TDim, index_rot, index_rot + TDim) = prod(RotationMatrix, subrange(LHS_contact_pair, index_2, index_2 + TDim, index_rot, index_rot + TDim));
+            } 
+        }
+        
         // We impose a 0 zero LM in the inactive nodes
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
         {
@@ -1231,8 +1248,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
                 Matrix tangent_matrix;
                 tangent_matrix.resize(TDim - 1, TDim);
 
-//                 const array_1d<double, 3> tangent1 = this->GetValue(TANGENT_XI);
-//                 const array_1d<double, 3> tangent2 = this->GetValue(TANGENT_ETA);
                 const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
                 const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
                 for (unsigned int i = 0; i < TDim; i++)
@@ -1643,6 +1658,15 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
     {
         index = (number_of_total_nodes + i_slave) * TDim; 
 
+        const bounded_matrix<double, TDim, TDim> RotationMatrix = GetRotationMatrixSlave(i_slave);
+    
+        subrange(RHS_contact_pair, index, index + TDim) = prod(RotationMatrix, subrange(RHS_contact_pair, index, index + TDim));
+        if (TDoubleLM == true) // TODO: For a consistent Double LM calculate an independent rotationmatrix
+        {
+            const unsigned int index_rot = index + TNumNodes * TDim;
+            subrange(RHS_contact_pair, index_rot, index_rot + TDim) = prod(RotationMatrix, subrange(RHS_contact_pair, index_rot, index_rot + TDim));
+        }
+        
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
         {
             for (unsigned int i = index; i < index + TDim; i++)
@@ -3263,6 +3287,31 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetRotationMatrixSlave(unsigned int i_slave)
+{
+    bounded_matrix<double, TDim, TDim> RotationMatrix;
+   
+    const array_1d<double, 3> normal      = GetGeometry()[i_slave].GetValue(NORMAL);
+    const array_1d<double, 3> tangent_xi  = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+    const array_1d<double, 3> tangent_eta = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+    
+    for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+    {
+        RotationMatrix(0, i_dim) = normal[i_dim];
+        RotationMatrix(1, i_dim) = tangent_xi[i_dim];
+        if (TDim == 3)
+        {
+            RotationMatrix(2, i_dim) = tangent_eta[i_dim];
+        }
+    }
+    
+    return RotationMatrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex)
 {
     const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
@@ -3413,7 +3462,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrati
     }
     else
     {
-        if (TNumNodes == 3) // NOTE: Total weight of a line is 0.5
+        if (TNumNodes == 3) // NOTE: Total weight of a triangle is 0.5
         {
             mColocationIntegration.Initialize( integration_order);
 //             // TODO: Finish this

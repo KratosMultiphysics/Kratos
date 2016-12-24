@@ -598,10 +598,6 @@ public:
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
-    void ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex);
-    
-    void InitializeIntegrationMethod();
-
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @return rResult: The result vector with the ID's of the DOF
@@ -1168,13 +1164,19 @@ protected:
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
-    
+
+    /*
+     * Calculates the augmented lagragian in the normal direction
+     */
     double AugmentedNormalLM(
         const GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
         const double& integration_point_gap
     );
     
+    /*
+     * Calculates the augmented lagragian in the tangent direction
+     */
     double AugmentedTangentLM(
         const GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
@@ -1182,6 +1184,20 @@ protected:
         double& integration_point_slip
     );
     
+    /*
+     * Calculates the rotation matrix needed to decompose between normal and tangent components
+     */
+    bounded_matrix<double, TDim, TDim> GetRotationMatrixSlave(unsigned int i_slave);
+    
+    /*
+     * Computes the selective integration method
+     */
+    void ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex);
+    
+    /*
+     * Initializes the integration method
+     */
+    void InitializeIntegrationMethod();
     
     ///@}
     ///@name Protected  Access
