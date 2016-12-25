@@ -1185,6 +1185,11 @@ protected:
     );
     
     /*
+     * Checks which case should be computed
+     */
+    unsigned int CaseToCompute(const GeometryType::IntegrationPointsArrayType& integration_points);
+    
+    /*
      * Calculates the rotation matrix needed to decompose between normal and tangent components
      */
     bounded_matrix<double, TDim, TDim> GetRotationMatrixSlave(unsigned int i_slave);

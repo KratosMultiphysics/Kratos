@@ -697,38 +697,8 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         bounded_matrix<double, TMatrixSize, TMatrixSize> LHS_contact_pair = ZeroMatrix(TMatrixSize, TMatrixSize);
         array_1d<double, TMatrixSize> RHS_contact_pair = ZeroVector(TMatrixSize);
         
-        // We check the case to compute // NOTE: Just in 2D
-        unsigned int compute = 0;
-        if (TDim == 2)
-        {
-            if (TNumNodes == 2)
-            {
-                if (integration_points.size() > 0)
-                {
-                    const double xi_0 = integration_points[0].Coordinate(1);
-                    const double xi_1 = (integration_points.back()).Coordinate(1);
-                    
-                    if (xi_0 == -1.0)
-                    {
-                        if (xi_1 < 1.0)
-                        {
-                            compute = 1;
-                        }
-                    }
-                    else if (xi_0 > -1.0)
-                    {
-                        if (xi_1 == 1.0)
-                        {
-                            compute = 2;
-                        }
-                        else
-                        {
-                            compute = 3;
-                        }
-                    }
-                }
-            }
-        }
+        // We check the case to compute
+        const unsigned int compute = this->CaseToCompute(integration_points);
         
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
@@ -3281,6 +3251,48 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
     const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
 
     return augmented_tangent_lm;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+unsigned int MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CaseToCompute(const GeometryType::IntegrationPointsArrayType& integration_points)
+{
+    unsigned int compute = 0;
+    
+    if (TDim == 2)
+    {
+        if (TNumNodes == 2)
+        {
+            if (integration_points.size() > 0)
+            {
+                const double xi_0 = integration_points[0].Coordinate(1);
+                const double xi_1 = (integration_points.back()).Coordinate(1);
+                
+                if (xi_0 == -1.0)
+                {
+                    if (xi_1 < 1.0)
+                    {
+                        compute = 1;
+                    }
+                }
+                else if (xi_0 > -1.0)
+                {
+                    if (xi_1 == 1.0)
+                    {
+                        compute = 2;
+                    }
+                    else
+                    {
+                        compute = 3;
+                    }
+                }
+            }
+        }
+    }
+
+    return compute;
 }
 
 /***********************************************************************************/
