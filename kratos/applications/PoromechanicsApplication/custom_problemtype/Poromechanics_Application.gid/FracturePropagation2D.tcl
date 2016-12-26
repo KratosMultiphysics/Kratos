@@ -131,8 +131,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 }
 
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
-
-    # TODO: allow fractures intersecting each other, and crossing different bodysurfaces
     
     ## Source auxiliar procedures
     source [file join $problemtypedir Fracture2DAuxProcs.tcl]
@@ -261,14 +259,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         dict set FracturesDict $MotherFractureId TipPoint Id [GiD_Info Geometry MaxNumPoints]
         dict set FracturesDict $MotherFractureId TipPoint Coordinates [dict get $Propagation TipCoordinates]
         dict set FracturesDict $MotherFractureId TopLine Id [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-        dict set FracturesDict $MotherFractureId TopLine InitPoint [dict get $FracturesDict $MotherFractureId TipPoint Id]
-        dict set FracturesDict $MotherFractureId TopLine EndPoint [dict get $FracturesDict $MotherFractureId TopPoint Id]
         dict set FracturesDict $MotherFractureId BotLine Id [GiD_Info Geometry MaxNumLines]
-        dict set FracturesDict $MotherFractureId BotLine InitPoint [dict get $FracturesDict $MotherFractureId BotPoint Id]
-        dict set FracturesDict $MotherFractureId BotLine EndPoint [dict get $FracturesDict $MotherFractureId TipPoint Id]
         dict set FracturesDict $MotherFractureId InterfaceSurface Id [GiD_Info Geometry MaxNumSurfaces]
-        dict set FracturesDict $MotherFractureId InterfaceSurface TopLine $TopLine
-        dict set FracturesDict $MotherFractureId InterfaceSurface BotLine $BotLine
 
         dict set BodySurfacesDict $BodySurfaceId Lines $BodySurfaceLines
     }
@@ -384,14 +376,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         dict set FracturesDict $MotherFractureId TipPoint Id [expr { [GiD_Info Geometry MaxNumPoints]-1 }]
         dict set FracturesDict $MotherFractureId TipPoint Coordinates [dict get $Bifurcation TopTipCoordinates]
         dict set FracturesDict $MotherFractureId TopLine Id [expr { [GiD_Info Geometry MaxNumLines]-6 }]
-        dict set FracturesDict $MotherFractureId TopLine InitPoint [dict get $FracturesDict $MotherFractureId TipPoint Id]
-        dict set FracturesDict $MotherFractureId TopLine EndPoint [dict get $FracturesDict $MotherFractureId TopPoint Id]
         dict set FracturesDict $MotherFractureId BotLine Id [expr { [GiD_Info Geometry MaxNumLines]-5 }]
-        dict set FracturesDict $MotherFractureId BotLine InitPoint [dict get $FracturesDict $MotherFractureId BotPoint Id]
-        dict set FracturesDict $MotherFractureId BotLine EndPoint [dict get $FracturesDict $MotherFractureId TipPoint Id]
         dict set FracturesDict $MotherFractureId InterfaceSurface Id [expr { [GiD_Info Geometry MaxNumSurfaces]-2 }]
-        dict set FracturesDict $MotherFractureId InterfaceSurface TopLine $TopTopLine
-        dict set FracturesDict $MotherFractureId InterfaceSurface BotLine $TopBotLine
         
         ## Add an additional value in $FracturesDict for the new BotTip fracture
         set NewFractureId [dict size $FracturesDict]
@@ -410,18 +396,12 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         dict set FracturesDict $NewFractureId TopLine Id [expr { [GiD_Info Geometry MaxNumLines]-4 }]
         dict set FracturesDict $NewFractureId TopLine Layer [dict get $FracturesDict $MotherFractureId TopLine Layer]
         dict set FracturesDict $NewFractureId TopLine Groups [dict get $FracturesDict $MotherFractureId TopLine Groups]
-        dict set FracturesDict $NewFractureId TopLine InitPoint [dict get $FracturesDict $NewFractureId TipPoint Id]
-        dict set FracturesDict $NewFractureId TopLine EndPoint [dict get $FracturesDict $NewFractureId TopPoint Id]
         dict set FracturesDict $NewFractureId BotLine Id [expr { [GiD_Info Geometry MaxNumLines]-3 }]
         dict set FracturesDict $NewFractureId BotLine Layer [dict get $FracturesDict $MotherFractureId BotLine Layer]
         dict set FracturesDict $NewFractureId BotLine Groups [dict get $FracturesDict $MotherFractureId BotLine Groups]
-        dict set FracturesDict $NewFractureId BotLine InitPoint [dict get $FracturesDict $NewFractureId BotPoint Id]
-        dict set FracturesDict $NewFractureId BotLine EndPoint [dict get $FracturesDict $NewFractureId TipPoint Id]
         dict set FracturesDict $NewFractureId InterfaceSurface Id [expr { [GiD_Info Geometry MaxNumSurfaces]-1 }]
         dict set FracturesDict $NewFractureId InterfaceSurface Layer [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer]
         dict set FracturesDict $NewFractureId InterfaceSurface Groups [dict get $FracturesDict $MotherFractureId InterfaceSurface Groups]
-        dict set FracturesDict $NewFractureId InterfaceSurface TopLine $BotTopLine
-        dict set FracturesDict $NewFractureId InterfaceSurface BotLine $BotBotLine
         
         dict set BodySurfacesDict $BodySurfaceId Lines $BodySurfaceLines
     }

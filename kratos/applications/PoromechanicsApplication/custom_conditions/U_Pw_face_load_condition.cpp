@@ -71,7 +71,7 @@ void UPwFaceLoadCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegra
 
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
-    rIntegrationCoefficient = this->GetProperties()[THICKNESS] * ds * Weight;
+    rIntegrationCoefficient = ds * Weight;
 }
 
 //----------------------------------------------------------------------------------------

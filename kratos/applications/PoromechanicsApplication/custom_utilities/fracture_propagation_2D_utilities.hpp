@@ -404,11 +404,6 @@ protected:
                 PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["top_line"]["groups"][j].GetString() << "\"" << std::endl;
             }
             PropDataFile << "dict set FracturesDict " << Id << " TopLine Groups $Groups" << std::endl;
-
-            PropDataFile << "dict set FracturesDict " << Id << " TopLine InitPoint "
-                         << rParameters["fractures_list"][i]["top_line"]["init_point"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " TopLine EndPoint "
-                         << rParameters["fractures_list"][i]["top_line"]["end_point"].GetInt() << std::endl;
             // BotLine
             PropDataFile << "dict set FracturesDict " << Id << " BotLine Id "
                          << rParameters["fractures_list"][i]["bot_line"]["id"].GetInt() << std::endl;
@@ -420,11 +415,6 @@ protected:
                 PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["bot_line"]["groups"][j].GetString() << "\"" << std::endl;
             }
             PropDataFile << "dict set FracturesDict " << Id << " BotLine Groups $Groups" << std::endl;
-
-            PropDataFile << "dict set FracturesDict " << Id << " BotLine InitPoint "
-                         << rParameters["fractures_list"][i]["bot_line"]["init_point"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " BotLine EndPoint "
-                         << rParameters["fractures_list"][i]["bot_line"]["end_point"].GetInt() << std::endl;
             // InterfaceSurface
             PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Id "
                          << rParameters["fractures_list"][i]["interface_surface"]["id"].GetInt() << std::endl;
@@ -436,13 +426,6 @@ protected:
                 PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["interface_surface"]["groups"][j].GetString() << "\"" << std::endl;
             }
             PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Groups $Groups" << std::endl;
-            PropDataFile << "set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["top_line"][0].GetInt()
-                         << " " << rParameters["fractures_list"][i]["interface_surface"]["top_line"][1].GetInt() << "\"" << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface TopLine $Lines" << std::endl;
-
-            PropDataFile << "set Lines \"" << rParameters["fractures_list"][i]["interface_surface"]["bot_line"][0].GetInt()
-                         << " " << rParameters["fractures_list"][i]["interface_surface"]["bot_line"][1].GetInt() << "\"" << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface BotLine $Lines" << std::endl;
             // BodySurfaces
             PropDataFile << "set BodySurfaces [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["fractures_list"][i]["body_surfaces"].size(); j++)

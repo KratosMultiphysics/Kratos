@@ -23,21 +23,28 @@ VALUE: false
 DEPENDENCIES: (true,RESTORE,Characteristic_Length,#CURRENT#)(false,HIDE,Characteristic_Length,#CURRENT#)
 QUESTION: Characteristic_Length
 VALUE: 0.05
+HELP: Length defining the domain of interaction between non-local damaged points.
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
-DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
-QUESTION: Propagation_Length
-VALUE: 0.05
+DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
+HELP: Damage threshold after which propagation occurs.
+QUESTION: Propagation_Length
+VALUE: 0.05
+HELP: Length defining the domain of influence of the crack tip. It is also the first dimension of the propagation.
 QUESTION: Propagation_Width
 VALUE: 0.01
+HELP: Second dimension of the propagation.
+QUESTION: Propagation_Height
+VALUE: 0.01
+HELP: Third dimension of the propagation. Only for 3D cases.
 QUESTION: Propagation_CosAngle
 VALUE: 0.0
 HELP: Cosinus of the angle defining the front sector of straight propagation. It ranges from 0.0 (only straight propagation) to 1.0 (only bifurcation).
 QUESTION: Propagation_Frequency
 VALUE: 1
-HELP: Number of steps after which the fracture propagation will be checked.
+HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
 TITLE: Solver_Settings
 QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic)
 VALUE: Quasi-Static

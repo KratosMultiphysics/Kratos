@@ -19,26 +19,15 @@ Condition::Pointer UPwForceCondition<TDim,TNumNodes>::Create(IndexType NewId,Nod
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template< >
-void UPwForceCondition<2,1>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwForceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {    
     array_1d<double,3> ForceVector = this->GetGeometry()[0].FastGetSolutionStepValue( FORCE );
-    const double& Thickness = this->GetProperties()[THICKNESS];
-    
-    rRightHandSideVector[0] = ForceVector[0] * Thickness;
-    rRightHandSideVector[1] = ForceVector[1] * Thickness;
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void UPwForceCondition<3,1>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
-{    
-    array_1d<double,3> ForceVector = this->GetGeometry()[0].FastGetSolutionStepValue( FORCE );
-    
-    rRightHandSideVector[0] = ForceVector[0];
-    rRightHandSideVector[1] = ForceVector[1];
-    rRightHandSideVector[2] = ForceVector[2];
+        
+    for(unsigned int i = 0; i < TDim; i++)
+    {
+        rRightHandSideVector[i] = ForceVector[i];
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

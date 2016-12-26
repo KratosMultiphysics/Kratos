@@ -214,7 +214,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Force_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Force_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for both 2D and 3D cases: N.
 QUESTION: Imposed_Force_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Force_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_X_Table,#CURRENT#)
@@ -225,7 +225,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Force_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Force_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for both 2D and 3D cases: N.
 QUESTION: Imposed_Force_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Force_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Y_Table,#CURRENT#)
@@ -236,7 +236,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Force_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Force_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for both 2D and 3D cases: N.
 QUESTION: Imposed_Force_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Force_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Z_Table,#CURRENT#)
@@ -253,7 +253,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_X_Table,#CURRENT#)
@@ -264,7 +264,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Face_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Y_Table,#CURRENT#)
@@ -275,7 +275,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Face_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Z_Table,#CURRENT#)
@@ -295,7 +295,7 @@ VALUE: Uniform
 DEPENDENCIES: (Uniform,RESTORE,Normal_Pressure_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Reference_Coordinate,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Pressure_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Reference_Coordinate,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
 QUESTION: Normal_Pressure_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2. A positive value corresponds to a compressive load.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2. A positive value corresponds to a compressive load.
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Z
 QUESTION: Reference_Coordinate
@@ -315,7 +315,7 @@ VALUE: false
 DEPENDENCIES: (false,HIDE,Tangential_Pressure_Value,0.0,HIDE,Imposed_Tangential_Load,Constant)(true,RESTORE,Tangential_Pressure_Value,#CURRENT#,RESTORE,Imposed_Tangential_Load,#CURRENT#)
 QUESTION: Tangential_Pressure_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2.
+HELP: Only for 2D cases. Units in IS: N/m.
 QUESTION: Imposed_Tangential_Load#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Tangential_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential_Load_Table,#CURRENT#)
@@ -329,7 +329,7 @@ CONDMESHTYPE: over face elements
 GROUPALLOW: lines surfaces
 QUESTION: Value
 VALUE: 0.0
-HELP: Units in IS: m/s. A positive value corresponds to an outflow.
+HELP: Units in IS for 2D cases: m2/s. Units in IS for 3D cases: m/s. A positive value corresponds to an outflow.
 QUESTION: Imposed_Normal_Fluid_Flux#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Normal_Fluid_Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal_Fluid_Flux_Table,#CURRENT#)
@@ -346,7 +346,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_X#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_X_Table,#CURRENT#)
@@ -357,7 +357,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Face_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Y,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_Y#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Y_Table,#CURRENT#)
@@ -368,7 +368,7 @@ VALUE: true
 DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Face_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Z,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2.
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
 QUESTION: Imposed_Face_Load_Z#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Face_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Z_Table,#CURRENT#)
@@ -382,7 +382,7 @@ CONDMESHTYPE: over body elements
 GROUPALLOW: lines surfaces
 QUESTION: Value
 VALUE: 0.0
-HELP: Units in IS: m/s. A positive value corresponds to an outflow.
+HELP: Units in IS for 2D cases: m2/s. Units in IS for 3D cases: m/s. A positive value corresponds to an outflow.
 QUESTION: Imposed_Normal_Fluid_Flux#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,HIDE,Normal_Fluid_Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal_Fluid_Flux_Table,#CURRENT#)

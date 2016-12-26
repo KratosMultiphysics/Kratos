@@ -255,7 +255,9 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidt
 template< >
 void UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
-    rIntegrationCoefficient = JointWidth * this->GetProperties()[THICKNESS];
+    // Note: since we cannot include the determinant of the Jacobian here (because the Jacobian could be singular), we do not multiply the JointWidth by the Weight 
+    //       In a normal line load we would have |J| * w = L/2.0 * 2.0 = L
+    rIntegrationCoefficient = JointWidth;
 }
 
 //----------------------------------------------------------------------------------------
