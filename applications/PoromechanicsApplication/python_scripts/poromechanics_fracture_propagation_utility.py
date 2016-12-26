@@ -173,7 +173,7 @@ class FracturePropagationUtility:
         # Save old .time file
         original_filename = str(self.problem_name)+".time"
         original_filepath = os.path.join(str(self.problem_path),str(original_filename))
-        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".time"
+        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".log.time"
         new_filepath = os.path.join(str(self.problem_path),str(new_filename))
         shutil.copy(str(original_filepath), str(new_filepath))
         

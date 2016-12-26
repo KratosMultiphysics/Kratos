@@ -19,8 +19,6 @@ proc AddLineToFracturesDict {FracturesDict FractureId InterfaceSurface NumLine L
     dict set MyFracturesDict $FractureId $LineType Id [lindex [lindex $InterfaceSurface $NumLine] 0]
     dict set MyFracturesDict $FractureId $LineType Layer [lindex $Line 1]
     dict set MyFracturesDict $FractureId $LineType Groups $Groups
-    dict set MyFracturesDict $FractureId $LineType InitPoint [lindex $Line 2]
-    dict set MyFracturesDict $FractureId $LineType EndPoint [lindex $Line 3]
 }
 
 #-------------------------------------------------------------------------------
@@ -32,8 +30,6 @@ proc AddInterfaceSurfaceToFracturesDict {FracturesDict FractureId InterfaceEntit
     dict set MyFracturesDict $FractureId InterfaceSurface Id $InterfaceEntity
     dict set MyFracturesDict $FractureId InterfaceSurface Layer [lindex $InterfaceSurface 1]
     dict set MyFracturesDict $FractureId InterfaceSurface Groups $Groups
-    dict set MyFracturesDict $FractureId InterfaceSurface TopLine [lindex $InterfaceSurface 4]
-    dict set MyFracturesDict $FractureId InterfaceSurface BotLine [lindex $InterfaceSurface 3]
 }
 
 #-------------------------------------------------------------------------------
@@ -57,9 +53,9 @@ proc AddBodySurfaceToFracturesDict {FracturesDict FractureId BodySurfacesDict} {
 
 proc WriteFractureData {FileVar} {
     upvar $FileVar MyFileVar
-
-    puts $MyFileVar "        \"propagation_length\":                       [GiD_AccessValue get gendata Propagation_Length],"
+    
     puts $MyFileVar "        \"propagation_damage\":                       [GiD_AccessValue get gendata Propagation_Damage],"
+    puts $MyFileVar "        \"propagation_length\":                       [GiD_AccessValue get gendata Propagation_Length],"
     puts $MyFileVar "        \"propagation_width\":                        [GiD_AccessValue get gendata Propagation_Width],"
     puts $MyFileVar "        \"propagation_cosangle\":                     [GiD_AccessValue get gendata Propagation_CosAngle],"
     puts $MyFileVar "        \"propagation_frequency\":                    [GiD_AccessValue get gendata Propagation_Frequency],"
@@ -177,7 +173,7 @@ proc WriteFracturesList {FileVar FracturesDict} {
         puts $MyFileVar "            \"id\":         [dict get $Fracture TopLine Id],"
         puts $MyFileVar "            \"layer\":      \"[dict get $Fracture TopLine Layer]\","
         if {[llength [dict get $Fracture TopLine Groups]]==0} {
-            puts $MyFileVar "            \"groups\":     \[\],"
+            puts $MyFileVar "            \"groups\":     \[\]"
         } else {
             set PutStrings \[
             for {set i 0} {$i < [llength [dict get $Fracture TopLine Groups]]} {incr i} {
@@ -185,17 +181,15 @@ proc WriteFracturesList {FileVar FracturesDict} {
             }
             set PutStrings [string trimright $PutStrings ,]
             append PutStrings \]
-            puts $MyFileVar "            \"groups\":     $PutStrings,"
+            puts $MyFileVar "            \"groups\":     $PutStrings"
         }
-        puts $MyFileVar "            \"init_point\": [dict get $Fracture TopLine InitPoint],"
-        puts $MyFileVar "            \"end_point\":  [dict get $Fracture TopLine EndPoint]"
         puts $MyFileVar "        \},"
         # BotLine
         puts $MyFileVar "        \"bot_line\":          \{"
         puts $MyFileVar "            \"id\":         [dict get $Fracture BotLine Id],"
         puts $MyFileVar "            \"layer\":      \"[dict get $Fracture BotLine Layer]\","
         if {[llength [dict get $Fracture BotLine Groups]]==0} {
-            puts $MyFileVar "            \"groups\":     \[\],"
+            puts $MyFileVar "            \"groups\":     \[\]"
         } else {
             set PutStrings \[
             for {set i 0} {$i < [llength [dict get $Fracture BotLine Groups]]} {incr i} {
@@ -203,17 +197,15 @@ proc WriteFracturesList {FileVar FracturesDict} {
             }
             set PutStrings [string trimright $PutStrings ,]
             append PutStrings \]
-            puts $MyFileVar "            \"groups\":     $PutStrings,"
+            puts $MyFileVar "            \"groups\":     $PutStrings"
         }
-        puts $MyFileVar "            \"init_point\": [dict get $Fracture BotLine InitPoint],"
-        puts $MyFileVar "            \"end_point\":  [dict get $Fracture BotLine EndPoint]"
         puts $MyFileVar "        \},"
         # InterfaceSurface
         puts $MyFileVar "        \"interface_surface\": \{"
         puts $MyFileVar "            \"id\":       [dict get $Fracture InterfaceSurface Id],"
         puts $MyFileVar "            \"layer\":    \"[dict get $Fracture InterfaceSurface Layer]\","
         if {[llength [dict get $Fracture InterfaceSurface Groups]]==0} {
-            puts $MyFileVar "            \"groups\":   \[\],"
+            puts $MyFileVar "            \"groups\":   \[\]"
         } else {
             set PutStrings \[
             for {set i 0} {$i < [llength [dict get $Fracture InterfaceSurface Groups]]} {incr i} {
@@ -221,10 +213,8 @@ proc WriteFracturesList {FileVar FracturesDict} {
             }
             set PutStrings [string trimright $PutStrings ,]
             append PutStrings \]
-            puts $MyFileVar "            \"groups\":   $PutStrings,"
+            puts $MyFileVar "            \"groups\":   $PutStrings"
         }
-        puts $MyFileVar "            \"top_line\": \[[lindex [dict get $Fracture InterfaceSurface TopLine] 0],[lindex [dict get $Fracture InterfaceSurface TopLine] 1]\],"
-        puts $MyFileVar "            \"bot_line\": \[[lindex [dict get $Fracture InterfaceSurface BotLine] 0],[lindex [dict get $Fracture InterfaceSurface BotLine] 1]\]"
         puts $MyFileVar "        \},"
         # BodySurfaces
         set PutStrings \[
@@ -241,48 +231,3 @@ proc WriteFracturesList {FileVar FracturesDict} {
         }
     }
 }
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#~ proc OpenOldCrackTip {FracturesDict MotherFractureId PropagationDict BodySurfaceLines} {
-
-
-    #~ # Delete InterfaceSurface
-    #~ GiD_Process Mescape Geometry Delete Surfaces [dict get $FracturesDict $MotherFractureId InterfaceSurface Id] escape
-
-    #~ WarnWin "Despres de borrar interface surface"
-
-    #~ # Create new poin in TopInitCoordinates location
-    #~ GiD_Process Mescape Geometry Create Point \
-        #~ [lindex [dict get $PropagationDict TopInitCoordinates] 0] [lindex [dict get $PropagationDict TopInitCoordinates] 1] [lindex [dict get $PropagationDict TopInitCoordinates] 2] escape
-    
-    #~ WarnWin "Despres de crear nou topinitpoint"
-    #~ # Delete old TopLine
-    #~ GiD_Process Mescape Geometry Delete Lines [dict get $FracturesDict $MotherFractureId TopLine Id] escape
-    #~ set Index [lsearch $BodySurfaceLines [dict get $FracturesDict $MotherFractureId TopLine Id]]
-    #~ set BodySurfaceLines [lreplace $BodySurfaceLines $Index $Index]
-    #~ # Create new line replacing old TopLine
-    #~ GiD_Process Mescape Geometry Create Line Join \
-        #~ [GiD_Info Geometry MaxNumPoints] [dict get $FracturesDict $MotherFractureId TopPoint Id] escape escape
-    #~ lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
-
-    #~ # Create new poin in BotInitCoordinates location
-    #~ GiD_Process Mescape Geometry Create Point \
-        #~ [lindex [dict get $PropagationDict BotInitCoordinates] 0] [lindex [dict get $PropagationDict BotInitCoordinates] 1] [lindex [dict get $PropagationDict BotInitCoordinates] 2] escape
-    #~ # Delete old BotLine
-    #~ GiD_Process Mescape Geometry Delete Lines [dict get $FracturesDict $MotherFractureId BotLine Id] escape
-    #~ set Index [lsearch $BodySurfaceLines [dict get $FracturesDict $MotherFractureId BotLine Id]]
-    #~ set BodySurfaceLines [lreplace $BodySurfaceLines $Index $Index]
-    #~ # Create new line replacing old BotLine
-    #~ GiD_Process Mescape Geometry Create Line Join \
-        #~ [dict get $FracturesDict $MotherFractureId BotPoint Id] [GiD_Info Geometry MaxNumPoints] escape escape
-    #~ lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
-
-    #~ # Create ContactSurface for the old crack
-    #~ set TopLine [expr { [GiD_Info Geometry MaxNumLines]-1 }]
-    #~ lappend TopLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface TopLine] 1]
-    #~ set BotLine [GiD_Info Geometry MaxNumLines]
-    #~ lappend BotLine [lindex [dict get $FracturesDict $MotherFractureId InterfaceSurface BotLine] 1]
-    #~ GiD_Geometry create surface [dict get $FracturesDict $MotherFractureId InterfaceSurface Id] contactsurface \
-        #~ [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer] 2 $BotLine $TopLine
-#~ }

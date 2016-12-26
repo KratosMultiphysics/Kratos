@@ -67,7 +67,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(Conditi
 {
     KRATOS_TRY
 
-    rVariables.IntegrationCoefficient = GetProperties()[THICKNESS] * weight;
+    rVariables.IntegrationCoefficient = weight;
 
     KRATOS_CATCH( "" )
 }

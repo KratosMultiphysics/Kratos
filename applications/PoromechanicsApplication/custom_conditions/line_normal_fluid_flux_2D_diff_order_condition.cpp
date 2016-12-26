@@ -64,7 +64,7 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(Co
 
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
-    rVariables.IntegrationCoefficient = GetProperties()[THICKNESS] * ds * weight;
+    rVariables.IntegrationCoefficient = ds * weight;
 
     KRATOS_CATCH( "" )
 }

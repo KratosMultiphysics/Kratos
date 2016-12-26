@@ -170,24 +170,8 @@ void UPwNormalFaceLoadCondition<3,4>::CalculateTractionVector(array_1d<double,3>
 
 //----------------------------------------------------------------------------------------
 
-template< >
-void UPwNormalFaceLoadCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
-{
-    rIntegrationCoefficient = this->GetProperties()[THICKNESS] * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void UPwNormalFaceLoadCondition<3,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
-{
-    rIntegrationCoefficient = Weight;
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void UPwNormalFaceLoadCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
 {
     rIntegrationCoefficient = Weight;
 }

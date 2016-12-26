@@ -101,7 +101,7 @@ for process in list_of_processes:
 
 # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
 time = time - (buffer_size-1)*delta_time
-main_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 for step in range(buffer_size-1):
     time = time + delta_time
     main_model_part.CloneTimeStep(time)
