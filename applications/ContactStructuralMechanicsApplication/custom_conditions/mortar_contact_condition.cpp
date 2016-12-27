@@ -183,7 +183,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
-//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
@@ -666,7 +665,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     
     // Compute Ae and its derivative
     this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo); 
-//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     // Compute the normal and tangent derivatives of the slave
     this->CalculateDeltaNormalTangentSlave(rContactData);
@@ -691,6 +689,11 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         // Master segment info
         const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
+//         // Compute in each node the tangent functional and their derivatives
+//         this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
+        // TODO: Move the computation of the gap here
+        
+        // Initialize the integration weight
         double total_weight = 0.0;
         
         // Integrating the LHS and RHS
@@ -2733,6 +2736,68 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaPhi(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCtan(
+   GeneralVariables& rVariables,
+   ContactData<TDim, TNumNodes>& rContactData
+   )
+{   
+    // Master segment info
+    const GeometryType& current_master_element = rVariables.GetMasterElement( );
+    
+    const double mu = rVariables.mu; 
+    const double epsilon_tangent = rContactData.epsilon_tangent;
+    
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+    {
+        /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
+        // Local kinematic update
+        rVariables.N_Slave = ZeroVector(TNumNodes);
+        rVariables.N_Slave[i_slave] = 1.0;
+        rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, rVariables.N_Slave);
+        
+        // Calculating the tangent vectors
+        const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
+        const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
+        
+        // The LM of the node
+        const array_1d<double, TDim> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    
+        // Calculate the augmented normal LM
+        const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, rContactData.Gaps(i_slave));
+        
+        // Calculate the augmented tangent LM
+        array_1d<double, (TDim - 1)> node_slip;
+        const array_1d<double, (TDim - 1)> augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, node_slip);
+        
+        if (augmented_tangent_lm[0] < 0.0) // Stick
+        {
+            rContactData.Ctan(i_slave, 0) =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[0];
+        }
+        else
+        {
+            rContactData.Ctan(i_slave, 0) = std::abs(augmented_tangent_lm[0]) * inner_prod(tangent_xi_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[0];
+        }
+        
+        if (TDim == 3)
+        {
+            if (augmented_tangent_lm[1] < 0.0) // Stick
+            {
+                rContactData.Ctan(i_slave, 1) =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[1];
+            }
+            else
+            {
+                rContactData.Ctan(i_slave, 1) = std::abs(augmented_tangent_lm[1]) * inner_prod(tangent_eta_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[1];
+            }
+        }
+        
+        /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
@@ -2974,7 +3039,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
-//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
@@ -3079,7 +3143,6 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     this->CalculateAeAndDeltaAe(rContactData, rVariables, rCurrentProcessInfo);
-//     this->CalculateAeAndDeltaAe(rContactData, rVariables, integration_points, rCurrentProcessInfo);
     
     if (rVariable == NORMAL_GP || rVariable == TANGENT_GP)
     {
@@ -3240,8 +3303,8 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
     const array_1d<double, TDim>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
     
     // The velocities matrices
-    const bounded_matrix<double, TNumNodes, TDim> v1 = GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-    const bounded_matrix<double, TNumNodes, TDim> v2 = GetVariableMatrix(current_master_element, VELOCITY, 0);
+    const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
+    const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
     
     // The slip of the LM
     const array_1d<double, TDim> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
@@ -3249,6 +3312,58 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
 
     // The augmented LM in the tangent direction
     const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+
+    return augmented_tangent_lm;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+array_1d<double, (TDim - 1)> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
+    const GeneralVariables& rVariables,
+    const ContactData<TDim, TNumNodes>& rContactData,
+    const GeometryType& current_master_element, 
+    array_1d<double, (TDim - 1)>& integration_point_slip
+    )
+{  
+    array_1d<double, (TDim - 1)> augmented_tangent_lm;
+    
+    // The LM of the GP 
+    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    
+    // The tangents of the GP
+    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
+    
+    // The tangential LM
+    const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
+    
+    // The velocities matrices
+    const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
+    const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
+    
+    // The slip of the LM
+    const array_1d<double, TDim> vector_integration_point_slip_xi = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+    integration_point_slip[0] = inner_prod(vector_integration_point_slip_xi, tangent_xi_gp);
+
+    // The augmented LM in the tangent direction
+    augmented_tangent_lm[0] = tangent_xi_lm + rContactData.epsilon_tangent * integration_point_slip[0]; 
+    
+    if (TDim == 3)
+    {
+        // The tangents of the GP
+        const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
+        
+        // The tangential LM
+        const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
+        
+        // The slip of the LM
+        const array_1d<double, TDim> vector_integration_point_slip_eta = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+        integration_point_slip[1] = inner_prod(vector_integration_point_slip_eta, tangent_eta_gp);
+
+        // The augmented LM in the tangent direction
+        augmented_tangent_lm[1] = tangent_eta_lm + rContactData.epsilon_tangent * integration_point_slip[1]; 
+    }
 
     return augmented_tangent_lm;
 }
