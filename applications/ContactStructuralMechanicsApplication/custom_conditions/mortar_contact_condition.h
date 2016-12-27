@@ -1057,9 +1057,7 @@ protected:
         const ContactData<TDim, TNumNodes>& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const double& augmented_tangent_lm
         );
     
     /*
@@ -1093,9 +1091,7 @@ protected:
         const ContactData<TDim, TNumNodes>& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const double& augmented_tangent_lm
         );
     
     /********************************************************************************/
