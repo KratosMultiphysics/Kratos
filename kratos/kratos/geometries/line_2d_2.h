@@ -840,9 +840,8 @@ public:
 
 
     /**
-    * Returns the local coordinates of a given arbitrary point
-    */
-    // TODO: Check if correct
+      * Returns the local coordinates of a given arbitrary point
+      */
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint )
@@ -884,14 +883,23 @@ public:
             
 //            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
 
-            if (l1 <= (L + tol)  && l2 <= (L + tol))
+            if (l1 <= (L + tol) && l2 <= (L + tol))
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0;
             }
-            else 
+            else if l1 > (L + tol)
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
+            }
+            else if l2 > (L + tol)
+            {
+                rResult[0] = 1.0 - 2.0 * l2/(L + tol);
+            }
+            else
             {
                 rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
             }
+            
         }
         else
         {
