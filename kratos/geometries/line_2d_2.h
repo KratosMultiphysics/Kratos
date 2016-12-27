@@ -887,11 +887,11 @@ public:
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0;
             }
-            else if l1 > (L + tol)
+            else if (l1 > (L + tol))
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0; // NOTE: The same value as before, but it will be > than 1
             }
-            else if l2 > (L + tol)
+            else if (l2 > (L + tol))
             {
                 rResult[0] = 1.0 - 2.0 * l2/(L + tol);
             }
