@@ -161,7 +161,7 @@ public:
     bounded_matrix<double, TNumNodes, TDim> DoubleLagrangeMultipliers;
     
     // The normals of the nodes
-    bounded_matrix<double, TNumNodes, TDim> Normal_m;
+    bounded_matrix<double, TNumNodes, TDim> Normal_m; // TODO: Think about remove "_"
     bounded_matrix<double, TNumNodes, TDim> Normal_s;
     
     bounded_matrix<double, TNumNodes, TDim> Tangent_xi_s;
@@ -175,6 +175,9 @@ public:
     bounded_matrix<double, TNumNodes, TDim> v1;
     bounded_matrix<double, TNumNodes, TDim> v2;
     
+    // Complementary functions
+    bounded_matrix<double, TNumNodes, (TDim - 1)> Ctan;
+    
     // Derivatives 
     std::vector<double> DeltaJ_s;
     std::vector<double> DeltaGap;
@@ -185,6 +188,7 @@ public:
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_xi_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_eta_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_m;
+    std::vector<bounded_matrix<double, TNumNodes, (TDim - 1)>> DeltaCtan;
     
     // Ae
     Matrix Me;
@@ -244,6 +248,7 @@ public:
         Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
         Delta_Tangent_eta_s.resize(rNumberOfSlaveNodes * rDimension);
+        DeltaCtan.resize(3 * rNumberOfSlaveNodes * rDimension);
         for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
         {
             DeltaPhi[i] = ZeroVector(rNumberOfSlaveNodes);
@@ -254,6 +259,9 @@ public:
             Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
             Delta_Tangent_xi_s[i]  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
             Delta_Tangent_eta_s[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+            DeltaCtan[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
+            DeltaCtan[i + rNumberOfSlaveNodes * rDimension] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
+            DeltaCtan[i + 2 * rNumberOfSlaveNodes * rDimension] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
         }
         
         // Delta time 
@@ -1103,18 +1111,38 @@ protected:
         const GeometryType& CondGeometry,
         const unsigned int node_index
         );
-    
+
+    /*
+     * Calculates the increment of the normal and tangent in the slave condition
+     */
     void CalculateDeltaNormalTangentSlave(ContactData<TDim, TNumNodes>& rContactData);
     
+    /*
+     * Calculates the increment of the normal and tangent in the master condition
+     */
     void CalculateDeltaNormalMaster(ContactData<TDim, TNumNodes>& rContactData);
     
+    /*
+     * Calculates the increment of the shape functions and the gap
+     */
     void CalculateDeltaNAndDeltaGap(
         GeneralVariables& rVariables,
         ContactData<TDim, TNumNodes>& rContactData,
         const unsigned int case_to_compute 
         );
     
+    /*
+     * Calculates the increment of Phi
+     */
     void CalculateDeltaPhi(
+        GeneralVariables& rVariables,
+        ContactData<TDim, TNumNodes>& rContactData
+        );
+    
+    /*
+     * Calculates the tangent complementary function
+     */
+    void CalculateCtanAndDeltaCtan(
         GeneralVariables& rVariables,
         ContactData<TDim, TNumNodes>& rContactData
         );
@@ -1182,6 +1210,13 @@ protected:
         const ContactData<TDim, TNumNodes>& rContactData,
         const GeometryType& current_master_element, 
         double& integration_point_slip
+    );
+    
+    array_1d<double, (TDim - 1)> AugmentedTangentLM(
+        const GeneralVariables& rVariables,
+        const ContactData<TDim, TNumNodes>& rContactData,
+        const GeometryType& current_master_element, 
+        array_1d<double, (TDim - 1)>& integration_point_slip
     );
     
     /*
