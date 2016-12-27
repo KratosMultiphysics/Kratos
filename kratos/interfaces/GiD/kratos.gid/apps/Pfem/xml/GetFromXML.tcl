@@ -1,9 +1,14 @@
 namespace eval Pfem::xml {
     variable dir
+    variable bodyNodalCondition
 }
 
 proc Pfem::xml::Init { } {
     variable dir
+    variable bodyNodalCondition
+    
+    set bodyNodalCondition [list ]
+
     Model::InitVariables dir $Pfem::dir
     
     Model::getSolutionStrategies Strategies.xml
@@ -14,6 +19,7 @@ proc Pfem::xml::Init { } {
     Model::getNodalConditions "../../Solid/xml/NodalConditions.xml"
     Model::getConditions "../../Solid/xml/Conditions.xml"
     Model::getSolvers "../../Pfem/xml/Solvers.xml"
+    Pfem::xml::getBodyNodalConditions BodyNodalConditions.xml
     
 }
 
@@ -240,9 +246,9 @@ proc Pfem::xml::ProcGetPartUN {domNode args} {
     set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata/condition"
     set i 0
     foreach part_node [$root selectNodes $xp1] {
-	if {$part_node eq $domNode} {
-	      break
-	} {incr i}
+        if {$part_node eq $domNode} {
+              break
+        } {incr i}
     }
     set un "PFEM_Part$i"
     spdAux::setRoute $un [$part_node toXPath]
@@ -320,6 +326,144 @@ proc Pfem::xml::GetConditionsAndGroups { cnd_UN } {
         }
     }
     return $data_dict
+}
+
+proc Pfem::xml::getBodyNodalConditionById { id } {
+    variable bodyNodalCondition
+    
+    foreach cnd $bodyNodalCondition {
+        if {[$cnd getName] eq $id} {
+            return $cnd
+        }
+    }
+    return ""
+}
+proc Pfem::xml::getBodyNodalConditions { filename } {
+    variable bodyNodalCondition
+    dom parse [tDOM::xmlReadFile [file join $Pfem::dir xml $filename]] doc
+    
+    set NCList [$doc getElementsByTagName NodalConditionItem]
+    foreach Node $NCList {
+        lappend bodyNodalCondition [::Model::ParseNodalConditionsNode $Node]
+    }
+}
+proc Pfem::xml::injectBodyNodalConditions { basenode args} {
+    variable bodyNodalCondition
+    Pfem::xml::_injectCondsToTree $basenode $bodyNodalCondition nodal
+    $basenode delete
+}
+
+
+proc Pfem::xml::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
+    set conds [$basenode parent]
+    set AppUsesIntervals [::Pfem::GetAttribute UseIntervals]
+    if {$AppUsesIntervals eq ""} {set AppUsesIntervals 0}
+    
+    foreach cnd $cond_list {
+        set n [$cnd getName]
+        set pn [$cnd getPublicName]
+        set help [$cnd getHelp]
+        set units [$cnd getAttribute "units"]
+        set um [$cnd getAttribute "unit_magnitude"]
+        set process [::Model::GetProcess [$cnd getProcessName]]
+        set check [$process getAttribute "check"]
+        if {$check eq ""} {set check "UpdateTree"}
+        set state "ConditionState"
+        if {$cond_type eq "nodal"} {
+            set state [$cnd getAttribute state]
+            if {$state eq ""} {set state "CheckNodalConditionState"}
+        }
+        set contNode [gid_groups_conds::addF [$conds toXPath] container [list n $n pn ${pn}s help $help]]
+        set blockNode [gid_groups_conds::addF [$contNode toXPath] blockdata [list n $n pn $pn help $help icon shells16 update_proc $check name "$pn 1" sequence 1 editable_name unique sequence_type non_void_disabled]]
+        set block_path [$blockNode toXPath]
+        set inputs [$process getInputs] 
+        foreach {inName in} $inputs {
+            set pn [$in getPublicName]
+            set type [$in getType]
+            set v [$in getDv]
+            set help [$in getHelp]
+            set state [$in getAttribute "state"]
+            if {$state eq ""} {set state "normal"}
+            foreach key [$cnd getDefaults $inName] {
+                set $key [$cnd getDefault $inName $key]
+            }
+            
+            set has_units [$in getAttribute "has_units"]
+            if {$has_units ne ""} { set has_units "units='$units'  unit_magnitude='$um'"}
+            if {$type eq "vector"} {
+                set vector_type [$in getAttribute "vectorType"]
+                lassign [split $v ","] v1 v2 v3
+                if {$vector_type eq "bool"} {
+                    gid_groups_conds::addF $block_path value [list n ${inName}X wn [concat $n "_X"] pn "X ${pn}" values "1,0"]
+                    gid_groups_conds::addF $block_path value [list n ${inName}Y wn [concat $n "_Y"] pn "Y ${pn}" values "1,0"]
+                    gid_groups_conds::addF $block_path value [list n ${inName}Z wn [concat $n "_Z"] pn "Z ${pn}" values "1,0" state {[CheckDimension 3D]}]
+                } {
+                    foreach i [list "X" "Y" "Z"] {
+                        set nodev "../value\[@n='${inName}$i'\]"
+                        set zstate ""
+                        if {$i eq "Z"} { set zstate "state {\[CheckDimension 3D\]}"}
+                        if {[$in getAttribute "enabled"] in [list "1" "0"]} {
+                            set val [expr [$in getAttribute "enabled"] ? "Yes" : "No"]
+                            if {$i eq "Z"} { set val "No" }
+                            set valNode [gid_groups_conds::addF $block_path value [list n Enabled_$i pn "$i component" v No values "Yes,No" help "Enables the $i ${inName}" actualize_tree 1 {*}$zstate]]
+
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodev att1 state v1 hidden]
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodev att1 state v1 normal]
+                            if {[$in getAttribute "function"] eq "1"} {
+                                set fname "${i}function_$inName"
+                                set nodef "../value\[@n='$fname'\]"
+                                set nodeb "../value\[@n='ByFunction$i'\]"
+                                gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodef att1 state v1 hidden]
+                                gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodeb att1 state v1 hidden]
+                                gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodeb att1 state v1 normal att2 v v2 No]
+                            }
+                        }
+                        if {[$in getAttribute "function"] eq "1"} {
+                            set fname "${i}function_$inName"
+                            set valNode [gid_groups_conds::addF $block_path value [list n ByFunction$i pn "by function -> f(x,y,z,t)" v No values "Yes,No" actualize_tree 1 state hidden]]
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodev att1 state v1 normal]
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodev att1 state v1 hidden]
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodef att1 state v1 hidden]
+                            gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodef att1 state v1 normal]
+                            gid_groups_conds::addF $block_path value [list n $fname pn "$i function" state hidden]
+                        }
+                        gid_groups_conds::addF $block_path value [list n ${inName}$i wn [concat $n "_$i"] pn "$i ${pn}" v $v1 state hidden]
+                    }
+                }
+                
+            } elseif { $type eq "combo" } {
+                set values [join [$in getValues] ","]
+                gid_groups_conds::addF $block_path value [list n $inName pn $pn v $v1 values $values state $state help $help]
+            } elseif { $type eq "bool" } {
+                set values "1,0"
+                gid_groups_conds::addF $block_path value [list n $inName pn $pn v $v1 values $values state $state help $help]
+            } elseif { $type eq "file" || $type eq "tablefile" } {
+                gid_groups_conds::addF $block_path value [list n $inName pn $pn v $v1 values {[GetFilesValues]} update_proc AddFile type $type state $state help $help]
+            } else {
+                if {[$in getAttribute "function"] eq "1"} {
+                    set fname "function_$inName"
+                    set nodev "../value\[@n='$inName'\]"
+                    set nodef "../value\[@n='$fname'\]"
+                    
+                    set valNode [gid_groups_conds::addF $block_path value [list n ByFunction pn "by function -> f(x,y,z,t)" v No values "Yes,No" actualize_tree 1]]
+                    gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodev att1 state v1 normal]
+                    gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodev att1 state v1 hidden]
+                    gid_groups_conds::addF [$valNode toXPath] dependencies [list value No node $nodef att1 state v1 hidden]
+                    gid_groups_conds::addF [$valNode toXPath] dependencies [list value Yes node $nodef att1 state v1 normal]
+                    gid_groups_conds::addF $block_path value [list n $fname pn "Function"]
+                }
+                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
+                gid_groups_conds::addF $block_path value [list n $inName pn $pn v $v units $units unit_magnitude $um help $help]
+            }
+        }
+        
+        set CondUsesIntervals [$cnd getAttribute "Interval"]
+        if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
+            gid_groups_conds::addF $block_path value [list n Interval pn "Time interval" v $CondUsesIntervals values {[getIntervals]} help $help]
+        }
+        gid_groups_conds::addF $block_path value [list n Body pn Body v - values {[GetBodiesValues]} help $help]
+    }
+    
 }
 
 Pfem::xml::Init

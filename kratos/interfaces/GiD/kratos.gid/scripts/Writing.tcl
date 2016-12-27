@@ -1141,7 +1141,7 @@ proc write::OpenFile { fn } {
 }
 
 proc write::CloseFile { } {
-    catch {customlib::EndWriteFile}
+    customlib::EndWriteFile
 }
 
 proc write::WriteString {str} {

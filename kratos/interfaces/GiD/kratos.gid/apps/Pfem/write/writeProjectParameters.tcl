@@ -29,7 +29,7 @@ proc Pfem::write::getParametersDict { } {
     ##### Restart
     set output_process_list [GetPFEM_OutputProcessList]
     dict set projectParametersDict output_process_list $output_process_list
-
+    
     ##### output_configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
     
@@ -44,12 +44,12 @@ proc Pfem::write::getParametersDict { } {
 proc Pfem::write::GetPFEM_ProblemDataDict { } {
     set problemDataDict [dict create]
     dict set problemDataDict problem_name [file tail [GiD_Info Project ModelName]]
-
+    
     dict set problemDataDict model_part_name "Main Domain"
     set nDim $::Model::SpatialDimension
     set nDim [expr [string range [write::getValue nDim] 0 0] ]
     dict set problemDataDict domain_size $nDim
-   
+    
     dict set problemDataDict time_step [write::getValue PFEM_TimeParameters DeltaTime]
     dict set problemDataDict start_time [write::getValue PFEM_TimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue PFEM_TimeParameters EndTime]
@@ -59,32 +59,32 @@ proc Pfem::write::GetPFEM_ProblemDataDict { } {
     set cy [write::getValue FLGravity Cy]
     set cz [write::getValue FLGravity Cz]
     dict set problemDataDict gravity_vector [list $cx $cy $cz]
-
+    
     return $problemDataDict
 }
 
 proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     variable bodies_list
-
+    
     set solverSettingsDict [dict create]
     set currentStrategyId [write::getValue PFEM_SolStrat]
     set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
     dict set solverSettingsDict solver_type $strategy_write_name
-
+    
     set problemtype [write::getValue PFEM_DomainType]
-
+    
     if {$problemtype ne "Fluids"} {
-    
-	dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
-
-	set solutiontype [write::getValue PFEM_SolutionType]
-    
-	if {$solutiontype eq "Static"} {
-	    dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
-	} elseif {$solutiontype eq "Dynamic"} {
-	    dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
-	    dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
-	}
+        
+        dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
+        
+        set solutiontype [write::getValue PFEM_SolutionType]
+        
+        if {$solutiontype eq "Static"} {
+            dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
+        } elseif {$solutiontype eq "Dynamic"} {
+            dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
+            dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+        }
     }
     
     # model import settings
@@ -163,25 +163,25 @@ proc Pfem::write::GetPfem_ContactProcessDict {contact_name} {
     dict set cont_dict "model_part_name" "sub_model_part_name"
     dict set cont_dict "alpha_shape" 1.4
     dict set cont_dict "offset_factor" 0.0
-        set mesh_strat [dict create]
-        dict set mesh_strat "python_module" "contact_meshing_strategy"
-        dict set mesh_strat "meshing_frequency" 0
-        dict set mesh_strat "remesh" true
-        dict set mesh_strat "constrained" false
-        set contact_parameters [dict create]
-        
-            dict set contact_parameters "contact_condition_type" "ContactDomainLM2DCondition"
-            dict set contact_parameters "friction_law_type" "FrictionLaw"
-            dict set contact_parameters "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
-                set properties_dict [dict create]
-                dict set properties_dict "FRICTION_ACTIVE" false
-                dict set properties_dict "MU_STATIC" 0.3
-                dict set properties_dict "MU_DYNAMIC" 0.2
-                dict set properties_dict "PENALTY_PARAMETER" 1000
-                dict set properties_dict "TANGENTIAL_PENALTY_RATIO" 0.1
-                dict set properties_dict "TAU_STAB" 1
-            dict set contact_parameters "variables_of_properties" $properties_dict
-        dict set mesh_strat "contact_parameters" $contact_parameters
+    set mesh_strat [dict create]
+    dict set mesh_strat "python_module" "contact_meshing_strategy"
+    dict set mesh_strat "meshing_frequency" 0
+    dict set mesh_strat "remesh" true
+    dict set mesh_strat "constrained" false
+    set contact_parameters [dict create]
+    
+    dict set contact_parameters "contact_condition_type" "ContactDomainLM2DCondition"
+    dict set contact_parameters "friction_law_type" "FrictionLaw"
+    dict set contact_parameters "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
+    set properties_dict [dict create]
+    dict set properties_dict "FRICTION_ACTIVE" false
+    dict set properties_dict "MU_STATIC" 0.3
+    dict set properties_dict "MU_DYNAMIC" 0.2
+    dict set properties_dict "PENALTY_PARAMETER" 1000
+    dict set properties_dict "TANGENTIAL_PENALTY_RATIO" 0.1
+    dict set properties_dict "TAU_STAB" 1
+    dict set contact_parameters "variables_of_properties" $properties_dict
+    dict set mesh_strat "contact_parameters" $contact_parameters
     dict set cont_dict "elemental_variables_to_transfer" [list "CAUCHY_STRESS_VECTOR" "DEFORMATION_GRADIENT" ]
     dict set cont_dict "contact_bodies_list" [Pfem::write::GetBodiesWithContactList $contact_name]
     dict set cont_dict "meshing_domains" $mesh_strat
@@ -340,10 +340,10 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
     dict set resultDict "help" "This process applies meshing to the problem domains"
     dict set resultDict "kratos_module" "KratosMultiphysics.PfemBaseApplication"
     set problemtype [write::getValue PFEM_DomainType]
-
+    
     dict set resultDict "python_module" "remesh_fluid_domains_process"
     dict set resultDict "process_name" "RemeshFluidDomainsProcess" 
-
+    
     set paramsDict [dict create]
     dict set paramsDict "model_part_name" "Main Domain"
     dict set paramsDict "meshing_control_type" "step"
@@ -558,31 +558,40 @@ proc Pfem::write::CalculateMyVariables { } {
     set bodies_list [Pfem::write::ProcessBodiesList]
     variable remesh_domains_dict
     set remesh_domains_dict [Pfem::write::ProcessRemeshDomainsDict]
- }
+}
 
 
 
 proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition"}} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-
+    
     set bcCondsDict [list ]
     
     set xp1 "[spdAux::getRoute $un]/container/blockdata"
     set blocks [$root selectNodes $xp1]
-
+    
     foreach block $blocks {
         set groupName [$block @name]
         set cid [[$block parent] @n]
         set bodyId [get_domnode_attribute [$block find n Body] v]
-        set processName [[$block parent] @processname]
+        
+        if {$condition_type eq "Condition"} {
+            error [= "Body conditions (not nodal) Not implemented yet."]
+            #set condition [::Model::getCondition $cid]
+        } {
+            set condition [Pfem::xml::getBodyNodalConditionById $cid]
+        }
+        set processName [$condition getProcessName]
+        #set processName [[$block parent] @processname]
         
         set process [::Model::GetProcess $processName]
         set processDict [dict create]
         set paramDict [dict create]
         dict set paramDict mesh_id 0
         dict set paramDict model_part_name $bodyId
-        dict set paramDict variable_name [[$block parent] @variablename]
+        set vatiable_name [$condition getAttribute VariableName]
+        dict set paramDict variable_name [lindex $vatiable_name 0]
         
         set process_attributes [$process getAttributes]
         set process_parameters [$process getInputs]
