@@ -138,7 +138,7 @@
       <NodalCondition n="DISPLACEMENT" />
       <NodalCondition n="ROTATION"/>
       <NodalCondition n="VELOCITY"/>
-      <NodalCondition n="ACCELERATION" tion=""/>
+      <NodalCondition n="ACCELERATION"/>
       <NodalCondition n="ANGULAR_VELOCITY"/>
       <NodalCondition n="ANGULAR_ACCELERATION"/>
     </NodalConditions>
