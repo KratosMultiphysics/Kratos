@@ -57,24 +57,16 @@ public:
         const array_1d<double,4> N2, 
         const array_1d<double,4> Phi, 
         const double detJ, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     bounded_matrix<double,36,36> lhs;
     
+    const double integration_point_gap = inner_prod(rContactData.Gaps,N1);
     const bounded_matrix<double, 4, 3> normalslave = rContactData.Normal_s;
     const bounded_matrix<double, 4, 3> tan1slave   = rContactData.Tangent_xi_s;
     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
-//     const double Dt             = rContactData.Dt;
-//     const double epsilon_normal = rContactData.epsilon_normal;
-    
-    const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
-    const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
     
     const std::vector<double> DeltaJs  = rContactData.DeltaJ_s;
     const std::vector<double> DeltaGap = rContactData.DeltaGap;
@@ -1613,11 +1605,7 @@ public:
         const array_1d<double,4> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     bounded_matrix<double,36,36> lhs;
@@ -1627,8 +1615,6 @@ public:
     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
     
     const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
     const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
@@ -3566,11 +3552,7 @@ public:
         const array_1d<double,4> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     bounded_matrix<double,36,36> lhs;
@@ -3580,9 +3562,7 @@ public:
     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
-    
+
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
     const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
@@ -5513,46 +5493,6 @@ public:
     return lhs;
 }
 
-//     /***********************************************************************************/
-//     /***********************************************************************************/
-//     
-//     static inline bounded_matrix<double,36,36> ComputeGaussPointInactiveLHS(
-//         const array_1d<double,4> N1, 
-//         const array_1d<double,4> N2, 
-//         const array_1d<double,4> Phi, 
-//         const double detJ, 
-//         const ContactData<3,4>& rContactData,
-//         const double& augmented_normal_lm,
-//         const double& augmented_tangent_lm,
-//         const double& integration_point_gap,
-//         const double& integration_point_slip
-//         )
-// {
-//     bounded_matrix<double,36,36> lhs;
-//     
-//     const bounded_matrix<double, 4, 3> normalslave     = rContactData.Normal_s;
-//     const bounded_matrix<double, 4, 3> tan1slave       = rContactData.Tangent_xi_s;
-//     const bounded_matrix<double, 4, 3> tan2slave       = rContactData.Tangent_eta_s;
-//     const bounded_matrix<double, 4, 3> lm              = rContactData.LagrangeMultipliers;
-//     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
-//
-//     const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
-//     const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
-// 
-//     const std::vector<double> DeltaJs  = rContactData.DeltaJ_s;
-//     const std::vector<double> DeltaGap = rContactData.DeltaGap;
-//     const std::vector<array_1d<double,4>> DeltaPhi = rContactData.DeltaPhi;
-//     const std::vector<bounded_matrix<double, 4, 3>> DeltaNormals     = rContactData.Delta_Normal_s;
-//     const std::vector<bounded_matrix<double, 4, 3>> Deltatangentxis  = rContactData.Delta_Tangent_xi_s;
-//     const std::vector<bounded_matrix<double, 4, 3>> Deltatangentetas = rContactData.Delta_Tangent_eta_s;
-// 
-// //substitute_inactive_lhs
-//     
-//     return lhs;
-// }
-
     /***********************************************************************************/
     /***********************************************************************************/
     
@@ -5561,24 +5501,16 @@ public:
         const array_1d<double,4> N2, 
         const array_1d<double,4> Phi, 
         const double detJ, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     array_1d<double,36> rhs;
     
+    const double integration_point_gap = inner_prod(rContactData.Gaps,N1);
     const bounded_matrix<double, 4, 3> normalslave    = rContactData.Normal_s;
     const bounded_matrix<double, 4, 3> tan1slave      = rContactData.Tangent_xi_s;
     const bounded_matrix<double, 4, 3> tan2slave      = rContactData.Tangent_eta_s;
     const bounded_matrix<double, 4, 3> lm             = rContactData.LagrangeMultipliers;
-//     const double Dt             = rContactData.Dt;
-//     const double epsilon_normal = rContactData.epsilon_normal;
-    
-    const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
-    const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
     
     const double crhs0 =     detJ; // DETJ(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
     const double crhs1 =     N2[0]*crhs0;
@@ -5652,11 +5584,7 @@ public:
         const array_1d<double,4> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     array_1d<double,36> rhs;
@@ -5666,8 +5594,6 @@ public:
     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
 //     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
     
     const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
     const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
@@ -5758,11 +5684,7 @@ public:
         const array_1d<double,4> Phi, 
         const double detJ, 
         const double mu, 
-        const ContactData<3,4>& rContactData,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm,
-        const double& integration_point_gap,
-        const double& integration_point_slip
+        const ContactData<3,4>& rContactData
         )
 {
     array_1d<double,36> rhs;
@@ -5772,8 +5694,6 @@ public:
     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
 //     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
     
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
@@ -5856,39 +5776,6 @@ public:
     
     return rhs;
 }
-
-//     /***********************************************************************************/
-//     /***********************************************************************************/
-//     
-//     static inline array_1d<double,36> ComputeGaussPointInactiveRHS(
-//         const array_1d<double,4> N1, 
-//         const array_1d<double,4> N2, 
-//         const array_1d<double,4> Phi, 
-//         const double detJ, 
-//         const ContactData<3,4>& rContactData,
-//         const double& augmented_normal_lm,
-//         const double& augmented_tangent_lm,
-//         const double& integration_point_gap,
-//         const double& integration_point_slip
-//         )
-// {
-//     array_1d<double,36> rhs;
-//     
-//     const bounded_matrix<double, 4, 3> normalslave = rContactData.Normal_s;
-//     const bounded_matrix<double, 4, 3> tan1slave   = rContactData.Tangent_xi_s;
-//     const bounded_matrix<double, 4, 3> tan2slave   = rContactData.Tangent_eta_s;
-//     const bounded_matrix<double, 4, 3> lm          = rContactData.LagrangeMultipliers;
-//     const double Dt              = rContactData.Dt;
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
-// 
-//     const bounded_matrix<double, 4, 3> v1 = rContactData.v1;
-//     const bounded_matrix<double, 4, 3> v2 = rContactData.v2;
-//     
-// //substitute_inactive_rhs
-//     
-//     return rhs;
-// }
 private:
 };// class Contact3D4N4N
 }
