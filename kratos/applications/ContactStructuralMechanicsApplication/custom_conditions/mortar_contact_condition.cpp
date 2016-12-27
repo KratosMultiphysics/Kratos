@@ -689,10 +689,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         // Master segment info
         const GeometryType& current_master_element = rVariables.GetMasterElement( );
         
-//         // Compute in each node the tangent functional and their derivatives
-//         this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
-        // TODO: Move the computation of the gap here
-        
         // Initialize the integration weight
         double total_weight = 0.0;
         
@@ -713,10 +709,15 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 // Calculate the gap in the integration node and check tolerance
                 const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
                 
-                // Update the derivatives
+                /* Update the derivatives */
+                // Update the derivative of DetJ
                 this->CalculateDeltaDetJSlave(rVariables, rContactData);
+                // Update the derivatives of the shape functions and the gap
                 this->CalculateDeltaNAndDeltaGap(rVariables, rContactData, compute);
+                // The derivatives of the dual shape function
                 this->CalculateDeltaPhi(rVariables, rContactData);
+                // Compute in each node the tangent functional and their derivatives
+//                 this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
@@ -818,7 +819,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
 {
     double total_weight = 0.0; // NOTE: The integral is supposed to be in the domain partially integrated, I don't know if consider any additional thing for the partial integration
     
-    rContactData.InitializeDeltaAeComponents(TNumNodes, TDim);
+    rContactData.InitializeDeltaAeComponents();
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Reading integration points
@@ -852,7 +853,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAeAndDeltaAe(
     if (total_weight > 0.0)
     {
         this->CalculateDeltaAe(rContactData);
-        rContactData.ClearDeltaAeComponents(TNumNodes, TDim);
+        rContactData.ClearDeltaAeComponents();
     }
 }
 
@@ -866,7 +867,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     )
 {
     // Slave element info
-    rContactData.Initialize(GetGeometry(), TNumNodes, TDim );
+    rContactData.Initialize(GetGeometry());
     
     /* Set Delta time */
     rContactData.Dt = rCurrentProcessInfo[DELTA_TIME];
@@ -930,8 +931,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
     GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
     
     // Slave element info
-    rContactData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex], TNumNodes, TDim );
-//     rContactData.UpdateMasterPair(current_master_element, TNumNodes, TDim );
+    rContactData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex] );
+//     rContactData.UpdateMasterPair(current_master_element);
     
     /* NORMALS AND GAPS */
     for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
@@ -2654,52 +2655,50 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCtan
     
     const double mu = rVariables.mu; 
     const double epsilon_tangent = rContactData.epsilon_tangent;
+
+    /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
     
-    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+    // Local kinematic update
+    const array_1d<double, TDim> N1 = rVariables.N_Slave;
+    rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, N1);
+    
+    // Calculating the tangent vectors
+    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), N1);
+    const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), N1);
+    
+    // The LM of the node
+    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+
+    // Calculate the augmented normal LM
+    const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, inner_prod(rContactData.Gaps, N1));
+    
+    // Calculate the augmented tangent LM
+    array_1d<double, (TDim - 1)> node_slip;
+    const array_1d<double, (TDim - 1)> augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, node_slip);
+    
+    if (augmented_tangent_lm[0] < 0.0) // Stick
     {
-        /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
-        // Local kinematic update
-        rVariables.N_Slave = ZeroVector(TNumNodes);
-        rVariables.N_Slave[i_slave] = 1.0;
-        rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, rVariables.N_Slave);
-        
-        // Calculating the tangent vectors
-        const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
-        const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
-        
-        // The LM of the node
-        const array_1d<double, TDim> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+        rContactData.Ctan[0] =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[0];
+    }
+    else
+    {
+        rContactData.Ctan[0] = std::abs(augmented_tangent_lm[0]) * inner_prod(tangent_xi_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[0];
+    }
     
-        // Calculate the augmented normal LM
-        const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, rContactData.Gaps(i_slave));
-        
-        // Calculate the augmented tangent LM
-        array_1d<double, (TDim - 1)> node_slip;
-        const array_1d<double, (TDim - 1)> augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, node_slip);
-        
-        if (augmented_tangent_lm[0] < 0.0) // Stick
+    if (TDim == 3)
+    {
+        if (augmented_tangent_lm[1] < 0.0) // Stick
         {
-            rContactData.Ctan(i_slave, 0) =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[0];
+            rContactData.Ctan[1] =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[1];
         }
         else
         {
-            rContactData.Ctan(i_slave, 0) = std::abs(augmented_tangent_lm[0]) * inner_prod(tangent_xi_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[0];
+            rContactData.Ctan[1] = std::abs(augmented_tangent_lm[1]) * inner_prod(tangent_eta_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[1];
         }
-        
-        if (TDim == 3)
-        {
-            if (augmented_tangent_lm[1] < 0.0) // Stick
-            {
-                rContactData.Ctan(i_slave, 1) =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[1];
-            }
-            else
-            {
-                rContactData.Ctan(i_slave, 1) = std::abs(augmented_tangent_lm[1]) * inner_prod(tangent_eta_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[1];
-            }
-        }
-        
-        /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
     }
+    
+    /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
+
 }
 
 /***********************************************************************************/
@@ -3059,7 +3058,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
             // Initialize general variables for the current master element
             this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, 0 ); // NOTE: The pair does not matter
             // Initialize Ae
-            rContactData.InitializeDeltaAeComponents(TNumNodes, TDim); // NOTE: We need at least a zero Ae matrix to avoid problems in the CalculateKinematics
+            rContactData.InitializeDeltaAeComponents(); // NOTE: We need at least a zero Ae matrix to avoid problems in the CalculateKinematics
             
             // Calculating the values
             for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )

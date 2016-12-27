@@ -176,7 +176,7 @@ public:
     bounded_matrix<double, TNumNodes, TDim> v2;
     
     // Complementary functions
-    bounded_matrix<double, TNumNodes, (TDim - 1)> Ctan;
+    array_1d<double, (TDim - 1)> Ctan;
     
     // Derivatives 
     std::vector<double> DeltaJ_s;
@@ -184,11 +184,11 @@ public:
     std::vector<array_1d<double, TNumNodes >> DeltaPhi;
     std::vector<array_1d<double, TNumNodes >> DeltaN1;
     std::vector<array_1d<double, TNumNodes >> DeltaN2;
+    std::vector<array_1d<double, (TDim - 1)>> DeltaCtan;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_xi_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Tangent_eta_s;
     std::vector<bounded_matrix<double, TNumNodes, TDim>> Delta_Normal_m;
-    std::vector<bounded_matrix<double, TNumNodes, (TDim - 1)>> DeltaCtan;
     
     // Ae
     Matrix Me;
@@ -215,24 +215,25 @@ public:
     
     // Initializer method 
     void Initialize(      
-            const GeometryType& GeometryInput,          // The geometry of the slave 
-            const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
-            const unsigned int& rDimension              // 3D/2D physical space
+            const GeometryType& GeometryInput  // The geometry of the slave 
             )
     {
         SlaveGeometry  = GeometryInput;
             
         // Gap function and its derivative variables
-        Gaps = ZeroVector(rNumberOfSlaveNodes);
+        Gaps = ZeroVector(TNumNodes);
+        
+        // Complementary functions
+        Ctan = ZeroVector(TDim - 1);
         
         // The current Lagrange Multipliers
-        LagrangeMultipliers       = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        DoubleLagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        LagrangeMultipliers       = ZeroMatrix(TNumNodes, TDim);
+        DoubleLagrangeMultipliers = ZeroMatrix(TNumNodes, TDim);
         
         // The normals of the nodes
-        Normal_s      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        Tangent_xi_s  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-        Tangent_eta_s = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        Normal_s      = ZeroMatrix(TNumNodes, TDim);
+        Tangent_xi_s  = ZeroMatrix(TNumNodes, TDim);
+        Tangent_eta_s = ZeroMatrix(TNumNodes, TDim);
         
         // Displacements and velocities of the slave
         X1 = GetCoordinates(GeometryInput, false);
@@ -240,28 +241,28 @@ public:
         v1 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Derivatives 
-        DeltaJ_s.resize(rNumberOfSlaveNodes * rDimension);
-        DeltaGap.resize(2 * rNumberOfSlaveNodes * rDimension);
-        DeltaPhi.resize(rNumberOfSlaveNodes * rDimension);
-        DeltaN1.resize(2 * rNumberOfSlaveNodes * rDimension);
-        DeltaN2.resize(2 * rNumberOfSlaveNodes * rDimension);
-        Delta_Normal_s.resize(rNumberOfSlaveNodes * rDimension);
-        Delta_Tangent_xi_s.resize(rNumberOfSlaveNodes * rDimension);
-        Delta_Tangent_eta_s.resize(rNumberOfSlaveNodes * rDimension);
-        DeltaCtan.resize(3 * rNumberOfSlaveNodes * rDimension);
-        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
+        DeltaJ_s.resize(TNumNodes * TDim);
+        DeltaGap.resize(2 * TNumNodes * TDim);
+        DeltaPhi.resize(TNumNodes * TDim);
+        DeltaN1.resize(2 * TNumNodes * TDim);
+        DeltaN2.resize(2 * TNumNodes * TDim);
+        Delta_Normal_s.resize(TNumNodes * TDim);
+        Delta_Tangent_xi_s.resize(TNumNodes * TDim);
+        Delta_Tangent_eta_s.resize(TNumNodes * TDim);
+        DeltaCtan.resize(3 * TNumNodes * TDim);
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
         {
-            DeltaPhi[i] = ZeroVector(rNumberOfSlaveNodes);
-            DeltaN1[i] = ZeroVector(rNumberOfSlaveNodes);
-            DeltaN1[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
-            DeltaN2[i] = ZeroVector(rNumberOfSlaveNodes);
-            DeltaN2[i + rNumberOfSlaveNodes * rDimension] = ZeroVector(rNumberOfSlaveNodes);
-            Delta_Normal_s[i]      = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-            Delta_Tangent_xi_s[i]  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-            Delta_Tangent_eta_s[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-            DeltaCtan[i] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
-            DeltaCtan[i + rNumberOfSlaveNodes * rDimension] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
-            DeltaCtan[i + 2 * rNumberOfSlaveNodes * rDimension] = ZeroMatrix(rNumberOfSlaveNodes, rDimension - 1);
+            DeltaPhi[i] = ZeroVector(TNumNodes);
+            DeltaN1[i] = ZeroVector(TNumNodes);
+            DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            DeltaN2[i] = ZeroVector(TNumNodes);
+            DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
+            Delta_Normal_s[i]      = ZeroMatrix(TNumNodes, TDim);
+            Delta_Tangent_xi_s[i]  = ZeroMatrix(TNumNodes, TDim);
+            Delta_Tangent_eta_s[i] = ZeroMatrix(TNumNodes, TDim);
+            DeltaCtan[i] = ZeroVector(TDim - 1);
+            DeltaCtan[i + TNumNodes * TDim] = ZeroVector(TDim - 1);
+            DeltaCtan[i + 2 * TNumNodes * TDim] = ZeroVector(TDim - 1);
         }
         
         // Delta time 
@@ -276,32 +277,26 @@ public:
     }
     
     // Initialize the DeltaAe components
-    void InitializeDeltaAeComponents(            
-        const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
-        const unsigned int& rDimension              // 3D/2D physical space
-        )
+    void InitializeDeltaAeComponents()
     {
         // Ae
-        Me = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
-        De = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
-        Ae = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+        Me = ZeroMatrix(TNumNodes, TNumNodes);
+        De = ZeroMatrix(TNumNodes, TNumNodes);
+        Ae = ZeroMatrix(TNumNodes, TNumNodes);
         // Derivatives Ae
-        DeltaMe.resize(rNumberOfSlaveNodes * rDimension);
-        DeltaDe.resize(rNumberOfSlaveNodes * rDimension);
-        DeltaAe.resize(rNumberOfSlaveNodes * rDimension);
-        for (unsigned int i = 0; i < rNumberOfSlaveNodes * rDimension; i++)
+        DeltaMe.resize(TNumNodes * TDim);
+        DeltaDe.resize(TNumNodes * TDim);
+        DeltaAe.resize(TNumNodes * TDim);
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
         {
-            DeltaMe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
-            DeltaDe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
-            DeltaAe[i] = ZeroMatrix(rNumberOfSlaveNodes, rNumberOfSlaveNodes);
+            DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+            DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+            DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
         }
     }
     
     // Clearing the DeltaAe components
-    void ClearDeltaAeComponents(            
-        const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
-        const unsigned int& rDimension              // 3D/2D physical space
-        )
+    void ClearDeltaAeComponents()
     {
         Me.resize(0,0, false);
         De.resize(0,0, false);
@@ -312,22 +307,20 @@ public:
     // Updating the Master pair
     void UpdateMasterPair(
 //         const GeometryType& GeometryInput,          // The geometry of the current master
-        const Condition::Pointer& pCond,          // The pointer of the current master
-        const unsigned int& rNumberOfMasterNodes,   // Number of nodes of the master
-        const unsigned int& rDimension             // 3D/2D physical space
+        const Condition::Pointer& pCond          // The pointer of the current master
     )
     {
         const GeometryType GeometryInput =  pCond->GetGeometry();
         MasterGeometry = GeometryInput; // Updating the geometry
         
-        Normal_m = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+        Normal_m = ZeroMatrix(TNumNodes, TDim);
         
-        for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
             const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
 //             array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
 
-            for (unsigned int iDof = 0; iDof < rDimension; iDof++)
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
             {
                 Normal_m(iNode, iDof) = normal[iDof]; 
             }
@@ -339,10 +332,10 @@ public:
         v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Derivative of master's normal
-        Delta_Normal_m.resize(rNumberOfMasterNodes * rDimension);
-        for (unsigned int i = 0; i < rNumberOfMasterNodes * rDimension; i++)
+        Delta_Normal_m.resize(TNumNodes * TDim);
+        for (unsigned int i = 0; i < TNumNodes * TDim; i++)
         {
-            Delta_Normal_m[i] = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+            Delta_Normal_m[i] = ZeroMatrix(TNumNodes, TDim);
         }
     }
 };
