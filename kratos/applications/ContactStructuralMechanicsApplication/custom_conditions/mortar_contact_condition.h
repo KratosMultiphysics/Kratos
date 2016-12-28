@@ -1048,9 +1048,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
-        const double& rIntegrationWeight,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm
+        const double& rIntegrationWeight
         );
     
     /*
@@ -1082,9 +1080,7 @@ protected:
         array_1d<double, MatrixSize>& rPairRHS,
         GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
-        const double& rIntegrationWeight,
-        const double& augmented_normal_lm,
-        const double& augmented_tangent_lm
+        const double& rIntegrationWeight
         );
     
     /********************************************************************************/

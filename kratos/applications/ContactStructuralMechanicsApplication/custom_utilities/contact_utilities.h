@@ -832,7 +832,7 @@ public:
                         const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
                         const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
                         
-                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) - mu * augmented_normal_presssure;
+                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * augmented_normal_presssure;
                         
                         if (augmented_tangent_presssure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
