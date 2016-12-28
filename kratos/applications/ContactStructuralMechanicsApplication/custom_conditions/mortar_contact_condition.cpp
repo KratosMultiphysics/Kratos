@@ -2846,14 +2846,19 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
                 aux_vec[i_slave] = 1.0;
                 const double DeltaLMNormal = inner_prod(NormalsGP, aux_vec);
-                
+
                 if (AugmentedTangentLM[0] < 0.0) // Stick
                 {
                     rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
                 }
                 else // Slip
                 {
-                    rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
+                    const double      LMXi = inner_prod(TangentXisGP, LMGP);
+                    const double DeltaLMXi = inner_prod(TangentXisGP, aux_vec);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
+                                                      + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi)
+                                                      - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
                 }
                 if (TDim == 3)
                 {
@@ -2863,7 +2868,12 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
                     }
                     else // Slip
                     {
-                        rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
+                        const double      LMEta = inner_prod(TangentEtasGP, LMGP);
+                        const double DeltaLMEta = inner_prod(TangentEtasGP, aux_vec);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
+                                                          + (SignTangPress * LMEta - mu * AugmentedNormalLM) * (DeltaLMEta)
+                                                          - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
                     }
                 }
                 
