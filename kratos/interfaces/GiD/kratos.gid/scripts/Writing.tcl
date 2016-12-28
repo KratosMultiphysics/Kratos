@@ -879,16 +879,16 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                                     }
                                 } 
                                 if {!$printed} {
-                                    set value [expr [get_domnode_attribute [$group find n ${inputName}$i] v] ]
+                                    set value [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}$i] ] ]
                                     set Val$i $value
                                 }
                             }
                         } 
                     } else {
-                        set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
-                        set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+                        set ValX [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}X] ] ]
+                        set ValY [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}Y] ] ] 
                         set ValZ [expr 0.0]
-                        catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                        catch {set ValZ [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}Z] ]]}
                     }
                     dict set paramDict $inputName [list $ValX $ValY $ValZ]
                 } 
@@ -903,7 +903,8 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                     }
                 } 
                 if {!$printed} {
-                    set value [get_domnode_attribute [$group find n $inputName] v] 
+                    set value [gid_groups_conds::convert_value_to_default [$group find n $inputName]]
+                    #set value [get_domnode_attribute [$group find n $inputName] v] 
                     dict set paramDict $inputName [expr $value]
                 }
             } elseif {$in_type eq "bool"} {
