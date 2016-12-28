@@ -8,6 +8,17 @@ BaseStrategy = sphere_strategy.ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
 
+    def IntegrationSchemeTranslator(self, name):
+        class_name = BaseStrategy.IntegrationSchemeTranslator(self, name)
+
+        if name == 'Hybrid_Bashforth':
+            class_name = 'HybridBashforthScheme'
+
+        return class_name
+
+    def GetSchemeInstance(self, class_name): # parent counterpart must not be called due to different 'globals()'
+        return globals().get(class_name)()
+
     def Initialize(self):
         BaseStrategy.Initialize(self)
         BaseStrategy.SetVariablesAndOptions(self)
