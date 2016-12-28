@@ -201,7 +201,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
         this->UpdateContactData(rContactData, PairIndex);
          
         // Master segment info
-        const GeometryType& current_master_element = rVariables.GetMasterElement( );
+        const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
         
         array_1d<double, TNumNodes> aux_int_gap      = ZeroVector(TNumNodes);
         array_1d<double, TNumNodes> aux_int_slip     = ZeroVector(TNumNodes);
@@ -218,20 +218,20 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::FinalizeNonLinearIteratio
             if (inside == true)
             {
                 // Calculate the gap in the integration node and check tolerance
-                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                const double IntegrationPointGap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
 
                 // The slip of th GP
-                double integration_point_slip;
-                this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
+                double IntegrationPointSlip;
+                this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, IntegrationPointSlip);
                 
                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
                     const double int_aux = IntegrationWeight * rVariables.DetJSlave * rVariables.Phi_LagrangeMultipliers[iNode];
-                    aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
-                    aux_int_slip[iNode]     +=  integration_point_slip * int_aux;
+                    aux_int_gap[iNode]      +=  IntegrationPointGap  * int_aux;
+                    aux_int_slip[iNode]     +=  IntegrationPointSlip * int_aux;
                     aux_int_friction[iNode] +=  rVariables.mu          * int_aux;
                 }
             }
@@ -687,7 +687,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
         this->CalculateDeltaNormalMaster(rContactData);
         
         // Master segment info
-        const GeometryType& current_master_element = rVariables.GetMasterElement( );
+        const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
         
         // Initialize the integration weight
         double total_weight = 0.0;
@@ -707,7 +707,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
             if (inside == true)
             {   
                 // Calculate the gap in the integration node and check tolerance
-                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                const double IntegrationPointGap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
                 
                 /* Update the derivatives */
                 // Update the derivative of DetJ
@@ -717,36 +717,39 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 // The derivatives of the dual shape function
                 this->CalculateDeltaPhi(rVariables, rContactData);
                 // Compute in each node the tangent functional and their derivatives
-//                 this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
+                if (rVariables.mu > 0.0) // Friction or frictionless case
+                {
+//                     this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
+                }
             
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
                 
                 // The normal LM augmented
-                double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
+                double AugmentedNormalLM = this->CalculateAugmentedNormalLM(rVariables, rContactData, IntegrationPointGap);
                   
                 // The slip of th GP
-                double integration_point_slip;
+                double IntegrationPointSlip;
                 // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
+                const double AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, IntegrationPointSlip);
                 
                 if (rCurrentProcessInfo[TIME_STEPS] == 1) // NOTE: To avoid problems the first iteration
                 {
-                    augmented_normal_lm -= 1.0e-16;
+                    AugmentedNormalLM -= 1.0e-16;
                 }
                 
                 // Calculation of the matrix is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS<TMatrixSize>( LHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
+                    this->CalculateLocalLHS<TMatrixSize>( LHS_contact_pair, rVariables, rContactData, IntegrationWeight, AugmentedNormalLM, AugmentedTangentLM );
                 }
                 
                 // Calculation of the vector is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS<TMatrixSize>( RHS_contact_pair, rVariables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
+                    this->CalculateLocalRHS<TMatrixSize>( RHS_contact_pair, rVariables, rContactData, IntegrationWeight, AugmentedNormalLM, AugmentedTangentLM );
                 }
             }
         }
@@ -759,7 +762,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                     rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS<TMatrixSize>( rLocalSystem, LHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddLHS<TMatrixSize>( rLocalSystem, LHS_contact_pair, PairIndex, CurrentMasterElement );
             }
 
             // Assemble of the vector is required
@@ -767,7 +770,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                     rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS<TMatrixSize>( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddRHS<TMatrixSize>( rLocalSystem, RHS_contact_pair, PairIndex, CurrentMasterElement );
             }
             
 //             std::cout << "--------------------------------------------------" << std::endl;
@@ -797,12 +800,12 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeGeneralVariable
     )
 {
     // Master segment info
-    GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
+    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();
     
     // Slave element info
     rVariables.Initialize();
 
-    rVariables.SetMasterElement( current_master_element );
+    rVariables.SetMasterElement( CurrentMasterElement );
     rVariables.SetMasterElementIndex( rMasterElementIndex );
 }
 
@@ -928,11 +931,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
     )
 {    
     // Master segment info
-    GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
+    GeometryType& CurrentMasterElement = mThisMasterElements[rMasterElementIndex]->GetGeometry();
     
     // Slave element info
     rContactData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex] );
-//     rContactData.UpdateMasterPair(current_master_element);
+//     rContactData.UpdateMasterPair(CurrentMasterElement);
     
     /* NORMALS AND GAPS */
     for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
@@ -941,7 +944,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::UpdateContactData(
 //         array_1d<double,3> normal = GetGeometry()[iNode].GetValue(NORMAL);
         
         PointType projected_global;
-        ContactUtilities::ProjectDirection(current_master_element, GetGeometry()[iNode], projected_global, rContactData.Gaps(iNode), normal ); // NOTE: This is not the CPP, so the solution can be wrong
+        ContactUtilities::ProjectDirection(CurrentMasterElement, GetGeometry()[iNode], projected_global, rContactData.Gaps(iNode), normal ); // NOTE: This is not the CPP, so the solution can be wrong
     }
 }
 
@@ -1170,7 +1173,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
     LocalSystemComponents& rLocalSystem,
     bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
     const unsigned int rPairIndex,
-    const GeometryType& current_master_element
+    const GeometryType& CurrentMasterElement
     )
 {
     /* DEFINITIONS */
@@ -1301,8 +1304,8 @@ void MortarContactCondition<2, 2, false>::CalculateLocalLHS<12>(
     GeneralVariables& rVariables,
     const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1311,12 +1314,12 @@ void MortarContactCondition<2, 2, false>::CalculateLocalLHS<12>(
     const array_1d<double, 2> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave; 
 
-    if (augmented_normal_lm < 0.0)
+    if (AugmentedNormalLM < 0.0)
     {                                
         // Contact active
         rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1339,8 +1342,8 @@ void MortarContactCondition<2, 3, false>::CalculateLocalLHS<18>(
     GeneralVariables& rVariables,
     const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1362,8 +1365,8 @@ void MortarContactCondition<3, 3, false>::CalculateLocalLHS<27>(
     GeneralVariables& rVariables,
     const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1372,12 +1375,12 @@ void MortarContactCondition<3, 3, false>::CalculateLocalLHS<27>(
     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave; 
 
-    if (augmented_normal_lm < 0.0)
+    if (AugmentedNormalLM < 0.0)
     {                                
         // Contact active
         rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1400,8 +1403,8 @@ void MortarContactCondition<3, 4, false>::CalculateLocalLHS<36>(
     GeneralVariables& rVariables,
     const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1410,12 +1413,12 @@ void MortarContactCondition<3, 4, false>::CalculateLocalLHS<36>(
     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave; 
 
-    if (augmented_normal_lm < 0.0)
+    if (AugmentedNormalLM < 0.0)
     {                                
         // Contact active
         rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1438,8 +1441,8 @@ void MortarContactCondition<2, 2, true>::CalculateLocalLHS<16>(
     GeneralVariables& rVariables,
     const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1448,12 +1451,12 @@ void MortarContactCondition<2, 2, true>::CalculateLocalLHS<16>(
     const array_1d<double, 2>  Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave; 
 
-    if (augmented_normal_lm < 0.0)
+    if (AugmentedNormalLM < 0.0)
     {                                
         // Contact active
         rPairLHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairLHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1476,8 +1479,8 @@ void MortarContactCondition<2, 3, true>::CalculateLocalLHS<24>(
     GeneralVariables& rVariables,
     const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1499,8 +1502,8 @@ void MortarContactCondition<3, 3, true>::CalculateLocalLHS<36>(
     GeneralVariables& rVariables,
     const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1509,12 +1512,12 @@ void MortarContactCondition<3, 3, true>::CalculateLocalLHS<36>(
 //     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ         = rVariables.DetJSlave; 
 // 
-//     if (augmented_normal_lm < 0.0)
+//     if (AugmentedNormalLM < 0.0)
 //     {                                
 //         // Contact active
 //         rPairLHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData);
 //         
-//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
 //         {
 //             // Slip
 //             rPairLHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1537,8 +1540,8 @@ void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
     GeneralVariables& rVariables,
     const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1547,12 +1550,12 @@ void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
 //     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ = rVariables.DetJSlave; 
 // 
-//     if (augmented_normal_lm < 0.0)
+//     if (AugmentedNormalLM < 0.0)
 //     {                                
 //         // Contact active
 //         rPairLHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointActiveLHS( N1, DN1, N2, DN2, Phi, detJ, rContactData);
 //         
-//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
 //         {
 //             // Slip
 //             rPairLHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointSlipLHS( N1, DN1, N2, DN2, Phi, detJ, rVariables.mu, rContactData);
@@ -1574,7 +1577,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
     LocalSystemComponents& rLocalSystem,
     array_1d<double, TMatrixSize>& RHS_contact_pair,
     const unsigned int rPairIndex,
-    const GeometryType& current_master_element
+    const GeometryType& CurrentMasterElement
     )
 {   
     /* DEFINITIONS */
@@ -1692,8 +1695,8 @@ void MortarContactCondition<2, 2, false>::CalculateLocalRHS<12>(
     GeneralVariables& rVariables,
     const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */    
@@ -1702,12 +1705,12 @@ void MortarContactCondition<2, 2, false>::CalculateLocalRHS<12>(
     const array_1d<double, 2> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave;
     
-    if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+    if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
         // Contact active
         rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1730,8 +1733,8 @@ void MortarContactCondition<2, 3, false>::CalculateLocalRHS<18>(
     GeneralVariables& rVariables,
     const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */     
@@ -1753,8 +1756,8 @@ void MortarContactCondition<3, 3, false>::CalculateLocalRHS<27>(
     GeneralVariables& rVariables,
     const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1763,12 +1766,12 @@ void MortarContactCondition<3, 3, false>::CalculateLocalRHS<27>(
     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave;
     
-    if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+    if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
         // Contact active
         rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1791,8 +1794,8 @@ void MortarContactCondition<3, 4, false>::CalculateLocalRHS<36>(
     GeneralVariables& rVariables,
     const ContactData<3, 4>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */
@@ -1801,12 +1804,12 @@ void MortarContactCondition<3, 4, false>::CalculateLocalRHS<36>(
     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave;
     
-    if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+    if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
         // Contact active
         rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1829,8 +1832,8 @@ void MortarContactCondition<2, 2, true>::CalculateLocalRHS<16>(
     GeneralVariables& rVariables,
     const ContactData<2, 2>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
     /* DEFINITIONS */    
@@ -1839,12 +1842,12 @@ void MortarContactCondition<2, 2, true>::CalculateLocalRHS<16>(
     const array_1d<double, 2>  Phi = rVariables.Phi_LagrangeMultipliers;
     const double detJ = rVariables.DetJSlave;
     
-    if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+    if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
         // Contact active
         rPairRHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
         
-        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+        if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
         {
             // Slip
             rPairRHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1867,8 +1870,8 @@ void MortarContactCondition<2, 3, true>::CalculateLocalRHS<24>(
     GeneralVariables& rVariables,
     const ContactData<2, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */     
@@ -1890,8 +1893,8 @@ void MortarContactCondition<3, 3, true>::CalculateLocalRHS<36>(
     GeneralVariables& rVariables,
     const ContactData<3, 3>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1900,12 +1903,12 @@ void MortarContactCondition<3, 3, true>::CalculateLocalRHS<36>(
 //     const array_1d<double, 3> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ = rVariables.DetJSlave;
 //     
-//     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+//     if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
 //     {
 //         // Contact active
 //         rPairRHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
 //         
-//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
 //         {
 //             // Slip
 //             rPairRHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -1928,8 +1931,8 @@ void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
     GeneralVariables& rVariables,
     const ContactData<3,4>& rContactData,
     const double& rIntegrationWeight,
-    const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& AugmentedNormalLM,
+    const double& AugmentedTangentLM
     )
 {
 //     /* DEFINITIONS */
@@ -1938,12 +1941,12 @@ void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
 //     const array_1d<double, 4> Phi = rVariables.Phi_LagrangeMultipliers;
 //     const double detJ = rVariables.DetJSlave;
 //     
-//     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+//     if (AugmentedNormalLM < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
 //     {
 //         // Contact active
 //         rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
 //         
-//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         if (std::abs(AugmentedTangentLM) - rVariables.mu * AugmentedNormalLM >= 0.0)
 //         {
 //             // Slip
 //             rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
@@ -2287,14 +2290,14 @@ template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGap(
    GeneralVariables& rVariables,
    ContactData<TDim, TNumNodes>& rContactData,
-   const unsigned int case_to_compute // NOTE: Just in 2D
+   const unsigned int CaseToCompute // NOTE: Just in 2D
    )
 {
-    /* IMPORTANT: The meaning of the case_to_compute: 
-     * case_to_compute == 0: The slave is enterely integrated and just DeltaN2 is calculated
-     * case_to_compute == 1: Just the first node of the slave is inside, then we calculate DeltaN2 of the first and DeltaN1 of the second node
-     * case_to_compute == 2: Just the second node of the slave is inside, then we calculate DeltaN2 of the second and DeltaN1 of the first node
-     * case_to_compute == 3: The master is enterely integrated and just DeltaN1 is calculated
+    /* IMPORTANT: The meaning of the CaseToCompute: 
+     * CaseToCompute == 0: The slave is enterely integrated and just DeltaN2 is calculated
+     * CaseToCompute == 1: Just the first node of the slave is inside, then we calculate DeltaN2 of the first and DeltaN1 of the second node
+     * CaseToCompute == 2: Just the second node of the slave is inside, then we calculate DeltaN2 of the second and DeltaN1 of the first node
+     * CaseToCompute == 3: The master is enterely integrated and just DeltaN1 is calculated
      */
     
     // Shape functions
@@ -2330,7 +2333,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
        }
     }
     
-   // Calculate Delta N2 // TODO: Do the same for the N1
+   /* Calculate Delta N */ // TODO: Do the same for the N1
    if (compute == true)
    {
       const double tol = 1.0e-18;
@@ -2380,6 +2383,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
          }
       }
       
+      // Derivatives slave
       for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
       {
          for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
@@ -2414,6 +2418,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
          }
       }
       
+      // Derivatives master
       for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
       {
          for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
@@ -2588,7 +2593,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
       }
     }
 
-    // Calculate Delta Gap // TODO: Consider DeltaN1
+    /* Calculate Delta Gap */ // TODO: Consider DeltaN1 // NOTE: Ask Ch, probably memmory leaks (OMG!!!)
+    // Derivatives slave
     for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
@@ -2605,6 +2611,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
         }
     }
     
+    // Derivatives master
     for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
     {
         for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
@@ -2645,60 +2652,226 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaPhi(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCtan(
+double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCtan(
    GeneralVariables& rVariables,
    ContactData<TDim, TNumNodes>& rContactData
    )
 {   
+    // NOTE: I calculate the increment of slip manually, Gitterle uses the Mortar operator, but I don't calculate them, technically is the same working with GP 
+    
     // Master segment info
-    const GeometryType& current_master_element = rVariables.GetMasterElement( );
+    const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
     
     const double mu = rVariables.mu; 
+    const double epsilon_normal  = rContactData.epsilon_normal;
     const double epsilon_tangent = rContactData.epsilon_tangent;
 
     /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
     
     // Local kinematic update
     const array_1d<double, TDim> N1 = rVariables.N_Slave;
+    const array_1d<double, TDim> N2 = rVariables.N_Master;
     rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, N1);
     
-    // Calculating the tangent vectors
-    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), N1);
-    const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), N1);
-    
     // The LM of the node
-    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
 
     // Calculate the augmented normal LM
-    const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, inner_prod(rContactData.Gaps, N1));
+    const double AugmentedNormalLM = this->CalculateAugmentedNormalLM(rVariables, rContactData, inner_prod(rContactData.Gaps, N1));
     
-    // Calculate the augmented tangent LM
-    array_1d<double, (TDim - 1)> node_slip;
-    const array_1d<double, (TDim - 1)> augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, node_slip);
-    
-    if (augmented_tangent_lm[0] < 0.0) // Stick
+    if (AugmentedNormalLM < 0.0) // Compression (active GP)
     {
-        rContactData.Ctan[0] =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[0];
-    }
-    else
-    {
-        rContactData.Ctan[0] = std::abs(augmented_tangent_lm[0]) * inner_prod(tangent_xi_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[0];
-    }
-    
-    if (TDim == 3)
-    {
-        if (augmented_tangent_lm[1] < 0.0) // Stick
+        // The velocities matrices
+        const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
+        const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
+        
+        // Calculating the tangent vectors
+        const array_1d<double, TDim> NormalsGP     = prod(trans(rContactData.Normal_s),      N1);
+        const array_1d<double, TDim> TangentXisGP  = prod(trans(rContactData.Tangent_xi_s),  N1);
+        const array_1d<double, TDim> TangentEtasGP = prod(trans(rContactData.Tangent_eta_s), N1);
+            
+        // Calculate the augmented tangent LM
+        array_1d<double, (TDim - 1)> node_slip;
+        const array_1d<double, (TDim - 1)> AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, node_slip);
+        
+        if (AugmentedTangentLM[0] < 0.0) // Stick
         {
-            rContactData.Ctan[1] =  - mu * augmented_normal_lm * epsilon_tangent * node_slip[1];
+            rContactData.Ctan[0] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[0];
         }
         else
         {
-            rContactData.Ctan[1] = std::abs(augmented_tangent_lm[1]) * inner_prod(tangent_eta_gp, lm_gp) - mu * augmented_normal_lm * augmented_tangent_lm[1];
+            rContactData.Ctan[0] = std::abs(AugmentedTangentLM[0]) * inner_prod(TangentXisGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[0];
+        }
+        
+        if (TDim == 3)
+        {
+            if (AugmentedTangentLM[1] < 0.0) // Stick
+            {
+                rContactData.Ctan[1] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[1];
+            }
+            else
+            {
+                rContactData.Ctan[1] = std::abs(AugmentedTangentLM[1]) * inner_prod(TangentEtasGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[1];
+            }
+        }
+        
+        /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
+
+        // Calculate common components
+        const array_1d<double, TDim> VectorIntegrationPointSlip = rContactData.Dt * (prod(trans(v1), N1) - prod(trans(v2), N2));
+        array_1d<double, TDim> DeltaVectorIntegrationPointSlip;
+        
+        // Derivatives slave
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = i_slave * TDim + i_dim;
+                
+                array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_slave] = N1[i_dim];
+                
+                const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
+                const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
+                DeltaIntegrationPointSlip = aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
+                
+                const array_1d<double, TDim> DeltaNormalsGP    = prod(trans(rContactData.Delta_Normal_s[i_dof]),     N1);
+                const double DeltaLMNormal = inner_prod(DeltaNormalsGP, LMGP);
+                const double DeltaGap = rContactData.DeltaGap[i_dof];
+                // Delta slip
+                const array_1d<double, TDim> DeltaTangentXisGP = prod(trans(rContactData.Delta_Tangent_xi_s[i_dof]), N1);
+                DeltaIntegrationPointSlip[0]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentXisGP);
+                DeltaIntegrationPointSlip[0] += inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
+                
+                if (AugmentedTangentLM[0] < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0] // NOTE: (Gitterle p.75)
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    const double      LMXi = inner_prod(     TangentXisGP, LMGP);
+                    const double DeltaLMXi = inner_prod(DeltaTangentXisGP, LMGP);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
+                                                       + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi + epsilon_tangent * DeltaIntegrationPointSlip[0])
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
+                }
+                
+                if (TDim == 3)
+                {
+                    const array_1d<double, TDim> DeltaTangentEtasGP = prod(trans(rContactData.Delta_Tangent_eta_s[i_dof]), N1);
+                    DeltaIntegrationPointSlip[1]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentEtasGP);
+                    DeltaIntegrationPointSlip[1] += inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
+                    if (AugmentedTangentLM[1] < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1] // NOTE: (Gitterle p.75)
+                                                           - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        const double      LMEta = inner_prod(     TangentEtasGP, LMGP);
+                        const double DeltaLMEta = inner_prod(DeltaTangentEtasGP, LMGP);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
+                                                       + (SignTangPress *  LMEta - mu * AugmentedNormalLM ) * (DeltaLMEta + epsilon_tangent * DeltaIntegrationPointSlip[1])
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
+                    }
+                    
+                }
+            }
+        }
+        
+        // Derivatives master
+        for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
+                
+                array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_master] = N2[i_dim];
+                
+                const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
+                const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
+                DeltaIntegrationPointSlip = - aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
+                
+                const double DeltaGap = rContactData.DeltaGap[i_dof];
+                DeltaIntegrationPointSlip[0] = inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
+                
+                if (AugmentedTangentLM[0] < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0]// NOTE: (Gitterle p.75)
+                                                       - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    const double      LMXi = inner_prod(     TangentXisGP, LMGP);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = (SignTangPress * LMXi - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[0])
+                                                       - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
+                }
+                
+                if (TDim == 3)
+                {
+                    DeltaIntegrationPointSlip[1] = inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
+                    if (AugmentedTangentLM[1] < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1]// NOTE: (Gitterle p.75)
+                                                           - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        const double LMEta = inner_prod(TangentEtasGP, LMGP);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = (SignTangPress * LMEta - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[1])
+                                                           - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
+                    }
+                }
+            }
+            
+        }
+        
+        // Derivatives lagrange multiplier
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = (2 * TNumNodes + i_slave) * TDim + i_dim;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_slave] = 1.0;
+                const double DeltaLMNormal = inner_prod(NormalsGP, aux_vec);
+                
+                if (AugmentedTangentLM[0] < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
+                }
+                if (TDim == 3)
+                {
+                    if (AugmentedTangentLM[1] < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
+                    }
+                }
+                
+            }
         }
     }
     
-    /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
-
+    return AugmentedNormalLM;
 }
 
 /***********************************************************************************/
@@ -2956,7 +3129,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
         this->UpdateContactData(rContactData, PairIndex);
         
         // Master segment info
-        const GeometryType& current_master_element = rVariables.GetMasterElement( );
+        const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
 
         // Calculating the values
         for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
@@ -2967,41 +3140,41 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
             if (inside == true)
             {
                 // Calculate the gap in the integration node and check tolerance
-                const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                const double IntegrationPointGap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
             
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
-                    const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
+                    const double AugmentedNormalLM = this->CalculateAugmentedNormalLM(rVariables, rContactData, IntegrationPointGap);
                     
-                    if (augmented_normal_lm < 0)
+                    if (AugmentedNormalLM < 0)
                     {
                         if ( rVariable == NORMAL_CONTACT_STRESS )
                         {
-                            rOutput[PointNumber] += augmented_normal_lm;
+                            rOutput[PointNumber] += AugmentedNormalLM;
                         }
                         else
                         {
                             // The slip of th GP
-                            double integration_point_slip;
+                            double IntegrationPointSlip;
                         
                             // The tangent LM augmented
-                            const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
+                            const double AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, IntegrationPointSlip);
                             
                             if ( rVariable == TANGENTIAL_CONTACT_STRESS )
                             {
-                                rOutput[PointNumber] += augmented_tangent_lm;
+                                rOutput[PointNumber] += AugmentedTangentLM;
                             }
                             else if (rVariable == SLIP_GP )
                             {
-                                rOutput[PointNumber] += integration_point_slip; // TODO: Maybe it is necessary to check if it is the smallest of all the gaps 
+                                rOutput[PointNumber] += IntegrationPointSlip; // TODO: Maybe it is necessary to check if it is the smallest of all the gaps 
                             }
                         }
                     }
                 }
                 else if (rVariable == GAP_GP )
                 {
-                    rOutput[PointNumber] += integration_point_gap; // TODO: Maybe it is necessary to check if it is the smallest of all the gaps 
+                    rOutput[PointNumber] += IntegrationPointGap; // TODO: Maybe it is necessary to check if it is the smallest of all the gaps 
                 }
             }
         }
@@ -3070,13 +3243,13 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
                 {
                     if (rVariable == NORMAL_GP)
                     {   
-                        const array_1d<double, 3> normal_gp  = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
-                        rOutput[PointNumber] = normal_gp;
+                        const array_1d<double, 3> NormalGP  = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
+                        rOutput[PointNumber] = NormalGP;
                     }
                     else
                     {
-                        const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave); 
-                        rOutput[PointNumber] = tangent_gp;
+                        const array_1d<double, 3> TangentGP = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave); 
+                        rOutput[PointNumber] = TangentGP;
                     }
                 }
             }
@@ -3093,7 +3266,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
             this->UpdateContactData(rContactData, PairIndex);
             
             // Master segment info
-            const GeometryType& current_master_element = rVariables.GetMasterElement( );
+            const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
             
             // Calculating the values
             for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
@@ -3104,30 +3277,30 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
                 if (inside == true)
                 {
                     // Calculate the gap in the integration node and check tolerance
-                    const double integration_point_gap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
+                    const double IntegrationPointGap = inner_prod(rContactData.Gaps, rVariables.N_Slave);
                 
                     if (rVariable == NORMAL_CONTACT_STRESS_GP || rVariable == TANGENTIAL_CONTACT_STRESS_GP)
                     {
                         // The normal LM augmented
-                        const double augmented_normal_lm = this->AugmentedNormalLM(rVariables, rContactData, integration_point_gap);
+                        const double AugmentedNormalLM = this->CalculateAugmentedNormalLM(rVariables, rContactData, IntegrationPointGap);
                         
-                        if (augmented_normal_lm < 0)
+                        if (AugmentedNormalLM < 0)
                         {
                             if ( rVariable == NORMAL_CONTACT_STRESS_GP )
                             {
-                                const array_1d<double, 3> normal_gp  = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
-                                rOutput[PointNumber] += augmented_normal_lm * normal_gp;
+                                const array_1d<double, 3> NormalGP  = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
+                                rOutput[PointNumber] += AugmentedNormalLM * NormalGP;
                             }
                             else
                             {
                                 // The slip of th GP
-                                double integration_point_slip;
+                                double IntegrationPointSlip;
                             
                                 // The tangent LM augmented
-                                const double augmented_tangent_lm = this->AugmentedTangentLM(rVariables, rContactData, current_master_element, integration_point_slip);
+                                const double AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, IntegrationPointSlip);
                                 
-                                const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave); // TODO: Extend to 3D case
-                                rOutput[PointNumber] += augmented_tangent_lm * tangent_gp;
+                                const array_1d<double, 3> TangentGP = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave); // TODO: Extend to 3D case
+                                rOutput[PointNumber] += AugmentedTangentLM * TangentGP;
                             }
                         }
                     }
@@ -3160,119 +3333,118 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedNormalLM(
+double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAugmentedNormalLM(
     const GeneralVariables& rVariables,
     const ContactData<TDim, TNumNodes>& rContactData,
-    const double& integration_point_gap
+    const double& IntegrationPointGap
     )
 {
     // The LM of the GP 
-    const array_1d<double, TDim> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
     // The normal of the GP
-    const array_1d<double, TDim> normal_gp = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
+    const array_1d<double, TDim> NormalGP = prod(trans(rContactData.Normal_s), rVariables.N_Slave);
     
     // The LM in the tangent direction
-    double augmented_normal_lm  = inner_prod(normal_gp, lm_gp);// + rContactData.epsilon_normal * integration_point_gap;
+    double AugmentedNormalLM  = inner_prod(NormalGP, LMGP);// + rContactData.epsilon_normal * IntegrationPointGap;
                 
-    if (integration_point_gap < 0.0) // Penetration (TODO: Think about this!!!)
+    if (IntegrationPointGap < 0.0) // Penetration (TODO: Think about this!!!)
     {
-        augmented_normal_lm += rContactData.epsilon_normal * integration_point_gap;
+        AugmentedNormalLM += rContactData.epsilon_normal * IntegrationPointGap;
     }
                 
-    return augmented_normal_lm;
+    return AugmentedNormalLM;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
+double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAugmentedTangentLM(
     const GeneralVariables& rVariables,
     const ContactData<TDim, TNumNodes>& rContactData,
-    const GeometryType& current_master_element, 
-    double& integration_point_slip
+    const GeometryType& CurrentMasterElement, 
+    double& IntegrationPointSlip
     )
 {    
     // The LM of the GP 
-    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
     // The tangents of the GP
-    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
-    const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
+    const array_1d<double, TDim> TangentXisGP  = prod(trans(rContactData.Tangent_xi_s),  rVariables.N_Slave);
+    const array_1d<double, TDim> TangentEtasGP = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
     
     // The tangential LM
-    const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
-    const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
-    const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+    const double TangentXiLM  = inner_prod(TangentXisGP, LMGP);
+    const double TangentEtaLM = inner_prod(TangentEtasGP, LMGP);
+    const double TangentLM = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
     
     // The resultant direction of the LM
-    const array_1d<double, TDim>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
+    const array_1d<double, TDim>& TangentGP =  (TangentXiLM * TangentXisGP + TangentEtaLM * TangentEtasGP)/TangentLM; // NOTE: This is the direction of the slip (using the LM as reference)
     
     // The velocities matrices
     const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
     const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
     
     // The slip of the LM
-    const array_1d<double, TDim> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-    integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
+    const array_1d<double, TDim> vector_IntegrationPointSlip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+    IntegrationPointSlip = inner_prod(vector_IntegrationPointSlip, TangentGP);
 
     // The augmented LM in the tangent direction
-    const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+    const double AugmentedTangentLM = TangentLM + rContactData.epsilon_tangent * IntegrationPointSlip; 
 
-    return augmented_tangent_lm;
+    return AugmentedTangentLM;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-array_1d<double, (TDim - 1)> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::AugmentedTangentLM(
+array_1d<double, (TDim - 1)> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAugmentedTangentLM(
     const GeneralVariables& rVariables,
     const ContactData<TDim, TNumNodes>& rContactData,
-    const GeometryType& current_master_element, 
-    array_1d<double, (TDim - 1)>& integration_point_slip
+    const GeometryType& CurrentMasterElement, 
+    array_1d<double, (TDim - 1)>& IntegrationPointSlip
     )
 {  
-    array_1d<double, (TDim - 1)> augmented_tangent_lm;
+    array_1d<double, (TDim - 1)> AugmentedTangentLM;
     
     // The LM of the GP 
-    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
     // The tangents of the GP
-    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
+    const array_1d<double, TDim> TangentXisGP  = prod(trans(rContactData.Tangent_xi_s), rVariables.N_Slave);
     
     // The tangential LM
-    const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
+    const double TangentXiLM  = inner_prod(TangentXisGP, LMGP);
     
     // The velocities matrices
     const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
     const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
     
     // The slip of the LM
-    const array_1d<double, TDim> vector_integration_point_slip_xi = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-    integration_point_slip[0] = inner_prod(vector_integration_point_slip_xi, tangent_xi_gp);
+    const array_1d<double, TDim> VectorIntegrationPointSlip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+    IntegrationPointSlip[0] = inner_prod(VectorIntegrationPointSlip, TangentXisGP);
 
     // The augmented LM in the tangent direction
-    augmented_tangent_lm[0] = tangent_xi_lm + rContactData.epsilon_tangent * integration_point_slip[0]; 
+    AugmentedTangentLM[0] = TangentXiLM + rContactData.epsilon_tangent * IntegrationPointSlip[0]; 
     
     if (TDim == 3)
     {
         // The tangents of the GP
-        const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
+        const array_1d<double, TDim> TangentEtasGP = prod(trans(rContactData.Tangent_eta_s), rVariables.N_Slave);
         
         // The tangential LM
-        const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
+        const double TangentEtaLM = inner_prod(TangentEtasGP, LMGP);
         
         // The slip of the LM
-        const array_1d<double, TDim> vector_integration_point_slip_eta = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-        integration_point_slip[1] = inner_prod(vector_integration_point_slip_eta, tangent_eta_gp);
+        IntegrationPointSlip[1] = inner_prod(VectorIntegrationPointSlip, TangentEtasGP);
 
         // The augmented LM in the tangent direction
-        augmented_tangent_lm[1] = tangent_eta_lm + rContactData.epsilon_tangent * integration_point_slip[1]; 
+        AugmentedTangentLM[1] = TangentEtaLM + rContactData.epsilon_tangent * IntegrationPointSlip[1]; 
     }
 
-    return augmented_tangent_lm;
+    return AugmentedTangentLM;
 }
 
 /***********************************************************************************/
