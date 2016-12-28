@@ -721,11 +721,11 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                     AugmentedNormalLM -= 1.0e-16;
                 }
                 
-                const double IntegrationWeight = integration_points[PointNumber].Weight(); // NOTE: This is supposed to be after the compression check?¿
-                total_weight += IntegrationWeight;
-                
                 if (AugmentedNormalLM < 0.0)
                 {
+                    const double IntegrationWeight = integration_points[PointNumber].Weight();
+                    total_weight += IntegrationWeight;
+                
                     // Calculation of the matrix is required
                     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX ) ||
                             rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes,TDoubleLM>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
