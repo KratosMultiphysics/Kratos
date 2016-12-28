@@ -633,10 +633,10 @@ proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition
                             }
                         } 
                     } else {
-                        set ValX [expr [get_domnode_attribute [$block find n ${inputName}X] v] ]
-                        set ValY [expr [get_domnode_attribute [$block find n ${inputName}Y] v] ] 
+                        set ValX [expr [gid_groups_conds::convert_value_to_default [$block find n ${inputName}X]] ]
+                        set ValY [expr [gid_groups_conds::convert_value_to_default [$block find n ${inputName}Y]] ] 
                         set ValZ [expr 0.0]
-                        catch {set ValZ [expr [get_domnode_attribute [$block find n ${inputName}Z] v]]}
+                        catch {set ValZ [expr [gid_groups_conds::convert_value_to_default [$block find n ${inputName}Z]]]}
                     }
                     dict set paramDict $inputName [list $ValX $ValY $ValZ]
                 } 
@@ -651,7 +651,7 @@ proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition
                     }
                 } 
                 if {!$printed} {
-                    set value [get_domnode_attribute [$block find n $inputName] v] 
+                    set value [gid_groups_conds::convert_value_to_default [$block find n $inputName]] 
                     dict set paramDict $inputName [expr $value]
                 }
             } elseif {$in_type eq "bool"} {
