@@ -88,9 +88,10 @@ namespace Kratos {
             if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType all_nodes = smp_it->NodesArray();
             std::string& identifier = mp[IDENTIFIER];
-            mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY]; //This is the velocity of the moving injector particles
+            mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
+            mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
             
-            array_1d<double, 3>& inlet_velocity = mp[VELOCITY]; //This is the velocity of the injected particles
+            array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
             
             if ((inlet_velocity[0] == 0.0) &&
                 (inlet_velocity[1] == 0.0) &&
@@ -359,9 +360,11 @@ namespace Kratos {
                 GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
                                                      angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
                  
-                array_1d<double, 3> inlet_velocity = mp[INLET_INITIAL_VELOCITY];
+                array_1d<double, 3> inlet_initial_velocity = mp[INLET_INITIAL_VELOCITY];
+                array_1d<double, 3> inlet_initial_particles_velocity = mp[INLET_INITIAL_PARTICLES_VELOCITY];
                 // Dot product to compute the updated inlet velocity from the initial one:
-                mp[LINEAR_VELOCITY] = new_axes1 * inlet_velocity[0] + new_axes2 * inlet_velocity[1] + new_axes3 * inlet_velocity[2];
+                mp[LINEAR_VELOCITY] = new_axes1 * inlet_initial_velocity[0] + new_axes2 * inlet_initial_velocity[1] + new_axes3 * inlet_initial_velocity[2];
+                mp[VELOCITY] = new_axes1 * inlet_initial_particles_velocity[0] + new_axes2 * inlet_initial_particles_velocity[1] + new_axes3 * inlet_initial_particles_velocity[2];
                 
                 std::string& ElementNameString = mp[ELEMENT_TYPE];
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
