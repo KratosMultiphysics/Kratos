@@ -1228,7 +1228,7 @@ proc spdAux::ProcGetSchemes {domNode args} {
 
 proc spdAux::SetNoneValue {domNode} {
     $domNode setAttribute v "None"
-    $domNode setAttribute values "None"
+    #$domNode setAttribute values "None"
     #spdAux::RequestRefresh
     return "None,None"
 }
@@ -1238,7 +1238,7 @@ proc spdAux::ProcGetConstitutiveLaws { domNode args } {
     set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
     set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
     #W "Const Laws que han pasado la criba: $Claws"
-    if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
+    if {[llength $Claws] == 0} { return None }
     set names [list ]
     foreach cl $Claws {
         lappend names [$cl getName]
