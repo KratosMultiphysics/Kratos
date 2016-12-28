@@ -178,7 +178,7 @@ public:
     // Complementary functions
     array_1d<double, (TDim - 1)> Ctan;
     
-    // Derivatives 
+    // Derivatives
     std::vector<double> DeltaJ_s;
     std::vector<double> DeltaGap;
     std::vector<array_1d<double, TNumNodes >> DeltaPhi;
@@ -1027,7 +1027,7 @@ protected:
         LocalSystemComponents& rLocalSystem,
         bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex,
-        const GeometryType& current_master_element
+        const GeometryType& CurrentMasterElement
         );
 
     /*
@@ -1061,7 +1061,7 @@ protected:
         LocalSystemComponents& rLocalSystem,
         array_1d<double, MatrixSize>& RHS_contact_pair, 
         const unsigned int rPairIndex,
-        const GeometryType& current_master_element
+        const GeometryType& CurrentMasterElement
         );
     
     /*
@@ -1117,7 +1117,7 @@ protected:
     void CalculateDeltaNAndDeltaGap(
         GeneralVariables& rVariables,
         ContactData<TDim, TNumNodes>& rContactData,
-        const unsigned int case_to_compute 
+        const unsigned int CaseToCompute 
         );
     
     /*
@@ -1131,7 +1131,7 @@ protected:
     /*
      * Calculates the tangent complementary function
      */
-    void CalculateCtanAndDeltaCtan(
+    double CalculateCtanAndDeltaCtan(
         GeneralVariables& rVariables,
         ContactData<TDim, TNumNodes>& rContactData
         );
@@ -1149,7 +1149,7 @@ protected:
     );
     
     /*
-     * Calculates the componets necssaries to compute the derivatives of Phi
+     * Calculates the componets necessaries to compute the derivatives of Phi
      */
     void CalculateDeltaAeComponents(
         GeneralVariables& rVariables,
@@ -1185,27 +1185,27 @@ protected:
     /*
      * Calculates the augmented lagragian in the normal direction
      */
-    double AugmentedNormalLM(
+    double CalculateAugmentedNormalLM(
         const GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
-        const double& integration_point_gap
+        const double& IntegrationPointGap
     );
     
     /*
      * Calculates the augmented lagragian in the tangent direction
      */
-    double AugmentedTangentLM(
+    double CalculateAugmentedTangentLM(
         const GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
-        const GeometryType& current_master_element, 
-        double& integration_point_slip
+        const GeometryType& CurrentMasterElement, 
+        double& IntegrationPointSlip
     );
     
-    array_1d<double, (TDim - 1)> AugmentedTangentLM(
+    array_1d<double, (TDim - 1)> CalculateAugmentedTangentLM(
         const GeneralVariables& rVariables,
         const ContactData<TDim, TNumNodes>& rContactData,
-        const GeometryType& current_master_element, 
-        array_1d<double, (TDim - 1)>& integration_point_slip
+        const GeometryType& CurrentMasterElement, 
+        array_1d<double, (TDim - 1)>& IntegrationPointSlip
     );
     
     /*
