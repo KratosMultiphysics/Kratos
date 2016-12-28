@@ -376,7 +376,7 @@ class Counter:
         self.step_in_cycle  = steps_in_cycle
         self.is_active      = is_active
 
-    def Tick(self):           
+    def Tick(self):
 
         if self.step < self.beginning_step or not self.is_active:
             self.step += 1
@@ -400,6 +400,12 @@ class Counter:
 
     def Deactivate(self, deactivate):
         self.is_active = self.is_active and not deactivate
+
+    def Switch(self, condition = None):
+        if condition == None:
+            self.is_active = not self.is_active
+        else:
+            self.is_active = condition
 
     def GetStep(self):
         return self.step
