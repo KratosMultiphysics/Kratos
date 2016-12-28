@@ -1093,6 +1093,7 @@ proc write::Duration { int_time } {
 proc write::getValueByNode { node } {
     if {[get_domnode_attribute $node v] eq ""} {
         catch {get_domnode_attribute $node dict}
+        catch {get_domnode_attribute $node values}
         catch {get_domnode_attribute $node value}
     }
     set v ""
