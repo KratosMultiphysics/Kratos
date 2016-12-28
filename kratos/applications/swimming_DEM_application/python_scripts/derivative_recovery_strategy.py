@@ -17,7 +17,7 @@ class DerivativeRecoveryStrategy:
         self.do_recover_gradient = False        
         self.do_recover_laplacian = False
 
-        if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.laplacian_calculation_type == 4:
+        if pp.CFD_DEM.material_acceleration_calculation_type == 3 or pp.CFD_DEM.material_acceleration_calculation_type == 4:
             self.do_recover_acceleration = True
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeMaterialDerivativeSimplex3D", "ComputeLaplacianSimplexCondition3D")
