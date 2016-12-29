@@ -93,10 +93,10 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 0
-pp.CFD_DEM.laplacian_calculation_type = 4
+pp.CFD_DEM.laplacian_calculation_type = 0
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
-pp.CFD_DEM.material_acceleration_calculation_type = 1
+pp.CFD_DEM.material_acceleration_calculation_type = 5
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
@@ -114,7 +114,7 @@ pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
-pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
+pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 pp.viscosity_modification_type = 0.0
@@ -793,7 +793,7 @@ while (time <= final_time):
         out = 0
 
     # solving the DEM part
-    derivative_recovery_counter.Deactivate(time < DEM_parameters.interaction_start_time)
+    derivative_recovery_counter.Switch(time > DEM_parameters.interaction_start_time)
 
     if derivative_recovery_counter.Tick():
         recovery.Recover()
@@ -804,7 +804,7 @@ while (time <= final_time):
 
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
-
+        out = out + Dt
         spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
         rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
@@ -899,7 +899,7 @@ while (time <= final_time):
         post_utils.Writeresults(time)
         out = 0
 
-    out = out + Dt
+    #out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
 
