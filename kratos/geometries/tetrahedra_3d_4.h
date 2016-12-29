@@ -305,7 +305,7 @@ public:
 
         return p_clone;
     }
-    
+
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors(Vector& rResult) const
     {
@@ -400,11 +400,57 @@ public:
         return  detJ*onesixth;
     }
 
+    /**
+     * This method calculates the average edge length of the geometry using the root mean square
+     *
+     * @return double value with the average edge length
+     */
+    virtual double AverageEdgeLength() const {
+      const double onesixth = 1.0/6.0;
+
+      double l01 = EdgeType(this->pGetPoint(0), this->pGetPoint(1)).Length();
+      double l12 = EdgeType(this->pGetPoint(1), this->pGetPoint(2)).Length();
+      double l20 = EdgeType(this->pGetPoint(2), this->pGetPoint(0)).Length();
+      double l03 = EdgeType(this->pGetPoint(0), this->pGetPoint(3)).Length();
+      double l13 = EdgeType(this->pGetPoint(1), this->pGetPoint(3)).Length();
+      double l23 = EdgeType(this->pGetPoint(2), this->pGetPoint(3)).Length();
+
+      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 + l03 * l03 + l13 * l13 + l23 * l23 * onesixth );
+    }
+
 
     virtual double DomainSize() const
     {
 
         return Volume();
+    }
+
+
+    /** Calculates the quality of the geometry according to a given criteria.
+
+    Calculates the quality of the geometry according to a given criteria. In General
+    The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
+    inverted elements.
+
+    Different crtieria can be used to stablish the quality of the geometry.
+    @see QualityCriteria
+
+    @return double value contains quality of the geometry
+    */
+    virtual double Quality(const typename Geometry<TPointType>::QualityCriteria qualityCriteria) const
+    {
+      double quality = 0.0f;
+
+      if(qualityCriteria == Geometry<TPointType>::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO) {
+        const double normalization_coeficient = 6.0f * std::sqrt(2.0f);
+        
+        double volume = this->Volume();
+        double avglen = this->AverageEdgeLength();
+
+        quality = normalization_coeficient * volume / (avglen * avglen * avglen);
+      }
+
+      return quality;
     }
 
 
@@ -594,7 +640,7 @@ public:
         }
         return 0;
     }
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -615,7 +661,7 @@ public:
       rResult[1] =  rCoordinates[0] ;
       rResult[2] =  rCoordinates[1] ;
       rResult[3] =  rCoordinates[2] ;
-        
+
         return rResult;
     }
     /**
@@ -630,9 +676,9 @@ public:
     {
         if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
             rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
-        
+
         CalculateShapeFunctionsLocalGradients(rResult, rPoint);
-        
+
         return rResult;
     }
 
@@ -697,7 +743,7 @@ public:
 
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-        
+
 
         return rResult;
     }
@@ -758,7 +804,7 @@ public:
         }
         for(unsigned int i=0; i<integration_points_number; i++)
                 rResult[i] = DN_DX;
-        
+
 
         return rResult;
     }
@@ -1296,4 +1342,4 @@ GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined 
+#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined
