@@ -1,4 +1,5 @@
 import KratosMultiphysics 
+import sys
 from math import *
 
 class aux_object:
@@ -65,7 +66,10 @@ class ApplyCustomFunctionProcess(KratosMultiphysics.Process):
         self.function_string = settings["f(x,y,z,t)"].GetString()
         
         ##compile function function_string
-        self.compiled_function = compile(self.function_string, '', 'eval', optimize=2) #here we precompile the expression so that then it is much faster to execute it
+        if (sys.version_info > (3, 0)):
+            self.compiled_function = compile(self.function_string, '', 'eval', optimize=2) #here we precompile the expression so that then it is much faster to execute it
+        else:
+            self.compiled_function = compile(self.function_string, '', 'eval')
         
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
