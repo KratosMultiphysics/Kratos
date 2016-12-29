@@ -1053,9 +1053,9 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
             array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
             array_1d<double, 3 >& displ = (*node_pointer_it)->FastGetSolutionStepValue(DISPLACEMENT);
-            double period_0 = mHighPoint[0] - mLowPoint[0];
-            double period_1 = mHighPoint[1] - mLowPoint[1];
-            double period_2 = mHighPoint[2] - mLowPoint[2];
+            const double period_0 = mHighPoint[0] - mLowPoint[0];
+            const double period_1 = mHighPoint[1] - mLowPoint[1];
+            const double period_2 = mHighPoint[2] - mLowPoint[2];
 
             if (coor[0] > mHighPoint[0]) {
                 displ[0] -= period_0;
