@@ -24,7 +24,7 @@ proc ::FSI::Init { } {
     
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     LoadMyFiles
-    ::spdAux::CreateDimensionWindow
+    #::spdAux::CreateDimensionWindow
 }
 
 proc ::FSI::LoadMyFiles { } {

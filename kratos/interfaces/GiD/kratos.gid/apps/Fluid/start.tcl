@@ -24,7 +24,7 @@ proc ::Fluid::Init { } {
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     LoadMyFiles
-    ::Fluid::FluidAppSelectorWindow
+    if {[apps::getActiveAppId] eq "Fluid"} {::Fluid::FluidAppSelectorWindow}
 }
 
 proc ::Fluid::LoadMyFiles { } {
