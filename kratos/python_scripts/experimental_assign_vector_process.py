@@ -18,13 +18,13 @@ class AssignVectorProcess(KratosMultiphysics.Process):
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "interval"             : [0.0, 1e30],
-                "constrained"          : true,
-                "imposed_components"   : [true,true,true],
                 "value"                : [10.0, "3*t", "x+y"],
                 "local_axes"           : {}
             }
             """
             )
+        
+        #example of admissible values for "value" : [10.0, "3*t", "x+y"]
         
         settings.ValidateAndAssignDefaults(default_settings)
         
@@ -35,11 +35,11 @@ class AssignVectorProcess(KratosMultiphysics.Process):
         import experimental_assign_value_process
         
         #component X
-        if(settings["imposed_components"][0].GetBool() == True):
+        if(not settings["value"][0].IsNull()):
             x_params = KratosMultiphysics.Parameters("{}")           
             x_params.AddValue("model_part_name",settings["model_part_name"])
             x_params.AddValue("mesh_id",settings["mesh_id"])
-            x_params.AddValue("constrained",settings["constrained"])
+            x_params.AddEmptyValue("constrained").SetBool(True)
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
@@ -47,11 +47,11 @@ class AssignVectorProcess(KratosMultiphysics.Process):
             self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, x_params) )
 
         #component Y
-        if(settings["imposed_components"][1].GetBool() == True):
+        if(not settings["value"][1].IsNull()):
             y_params = KratosMultiphysics.Parameters("{}")           
             y_params.AddValue("model_part_name",settings["model_part_name"])
             y_params.AddValue("mesh_id",settings["mesh_id"])
-            y_params.AddValue("constrained",settings["constrained"])
+            y_params.AddEmptyValue("constrained").SetBool(True)
             y_params.AddValue("interval",settings["interval"])
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
@@ -59,11 +59,11 @@ class AssignVectorProcess(KratosMultiphysics.Process):
             self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, y_params) )
 
         #component Z
-        if(settings["imposed_components"][2].GetBool() == True):
+        if(not settings["value"][2].IsNull()):
             z_params = KratosMultiphysics.Parameters("{}")           
             z_params.AddValue("model_part_name",settings["model_part_name"])
             z_params.AddValue("mesh_id",settings["mesh_id"])
-            z_params.AddValue("constrained",settings["constrained"])
+            z_params.AddEmptyValue("constrained").SetBool(True)
             z_params.AddValue("interval",settings["interval"])
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
