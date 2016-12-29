@@ -79,6 +79,31 @@ public:
     /// Pointer definition of Geometry
     KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME( Geometry<TPointType> );
 
+    /** Different criteria to evaluate the quality of a geometry.
+     * The different criteria are detailed below:
+     *
+     * ASPECT_RATIO: Aspect ratio
+     * ASPECT_RATIO_ALT: Aspect ratio ( alterantive )
+     * RELEVANT_SPHERE_RATIO: Relevant sphere ratio
+     * CIRCUMRADIUS_DIAMETER_RATIO: Circumradius vs diameter ratio
+     * EXTREMEAL_LENGTH_EDGE_RATIO: Extremal length of edge ratio
+     * VOLUME_SURFACE_RATIO: Volume vs surface ratio
+     * AVERAGE_LENGTH_VOLUME_RATIO: Average length vs volume ratio
+     * MAXIMAL_DIHEDRAL_ANGLE: Maximal dihedral angle
+     * MINIMAL_SOLID_ANGLE: Minimal solid angle
+     */
+    enum QualityCriteria {
+      ASPECT_RATIO,
+      ASPECT_RATIO_ALT,
+      RELEVANT_SPHERE_RATIO,
+      CIRCUMRADIUS_DIAMETER_RATIO,
+      EXTREMEAL_LENGTH_EDGE_RATIO,
+      VOLUME_SURFACE_RATIO,
+      AVERAGE_LENGTH_VOLUME_RATIO,
+      MAXIMAL_DIHEDRAL_ANGLE,
+      MINIMAL_SOLID_ANGLE
+    };
+
     /** Base type for geometry.
     */
     typedef PointerVector<TPointType> BaseType;
@@ -588,6 +613,22 @@ public:
         result.Coordinates() *= temp;
 
         return result;
+    }
+
+    /** Calculates the quality of the geometry according to a given criteria.
+
+    Calculates the quality of the geometry according to a given criteria. In General
+    The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
+    inverted elements.
+
+    Different crtieria can be used to stablish the quality of the geometry.
+    @see QualityCriteria
+
+    @return double value contains quality of the geometry
+    */
+    virtual double Quality(const typename Geometry<TPointType>::QualityCriteria qualityCriteria) const
+    {
+      return 0.0f;
     }
 
     ///@}
@@ -2102,6 +2143,4 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_H_INCLUDED  defined 
-
-
+#endif // KRATOS_GEOMETRY_H_INCLUDED  defined
