@@ -43,11 +43,9 @@ proc ::Fluid::GetAttribute {name} {
 }
 
 proc ::Fluid::FluidAppSelectorWindow { } {
-    #package require anigif 1.3
     set initwind $::spdAux::initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
     set nd ""
     catch {set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]} 
     if {$nd eq ""} {catch {set nd [ [$root selectNodes "hiddenfield\[@n='nDim'\]"] getAttribute v]}}
@@ -56,6 +54,7 @@ proc ::Fluid::FluidAppSelectorWindow { } {
             spdAux::SwitchDimAndCreateWindow $nd
         }
     } {
+        [$root selectNodes "value\[@n='nDim'\]"] setAttribute v wait
         set dir $::Kratos::kratos_private(Path)
         
         set initwind .gid.win_example
@@ -100,6 +99,9 @@ proc ::Fluid::FluidAppSelectorWindow { } {
 proc ::Fluid::ChangeAppTo {appid} {
     switch $appid {
         "Fluid" {
+            set doc $gid_groups_conds::doc
+            set root [$doc documentElement]
+            [$root selectNodes "value\[@n='nDim'\]"] setAttribute v undefined
             ::spdAux::CreateDimensionWindow
         }
         "EmbeddedFluid" {

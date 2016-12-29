@@ -145,14 +145,13 @@ proc spdAux::activeApp { appid } {
     set nd ""
     catch {set nd [$root selectNodes "value\[@n='nDim'\]"]} 
     if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"]}}
-    
-    if {[$nd getAttribute v] ne "undefined"} {
-        spdAux::SwitchDimAndCreateWindow $::Model::SpatialDimension
-        #destroy $initwind
-        #gid_groups_conds::open_conditions menu
-        #gid_groups_conds::actualize_conditions_window
-        #spdAux::RequestRefresh
-        spdAux::TryRefreshTree
+    if {[$nd getAttribute v] ne "wait"} {
+        if {[$nd getAttribute v] ne "undefined"} {
+            spdAux::SwitchDimAndCreateWindow $::Model::SpatialDimension
+            spdAux::TryRefreshTree
+        } {
+            ::spdAux::CreateDimensionWindow
+        }
     }
 }
 
@@ -307,7 +306,7 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
         spdAux::TryRefreshTree
         spdAux::OpenTree
     }
-     ::Kratos::CreatePreprocessModelTBar
+    ::Kratos::CreatePreprocessModelTBar
 }
 
 proc spdAux::ForceExtremeLoad { } {
@@ -795,11 +794,11 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                     append node $nodef
                     append node "\" att1='state' v1='normal'/>
                         </value>"
-                        
+                    
                     append node "<value n='$fname' pn='Function' v='' help='$help'/>"
                 }
                 append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
-
+                
                 #append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
             }
         }
