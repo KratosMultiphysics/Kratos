@@ -166,8 +166,7 @@ class TestProcesses(KratosUnittest.TestCase):
                                 "model_part_name"      : "Main",
                                 "variable_name"        : "DISPLACEMENT",
                                 "interval"             : [11.0, 15.0],
-                                "imposed_components"   : [true,false,true],
-                                "value"                : [10.0, "3*t", "t"],
+                                "value"                : [10.0, null, "t"],
                                 "local_axes"           : {}
                             }   
                     }
