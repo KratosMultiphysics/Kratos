@@ -92,6 +92,9 @@ def ConstructListsOfVariables(pp):
         if pp.CFD_DEM.material_acceleration_calculation_type == 5:
             pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
+    if pp.CFD_DEM.vorticity_calculation_type == 1 or pp.CFD_DEM.lift_force_type == 1:
+        pp.fluid_vars += [VORTICITY]
+
     if pp.CFD_DEM.laplacian_calculation_type:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
 
