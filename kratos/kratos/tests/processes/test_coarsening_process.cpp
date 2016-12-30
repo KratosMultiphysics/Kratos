@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -41,7 +41,7 @@ namespace Kratos {
 
 			ModelPart model_part("Test");
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":20,
                 "element_name": "Element2D3N"
@@ -72,7 +72,7 @@ namespace Kratos {
 
 			KRATOS_WATCH(model_part.NumberOfNodes());
 			KRATOS_WATCH(model_part.NumberOfElements());
-			std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
+			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
@@ -100,7 +100,7 @@ namespace Kratos {
 
 			ModelPart model_part("Test");
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
                 "element_name": "Element2D3N"
@@ -135,7 +135,7 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 
 
-			std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
+			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
@@ -163,7 +163,7 @@ namespace Kratos {
 
 			ModelPart model_part("Test");
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
                 "element_name": "Element2D3N"
@@ -203,7 +203,7 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 
 
-			std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
+			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
@@ -220,5 +220,3 @@ namespace Kratos {
 		}
 	}
 }  // namespace Kratos.
-
-
