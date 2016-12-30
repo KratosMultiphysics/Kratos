@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 #if !defined(KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED )
@@ -50,11 +50,11 @@ namespace Kratos
       KRATOS_CLASS_POINTER_DEFINITION(MeshCoarseningProcess);
 
 	  ///@}
-	  ///@name Flags 
-	  ///@{ 
+	  ///@name Flags
+	  ///@{
 
 	  KRATOS_DEFINE_LOCAL_FLAG(COARSE_MESH_NODE);
-	  
+
 	  ///@}
       ///@name Life Cycle
       ///@{
@@ -146,7 +146,7 @@ namespace Kratos
 
 		double CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode);
 
-		double MeshCoarseningProcess::CalculateMinQualityOfNeighbourElements(Node<3>& rThisNode, Node<3> const& rCoarseNode);
+		double CalculateMinQualityOfNeighbourElements(Node<3>& rThisNode, Node<3> const& rCoarseNode);
 
 		bool ElementHas(Element& rElement, Node<3> const& rCoarseNode);
 
