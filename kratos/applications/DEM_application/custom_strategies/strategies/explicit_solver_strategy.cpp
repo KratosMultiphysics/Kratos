@@ -202,7 +202,7 @@ namespace Kratos {
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
         for (int k = 0; k < number_of_clusters; k++) {
 
-            typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
 
             cluster_element.Initialize(r_process_info);
@@ -232,7 +232,7 @@ namespace Kratos {
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
         for (int k = 0; k < number_of_clusters; k++) {
 
-            typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
 
             cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
@@ -444,14 +444,14 @@ namespace Kratos {
             
             #pragma omp for
             for (int k = 0; k < (int) pLocalClusters.size(); k++) {
-                typename ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
+                ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
             
             #pragma omp for
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
-                typename ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+                 ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
@@ -472,7 +472,7 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < (int) pElements.size(); k++) {
-            typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             (it)->InitializeSolutionStep(r_process_info);
         }
 
@@ -502,8 +502,8 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                 (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts.
@@ -522,8 +522,8 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                 (it)->Initialize();
@@ -551,8 +551,8 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin() + this->GetElementPartition()[k];
-            typename ConditionsArrayType::iterator it_end = pTConditions.ptr_begin() + this->GetElementPartition()[k + 1];
+            ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin() + this->GetElementPartition()[k];
+            ConditionsArrayType::iterator it_end = pTConditions.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
                 (it)->Initialize();
@@ -576,10 +576,10 @@ namespace Kratos {
         #pragma omp parallel for private (index, rhs_cond, rhs_cond_elas)
         for (int k = 0; k < mNumberOfThreads; k++) {
 
-            typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
-            typename ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
+            ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
+            ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
 
-            for (typename ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
+            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
                 double Element_Area = geom.Area();
@@ -632,8 +632,8 @@ namespace Kratos {
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
 
-            typename NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            typename NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
+            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
+            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
 
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
 
@@ -668,8 +668,8 @@ namespace Kratos {
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
 
-            typename NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            typename NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
+            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
+            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
 
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
 
@@ -689,7 +689,7 @@ namespace Kratos {
         KRATOS_TRY
         #pragma omp parallel for
         for (int i = 0; i < (int) r_nodes_array.size(); i++) {
-            typename NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
+            NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
             node_i->FastGetSolutionStepValue(r_variable_to_set) = value;
             node_i->Set(r_flag_name, true);
         }
@@ -700,7 +700,7 @@ namespace Kratos {
         KRATOS_TRY
         #pragma omp parallel for
         for (int i = 0; i < (int) r_nodes_array.size(); i++) {
-            typename NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
+            NodesArrayType::iterator node_i = r_nodes_array.ptr_begin() + i;
             node_i->FastGetSolutionStepValue(r_variable_to_set) = value;
         }
         KRATOS_CATCH("")
@@ -1109,7 +1109,7 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < (int) pElements.size(); k++) {
-            typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             Element* raw_p_element = &(*it);
             SphericParticle* p_sphere = dynamic_cast<SphericParticle*> (raw_p_element);
             p_sphere->PrepareForPrinting(r_process_info);
@@ -1148,7 +1148,7 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < (int) pElements.size(); k++) {
-            typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
 
             ModelPart::NodeType& pNode = it->GetGeometry()[0];
 
