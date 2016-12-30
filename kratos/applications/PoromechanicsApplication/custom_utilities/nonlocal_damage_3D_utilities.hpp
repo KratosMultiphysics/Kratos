@@ -27,7 +27,7 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
+private:
 
     struct Utility3DVariables
     {
@@ -265,7 +265,7 @@ private:
         Utility3DVariables& rAuxVariables,
         ModelPart& rModelPart)
     {
-        // Compute X and Y limits of the current geometry
+        // Compute X, Y and Z limits of the current geometry
         unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);

@@ -1030,20 +1030,20 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(boost::numeric
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
     noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0/norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-    Vx[2] *= inv_norm_x;
+    double inv_norm = 1.0/norm_2(Vx);
+    Vx[0] *= inv_norm;
+    Vx[1] *= inv_norm;
+    Vx[2] *= inv_norm;
         
     //Unitary vector in local z direction
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
     MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double inv_norm_z = 1.0/norm_2(Vz);
-    Vz[0] *= inv_norm_z;
-    Vz[1] *= inv_norm_z;
-    Vz[2] *= inv_norm_z;
+    inv_norm = 1.0/norm_2(Vz);
+    Vz[0] *= inv_norm;
+    Vz[1] *= inv_norm;
+    Vz[2] *= inv_norm;
             
     //Unitary vector in local y direction
     MathUtils<double>::CrossProduct( Vy, Vz, Vx);
@@ -1082,20 +1082,20 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(boost::numeric
     //Unitary vector in local x direction
     array_1d<double, 3> Vx;
     noalias(Vx) = pmid1 - pmid0;
-    double inv_norm_x = 1.0/norm_2(Vx);
-    Vx[0] *= inv_norm_x;
-    Vx[1] *= inv_norm_x;
-    Vx[2] *= inv_norm_x;
+    double inv_norm = 1.0/norm_2(Vx);
+    Vx[0] *= inv_norm;
+    Vx[1] *= inv_norm;
+    Vx[2] *= inv_norm;
     
     //Unitary vector in local z direction
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
     MathUtils<double>::CrossProduct(Vz, Vx, Vy);
-    double inv_norm_z = 1.0/norm_2(Vz);
-    Vz[0] *= inv_norm_z;
-    Vz[1] *= inv_norm_z;
-    Vz[2] *= inv_norm_z;
+    inv_norm = 1.0/norm_2(Vz);
+    Vz[0] *= inv_norm;
+    Vz[1] *= inv_norm;
+    Vz[2] *= inv_norm;
     
     //Unitary vector in local y direction
     MathUtils<double>::CrossProduct( Vy, Vz, Vx);
