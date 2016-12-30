@@ -71,7 +71,7 @@ protected:
 
     ///------------------------------------------------------------------------------------
 
-    struct GlobalPropagationVariables
+    struct PropagationGlobalVariables
     {
         std::vector< std::vector< std::vector<FracturePoint> > > FracturePointsCellMatrix;
 
@@ -82,7 +82,7 @@ protected:
 
     ///------------------------------------------------------------------------------------
 
-    struct LocalPropagationVariables
+    struct PropagationLocalVariables
     {
         boost::numeric::ublas::bounded_matrix<double,2,2> RotationMatrix;
         array_1d<double,2> TipCoordinates;
@@ -117,7 +117,7 @@ public:
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
-        GlobalPropagationVariables PropagationData;
+        PropagationGlobalVariables PropagationData;
         
         this->InitializeCheckFracture(PropagationData, AuxVariables, rParameters, rModelPart, move_mesh_flag);
         
@@ -160,7 +160,7 @@ protected:
 /// Fracture Propagation Check ------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeCheckFracture(
-        GlobalPropagationVariables& rPropagationData,
+        PropagationGlobalVariables& rPropagationData,
         UtilityVariables& rAuxVariables,
         Parameters& rParameters,
         ModelPart& rModelPart,
@@ -181,11 +181,11 @@ protected:
 
     void CheckFracture(
         const unsigned int& itFracture,
-        GlobalPropagationVariables& rPropagationData,
+        PropagationGlobalVariables& rPropagationData,
         const UtilityVariables& AuxVariables,
         Parameters& rParameters)
     {
-        LocalPropagationVariables AuxPropagationVariables;
+        PropagationLocalVariables AuxPropagationVariables;
 
         // Tip Coordinates
         for(unsigned int i = 0; i < 2; i++)
@@ -230,7 +230,7 @@ protected:
                     if(rOtherPoint.TipDistance <= PropagationLength)
                     {
                         TipNeighbours.push_back(&rOtherPoint);
-
+                        
                         noalias(OtherLocalCoordinates) = prod(AuxPropagationVariables.RotationMatrix,rOtherPoint.Coordinates);
                         
                         // FrontFracturePoints
@@ -283,7 +283,7 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void FinalizeCheckFracture(
-        const GlobalPropagationVariables& PropagationData,
+        const PropagationGlobalVariables& PropagationData,
         Parameters& rParameters,
         ModelPart& rModelPart,
         const bool& move_mesh_flag)
@@ -304,7 +304,7 @@ protected:
     ///------------------------------------------------------------------------------------
 
     void WritePropagationData(
-        const GlobalPropagationVariables& PropagationData,
+        const PropagationGlobalVariables& PropagationData,
         Parameters& rParameters)
     {
 
@@ -1222,7 +1222,7 @@ private:
 /// Fracture Propagation Check ------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SetFracturePoints(
-        GlobalPropagationVariables& rPropagationData,
+        PropagationGlobalVariables& rPropagationData,
         UtilityVariables& rAuxVariables,
         Parameters& rParameters,
         ModelPart& rModelPart)
@@ -1237,8 +1237,8 @@ private:
         FracturePoint MyFracturePoint;
         GeometryData::IntegrationMethod MyIntegrationMethod;
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        array_1d<double,3> AuxGlobalCoordinates;
         array_1d<double,3> AuxLocalCoordinates;
+        array_1d<double,3> AuxGlobalCoordinates;
 
         unsigned int NumBodySubModelParts = rParameters["fracture_data"]["body_domain_sub_model_part_list"].size();
 
@@ -1277,7 +1277,7 @@ private:
                     rGeom.GlobalCoordinates(AuxGlobalCoordinates,AuxLocalCoordinates); //Note: these are the CURRENT global coordinates
                     MyFracturePoint.Coordinates[0] = AuxGlobalCoordinates[0];
                     MyFracturePoint.Coordinates[1] = AuxGlobalCoordinates[1];
-
+                    
                     // FracturePoint Weight
                     MyFracturePoint.Weight = detJContainer[GPoint]*IntegrationPoints[GPoint].Weight();
 
@@ -1300,8 +1300,8 @@ private:
 
     void PropagateFracture(
         const unsigned int& itFracture,
-        GlobalPropagationVariables& rPropagationData,
-        LocalPropagationVariables& rAuxPropagationVariables,
+        PropagationGlobalVariables& rPropagationData,
+        PropagationLocalVariables& rAuxPropagationVariables,
         Parameters& rParameters)
     {
         // Check whether we have bifurcation or simple propagation
@@ -1530,7 +1530,7 @@ private:
 
 void ComputeCosAngle(
     FracturePoint& rMyFracturePoint,
-    LocalPropagationVariables& rAuxPropagationVariables)
+    PropagationLocalVariables& rAuxPropagationVariables)
 {
     array_1d<double,2> FractureLineVector;
     array_1d<double,2> LocalFractureLineVector;

@@ -71,28 +71,24 @@ proc IsTopPoint {Point LeftPoint RightPoint TipPoint} {
     set Tp(1) [lindex $TipPoint 2]
     set Tp(2) [lindex $TipPoint 3]
     
-    # Unitary vector in local x direction
+    # Vector in local x direction
     set Vx(0) [expr {$Tp(0)-$Rp(0)}]
     set Vx(1) [expr {$Tp(1)-$Rp(1)}]
     set Vx(2) [expr {$Tp(2)-$Rp(2)}]
-    set InvNorm [expr {1.0/sqrt($Vx(0)*$Vx(0)+$Vx(1)*$Vx(1)+$Vx(2)*$Vx(2))}]
-    set Vx(0) [expr {$Vx(0)*$InvNorm}]
-    set Vx(1) [expr {$Vx(1)*$InvNorm}]
-    set Vx(2) [expr {$Vx(2)*$InvNorm}]
 
-    # Unitary vector in local y direction
+    # Vector in local y direction
     set Vy(0) [expr {$Lp(0)-$Rp(0)}]
     set Vy(1) [expr {$Lp(1)-$Rp(1)}]
     set Vy(2) [expr {$Lp(2)-$Rp(2)}]
-    set InvNorm [expr {1.0/sqrt($Vy(0)*$Vy(0)+$Vy(1)*$Vy(1)+$Vy(2)*$Vy(2))}]
-    set Vy(0) [expr {$Vy(0)*$InvNorm}]
-    set Vy(1) [expr {$Vy(1)*$InvNorm}]
-    set Vy(2) [expr {$Vy(2)*$InvNorm}]
     
-    # Unitary vector in local z direction (Cross product between Vx and Vy)
+    # Unitary vector in local z direction (Cross product between Vx and Vy)    
     set Vz(0) [expr {$Vx(1)*$Vy(2)-$Vx(2)*$Vy(1)}]
     set Vz(1) [expr {$Vx(2)*$Vy(0)-$Vx(0)*$Vy(2)}]
     set Vz(2) [expr {$Vx(0)*$Vy(1)-$Vx(1)*$Vy(0)}]
+    set InvNorm [expr {1.0/sqrt($Vz(0)*$Vz(0)+$Vz(1)*$Vz(1)+$Vz(2)*$Vz(2))}]
+    set Vz(0) [expr {$Vz(0)*$InvNorm}]
+    set Vz(1) [expr {$Vz(1)*$InvNorm}]
+    set Vz(2) [expr {$Vz(2)*$InvNorm}]
     
     # Rotation matrix (only z component)
     set R(20) $Vz(0)
@@ -109,7 +105,7 @@ proc IsTopPoint {Point LeftPoint RightPoint TipPoint} {
     
     # Local z component of the Point
     set Pz [expr {$R(20)*$P(0)+$R(21)*$P(1)+$R(22)*$P(2)}]
-
+    
     if {$Pz > $Tz} {
         return 1
     } else {

@@ -230,7 +230,7 @@ proc Poromechanics_Application::CreateContactEntity { } {
     #~ set n(0) [expr {$Ri(1)*$Rf(2)-$Ri(2)*$Rf(1)}]
     #~ set n(1) [expr {$Ri(2)*$Rf(0)-$Ri(0)*$Rf(2)}]
     #~ set n(2) [expr {$Ri(0)*$Rf(1)-$Ri(1)*$Rf(0)}]
-    #~ # Sine of the angle of rotation
+    #~ # Sine of the angle of rotation (positive angle between 0º and 90º)
     #~ set SinAngle [expr {sqrt($n(0)*$n(0)+$n(1)*$n(1)+$n(2)*$n(2))}]
     
     #~ # Transformation Matrix
