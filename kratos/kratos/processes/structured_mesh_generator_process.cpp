@@ -2,18 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 // System includes
 #include <vector>
-// External includes 
+// External includes
 
 // Project includes
 #include "processes/structured_mesh_generator_process.h"
@@ -28,7 +28,7 @@ namespace Kratos
 		, mrGeometry(rGeometry)
 		, mrOutputModelPart(rOutputModelPart) {
 
-		Parameters default_parameters(R"( 
+		Parameters default_parameters(R"(
             {
 	            "create_skin_sub_model_part": true,
 	            "start_node_id":1,
@@ -101,7 +101,7 @@ namespace Kratos
 		Point<3> min_point(1.00, 1.00, 1.00);
 		Point<3> max_point(-1.00, -1.00, -1.00);
 		GetLocalCoordinatesRange(min_point, max_point);
-		
+
 		GenerateNodes2D(min_point, max_point);
 
 		GenerateTriangularElements();
@@ -110,7 +110,7 @@ namespace Kratos
 	void StructuredMeshGeneratorProcess::GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint) {
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
-		const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
+		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Point<3> local_coordinates = rMinPoint;
 		Point<3> global_coordinates = ZeroVector(3);
 		std::size_t node_id = mStartNodeId;
@@ -129,8 +129,8 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::GenerateTriangularElements() {
-		std::size_t number_of_nodes = (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1);
-		std::size_t first_node_id = mStartNodeId;
+		//std::size_t number_of_nodes = (mNumberOfDivisions + 1) * (mNumberOfDivisions + 1);
+		//std::size_t first_node_id = mStartNodeId;
 		std::size_t element_id = mStartElementId;
 
 		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
@@ -149,7 +149,7 @@ namespace Kratos
 	std::size_t StructuredMeshGeneratorProcess::GetNodeId(std::size_t Row, std::size_t Column) {
 		return mStartNodeId + (Row * (mNumberOfDivisions + 1)) + Column;
 	}
-  
+
     void StructuredMeshGeneratorProcess::GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint) {
 		const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Matrix geometry_points_local_coordinates;
@@ -165,8 +165,6 @@ namespace Kratos
 		}
 	}
 
-	
+
 
 }  // namespace Kratos.
-
-
