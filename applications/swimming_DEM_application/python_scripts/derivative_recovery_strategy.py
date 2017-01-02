@@ -95,6 +95,10 @@ class DerivativeRecoveryStrategy:
                 for node in self.fluid_model_part.Nodes:
                     if component == 0:
                         node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, 0.0)
+                        if self.pp.CFD_DEM.lift_force_type:
+                            node.SetSolutionStepValue(VORTICITY_X, 0.0)
+                            node.SetSolutionStepValue(VORTICITY_Y, 0.0)
+                            node.SetSolutionStepValue(VORTICITY_Z, 0.0)
                     elif component == 1:
                         node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, 0.0)
                     elif component == 2:
@@ -126,7 +130,7 @@ class DerivativeRecoveryStrategy:
                 sys.stdout.flush()
 
     def Recover(self):
-        if self.pp.CFD_DEM.gradient_calculation_type == 1:
+        if self.pp.CFD_DEM.gradient_calculation_type == 1 or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option:
             self.custom_functions_tool.CalculatePressureGradient(self.fluid_model_part)
         elif self.pp.CFD_DEM.gradient_calculation_type == 2:
             self.derivative_recovery_tool.RecoverSuperconvergentGradient(self.fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
@@ -150,12 +154,14 @@ class DerivativeRecoveryStrategy:
                 self.Solve(0)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)         
                 if self.pp.CFD_DEM.lift_force_type:
-                    self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)         
+                    self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)    
+                    
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
                 self.Solve(1)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
                 if self.pp.CFD_DEM.lift_force_type:
-                        self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)                  
+                    self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)          
+                    
                 self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
                 self.Solve(2)
                 self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_COMPONENT_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
