@@ -92,10 +92,11 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
-pp.CFD_DEM.gradient_calculation_type = 0
+pp.CFD_DEM.gradient_calculation_type = 1
 pp.CFD_DEM.laplacian_calculation_type = 0
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
+pp.CFD_DEM.vorticity_calculation_type = 5
 pp.CFD_DEM.material_acceleration_calculation_type = 5
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
@@ -115,6 +116,8 @@ pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
+pp.CFD_DEM.print_VORTICITY_option = 1
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 pp.viscosity_modification_type = 0.0
@@ -804,7 +807,6 @@ while (time <= final_time):
 
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
-        out = out + Dt
         spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
         rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
@@ -855,6 +857,15 @@ while (time <= final_time):
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
+        if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+
+            if DEM_parameters.coupling_level_type:
+                projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
+
+            post_utils.Writeresults(time_dem)
+            out = 0
+
+        out = out + Dt_DEM
         #first_dem_iter = False
 
     if DEM_parameters.ElementType == "SwimmingNanoParticle":
@@ -891,13 +902,13 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
     
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+    #if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
-        if DEM_parameters.coupling_level_type:
-            projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
+        #if DEM_parameters.coupling_level_type:
+            #projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
-        post_utils.Writeresults(time)
-        out = 0
+        #post_utils.Writeresults(time)
+        #out = 0
 
     #out = out + Dt
 
