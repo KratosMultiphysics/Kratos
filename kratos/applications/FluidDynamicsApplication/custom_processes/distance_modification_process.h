@@ -155,7 +155,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DistanceModificationProcess" ;
@@ -163,10 +163,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistanceModificationProcess";}
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DistanceModificationProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
