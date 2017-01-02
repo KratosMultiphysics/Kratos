@@ -173,7 +173,7 @@ def ConstructListsOfResultsToPrint(pp):
     if DEM_parameters.ElementType == "SwimmingNanoParticle":
         if DEM_parameters.PostCationConcentration:
             pp.dem_nodal_results += ["CATION_CONCENTRATION"]
-        
+
     if pp.CFD_DEM.coupling_level_type > 0:
 
         if pp.CFD_DEM.print_REYNOLDS_NUMBER_option:
@@ -228,6 +228,7 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_LIFT_FORCE_option:
             pp.dem_nodal_results += ["LIFT_FORCE"]
+
     if pp.CFD_DEM.embedded_option:
         pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
         pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
@@ -386,9 +387,11 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM.embedded_option:
         pp.nodal_results += ["DISTANCE"]
 
-    pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
     if pp.CFD_DEM.print_MATERIAL_ACCELERATION_option:
         pp.nodal_results += ["MATERIAL_ACCELERATION"]
+
+    if pp.CFD_DEM.print_VORTICITY_option:
+        pp.nodal_results += ["VORTICITY"]
 
     if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option:
         pp.nodal_results += ["VELOCITY_LAPLACIAN"]
