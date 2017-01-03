@@ -440,7 +440,7 @@ public:
         NodesArrayType& pNode = rModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
-        #pragma omp parallel for 
+//         #pragma omp parallel for // NOTE: Giving problems!!
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
