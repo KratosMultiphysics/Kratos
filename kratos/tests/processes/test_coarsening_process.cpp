@@ -51,10 +51,10 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 
-			GidIO<> gid_io("c:/temp/coarsening/coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			gid_io.InitializeMesh(0.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// GidIO<> gid_io("c:/temp/coarsening/coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			// gid_io.InitializeMesh(0.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 			ModelPart& r_skin_model_part = model_part.GetSubModelPart("Skin");
 
@@ -65,9 +65,9 @@ namespace Kratos {
 
 			MeshCoarseningProcess(model_part).Execute();
 
-			gid_io.InitializeMesh(1.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// gid_io.InitializeMesh(1.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 
 			KRATOS_WATCH(model_part.NumberOfNodes());
@@ -116,10 +116,10 @@ namespace Kratos {
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
 				original_mesh_area += i_element->GetGeometry().Area();
 
-			GidIO<> gid_io("c:/temp/coarsening/perturbed_coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			gid_io.InitializeMesh(0.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// GidIO<> gid_io("c:/temp/coarsening/perturbed_coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			// gid_io.InitializeMesh(0.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 			ModelPart& r_skin_model_part = model_part.GetSubModelPart("Skin");
 
@@ -130,9 +130,9 @@ namespace Kratos {
 
 			MeshCoarseningProcess(model_part).Execute();
 
-			gid_io.InitializeMesh(1.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// gid_io.InitializeMesh(1.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 
 			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
@@ -179,10 +179,10 @@ namespace Kratos {
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
 				original_mesh_area += i_element->GetGeometry().Area();
 
-			GidIO<> gid_io("c:/temp/coarsening/redistributed_coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			gid_io.InitializeMesh(0.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// GidIO<> gid_io("c:/temp/coarsening/redistributed_coarsening_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			// gid_io.InitializeMesh(0.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 			ModelPart& r_skin_model_part = model_part.GetSubModelPart("Skin");
 
@@ -198,9 +198,9 @@ namespace Kratos {
 			MeshCoarseningProcess(model_part).Execute();
 
 
-			gid_io.InitializeMesh(1.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			// gid_io.InitializeMesh(1.00);
+			// gid_io.WriteMesh(model_part.GetMesh());
+			// gid_io.FinalizeMesh();
 
 
 			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
