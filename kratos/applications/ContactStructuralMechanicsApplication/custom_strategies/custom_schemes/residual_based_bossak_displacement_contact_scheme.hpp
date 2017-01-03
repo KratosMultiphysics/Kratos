@@ -179,9 +179,6 @@ public:
     )
     {
         KRATOS_TRY;
-
-        // It resets the weighted gap and slip 
-        ContactUtilities::ResetVisited(rModelPart);
         
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -303,7 +300,11 @@ public:
             }
         }
        
-//         ContactUtilities::ReComputeActiveInactive( rModelPart ); 
+//         // It resets the visited flag
+//         ContactUtilities::ResetVisited(rModelPart);
+        
+//         // It recomputes the active/inactive pair
+//         ContactUtilities::ReComputeActiveInactive( rModelPart );  
         
         KRATOS_CATCH("");
     }
@@ -373,7 +374,11 @@ public:
             }
         }
         
-        ContactUtilities::ReComputeActiveInactive( rModelPart); 
+        // It resets the visited flag
+        ContactUtilities::ResetVisited(rModelPart);
+        
+        // It recomputes the active/inactive pair
+        ContactUtilities::ReComputeActiveInactive( rModelPart );  
         
         KRATOS_CATCH("");
     }

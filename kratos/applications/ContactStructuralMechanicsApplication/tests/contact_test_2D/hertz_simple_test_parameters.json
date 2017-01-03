@@ -79,7 +79,7 @@
             "destination_model_part_name" : "Parts_parts_hemisphere",            
             "contact_type"                : "MortarMethod",
             "search_factor"               : 5.0,
-            "active_check_factor"	  : 0.005,
+            "active_check_factor"	  : 0.004,
             "max_number_results"          : 1000,
             "augmentation_normal"         : 1.0e3,
             "augmentation_tangent"        : 1.0e3,
