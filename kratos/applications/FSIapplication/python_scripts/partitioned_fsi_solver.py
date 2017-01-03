@@ -201,11 +201,12 @@ class PartitionedFSISolver:
         print("* Coupling strategy constructed.")
 
         # Construct the ALE mesh solver
-        mesh_solver_name = self.settings["coupling_solver_settings"]["mesh_solver"].GetString()
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
         mesh_solver_settings.AddValue("mesh_reform_dofs_each_step",self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"])
-        self.mesh_solver_module = __import__(mesh_solver_name)
-        self.mesh_solver = self.mesh_solver_module.CreateMeshSolver(self.fluid_main_model_part, mesh_solver_settings)
+        
+        self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
+        self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
+                                                                mesh_solver_settings)
         print("* ALE mesh solver constructed.")
 
         print("*** FSI partitioned solver construction finished.")
@@ -230,7 +231,7 @@ class PartitionedFSISolver:
         self.fluid_solver.AddVariables()
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
         # Mesh solver variables addition
-        self.mesh_solver_module.AddVariables(self.fluid_solver.main_model_part)
+        self.mesh_solver.AddVariables()
 
         ## Mapper variables addition
         NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
@@ -250,7 +251,7 @@ class PartitionedFSISolver:
 
         # Add DOFs fluid
         self.fluid_solver.AddDofs()
-        self.mesh_solver_module.AddDofs(self.fluid_solver.main_model_part)
+        self.mesh_solver.AddDofs()
 
 
     def Initialize(self):
@@ -311,7 +312,6 @@ class PartitionedFSISolver:
         self.fluid_solver.SolverInitialize()
         self.structure_solver.SolverInitialize()
         self.coupling_utility.Initialize()
-
 
 
     def GetComputingModelPart(self):
@@ -388,7 +388,7 @@ class PartitionedFSISolver:
                         keep_sign = True
                         distribute_load = False
                         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                         KratosMultiphysics.DISPLACEMENT,
+                                                                         KratosALE.MESH_DISPLACEMENT,
                                                                          keep_sign,
                                                                          distribute_load)            # Project the structure interface displacement onto the fluid interface
 
@@ -400,7 +400,7 @@ class PartitionedFSISolver:
         keep_sign = True
         distribute_load = False
         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                         KratosMultiphysics.DISPLACEMENT,
+                                                         KratosALE.MESH_DISPLACEMENT,
                                                          keep_sign,
                                                          distribute_load)                       # Project the structure interface displacement onto the fluid interface
         self.mesh_solver.Solve()                                                                # Solve the mesh problem
@@ -502,7 +502,7 @@ class PartitionedFSISolver:
                     structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0])
 
 
-    # TODO: This function must be checked as soon as the fluid Neumann BS is being implemented.
+    # TODO: This function must be checked as soon as the fluid Neumann BC has been implemented.
     def _SetFluidNeumannCondition(self):
 
         fluid_computational_volume_submodelpart = self.fluid_solver.GetComputingModelPart()
@@ -553,7 +553,7 @@ class PartitionedFSISolver:
             keep_sign = True
             distribute_load = False
             self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                             KratosMultiphysics.DISPLACEMENT,
+                                                             KratosALE.MESH_DISPLACEMENT,
                                                              keep_sign,
                                                              distribute_load)
 
@@ -772,7 +772,7 @@ class PartitionedFSISolver:
         i = 0
         if self.domain_size == 2:
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 
@@ -795,11 +795,11 @@ class PartitionedFSISolver:
                 u_n1[2] = 0.0
 
                 # Set the obtained corrected interface displacement
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u_n1)
+                node.SetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,0,u_n1)
 
         elif self.domain_size == 3:
             for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                u_n = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
+                u_n = node.GetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,1)
                 v_n = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
                 a_n = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION,1)
 
@@ -822,4 +822,4 @@ class PartitionedFSISolver:
                 u_n1[2] = u_n[2] + self.time_step_fluid*v_n[2] + (self.time_step_fluid**2)*(0.5-beta)*a_n[2] + (self.time_step_fluid**2)*beta*((1-alpha)*a_n1[2] + alpha*a_n[2])
 
                 # Set the obtained corrected interface displacement
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u_n1)
+                node.SetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,0,u_n1)
