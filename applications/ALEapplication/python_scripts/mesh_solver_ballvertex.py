@@ -4,31 +4,14 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
 CheckForPreviousImport()
 
+# import mesh solver base class
+import mesh_solver_base
 
-def AddVariables(model_part):
-
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-
-    print("Mesh solver variables added correctly.")
+def CreateSolver(model_part, custom_settings):
+    return MeshSolverBallvertex(model_part,custom_settings)
 
 
-def AddDofs(model_part):
-
-    for node in model_part.Nodes:
-
-        node.AddDof(DISPLACEMENT_X)
-        node.AddDof(DISPLACEMENT_Y)
-        node.AddDof(DISPLACEMENT_Z)
-
-    print("Mesh solver DOFs added correctly.")
-
-
-def CreateMeshSolver(model_part, custom_settings):
-    return MeshSolver(model_part,custom_settings)
-
-
-class MeshSolver:
+class MeshSolverBallvertex(mesh_solver_base.MeshSolverBase):
 
     def __init__(self, model_part, custom_settings):
 
@@ -54,11 +37,28 @@ class MeshSolver:
         self.time_order = 2
 
         # definition of the solvers
-#        pILUPrecond = ILU0Preconditioner()
-#        self.linear_solver =  BICGSTABSolver(1e-5, 300,pILUPrecond)
-# pDiagPrecond = DiagonalPreconditioner()
-# self.linear_solver = CGSolver(1e-3, 300, pDiagPrecond)
+        # pILUPrecond = ILU0Preconditioner()
+        # self.linear_solver =  BICGSTABSolver(1e-5, 300,pILUPrecond)
+        # pDiagPrecond = DiagonalPreconditioner()
+        # self.linear_solver = CGSolver(1e-3, 300, pDiagPrecond)
         self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
+
+    def AddVariables(self):
+
+        self.model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+
+        print("Mesh solver variables added correctly.")
+
+    def AddDofs(self):
+
+        for node in self.model_part.Nodes:
+
+            node.AddDof(DISPLACEMENT_X)
+            node.AddDof(DISPLACEMENT_Y)
+            node.AddDof(DISPLACEMENT_Z)
+
+        print("Mesh solver DOFs added correctly.")
 
     def Initialize(self):
         (self.neighbour_search).Execute()
@@ -89,5 +89,4 @@ class MeshSolver:
         self.move_mesh_utilities.BDF_MoveMesh(self.time_order, self.model_part)
 
     def MoveNodes(self):
-        print("**************************  *********************")
         self.move_mesh_utilities.BDF_MoveMesh(self.time_order, self.model_part)
