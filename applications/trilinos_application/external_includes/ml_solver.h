@@ -158,6 +158,7 @@ public:
      */
     virtual ~MultiLevelSolver()
     {
+        Clear();
     }
 
     void SetScalingType(ScalingType val)
@@ -177,8 +178,11 @@ public:
 
     void ResetPreconditioner()
     {
-      mpMLPrec.reset();
-      mMLPrecIsInitialized = false;
+      if(mMLPrecIsInitialized == true)
+      {
+          mpMLPrec.reset();
+          mMLPrecIsInitialized = false;
+      }
     }
 
     void Clear()
@@ -220,6 +224,7 @@ public:
         if (mReformPrecAtEachStep == true ||
             mMLPrecIsInitialized == false)
         {
+          this->ResetPreconditioner();
           MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
           mpMLPrec.swap(tmp);
           mMLPrecIsInitialized = true;
