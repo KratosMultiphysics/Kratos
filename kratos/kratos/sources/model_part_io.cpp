@@ -363,17 +363,13 @@ namespace Kratos
             else if (word == "Mesh")
                 ReadMeshBlock(rThisModelPart);
             else if (word == "SubModelPart")
-            {
 				ReadSubModelPartBlock(rThisModelPart, rThisModelPart);
-            }
         }
         std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
-	Timer::Stop("Reading Input");
+	    Timer::Stop("Reading Input");
         KRATOS_CATCH("")
     }
-
-
 
     void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     {
@@ -398,7 +394,7 @@ namespace Kratos
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) 
+    std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)
     {
         // 1. Define an auxiliary vector of vectors
         //ConnectivitiesContainerType aux_connectivities(0);
@@ -459,7 +455,7 @@ namespace Kratos
                 (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
             (*NodeIndices)[++i] = aux_index;
         }*/
-        
+
         return num_nodes;
     }
 
@@ -642,13 +638,13 @@ namespace Kratos
 
         return false;
     }
-    
+
     void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
     {
         KRATOS_TRY
-        
+
         ReadModelPartDataBlock(rModelPart, true);
-        
+
         KRATOS_CATCH("")
     }
 
@@ -861,12 +857,12 @@ namespace Kratos
         std::cout << "  [Reading Nodes    : ";
 
         while(!mpStream->eof())
-        {                                    
+        {
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
                 break;
 
-            ExtractValue(word, temp_id);            
+            ExtractValue(word, temp_id);
             ReadWord(word);
             ExtractValue(word, x);
             ReadWord(word);
@@ -974,7 +970,7 @@ namespace Kratos
          coords[0]=x;
          coords[1]=y;
          coords[2]=z;
-         read_coordinates[id] = coords;
+         read_coordinates[ReorderedNodeId(id)] = coords;
 	  number_of_nodes_read++;
 	}
 
@@ -982,7 +978,7 @@ namespace Kratos
         {
             const unsigned int node_id = it->first;
             const array_1d<double,3>& coords = it->second;
-            rModelPart.CreateNewNode(ReorderedNodeId(node_id),coords[0],coords[1],coords[2]);
+            rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
         }
 
 	std::cout << number_of_nodes_read << " nodes read]" << std::endl;
@@ -1130,10 +1126,6 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
 
-
-
-
-
         }
 
         rThisProperties.push_back(props);
@@ -1144,7 +1136,63 @@ namespace Kratos
 
     void ModelPartIO::ReadElementsBlock(ModelPart& rModelPart)
     {
-        ReadElementsBlock(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
+        KRATOS_TRY
+
+        SizeType id;
+        SizeType properties_id;
+        SizeType node_id;
+        SizeType number_of_read_elements = 0;
+
+
+        std::string word;
+        std::string element_name;
+
+        ReadWord(element_name);
+        std::cout << "  [Reading Elements : ";
+
+        if(!KratosComponents<Element>::Has(element_name))
+        {
+            std::stringstream buffer;
+            buffer << "Element " << element_name << " is not registered in Kratos.";
+            buffer << " Please check the spelling of the element name and see if the application which containing it, is registered corectly.";
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+            return;
+        }
+
+        Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
+        SizeType number_of_nodes = r_clone_element.GetGeometry().size();
+        Element::NodesArrayType temp_element_nodes;
+        ModelPart::ElementsContainerType aux_elements;
+
+        while(!mpStream->eof())
+        {
+            ReadWord(word); // Reading the element id or End
+            if(CheckEndBlock("Elements", word))
+                break;
+
+            ExtractValue(word,id);
+            ReadWord(word); // Reading the properties id;
+            ExtractValue(word, properties_id);
+            Properties::Pointer p_temp_properties = *(FindKey(rModelPart.rProperties(), properties_id, "Properties").base());
+            temp_element_nodes.clear();
+            for(SizeType i = 0 ; i < number_of_nodes ; i++)
+            {
+                ReadWord(word); // Reading the node id;
+                ExtractValue(word, node_id);
+                temp_element_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+            }
+
+            aux_elements.push_back(r_clone_element.Create(ReorderedElementId(id), temp_element_nodes, p_temp_properties));
+            number_of_read_elements++;
+
+        }
+        std::cout << number_of_read_elements << " elements read] [Type: " <<element_name << "]" << std::endl;
+        aux_elements.Unique();
+
+        rModelPart.AddElements(aux_elements.begin(), aux_elements.end());
+
+        KRATOS_CATCH("")
     }
 
     void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
@@ -1176,6 +1224,7 @@ namespace Kratos
         Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
         SizeType number_of_nodes = r_clone_element.GetGeometry().size();
         Element::NodesArrayType temp_element_nodes;
+
 
         while(!mpStream->eof())
         {
@@ -2010,7 +2059,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-// 	KRATOS_WATCH("begin reading CommunicatorDataBlock")
+	    // KRATOS_WATCH("begin reading CommunicatorDataBlock")
 
         std::string word;
         while(true)
@@ -2021,7 +2070,10 @@ namespace Kratos
             if(CheckEndBlock("CommunicatorData", word))
                 break;
             if(word == "NEIGHBOURS_INDICES")
+            {
+                // KRATOS_WATCH("NEIGHBOURS_INDICES reading")
                 ReadVectorialValue(rThisCommunicator.NeighbourIndices());
+            }
             else if(word == "NUMBER_OF_COLORS")
             {
                 ReadWord(word);
@@ -2033,15 +2085,24 @@ namespace Kratos
             {
                 ReadBlockName(word);
                 if(word == "LocalNodes")
+                {
+                    // KRATOS_WATCH("ReadCommunicatorDataBlock LocalNodes")
                     ReadCommunicatorLocalNodesBlock(rThisCommunicator, rThisNodes);
+                }
                 else if(word == "GhostNodes")
+                {
+                    // KRATOS_WATCH("ReadCommunicatorDataBlock GhostNodes")
                     ReadCommunicatorGhostNodesBlock(rThisCommunicator, rThisNodes);
+                }
                 else
+                {
+                    // KRATOS_WATCH("ReadCommunicatorDataBlock skip word")
                     SkipBlock(word);
+                }
             }
         }
 
-// 	KRATOS_WATCH("finished reading CommunicatorDataBlock")
+        // KRATOS_WATCH("finished reading CommunicatorDataBlock")
 
         return ;
 
@@ -2052,18 +2113,16 @@ namespace Kratos
     {
         KRATOS_TRY
 
-// 	KRATOS_WATCH("begin reading CommunicatorLocalNodesBlock")
+	    // KRATOS_WATCH("begin reading CommunicatorLocalNodesBlock")
 
         SizeType interface_id;
         SizeType node_id;
-
 
         std::string word;
         std::string condition_name;
 
         ReadWord(word); // reading the interface id
         ExtractValue(word,interface_id);
-
 
         if(interface_id > rThisCommunicator.GetNumberOfColors())
         {
@@ -2088,6 +2147,9 @@ namespace Kratos
             p_interface_mesh = &(rThisCommunicator.InterfaceMesh(interface_id-1));
         }
 
+        NodesContainerType aux_local;
+        NodesContainerType aux_interface;
+
         while(!mpStream->eof())
         {
             ReadWord(word); // Reading the node id or End
@@ -2097,15 +2159,21 @@ namespace Kratos
             ExtractValue(word,node_id);
             NodesContainerType::iterator i_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
 			auto p_node = *(i_node.base());
-            p_local_mesh->Nodes().push_back(p_node);
-            p_interface_mesh->Nodes().push_back(p_node);
+            aux_local.push_back(p_node);
+            aux_interface.push_back(p_node);
         }
+
+        for(auto it = aux_local.begin(); it!= aux_local.end(); ++it)
+            p_local_mesh->Nodes().push_back(*(it.base()));
+
+        for(auto it = aux_interface.begin(); it!= aux_interface.end(); ++it)
+            p_interface_mesh->Nodes().push_back(*(it.base()));
 
         p_local_mesh->Nodes().Unique();
         p_interface_mesh->Nodes().Unique();
-// 	KRATOS_WATCH("finished reading CommunicatorLocalNodesBlock")
+        // KRATOS_WATCH("finished reading CommunicatorLocalNodesBlock")
 
-// 	KRATOS_WATCH(rThisCommunicator)
+        // KRATOS_WATCH(rThisCommunicator)
         KRATOS_CATCH("")
     }
 
@@ -2588,7 +2656,7 @@ namespace Kratos
 
 		SizeType node_id;
 		std::string word;
-                
+
                 std::vector<SizeType> ordered_ids;
 
 		while (!mpStream->eof())
@@ -2600,7 +2668,7 @@ namespace Kratos
 			ExtractValue(word, node_id);
                         ordered_ids.push_back(ReorderedNodeId(node_id));
 		}
-		
+
 		std::sort(ordered_ids.begin(), ordered_ids.end());
                 rSubModelPart.AddNodes(ordered_ids);
 
@@ -2626,7 +2694,7 @@ namespace Kratos
 		}
 		std::sort(ordered_ids.begin(), ordered_ids.end());
 		rSubModelPart.AddElements(ordered_ids);
-                
+
 		KRATOS_CATCH("")
 	}
 
@@ -2649,7 +2717,7 @@ namespace Kratos
 		}
 		std::sort(ordered_ids.begin(), ordered_ids.end());
 		rSubModelPart.AddConditions(ordered_ids);
-                
+
 		KRATOS_CATCH("")
 	}
 
@@ -2665,7 +2733,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End ModelPartData\n");
-        
+
         KRATOS_CATCH("")
     }
 
@@ -2697,7 +2765,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End Properties\n");
-        
+
         KRATOS_CATCH("")
     }
 
