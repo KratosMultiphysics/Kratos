@@ -1,7 +1,7 @@
 proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     
     ## Source auxiliar procedures
-    source [file join $problemtypedir Fracture2DAuxProcs.tcl]
+    source [file join $problemtypedir FracturePropagation2DAuxProcs.tcl]
 
     ## Set BodySurfacesDict
     set BodySurfacesDict [dict create]
@@ -133,7 +133,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
     
     ## Source auxiliar procedures
-    source [file join $problemtypedir Fracture2DAuxProcs.tcl]
+    source [file join $problemtypedir FracturePropagation2DAuxProcs.tcl]
     
     # Previous Fractures dictionaries
     set BodySurfacesDict [lindex $PropagationData 1]

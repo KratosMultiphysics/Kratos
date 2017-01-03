@@ -1,7 +1,7 @@
 proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     
     ## Source auxiliar procedures
-    source [file join $problemtypedir Fracture3DAuxProcs.tcl]
+    source [file join $problemtypedir FracturePropagation3DAuxProcs.tcl]
 
     ## Set BodyVolumesDict
     set BodyGroups [GiD_Info conditions Body_Part groups]
@@ -237,7 +237,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 proc GenerateNewFractures { dir problemtypedir PropagationData } {
 
     ## Source auxiliar procedures
-    source [file join $problemtypedir Fracture3DAuxProcs.tcl]
+    source [file join $problemtypedir FracturePropagation3DAuxProcs.tcl]
     
     ###TODO
     ## Grups fills d'un grup especial (Prova) amb els nodes dels elements de colze

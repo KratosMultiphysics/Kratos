@@ -1,7 +1,7 @@
 proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
-    source [file join $problemtypedir ProjectParamAuxProcs.tcl]
+    source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
         
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]

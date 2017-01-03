@@ -62,11 +62,11 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     }
 
     # Write MDPA
-    source [file join $problemtypedir WriteMdpa.tcl]
+    source [file join $problemtypedir Mdpa.tcl]
     set TableDict [WriteMdpa $basename $dir $problemtypedir]
 
     # Write ProjectParameters
-    source [file join $problemtypedir WriteProjectParameters.tcl]
+    source [file join $problemtypedir ProjectParameters.tcl]
     WriteProjectParameters $basename $dir $problemtypedir $TableDict
 
     ### Measure time
@@ -97,11 +97,11 @@ proc Poromechanics_Application::PropagateFractures2D { } {
     GenerateNewFractures $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $PropagationData
 
     # Write new MDPA
-    source [file join $::Poromechanics_Application::ProblemTypePath WriteMdpa.tcl]
+    source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
     set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
 
     # Write new ProjectParameters
-    source [file join $::Poromechanics_Application::ProblemTypePath WriteProjectParameters.tcl]
+    source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
     # Quit GiD
@@ -121,11 +121,11 @@ proc Poromechanics_Application::PropagateFractures3D { } {
     GenerateNewFractures $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $PropagationData
 
     # Write new MDPA
-    source [file join $::Poromechanics_Application::ProblemTypePath WriteMdpa.tcl]
+    source [file join $::Poromechanics_Application::ProblemTypePath Mdpa.tcl]
     set TableDict [WriteMdpa $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath]
 
     # Write new ProjectParameters
-    source [file join $::Poromechanics_Application::ProblemTypePath WriteProjectParameters.tcl]
+    source [file join $::Poromechanics_Application::ProblemTypePath ProjectParameters.tcl]
     WriteProjectParameters $::Poromechanics_Application::ProblemName $::Poromechanics_Application::ProblemPath $::Poromechanics_Application::ProblemTypePath $TableDict
 
     # Quit GiD
@@ -181,22 +181,22 @@ proc Poromechanics_Application::CreateContactEntity { } {
     #~ # Point at the initial position of the rotation
     #~ set Pi(0) 0.5
     #~ set Pi(1) 2.5
-    #~ set Pi(2) 2.48
+    #~ set Pi(2) 2.49
     #~ # Point at the final position of the rotation
     #~ set Pf(0) 0.5
     #~ set Pf(1) 2.5
-    #~ set Pf(2) 2.52
+    #~ set Pf(2) 2.51
     #~ # Vertex of the angle of rotation
     #~ set V(0) 0.5
-    #~ set V(1) 2.525
+    #~ set V(1) 2.4875
     #~ set V(2) 2.5
     #~ # Initial point of the rotation Axis
-    #~ set Ai(0) 1.0
-    #~ set Ai(1) 2.5
+    #~ set Ai(0) 0.5
+    #~ set Ai(1) 2.4875
     #~ set Ai(2) 2.5
     #~ # Final point of the rotation Axis
-    #~ set Af(0) 0.5
-    #~ set Af(1) 2.525
+    #~ set Af(0) 1.0
+    #~ set Af(1) 2.5
     #~ set Af(2) 2.5
 
     #~ # Unitari vector at the initial position of the Rotation
@@ -252,8 +252,8 @@ proc Poromechanics_Application::CreateContactEntity { } {
                               #~ $T(20) $T(21) $T(22) $T(23) \
                               #~ 0.0 0.0 0.0 1.0]
     
-    #~ set Surf1 [list 7 1]
-    #~ set Surf2 [list 6 0]
+    #~ set Surf1 [list 25 1]
+    #~ set Surf2 [list 24 0]
     
     #~ GiD_Geometry create volume append Joint 2 \
        #~ $Surf1 $Surf2 contactvolume $TransformMatrix
