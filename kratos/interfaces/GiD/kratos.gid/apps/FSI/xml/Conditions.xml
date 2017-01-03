@@ -2,24 +2,24 @@
 <ConditionList>
   <ConditionItem n="ALEMeshDisplacementBC2D" pn="ALE mesh displacement BC" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="False" VariableName="DISPLACEMENT" App="Fluid"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="False" VariableName="MESH_DISPLACEMENT" App="Fluid"
 	ElementType="Line" ProcessName="ImposeVectorValueByComponentsProcess" help="Process to set custom mesh displacement conditions." >
     <TopologyFeatures>
     </TopologyFeatures>
     <outputs>
     </outputs>
   </ConditionItem>
-  
+
   <ConditionItem n="ALEMeshDisplacementBC3D" pn="ALE mesh displacement BC" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="False" VariableName="DISPLACEMENT" App="Fluid"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="False" VariableName="MESH_DISPLACEMENT" App="Fluid"
 	ElementType="Surface" ProcessName="ImposeVectorValueByComponentsProcess" help="Process to set custom mesh displacement conditions." >
     <TopologyFeatures>
     </TopologyFeatures>
     <outputs>
     </outputs>
   </ConditionItem>
-  
+
   <ConditionItem n="FluidNoSlipInterface2D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="FLUID_INTERFACE" App="Fluid"
@@ -28,7 +28,7 @@
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
-  
+
   <ConditionItem n="StructureInterface2D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="STRUCTURE_INTERFACE" App="Structural"
@@ -37,7 +37,7 @@
       <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
-  
+
   <ConditionItem n="FluidNoSlipInterface3D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="FLUID_INTERFACE" App="Fluid"
@@ -47,7 +47,7 @@
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="WallCondition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
-  
+
   <ConditionItem n="StructureInterface3D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="STRUCTURE_INTERFACE" App="Structural"
@@ -57,5 +57,5 @@
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
-  
+
 </ConditionList>
