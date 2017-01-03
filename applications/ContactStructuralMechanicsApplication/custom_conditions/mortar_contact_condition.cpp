@@ -715,7 +715,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 this->CalculateDeltaPhi(rVariables, rContactData);
                 // Compute in each node the tangent functional and their derivatives
                 double AugmentedNormalLM = this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
-
+                
                 if (rCurrentProcessInfo[TIME_STEPS] == 1) // NOTE: To avoid problems the first iteration
                 {
                     AugmentedNormalLM -= 1.0e-16;
@@ -2475,8 +2475,8 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
     /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
     
     // Local kinematic update
-    const array_1d<double, TDim> N1 = rVariables.N_Slave;
-//     const array_1d<double, TDim> N2 = rVariables.N_Master;
+    const array_1d<double, TNumNodes> N1 = rVariables.N_Slave;
+//     const array_1d<double, TNumNodes> N2 = rVariables.N_Master;
 //     rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, N1);
 //     
 //     // The LM of the node
