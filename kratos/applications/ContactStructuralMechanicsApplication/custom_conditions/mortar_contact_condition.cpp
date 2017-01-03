@@ -1482,11 +1482,26 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
 
         const bounded_matrix<double, TDim, TDim> RotationMatrix = GetRotationMatrixSlave(i_slave);
     
-        subrange(RHS_contact_pair, index, index + TDim) = prod(RotationMatrix, subrange(RHS_contact_pair, index, index + TDim));
+        array_1d<double, TDim> aux_rhs = subrange(RHS_contact_pair, index, index + TDim);
+        array_1d<double, TDim> aux_product;
+        axpy_prod(RotationMatrix, aux_rhs, aux_product, true);
+
+        for (unsigned i_dim = 0; i_dim < TDim; i_dim++)
+        {
+            RHS_contact_pair[index + i_dim] = aux_product[i_dim];
+        }
+
         if (TDoubleLM == true) // TODO: For a consistent Double LM calculate an independent rotationmatrix
         {
-            const unsigned int index_rot = index + TNumNodes * TDim;
-            subrange(RHS_contact_pair, index_rot, index_rot + TDim) = prod(RotationMatrix, subrange(RHS_contact_pair, index_rot, index_rot + TDim));
+            const unsigned int index_dlm = index + TNumNodes * TDim;
+            
+            aux_rhs = subrange(RHS_contact_pair, index_dlm, index_dlm + TDim);
+            axpy_prod(RotationMatrix, aux_rhs, aux_product, true);
+            
+            for (unsigned i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                RHS_contact_pair[index_dlm + i_dim] = aux_product[i_dim];
+            }
         }
         
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
