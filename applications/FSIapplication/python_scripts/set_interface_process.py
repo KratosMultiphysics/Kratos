@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.ALEApplication as KratosALE
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -7,7 +8,7 @@ def Factory(settings, Model):
 
 class SetInterfaceProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
-        
+
         KratosMultiphysics.Process.__init__(self)
 
         default_parameters = KratosMultiphysics.Parameters( """
@@ -18,22 +19,22 @@ class SetInterfaceProcess(KratosMultiphysics.Process):
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters);
-        
+
         interface_model_part = Model[settings["model_part_name"].GetString()]
-        
+
         if settings["variable_name"].GetString() == "STRUCTURE_INTERFACE":
             for node in interface_model_part.Nodes:
                 # Set the INTERFACE flag
                 node.Set(KratosMultiphysics.INTERFACE, True)
-        
+
         elif settings["variable_name"].GetString() == "FLUID_INTERFACE":
             zero_vect = [0,0,0]
-            
+
             for node in interface_model_part.Nodes:
                 # Set the INTERFACE flag
                 node.Set(KratosMultiphysics.INTERFACE, True)
-                # Fix the DISPLACEMENT and initialize it to zero at the interface
-                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,zero_vect)
+                # Fix the MESH_DISPLACEMENT and initialize it to zero at the interface
+                node.Fix(KratosALE.MESH_DISPLACEMENT_X)
+                node.Fix(KratosALE.MESH_DISPLACEMENT_Y)
+                node.Fix(KratosALE.MESH_DISPLACEMENT_Z)
+                node.SetSolutionStepValue(KratosALE.MESH_DISPLACEMENT,0,zero_vect)
