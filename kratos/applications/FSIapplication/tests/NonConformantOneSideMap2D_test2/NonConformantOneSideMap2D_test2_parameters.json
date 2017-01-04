@@ -1,42 +1,17 @@
 {
     "structure_solver_settings" : {
-        "problem_data"             : {
+        "problem_data" : {
             "problem_name"    : "NonConformantOneSideMap2D_test2",
             "model_part_name" : "Structure",
-            "domain_size"     : 2,
-            "time_step"       : 1.1,
-            "start_time"      : 0.0,
-            "end_time"        : 1.0,
-            "echo_level"      : 0
+            "domain_size"     : 2
         },
-        "solver_settings"          : {
-            "solver_type"                        : "solid_mechanics_static_solver",
-            "echo_level"                         : 0,
-            "solution_type"                      : "Static",
-            "analysis_type"                      : "Linear",
-            "model_import_settings"              : {
+        "solver_settings" : {
+            "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "NonConformantOneSideMap2D_test2/solid_mesh"
             },
-            "line_search"                        : false,
-            "convergence_criterion"              : "Residual_criterion",
-            "displacement_relative_tolerance"    : 0.0001,
-            "displacement_absolute_tolerance"    : 1e-9,
-            "residual_relative_tolerance"        : 0.0001,
-            "residual_absolute_tolerance"        : 1e-9,
-            "max_iteration"                      : 10,
-            "linear_solver_settings"             : {
-                "solver_type" : "SuperLUSolver",
-                "scaling"     : false,
-                "verbosity"   : 0
-            },
             "problem_domain_sub_model_part_list" : ["Parts_Solid"],
             "processes_sub_model_part_list"      : ["Structure_interface"]
-        },
-        "intervals_list"           : {
-            "Initial" : ["0.0","0.0"],
-            "Total"   : ["0.0","End"],
-            "Custom1" : ["0.0","0.5"]
         },
         "constraints_process_list" : [{
             "python_module"         : "NonConformantOneSideMap2D_test2_structure_local_process",
@@ -48,18 +23,7 @@
                 "model_part_name" : "Structure_interface"
             }
         }],
-        "loads_process_list"       : [{
-            "python_module"         : "set_interface_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
-            "process_name"          : "SetInterfaceProcess",
-            "Parameters"            : {
-                "mesh_id"         : 0,
-                "variable_name"   : "STRUCTURE_INTERFACE",
-                "model_part_name" : "Structure_interface"
-            }
-        }],
-        "output_configuration"     : {
+        "output_configuration" : {
             "result_file_configuration" : {
                 "gidpost_flags"       : {
                     "GiDPostMode"           : "GiD_PostBinary",
@@ -78,28 +42,15 @@
                 "gauss_point_results" : []
             },
             "point_data_configuration"  : []
-        },
-        "restart_options"          : {
-            "SaveRestart"      : false,
-            "RestartFrequency" : 0,
-            "LoadRestart"      : false,
-            "Restart_Step"     : 0
-        },
-        "constraints_data"         : {
-            "incremental_load"         : false,
-            "incremental_displacement" : false
         }
     },
-    "fluid_solver_settings"     : {
-            "problem_data"                     : {
+    "fluid_solver_settings" : {
+            "problem_data" : {
             "problem_name"    : "NonConformantOneSideMap2D_test2",
             "model_part_name" : "MainModelPart",
-            "domain_size"     : 2,
-            "start_step"      : 0.0,
-            "end_time"        : 1,
-            "time_step"       : 0.01
+            "domain_size"     : 2
         },
-        "output_configuration"             : {
+        "output_configuration" : {
             "result_file_configuration" : {
                 "gidpost_flags"       : {
                     "GiDPostMode"           : "GiD_PostBinary",
@@ -119,56 +70,16 @@
             },
             "point_data_configuration"  : []
         },
-        "restart_options"                  : {
-            "SaveRestart"      : "False",
-            "RestartFrequency" : 0,
-            "LoadRestart"      : "False",
-            "Restart_Step"     : 0
-        },
-        "solver_settings"                  : {
-            "solver_type"                     : "navier_stokes_solver_fractionalstep",
-            "model_import_settings"           : {
+        "solver_settings" : {
+            "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "NonConformantOneSideMap2D_test2/fluid_mesh"
-            },
-            "predictor_corrector"             : false,
-            "maximum_velocity_iterations"     : 4,
-            "maximum_pressure_iterations"     : 4,
-            "velocity_tolerance"              : 0.001,
-            "pressure_tolerance"              : 0.001,
-            "echo_level"                      : 0,
-            "consider_periodic_conditions"    : false,
-            "time_order"                      : 2,
-            "dynamic_tau"                     : 0.001,
-            "compute_reactions"               : false,
-            "divergence_clearance_steps"      : 0,
-            "reform_dofs_at_each_step"        : false,
-            "velocity_linear_solver_settings" : {
-                "solver_type" : "SuperLUSolver",
-                "scaling"     : false,
-                "verbosity"   : 0
-            },
-            "pressure_linear_solver_settings" : {
-                "solver_type" : "SuperLUSolver",
-                "scaling"     : false,
-                "verbosity"   : 0
             },
             "volume_model_part_name"          : "Parts_Fluid",
             "skin_parts"                      : ["Fluid_interface"],
             "no_skin_parts"                   : []
         },
-        "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module"         : "set_interface_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
-            "process_name"          : "SetInterfaceProcess",
-            "Parameters"            : {
-                "mesh_id"         : 0,
-                "variable_name"   : "FLUID_INTERFACE",
-                "model_part_name" : "Fluid_interface"
-            }
-        },{
             "python_module"         : "NonConformantOneSideMap2D_test2_fluid_local_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
             "help"                  : [],
@@ -176,18 +87,6 @@
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Fluid_interface"
-            }
-        }],
-        "gravity"                          : [{
-            "python_module"         : "process_factory",
-            "kratos_module"         : "KratosMultiphysics",
-            "process_name"          : "ApplyConstantVectorValueProcess",
-            "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
-                "variable_name"   : "BODY_FORCE",
-                "factor"          : 0.0,
-                "direction"       : [0.0,-1.0,0.0]
             }
         }]
     }
