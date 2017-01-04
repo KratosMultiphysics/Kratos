@@ -132,6 +132,20 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSolutionStep( P
 //     {
 //         this->Set(ACTIVE, true);
 //     }
+
+    // Set the initial value of the LM for the quasi-static problems
+    if (rCurrentProcessInfo[TIME_STEPS] == 1) 
+    {
+        const double tol = 1.0e-16;
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            if (GetGeometry()[i_slave].Is(ACTIVE) == true)
+            {
+                const array_1d<double, 3> normal = GetGeometry()[i_slave].GetValue(NORMAL);
+                GetGeometry()[i_slave].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER, 0) = - tol * normal;
+            }
+        }
+    }
     
     KRATOS_CATCH( "" );
 }
@@ -669,6 +683,7 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
     // Compute the normal and tangent derivatives of the slave
     this->CalculateDeltaNormalTangentSlave(rContactData);
     
+    // Iterate over the master segments
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Reading integration points
@@ -715,11 +730,6 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
                 this->CalculateDeltaPhi(rVariables, rContactData);
                 // Compute in each node the tangent functional and their derivatives
                 double AugmentedNormalLM = this->CalculateCtanAndDeltaCtan(rVariables, rContactData);
-                
-                if (rCurrentProcessInfo[TIME_STEPS] == 1) // NOTE: To avoid problems the first iteration
-                {
-                    AugmentedNormalLM -= 1.0e-16;
-                }
                 
                 if (AugmentedNormalLM < 0.0)
                 {
@@ -1304,7 +1314,7 @@ void MortarContactCondition<2, 2, false>::CalculateLocalLHS<12>(
     const double detJ = rVariables.DetJSlave; 
 
     rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointFrictionlessLHS( N1, N2, Phi, detJ, rContactData);
-//     rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData);
+//     rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1347,7 +1357,7 @@ void MortarContactCondition<3, 3, false>::CalculateLocalLHS<27>(
     const double detJ         = rVariables.DetJSlave; 
 
     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointFrictionlessLHS( N1, N2, Phi, detJ, rContactData);
-//     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData);
+//     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1369,7 +1379,7 @@ void MortarContactCondition<3, 4, false>::CalculateLocalLHS<36>(
     const double detJ = rVariables.DetJSlave; 
 
     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointFrictionlessLHS( N1, N2, Phi, detJ, rContactData);
-//     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData);
+//     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1391,7 +1401,7 @@ void MortarContactCondition<2, 2, true>::CalculateLocalLHS<16>(
     const double detJ = rVariables.DetJSlave; 
 
     rPairLHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointFrictionlessLHS( N1, N2, Phi, detJ, rContactData);
-//     rPairLHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData);
+//     rPairLHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1434,7 +1444,7 @@ void MortarContactCondition<3, 3, true>::CalculateLocalLHS<36>(
 //     const double detJ         = rVariables.DetJSlave; 
 //                
 //     rPairLHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointFrictionlessLHS( N1, N2, Phi, detJ, rContactData);
-// //     rPairLHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData);
+// //     rPairLHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1456,7 +1466,7 @@ void MortarContactCondition<3, 4, true>::CalculateLocalLHS<48>(
 //     const double detJ = rVariables.DetJSlave; 
 // 
 //     rPairLHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointFrictionlessLHS( N1, DN1, N2, DN2, Phi, detJ, rContactData);
-// //     rPairLHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointLHS( N1, DN1, N2, DN2, Phi, detJ, rContactData);
+// //     rPairLHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointLHS( N1, DN1, N2, DN2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1610,7 +1620,7 @@ void MortarContactCondition<2, 2, false>::CalculateLocalRHS<12>(
     const double detJ = rVariables.DetJSlave;
     
     rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-//     rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//     rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1653,7 +1663,7 @@ void MortarContactCondition<3, 3, false>::CalculateLocalRHS<27>(
     const double detJ = rVariables.DetJSlave;
     
     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-//     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1675,7 +1685,7 @@ void MortarContactCondition<3, 4, false>::CalculateLocalRHS<36>(
     const double detJ = rVariables.DetJSlave;
     
     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-//     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1697,7 +1707,7 @@ void MortarContactCondition<2, 2, true>::CalculateLocalRHS<16>(
     const double detJ = rVariables.DetJSlave;
     
     rPairRHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-//     rPairRHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//     rPairRHS += rIntegrationWeight * Contact2D2N2NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1740,7 +1750,7 @@ void MortarContactCondition<3, 3, true>::CalculateLocalRHS<36>(
 //     const double detJ = rVariables.DetJSlave;
 //     
 //     rPairRHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-// //     rPairRHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+// //     rPairRHS += rIntegrationWeight * Contact3D3N3NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -1762,7 +1772,7 @@ void MortarContactCondition<3, 4, true>::CalculateLocalRHS<48>(
 //     const double detJ = rVariables.DetJSlave;
 //     
 //     rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointFrictionlessRHS(N1, N2, Phi, detJ, rContactData);
-// //     rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+// //     rPairRHS += rIntegrationWeight * Contact3D4N4NDLM::ComputeGaussPointRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData);
 }
 
 /***********************************************************************************/
@@ -2478,8 +2488,8 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
     const array_1d<double, TNumNodes> N1 = rVariables.N_Slave;
 //     const array_1d<double, TNumNodes> N2 = rVariables.N_Master;
 //     rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, N1);
-//     
-//     // The LM of the node
+    
+    // The LM of the node
 //     const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
 
     // Calculate the augmented normal LM
