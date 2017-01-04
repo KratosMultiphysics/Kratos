@@ -57,9 +57,7 @@ namespace Kratos
 			}
 			catch (Exception& e) {
 				mResult.SetToFailed();
-				std::stringstream buffer;
-				buffer << e.what() << " in " << e.where() << std::endl;
-				mResult.SetErrorMessage(buffer.str());
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (std::exception& e) {
 				mResult.SetToFailed();
@@ -94,9 +92,7 @@ namespace Kratos
 			}
 			catch (Exception& e) {
 				mResult.SetToFailed();
-				std::stringstream buffer;
-				buffer << e.what() << " in " << e.where() << std::endl;
-				mResult.SetErrorMessage(buffer.str());
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (std::exception& e) {
 				mResult.SetToFailed();
