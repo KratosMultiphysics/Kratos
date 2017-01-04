@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:   Pooyan Dadvand 
-//                   
+//  Main authors:   Pooyan Dadvand
+//
 //
 
 #include <sstream>
@@ -25,19 +25,19 @@ namespace Kratos
 	{
 	}
 
-	Exception::Exception(const std::string& rWhat ) 
+	Exception::Exception(const std::string& rWhat )
 		: std::exception(), mMessage(rWhat), mCallStack()
 	{
 	}
 
-	Exception::Exception(const std::string& rWhat, const CodeLocation& Location) 
+	Exception::Exception(const std::string& rWhat, const CodeLocation& Location)
 		: std::exception(), mMessage(rWhat), mCallStack()
 
 	{
 		mCallStack.push_back(Location);
 	}
 
-	Exception::Exception(const Exception& Other) 
+	Exception::Exception(const Exception& Other)
 		: std::exception(Other), mMessage(Other.mMessage), mCallStack(Other.mCallStack)
 	{
 	}
@@ -59,7 +59,18 @@ namespace Kratos
 
     const char* Exception::what() const throw() //noexcept
 	{
-		return mMessage.c_str(); // TODO: << mCallStack[0];
+		std::stringstream buffer;
+
+		buffer << mMessage << std::endl;
+		if(mCallStack.empty())
+			buffer << "in Unknown Location";
+		else
+		{
+			buffer << "in " << mCallStack[0] << std::endl;
+			for(auto i = mCallStack.begin() + 1; i!= mCallStack.end(); i++)
+				buffer << "calling from " << *i << std::endl;
+		}
+		return buffer.str().c_str();
 	}
 
 	const CodeLocation Exception::where() const
@@ -78,7 +89,7 @@ namespace Kratos
 	{
 		return "Exception";
 	}
-      
+
       /// Print information about this object.
     void Exception::PrintInfo(std::ostream& rOStream) const
 	{
@@ -136,5 +147,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-
