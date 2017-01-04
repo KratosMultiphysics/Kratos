@@ -140,11 +140,19 @@ namespace Kratos
 
 		  void Generate2DMesh();
 
+		  void Generate3DMesh();
+
 		  void GenerateNodes2D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
+
+		  void GenerateNodes3D(Point<3> const& rMinPoint, Point<3> const& rMaxPoint);
 
 		  void GenerateTriangularElements();
 
-		  std::size_t GetNodeId(std::size_t Row, std::size_t Column);
+		  void GenerateTetrahedraElements();
+
+		  void CreateCellTetrahedra(std::size_t I, std::size_t J, std::size_t K, Properties::Pointer pProperties);
+
+		  std::size_t GetNodeId(std::size_t I, std::size_t J, std::size_t K);
 
 		  void GetLocalCoordinatesRange(Point<3>& rMinPoint, Point<3>& rMaxPoint);
 
