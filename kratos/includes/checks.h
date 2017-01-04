@@ -20,7 +20,7 @@
 ///@addtogroup KratosCore
 ///@{
 ///@name macros
-///@{ 
+///@{
 #define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed becuase " << #IsTrue << " is not true"
 #define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed becuase " << #IsFalse << " is not false"
 
@@ -61,22 +61,22 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 
 #define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
 #else
-#define KRATOS_DEBUG_CHECK(IsTrue)
-#define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse)
+#define KRATOS_DEBUG_CHECK(IsTrue) if(false) KRATOS_CHECK(IsTrue)
+#define KRATOS_DEBUG_CHECK_IS_FALSE(IsFalse) if(false) KRATOS_CHECK_IS_FALSE(IsFalse)
 
-#define KRATOS_DEBUG_CHECK_EQUAL(a,b) 
-#define KRATOS_DEBUG_CHECK_NOT_EQUAL(a,b) 
+#define KRATOS_DEBUG_CHECK_EQUAL(a,b) if(false) KRATOS_CHECK_EQUAL(a,b)
+#define KRATOS_DEBUG_CHECK_NOT_EQUAL(a,b) if(false) KRATOS_CHECK_NOT_EQUAL(a,b)
 
-#define KRATOS_DEBUG_CHECK_C_STRING_EQUAL(a,b) 
-#define KRATOS_DEBUG_CHECK_C_STRING_NOT_EQUAL(a,b)
+#define KRATOS_DEBUG_CHECK_C_STRING_EQUAL(a,b) if(false) KRATOS_CHECK_C_STRING_EQUAL(a,b)
+#define KRATOS_DEBUG_CHECK_C_STRING_NOT_EQUAL(a,b) if(false)  KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b)
 
-#define KRATOS_DEBUG_CHECK_LESS(a,b)
-#define KRATOS_DEBUG_CHECK_LESS_EQUAL(a,b)
+#define KRATOS_DEBUG_CHECK_LESS(a,b) if(false) KRATOS_CHECK_LESS(a,b)
+#define KRATOS_DEBUG_CHECK_LESS_EQUAL(a,b) if(false) KRATOS_CHECK_LESS_EQUAL(a,b)
 
-#define KRATOS_DEBUG_CHECK_GREATER(a,b)
-#define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b)
+#define KRATOS_DEBUG_CHECK_GREATER(a,b) if(false) KRATOS_CHECK_GREATER(a,b)
+#define KRATOS_DEBUG_CHECK_GREATER_EQUAL(a,b) if(false) KRATOS_CHECK_GREATER_EQUAL(a,b)
 
-#define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
+#define KRATOS_DEBUG_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if(false) KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString)
 #endif
 ///@}
 
