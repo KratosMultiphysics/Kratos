@@ -61,14 +61,14 @@
 			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
         </inputs>
     </solver>
-	
+
 	<!--Trilinos Solvers-->
     <solver n="MultiLevelSolver" pn="Multilevel Solver" SolverType="Standard" Parallelism="MPI">
         <inputs>
 			<parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
 			<parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-6" help=""/>
 			<parameter n="max_levels" pn="Max. levels" type="integer" v="3"  help=""/>
-			<parameter n="symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
+			<parameter n="symmetric" pn="Symmetric" type="bool" v="False"  help=""/>
 			<parameter n="reform_preconditioner_at_each_step" pn="Reform preconditioner at each step" type="bool" v="True"  help=""/>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
         </inputs>
@@ -102,6 +102,6 @@
         <inputs>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
         </inputs>
-    </solver> 
+    </solver>
 
 </Solvers>
