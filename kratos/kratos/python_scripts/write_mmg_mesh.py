@@ -197,20 +197,20 @@ def WriteMmgFile(input_file):
     sol_file.write("SolAtVertices\n")
     sol_file.write(str(len(model_part.Nodes))+"\n")
 
-    sol_file.write("1 1\n") #scalar
-    for i in range(len(model_part.Nodes)):
-        sol_file.write(str(0.0010)+"\n")
-        #sol_file.write("200.0 0 200.0 0 0 10000.0\n")
-        
-    #sol_file.write("1 3\n") #tensor
-    #v = Vector(3)
-    #v[0] = 1.0
-    #v[1] = 0.0
-    #v[2] = 0.0
-    #h = 0.1
-    #ratio = 0.01
-    #for node in model_part.Nodes:
-        #d = node.X*0.1
+    #sol_file.write("1 1\n") #scalar
+    #for i in range(len(model_part.Nodes)):
+        #sol_file.write(str(0.0010)+"\n")
+         
+    sol_file.write("1 3\n") #tensor
+    v = Vector(3)
+    v[0] = 1.0
+    v[1] = 0.0
+    v[2] = 0.0
+    h = 0.1
+    ratio = 0.01
+    for node in model_part.Nodes:
+        d = node.X*0.1
+        sol_file.write("1000000 0 1000000 0 0 1000000\n")
         #sol_file.write(ComputeTensorH(d,v,ratio,h))
         
         
