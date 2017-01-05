@@ -3,7 +3,7 @@
   <StrategyItem n="Monolithic" pn="Embedded Navier Stokes - Monolithic"
 		ImplementedInFile="navier_stokes_embedded_solver.py"
 		ImplementedInApplication="FluidDynamicsApplication"
-		ImplementedInPythonFile="navier_stokes_embedded_solver"
+		ImplementedInPythonFile="Embedded"
 		MinimumKratosVersion="8500" App="Fluid"
 		ProductionReady="ProductionReady"
 		help="">
