@@ -39,9 +39,9 @@ class NonConformant_OneSideMap:
 
         # Error check
         if fluid_model_part.NumberOfConditions(0) < 1:
-            raise ValueError("No conditions found in the fluid model part, please check that the interface is meshed using Condition2D2N/Condition3D3N")
+            raise ValueError("No conditions found in the fluid model part, please check that the interface is meshed using SurfaceCondition2D2N/SurfaceCondition3D3N")
         if structure_model_part.NumberOfConditions(0) < 1:
-            raise ValueError("No conditions found in the structure model part, please check that the interface is meshed using Condition2D2N/Condition3D3N")
+            raise ValueError("No conditions found in the structure model part, please check that the interface is meshed using SurfaceCondition2D2N/SurfaceCondition3D3N")
 
         search_radius_factor = search_radius_factor
         self.it_max = it_max
