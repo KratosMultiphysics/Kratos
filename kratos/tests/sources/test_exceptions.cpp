@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -30,7 +30,7 @@ namespace Kratos {
 				throw Exception();
 			}
 			catch (Exception& e) {
-				KRATOS_CHECK_C_STRING_EQUAL(e.what(), "Unknown Error");
+				KRATOS_CHECK_C_STRING_EQUAL(e.what(), "Unknown Error\nin Unknown Location");
 				KRATOS_CHECK_EQUAL(e.where().CleanFileName(), "Unknown File");
 				KRATOS_CHECK_EQUAL(e.where().CleanFunctionName(), "Unknown Location");
 				KRATOS_CHECK_EQUAL(e.where().GetLineNumber(), 0);
@@ -40,5 +40,3 @@ namespace Kratos {
 
 	}
 }  // namespace Kratos.
-
-
