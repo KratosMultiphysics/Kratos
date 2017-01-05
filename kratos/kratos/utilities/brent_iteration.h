@@ -55,9 +55,9 @@ public:
 
 		double c = b;
 		double fc = fb;
-		double d,p,q,r,s,tol1,xm;
+		double p,q,r,s,tol1,xm;
 		// Explicit initialization to silence a gcc compilation warning
-		double e = 0.0;
+		double d = 0.0, e = 0.0;
 		double eps = (Tolerance < 1e-8) ? Tolerance : 1e-8; // Small value, was machine precision in the original algorithm
 
 		for( int iter = 0; iter < MaximumIterations; iter++ )

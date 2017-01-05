@@ -34,6 +34,10 @@ namespace Kratos {
             // Standard operation
             KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,3.0,iterTol,maxIter),2.0,checkTol);
 
+            // Passing solution as input
+            KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,2.0,3.0,iterTol,maxIter),2.0,checkTol);
+            KRATOS_CHECK_NEAR(BrentIteration::FindRoot(Internals::Brent_Test_Function1,1.0,2.0,iterTol,maxIter),2.0,checkTol);
+
             // Wrong input: initial guesses on the same side of root
             try {
                 BrentIteration::FindRoot(Internals::Brent_Test_Function1,2.5,3.0,iterTol,maxIter);
