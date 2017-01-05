@@ -23,22 +23,25 @@ namespace Kratos
 		: std::exception(), mMessage("Unknown Error")
 		, mCallStack()
 	{
+		update_what();
 	}
 
 	Exception::Exception(const std::string& rWhat )
 		: std::exception(), mMessage(rWhat), mCallStack()
 	{
+		update_what();
 	}
 
 	Exception::Exception(const std::string& rWhat, const CodeLocation& Location)
 		: std::exception(), mMessage(rWhat), mCallStack()
 
 	{
-		mCallStack.push_back(Location);
+		add_to_call_stack(Location);
+		update_what();
 	}
 
 	Exception::Exception(const Exception& Other)
-		: std::exception(Other), mMessage(Other.mMessage), mCallStack(Other.mCallStack)
+		: std::exception(Other), mMessage(Other.mMessage), mWhat(Other.mWhat), mCallStack(Other.mCallStack)
 	{
 	}
 
@@ -50,17 +53,17 @@ namespace Kratos
 	void Exception::append_message(std::string const& rMessage)
 	{
 		mMessage.append(rMessage);
+		update_what();
 	}
 
 	void Exception::add_to_call_stack(CodeLocation const& TheLocation)
 	{
 		mCallStack.push_back(TheLocation);
+		update_what();
 	}
 
-    const char* Exception::what() const throw() //noexcept
-	{
+	void Exception::update_what(){
 		std::stringstream buffer;
-
 		buffer << mMessage << std::endl;
 		if(mCallStack.empty())
 			buffer << "in Unknown Location";
@@ -68,9 +71,15 @@ namespace Kratos
 		{
 			buffer << "in " << mCallStack[0] << std::endl;
 			for(auto i = mCallStack.begin() + 1; i!= mCallStack.end(); i++)
-				buffer << "calling from " << *i << std::endl;
+				buffer << "   " << *i << std::endl;
 		}
-		return buffer.str().c_str();
+		mWhat = buffer.str();
+
+	}
+
+    const char* Exception::what() const throw() //noexcept
+	{
+		return mWhat.c_str();
 	}
 
 	const CodeLocation Exception::where() const

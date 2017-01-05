@@ -44,19 +44,18 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-
       ///@}
       ///@name Life Cycle
       ///@{
 
       /// Default constructor.
-	  Exception();
+	    Exception();
 
-	  Exception(const std::string& rWhat );
+	    Exception(const std::string& rWhat );
 
       Exception(const std::string& rWhat, const CodeLocation& Location);
 
-	  /// Copy constructor.
+	    /// Copy constructor.
       Exception(Exception const& Other);
 
       /// Destructor.
@@ -67,8 +66,11 @@ namespace Kratos
       ///@name Operators
       ///@{
 
-	  /// Code Location stream function to add callers to call stack
-	  Exception& operator << (CodeLocation const& TheLocation);
+      /// Assignment operator is deleted.
+      Exception& operator=(Exception const& rOther) = delete;
+
+	    /// Code Location stream function to add callers to call stack
+	    Exception& operator << (CodeLocation const& TheLocation);
 
       /// string stream function
       template<class StreamValueType>
@@ -91,32 +93,24 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  void append_message(std::string const& rMessage);
+	    void append_message(std::string const& rMessage);
 
-	  void add_to_call_stack(CodeLocation const& TheLocation);
+	    void add_to_call_stack(CodeLocation const& TheLocation);
 
 
       ///@}
       ///@name Access
       ///@{
 
-	  /// The overide of the base class what method
-	  /** This method returns the entire message with where information
-	  */
+      /// The overide of the base class what method
+      /** This method returns the entire message with where information
+      */
 
       const char* what() const noexcept;
 
-	  const std::string& message() const;
+      const std::string& message() const;
 
-	  const CodeLocation where() const;
-
-
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
+      const CodeLocation where() const;
 
       ///@}
       ///@name Input and output
@@ -138,18 +132,16 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-		std::string mMessage;
-		std::vector<CodeLocation> mCallStack;
+  		std::string mMessage;
+      std::string mWhat;
+  		std::vector<CodeLocation> mCallStack;
 
 
       ///@}
-      ///@name Un accessible methods
+      ///@name private operations
       ///@{
 
-      /// Assignment operator.
-      Exception& operator=(Exception const& rOther);
-
-
+      void update_what();
       ///@}
 
     }; // Class Exception
