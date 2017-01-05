@@ -92,7 +92,7 @@ def ReadTriangles(input_file, model_part,parts):
                 prop_id = int(tmp[3])
                 prop = model_part.AddProperties(Properties(prop_id))
                 
-                c = model_part.CreateNewCondition("Condition3D3N", elem_id, ids, model_part.GetProperties()[prop_id])
+                c = model_part.CreateNewCondition("SurfaceCondition3D3N", elem_id, ids, model_part.GetProperties()[prop_id])
                 
                 color = int(tmp[3])
                 submodel_part_conditions[color].append(c)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
                                     {
                                         "result_file_configuration" : {
                                             "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostBinary",
+                                                "GiDPostMode": "GiD_PostAscii",
                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
                                                 "WriteConditionsFlag": "WriteConditions",
                                                 "MultiFileFlag": "SingleFile"
