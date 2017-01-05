@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 import convergence_accelerator_factory
 
-class TestKratosExecuteConvergenceAccelerator(KratosUnittest.TestCase):
+class KratosExecuteConvergenceAcceleratorTest(KratosUnittest.TestCase):
 
     # Residual functions
     def f(self,x):
