@@ -60,14 +60,14 @@ class NavierStokesBaseSolver:
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"Element3D4N",
-                "condition_name": "Condition3D3N"
+                "condition_name": "SurfaceCondition3D3N"
                 }
                 """)
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"Element2D3N",
-                "condition_name": "Condition2D2N"
+                "condition_name": "SurfaceCondition2D2N"
                 }
                 """)
         else:
