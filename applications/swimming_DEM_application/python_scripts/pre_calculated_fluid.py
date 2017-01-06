@@ -744,7 +744,7 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 
 post_utils.Writeresults(time)
 
-import load_fluid
+import hdf5_io_tools
 fluid_loader = load_fluid.FluidHDF5Loader(fluid_model_part, pp)
 
 while (time <= final_time):
