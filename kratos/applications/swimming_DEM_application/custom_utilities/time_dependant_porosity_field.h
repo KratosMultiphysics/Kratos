@@ -191,8 +191,7 @@ virtual ~TimeDependantForceField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
-double Evaluate(const double time, const array_1d<double, 3>& coor)
+double Evaluate(const double time, const array_1d<double, 3>& coor, const int i_thread = 0)
 {
     array_1d<double, 3> porosity_grad;
     return mAlpha.Evaluate(time, coor);
