@@ -20,7 +20,7 @@ def GetOldTimeIndicesAndWeights(current_time, times_array):
     return old_index, alpha_old, future_index, alpha_future
         
 class FluidHDF5Loader:
-    def __init__(self, fluid_model_part, pp):
+    def __init__(self, fluid_model_part, pp, main_path):
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM.store_fluid_pressure
@@ -30,7 +30,7 @@ class FluidHDF5Loader:
         else:
             self.extended_shape = self.shape + (3,)
             
-        self.file_name = '../fluid_results.hdf5'
+        self.file_name = main_path + '/fluid_results.hdf5'
         self.fluid_model_part = fluid_model_part
         
         if pp.CFD_DEM.fluid_already_calculated:
