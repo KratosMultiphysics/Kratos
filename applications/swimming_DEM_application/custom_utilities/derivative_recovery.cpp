@@ -12,7 +12,7 @@ namespace Kratos
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::RecoverGradientOfAScalar(const VariableData& origin_variable, const VariableData& destination_variable)
 {
-    for (int i = 0; i < (int)mModelPart.Nodes().size(); i++){
+    for (int i = 0; i < (int)mModelPart.Nodes().size(); ++i){
         NodeIteratorType i_particle = mModelPart.NodesBegin() + i;
         Node<3>::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& gradient = p_node->FastGetSolutionStepValue(TORQUE);
@@ -26,9 +26,9 @@ void DerivativeRecovery<TDim>::RecoverGradientOfAScalar(const VariableData& orig
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::AddTimeDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& material_derivative_container)
 {
-    double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
+    const double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
         const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(VELOCITY, 1));
         noalias(material_derivative) += eulerian_rate_of_change;
@@ -39,9 +39,9 @@ void DerivativeRecovery<TDim>::AddTimeDerivative(ModelPart& r_model_part, Variab
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::AddTimeDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& material_derivative_container, const int i_component)
 {
-    double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
+    const double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         const double eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY)[i_component] - inode->FastGetSolutionStepValue(VELOCITY, 1)[i_component]);
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
         material_derivative[i_component] += eulerian_rate_of_change;
@@ -51,16 +51,15 @@ void DerivativeRecovery<TDim>::AddTimeDerivativeComponent(ModelPart& r_model_par
 //***************************************************************************************************************
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
-{  //STILL THE TIME DERIVATIVE HAS TO BE ADDED!!!!!!!!!!!!!!!!!!!
+{
     std::cout << "Constructing the material derivative by derivating nodal averages...\n";
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
-    double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
         id_to_position[inode->Id()] = entry;
-        entry++;
+        ++entry;
     }
 
     std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
@@ -75,7 +74,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
         // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
 
-        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             // computing the shape function derivatives
             Geometry<Node<3> >& geom = ielem->GetGeometry();
             double Volume;
@@ -101,7 +100,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
         // normalizing the constributions to the gradient and getting the j-component of the material derivative
 
-        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
             stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
             const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
@@ -111,12 +110,17 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
     }
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    // Adding convective part
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         const array_1d <double, 3>& stored_convective_contribution = convective_contributions_to_the_derivative[id_to_position[inode->Id()]];
-        const array_1d <double, 3>& eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(VELOCITY, 1));
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
-        material_derivative = eulerian_rate_of_change + stored_convective_contribution;
+        material_derivative = stored_convective_contribution;
     }
+
+    // Adding Eulerian time derivative contribution
+
+    AddTimeDerivative(r_model_part, material_derivative_container);
 
     std::cout << "Finished constructing the material derivative by derivating nodal averages...\n";
 }
@@ -125,14 +129,14 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 // This function modifies one component of the material derivative using the pre-computed value of the gradient of the first component of the velocity
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container)
-{//STILL THE TIME DERIVATIVE HAS TO BE ADDED!!!!!!!!!!!!!!!!!!!
+{
     int current_component = r_model_part.GetProcessInfo()[CURRENT_COMPONENT];
 
     if (current_component != 0 && current_component != 1 && current_component != 2){
         KRATOS_THROW_ERROR(std::invalid_argument,"The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", current_component);
     }
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         const array_1d <double, 3>& gradient_of_component = inode->FastGetSolutionStepValue(vector_component_gradient_container);
         const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
@@ -140,6 +144,65 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelP
     }
 
     AddTimeDerivativeComponent(r_model_part, material_derivative_container, current_component);
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
+{
+    mCalculatingTheGradient = true;
+
+    if (mFirstGradientRecovery){
+        std::cout << "Constructing first-step neighbour clouds for material derivative...\n";
+        SetNeighboursAndWeights(r_model_part);
+        mFirstGradientRecovery = false;
+        std::cout << "Finished constructing neighbour clouds for material derivative.\n";
+    }
+
+    if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
+        CalculateVectorMaterialDerivative(r_model_part, vector_container, vector_rate_container, material_derivative_container);
+    }
+
+    // Solving least squares problem (Zhang, 2006)
+    unsigned int n_relevant_terms = 3;
+
+    std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the material derivative
+    polynomial_coefficients.resize(n_relevant_terms);
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        unsigned int n_neigh = neigh_nodes.size();
+
+        if (!n_neigh){ // then we keep the defualt value
+            continue;
+        }
+
+        for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
+            polynomial_coefficients[i] = ZeroVector(3);
+        }
+
+        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+
+        for (unsigned int k = 0; k < TDim; ++k){
+            for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
+                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
+                for (unsigned int d = 0; d < n_relevant_terms; ++d){
+                    polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
+                }
+            }
+        }
+
+        array_1d <double, 3>& recovered_mat_deriv = inode->FastGetSolutionStepValue(material_derivative_container);
+        const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(vector_container);
+        recovered_mat_deriv[0] = velocity[0] * polynomial_coefficients[0][0] + velocity[1] * polynomial_coefficients[1][0] + velocity[2] * polynomial_coefficients[2][0];
+        recovered_mat_deriv[1] = velocity[0] * polynomial_coefficients[0][1] + velocity[1] * polynomial_coefficients[1][1] + velocity[2] * polynomial_coefficients[2][1];
+        recovered_mat_deriv[2] = velocity[0] * polynomial_coefficients[0][2] + velocity[1] * polynomial_coefficients[1][2] + velocity[2] * polynomial_coefficients[2][2];
+
+    }
+
+    AddTimeDerivative(r_model_part, material_derivative_container);
+
+    mCalculatingTheGradient = false;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -153,7 +216,7 @@ void DerivativeRecovery<TDim>::CalculateVorticityContributionOfTheGradientOfACom
         KRATOS_THROW_ERROR(std::invalid_argument,"The value of CURRENT_COMPONENT passed to the ComputeComponentGradientSimplex element is not 0, 1 or 2, but ", current_component);
     }
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         const array_1d <double, 3>& gradient_of_component = inode->FastGetSolutionStepValue(vector_component_gradient_container);
         array_1d <double, 3>& vorticity = inode->FastGetSolutionStepValue(vorticity_container);
 
@@ -178,7 +241,7 @@ void DerivativeRecovery<TDim>::CalculateVorticityContributionOfTheGradientOfACom
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, Variable<double>& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 {
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         noalias(inode->FastGetSolutionStepValue(gradient_container)) = ZeroVector(3);
     }
 
@@ -187,8 +250,10 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, Variab
     array_1d <double, TDim + 1 > N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
-    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
+
         // computing the shape function derivatives
+
         Geometry<Node<3> >& geom = ielem->GetGeometry();
         double Volume;
 
@@ -214,7 +279,7 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, Variab
         }
     }
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         inode->FastGetSolutionStepValue(gradient_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
     }
 }
@@ -237,7 +302,8 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     }
 
     // Solving least squares problem (Zhang, 2006)
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
@@ -256,63 +322,6 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
                 recovered_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
             }
         }
-    }
-
-    mCalculatingTheGradient = false;
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container)
-{
-    mCalculatingTheGradient = true;
-
-    if (mFirstGradientRecovery){
-        std::cout << "Constructing first-step neighbour clouds for material derivative...\n";
-        SetNeighboursAndWeights(r_model_part);
-        mFirstGradientRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for material derivative.\n";
-    }
-
-    if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
-        CalculateVectorMaterialDerivative(r_model_part, vector_container, vector_rate_container, mat_deriv_container);
-    }
-
-    // Solving least squares problem (Zhang, 2006)
-    unsigned int n_relevant_terms = 3;
-
-    std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the material derivative
-    polynomial_coefficients.resize(n_relevant_terms);
-
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        unsigned int n_neigh = neigh_nodes.size();
-
-        if (!n_neigh){ // then we keep the defualt value
-            continue;
-        }
-
-        for (unsigned int i = 0; i < n_relevant_terms; i++){ // resetting polynomial_coefficients to 0
-            polynomial_coefficients[i] = ZeroVector(3);
-        }
-
-        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
-
-        for (unsigned int k = 0; k < TDim; ++k){
-            for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
-                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
-                for (unsigned int d = 0; d < n_relevant_terms; ++d){
-                    polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
-                }
-            }
-        }
-
-        array_1d <double, 3>& recovered_mat_deriv = inode->FastGetSolutionStepValue(mat_deriv_container);
-        const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(vector_container);
-        recovered_mat_deriv[0] = velocity[0] * polynomial_coefficients[0][0] + velocity[1] * polynomial_coefficients[1][0] + velocity[2] * polynomial_coefficients[2][0];
-        recovered_mat_deriv[1] = velocity[0] * polynomial_coefficients[0][1] + velocity[1] * polynomial_coefficients[1][1] + velocity[2] * polynomial_coefficients[2][1];
-        recovered_mat_deriv[2] = velocity[0] * polynomial_coefficients[0][2] + velocity[1] * polynomial_coefficients[1][2] + velocity[2] * polynomial_coefficients[2][2];
-
     }
 
     mCalculatingTheGradient = false;
@@ -341,7 +350,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
     std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the laplacian
     polynomial_coefficients.resize(n_relevant_terms);
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
@@ -349,7 +358,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
             continue;
         }
 
-        for (unsigned int i = 0; i < n_relevant_terms; i++){ // resetting polynomial_coefficients to 0
+        for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
             polynomial_coefficients[i] = ZeroVector(3);
         }
 
@@ -378,7 +387,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, Variable<array_1d<double, 3> >& laplacian_container)
 {
     mCalculatingGradientAndLaplacian = true;
 
@@ -391,16 +400,17 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
         CalculateVectorLaplacian(r_model_part, vector_container, laplacian_container);
-        CalculateVectorMaterialDerivative(r_model_part, vector_container, vector_rate_container, mat_deriv_container);
+        CalculateVectorMaterialDerivative(r_model_part, vector_container, vector_rate_container, material_derivative_container);
     }
 
     // Solving least squares problem (Zhang, 2006)
+
     unsigned int n_relevant_terms = 9;
 
     std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the laplacian and the material derivative
     polynomial_coefficients.resize(n_relevant_terms);
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
 
@@ -408,7 +418,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
             continue;
         }
 
-        for (unsigned int i = 0; i < n_relevant_terms; i++){ // resetting polynomial_coefficients to 0
+        for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
             polynomial_coefficients[i] = ZeroVector(3);
         }
 
@@ -424,7 +434,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
         }
 
         array_1d <double, 3>& recovered_laplacian = inode->FastGetSolutionStepValue(laplacian_container);
-        array_1d <double, 3>& recovered_mat_deriv = inode->FastGetSolutionStepValue(mat_deriv_container);
+        array_1d <double, 3>& recovered_mat_deriv = inode->FastGetSolutionStepValue(material_derivative_container);
         const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(vector_container);
         recovered_mat_deriv[0] = velocity[0] * polynomial_coefficients[0][0] + velocity[1] * polynomial_coefficients[1][0] + velocity[2] * polynomial_coefficients[2][0];
         recovered_mat_deriv[1] = velocity[0] * polynomial_coefficients[0][1] + velocity[1] * polynomial_coefficients[1][1] + velocity[2] * polynomial_coefficients[2][1];
@@ -433,8 +443,9 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
         recovered_laplacian[0] = 2 * (polynomial_coefficients[6][0] + polynomial_coefficients[7][0] + polynomial_coefficients[8][0]);
         recovered_laplacian[1] = 2 * (polynomial_coefficients[6][1] + polynomial_coefficients[7][1] + polynomial_coefficients[8][1]);
         recovered_laplacian[2] = 2 * (polynomial_coefficients[6][2] + polynomial_coefficients[7][2] + polynomial_coefficients[8][2]);
-
     }
+
+    AddTimeDerivative(r_model_part, material_derivative_container);
 
     mCalculatingGradientAndLaplacian = false;
 }
@@ -447,10 +458,10 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         noalias(inode->FastGetSolutionStepValue(laplacian_container)) = ZeroVector(3);
         id_to_position[inode->Id()] = entry;
-        entry++;
+        ++entry;
     }
 
     std::vector<array_1d <double, 3> > laplacians;
@@ -468,8 +479,10 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
         // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in laplacian_container
 
-        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
+
             // computing the shape function derivatives
+
             Geometry<Node<3> >& geom = ielem->GetGeometry();
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -494,13 +507,13 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
         // normalizing the contributions to the gradient
 
-        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             inode->FastGetSolutionStepValue(laplacian_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
         }
 
         // for each element, constructing the divergence contribution (to its nodes) of the gradient of component v_j
 
-        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             Geometry<Node<3> >& geom = ielem->GetGeometry();
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -528,14 +541,14 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
         // clearing the values stored in laplacian_container for the next component
 
-        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(laplacian_container);
             noalias(current_gradient_of_vi) = ZeroVector(3);
         }
 
     } // for each component of the vector value
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         array_1d <double, 3>& stored_laplacian = laplacians[id_to_position[inode->Id()]];
         array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(laplacian_container);
         noalias(laplacian) = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
@@ -553,7 +566,7 @@ void DerivativeRecovery<TDim>::CalculateVelocityLaplacianRate(ModelPart& r_model
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
         NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
         NodeIteratorType node_begin = pNodes.ptr_begin() + nodes_partition[k];
         NodeIteratorType node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];
@@ -566,7 +579,6 @@ void DerivativeRecovery<TDim>::CalculateVelocityLaplacianRate(ModelPart& r_model
         }
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
@@ -583,14 +595,14 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
     const unsigned int n_max_iterations = 100;
 
     unsigned int i = 0;
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
 
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
-            iteration++;
+            ++iteration;
         }
 
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
@@ -600,7 +612,8 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
             std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
             std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
         }
-        i++;
+
+        ++i;
     }
 }
 //**************************************************************************************************************************************************
@@ -614,14 +627,14 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
     const unsigned int n_max_iterations = 100;
 
     unsigned int i = 0;
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
 
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
-            iteration++;
+            ++iteration;
         }
 
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
@@ -631,7 +644,8 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
             std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
             std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
         }
-        i++;
+
+        ++i;
     }
 }
 //**************************************************************************************************************************************************
@@ -681,7 +695,7 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
 
         unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
         if (geom[jj].Id() == p_node->Id()){ // skipping itself
-            jj++;
+            ++jj;
         }
 
         for (unsigned int j = 0; j < TDim; ++j){
@@ -692,6 +706,7 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
                 ids[p_neigh->Id()] = p_neigh->Id();
             }
         }
+
         i += TDim;
     }
 
@@ -702,7 +717,7 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
     }
 
     else {
-        return(SetWeightsAndRunLeastSquaresTest(r_model_part, p_node));
+        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node);
     }
 }
 //**************************************************************************************************************************************************
@@ -732,7 +747,7 @@ bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
             if (ids.find(p_neigh_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh_neigh);
                 ids[p_neigh_neigh->Id()] = p_neigh_neigh->Id();
-                n_new_nodes++;
+                ++n_new_nodes;
             }
 
             if (n_new_nodes >= node_increase_per_neighbour){
@@ -750,7 +765,7 @@ bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
     }
 
     else {
-        return(SetWeightsAndRunLeastSquaresTest(r_model_part, p_node));
+        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node);
     }
 }
 //**************************************************************************************************************************************************
@@ -761,7 +776,7 @@ double DerivativeRecovery<TDim>::SecondDegreeTestPolynomial(const array_1d <doub
     const double x = coordinates[0];
     const double y = coordinates[1];
     const double z = coordinates[2];
-    return(1.0 + x + y + z + x * y + x * z + y * z + x * x + y * y + z * z);
+    return 1.0 + x + y + z + x * y + x * z + y * z + x * x + y * y + z * z;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -771,7 +786,7 @@ double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(boost::numeric::u
     const double x = coordinates[0];
     const double y = coordinates[1];
     const double z = coordinates[2];
-    return(C(0,0) + C(1,0) * x + C(2,0) * y + C(3,0) * z + C(4,0) * x * y + C(5,0) * x * z + C(6,0) * y * z + C(7,0) * x * x + C(8,0) * y * y + C(9,0) * z * z);
+    return C(0,0) + C(1,0) * x + C(2,0) * y + C(3,0) * z + C(4,0) * x * y + C(5,0) * x * z + C(6,0) * y * z + C(7,0) * x * x + C(8,0) * y * y + C(9,0) * z * z;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -886,7 +901,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         }
 
         else {
-            for (unsigned int i = 1; i < n_poly_terms; i++){
+            for (unsigned int i = 1; i < n_poly_terms; ++i){
                 relevant_terms[i - 1] = i;
             }
         }
@@ -955,7 +970,7 @@ unsigned int DerivativeRecovery<TDim>::GetNumberOfUniqueNeighbours(const int my_
         }
     }
 
-    return((int)ids.size());
+    return (int)ids.size();
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -972,7 +987,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumDistanceToNeighbours(Node<3>
         max_distance_yet = max_distance_yet > distance_2 ? max_distance_yet : distance_2;
     }
 
-    return(std::sqrt(max_distance_yet));
+    return std::sqrt(max_distance_yet);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -981,7 +996,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumEdgeLength(ModelPart& r_mode
 {
     double max_distance_yet = 0.0;
 
-    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         Geometry<Node<3> >& geom = ielem->GetGeometry();
         unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
 
@@ -994,7 +1009,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumEdgeLength(ModelPart& r_mode
         }
     }
 
-    return(std::sqrt(max_distance_yet));
+    return std::sqrt(max_distance_yet);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1005,7 +1020,7 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 
     bool first_node = true;
 
-    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         Geometry<Node<3> >& geom = ielem->GetGeometry();
 
         if (first_node){ // assign the distance (squared) between any two nodes to min_distance_yet
@@ -1026,9 +1041,10 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
         }
     }
 
-    return(std::sqrt(min_distance_yet));
+    return std::sqrt(min_distance_yet);
 }
-
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 
 
 // Explicit instantiations
