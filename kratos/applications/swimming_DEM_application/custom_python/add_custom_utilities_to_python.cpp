@@ -251,9 +251,6 @@ using namespace boost::python;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
-        .def("CalculateGradient", &CustomFunctionsCalculator <2>::CalculateGradient)
-        .def("CalculateVectorLaplacian", &CustomFunctionsCalculator <2>::CalculateVectorLaplacian)
-        .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <2>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <2>::CalculateDomainVolume)
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <2>::CalculateTotalHydrodynamicForceOnParticles)
@@ -261,16 +258,8 @@ using namespace boost::python;
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <2>::CalculateGlobalFluidVolume)
         ; 
 
-    //**********************************************************************************************************************************************
-    // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
-        .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
-        .def("CalculateVectorMaterialDerivative", &CustomFunctionsCalculator <3>::CalculateVectorMaterialDerivative)
-        .def("CalculateVectorLaplacian", &CustomFunctionsCalculator <3>::CalculateVectorLaplacian)
-        .def("RecoverSuperconvergentGradient", &CustomFunctionsCalculator <3>::RecoverSuperconvergentGradient)
-        .def("RecoverSuperconvergentLaplacian", &CustomFunctionsCalculator <3>::RecoverSuperconvergentLaplacian)
-        .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <3>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <3>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <3>::CalculateDomainVolume)
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnParticles)
@@ -294,7 +283,6 @@ using namespace boost::python;
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
         ;
     //**********************************************************************************************************************************************
-
 
     class_<BassetForceTools> ("BassetForceTools", init<>())
         .def("FillDaitcheVectors", &BassetForceTools::FillDaitcheVectors)
