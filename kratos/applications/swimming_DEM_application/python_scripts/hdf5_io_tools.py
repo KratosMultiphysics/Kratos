@@ -66,10 +66,8 @@ class FluidHDF5Loader:
     def FillUpSingleDataset(self, name, variable, variable_index_in_temp_array):
         with h5py.File(self.file_name, 'r+') as f:
             f.create_dataset(name, compression = self.compression_type, shape = self.shape, dtype = self.dtype)
-            i_node = 0
-            for node in self.fluid_model_part.Nodes:
+            for i_node, node in enumerate(self.fluid_model_part.Nodes):
                 self.current_data_array[i_node, variable_index_in_temp_array] = node.GetSolutionStepValue(variable)
-                i_node += 1
             f[name][:] = self.current_data_array[:, variable_index_in_temp_array]
         
     def FillFluidDataStep(self):
@@ -93,11 +91,8 @@ class FluidHDF5Loader:
         
         self.current_data_array[:, variable_index_in_temp_array] = alpha_old * self.old_data_array[:, variable_index_in_temp_array] + alpha_future * self.future_data_array[:, variable_index_in_temp_array]
         
-        i_node = 0
-
-        for node in self.fluid_model_part.Nodes:
+        for i_node, node in enumerate(self.fluid_model_part.Nodes):
             node.SetSolutionStepValue(variable, self.current_data_array[i_node, variable_index_in_temp_array])
-            i_node += 1           
            
     def LoadFluid(self, DEM_time):   
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights) 
