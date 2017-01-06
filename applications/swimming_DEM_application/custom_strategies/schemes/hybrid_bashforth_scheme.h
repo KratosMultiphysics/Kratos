@@ -55,7 +55,7 @@ namespace Kratos {
 
         /// Turn back information as a string.
 
-        virtual std::string Info() const {
+        virtual std::string Info() const override {
             std::stringstream buffer;
             buffer << "HybridBashforthScheme";
             return buffer.str();
@@ -63,13 +63,13 @@ namespace Kratos {
 
         /// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const {
+        virtual void PrintInfo(std::ostream& rOStream) const override {
             rOStream << "HybridBashforthScheme";
         }
 
         /// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const {
+        virtual void PrintData(std::ostream& rOStream) const override {
         }
 
 
