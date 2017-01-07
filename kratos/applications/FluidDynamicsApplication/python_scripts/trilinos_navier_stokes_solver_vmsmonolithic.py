@@ -32,7 +32,7 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
                 "input_filename": "unknown_name"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "dynamic_tau": 0.01,
             "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
@@ -44,8 +44,14 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"        : {
-                "solver_type" : "AztecSolver"
+            "linear_solver_settings"       : {
+                "solver_type"                        : "MultiLevelSolver",
+                "max_iteration"                      : 200,
+                "tolerance"                          : 1e-8,
+                "max_levels"                         : 3,
+                "symmetric"                          : false,
+                "reform_preconditioner_at_each_step" : false,
+                "scaling"                            : true
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],

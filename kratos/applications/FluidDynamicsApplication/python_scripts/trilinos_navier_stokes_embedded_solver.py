@@ -48,7 +48,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
             "linear_solver_settings"       : {
-                "solver_type"         : "AztecSolver"
+                "solver_type"                        : "MultiLevelSolver",
+                "max_iteration"                      : 200,
+                "tolerance"                          : 1e-8,
+                "max_levels"                         : 3,
+                "symmetric"                          : false,
+                "reform_preconditioner_at_each_step" : false,
+                "scaling"                            : true
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
