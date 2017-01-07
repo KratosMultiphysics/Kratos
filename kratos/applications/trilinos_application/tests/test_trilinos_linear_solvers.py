@@ -218,6 +218,27 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.expectedFailure
+    def test_ml_symmetric_scaling(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                    "solver_type": "MultiLevelSolver",
+                    "tolerance" : 1.0e-6,
+                    "max_iteration" : 200,
+                    "max_levels" : 3,
+                    "scaling":true,
+                    "reform_preconditioner_at_each_step":true,
+                    "symmetric":true,
+                    "verbosity":0,
+                    "trilinos_aztec_parameter_list": {},
+                    "trilinos_ml_parameter_list": {}
+                    }
+                ]
+            }
+            """)
+
     def test_ml_nonsymmetric(self):
         self._RunParametrized("""
             {
@@ -228,6 +249,27 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                     "max_iteration" : 200,
                     "max_levels" : 3,
                     "scaling":false,
+                    "reform_preconditioner_at_each_step":true,
+                    "symmetric":false,
+                    "verbosity":0,
+                    "trilinos_aztec_parameter_list": {},
+                    "trilinos_ml_parameter_list": {}
+                    }
+                ]
+            }
+            """)
+
+    @KratosUnittest.expectedFailure
+    def test_ml_nonsymmetric_scaling(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                    "solver_type": "MultiLevelSolver",
+                    "tolerance" : 1.0e-6,
+                    "max_iteration" : 200,
+                    "max_levels" : 3,
+                    "scaling":true,
                     "reform_preconditioner_at_each_step":true,
                     "symmetric":false,
                     "verbosity":0,
