@@ -50,8 +50,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
         #construct the solver
-        import new_trilinos_linear_solver_factory
-        linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(settings)
+        import trilinos_linear_solver_factory
+        linear_solver = trilinos_linear_solver_factory.ConstructSolver(settings)
 
         #solve
         linear_solver.Solve(pA.GetReference(),px.GetReference(),pb.GetReference())
