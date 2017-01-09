@@ -9,10 +9,9 @@
 //
 //  Main authors:    Pooyan Dadvand
 //
-//
 
-#if !defined(KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED )
-#define  KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED
+#if !defined(KRATOS_MESH_NODE_COLLAPSING_PROCESS_H_INCLUDED )
+#define  KRATOS_MESH_NODE_COLLAPSING_PROCESS_H_INCLUDED
 
 
 
@@ -25,54 +24,60 @@
 
 
 // Project includes
+#include "includes/define.h"
+#include "processes/process.h"
 #include "includes/model_part.h"
-#include "processes/mesh_node_collapsing_process.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup KratosCore
+  ///@addtogroup Kratos Core
   ///@{
 
   ///@name Kratos Classes
   ///@{
 
-  /// Short class definition.
+  /// Remove the selected node from the mesh and collapse the connectivity arround it.
   /** Detail class definition.
   */
-  class MeshCoarseningProcess : public MeshNodeCollapsingProcess
+  class MeshNodeCollapsingProcess : public Process
     {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of MeshCoarseningProcess
-      KRATOS_CLASS_POINTER_DEFINITION(MeshCoarseningProcess);
+      /// Pointer definition of MeshNodeCollapsingProcess
+      KRATOS_CLASS_POINTER_DEFINITION(MeshNodeCollapsingProcess);
+
+	  ///@}
+	  ///@name Flags
+	  ///@{
+
+	  KRATOS_DEFINE_LOCAL_FLAG(COARSE_MESH_NODE);
 
 	  ///@}
       ///@name Life Cycle
       ///@{
 
-      /// Is not default constructable.
-      MeshCoarseningProcess() = delete;
+	  ///Constructor to be used.
+	  MeshNodeCollapsingProcess(ModelPart& rModelPart);
 
-	  /// Is not copyable.
-	  MeshCoarseningProcess(MeshCoarseningProcess const& rOther) = delete;
+	  /// Default constructor deleted.
+	  MeshNodeCollapsingProcess() = delete;
 
-	  /// The constructor to be called
-	  MeshCoarseningProcess(ModelPart& rModelPart);
+	  /// Copy constructor deleted.
+	  MeshNodeCollapsingProcess(MeshNodeCollapsingProcess const& rOther) = delete;
 
-      /// Destructor.
-      virtual ~MeshCoarseningProcess();
+	  /// Destructor.
+      virtual ~MeshNodeCollapsingProcess();
 
 
       ///@}
       ///@name Operators
       ///@{
 
-	  /// Is not assignable.
-	  MeshCoarseningProcess& operator=(MeshCoarseningProcess const& rOther) = delete;
-
+	  /// Assignment operator is deleted.
+	  MeshNodeCollapsingProcess& operator=(MeshNodeCollapsingProcess const& rOther) = delete;
 
       ///@}
       ///@name Operations
@@ -112,7 +117,13 @@ namespace Kratos
 
       ///@}
 
-     private:
+	protected:
+		///@name Member Variables
+		///@{
+		ModelPart& mrModelPart;
+		///@}
+
+    private:
       ///@name Static Member Variables
       ///@{
 
@@ -121,36 +132,26 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      ///@}
-      ///@name Private Operators
-      ///@{
-
 
       ///@}
       ///@name Private Operations
       ///@{
 
-		void SelectCoarseMeshNodes();
+		void CollapseNodes();
 
+		void CollapseNode(Node<3>& rThisNode);
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+		double CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode);
 
+		double CalculateMinQualityOfNeighbourElements(Node<3>& rThisNode, Node<3> const& rCoarseNode);
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+		bool ElementHas(Element& rElement, Node<3> const& rCoarseNode);
 
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
-
+		void SwapElementNode(Element& rElement, Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode);
 
       ///@}
 
-    }; // Class MeshCoarseningProcess
+    }; // Class MeshNodeCollapsingProcess
 
   ///@}
 
@@ -165,11 +166,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    MeshCoarseningProcess& rThis);
+				    MeshNodeCollapsingProcess& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const MeshCoarseningProcess& rThis)
+				    const MeshNodeCollapsingProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -183,4 +184,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESH_COARSENING_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_MESH_NODE_COLLAPSING_PROCESS_H_INCLUDED  defined
