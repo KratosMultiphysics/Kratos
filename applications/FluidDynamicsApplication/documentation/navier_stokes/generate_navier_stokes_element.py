@@ -9,6 +9,8 @@ from sympy_fe_utilities import *
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
 # Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
+# DIVIDE BY RHO:
+# If set to true, divides the mass conservation equation by rho. Otherwise the original form is kept.
 # ARTIFICIAL COMPRESSIBILITY:
 # If set to true, the time derivative of the density is introduced in the mass conservation equation together with the state equation
 # dp/drho=c^2 (being c the sound velocity). Besides, the velocity divergence is not considered to be 0. These assumptions add some extra terms
@@ -19,7 +21,8 @@ from sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-linearisation = "FullNR"            # Linearisation type. Options: "Picard", "FullNR"
+linearisation = "Picard"            # Linearisation type. Options: "Picard", "FullNR"
+divide_by_rho = True                # Divide by density in mass conservation equation
 artificial_compressibility = True   # Consider an artificial compressibility
 mode = "c"                          # Output mode to a c++ file
 
@@ -120,10 +123,16 @@ for dim in dim_vector:
 
     ## Compute galerkin functional
     # Navier-Stokes functional
-    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*convective_term*w_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
+    if (divide_by_rho == True):
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*convective_term*w_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+    else:
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*convective_term*w_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
     # Navier-Stokes functional artificial compressibility terms addition
     if (artificial_compressibility == True):
-        rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(c*c))*q_gauss*pder_gauss - rho*q_gauss*div_v
+        if (divide_by_rho == True):
+            rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(rho*c*c))*q_gauss*pder_gauss - q_gauss*div_v
+        else:
+            rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(c*c))*q_gauss*pder_gauss - rho*q_gauss*div_v
 
     ##  Stabilization functional terms
     # Momentum conservation residual
@@ -133,14 +142,20 @@ for dim in dim_vector:
         vel_residual -= ((1/(c*c))*pder_gauss*v_gauss.transpose()).transpose()
 
     # Mass conservation residual
-    mas_residual = -rho*div_v
+    if (divide_by_rho == True):
+        mas_residual = -div_v
+    else:
+        mas_residual = -rho*div_v
     # Mass conservation artificial compressibility residual
     if (artificial_compressibility == True):
-        mas_residual -= (1/(c*c))*pder_gauss
+        if (divide_by_rho == True):
+            mas_residual -= (1/(rho*c*c))*pder_gauss
+        else:
+            mas_residual -= (1/(c*c))*pder_gauss
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals
     rv_stab = tau1*rho*grad_q.transpose()*vel_residual
-    rv_stab += tau1*rho*vel_residual.transpose()*grad_w*vconv_gauss
+    rv_stab += tau1*rho*(grad_w*vconv_gauss).transpose()*vel_residual
     rv_stab -= tau2*div_w*mas_residual
     if (artificial_compressibility == True):
         rv_stab -= tau1*(1/(c*c))*pder_gauss*w_gauss.transpose()*vel_residual
