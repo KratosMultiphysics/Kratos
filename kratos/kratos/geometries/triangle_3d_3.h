@@ -305,7 +305,7 @@ public:
         return typename BaseType::Pointer( new Triangle3D3( ThisPoints ) );
     }
 
-        
+
     virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -421,6 +421,80 @@ public:
     virtual double DomainSize() const
     {
         return( Area() );
+    }
+
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the minimum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MinEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::min({l01, l12, l20});
+    }
+
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MaxEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::max({l01, l12, l20});
+    }
+
+    /** This method calculates and returns the average edge
+     * length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     * @see MinEdgeLength()
+     * @see MaxEdgeLength()
+     */
+    virtual double AverageEdgeLength() const {
+      const double onethird = 1.0/3.0;
+
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 * onethird );
     }
 
     /**
@@ -565,9 +639,9 @@ public:
      * @return JacobiansType a Vector of jacobian
      * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
      * point index of given integration method.
-     * 
+     *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
@@ -838,7 +912,7 @@ public:
     {
       return EdgesNumber();
     }
-    
+
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -882,7 +956,7 @@ public:
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
 
-        NodesInFaces(0,1)=1;//face or other node 
+        NodesInFaces(0,1)=1;//face or other node
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=0;
 
@@ -892,7 +966,7 @@ public:
 
     }
 
-    
+
     /**
      * Returns all faces of the current geometry.
      * This is only implemented for 3D geometries, since 2D geometries
@@ -1534,5 +1608,4 @@ GeometryData Triangle3D3<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined 
-
+#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

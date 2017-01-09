@@ -400,59 +400,106 @@ public:
         return  detJ*onesixth;
     }
 
-    /**
-     * This method calculates the average edge length of the geometry using the root mean square
-     *
-     * @return double value with the average edge length
-     */
-    virtual double AverageEdgeLength() const {
-      const double onesixth = 1.0/6.0;
-
-      double l01 = EdgeType(this->pGetPoint(0), this->pGetPoint(1)).Length();
-      double l12 = EdgeType(this->pGetPoint(1), this->pGetPoint(2)).Length();
-      double l20 = EdgeType(this->pGetPoint(2), this->pGetPoint(0)).Length();
-      double l03 = EdgeType(this->pGetPoint(0), this->pGetPoint(3)).Length();
-      double l13 = EdgeType(this->pGetPoint(1), this->pGetPoint(3)).Length();
-      double l23 = EdgeType(this->pGetPoint(2), this->pGetPoint(3)).Length();
-
-      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 + l03 * l03 + l13 * l13 + l23 * l23 * onesixth );
-    }
-
-
     virtual double DomainSize() const
     {
 
         return Volume();
     }
 
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the minimum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MinEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-    /** Calculates the quality of the geometry according to a given criteria.
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+      auto e03 = rP0 - rP3;
+      auto e13 = rP1 - rP3;
+      auto e23 = rP2 - rP3;
 
-    Calculates the quality of the geometry according to a given criteria. In General
-    The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
-    inverted elements.
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
+      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
+      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
 
-    Different crtieria can be used to stablish the quality of the geometry.
-    @see QualityCriteria
-
-    @return double value contains quality of the geometry
-    */
-    virtual double Quality(const typename Geometry<TPointType>::QualityCriteria qualityCriteria) const
-    {
-      double quality = 0.0f;
-
-      if(qualityCriteria == Geometry<TPointType>::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO) {
-        const double normalization_coeficient = 6.0f * std::sqrt(2.0f);
-        
-        double volume = this->Volume();
-        double avglen = this->AverageEdgeLength();
-
-        quality = normalization_coeficient * volume / (avglen * avglen * avglen);
-      }
-
-      return quality;
+      return std::min({l01, l12, l20, l03, l13, l23});
     }
 
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MaxEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+      auto e03 = rP0 - rP3;
+      auto e13 = rP1 - rP3;
+      auto e23 = rP2 - rP3;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
+      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
+      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
+
+      return std::max({l01, l12, l20, l03, l13, l23});
+    }
+
+    /** This method calculates and returns the average edge
+     * length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     * @see MinEdgeLength()
+     * @see MaxEdgeLength()
+     */
+    virtual double AverageEdgeLength() const {
+      const double onesixth = 1.0/6.0;
+
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+      auto e03 = rP0 - rP3;
+      auto e13 = rP1 - rP3;
+      auto e23 = rP2 - rP3;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
+      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
+      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
+
+      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 + l03 * l03 + l13 * l13 + l23 * l23 * onesixth );
+    }
 
     /**
     * Returns a matrix of the local coordinates of all points

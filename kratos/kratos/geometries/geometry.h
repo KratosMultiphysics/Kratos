@@ -13,8 +13,8 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Carlos Roig
 //
-
 
 
 #if !defined(KRATOS_GEOMETRY_H_INCLUDED )
@@ -92,16 +92,16 @@ public:
      * MAXIMAL_DIHEDRAL_ANGLE: Maximal dihedral angle
      * MINIMAL_SOLID_ANGLE: Minimal solid angle
      */
-    enum QualityCriteria {
+    enum class QualityCriteria {
       ASPECT_RATIO,
-      ASPECT_RATIO_ALT,
-      RELEVANT_SPHERE_RATIO,
-      CIRCUMRADIUS_DIAMETER_RATIO,
-      EXTREMEAL_LENGTH_EDGE_RATIO,
-      VOLUME_SURFACE_RATIO,
-      AVERAGE_LENGTH_VOLUME_RATIO,
-      MAXIMAL_DIHEDRAL_ANGLE,
-      MINIMAL_SOLID_ANGLE
+      // ASPECT_RATIO_ALT,
+      // RELEVANT_SPHERE_RATIO,
+      // CIRCUMRADIUS_DIAMETER_RATIO,
+      // EXTREMEAL_LENGTH_EDGE_RATIO,
+      // VOLUME_SURFACE_RATIO,
+      AVERAGE_LENGTH_VOLUME_RATIO
+      // MAXIMAL_DIHEDRAL_ANGLE,
+      // MINIMAL_SOLID_ANGLE
     };
 
     /** Base type for geometry.
@@ -423,7 +423,7 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult )  const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function for LumpingFactors" , *this );
+        KRATOS_ERROR << "Called the virtual function for LumpingFactors " << *this << std::endl;
         return rResult;
     }
 
@@ -469,101 +469,149 @@ public:
     }
 
     /** Returns number of the points which this geometry has.
-
-    @return SizeType, number of the points in this geometry.
-    */
-    SizeType PointsNumber() const
-    {
-        return this->size();
+     *
+     * @return SizeType, number of the points in this geometry.
+     */
+    SizeType PointsNumber() const {
+      return this->size();
     }
 
     /** This method calculate and return Length or charactereistic
-    length of this geometry depending to it's dimension. For one
-    dimensional geometry for example Line it returns length of it
-    and for the other geometries it gives Characteristic length
-    otherwise.
-
-    @return double value contains length or Characteristic
-    length
-    @see Area()
-    @see Volume()
-    @see DomainSize()
-    */
-    virtual double Length() const
-    {
-        return 0;
+     * length of this geometry depending to it's dimension. For one
+     * dimensional geometry for example Line it returns length of it
+     * and for the other geometries it gives Characteristic length
+     * otherwise.
+     *
+     * @return double value contains length or Characteristic
+     * length
+     *
+     * @see Area()
+     * @see Volume()
+     * @see DomainSize()
+     */
+    virtual double Length() const {
+      KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
 
     /** This method calculate and return area or surface area of
-    this geometry depending to it's dimension. For one dimensional
-    geometry it returns length, for two dimensional it gives area
-    and for three dimensional geometries it gives surface area.
-
-    @return double value contains area or surface
-    area.
-    @see Length()
-    @see Volume()
-    @see DomainSize()
-    */
-    virtual double Area() const
-    {
-        return 0;
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns length, for two dimensional it gives area
+     * and for three dimensional geometries it gives surface area.
+     *
+     * @return double value contains area or surface
+     * area.
+     *
+     * @see Length()
+     * @see Volume()
+     * @see DomainSize()
+     */
+    virtual double Area() const {
+      KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
 
     /** This method calculate and return volume of this
-    geometry. For one and two dimensional geometry it returns
-    zero and for three dimensional it gives volume of geometry.
-
-    @return double value contains volume.
-    @see Length()
-    @see Area()
-    @see DomainSize()
-    */
-    virtual double Volume() const
-    {
-        return 0;
+     * geometry. For one and two dimensional geometry it returns
+     * zero and for three dimensional it gives volume of geometry.
+     *
+     * @return double value contains volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    virtual double Volume() const {
+      KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
-
 
     /** This method calculate and return length, area or volume of
-    this geometry depending to it's dimension. For one dimensional
-    geometry it returns its length, for two dimensional it gives area
-    and for three dimensional geometries it gives its volume.
-
-    @return double value contains length, area or volume.
-    @see Length()
-    @see Area()
-    @see Volume()
-    */
-    virtual double DomainSize() const
-    {
-        return 0;
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    virtual double DomainSize() const {
+      KRATOS_ERROR << "Calling base class 'DomainSize' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
 
-
-
-    virtual bool HasIntersection( const GeometryType& ThisGeometry )
-    {
-        KRATOS_THROW_ERROR( std::logic_error, "Calling base class HasIntersection method instead of derived class one. Please check the definition of derived class." , *this );
-        return false;
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the minimum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MinEdgeLength() const {
+      KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
 
-    /// Interseciones con la geometrias y cajas en 3D
-    virtual bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
-    {
-        KRATOS_THROW_ERROR( std::logic_error, "Calling base class HasIntersection method instead of derived class one. Please check the definition of derived class." , *this );
-        return false;
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MaxEdgeLength() const {
+      KRATOS_ERROR << "Calling base class 'MaxEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
     }
 
+    /** This method calculates and returns the average edge
+     * length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     * @see MinEdgeLength()
+     * @see MaxEdgeLength()
+     */
+    virtual double AverageEdgeLength() const {
+      KRATOS_ERROR << "Calling base class 'AverageEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0;
+    }
 
+    /** Test the intersection with another geometry
+     *
+     * Test if this geometry intersects with other geometry
+     *
+     * @param  ThisGeometry Geometry to intersect with
+     * @return              True if the geometries intersect, False in any other case.
+     */
+    virtual bool HasIntersection(const GeometryType& ThisGeometry) {
+      KRATOS_ERROR << "Calling base class 'HasIntersection' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return false;
+    }
 
+    /** Test intersection of the geometry with a box
+     *
+     * Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) {
+      KRATOS_ERROR << "Calling base class 'HasIntersection' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return false;
+    }
 
-//     virtual void BoundingBox(BoundingBoxType& rResult) const
-//              {
-//
-//                 Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
+    // virtual void BoundingBox(BoundingBoxType& rResult) const
+    // {
+    //
+    //   Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
+    // }
 
     //template<class TDimension, class TPointType>
     virtual void BoundingBox( TPointType& rLowPoint, TPointType& rHighPoint ) const
@@ -582,7 +630,6 @@ public:
         }
     }
 
-
     /** Calculates center of this geometry by a simple averaging algorithm.
     Each center point component calculated using:
     \f[
@@ -600,8 +647,8 @@ public:
         const SizeType points_number = this->size();
 
         if ( points_number == 0 )
-            KRATOS_THROW_ERROR(std::logic_error,"can not compute the ceneter of a geometry of zero points","");
-//             return PointType();
+            KRATOS_ERROR << "can not compute the ceneter of a geometry of zero points" << std::endl;
+            // return PointType();
 
         Point<3> result = ( *this )[0];
 
@@ -616,20 +663,32 @@ public:
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
+     *
+     * Calculates the quality of the geometry according to a given criteria. In General
+     * The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
+     * inverted elements.
+     *
+     * Different crtieria can be used to stablish the quality of the geometry.
+     *
+     * @return double value contains quality of the geometry
+     *
+     * @see QualityCriteria
+     * @see QualityAspectRatio
+     * @see QualityAverageEdgeLenght
+     */
+     double Quality(const QualityCriteria qualityCriteria) const {
+       double quality = 0.0f;
 
-    Calculates the quality of the geometry according to a given criteria. In General
-    The quality of the result is normalized being 1.0 for best quality, 0.0 for degenerated elements and -1.0 for
-    inverted elements.
+       if(qualityCriteria == QualityCriteria::ASPECT_RATIO) {
+         quality = AspectRatioQuality();
+       } else if(qualityCriteria == QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO) {
+         quality = AverageEdgeLenghtQuality();
+       } else {
+         KRATOS_ERROR << "Selected quality criteria is not implemented. " << *this << std::endl;
+       }
 
-    Different crtieria can be used to stablish the quality of the geometry.
-    @see QualityCriteria
-
-    @return double value contains quality of the geometry
-    */
-    virtual double Quality(const typename Geometry<TPointType>::QualityCriteria qualityCriteria) const
-    {
-      return 0.0f;
-    }
+       return quality;
+     }
 
     ///@}
     ///@name Access
@@ -717,8 +776,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class PointsLocalCoordinates method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class 'PointsLocalCoordinates' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
 
@@ -772,8 +830,7 @@ public:
     */
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class IsInside method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class IsInside method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return false;
     }
 
@@ -835,8 +892,7 @@ public:
     // will be used by refinement algorithm, thus uncommented. janosch.
     virtual SizeType EdgesNumber() const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
         return SizeType();
     }
@@ -855,8 +911,7 @@ public:
     // will be used by refinement algorithm, thus uncommented. janosch.
     virtual GeometriesArrayType Edges( void )
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class Edges method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class Edges method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
         return GeometriesArrayType();
     }
@@ -889,8 +944,7 @@ public:
      */
     virtual SizeType FacesNumber() const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
         return SizeType();
     }
@@ -905,8 +959,7 @@ public:
      */
     virtual GeometriesArrayType Faces( void )
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class Faces method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class Faces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
         return GeometriesArrayType();
     }
@@ -914,14 +967,12 @@ public:
     //Connectivities of faces required
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& rNumberNodesInFaces) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& rNodesInFaces) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
     }
 
 
@@ -1530,9 +1581,7 @@ public:
 
     virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
     {
-
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class ShapeFunctionsValues method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class ShapeFunctionsValues method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
 
@@ -1632,8 +1681,7 @@ public:
     */
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class ShapeFunctionValue method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class ShapeFunctionValue method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
 
         return 0;
     }
@@ -1763,8 +1811,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class ShapeFunctionsLocalGradients method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class ShapeFunctionsLocalGradients method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
 
@@ -1777,8 +1824,7 @@ public:
      */
     virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class ShapeFunctionsSecondDerivatives method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class ShapeFunctionsSecondDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
 
@@ -1791,8 +1837,7 @@ public:
      */
     virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                            "Calling base class ShapeFunctionsThirdDerivatives method instead of derived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class ShapeFunctionsThirdDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
 
@@ -1810,8 +1855,7 @@ public:
         const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         if ( rResult.size() != integration_points_number )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
@@ -1839,8 +1883,7 @@ public:
         const unsigned int integration_points_number = this->IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported " << *this << std::endl;
 
         if ( rResult.size() != integration_points_number )
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod ), false  );
@@ -2001,6 +2044,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /** Calculates the quality of the geometry using the aspect ratio metric.
+     *
+     * @return double value contains quality of the geometry
+     *
+     * @see QualityCriteria
+     * @see Quality
+     * @see QualityAverageEdgeLenght
+     */
+    virtual double AspectRatioQuality() const {
+      double maxEdgeLen = MaxEdgeLength();
+      double minEdgeMin = MaxEdgeLength();
+
+      return minEdgeMin / maxEdgeLen;
+    }
+
+    /** Calculates the quality of the geometry using the average edge lenght vs volume ratio metric.
+     *
+     * @return double value contains quality of the geometry
+     *
+     * @see QualityCriteria
+     * @see Quality
+     * @see QualityAspectRatio
+     */
+    virtual double AverageEdgeLenghtQuality() const {
+      const double normalization_coeficient = 6.0f * std::sqrt(2.0f);
+
+      double volume = this->Volume();
+      double avglen = this->AverageEdgeLength();
+
+      return normalization_coeficient * volume / (avglen * avglen * avglen);
+    }
 
     ///@}
     ///@name Protected  Access
