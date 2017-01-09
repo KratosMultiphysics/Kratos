@@ -78,25 +78,27 @@ public:
 
         settings.ValidateAndAssignDefaults(default_settings);
 
-        //settings for the AZTEC solver
+        //settings for the MultiLevel solver
         mtol = settings["tolerance"].GetDouble();
         mmax_iter = settings["max_iteration"].GetDouble();
         mMLPrecIsInitialized = false;
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
 
-        mScalingType = LeftScaling; //TODO: actually use the "scaling" parameters
+        //scaling settings
+        if (settings["scaling"].GetBool() == false)
+            mScalingType = NoScaling;
+        else
+            mScalingType = LeftScaling;
 
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         mAztecParameterList = Teuchos::ParameterList();
         if(settings["verbosity"].GetInt() == 0)
         {
             mAztecParameterList.set("AZ_output", "AZ_none");
-            mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
         }
         else
         {
             mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
-            mAztecParameterList.set("AZ_solver", "AZ_gmres");
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
@@ -315,7 +317,7 @@ public:
         mndof = 1;
       else
         mndof = ndof;
-      // 		KRATOS_WATCH(mndof);
+       		KRATOS_WATCH(mndof);
     }
 
     /**
