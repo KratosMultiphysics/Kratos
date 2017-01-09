@@ -36,7 +36,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
 	#${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp;
 	#${CMAKE_CURRENT_SOURCE_DIR}/processes/measure_mesh_quality_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_coarsening_process.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_node_collapsing_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/structured_mesh_generator_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
@@ -44,6 +46,8 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
+	#${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES
@@ -132,6 +136,9 @@ add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
+add_executable(KratosTesting  ${CMAKE_CURRENT_SOURCE_DIR}/testing_main.cpp)
+target_link_libraries(KratosTesting KratosCore)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
@@ -143,6 +150,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
+install(TARGETS KratosTesting DESTINATION bin )
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("subdir inc_dirs = ${inc_dirs}")
