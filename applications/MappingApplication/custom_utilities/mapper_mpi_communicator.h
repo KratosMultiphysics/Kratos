@@ -13,7 +13,6 @@
 #define  KRATOS_MAPPER_MPI_COMMUNICATOR_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream>
@@ -26,7 +25,8 @@
 #include "includes/define.h"
 #include "mapper_communicator.h"
 #include "interface_search_structure_mpi.h"
-#include "mpi_manager.h"
+#include "mapper_utilities_mpi.h"
+#include "interface_object_manager_parallel.h"
 
 
 namespace Kratos
@@ -71,13 +71,12 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      MapperMPICommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination) :
-            MapperCommunicator(i_model_part_origin, i_model_part_destination) {
-      }
-
+      MapperMPICommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+                            Parameters& i_json_parameters) :
+            MapperCommunicator(i_model_part_origin, i_model_part_destination, i_json_parameters) { }
 
       /// Destructor.
-      virtual ~MapperMPICommunicator(){}
+      virtual ~MapperMPICommunicator() { }
 
 
       ///@}
@@ -89,43 +88,48 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void Initialize(InterfaceObjectManager::Pointer i_interface_object_manager_origin,
-                      InterfaceObjectManager::Pointer i_interface_object_manager_destination,
-                      double i_initial_search_radius, int i_max_search_iterations) override {
+      void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
+                      GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) override {
 
-          m_interface_object_manager_origin = i_interface_object_manager_origin;
-          m_interface_object_manager_destination = i_interface_object_manager_destination;
+          m_interface_object_manager_origin = InterfaceObjectManagerParallel::Pointer(
+              new InterfaceObjectManagerParallel(m_model_part_origin, MyPID(),
+                                                 TotalProcesses(),
+                                                 i_interface_object_type_origin,
+                                                 i_integration_method_origin,
+                                                 m_echo_level) );
 
-          m_search_structure_mpi = InterfaceSearchStructureMPI::Pointer ( new InterfaceSearchStructureMPI(
-             i_interface_object_manager_destination, i_interface_object_manager_origin, m_model_part_origin,
-             i_initial_search_radius, i_max_search_iterations, MyPID(), TotalProcesses()) );
-
-          ComputeSearchStructure();
+          m_interface_object_type_origin = i_interface_object_type_origin;
+          m_integration_method_origin = i_integration_method_origin;
       }
 
-      void ComputeSearchStructure() override {
-          m_search_structure_mpi->Clear();
-          m_search_structure_mpi->Search();
-          m_search_structure_mpi->GetMPIData(m_max_send_buffer_size_map,
-                                             m_max_receive_buffer_size_map,
-                                             m_colored_graph_map,
-                                             m_max_colors_map);
+      void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
+                      GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) override {
+
+          m_interface_object_manager_destination = InterfaceObjectManagerParallel::Pointer(
+              new InterfaceObjectManagerParallel(m_model_part_destination, MyPID(),
+                                                 TotalProcesses(),
+                                                 i_interface_object_type_destination,
+                                                 i_integration_method_destination,
+                                                 m_echo_level) );
+
+          m_interface_object_type_destination = i_interface_object_type_destination;
+          m_integration_method_destination = i_integration_method_destination;
       }
 
-      void TransferData(const Variable<double>& origin_variable,
-                        const Variable<double>& destination_variable,
-                        const bool direction, const bool add_value) override {
 
-          TransferDataParallel(origin_variable, destination_variable,
-                               direction, add_value);
+
+      void TransferNodalData(const Variable<double>& origin_variable,
+                             const Variable<double>& destination_variable,
+                             Kratos::Flags& options,
+                             double factor = 1.0f) override {
+          TransferDataParallel(origin_variable, destination_variable, options, factor);
       }
 
-      void TransferData(const Variable< array_1d<double,3> >& origin_variable,
-                        const Variable< array_1d<double,3> >& destination_variable,
-                        const bool direction, const bool add_value) override {
-
-          TransferDataParallel(origin_variable, destination_variable,
-                               direction, add_value);
+      void TransferNodalData(const Variable< array_1d<double,3> >& origin_variable,
+                             const Variable< array_1d<double,3> >& destination_variable,
+                             Kratos::Flags& options,
+                             double factor = 1.0f) override {
+          TransferDataParallel(origin_variable, destination_variable, options, factor);
       }
 
       int MyPID () override { // Copy from "kratos/includes/mpi_communicator.h"
@@ -157,7 +161,7 @@ namespace Kratos
       /// Turn back information as a string.
       virtual std::string Info() const
       {
-	std::stringstream buffer;
+	       std::stringstream buffer;
         buffer << "MapperMPICommunicator" ;
         return buffer.str();
       }
@@ -222,8 +226,6 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      InterfaceSearchStructureMPI::Pointer m_search_structure_mpi;
-
       int m_max_send_buffer_size_map;
       int m_max_send_buffer_size_inverse_map;
 
@@ -245,71 +247,68 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      void InitializeSearchStructure() override {
+          m_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructureMPI(
+             m_interface_object_manager_destination, m_interface_object_manager_origin, m_model_part_origin,
+             MyPID(), TotalProcesses(), m_echo_level) );
+      }
+
+      virtual void InvokeSearch(const double i_initial_search_radius,
+                                const int i_max_search_iterations) {
+          m_search_structure->Search(i_initial_search_radius, i_max_search_iterations);
+          m_search_structure->GetMPIData(m_max_send_buffer_size_map,
+                                         m_max_receive_buffer_size_map,
+                                         m_colored_graph_map,
+                                         m_max_colors_map);
+      }
 
       template <typename T>
       void TransferDataParallel(const Variable< T >& origin_variable,
-                               const Variable< T >& destination_variable,
-                               const bool direction, const bool add_value) {
+                                const Variable< T >& destination_variable,
+                                Kratos::Flags& options,
+                                double factor) {
+          if (options.Is(MapperFlags::SWAP_SIGN)) {
+              factor *= (-1);
+          }
 
-          // TODO here some implicit conversion is done, is that ok?
-          std::vector<InterfaceObject::Pointer> local_mapping_points;
-          std::vector<InterfaceObject::Pointer> remote_mapping_points;
-
-          SelectPointLists(remote_mapping_points, local_mapping_points,
-                           direction);
-
-          ExchangeDataLocal(origin_variable, destination_variable, remote_mapping_points,
-                            local_mapping_points, add_value);
+          ExchangeDataLocal(origin_variable, destination_variable,
+                            options, factor);
 
           ExchangeDataRemote(origin_variable, destination_variable,
-                             m_interface_object_manager_origin, m_interface_object_manager_destination,
-                             direction, add_value);
+                             options, factor,
+                             m_interface_object_manager_origin,
+                             m_interface_object_manager_destination);
 
           MPI_Barrier(MPI_COMM_WORLD);
-      }
-
-      void SelectPointLists(std::vector<InterfaceObject::Pointer>& point_list_1,
-                            std::vector<InterfaceObject::Pointer>& point_list_2,
-                            const bool direction) override {
-                                // TODO unify it in terms of naming and use fnct of base-class!
-          if (direction) { // map; origin -> destination
-              point_list_1 = m_interface_object_manager_origin->GetRemoteMappingVector();
-              point_list_2 = m_interface_object_manager_destination->GetLocalMappingVector();
-          } else { // inverse map; destination -> origin // TODO check!!!
-              point_list_1 = m_interface_object_manager_destination->GetRemoteMappingVector();
-              point_list_2 = m_interface_object_manager_origin->GetLocalMappingVector();
-          }
-          if (point_list_1.size() != point_list_2.size())
-              KRATOS_ERROR << "MappingApplication; MapperMPICommunicator; \"SelectPointLists\" Size Mismatch!" << std::endl;
       }
 
       template <typename T>
       void ExchangeDataRemote(const Variable< T >& origin_variable,
                               const Variable< T >& destination_variable,
-                              InterfaceObjectManager::Pointer& object_manager_1,
-                              InterfaceObjectManager::Pointer& object_manager_2,
-                              const bool direction, const bool add_value) {
-          MPI_Status status; // TODO use this for some checks, e.g. if message has arrived,...
+                              Kratos::Flags& options,
+                              const double factor,
+                              InterfaceObjectManagerBase::Pointer& object_manager_1,
+                              InterfaceObjectManagerBase::Pointer& object_manager_2) {
           int send_buffer_size = 0;
           int receive_buffer_size = 0;
 
-          InterfaceObjectManager::Pointer interface_object_manager_1;
-          InterfaceObjectManager::Pointer interface_object_manager_2;
+          InterfaceObjectManagerBase::Pointer interface_object_manager_1;
+          InterfaceObjectManagerBase::Pointer interface_object_manager_2;
 
           GraphType colored_graph;
           int max_colors;
           int max_send_buffer_size;
           int max_receive_buffer_size;
 
-          if (direction) { // map; origin -> destination
+          if (options.IsNot(MapperFlags::INVERSE_DIRECTION)) { // map; origin -> destination
               interface_object_manager_1 = object_manager_1;
               interface_object_manager_2 = object_manager_2;
               colored_graph = m_colored_graph_map;
               max_colors = m_max_colors_map;
               max_send_buffer_size = m_max_send_buffer_size_map;
               max_receive_buffer_size = m_max_receive_buffer_size_map;
-          }
-          else { // inverse map; destination -> origin
+          } else { // inverse map; destination -> origin // TODO I think this is not correct...
+              KRATOS_ERROR << "this direction is not yet implemented" << std::endl;
               interface_object_manager_1 = object_manager_2;
               interface_object_manager_2 = object_manager_1;
               colored_graph = m_colored_graph_inverse_map;
@@ -318,7 +317,7 @@ namespace Kratos
               max_receive_buffer_size = m_max_receive_buffer_size_inverse_map;
           }
 
-          int buffer_size_factor = MPIManager::SizeOfVariable(T());
+          int buffer_size_factor = MapperUtilitiesMPI::SizeOfVariable(T());
 
           max_send_buffer_size *= buffer_size_factor;
           max_receive_buffer_size *= buffer_size_factor;
@@ -329,14 +328,14 @@ namespace Kratos
           for (int i = 0; i < max_colors; ++i) { // loop over communication steps (aka. colour)
               int comm_partner = colored_graph(MyPID(), i); // get the partner rank
               if (comm_partner != -1) { // check if rank is communicating in this communication step (aka. colour)
-                  interface_object_manager_1->FillSendBufferWithValues(send_buffer, send_buffer_size, comm_partner,
-                                                                       origin_variable);
+                  interface_object_manager_1->FillBufferWithValues(send_buffer, send_buffer_size, comm_partner,
+                                                                   origin_variable, options);
 
-                  MPIManager::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
-                              max_send_buffer_size, max_receive_buffer_size, comm_partner, status);
+                  MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
+                                                  max_send_buffer_size, max_receive_buffer_size, comm_partner);
 
-                  interface_object_manager_2->ProcessValues(receive_buffer, receive_buffer_size, comm_partner, destination_variable,
-                                                            add_value);
+                  interface_object_manager_2->ProcessValues(receive_buffer, receive_buffer_size, comm_partner,
+                                                            destination_variable, options, factor);
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop colors
 

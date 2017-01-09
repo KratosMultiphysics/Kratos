@@ -13,28 +13,12 @@
 #if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
 #define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
 
-
 // System includes
 
 // External includes
-//@{KRATOS_EXTERNA_INCLUDES}
-// #include "includes/kratos_flags.h"
-// #include <boost/python.hpp>
-//
-// // Project includes
-//
-// #include "includes/define.h"
-// #include "includes/kratos_flags.h"
-// #include "includes/element.h"
-// #include "includes/model_part.h"
-// #include "geometries/geometry_data.h"
 
-// #include "spaces/ublas_space.h"
-// #include "linear_solvers/linear_solver.h"
-// #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-// #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "elements/distance_calculation_element_simplex.h"
+// Project includes
+
 #include "mapper.h"
 
 // #include <unordered_map>
@@ -49,25 +33,6 @@ namespace Kratos {
 ///@}
 ///@name Type Definitions
 ///@{
-	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-	typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-	typedef typename SparseSpaceType::VectorType VectorType;
-
-	typedef array_1d<double,3> array_3d;
-	typedef Node < 3 > PointType;
-	typedef Node < 3 > ::Pointer PointTypePointer;
-	typedef std::vector<PointType::Pointer> PointVector;
-	typedef std::vector<PointType::Pointer>::iterator PointIterator;
-	typedef std::vector<double> DistanceVector;
-	typedef std::vector<double>::iterator DistanceIterator;
-	typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
-	typedef Element BaseType;
-	typedef BaseType::GeometryType GeometryType;
-
-    typedef std::vector<PointTypePointer> neighborsVector;
-    typedef matrix<int> GraphType; // GraphColoringProcess
 
 ///@}
 ///@name  Enum's
@@ -99,25 +64,23 @@ public:
   ///@{
 
   NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                        double i_initial_search_radius, int i_max_search_iterations) : Mapper(
-                        i_model_part_origin, i_model_part_destination) {
+                        Parameters& i_json_parameters) : Mapper(
+                        i_model_part_origin, i_model_part_destination, i_json_parameters) {
+      m_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
+      m_mapper_communicator->InitializeDestination(MapperUtilities::Node);
+      m_mapper_communicator->Initialize();
 
-      m_point_comm_manager_origin = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_origin,
-          m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
-      m_point_comm_manager_destination = Kratos::InterfaceObjectManager::CreateInterfaceNodeManager(m_model_part_destination,
-          m_mapper_communicator->MyPID(), m_mapper_communicator->TotalProcesses());
+      m_inverse_mapper.reset(); // explicitly specified to be safe
 
-      m_mapper_communicator->Initialize(m_point_comm_manager_origin, m_point_comm_manager_destination,
-                                        i_initial_search_radius, i_max_search_iterations);
-
-      MPI_Barrier(MPI_COMM_WORLD);
+      if (i_json_parameters["non_conforming_interface"].GetBool()) {
+          KRATOS_ERROR << "MappingApplication; NearestNeighborMapper; invalid "
+                       << "option specified for this mapper: "
+                       << "\"non_conforming_interface\"" << std::endl;
+      }
   }
-
-
 
   /// Destructor.
-  virtual ~NearestNeighborMapper() {
-  }
+  virtual ~NearestNeighborMapper() { }
 
   ///@}
   ///@name Operators
@@ -127,29 +90,80 @@ public:
   ///@name Operations
   ///@{
 
-  void UpdateInterface() override {
-      m_mapper_communicator->ComputeSearchStructure();
+  void UpdateInterface(Kratos::Flags& options, double search_radius) override {
+      m_mapper_communicator->UpdateInterface(options, search_radius);
+      if (m_inverse_mapper) {
+          m_inverse_mapper->UpdateInterface(options, search_radius);
+      }
+
+      if (options.Is(MapperFlags::REMESHED)) {
+          ComputeNumberOfNodesAndConditions();
+      }
   }
 
-  /* This function maps a variable from Origin to Destination */
+  /* This function maps from Origin to Destination */
   void Map(const Variable<double>& origin_variable,
            const Variable<double>& destination_variable,
-           const bool add_value,
-           const bool sign_positive) override {
-      bool direction = true;
-      m_mapper_communicator->TransferData(origin_variable, destination_variable,
-                                          direction, add_value);
+           Kratos::Flags& options) override {
+      double factor = 1.0f;
+
+      if (options.Is(MapperFlags::CONSERVATIVE)) {
+          factor = MapperUtilities::ComputeConservativeFactor(
+              m_num_nodes_origin,
+              m_num_nodes_destination);
+      }
+
+      m_mapper_communicator->TransferNodalData(origin_variable,
+                                               destination_variable,
+                                               options,
+                                               factor);
   }
 
-  /* This function maps a variable from Origin to Destination */
+  /* This function maps from Origin to Destination */
   void Map(const Variable< array_1d<double,3> >& origin_variable,
            const Variable< array_1d<double,3> >& destination_variable,
-           const bool add_value,
-           const bool sign_positive) override {
-      bool direction = true;
-      m_mapper_communicator->TransferData(origin_variable, destination_variable,
-                                          direction, add_value);
+           Kratos::Flags& options) override {
+      double factor = 1.0f;
+
+      if (options.Is(MapperFlags::CONSERVATIVE)) {
+          factor = MapperUtilities::ComputeConservativeFactor(
+              m_num_nodes_origin,
+              m_num_nodes_destination);
+      }
+
+      m_mapper_communicator->TransferNodalData(origin_variable,
+                                               destination_variable,
+                                               options,
+                                               factor);
+    }
+
+  /* This function maps from Destination to Origin */
+  void InverseMap(const Variable<double>& origin_variable,
+                  const Variable<double>& destination_variable,
+                  Kratos::Flags& options) override {
+      // Construct the inverse mapper if it hasn't been done before
+      // It is constructed with the order of the model_parts changed!
+      if (!m_inverse_mapper) {
+          m_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
+                                                                        m_model_part_origin,
+                                                                        m_json_parameters) );
+      }
+      m_inverse_mapper->Map(destination_variable, origin_variable, options);
   }
+
+  /* This function maps from Destination to Origin */
+  void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
+                  const Variable< array_1d<double,3> >& destination_variable,
+                  Kratos::Flags& options) override {
+      // Construct the inverse mapper if it hasn't been done before
+      // It is constructed with the order of the model_parts changed!
+      if (!m_inverse_mapper) {
+          m_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
+                                                                        m_model_part_origin,
+                                                                        m_json_parameters) );
+      }
+      m_inverse_mapper->Map(destination_variable, origin_variable, options);
+    }
 
   ///@}
   ///@name Access
@@ -222,6 +236,8 @@ protected:
   ///@}
   ///@name Member Variables
   ///@{
+
+  Mapper::Pointer m_inverse_mapper;
 
   ///@}
   ///@name Private Operators

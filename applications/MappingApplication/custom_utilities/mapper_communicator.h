@@ -13,7 +13,6 @@
 #define  KRATOS_MAPPER_COMMUNICATOR_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream>
@@ -24,8 +23,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "interface_object_manager.h"
+#include "interface_object_manager_serial.h"
 #include "interface_search_structure.h"
+#include "mapper_utilities.h"
 
 
 namespace Kratos
@@ -68,15 +68,18 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      MapperCommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination) :
-            m_model_part_origin(i_model_part_origin), m_model_part_destination(i_model_part_destination) {
+      MapperCommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+                         Parameters& i_json_parameters) :
+            m_model_part_origin(i_model_part_origin),
+            m_model_part_destination(i_model_part_destination) {
 
+          m_initial_search_radius = i_json_parameters["search_radius"].GetDouble();
+          m_max_search_iterations = i_json_parameters["search_iterations"].GetInt();
+          m_echo_level = i_json_parameters["echo_level"].GetInt();
       }
 
       /// Destructor.
-      virtual ~MapperCommunicator() {
-
-      }
+      virtual ~MapperCommunicator() { }
 
 
       ///@}
@@ -88,84 +91,105 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void Initialize(InterfaceObjectManager::Pointer i_interface_object_manager_origin,
-                              InterfaceObjectManager::Pointer i_interface_object_manager_destination,
-                              double i_initial_search_radius, int i_max_search_iterations) {
+      virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
+                      GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) {
 
-          m_interface_object_manager_origin = i_interface_object_manager_origin;
-          m_interface_object_manager_destination = i_interface_object_manager_destination;
+          m_interface_object_manager_origin = InterfaceObjectManagerBase::Pointer(
+              new InterfaceObjectManagerSerial(m_model_part_origin, MyPID(),
+                                               TotalProcesses(),
+                                               i_interface_object_type_origin,
+                                               i_integration_method_origin,
+                                               m_echo_level) );
 
-          m_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
-             i_interface_object_manager_destination, i_interface_object_manager_origin,
-             i_initial_search_radius, i_max_search_iterations) );
-
-          ComputeSearchStructure();
+          // Save for updating the interface
+          m_interface_object_type_origin = i_interface_object_type_origin;
+          m_integration_method_origin = i_integration_method_origin;
       }
 
-      virtual void ComputeSearchStructure() {
-          m_search_structure->Clear();
-          m_search_structure->Search();
+      virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
+                      GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) {
+
+          m_interface_object_manager_destination = InterfaceObjectManagerBase::Pointer(
+              new InterfaceObjectManagerSerial(m_model_part_destination, MyPID(),
+                                               TotalProcesses(),
+                                               i_interface_object_type_destination,
+                                               i_integration_method_destination,
+                                               m_echo_level) );
+
+          // Save for updating the interface
+          m_interface_object_type_destination = i_interface_object_type_destination;
+          m_integration_method_destination = i_integration_method_destination;
       }
 
-      // Interface function for mapper developers; scalaer version
-      virtual void TransferData(const Variable<double>& origin_variable,
-                                const Variable<double>& destination_variable,
-                                const bool direction, const bool add_value) {
+      void Initialize() {
+          InitializeSearchStructure();
+          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
+      }
+
+      void UpdateInterface(Kratos::Flags& options, double i_initial_search_radius) {
+          if (options.Is(MapperFlags::REMESHED)) { // recompute the managers and the search structure
+              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
+              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
+              InitializeSearchStructure();
+              // TODO update number of nodes / conditions in mapper.h ...?
+          } else { // clear the managers
+              m_interface_object_manager_origin->Clear();
+              m_interface_object_manager_destination->Clear();
+          }
+
+          if (i_initial_search_radius < 0.0f) {
+              i_initial_search_radius = MapperUtilities::ComputeSearchRadius(m_model_part_origin,
+                                                                             m_model_part_destination);
+          }
+          m_initial_search_radius = i_initial_search_radius; // update the search radius
+
+          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
+      }
+
+
+
+      // Interface function for mapper developers; scalar version
+      virtual void TransferNodalData(const Variable<double>& origin_variable,
+                                     const Variable<double>& destination_variable,
+                                     Kratos::Flags& options,
+                                     double factor = 1.0f) {
           TransferDataSerial(origin_variable, destination_variable,
-                             direction, add_value);
+                             options, factor);
       }
 
       // Interface function for mapper developers; vector version
-      virtual void TransferData(const Variable< array_1d<double,3> >& origin_variable,
-                                const Variable< array_1d<double,3> >& destination_variable,
-                                const bool direction, const bool add_value) {
+      virtual void TransferNodalData(const Variable< array_1d<double,3> >& origin_variable,
+                                     const Variable< array_1d<double,3> >& destination_variable,
+                                     Kratos::Flags& options,
+                                     double factor = 1.0f) {
           TransferDataSerial(origin_variable, destination_variable,
-                             direction, add_value);
+                             options, factor);
       }
 
-      template <typename T>
-      void TransferDataSerial(const Variable< T >& origin_variable,
-                              const Variable< T >& destination_variable,
-                              const bool direction, const bool add_value) {
-
-          // TODO here some implicit conversion is done, is that ok?
-          std::vector<InterfaceObject::Pointer> point_list_1;
-          std::vector<InterfaceObject::Pointer> point_list_2;
-
-          SelectPointLists(point_list_1, point_list_2, direction);
-
-          ExchangeDataLocal(origin_variable, destination_variable,
-                            point_list_1, point_list_2, add_value);
+      // Interface function for mapper developers; scalar version
+      virtual void TransferInterpolatedData(const Variable<double>& origin_variable,
+                                            const Variable<double>& destination_variable,
+                                            Kratos::Flags& options,
+                                            double factor = 1.0f) {
+          options.Set(MapperFlags::INTERPOLATE_VALUES);
+          TransferDataSerial(origin_variable, destination_variable,
+                             options, factor);
       }
 
-      virtual void SelectPointLists(std::vector<InterfaceObject::Pointer>& point_list_1,
-                                    std::vector<InterfaceObject::Pointer>& point_list_2,
-                                    const bool direction) {
-          if (direction) { // map; origin -> destination
-              point_list_1 = m_interface_object_manager_origin->GetPointListBins();
-              point_list_2 = m_interface_object_manager_destination->GetPointList();
-          } else { // inverse map; destination -> origin //TODO change comment
-              point_list_1 = m_interface_object_manager_destination->GetPointListBins(); // TODO check if this is correct!!!
-              point_list_2 = m_interface_object_manager_origin->GetPointList();
-          }
-          if (point_list_1.size() != point_list_2.size())
-              KRATOS_ERROR << "MappingApplication; MapperCommunicator; \"SelectPointLists\" Size Mismatch!" << std::endl;
+      // Interface function for mapper developers; vector version
+      virtual void TransferInterpolatedData(const Variable< array_1d<double,3> >& origin_variable,
+                                            const Variable< array_1d<double,3> >& destination_variable,
+                                            Kratos::Flags& options,
+                                            double factor = 1.0f) {
+          options.Set(MapperFlags::INTERPOLATE_VALUES);
+          TransferDataSerial(origin_variable, destination_variable,
+                             options, factor);
       }
 
-      template <typename T>
-      void ExchangeDataLocal(const Variable< T >& origin_variable,
-                             const Variable< T >& destination_variable,
-                             std::vector<InterfaceObject::Pointer>& point_list_1,
-                             std::vector<InterfaceObject::Pointer>& point_list_2,
-                             const bool add_value) {
-          for (std::size_t i = 0; i < point_list_1.size(); ++i) {
-              T data = point_list_1[i]->GetObjectValue(origin_variable);
-              if (add_value) {
-                  point_list_2[i]->AddObjectValue(destination_variable, data);
-              } else {
-                  point_list_2[i]->SetObjectValue(destination_variable, data);
-              }
-          }
+      // Interface function for mapper developer
+      virtual void TransferShapeFunctions(Kratos::Flags& options) {
+
+
       }
 
       virtual int MyPID() // Copy from "kratos/includes/communicator.h"
@@ -178,12 +202,21 @@ namespace Kratos
           return 1;
       }
 
-      InterfaceObjectManager::Pointer GetInterfaceObjectManagerOrigin() {
+      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerOrigin() {
           return m_interface_object_manager_origin;
       }
 
-      InterfaceObjectManager::Pointer GetInterfaceObjectManagerDestination() {
+      InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerDestination() {
           return m_interface_object_manager_destination;
+      }
+
+      void PrintTime(const std::string& mapper_name,
+                     const std::string& function_name,
+                     const double& elapsed_time) {
+          if (m_echo_level == 1 && MyPID() == 0) {
+              std::cout  << "MAPPER TIMER: \"" << mapper_name << "\", \"" << function_name
+                        << "\" took " <<  elapsed_time << " seconds" << std::endl;
+          }
       }
 
       ///@}
@@ -201,11 +234,10 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	std::stringstream buffer;
-        buffer << "MapperCommunicator" ;
-        return buffer.str();
+      virtual std::string Info() const {
+	         std::stringstream buffer;
+           buffer << "MapperCommunicator" ;
+           return buffer.str();
       }
 
       /// Print information about this object.
@@ -233,12 +265,20 @@ namespace Kratos
       ModelPart& m_model_part_origin;
       ModelPart& m_model_part_destination;
 
-      InterfaceObjectManager::Pointer m_interface_object_manager_origin;
-      InterfaceObjectManager::Pointer m_interface_object_manager_destination;
+      InterfaceObjectManagerBase::Pointer m_interface_object_manager_origin;
+      InterfaceObjectManagerBase::Pointer m_interface_object_manager_destination;
+
+      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_origin;
+      GeometryData::IntegrationMethod m_integration_method_origin;
+      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_destination;
+      GeometryData::IntegrationMethod m_integration_method_destination;
 
       InterfaceSearchStructure::Pointer m_search_structure;
 
-      // int m_omp_threshold_num_nodes = 1000; // TODO constexpr???
+      double m_initial_search_radius;
+      int m_max_search_iterations;
+
+      int m_echo_level = 0;
 
       ///@}
       ///@name Protected Operators
@@ -249,6 +289,32 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      template <typename T>
+      void TransferDataSerial(const Variable< T >& origin_variable,
+                              const Variable< T >& destination_variable,
+                              Kratos::Flags& options,
+                              double factor) {
+          if (options.Is(MapperFlags::SWAP_SIGN)) {
+              factor *= (-1);
+          }
+
+          ExchangeDataLocal(origin_variable, destination_variable, options, factor);
+      }
+
+      template <typename T>
+      void ExchangeDataLocal(const Variable< T >& origin_variable,
+                             const Variable< T >& destination_variable,
+                             Kratos::Flags& options,
+                             const double factor) {
+
+          std::vector< T > values;
+          if (options.IsNot(MapperFlags::INVERSE_DIRECTION)) {
+              m_interface_object_manager_origin->FillBufferWithValues(values, origin_variable, options);
+              m_interface_object_manager_destination->ProcessValues(values, destination_variable, options, factor);
+          } else {
+              KRATOS_ERROR << "this direction is not yet implemented" << std::endl;
+          }
+      }
 
       ///@}
       ///@name Protected  Access
@@ -286,6 +352,15 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      virtual void InitializeSearchStructure() {
+          m_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
+            m_interface_object_manager_destination, m_interface_object_manager_origin, m_echo_level) );
+      }
+
+      virtual void InvokeSearch(const double i_initial_search_radius,
+                                const int i_max_search_iterations) {
+          m_search_structure->Search(i_initial_search_radius, i_max_search_iterations);
+      }
 
       ///@}
       ///@name Private  Access

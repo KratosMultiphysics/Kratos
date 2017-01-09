@@ -25,7 +25,7 @@
 // Project includes
 #include "includes/define.h"
 #include "interface_object.h"
-#include "interface_object_manager.h"
+#include "interface_object_manager_serial.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_configures/interface_object_configure.h"
 
@@ -40,6 +40,11 @@ namespace Kratos
   ///@}
   ///@name Type Definitions
   ///@{
+
+  // TODO
+  // typedef boost::shared_ptr<matrix<int> > GraphType; // GraphColoringProcess
+
+  typedef matrix<int> GraphType; // GraphColoringProcess
 
   ///@}
   ///@name  Enum's
@@ -69,19 +74,18 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceSearchStructure(InterfaceObjectManager::Pointer i_interface_object_manager,
-                               InterfaceObjectManager::Pointer i_interface_object_manager_bins,
-                               double i_initial_search_radius, int i_max_search_iterations) :
+      InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer i_interface_object_manager,
+                               InterfaceObjectManagerBase::Pointer i_interface_object_manager_bins,
+                               int i_echo_level) :
                                m_interface_object_manager(i_interface_object_manager),
-                               m_interface_object_manager_bins(i_interface_object_manager_bins),
-                               m_initial_search_radius(i_initial_search_radius),
-                               m_max_search_iterations(i_max_search_iterations) {
+                               m_interface_object_manager_bins(i_interface_object_manager_bins) {
+          m_echo_level = i_echo_level;
           Initialize();
       }
 
 
       /// Destructor.
-      virtual ~InterfaceSearchStructure(){}
+      virtual ~InterfaceSearchStructure(){ }
 
 
       ///@}
@@ -93,29 +97,51 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void Search() {
-          // TODO What happens in the case of remeshing? Reinitialize / redo the whole mapper?
-          // TODO improve this fct towards a nicer structure / naming
-          InterfaceObjectConfigure::ContainerType point_list = m_interface_object_manager->GetPointListSerialSearch();
-          int num_points = point_list.size();
+      void Search(const double i_search_radius, const int i_max_search_iterations) {
+          m_search_radius = i_search_radius;
+          m_max_search_iterations = i_max_search_iterations;
+          // int increase_factor = 4;
+          // int num_iteration = 1;
 
-          std::vector<InterfaceObject::Pointer> points_results(num_points);
-          std::vector<double> min_distances(num_points);
+          // First Iteration is done outside the search loop bcs it has
+          // to be done in any case
+          // one search iteration should be enough in most cases (if the search
+          // radius was either computed or specified properly)
+          // only if some points dont have a valid projection, more search
+          // iterations are necessary
+          ConductSearchIteration();
 
-          FindLocalNeighbors(point_list, num_points, points_results, min_distances, m_comm_rank);
-
-          m_interface_object_manager_bins->StoreTempSearchResults(points_results, m_comm_rank);
-          m_interface_object_manager->PostProcessReceivedResults(min_distances, m_comm_rank);
+          // while (num_iteration < m_max_search_iterations && !m_interface_object_manager->AllNeighborsFound()) {
+          //     m_search_radius *= increase_factor;
+          //     ++num_iteration;
+          //
+          //     if (m_comm_rank == 0) {
+          //         std::cout << "MAPPER WARNING, search radius was increased, "
+          //                   << "another search iteration is conducted, "
+          //                   << "search iteration " << num_iteration
+          //                   << ", search radius " << m_search_radius
+          //                   << std::endl;
+          //     }
+          //
+          //     // Clearing the managers is ugly, because all interface objects are
+          //     // sent again, not just the ones that havent found a neighbor
+          //     // m_interface_object_manager->Clear();
+          //     // m_interface_object_manager_bins->Clear();
+          //     ConductSearchIteration();
+          // }
 
           m_interface_object_manager->CheckResults();
 
-          // PrintPairs();
+          // TODO
+          // PrintPairs(); // makes only sense in serial, since there is no information locally existing abt the neighbor
+          // Might be implemented at some point...
       }
 
-      virtual void Clear() {
-          // TODO Implement
-
-
+      virtual void GetMPIData(int& max_send_buffer_size, int& max_receive_buffer_size,
+                              GraphType& colored_graph, int& max_colors) {
+          KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; "
+                       << "\"GetMPIData\" of the base class (serial "
+                       << "version) called!" << std::endl;
       }
 
 
@@ -136,7 +162,7 @@ namespace Kratos
       /// Turn back information as a string.
       virtual std::string Info() const
       {
-	std::stringstream buffer;
+	       std::stringstream buffer;
         buffer << "InterfaceSearchStructure" ;
         return buffer.str();
       }
@@ -164,21 +190,19 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      InterfaceObjectManager::Pointer m_interface_object_manager;
-      InterfaceObjectManager::Pointer m_interface_object_manager_bins;
+      InterfaceObjectManagerBase::Pointer m_interface_object_manager;
+      InterfaceObjectManagerBase::Pointer m_interface_object_manager_bins;
 
       BinsObjectDynamic<InterfaceObjectConfigure>::Pointer m_local_bin_structure;
       int m_local_bin_structure_size;
 
-      double m_initial_search_radius;
+      double m_search_radius;
       int m_max_search_iterations;
-
-    //   InterfaceObjectConfigure::ContainerType m_remote_p_point_list;
-    //   std::vector<InterfaceObject::Pointer> m_candidate_receive_points;
-    //   std::vector<double> m_min_distances;
 
       int m_comm_rank = 0; // default, for serial version
       int m_comm_size = 1; // default, for serial version
+
+      int m_echo_level = 0;
 
       ///@}
       ///@name Protected Operators
@@ -189,114 +213,75 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
-      void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& point_list,
-                              const int point_list_size, std::vector<InterfaceObject::Pointer>& points_results,
-                              std::vector<double>& min_distances, const int comm_partner) {
-          // This function finds neighbors of the points in point_list in bin_structure
+      void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& interface_objects,
+                              const int interface_objects_size, std::vector<InterfaceObject::Pointer>& interface_object_results,
+                              std::vector<double>& min_distances, std::vector<array_1d<double,2>>& local_coordinates,
+                              std::vector<std::vector<double>>& shape_functions, const int comm_partner) {
+          // This function finds neighbors of the InterfaceObjects in interface_objects in bin_structure
           // It must be executable by serial and parallel version!
-          // point_list_size must be passed bcs the point list might contain old entries (it has the max receive buffer size as size)!
+          // interface_objects_size must be passed bcs interface_objects might contain old entries (it has the max receive buffer size as size)!
 
-          if (m_local_bin_structure == nullptr) { // this partition has no part of the sending interface, i.e. the origin of the mapped values
-              for (int i = 0; i < point_list_size; ++i)
-                  min_distances[i] = -1.0; // no results in this partition
-
-          } else { // this partition has a bin structure
-
+          if (m_local_bin_structure) { // this partition has a bin structure
               InterfaceObjectConfigure::ResultContainerType neighbor_results(m_local_bin_structure_size);
               std::vector<double> neighbor_distances(m_local_bin_structure_size);
 
+              InterfaceObjectConfigure::IteratorType interface_object_itr;
               InterfaceObjectConfigure::ResultIteratorType results_itr;
               std::vector<double>::iterator distance_itr;
 
-              std::size_t number_of_results;
-
-              InterfaceObjectConfigure::IteratorType point_itr;
-
-              double search_radius;
-              bool search_sucess;
             //   Searching the neighbors
             //   num_threads(variable)
-            //   #pragma omp parallel for schedule(dynamic) if(point_list_size > m_omp_threshold_num_nodes) \
+            //   #pragma omp parallel for schedule(dynamic) if(interface_objects_size > m_omp_threshold_num_nodes) \
             //                            firstprivate(neighbor_results, neighbor_distances) \
-            //                            private(point_itr, search_radius, search_sucess, \
-            //                            results_itr, distance_itr, number_of_results)
-              for (int i = 0; i < point_list_size; ++i){
-                  point_itr = point_list.begin() + i;
-                  search_radius = m_initial_search_radius; // reset search radius
-                  search_sucess = false;
+            //                            private(interface_object_itr, \
+            //                            results_itr, distance_itr)
+              for (int i = 0; i < interface_objects_size; ++i){
+                  interface_object_itr = interface_objects.begin() + i;
+                  double search_radius = m_search_radius; // reset search radius
 
-                  for (int j = 0; j < m_max_search_iterations; ++j) {
-                      results_itr = neighbor_results.begin();
-                      distance_itr = neighbor_distances.begin();
+                  results_itr = neighbor_results.begin();
+                  distance_itr = neighbor_distances.begin();
 
-                      number_of_results = m_local_bin_structure->SearchObjectsInRadius(
-                                  *point_itr, search_radius, results_itr,
-                                  distance_itr, m_local_bin_structure_size);
-                    //   std::cout << "number_of_results " << number_of_results << std::endl;
-                      if (number_of_results > 0) { // neighbors were found
-                          //std::cout << "Neighbor Search finished after " << j + 1 << " iterations" << std::endl;
-                          search_sucess = true;
-                          break;
-                      }
-                      search_radius *= 2; // double the search radius in case of an unsuccesful search
-                  }
+                  std::size_t number_of_results = m_local_bin_structure->SearchObjectsInRadius(
+                              *interface_object_itr, search_radius, results_itr,
+                              distance_itr, m_local_bin_structure_size);
 
-                  if (search_sucess) {
-                      SelectBestResult(point_itr, neighbor_results, neighbor_distances, number_of_results,
-                                             points_results[i], min_distances[i]);
-                      // points_results[i].SelectBestResult(neighbor_results, neighbor_distances, number_of_results,
-                      //                        points_results[i], min_distances[i]);
+                  if (number_of_results > 0) { // neighbors were found
+                      SelectBestResult(interface_object_itr, neighbor_results,
+                                       neighbor_distances, number_of_results,
+                                       interface_object_results[i], min_distances[i],
+                                       local_coordinates[i], shape_functions[i]);
                   } else {
-                      // TODO: Output some KRATOS Warning, but not here!
-                      //std::cout << "WARNING: Node " << (*point_itr)->Id() << " did not find a neighbor!" << std::endl;
-                      min_distances[i] = -1.0; // indicates that the search was not succesful
-                      points_results[i] = nullptr; // TODO delete reference / unset pointer? "reset"
+                      min_distances[i] = -1.0f; // indicates that the search was not succesful
+                      interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
                   }
+              }
+          } else { // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
+              for (int i = 0; i < interface_objects_size; ++i) { // no results in this partition
+                  min_distances[i] = -1.0f; // indicates that the search was not succesful
+                  interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
               }
           }
       }
 
-      // TODO what abt elements? => how to destinguish nodes from elements here?
-      // move this function to InterfaceNode and InterfaceElement?
-      void SelectBestResult(InterfaceObjectConfigure::IteratorType point, const InterfaceObjectConfigure::ResultContainerType& result_list, const std::vector<double>& distances,
-                                  const std::size_t& num_results, InterfaceObject::Pointer& vec_closest_results, double& closest_distance) {
+      void SelectBestResult(const InterfaceObjectConfigure::IteratorType& point,
+                            const InterfaceObjectConfigure::ResultContainerType& result_list,
+                            const std::vector<double>& distances, const std::size_t num_results,
+                            InterfaceObject::Pointer& vec_closest_results, double& closest_distance,
+                            array_1d<double,2>& local_coords, std::vector<double>& shape_functions_values) {
 
-          double min_distance = 1e15;
-          int min_index = 0; // TODO this is sort of the safe option to avoid segfaults, discuss with Jordi
+          double min_distance = std::numeric_limits<double>::max();
+          closest_distance = -1.0f; // indicate a failed search in case no result is good
+          array_1d<double,2> local_coords_temp;
 
-          for (int i = 0; i < static_cast<int>(num_results); ++i) { // find index of neighbor with smallest distance
-              if (result_list[i]->CheckResult((*point)->Coordinates(),
-                                              min_distance, distances[i])) {
-                  min_index = i;
+          for (int i = 0; i < static_cast<int>(num_results); ++i) { // find index of best result
+              if (result_list[i]->EvaluateResult((*point)->Coordinates(), min_distance, distances[i],
+                                                 local_coords_temp, shape_functions_values)) {
+                  closest_distance = min_distance;
+                  local_coords = local_coords_temp;
+                  vec_closest_results = result_list[i];
               }
           }
-          vec_closest_results = result_list[min_index];
-          closest_distance = min_distance;
-      }
-
-      void ComputeLocalSearchTolerance(ModelPart& model_part) {
-          m_max_search_iterations = 10; // factor of 2^9 => 512 * m_initial_search_radius!
-          double search_safety_factor = 1.2;
-          double max_element_size = 0.0;
-
-          // Loop through each edge of a geometrical entity ONCE
-          for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
-              for (std::size_t i = 0; i < (condition.GetGeometry().size() - 1); ++i) {
-                  double node_1_x = condition.GetGeometry()[i].X();
-                  double node_1_y = condition.GetGeometry()[i].Y();
-                  double node_1_z = condition.GetGeometry()[i].Z();
-
-                  for (std::size_t j = i + 1; j < condition.GetGeometry().size(); ++j) {
-                      double node_2_x = condition.GetGeometry()[j].X();
-                      double node_2_y = condition.GetGeometry()[j].Y();
-                      double node_2_z = condition.GetGeometry()[j].Z();
-
-                      double edge_length = sqrt(pow(node_1_x - node_2_x , 2) + pow(node_1_y - node_2_y , 2) + pow(node_1_z - node_2_z , 2));
-                      max_element_size = std::max(max_element_size, edge_length);
-                  }
-              }
-          }
-          m_initial_search_radius = max_element_size * search_safety_factor;
       }
 
 
@@ -324,7 +309,9 @@ namespace Kratos
 
       ///@}
       ///@name Member Variables
+      ///@{
 
+      // int m_omp_threshold_num_nodes = 1000; // TODO constexpr???
 
       ///@}
       ///@name Private Operators
@@ -336,25 +323,52 @@ namespace Kratos
       ///@{
 
       void Initialize() { // build the local bin-structure
-          InterfaceObjectConfigure::ContainerType point_list_bins = m_interface_object_manager_bins->GetPointList();
+          InterfaceObjectConfigure::ContainerType interface_objects_bins = m_interface_object_manager_bins->GetInterfaceObjects();
 
-          m_local_bin_structure_size = point_list_bins.size();
+          m_local_bin_structure_size = interface_objects_bins.size();
 
           if (m_local_bin_structure_size > 0) { // only construct the bins if the partition has a part of the interface
               m_local_bin_structure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
-                  new BinsObjectDynamic<InterfaceObjectConfigure>(point_list_bins.begin(), point_list_bins.end()));
+                  new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
           }
       }
 
-      void PrintPairs() {
-          InterfaceObjectConfigure::ContainerType point_list = m_interface_object_manager->GetPointList();
-          int num_points = point_list.size();
+      virtual void ConductSearchIteration() {
+          InterfaceObjectConfigure::ContainerType interface_objects;
+          m_interface_object_manager->GetInterfaceObjectsSerialSearch(interface_objects);
 
-          InterfaceObjectConfigure::ContainerType point_list_bins = m_interface_object_manager_bins->GetPointListBins();
-          // TODO warning size mismatch
-          for (int i = 0; i < num_points; ++i) {
-              std::cout << "Node1 " << point_list[i]->GetObjectId() <<
-              " paired with Node2 " << point_list_bins[i]->GetObjectId() << std::endl;
+          int num_objects = interface_objects.size();
+
+          std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
+          std::vector<double> min_distances(num_objects);
+          std::vector<array_1d<double,2>> local_coordinates(num_objects);
+          std::vector<std::vector<double>> shape_functions(num_objects);
+
+          FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
+                             min_distances, local_coordinates, shape_functions, m_comm_rank);
+
+          m_interface_object_manager_bins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
+          m_interface_object_manager->PostProcessReceivedResults(min_distances, interface_objects);
+      }
+
+      virtual void PrintPairs() {
+          std::vector<InterfaceObject::Pointer> interface_objects = m_interface_object_manager->GetDestinationInterfaceObjects();
+          int num_objects = interface_objects.size();
+
+          std::vector<InterfaceObject::Pointer> interface_objects_bins = m_interface_object_manager_bins->GetOriginInterfaceObjects();
+          if (num_objects != static_cast<int>(interface_objects_bins.size()))
+              KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; \"PrintPairs\" size mismatch!" << std::endl;
+          for (int i = 0; i < num_objects; ++i) {
+              if (interface_objects_bins[i] == nullptr) {
+                  std::cout << "InterfaceObject 1 ";
+                  interface_objects[i]->PrintMatchInfo();
+                  std::cout << " has not found a match! " << std::endl;
+              } else {
+                  interface_objects[i]->PrintMatchInfo();
+                  std::cout << " paired with ";
+                  interface_objects_bins[i]->PrintMatchInfo();
+                  std::cout << std::endl;
+              }
           }
       }
 

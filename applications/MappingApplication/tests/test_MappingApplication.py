@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from generalTests import KratosMappingGeneralTests
 
-from SmallTestsMPI import NearestNeighborTest_1 as TNearestNeighborTest_1
+from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
 
 
 def AssambleTestSuites():
