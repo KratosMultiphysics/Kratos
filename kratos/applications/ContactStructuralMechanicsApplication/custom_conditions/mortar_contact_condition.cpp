@@ -2475,227 +2475,225 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
 {   
     // NOTE: I calculate the increment of slip manually, Gitterle uses the Mortar operator, but I don't calculate them, technically is the same working with GP 
     
-//     // Master segment info
-//     const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
-//     
-//     const double mu = rVariables.mu; 
-//     const double epsilon_normal  = rContactData.epsilon_normal;
-//     const double epsilon_tangent = rContactData.epsilon_tangent;
+    // Master segment info
+    const GeometryType& CurrentMasterElement = rVariables.GetMasterElement( );
+    
+    const double mu = rVariables.mu; 
+    const double epsilon_normal  = rContactData.epsilon_normal;
+    const double epsilon_tangent = rContactData.epsilon_tangent;
 
     /****** CALCULATING THE COMPONENTS OF THE COMPLEMENTARY FUNCTION ******/
     
     // Local kinematic update
-    const array_1d<double, TNumNodes> N1 = rVariables.N_Slave;
-//     const array_1d<double, TNumNodes> N2 = rVariables.N_Master;
-//     rVariables.Phi_LagrangeMultipliers = prod(rContactData.Ae, N1);
+    const array_1d<double, TNumNodes> N1  = rVariables.N_Slave;
+    const array_1d<double, TNumNodes> N2  = rVariables.N_Master;
+    const array_1d<double, TNumNodes> Phi = rVariables.Phi_LagrangeMultipliers;
     
     // The LM of the node
-//     const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    const array_1d<double, TDim> LMGP = prod(trans(rContactData.LagrangeMultipliers), Phi);
 
     // Calculate the augmented normal LM
     const double AugmentedNormalLM = this->CalculateAugmentedNormalLM(rVariables, rContactData, inner_prod(rContactData.Gaps, N1));
     
-//     if (AugmentedNormalLM < 0.0) // Compression (active GP)
-//     {
-//         // The velocities matrices
-//         const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
-//         const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
-//         
-//         // Calculating the tangent vectors
-//         const array_1d<double, TDim> NormalsGP     = prod(trans(rContactData.Normal_s),      N1);
-//         const array_1d<double, TDim> TangentXisGP  = prod(trans(rContactData.Tangent_xi_s),  N1);
-//         const array_1d<double, TDim> TangentEtasGP = prod(trans(rContactData.Tangent_eta_s), N1);
-//             
-//         // Calculate the augmented tangent LM
-//         array_1d<double, (TDim - 1)> node_slip;
-//         const array_1d<double, (TDim - 1)> AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, node_slip);
-//         
-//         if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//         {
-//             rContactData.Ctan[0] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[0];
-//         }
-//         else
-//         {
-//             rContactData.Ctan[0] = std::abs(AugmentedTangentLM[0]) * inner_prod(TangentXisGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[0];
-//         }
-//         
-//         if (TDim == 3)
-//         {
-//             if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//             {
-//                 rContactData.Ctan[1] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[1];
-//             }
-//             else
-//             {
-//                 rContactData.Ctan[1] = std::abs(AugmentedTangentLM[1]) * inner_prod(TangentEtasGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[1];
-//             }
-//         }
-//         
-//         /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
-// 
-//         // Calculate common components
-//         const array_1d<double, TDim> VectorIntegrationPointSlip = rContactData.Dt * (prod(trans(v1), N1) - prod(trans(v2), N2));
-//         array_1d<double, TDim> DeltaVectorIntegrationPointSlip;
-//         
-//         // Derivatives slave
-//         for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
-//         {
-//             for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
-//             {
-//                 const unsigned int i_dof = i_slave * TDim + i_dim;
-//                 
-//                 array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
-//                 
-//                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
-//                 aux_vec[i_slave] = N1[i_dim];
-//                 
-//                 const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
-//                 const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
-//                 DeltaIntegrationPointSlip = aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
-//                 
-//                 const array_1d<double, TDim> DeltaNormalsGP    = prod(trans(rContactData.Delta_Normal_s[i_dof]),     N1);
-//                 const double DeltaLMNormal = inner_prod(DeltaNormalsGP, LMGP);
-//                 const double DeltaGap = rContactData.DeltaGap[i_dof];
-//                 // Delta slip
-//                 const array_1d<double, TDim> DeltaTangentXisGP = prod(trans(rContactData.Delta_Tangent_xi_s[i_dof]), N1);
-//                 DeltaIntegrationPointSlip[0]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentXisGP);
-//                 DeltaIntegrationPointSlip[0] += inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
-//                 
-//                 if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                 {
-//                     rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0] // NOTE: (Gitterle p.75)
-//                                                        - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
-//                 }
-//                 else // Slip
-//                 {
-//                     const double      LMXi = inner_prod(     TangentXisGP, LMGP);
-//                     const double DeltaLMXi = inner_prod(DeltaTangentXisGP, LMGP);
-//                     const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
-//                     rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
-//                                                        + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi + epsilon_tangent * DeltaIntegrationPointSlip[0])
-//                                                        - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
-//                 }
-//                 
-//                 if (TDim == 3)
-//                 {
-//                     const array_1d<double, TDim> DeltaTangentEtasGP = prod(trans(rContactData.Delta_Tangent_eta_s[i_dof]), N1);
-//                     DeltaIntegrationPointSlip[1]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentEtasGP);
-//                     DeltaIntegrationPointSlip[1] += inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
-//                     if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                     {
-//                         rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1] // NOTE: (Gitterle p.75)
-//                                                            - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
-//                     }
-//                     else // Slip
-//                     {
-//                         const double      LMEta = inner_prod(     TangentEtasGP, LMGP);
-//                         const double DeltaLMEta = inner_prod(DeltaTangentEtasGP, LMGP);
-//                         const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
-//                         rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
-//                                                        + (SignTangPress *  LMEta - mu * AugmentedNormalLM ) * (DeltaLMEta + epsilon_tangent * DeltaIntegrationPointSlip[1])
-//                                                        - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
-//                     }
-//                     
-//                 }
-//             }
-//         }
-//         
-//         // Derivatives master
-//         for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
-//         {
-//             for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
-//             {
-//                 const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
-//                 
-//                 array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
-//                 
-//                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
-//                 aux_vec[i_master] = N2[i_dim];
-//                 
-//                 const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
-//                 const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
-//                 DeltaIntegrationPointSlip = - aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
-//                 
-//                 const double DeltaGap = rContactData.DeltaGap[i_dof];
-//                 DeltaIntegrationPointSlip[0] = inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
-//                 
-//                 if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                 {
-//                     rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0]// NOTE: (Gitterle p.75)
-//                                                        - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
-//                 }
-//                 else // Slip
-//                 {
-//                     const double      LMXi = inner_prod(     TangentXisGP, LMGP);
-//                     const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
-//                     rContactData.DeltaCtan[i_dof][0] = (SignTangPress * LMXi - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[0])
-//                                                        - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
-//                 }
-//                 
-//                 if (TDim == 3)
-//                 {
-//                     DeltaIntegrationPointSlip[1] = inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
-//                     if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                     {
-//                         rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1]// NOTE: (Gitterle p.75)
-//                                                            - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
-//                     }
-//                     else // Slip
-//                     {
-//                         const double LMEta = inner_prod(TangentEtasGP, LMGP);
-//                         const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
-//                         rContactData.DeltaCtan[i_dof][1] = (SignTangPress * LMEta - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[1])
-//                                                            - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
-//                     }
-//                 }
-//             }
-//             
-//         }
-//         
-//         // Derivatives lagrange multiplier
-//         for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
-//         {
-//             for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
-//             {
-//                 const unsigned int i_dof = (2 * TNumNodes + i_slave) * TDim + i_dim;
-//                 
-//                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
-//                 aux_vec[i_slave] = 1.0;
-//                 const double DeltaLMNormal = inner_prod(NormalsGP, aux_vec);
-// 
-//                 if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                 {
-//                     rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
-//                 }
-//                 else // Slip
-//                 {
-//                     const double      LMXi = inner_prod(TangentXisGP, LMGP);
-//                     const double DeltaLMXi = inner_prod(TangentXisGP, aux_vec);
-//                     const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
-//                     rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
-//                                                       + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi)
-//                                                       - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
-//                 }
-//                 if (TDim == 3)
-//                 {
-//                     if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
-//                     {
-//                         rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[1]; 
-//                     }
-//                     else // Slip
-//                     {
-//                         const double      LMEta = inner_prod(TangentEtasGP, LMGP);
-//                         const double DeltaLMEta = inner_prod(TangentEtasGP, aux_vec);
-//                         const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
-//                         rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
-//                                                           + (SignTangPress * LMEta - mu * AugmentedNormalLM) * (DeltaLMEta)
-//                                                           - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
-//                     }
-//                 }
-//                 
-//             }
-//         }
-//     }
+    if (AugmentedNormalLM < 0.0) // Compression (active GP)
+    {
+        // The velocities matrices
+        const bounded_matrix<double, TNumNodes, TDim> v1 = rContactData.v1; 
+        const bounded_matrix<double, TNumNodes, TDim> v2 = rContactData.v2;
+        
+        // Calculating the tangent vectors
+        const array_1d<double, TDim> NormalsGP     = prod(trans(rContactData.Normal_s),      N1);
+        const array_1d<double, TDim> TangentXisGP  = prod(trans(rContactData.Tangent_xi_s),  N1);
+        const array_1d<double, TDim> TangentEtasGP = prod(trans(rContactData.Tangent_eta_s), N1);
+            
+        // Calculate the augmented tangent LM
+        array_1d<double, (TDim - 1)> node_slip;
+        const array_1d<double, (TDim - 1)> AugmentedTangentLM = this->CalculateAugmentedTangentLM(rVariables, rContactData, CurrentMasterElement, node_slip);
+        
+        if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
+        {
+            rContactData.Ctan[0] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[0];
+        }
+        else
+        {
+            rContactData.Ctan[0] = std::abs(AugmentedTangentLM[0]) * inner_prod(TangentXisGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[0];
+        }
+        
+        if (TDim == 3)
+        {
+            if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
+            {
+                rContactData.Ctan[1] =  - mu * AugmentedNormalLM * epsilon_tangent * node_slip[1];
+            }
+            else
+            {
+                rContactData.Ctan[1] = std::abs(AugmentedTangentLM[1]) * inner_prod(TangentEtasGP, LMGP) - mu * AugmentedNormalLM * AugmentedTangentLM[1];
+            }
+        }
+        
+        /****** CALCULATING THE COMPONENTS OF THE DERIVATIVE COMPLEMENTARY FUNCTION ******/
+
+        // Calculate common components
+        const array_1d<double, TDim> VectorIntegrationPointSlip = rContactData.Dt * (prod(trans(v1), N1) - prod(trans(v2), N2));
+        array_1d<double, TDim> DeltaVectorIntegrationPointSlip;
+        
+        // Derivatives slave
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = i_slave * TDim + i_dim;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_dim] = N1[i_slave];
+                
+                const array_1d<double, TNumNodes> DeltaN1 = rContactData.DeltaN1[i_dof];
+                const array_1d<double, TNumNodes> DeltaN2 = rContactData.DeltaN2[i_dof];
+                DeltaVectorIntegrationPointSlip = aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
+                
+                const array_1d<double, TDim> DeltaNormalsGP    = prod(trans(rContactData.Delta_Normal_s[i_dof]),     N1);
+                const double DeltaLMNormal = inner_prod(DeltaNormalsGP, LMGP);
+                const double DeltaGap = rContactData.DeltaGap[i_dof];
+                // Delta slip
+                const array_1d<double, TDim> DeltaTangentXisGP = prod(trans(rContactData.Delta_Tangent_xi_s[i_dof]), N1);
+                array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
+                DeltaIntegrationPointSlip[0]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentXisGP);
+                DeltaIntegrationPointSlip[0] += inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
+                
+                if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0] // NOTE: (Gitterle p.75)
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    const double      LMXi = inner_prod(     TangentXisGP, LMGP);
+                    const double DeltaLMXi = inner_prod(DeltaTangentXisGP, LMGP);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
+                                                       + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi + epsilon_tangent * DeltaIntegrationPointSlip[0])
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
+                }
+                
+                if (TDim == 3)
+                {
+                    const array_1d<double, TDim> DeltaTangentEtasGP = prod(trans(rContactData.Delta_Tangent_eta_s[i_dof]), N1);
+                    DeltaIntegrationPointSlip[1]  = inner_prod(VectorIntegrationPointSlip, DeltaTangentEtasGP);
+                    DeltaIntegrationPointSlip[1] += inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
+                    if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1] // NOTE: (Gitterle p.75)
+                                                           - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        const double      LMEta = inner_prod(     TangentEtasGP, LMGP);
+                        const double DeltaLMEta = inner_prod(DeltaTangentEtasGP, LMGP);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
+                                                       + (SignTangPress *  LMEta - mu * AugmentedNormalLM ) * (DeltaLMEta + epsilon_tangent * DeltaIntegrationPointSlip[1])
+                                                       - mu * (DeltaLMNormal + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
+                    }
+                    
+                }
+            }
+        }
+        
+        // Derivatives master
+        for (unsigned int i_master = 0; i_master < TNumNodes; i_master++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = (TNumNodes + i_master) * TDim + i_dim;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_dim] = N2[i_master];
+                
+                const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
+                const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
+                DeltaVectorIntegrationPointSlip = - aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
+                
+                const double DeltaGap = rContactData.DeltaGap[i_dof];
+                array_1d<double, (TDim - 1)> DeltaIntegrationPointSlip;
+                DeltaIntegrationPointSlip[0] = inner_prod(DeltaVectorIntegrationPointSlip, TangentXisGP);
+                
+                if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[0]// NOTE: (Gitterle p.75)
+                                                       - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    const double      LMXi = inner_prod(     TangentXisGP, LMGP);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = (SignTangPress * LMXi - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[0])
+                                                       - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[0];
+                }
+                
+                if (TDim == 3)
+                {
+                    DeltaIntegrationPointSlip[1] = inner_prod(DeltaVectorIntegrationPointSlip, TangentEtasGP);
+                    if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * AugmentedNormalLM * epsilon_tangent * DeltaIntegrationPointSlip[1]// NOTE: (Gitterle p.75)
+                                                           - mu * ( + epsilon_normal * DeltaGap) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        const double LMEta = inner_prod(TangentEtasGP, LMGP);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = (SignTangPress * LMEta - mu * AugmentedNormalLM) * ( + epsilon_tangent * DeltaIntegrationPointSlip[1])
+                                                           - mu * ( + epsilon_normal * DeltaGap) * AugmentedTangentLM[1];
+                    }
+                }
+            }
+            
+        }
+        
+        // Derivatives lagrange multiplier
+        for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+        {
+            for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+            {
+                const unsigned int i_dof = (2 * TNumNodes + i_slave) * TDim + i_dim;
+                
+                array_1d<double, TDim> aux_vec = ZeroVector(TDim);
+                aux_vec[i_dim] = 1.0;
+                const double DeltaLMNormal = inner_prod(NormalsGP, aux_vec);
+
+                if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                {
+                    rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
+                }
+                else // Slip
+                {
+                    const double      LMXi = inner_prod(TangentXisGP, LMGP);
+                    const double DeltaLMXi = inner_prod(TangentXisGP, aux_vec);
+                    const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
+                    rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
+                                                      + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi)
+                                                      - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
+                }
+                if (TDim == 3)
+                {
+                    if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
+                    {
+                        rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[1]; 
+                    }
+                    else // Slip
+                    {
+                        const double      LMEta = inner_prod(TangentEtasGP, LMGP);
+                        const double DeltaLMEta = inner_prod(TangentEtasGP, aux_vec);
+                        const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
+                        rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
+                                                          + (SignTangPress * LMEta - mu * AugmentedNormalLM) * (DeltaLMEta)
+                                                          - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
+                    }
+                }
+                
+            }
+        }
+    }
     
     return AugmentedNormalLM;
 }
