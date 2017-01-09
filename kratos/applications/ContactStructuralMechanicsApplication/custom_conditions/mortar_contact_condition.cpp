@@ -141,8 +141,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeSolutionStep( P
         {
             if (GetGeometry()[i_slave].Is(ACTIVE) == true)
             {
-                const array_1d<double, 3> normal = GetGeometry()[i_slave].GetValue(NORMAL);
-                GetGeometry()[i_slave].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER, 0) = - tol * normal;
+                const array_1d<double, 3> normal      = GetGeometry()[i_slave].GetValue(NORMAL);
+                const array_1d<double, 3> tangent_xi  = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+                const array_1d<double, 3> tangent_eta = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+//                 GetGeometry()[i_slave].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER, 0) = tol * (- normal);
+                GetGeometry()[i_slave].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER, 0) = tol * (- normal + tangent_xi + tangent_eta);
             }
         }
     }
@@ -1529,7 +1532,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
                 }
             }
         }
-        else // NOTE: In the tangent direction we impose slip
+        else // NOTE: In the tangent direction we impose sliding
         {   
             for (unsigned int i = index + 1; i < index + TDim; i++)
             {
@@ -2409,7 +2412,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateDeltaNAndDeltaGa
       }
     }
 
-    /* Calculate Delta Gap */ // TODO: Consider DeltaN1 // NOTE: Ask Ch, probably memmory leaks (OMG!!!)
+    /* Calculate Delta Gap */ // TODO: Consider DeltaN1 
     // Derivatives slave
     for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
@@ -2609,8 +2612,8 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
                 aux_vec[i_dim] = N2[i_master];
                 
-                const array_1d<double, TDim> DeltaN1 = rContactData.DeltaN1[i_dof];
-                const array_1d<double, TDim> DeltaN2 = rContactData.DeltaN2[i_dof];
+                const array_1d<double, TNumNodes> DeltaN1 = rContactData.DeltaN1[i_dof];
+                const array_1d<double, TNumNodes> DeltaN2 = rContactData.DeltaN2[i_dof];
                 DeltaVectorIntegrationPointSlip = - aux_vec + rContactData.Dt * (prod(trans(v1), DeltaN1) - prod(trans(v2), DeltaN2));
                 
                 const double DeltaGap = rContactData.DeltaGap[i_dof];
@@ -2658,39 +2661,38 @@ double MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateCtanAndDeltaCt
                 const unsigned int i_dof = (2 * TNumNodes + i_slave) * TDim + i_dim;
                 
                 array_1d<double, TDim> aux_vec = ZeroVector(TDim);
-                aux_vec[i_dim] = 1.0;
+                aux_vec[i_dim] = Phi[i_slave];
                 const double DeltaLMNormal = inner_prod(NormalsGP, aux_vec);
 
                 if ((std::abs(AugmentedTangentLM[0]) + mu * AugmentedNormalLM) < 0.0) // Stick
                 {
-                    rContactData.DeltaCtan[i_dof][0] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
+                    rContactData.DeltaCtan[i_dof][0] = mu * (DeltaLMNormal) * epsilon_tangent * node_slip[0]; 
                 }
                 else // Slip
                 {
                     const double      LMXi = inner_prod(TangentXisGP, LMGP);
                     const double DeltaLMXi = inner_prod(TangentXisGP, aux_vec);
                     const double SignTangPress = boost::math::sign(AugmentedTangentLM[0]);
-                    rContactData.DeltaCtan[i_dof][0] = std::abs(AugmentedTangentLM[0]) * DeltaLMXi 
-                                                      + (SignTangPress * LMXi - mu * AugmentedNormalLM) * (DeltaLMXi)
-                                                      - mu * (DeltaLMNormal) * AugmentedTangentLM[0];
+                    rContactData.DeltaCtan[i_dof][0] = DeltaLMXi * (std::abs(AugmentedTangentLM[0])
+                                                      + SignTangPress * LMXi + mu * AugmentedNormalLM)
+                                                      + mu * DeltaLMNormal * AugmentedTangentLM[0];
                 }
                 if (TDim == 3)
                 {
                     if ((std::abs(AugmentedTangentLM[1]) + mu * AugmentedNormalLM) < 0.0) // Stick
                     {
-                        rContactData.DeltaCtan[i_dof][1] = - mu * (DeltaLMNormal) * epsilon_tangent * node_slip[1]; 
+                        rContactData.DeltaCtan[i_dof][1] = mu * (DeltaLMNormal) * epsilon_tangent * node_slip[1]; 
                     }
                     else // Slip
                     {
                         const double      LMEta = inner_prod(TangentEtasGP, LMGP);
                         const double DeltaLMEta = inner_prod(TangentEtasGP, aux_vec);
                         const double SignTangPress = boost::math::sign(AugmentedTangentLM[1]);
-                        rContactData.DeltaCtan[i_dof][1] = std::abs(AugmentedTangentLM[1]) * DeltaLMEta 
-                                                          + (SignTangPress * LMEta - mu * AugmentedNormalLM) * (DeltaLMEta)
-                                                          - mu * (DeltaLMNormal) * AugmentedTangentLM[1];
+                        rContactData.DeltaCtan[i_dof][1] = DeltaLMEta * (std::abs(AugmentedTangentLM[1])  
+                                                          + SignTangPress * LMEta + mu * AugmentedNormalLM) 
+                                                          + mu * DeltaLMNormal * AugmentedTangentLM[1];
                     }
                 }
-                
             }
         }
     }
