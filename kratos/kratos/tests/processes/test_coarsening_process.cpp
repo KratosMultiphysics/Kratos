@@ -242,7 +242,7 @@ namespace Kratos {
                 "element_name": "Element3D4N"
             }  )");
 
-			std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
+			//std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 
