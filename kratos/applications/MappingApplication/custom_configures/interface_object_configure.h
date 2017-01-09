@@ -183,13 +183,26 @@ public:
    * @return        Boolean indicating the result of the intersection test described.
    */
   static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, double Radius) {
+    // TODO change to squared distance function
+    // for(std::size_t i = 0; i < Dimension; i++) {
+    //   if(std::fabs((*rObj_1)[i] - (*rObj_2)[i]) > Epsilon + Radius) {
+    //     return false;
+    //   }
+    // }
+    //
+    // return true;
+
+    double pwdDistance = 0.0f;
+
     for(std::size_t i = 0; i < Dimension; i++) {
-      if(std::fabs((*rObj_1)[i] - (*rObj_2)[i]) > Epsilon + Radius) {
-        return false;
-      }
+      pwdDistance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
     }
 
-    return true;
+    if (std::sqrt(pwdDistance) > Epsilon + Radius) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   /** Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.

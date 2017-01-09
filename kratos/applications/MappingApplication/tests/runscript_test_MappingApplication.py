@@ -1,5 +1,5 @@
 # Philipp Bucher, 2.12.2016
-# This script is intended to test the Nearest Neighbor Mapper in parallel with 
+# This script is intended to test the MappingApplication in parallel with
 # several numbers of cores, since at the time of this work there is no parallel
 # testing in Kratos yet
 # usage: "python3.5 runscript_test_MappingApplication.py"
@@ -7,6 +7,7 @@
 import os, sys
 from time import *
 import datetime
+import re
 
 start_time = time()
 
@@ -22,6 +23,18 @@ def WriteInfo(kratos_file, test_file, write_mode, info):
     file_test_output.close()
 
     print(info)
+
+def CheckOutputFile(output_file, string_array, tests_success):
+    with open(output_file, 'r') as test_file:
+        i = 0
+        for line in test_file:
+            i += 1
+            for keyword in string_array:
+                if re.search(keyword, line, re.IGNORECASE):
+                    tests_success = False
+                    print(keyword + " in line " + str(i) + " of file " + output_file)
+
+    return tests_success
 
 input_file = "test_MappingApplication.py"
 kratos_output_file = "output_kratos.txt"
@@ -46,13 +59,12 @@ for num_processors in list_processors:
     os.system(system_cmd)
 
 tests_success = True
-with open(tests_output_file, 'r') as test_file:
-    i = 0
-    for line in test_file:
-        i += 1
-        if "FAIL" in line:
-            tests_success = False
-            print("FAIL in line " + str(i))
+
+keyword_array = ["FAIL", "mpiexec", "mpirun", "Segmentation", "signal", "not"]
+keyword_array.extend(["Traceback", "RuntimeError", "ERROR", "Error", "WARNING"])
+
+tests_success = CheckOutputFile(tests_output_file, keyword_array, tests_success)
+tests_success = CheckOutputFile(kratos_output_file, keyword_array, tests_success)
 
 test_runtime = datetime.timedelta(seconds=int((time() - start_time)))
 print("\nTests Sucessful: " + str(tests_success) + ", Runtime: " + str(test_runtime))
