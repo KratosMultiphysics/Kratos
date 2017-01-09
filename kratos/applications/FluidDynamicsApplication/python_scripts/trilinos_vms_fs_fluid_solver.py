@@ -290,9 +290,9 @@ class IncompressibleFluidSolver:
 
             #for node in self.model_part.Nodes:
                 #node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                
-                
-               
+
+
+
             dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
             self.model_part.ProcessInfo.SetValue(DELTA_TIME, 100.0 * dt)
 
@@ -418,12 +418,12 @@ def CreateSolver(model_part, config):
         fluid_solver.dynamic_tau = config.dynamic_tau
 
     # linear solver settings
-    import trilinos_linear_solver_factory
+    import deprecated_trilinos_linear_solver_factory
     if(hasattr(config, "pressure_linear_solver_config")):
-        fluid_solver.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
+        fluid_solver.pressure_linear_solver = deprecated_trilinos_linear_solver_factory.ConstructSolver(
             config.pressure_linear_solver_config)
     if(hasattr(config, "velocity_linear_solver_config")):
-        fluid_solver.velocity_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
+        fluid_solver.velocity_linear_solver = deprecated_trilinos_linear_solver_factory.ConstructSolver(
             config.velocity_linear_solver_config)
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
