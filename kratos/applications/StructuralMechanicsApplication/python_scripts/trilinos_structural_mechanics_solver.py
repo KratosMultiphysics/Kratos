@@ -79,8 +79,8 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
-        self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
@@ -123,12 +123,12 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _GetBuilderAndSolver(self, component_wise, block_builder):
-        
+
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
         else:
             guess_row_size = 45
-            
+
         if(block_builder):
             # To keep matrix blocks in builder
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(self.EpetraCommunicator,
@@ -144,7 +144,7 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
 
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
-        
+
         self.mechanical_solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
                                                                                    mechanical_scheme,
                                                                                    self.linear_solver,
