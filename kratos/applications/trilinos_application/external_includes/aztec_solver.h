@@ -55,7 +55,7 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-    
+
     AztecSolver(Parameters settings)
     {
         Parameters default_settings( R"(
@@ -71,10 +71,10 @@ public:
         "trilinos_aztec_parameter_list": {},
         "trilinos_preconditioner_parameter_list": {}
         }  )" );
-              
+
         settings.ValidateAndAssignDefaults(default_settings);
-        
-        
+
+
         //settings for the AZTEC solver
         mtol = settings["tolerance"].GetDouble();
         mmax_iter = settings["max_iteration"].GetDouble();
@@ -82,16 +82,20 @@ public:
         //IFpack settings
         moverlap_level = settings["overlap_level"].GetInt();
 
-        mscaling_type = LeftScaling; //TODO: actually use the "scaling" parameters
-        
+        //scaling settings
+        if (settings["scaling"].GetBool() == false)
+            mscaling_type = NoScaling;
+        else
+            mscaling_type = LeftScaling;
+
         //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
         maztec_parameter_list = Teuchos::ParameterList();
-        
+
         if(settings["verbosity"].GetInt() == 0)
             maztec_parameter_list.set("AZ_output", "AZ_none");
         else
             maztec_parameter_list.set("AZ_output", settings["verbosity"].GetInt());
-        
+
         //choose the solver type
         if(settings["solver_type"].GetString() == "CGSolver")
         {
@@ -100,12 +104,12 @@ public:
         else if(settings["solver_type"].GetString() == "BICGSTABSolver")
         {
             maztec_parameter_list.set("AZ_solver", "AZ_bicgstab");
-        }        
+        }
         else if(settings["solver_type"].GetString() == "GMRESSolver")
         {
             maztec_parameter_list.set("AZ_solver", "AZ_gmres");
             maztec_parameter_list.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
-        }  
+        }
         else if(settings["solver_type"].GetString() == "AztecSolver")
         {
             //do nothing here. Leave full control to the user through the "trilinos_aztec_parameter_list"
@@ -114,8 +118,8 @@ public:
         {
             KRATOS_ERROR << " the solver type specified : " << settings["solver_type"].GetString()  << " is not supported";
         }
-        
-        
+
+
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
         for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
         {
@@ -124,7 +128,7 @@ public:
             else if(it->IsBool()) maztec_parameter_list.set(it.name(), it->GetBool());
             else if(it->IsDouble()) maztec_parameter_list.set(it.name(), it->GetDouble());
         }
-        
+
         mpreconditioner_parameter_list = Teuchos::ParameterList();
         if(settings["preconditioner_type"].GetString() == "DiagonalPreconditioner")
         {
@@ -159,7 +163,7 @@ public:
         }
         else
             KRATOS_ERROR << "wrong choice for preconditioner_type. Selction was :" << settings["preconditioner_type"].GetString() << " Available choices are: None,ILU0,ILUT,ICC,AmesosPreconditioner";
-        
+
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
         for(auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++)
         {
@@ -168,8 +172,8 @@ public:
             else if(it->IsBool()) mpreconditioner_parameter_list.set(it.name(), it->GetBool());
             else if(it->IsDouble()) mpreconditioner_parameter_list.set(it.name(), it->GetDouble());
         }
-        
-        
+
+
     }
 
     /**
