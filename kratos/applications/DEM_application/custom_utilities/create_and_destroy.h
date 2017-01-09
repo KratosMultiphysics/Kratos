@@ -19,6 +19,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/quaternion.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
 #include "../custom_utilities/discrete_particle_configure.h"
