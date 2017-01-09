@@ -72,8 +72,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         ## Construct the linear solver
-        import new_trilinos_linear_solver_factory
-        self.trilinos_linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory
+        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the element replace settings
         self.settings.AddEmptyValue("element_replace_settings")

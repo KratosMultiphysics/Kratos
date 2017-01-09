@@ -68,10 +68,10 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         ## Construct the linear solvers
-        import new_trilinos_linear_solver_factory
+        import trilinos_linear_solver_factory
         self.settings["pressure_linear_solver_settings"].PrettyPrintJsonString()
-        self.pressure_linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        self.velocity_linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
+        self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
+        self.velocity_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         ## Set the element replace settings
         if main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
