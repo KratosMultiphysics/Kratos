@@ -486,6 +486,80 @@ public:
         return this->Area();
     }
 
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the minimum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MinEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::min({l01, l12, l20});
+    }
+
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    virtual double MaxEdgeLength() const {
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::max({l01, l12, l20});
+    }
+
+    /** This method calculates and returns the average edge
+     * length of the geometry
+     *
+     * @return double value with the average edge length
+     *
+     * @see MinEdgeLength()
+     * @see MaxEdgeLength()
+     */
+    virtual double AverageEdgeLength() const {
+      const double onethird = 1.0/3.0;
+
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+
+      auto e01 = rP0 - rP1;
+      auto e12 = rP1 - rP2;
+      auto e20 = rP2 - rP0;
+
+      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
+      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
+      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
+
+      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 * onethird );
+    }
+
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
@@ -568,7 +642,7 @@ public:
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
 
-        NodesInFaces(0,1)=1;//face or other node 
+        NodesInFaces(0,1)=1;//face or other node
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=0;
 
@@ -615,7 +689,7 @@ public:
 
         return 0;
     }
-    
+
         /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -636,7 +710,7 @@ public:
       rResult[0] =  1.0 -rCoordinates[0] - rCoordinates[1];
       rResult[1] =  rCoordinates[0] ;
       rResult[2] =  rCoordinates[1] ;
-        
+
         return rResult;
     }
 
@@ -1907,5 +1981,4 @@ GeometryData Triangle2D3<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined 
-
+#endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined
