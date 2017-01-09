@@ -136,8 +136,8 @@ add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
-add_executable(KratosTesting  ${CMAKE_CURRENT_SOURCE_DIR}/testing_main.cpp)
-target_link_libraries(KratosTesting KratosCore)
+#add_executable(KratosTesting  ${CMAKE_CURRENT_SOURCE_DIR}/testing_main.cpp)
+#target_link_libraries(KratosTesting KratosCore)
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -150,7 +150,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
-install(TARGETS KratosTesting DESTINATION bin )
+#install(TARGETS KratosTesting DESTINATION bin )
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("subdir inc_dirs = ${inc_dirs}")
