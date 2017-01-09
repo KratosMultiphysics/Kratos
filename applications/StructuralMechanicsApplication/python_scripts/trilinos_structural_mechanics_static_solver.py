@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-# 
+#
 import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
@@ -71,8 +71,8 @@ class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.Trilin
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
-        self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of Static Mechanical MPI Solver finished")
 

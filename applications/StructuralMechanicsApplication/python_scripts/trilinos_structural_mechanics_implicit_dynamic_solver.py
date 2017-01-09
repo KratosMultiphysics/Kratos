@@ -79,8 +79,8 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solver
-        import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
-        self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of Implicit Mechanical MPI Solver finished")
 
@@ -100,7 +100,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
 
         # Get the solid computing model part
         self.computing_model_part = self.GetComputingModelPart()
-        
+
         # Builder and solver creation
         builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(),
                                                        self.settings["block_builder"].GetBool())
@@ -160,6 +160,6 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
                 mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(0.0)
             else:
                 alpha = self.settings["damp_factor_m"].GetDouble()
-                mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(alpha) 
+                mechanical_scheme = TrilinosApplication.TrilinosResidualBasedBossakDisplacementScheme(alpha)
 
         return mechanical_scheme
