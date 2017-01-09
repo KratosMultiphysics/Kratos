@@ -1269,10 +1269,8 @@ proc spdAux::ProcGetSolvers { domNode args } {
     
     set solvers [Model::GetAvailableSolvers $solStrat $solverEntryId]
     
-    set names [list ]
     set pnames [list ]
     foreach slvr $solvers {
-        lappend names [$slvr getName]
         lappend pnames [$slvr getName] 
         lappend pnames [$slvr getPublicName]
     }
