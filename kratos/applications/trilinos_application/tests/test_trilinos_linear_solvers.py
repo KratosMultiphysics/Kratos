@@ -218,7 +218,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    @KratosUnittest.expectedFailure
     def test_ml_symmetric_scaling(self):
         self._RunParametrized("""
             {
@@ -259,7 +258,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    @KratosUnittest.expectedFailure
     def test_ml_nonsymmetric_scaling(self):
         self._RunParametrized("""
             {
