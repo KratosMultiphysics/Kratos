@@ -44,6 +44,7 @@
 #include "processes/apply_constant_vectorvalue_process.h"
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
+#include "processes/compute_nodal_gradient_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -190,6 +191,14 @@ void  AddProcessesToPython()
         
     class_<ReplaceElementsAndConditionsProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsProcess",
             init<ModelPart&, Parameters>())
+    ;
+    
+    class_<ComputeNodalGradientProcess<2> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess2D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    ;
+    
+    class_<ComputeNodalGradientProcess<3> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcess3D",
+            init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
     
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
