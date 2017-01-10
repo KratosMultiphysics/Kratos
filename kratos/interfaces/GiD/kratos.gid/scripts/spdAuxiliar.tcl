@@ -529,14 +529,8 @@ proc spdAux::injectSolvers {basenode args} {
                 append paramsnodes " values='Yes,No' "
             }
             if {$type eq "combo"} {
-                set vals [join [$par getValues] ,]
-                append paramsnodes " values='$vals' "
-                set d [list ]
-                foreach v [$par getValues] pv [$par getPValues] {
-                    lappend d "$v,$pv"
-                }
-                set dic [join $d ,]
-                append paramsnodes " dict='$dic' "
+                append paramsnodes " values='\[GetSolverParameterValues\]' "
+                append paramsnodes " dict='\[GetSolverParameterDict\]' "
             }
             
             append paramsnodes "/>"
@@ -1201,10 +1195,12 @@ proc spdAux::ProcGetSchemes {domNode args} {
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
         #W "entra"
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
+        get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
     }
     set solStratName [::write::getValue $sol_stratUN]
     #W "Unique name: $sol_stratUN - Nombre $solStratName"
     set schemes [::Model::GetAvailableSchemes $solStratName]
+    
     set ids [list ]
     if {[llength $schemes] == 0} {
         if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
@@ -1219,9 +1215,10 @@ proc spdAux::ProcGetSchemes {domNode args} {
     }
     
     $domNode setAttribute values [join $names ","]
+    
     if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
     if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
-    #spdAux::RequestRefresh
+    spdAux::RequestRefresh
     return [join $pnames ","]
 }
 
@@ -1278,6 +1275,31 @@ proc spdAux::ProcGetSolvers { domNode args } {
     
 }
 
+proc spdAux::ProcGetSolverParameterDict { domNode args } {
+    set param_name [get_domnode_attribute $domNode n]
+    set pnames [list ]
+    foreach solver [Model::GetAllSolvers] {
+        foreach param [dict values [$solver getInputs]] {
+            foreach value [$param getValues] pvalue [$param getPValues] {
+                if {$value ni $pnames} {
+                    lappend pnames $value
+                    lappend pnames $pvalue
+                }
+            }
+        }
+    }
+    return [join $pnames ","]
+}
+proc spdAux::ProcGetSolverParameterValues { domNode args } {
+    
+    set solver_node [[$domNode parent] selectNodes "./value\[@n='Solver'\]"]
+    get_domnode_attribute $solver_node values
+    set solver [Model::GetSolver [get_domnode_attribute $solver_node v]]
+    set param_name [get_domnode_attribute $domNode n]
+    set param [$solver getInputPn $param_name]
+    if {$param ne ""} {return [join [$param getValues] ","]}
+    return ""
+}
 proc spdAux::ProcGetSolversValues { domNode args } {
     
     set solStrat [get_domnode_attribute [$domNode parent] solstratname]

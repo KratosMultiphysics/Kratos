@@ -31,11 +31,8 @@ proc Solid::write::writeCustomFilesEvent { } {
     
     write::CopyFileIntoModel "python/KratosSolid.py"
     set paralleltype [write::getValue ParallelType]
-    if {$paralleltype eq "OpenMP"} {
-        set orig_name "KratosSolid.py"
-    } else {
-        set orig_name "KratosSolidMPI.py"
-    }
+    set orig_name "KratosSolid.py"
+    
     write::RenameFileInModel $orig_name "MainKratos.py"
     
     #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"

@@ -53,6 +53,12 @@ proc Model::GetSolver { id } {
     }
     
 }
+
+proc Model::GetAllSolvers { } {
+    variable Solvers
+    return $Solvers
+}
+
 proc Model::ParseSolvers { doc } {
     variable Solvers
     

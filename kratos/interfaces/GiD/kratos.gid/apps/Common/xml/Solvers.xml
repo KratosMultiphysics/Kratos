@@ -85,7 +85,7 @@
         </inputs>
     </solver>
 
-    <solver n="AmgclMPISolver" pn="AMGCL - MPI" SolverType="Standard" Parallelism="MPI">
+    <solver n="AmgclMPISolver" pn="Trilinos AMGCL" SolverType="Standard" Parallelism="MPI">
         <inputs>
 			<parameter n="max_iteration" pn="Max iterations" type="integer" v="200" help=""/>
 			<parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-6" help=""/>
