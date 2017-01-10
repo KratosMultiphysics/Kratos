@@ -317,7 +317,7 @@ public:
         mndof = 1;
       else
         mndof = ndof;
-       		KRATOS_WATCH(mndof);
+     //   	KRATOS_WATCH(mndof);
     }
 
     /**
