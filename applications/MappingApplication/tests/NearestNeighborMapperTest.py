@@ -38,16 +38,14 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
             self.num_processors = 1
 
         if (self.num_processors == 1): # serial execution
-            # Read Model Parts
-            self.model_part_origin  = self.ReadModelPartSerial("ModelPartNameOrigin", input_file_origin, variable_list)
-            self.model_part_destination = self.ReadModelPartSerial("ModelPartNameDestination", input_file_destination, variable_list)
             self.parallel_execution = False
         else:
             # Partition and Read Model Parts
             variable_list.extend([PARTITION_INDEX])
-            self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_origin, 3, variable_list)
-            self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_destination, 3, variable_list)
             self.parallel_execution = True
+
+        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_origin, 3, variable_list, self.num_processors)
+        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_destination, 3, variable_list, self.num_processors)
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
@@ -150,7 +148,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination, MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.2)
+            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.2)
 
         self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value)
 
@@ -301,50 +299,37 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # self.PrintMappedValues(self.interface_sub_model_part_origin, variable_origin) # needed to set up test
         self.CheckValuesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.vector_values_origin_receive)
 
-
-    def ReadModelPartSerial(self, model_part_name, model_part_input_file, variable_list):
+    def partition_and_read_model_part(self, model_part_name, model_part_input_file, size_domain, variable_list, number_of_partitions):
         model_part = ModelPart(model_part_name)
         for variable in variable_list:
             model_part.AddNodalSolutionStepVariable(variable)
 
-        model_part_io = ModelPartIO(model_part_input_file)
-        model_part_io.ReadModelPart(model_part)
+        if (self.parallel_execution):
+            if mpi.size > 1:
+                if mpi.rank == 0:
+                    model_part_io = ReorderConsecutiveModelPartIO(model_part_input_file)
 
-        model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 3)
-        model_part.SetBufferSize(1)
+                    partitioner = MetisDivideHeterogeneousInputProcess(
+                        model_part_io,
+                        number_of_partitions,
+                        size_domain,
+                        0, # verbosity, set to 1 for more detailed output
+                        True)
 
-        return model_part
+                    partitioner.Execute()
 
-    def partition_and_read_model_part(self, model_part_name, model_part_input_file, size_domain, variable_list, number_of_partitions = mpi.size):
-        model_part = ModelPart(model_part_name)
-        for variable in variable_list:
-            model_part.AddNodalSolutionStepVariable(variable)
-
-        # number of partitions is by default equal to mpi.size
-        if mpi.size > 1:
-            if mpi.rank == 0:
-                model_part_io = ReorderConsecutiveModelPartIO(model_part_input_file)
-
-                partitioner = MetisDivideHeterogeneousInputProcess(
-                    model_part_io,
-                    number_of_partitions,
-                    size_domain,
-                    0, # verbosity, set to 1 for more detailed output
-                    True)
-
-                partitioner.Execute()
-
-            mpi.world.barrier()
-            model_part_input_file = model_part_input_file + "_" + str(mpi.rank)
+                mpi.world.barrier()
+                model_part_input_file = model_part_input_file + "_" + str(mpi.rank)
 
         model_part_io = ModelPartIO(model_part_input_file)
         model_part_io.ReadModelPart(model_part)
 
-        MPICommSetup = SetMPICommunicatorProcess(model_part)
-        MPICommSetup.Execute()
+        if (self.parallel_execution):
+            MPICommSetup = SetMPICommunicatorProcess(model_part)
+            MPICommSetup.Execute()
 
-        ParallelFillComm = ParallelFillCommunicator(model_part.GetRootModelPart())
-        ParallelFillComm.Execute()
+            ParallelFillComm = ParallelFillCommunicator(model_part.GetRootModelPart())
+            ParallelFillComm.Execute()
 
         model_part.ProcessInfo.SetValue(DOMAIN_SIZE, size_domain)
         model_part.SetBufferSize(1)
