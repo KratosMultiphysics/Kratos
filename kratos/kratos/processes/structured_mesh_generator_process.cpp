@@ -195,11 +195,11 @@ namespace Kratos
 		using point_in_cell_position_type = std::array<std::size_t, 3>;
 		using tetrahedra_connectivity_in_cell_type = std::array<std::size_t, 4>;
 		constexpr std::size_t number_of_cases = 6;
-		constexpr point_in_cell_position_type cell_points[8] = { {{0,0,0 }},{{ 1,0,0 }},{{ 1,1,0  }},{{ 0,1,0 }},
+		constexpr point_in_cell_position_type cell_points[8] = { {{ 0,0,0 }},{{ 1,0,0 }},{{ 1,1,0 }},{{ 0,1,0 }},
 																 {{ 0,0,1 }},{{ 1,0,1 }},{{ 1,1,1 }},{{ 0,1,1 }}  };
 
-		constexpr tetrahedra_connectivity_in_cell_type connectivity_cases[number_of_cases] = { { 0,3,6,2 },{ 3,6,7,0 },{ 4,7,6,0 },
-																							   { 0,4,5,6 },{ 0,1,2,6 },{ 1,5,6,0 } };
+		constexpr tetrahedra_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 0,3,6,2 }},{{ 3,6,7,0 }},{{ 4,7,6,0 }},
+																							   {{ 0,4,5,6 }},{{ 0,1,2,6 }},{{ 1,5,6,0 }} };
 		std::vector<ModelPart::IndexType> element_connectivity(4);
 
 		for (std::size_t i_case = 0; i_case < number_of_cases; i_case++) {
