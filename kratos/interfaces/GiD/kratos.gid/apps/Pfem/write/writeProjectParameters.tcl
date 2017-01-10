@@ -121,9 +121,9 @@ proc Pfem::write::GetPFEM_ProblemProcessList { } {
         lappend resultList [GetPFEM_FluidRemeshDict]
     } else {
         lappend resultList [GetPFEM_RemeshDict]
-        set contactDict [GetPFEM_ContactDict]
-        if {[dict size $contactDict]} {lappend resultList $contactDict}
     }
+    set contactDict [GetPFEM_ContactDict]
+    if {[dict size $contactDict]} {lappend resultList $contactDict}
     return $resultList
 }
 
@@ -134,8 +134,9 @@ proc Pfem::write::GetPFEM_ContactDict { } {
     set contact_list [list ]
     foreach body_node [$root selectNodes $xp1] {
         set contact [get_domnode_attribute [$body_node selectNodes ".//value\[@n='ContactStrategy'\]"] v]
-        if {$contact ne "NO_CONTACT_STRATEGY"} {lappend contact_list $contact}
+        if {$contact ne "No contact strategy" && $contact ne "" && $contact ni $contact_list} {lappend contact_list $contact}
     }
+    #W $contact_list
     set contact_domains [list ]
     foreach contact $contact_list {
         lappend contact_domains [Pfem::write::GetPfem_ContactProcessDict $contact]
@@ -174,12 +175,9 @@ proc Pfem::write::GetPfem_ContactProcessDict {contact_name} {
     dict set contact_parameters "friction_law_type" "FrictionLaw"
     dict set contact_parameters "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
     set properties_dict [dict create]
-    dict set properties_dict "FRICTION_ACTIVE" false
-    dict set properties_dict "MU_STATIC" 0.3
-    dict set properties_dict "MU_DYNAMIC" 0.2
-    dict set properties_dict "PENALTY_PARAMETER" 1000
-    dict set properties_dict "TANGENTIAL_PENALTY_RATIO" 0.1
-    dict set properties_dict "TAU_STAB" 1
+    foreach prop [list FRICTION_ACTIVE MU_STATIC MU_DYNAMIC PENALTY_PARAMETER TANGENTIAL_PENALTY_RATIO TAU_STAB] {
+        dict set properties_dict $prop [Pfem::write::GetContactProperty ${contact_name} $prop]
+    }
     dict set contact_parameters "variables_of_properties" $properties_dict
     dict set mesh_strat "contact_parameters" $contact_parameters
     dict set cont_dict "elemental_variables_to_transfer" [list "CAUCHY_STRESS_VECTOR" "DEFORMATION_GRADIENT" ]
@@ -198,26 +196,12 @@ proc Pfem::write::GetBodiesWithContactList {contact_name} {
     return $bodies_list
 }
 
-# Not implemented
-proc Pfem::write::GetContactProperty { body_name property } {
+
+proc Pfem::write::GetContactProperty { contact_name property } {
     set ret ""
-    return $ret
     set root [customlib::GetBaseRoot]
-    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
-    set remesh_name ""
-    foreach body_node [$root selectNodes $xp1] {
-        if {[$body_node @name] eq $body_name} {
-            set remesh_name [get_domnode_attribute [$body_node selectNodes ".//value\[@n='MeshingStrategy'\]"] v]
-            break
-        }
-    }
-    if {$remesh_name ne ""} {
-        variable remesh_domains_dict
-        if {[dict exists $remesh_domains_dict ${remesh_name} $property]} {
-            set ret [dict get $remesh_domains_dict ${remesh_name} $property]
-        }
-    }
-    if {$ret eq ""} {set ret false}
+    set ret [get_domnode_attribute [$root selectNodes "[spdAux::getRoute PFEM_contacts]/blockdata\[@name='$contact_name'\]/value\[@n='$property'\]"] v]
+    if {$ret eq ""} {set ret null}
     return $ret
 }
 

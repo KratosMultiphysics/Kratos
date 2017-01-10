@@ -127,8 +127,7 @@ proc Pfem::xml::ProcGetMeshingDomains {domNode args} {
     set basepath [spdAux::getRoute "PFEM_meshing_domains"]
     set values [list ]
     foreach meshing_domain [[$domNode selectNodes $basepath] childNodes] {
-	#W [$meshing_domain asXML]
-	lappend values [get_domnode_attribute $meshing_domain name]
+        lappend values [get_domnode_attribute $meshing_domain name]
     }
     if {[get_domnode_attribute $domNode v] eq ""} {
 	$domNode setAttribute v [lindex $values 0]
@@ -137,23 +136,16 @@ proc Pfem::xml::ProcGetMeshingDomains {domNode args} {
 }
 
 proc Pfem::xml::ProcGetContactDomains {domNode args} {
-    set basepath [spdAux::getRoute "PFEM_contact_domains"]
-    set values [list ]
-    set pvalues [list ]
-    catch {
-	foreach contact_domain [[$domNode selectNodes $basepath] childNodes] {
-	    #W [$contact_domain asXML]
-	    lappend values [get_domnode_attribute $contact_domain n]
-	    lappend pvalues [get_domnode_attribute $contact_domain n]
-	    lappend pvalues [get_domnode_attribute $contact_domain pn]
-	}
+    set basepath [spdAux::getRoute "PFEM_contacts"]
+    set values [list "No contact strategy"]
+    foreach contact_domain [[$domNode selectNodes $basepath] childNodes] {
+        lappend values [get_domnode_attribute $contact_domain name]
     }
-    $domNode setAttribute values [join $values ,]
-    
+        
     if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {
-	$domNode setAttribute v [lindex $values 0]
+        $domNode setAttribute v [lindex $values 0]
     }
-    return [join $pvalues ,]
+    return [join $values ,]
 }
 
 proc Pfem::xml::ProcCheckNodalConditionStateSolid {domNode args} {
