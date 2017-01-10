@@ -63,7 +63,7 @@ namespace Kratos
 		//if (r_element.GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
 		//	KRATOS_ERROR << "Un supported geometry is given. Only Quadrilateral2D4 is supported and given geometry is : " << rGeometry << std::endl;
 
-		if ((rGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) & 
+		if ((rGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) &
 			(rGeometry.GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8))
 			KRATOS_ERROR << "Un supported geometry is given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << rGeometry << std::endl;
 
@@ -195,8 +195,8 @@ namespace Kratos
 		using point_in_cell_position_type = std::array<std::size_t, 3>;
 		using tetrahedra_connectivity_in_cell_type = std::array<std::size_t, 4>;
 		constexpr std::size_t number_of_cases = 6;
-		constexpr point_in_cell_position_type cell_points[8] = { { 0,0,0 },{ 1,0,0 },{ 1,1,0 },{ 0,1,0 },
-																 { 0,0,1 },{ 1,0,1 },{ 1,1,1 },{ 0,1,1 } };
+		constexpr point_in_cell_position_type cell_points[8] = { {{0,0,0 }},{{ 1,0,0 }},{{ 1,1,0  }},{{ 0,1,0 }},
+																 {{ 0,0,1 }},{{ 1,0,1 }},{{ 1,1,1 }},{{ 0,1,1 }}  };
 
 		constexpr tetrahedra_connectivity_in_cell_type connectivity_cases[number_of_cases] = { { 0,3,6,2 },{ 3,6,7,0 },{ 4,7,6,0 },
 																							   { 0,4,5,6 },{ 0,1,2,6 },{ 1,5,6,0 } };
