@@ -820,7 +820,7 @@ private:
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
-        ModelPart& rModelPart = this->GetModelPart();
+        //ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
 
