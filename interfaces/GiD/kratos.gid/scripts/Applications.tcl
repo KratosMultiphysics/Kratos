@@ -206,6 +206,7 @@ oo::class create App {
         set dir [file join $::Kratos::kratos_private(Path) apps $name]
         set fileName [file join $dir start.tcl]
         apps::loadAppFile $fileName
+        gid_groups_conds::add_images_dir [file join $dir images]
     }
     
     method getPrefix { } {variable prefix; return $prefix}
