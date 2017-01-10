@@ -278,7 +278,7 @@ proc Pfem::xml::ProcActiveIfAnyPartState {domNode args} {
     if {$parts ne ""} {return "normal"} else {return "hidden"}
 }
 
-proc Pfem::xml::ProcGetBodiesValues {$domNode $args} {
+proc Pfem::xml::ProcGetBodiesValues {domNode args} {
     customlib::UpdateDocument
     set root [customlib::GetBaseRoot]
     set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
@@ -286,6 +286,7 @@ proc Pfem::xml::ProcGetBodiesValues {$domNode $args} {
     foreach body_node [$root selectNodes $xp1] {
         lappend bodies [$body_node @name]
     }
+    if {[get_domnode_attribute $domNode v] ni $bodies} {$domNode setAttribute v [lindex $bodies 0]}
     return [join $bodies ","]
 }
 
