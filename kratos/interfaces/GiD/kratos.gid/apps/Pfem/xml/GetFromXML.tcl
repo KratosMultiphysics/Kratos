@@ -35,11 +35,24 @@ proc Pfem::xml::MultiAppEvent {args} {
 }
 
 proc Pfem::xml::CustomTree { args } {
+    
+    #HOW TO USE THIS FUNCTION:
+    #spdAux::SetValueOnTreeItem arg1 arg2 arg3 arg4
+    #arg1: attribute_to_modify 
+    #arg2: value_of_the_attribute 
+    #arg3: unique_name_of_the_node 
+    #arg4: name_of_the_child_we_want_to_modify  ('name'is defined by the attribute n=)
+    
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
+    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions DISPLACEMENT
+    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions VELOCITY
+    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions ACCELERATION
+    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions VELOCITY
+    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions PRESSURE
     
 }
 
