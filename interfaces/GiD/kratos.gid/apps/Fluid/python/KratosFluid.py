@@ -15,6 +15,11 @@ from KratosMultiphysics.MeshingApplication import *
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
+parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
+
+## Import KratosMPI if needed
+if (parallel_type == "MPI"):
+    import KratosMultiphysics.mpi as KratosMPI
 
 ## Fluid model part definition
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
@@ -36,12 +41,12 @@ solver.ImportModelPart()
 solver.AddDofs()
 
 ## Initialize GiD  I/O
-if ProjectParameters["problem_data"]["parallel_type"].GetString() == "OpenMP":
+if (parallel_type == "OpenMP"):
     from gid_output_process import GiDOutputProcess
     gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
                                   ProjectParameters["problem_data"]["problem_name"].GetString() ,
                                   ProjectParameters["output_configuration"])
-elif ProjectParameters["problem_data"]["parallel_type"].GetString() == "MPI":
+elif (parallel_type == "MPI"):
     from gid_output_process_mpi import GiDOutputProcessMPI
     gid_output = GiDOutputProcessMPI(solver.GetComputingModelPart(),
                                      ProjectParameters["problem_data"]["problem_name"].GetString() ,
@@ -110,8 +115,9 @@ while(time <= end_time):
     step = step + 1
     main_model_part.CloneTimeStep(time)
 
-    print("STEP = ", step)
-    print("TIME = ", time)
+    if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("STEP = ", step)
+        print("TIME = ", time)
 
     if(step >= 3):
         for process in list_of_processes:
