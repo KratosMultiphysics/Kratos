@@ -50,14 +50,14 @@ namespace Kratos
 		mStartConditionId = TheParameters["start_condition_id"].GetInt();
 
 		mNumberOfDivisions = TheParameters["number_of_divisions"].GetInt();
-	    mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
+		mElementPropertiesId = TheParameters["elements_properties_id"].GetInt();
 		mConditiongPropertiesId = TheParameters["conditions_properties_id"].GetInt();
 		mElementName = TheParameters["element_name"].GetString();
 		mConditionName = TheParameters["condition_name"].GetString();
 		mCrateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
 		KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
-		Element const& r_element = KratosComponents<Element>::Get(mElementName);
+		//Element const& r_element = KratosComponents<Element>::Get(mElementName);
 
 		// I cannot do this test because the GetGeometryType is not a constant method! Pooyan.
 		//if (r_element.GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
