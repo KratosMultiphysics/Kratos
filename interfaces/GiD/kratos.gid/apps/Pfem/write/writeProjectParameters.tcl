@@ -558,6 +558,7 @@ proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition
     foreach block $blocks {
         set groupName [$block @name]
         set cid [[$block parent] @n]
+        get_domnode_attribute [$block find n Body] values
         set bodyId [get_domnode_attribute [$block find n Body] v]
         
         if {$condition_type eq "Condition"} {
