@@ -81,7 +81,7 @@
                 "node_output"         : false,
                 "skin_output"         : false,
                 "plane_output"        : [],
-                "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","NODAL_MAUX","VAUX_EQ_TRACTION"],
+                "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
                 "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
             },
             "point_data_configuration"  : []
@@ -121,7 +121,7 @@
                 "node_output"         : false,
                 "skin_output"         : false,
                 "plane_output"        : [],
-                "nodal_results"       : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","NODAL_MAUX","VAUX_EQ_TRACTION"],
+                "nodal_results"       : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT"],
                 "gauss_point_results" : []
             },
             "point_data_configuration"  : []
@@ -269,7 +269,13 @@
             "mesh_solver"                : "mesh_solver_structural_similarity",
             "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : ["Interface2D_Structure_interface"],
-            "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"]
+            "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"],
+            "mappers_settings": [
+            {
+    	        "mapper_type": "NearestNeighbor",
+                "interface_submodel_part_origin": "FluidNoSlipInterface2D_Interface",
+                "interface_submodel_part_destination": "Interface2D_Structure_interface"
+        	}]
         }
     }
 }
