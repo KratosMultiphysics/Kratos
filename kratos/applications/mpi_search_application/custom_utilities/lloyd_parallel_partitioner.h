@@ -183,7 +183,7 @@ public:
       SearchStructureType Box;
 
       // Calculate objects per cell
-      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+      for(std::size_t i = 0; i < (std::size_t)mNumberOfObjects; i++) {
         auto ObjectItr = mObjectsBegin + i;
         TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
         auto cellId = mpPartitionBins->CalculateIndex(ObjectCenter);
@@ -198,7 +198,7 @@ public:
 
       // Assing each cell to the closest partition center
       // TODO: this is currently very unbalanced
-      for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
+      for(std::size_t cellId = 0; cellId < (std::size_t) mNumberOfCells; cellId++) {
         ObjectsPerPartition[cellId] += mpiRecvObjectsPerCell[cellId];
         CellPartition[cellId] = cellId;
       }
@@ -206,7 +206,7 @@ public:
       std::cout << "Partititon " << mpi_rank << ": " << ObjectsPerPartition[mpi_rank] << std::endl;
 
       // Assign the partition to the objects based on their cell
-      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+      for(std::size_t i = 0; i < (std::size_t) mNumberOfObjects; i++) {
         auto ObjectItr = mObjectsBegin + i;
 
         TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
@@ -389,7 +389,7 @@ public:
       // Assign the partition to the objects based on their cell
       double maxRadius = ReduceMaxRadius(mObjectsBegin, mObjectsEnd);
 
-      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+      for(std::size_t i = 0; i < (std::size_t) mNumberOfObjects; i++) {
         auto ObjectItr = mObjectsBegin + i;
 
         TConfigure::CalculateBoundingBox(*ObjectItr, Low, High);
@@ -406,7 +406,7 @@ public:
 
         std::vector<std::size_t> partitionList(partitionSet.begin(), partitionSet.end());
 
-        for(int i = 0; i < partitionList.size(); i++) {
+        for(unsigned int i = 0; i < partitionList.size(); i++) {
           domainGraph(mpi_rank, mpi_rank) = 1;
           domainGraph(partitionList[i], mpi_rank) = 1;
           domainGraph(mpi_rank, partitionList[i]) = 1;
