@@ -14,6 +14,7 @@
         <dynamicnode command="spdAux::injectConstitutiveLawOutputs" args=""/>
     </container>
     <container n="OnNodes" pn="On nodes" un="NodalResults" icon="point3d" help="Activate the results you want to see in the nodes" open_window="0">
+        <value n="PARTITION_INDEX" pn="Partition index" v="Yes" values="Yes,No" help="" state="[checkStateByUniqueName ParallelType MPI]"/>
         <dynamicnode command="spdAux::injectNodalConditionsOutputs" args=""/>
     </container>
     <container n="GiDOptions" pn="Options" un="GiDOptions" help="GiD postprocess options" open_window="0">

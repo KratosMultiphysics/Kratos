@@ -944,22 +944,6 @@ proc write::GetResultsList { un {cnd ""} } {
     return $result
 }
     
-    #"output_process_list" : [{
-    #    "python_module"   : "restart_process",
-    #    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-    #    "help"            : "This process writes restart files",
-    #    "process_name"    : "RestartProcess",
-    #    "Parameters"      : {
-    #        "model_part_name"     : "Main Model",
-    #        "save_restart"        : true,
-    #        "restart_file_name"   : "cutting_test_rigid_2D_json",
-    #        "restart_file_label"  : "step",
-    #        "output_control_type" : "time",
-    #        "output_frequency"    : 0,
-    #        "json_output"         : false
-    #    }
-    #}],
-
 proc write::GetRestartProcess { {un ""} {name "" } } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
