@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
-import NonConformant_OneSideMap                # Import non-conformant mapper
+# import NonConformant_OneSideMap                # Import non-conformant mapper
 
 # Import libraries
 #~ import time as timemodule                   # Import time library as timemodule (avoid interferences with "time" var)
@@ -11,6 +11,7 @@ import NonConformant_OneSideMap                # Import non-conformant mapper
 import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
+import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
@@ -156,7 +157,14 @@ class PartitionedFSISolver:
             "mesh_solver"               : "mesh_solver_structural_similarity",
             "mesh_reform_dofs_each_step": false,
             "structure_interfaces_list" : [""],
-            "fluid_interfaces_list" : [""]
+            "fluid_interfaces_list" : [""],
+        	"mappers_settings": [
+                    {
+        		        "mapper_type": "NearestNeighbor",
+        		        "interface_submodel_part_origin": "FluidInterface",
+        		        "interface_submodel_part_destination": "StructureInterface"
+        	        }
+                ]
             }
         }
         """)
@@ -203,7 +211,7 @@ class PartitionedFSISolver:
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
         mesh_solver_settings.AddValue("mesh_reform_dofs_each_step",self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"])
-        
+
         self.mesh_solver_module = __import__(self.settings["coupling_solver_settings"]["mesh_solver"].GetString())
         self.mesh_solver = self.mesh_solver_module.CreateSolver(self.fluid_solver.main_model_part,
                                                                 mesh_solver_settings)
@@ -233,8 +241,10 @@ class PartitionedFSISolver:
         # Mesh solver variables addition
         self.mesh_solver.AddVariables()
 
-        ## Mapper variables addition
-        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
+        ## FSIApplication variables addition
+        # NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
 
 
     def ImportModelPart(self):
@@ -281,15 +291,25 @@ class PartitionedFSISolver:
         # Construct the interface mapper
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
         # Currently this is done with the FSI application Python process set_interface_process.py
-        search_radius_factor = 2.0
-        mapper_max_iterations = 50
-        mapper_tolerance = 1e-5
-        self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_solver.main_model_part,
-                                                                                  self.structure_solver.main_model_part,
-                                                                                  search_radius_factor,
-                                                                                  mapper_max_iterations,
-                                                                                  mapper_tolerance)
-        print("Non-conformant one side map constructed.")
+        # search_radius_factor = 2.0
+        # mapper_max_iterations = 50
+        # mapper_tolerance = 1e-5
+        # self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_solver.main_model_part,
+        #                                                                           self.structure_solver.main_model_part,
+        #                                                                           search_radius_factor,
+        #                                                                           mapper_max_iterations,
+        #                                                                           mapper_tolerance)
+
+        mappers_settings = self.settings["coupling_solver_settings"]["mappers_settings"]
+
+        self.list_of_mappers = []
+
+        for mapper_id in range(0,mappers_settings.size()):
+            self.list_of_mappers.append(KratosMapping.MapperFactory(self.fluid_solver.main_model_part,      # Origin model part
+                                                                    self.structure_solver.main_model_part,  # Destination model part
+                                                                    mappers_settings[mapper_id]))
+
+            print("Mapper ",mapper_id," from MappingApplication constructed.")
 
         # Set the Neumann B.C. in the structure interface
         self._SetStructureNeumannCondition() #TODO change when the interface is able to correctly transfer distributed forces
@@ -385,31 +405,35 @@ class PartitionedFSISolver:
                 # The interface movement can be directly done with the obtained values
                 elif self.correction_over_velocity == False:
                     if self.move_interface == True:
-                        keep_sign = True
-                        distribute_load = False
-                        self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                                         KratosALE.MESH_DISPLACEMENT,
-                                                                         keep_sign,
-                                                                         distribute_load)            # Project the structure interface displacement onto the fluid interface
+                        for mapper in self.list_of_mappers:
+                            mapper.InverseMap(KratosALE.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
+                        # keep_sign = True
+                        # distribute_load = False
+                        # self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                        #                                                  KratosALE.MESH_DISPLACEMENT,
+                        #                                                  keep_sign,
+                        #                                                  distribute_load)            # Project the structure interface displacement onto the fluid interface
 
                 self.mesh_solver.MoveNodes()
 
                 self.coupling_utility.FinalizeNonLinearIteration()
 
         ## Mesh update
-        keep_sign = True
-        distribute_load = False
-        self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                         KratosALE.MESH_DISPLACEMENT,
-                                                         keep_sign,
-                                                         distribute_load)                       # Project the structure interface displacement onto the fluid interface
+        for mapper in self.list_of_mappers:
+            mapper.InverseMap(KratosALE.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
+        # keep_sign = True
+        # distribute_load = False
+        # self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+        #                                                  KratosALE.MESH_DISPLACEMENT,
+        #                                                  keep_sign,
+        #                                                  distribute_load)                       # Project the structure interface displacement onto the fluid interface
         self.mesh_solver.Solve()                                                                # Solve the mesh problem
 
         ## Compute the mesh residual
         mesh_res_norm = self._ComputeMeshResidual()
         print("     Mesh residual norm: ",mesh_res_norm)
 
-        ## Finalize solution step ##
+        ## Finalize solution step
         self.fluid_solver.SolverFinalizeSolutionStep()
         self.structure_solver.SolverFinalizeSolutionStep()
         self.coupling_utility.FinalizeSolutionStep()
@@ -522,6 +546,7 @@ class PartitionedFSISolver:
             interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][i].GetString()
             interface_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
             # NOTE: In this manner, two interface submodelparts cannot share a node (it would be repeated in the pointload conditions...)
+            # DO CreateNewCondition CHECK IF THERE EXIST A CONDITION IN A NODE?
 
             for node in interface_submodelpart_i.Nodes:
 
@@ -539,23 +564,27 @@ class PartitionedFSISolver:
 
             print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
-            keep_sign = False
-            distribute_load = True
-            self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                             KratosSolid.POINT_LOAD,
-                                                             keep_sign,
-                                                             distribute_load)
+            # keep_sign = False
+            # distribute_load = True
+            # self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+            #                                                  KratosSolid.POINT_LOAD,
+            #                                                  keep_sign,
+            #                                                  distribute_load)
+            for mapper in self.list_of_mappers:
+                mapper.Map(KratosMultiphysics.REACTION, KratosSolid.POINT_LOAD, KratosMapping.MapperFactory.SWAP_SIGN | KratosMapping.MapperFactory.CONSERVATIVE)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
             self.structure_solver.SolverSolveSolutionStep()
 
             # Map the obtained structure displacement to the fluid interface
-            keep_sign = True
-            distribute_load = False
-            self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-                                                             KratosALE.MESH_DISPLACEMENT,
-                                                             keep_sign,
-                                                             distribute_load)
+            # keep_sign = True
+            # distribute_load = False
+            # self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+            #                                                  KratosALE.MESH_DISPLACEMENT,
+            #                                                  keep_sign,
+            #                                                  distribute_load)
+            for mapper in self.list_of_mappers:
+                mapper.InverseMap(KratosALE.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
 
             # Solve the mesh problem
             self.mesh_solver.Solve()
@@ -613,23 +642,27 @@ class PartitionedFSISolver:
         self.fluid_solver.SolverSolveSolutionStep()
 
         # Transfer fluid reaction to solid interface
-        keep_sign = False
-        distribute_load = True
-        self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                         KratosSolid.POINT_LOAD,
-                                                         keep_sign,
-                                                         distribute_load)
+        # keep_sign = False
+        # distribute_load = True
+        # self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+        #                                                  KratosSolid.POINT_LOAD,
+        #                                                  keep_sign,
+        #                                                  distribute_load)
+        for mapper in self.list_of_mappers:
+            mapper.Map(KratosMultiphysics.REACTION, KratosSolid.POINT_LOAD, KratosMapping.MapperFactory.SWAP_SIGN | KratosMapping.MapperFactory.CONSERVATIVE)
 
         # Solve structure problem
         self.structure_solver.SolverSolveSolutionStep()
 
         # Project the structure velocity onto the fluid interface
-        keep_sign = True
-        distribute_load = False
-        self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
-                                                         KratosFSI.VECTOR_PROJECTED,
-                                                         keep_sign,
-                                                         distribute_load)
+        # keep_sign = True
+        # distribute_load = False
+        # self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
+        #                                                  KratosFSI.VECTOR_PROJECTED,
+        #                                                  keep_sign,
+        #                                                  distribute_load)
+        for mapper in self.list_of_mappers:
+            mapper.InverseMap(KratosFSI.VECTOR_PROJECTED, KratosMultiphysics.VELOCITY)
 
         # Compute the fluid interface residual by means of the VECTOR_PROJECTED variable
         vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
@@ -688,23 +721,27 @@ class PartitionedFSISolver:
         self.fluid_solver.SolverSolveSolutionStep()
 
         # Flux prediction is defined in terms of the fluid interface. Transfer it to the structure interface.
-        keep_sign = False
-        distribute_load = True
-        self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.FORCE,
-                                                         KratosSolid.POINT_LOAD,
-                                                         keep_sign,
-                                                         distribute_load)
+        # keep_sign = False
+        # distribute_load = True
+        # self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.FORCE,
+        #                                                  KratosSolid.POINT_LOAD,
+        #                                                  keep_sign,
+        #                                                  distribute_load)
+        for mapper in self.list_of_mappers:
+            mapper.Map(KratosMultiphysics.FORCE, KratosSolid.POINT_LOAD, KratosMapping.MapperFactory.SWAP_SIGN | KratosMapping.MapperFactory.CONSERVATIVE)
 
         # Solve structure problem
         self.structure_solver.SolverSolveSolutionStep()
 
         # Project the structure velocity onto the fluid interface
-        keep_sign = True
-        distribute_load = False
-        self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
-                                                         KratosFSI.VECTOR_PROJECTED,
-                                                         keep_sign,
-                                                         distribute_load)
+        # keep_sign = True
+        # distribute_load = False
+        # self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
+        #                                                  KratosFSI.VECTOR_PROJECTED,
+        #                                                  keep_sign,
+        #                                                  distribute_load)
+        for mapper in self.list_of_mappers:
+            mapper.InverseMap(KratosFSI.VECTOR_PROJECTED, KratosMultiphysics.VELOCITY)
 
         # Compute the fluid interface residual by means of the VECTOR_PROJECTED variable
         vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
