@@ -208,9 +208,12 @@ public:
             int global_id = (dof_begin+iii)->EquationId();
             if(global_id < system_size)
             {
-                double aaa = temp[mpDofImporter->TargetMap().LID(global_id)];
-                /*		if(global_id == 117) std::cout << "rank = " << b.Comm().MyPID() << " global id" << global_id << "local num" << iii << " map num " << dof_update_map.LID(global_id) << " value= " << aaa << std::endl;*/
-                (dof_begin+iii)->GetSolutionStepValue() += aaa;
+                if((dof_begin+iii)->IsFree())
+                {
+                    double aaa = temp[mpDofImporter->TargetMap().LID(global_id)];
+                    /*		if(global_id == 117) std::cout << "rank = " << b.Comm().MyPID() << " global id" << global_id << "local num" << iii << " map num " << dof_update_map.LID(global_id) << " value= " << aaa << std::endl;*/
+                    (dof_begin+iii)->GetSolutionStepValue() += aaa;
+                }
             }
         }
 
@@ -521,4 +524,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_TRILINOS_STANDARD_STATIC_SCHEME  defined */
-
