@@ -148,7 +148,7 @@ public:
      * Calculate a condition variable
      */
 
-    void Calculate(const Variable< array_1d<double,3> > &rVariable, double &Output , ProcessInfo &rCurrentProcessInfo );
+    // void Calculate(const Variable< array_1d<double,3> > &rVariable, double &Output , ProcessInfo &rCurrentProcessInfo );
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
