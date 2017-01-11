@@ -197,15 +197,10 @@
   
   <!-- list of options to be filled -->
   <parameter_list>
-    <parameter n="predictor_corrector" pn="Predictor corrector" type="bool" v="True" help=""/>  
-    <parameter n="maximum_velocity_iterations" pn="Iterations for each equation" type="integer" v="1" help=""/>     <parameter n="maximum_pressure_iterations" pn="Maximum of iterations" type="integer" v="7" help=""/>  
+    <parameter n="maximum_pressure_iterations" pn="Maximum of iterations" type="integer" v="7" help=""/>  
     <parameter n="velocity_tolerance" pn="Velocity tolerance" type="double" v="1e-5" help=""/>  
     <parameter n="pressure_tolerance" pn="Pressure tolerance " type="double" v="1e-5" help=""/>  
     <parameter n="echo_level" pn="Echo level" type="int" v="1" help=""/>  
-    <parameter n="time_order" pn="Time order " type="int" v="2" help=""/>  
-    <parameter n="buffer_size" pn="Buffer size " type="int" v="3" help=""/>  
-    <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="false" help=""/>  
-    <parameter n="reform_dofs_at_each_step" pn="Reform DOFs at each step " type="bool" v="true" help=""/>
   </parameter_list>
   
   <linearSolvers>
@@ -235,7 +230,7 @@
             <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback" v="cg" pvalues="GMRES,BICGSTAB,CG,BICGSTABL,BICGSTAB with GMRES fallback" help=""/>
             <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="aggregation,ruge_stuben,smoothed_aggregation,smoothed_aggr_emin" pvalues="Aggregation,Ruge-Stuben,Smoothed Aggregation,Smoothed Aggregation Emin" v="aggregation" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
-            <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="1" help=""/>
+            <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
 	  </inputs>
 	</solver>
       </defaults>

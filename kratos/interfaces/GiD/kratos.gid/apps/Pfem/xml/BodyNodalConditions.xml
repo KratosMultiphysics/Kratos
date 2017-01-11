@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
-  <NodalConditionItem n="BODYDISPLACEMENT" pn="Body Displacement" ProcessName="AssignVectorComponentsToNodesProcess" VariableName="DISPLACEMENT" ImplementedInApplication="SolidMechanicsApplication"
+  <NodalConditionItem n="BODYDISPLACEMENT" pn="Body Displacement" icon="folder" ProcessName="AssignVectorComponentsToNodesProcess" VariableName="DISPLACEMENT" ImplementedInApplication="SolidMechanicsApplication"
 		      analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
     <outputs>
       <parameter n="REACTION" pn="Reaction" v="Yes"/>

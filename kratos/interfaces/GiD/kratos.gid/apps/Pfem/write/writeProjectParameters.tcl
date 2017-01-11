@@ -73,7 +73,7 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     
     set problemtype [write::getValue PFEM_DomainType]
     
-    if {$problemtype ne "Fluids"} {
+    if {$problemtype eq "Solids"} {
         
         dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
         
@@ -117,7 +117,7 @@ proc Pfem::write::GetPFEM_OutputProcessList { } {
 proc Pfem::write::GetPFEM_ProblemProcessList { } {
     set resultList [list ]
     set problemtype [write::getValue PFEM_DomainType]
-    if {$problemtype eq "Fluids"} {
+    if {$problemtype ne "Solids"} {
         lappend resultList [GetPFEM_FluidRemeshDict]
     } else {
         lappend resultList [GetPFEM_RemeshDict]
@@ -549,7 +549,7 @@ proc Pfem::write::CalculateMyVariables { } {
 proc Pfem::write::getBodyConditionsParametersDict {un {condition_type "Condition"}} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+    return [list ]
     set bcCondsDict [list ]
     
     set xp1 "[spdAux::getRoute $un]/container/blockdata"

@@ -45,15 +45,30 @@ proc Pfem::xml::CustomTree { args } {
     
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
+    spdAux::SetValueOnTreeItem icon results.png Results
+    spdAux::SetValueOnTreeItem icon timeIntervals.png Intervals
+    spdAux::SetValueOnTreeItem icon select.png Intervals Interval 
+    spdAux::SetValueOnTreeItem icon seeResults.png Results 
+    spdAux::SetValueOnTreeItem icon data.png Results FileLabel 
+    spdAux::SetValueOnTreeItem icon data.png Results OutputControlType 
+    spdAux::SetValueOnTreeItem icon data.png Results OutputDeltaTime 
+    spdAux::SetValueOnTreeItem icon data.png Results BodyOutput 
+    spdAux::SetValueOnTreeItem icon data.png Results NodeOutput 
+    spdAux::SetValueOnTreeItem icon data.png Results SkinOutput 
+    spdAux::SetValueOnTreeItem icon data.png Results OnElement 
+    spdAux::SetValueOnTreeItem icon folder.png Results OnNodes 
+    spdAux::SetValueOnTreeItem icon folder.png Results GiDOptions 
+    spdAux::SetValueOnTreeItem icon doRestart.png Restart 
+    spdAux::SetValueOnTreeItem icon data.png Restart SaveRestart
+    spdAux::SetValueOnTreeItem icon data.png Restart LoadRestart
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
-    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions DISPLACEMENT
-    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions VELOCITY
-    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions ACCELERATION
-    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions VELOCITY
-    spdAux::SetValueOnTreeItem icon selection.png PFEM_NodalConditions PRESSURE
-    
+    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions DISPLACEMENT
+    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions VELOCITY
+    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions ACCELERATION
+    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions PRESSURE
+   
 }
 
 proc Pfem::xml::CheckElementOutputState { domNode args } {
@@ -187,7 +202,7 @@ proc Pfem::xml::ProcSolutionTypeState {domNode args} {
 	set domain_type_node [$domNode selectNodes $domain_type_route]
 	set domain_type_value [get_domnode_attribute $domain_type_node v]
 	
-	if {$domain_type_value eq "Fluids"} {
+	if {$domain_type_value ne "Solids"} {
 	    $domNode setAttribute values Dynamic 
 	    $domNode setAttribute v Dynamic
 	    set state disabled
@@ -210,6 +225,9 @@ proc Pfem::xml::ProcGetBodyTypeValues {domNode args} {
 	if {$domain_type_value eq "Fluids"} {
 	    set values "Fluid,Rigid"
 	}
+	if {$domain_type_value eq "Coupled"} {
+	    set values "Solid,Fluid,Rigid"
+	}
 	if {$domain_type_value eq "Solids"} {
 	    set values "Solid,Rigid"
 	}
@@ -227,6 +245,7 @@ proc Pfem::xml::ProcGetSolutionStrategiesPFEM {domNode args} {
     set filter [list Solid Pfem]
     if {$domainType eq "Solids"} {set filter "Solid"}
     if {$domainType eq "Fluids"} {set filter "Pfem"}
+    if {$domainType eq "Coupled"} {set filter "Pfem"}
     
     foreach ss $Sols {
 	if {[$ss getAttribute "App"] in $filter} {

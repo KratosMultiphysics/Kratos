@@ -5,7 +5,16 @@
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
             <parameter n="VISCOSITY" pn="Dynamic viscosity" unit_magnitude="P*T" units="Pa*s" v="1e-3" help="Set the dynamic viscosity."/>
-            <parameter n="BULK_MODULUS" pn="Bulk modulus" unit_magnitude="P" units="Pa" v="2.1e+9" help="Set the bulk modulus."/>
+            <parameter n="BULK_MODULUS" pn="Bulk modulus" unit_magnitude="P" units="Pa" v="2.1e+9" help="Set the Bulk modulus."/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+	<CLaw n="Hypoelastic" pn="Hypoelastic" ProductionReady="ProductionReady" help="Hypoelastic solid" App="Pfem" ImplementedInApplication="PfemFluidDynamicsApplication">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
+            <parameter n="YOUNG_MODULUS" pn="Young modulus" unit_magnitude="P" units="Pa" v="2.1e+11" help="Set the Young modulus."/>
+            <parameter n="POISSON_RATIO" pn="Poisson ratio" unit_magnitude="" units="" v="0.3" help="Set the Poisson ratio."/>
         </inputs>
         <outputs>
         </outputs>
