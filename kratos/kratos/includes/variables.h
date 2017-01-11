@@ -38,6 +38,8 @@
 
 namespace Kratos
 {
+    typedef array_1d<double,3> Vector3;
+    
     //Define Variables by type:
 
     //bools
@@ -150,7 +152,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, AIR_PRESSURE )
     KRATOS_DEFINE_VARIABLE( double, REACTION_AIR_PRESSURE )
     KRATOS_DEFINE_VARIABLE( double, FLAG_VARIABLE )
-    KRATOS_DEFINE_VARIABLE( double, DISTANCE )
+    KRATOS_DEFINE_VARIABLE( double,  DISTANCE )
+    KRATOS_DEFINE_VARIABLE( Vector3, DISTANCE_GRADIENT )
 
     KRATOS_DEFINE_VARIABLE( double, LAGRANGE_AIR_PRESSURE )
     KRATOS_DEFINE_VARIABLE( double, LAGRANGE_WATER_PRESSURE )

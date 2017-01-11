@@ -8,9 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Colaborator:     Vicente Mataix Ferrándiz
 //
-
-
 
 #if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
 #define  KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED
@@ -59,7 +58,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-template< int TDim >
+template< int TDim > // TODO: Consider the number of nodes, this way will be possible to compute for any geometry, not just triangles and tetrahedra
 class ComputeNodalGradientProcess
     : public Process
 {
@@ -84,14 +83,20 @@ public:
         KRATOS_TRY
         
         if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
+        {
             KRATOS_ERROR << "missing variable " << r_origin_variable;
+        }
         
         
         if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
+        {
             KRATOS_ERROR << "missing variable " << r_gradient_variable;
+        }
         
         if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
+        {
             KRATOS_ERROR << "missing variable " << r_area_variable;
+        }
         
         KRATOS_CATCH("")
     }
@@ -143,9 +148,11 @@ public:
             
             array_1d<double, TDim+1> values;
             for(unsigned int i=0; i<TDim+1; i++)
+            {
                 values[i] = geom[i].FastGetSolutionStepValue(mr_origin_variable);
+            }
             
-            array_1d<double,TDim> grad = prod(DN_DX, values);
+            const array_1d<double,TDim> grad = prod(trans(DN_DX), values);
             
             for(unsigned int i=0; i<TDim+1; i++)
             {

@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
+from KratosMultiphysics import * # TODO: Don't call everything at once!!!
+import math
 
 def ComputeTensorH(d,v,ratio,h):
     if(d>h):
@@ -26,13 +27,6 @@ def ComputeTensorH(d,v,ratio,h):
 ##here we assign a color to all the nodes and conditions so to assign them a "reference" and be able to reassign them to the correct part
 ##TODO: rough around the edges. only works with one level of subparts
 def ComputeColors(input_file,model_part):
-    
-    
-    ###TODO: remove just for testing
-    #sub1 = model_part.CreateSubModelPart("sub1")
-    #sub2 = model_part.CreateSubModelPart("sub2")    
-    #sub1.AddNode(model_part.Nodes[1],0)
-    #sub2.AddNode(model_part.Nodes[2],0)
 
     
     submodel_colors = {}
@@ -49,10 +43,13 @@ def ComputeColors(input_file,model_part):
         
     node_colors = {}
     cond_colors = {}
+    elem_colors = {}
     for node in model_part.Nodes:
         node_colors[node.Id] = set()
     for cond in model_part.Conditions:
         cond_colors[cond.Id] = set()
+    for elem in model_part.Elements:
+        elem_colors[elem.Id] = set()
         
     color = 0
     for part in parts:
@@ -63,16 +60,20 @@ def ComputeColors(input_file,model_part):
                 node_colors[node.Id].add(color)
             for cond in part.Conditions:
                 cond_colors[cond.Id].add(color)
+            for elem in part.Elements:
+                elem_colors[elem.Id].add(color)
                 
         color+=1
-        
-        
-    #now detect all the cases in which a node or a cond belongs to more than one part simultaneously
+
+    # Now detect all the cases in which a node or a cond belongs to more than one part simultaneously
     combinations = {}
     for key,value in node_colors.items():
         if(len(value) > 1):
             combinations[frozenset(value)] = -1
     for key,value in cond_colors.items():
+        if(len(value) > 1):
+            combinations[frozenset(value)] = -1   
+    for key,value in elem_colors.items():
         if(len(value) > 1):
             combinations[frozenset(value)] = -1   
             
@@ -87,7 +88,7 @@ def ComputeColors(input_file,model_part):
         
     print("combinations = ",combinations)
         
-    #write equivalence to a file
+    # Write equivalence to a file
     import json
     with open('part_colors.json', 'w') as f:
         json.dump(submodel_colors, f, ensure_ascii=False)
@@ -111,23 +112,35 @@ def ComputeColors(input_file,model_part):
         else:
             print()
             cond_colors[key] = combinations[frozenset(tmp)]
-    #print("node_colors = ",node_colors)
-    return node_colors,cond_colors
-
-        
     
-
-
-def WriteMmgFile(input_file):
-    ##read kratos input file
-    model_part = ModelPart("Main")
+    for key,value in elem_colors.items():
+        tmp = value
+        if(len(value) == 0):
+            elem_colors[key] = 0 #it belongs to the main model part
+        elif(len(value)==1): #get the value
+            elem_colors[key] = list(tmp)[0]
+        else:
+            print()
+            elem_colors[key] = combinations[frozenset(tmp)]
             
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(VISCOSITY)
+    return node_colors,cond_colors, elem_colors
 
-    ModelPartIO(input_file).ReadModelPart(model_part)
+def WriteMmgFile(input_file, elementary_length = 0.1, initial_alpha_parameter = 0.01, distance_threshold = 1.0, interpolation = "Constant", model_part_name = "MainModelPart" ,reused_model_part = ""):
     
-    ##ensure ordering is consecutive
+    if (reused_model_part == ""):
+        ##read kratos input file
+        model_part = ModelPart(model_part_name)
+                
+        # Basic variables necessary for reading the model_part
+        model_part.AddNodalSolutionStepVariable(DISTANCE)
+        model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT)
+        model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+
+        ModelPartIO(input_file).ReadModelPart(model_part)
+    else:
+        model_part = reused_model_part
+    
+    ## Ensure ordering is consecutive
     index = 1
     for node in model_part.Nodes:
         node.Id = index
@@ -141,17 +154,16 @@ def WriteMmgFile(input_file):
         elem.Id = index
         index+=1
         
-    node_colors,cond_colors= ComputeColors(input_file, model_part)
+    node_colors,cond_colors,elem_colors= ComputeColors(input_file, model_part)
     
-    
-    ##open mmg output file
+    ## Open mmg output file
     output_file = input_file+".mesh"
     outfile = open(output_file,'w')
 
     outfile.write("MeshVersionFormatted 2\n\n")
     outfile.write("Dimension 3\n\n")
 
-    #write nodes
+    # Write nodes
     outfile.write("Vertices\n")
     outfile.write(str(len(model_part.Nodes))+"\n")
     for node in model_part.Nodes:
@@ -159,7 +171,7 @@ def WriteMmgFile(input_file):
         outfile.write(outline)
     outfile.write("\n")
 
-    #write Tetras
+    # Write Tetrahedras
     if(len(model_part.Elements) != 0):
         outfile.write("Tetrahedra\n")
         outfile.write(str(len(model_part.Elements))+"\n")
@@ -167,12 +179,13 @@ def WriteMmgFile(input_file):
             outline = ""
             for node in elem.GetNodes():
                 outline += str(node.Id) + " " 
-            outline += "1\n"
+            #outline += "1\n"
+            outline += str(elem_colors[elem.Id]) + "\n"
             outfile.write(outline)
         outfile.write("\n")
         outfile.write("\n")
     
-    #write Triangles
+    # Write Triangles
     if(len(model_part.Conditions) != 0):
         outfile.write("Triangles\n")
         outfile.write(str(len(model_part.Conditions))+"\n")
@@ -199,25 +212,46 @@ def WriteMmgFile(input_file):
 
     #sol_file.write("1 1\n") #scalar
     #for i in range(len(model_part.Nodes)):
-        #sol_file.write(str(0.0010)+"\n")
+        #sol_file.write(str(initial_alpha_parameter)+"\n")
          
     sol_file.write("1 3\n") #tensor
-    v = Vector(3)
-    v[0] = 1.0
-    v[1] = 0.0
-    v[2] = 0.0
-    h = 0.1
-    ratio = 0.01
+    # NOTE: For testing
+    #vector_gradient = Vector(3)
+    #vector_gradient[0] = 1.0
+    #vector_gradient[1] = 0.0
+    #vector_gradient[2] = 0.0
+
+    h = elementary_length
     for node in model_part.Nodes:
-        d = node.X*0.1
-        sol_file.write("1000000 0 1000000 0 0 1000000\n")
-        #sol_file.write(ComputeTensorH(d,v,ratio,h))
+        distance = node.GetSolutionStepValue(DISTANCE,0)
+        vector_gradient = node.GetSolutionStepValue(DISTANCE_GRADIENT,0)
         
+        # NOTE: In case the gradient gives wrong results because the distance is 0 or almost 0
+        if distance < 1.0e-6:
+            vector_gradient[0] = 1.0
+            vector_gradient[1] = 0.0
+            vector_gradient[2] = 0.0
         
+        if (distance < distance_threshold): # Considering until distance threshold 
+            if (interpolation == "Constant"):
+                ratio = initial_alpha_parameter
+            elif (interpolation == "Linear"):
+                ratio = (1.0 - distance/distance_threshold) * initial_alpha_parameter
+            elif (interpolation == "Exponential"):
+                ratio = - math.log1p(distance/distance_threshold) * initial_alpha_parameter + 1.0e-12
+                if ratio > 1.0:
+                    ratio = 1.0
+            else:
+                print("No interpolation defined, considering constant")
+                ratio = initial_alpha_parameter
+        else:
+            ratio = 1.0 # Isotropic mesh now
+            
+        sol_file.write(ComputeTensorH(distance,vector_gradient,ratio,h))
     sol_file.write("End\n")
     sol_file.close()
     
-    print("finished")
+    print("Finished")
     
 if __name__ == '__main__':
     import sys
