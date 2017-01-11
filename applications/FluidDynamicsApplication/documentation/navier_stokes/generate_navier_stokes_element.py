@@ -154,7 +154,10 @@ for dim in dim_vector:
             mas_residual -= (1/(c*c))*pder_gauss
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals
-    rv_stab = tau1*rho*grad_q.transpose()*vel_residual
+    if (divide_by_rho == True):
+        rv_stab = tau1*grad_q.transpose()*vel_residual
+    else:
+        rv_stab = tau1*rho*grad_q.transpose()*vel_residual
     rv_stab += tau1*rho*(grad_w*vconv_gauss).transpose()*vel_residual
     rv_stab -= tau2*div_w*mas_residual
     if (artificial_compressibility == True):
