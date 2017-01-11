@@ -45,31 +45,32 @@ proc Pfem::xml::CustomTree { args } {
     
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
-    spdAux::SetValueOnTreeItem icon results.png Results
-    spdAux::SetValueOnTreeItem icon timeIntervals.png Intervals
-    spdAux::SetValueOnTreeItem icon select.png Intervals Interval 
-    spdAux::SetValueOnTreeItem icon seeResults.png Results 
-    spdAux::SetValueOnTreeItem icon data.png Results FileLabel 
-    spdAux::SetValueOnTreeItem icon data.png Results OutputControlType 
-    spdAux::SetValueOnTreeItem icon data.png Results OutputDeltaTime 
-    spdAux::SetValueOnTreeItem icon data.png Results BodyOutput 
-    spdAux::SetValueOnTreeItem icon data.png Results NodeOutput 
-    spdAux::SetValueOnTreeItem icon data.png Results SkinOutput 
-    spdAux::SetValueOnTreeItem icon data.png Results OnElement 
-    spdAux::SetValueOnTreeItem icon select.png Results OnNodes 
-    spdAux::SetValueOnTreeItem icon select.png Results GiDOptions 
-    spdAux::SetValueOnTreeItem icon doRestart.png Restart 
-    spdAux::SetValueOnTreeItem icon data.png Restart SaveRestart
-    spdAux::SetValueOnTreeItem icon data.png Restart LoadRestart
+    spdAux::SetValueOnTreeItem icon results Results
+    spdAux::SetValueOnTreeItem icon timeIntervals Intervals
+    #spdAux::SetValueOnTreeItem icon select.png Intervals Interval
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {$node setAttribute icon select}
+    spdAux::SetValueOnTreeItem icon seeResults Results 
+    spdAux::SetValueOnTreeItem icon data Results FileLabel 
+    spdAux::SetValueOnTreeItem icon data Results OutputControlType 
+    spdAux::SetValueOnTreeItem icon data Results OutputDeltaTime 
+    spdAux::SetValueOnTreeItem icon data Results BodyOutput 
+    spdAux::SetValueOnTreeItem icon data Results NodeOutput 
+    spdAux::SetValueOnTreeItem icon data Results SkinOutput 
+    spdAux::SetValueOnTreeItem icon data Results OnElement 
+    spdAux::SetValueOnTreeItem icon select Results OnNodes 
+    spdAux::SetValueOnTreeItem icon select Results GiDOptions 
+    spdAux::SetValueOnTreeItem icon doRestart Restart 
+    spdAux::SetValueOnTreeItem icon data Restart SaveRestart
+    spdAux::SetValueOnTreeItem icon data Restart LoadRestart
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
-    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions DISPLACEMENT
-    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions VELOCITY
-    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions ACCELERATION
-    spdAux::SetValueOnTreeItem icon folder.png PFEM_NodalConditions PRESSURE
-    spdAux::SetValueOnTreeItem icon folder.png ParallelType
-    spdAux::SetValueOnTreeItem icon folder.png Parallelization OpenMPNumberOfThreads
+    spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions DISPLACEMENT
+    spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions VELOCITY
+    spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions ACCELERATION
+    spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions PRESSURE
+    spdAux::SetValueOnTreeItem icon folder ParallelType
+    spdAux::SetValueOnTreeItem icon folder Parallelization OpenMPNumberOfThreads
    
 }
 
