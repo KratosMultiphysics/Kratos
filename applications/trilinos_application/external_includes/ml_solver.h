@@ -80,7 +80,7 @@ public:
 
         //settings for the MultiLevel solver
         mtol = settings["tolerance"].GetDouble();
-        mmax_iter = settings["max_iteration"].GetDouble();
+        mmax_iter = settings["max_iteration"].GetInt();
         mMLPrecIsInitialized = false;
         mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
 
@@ -118,6 +118,7 @@ public:
             mMLParameterList.set("ML output", settings["verbosity"].GetInt());
             mMLParameterList.set("max levels", settings["max_levels"].GetInt());
             mMLParameterList.set("aggregation: type", "Uncoupled");
+            mAztecParameterList.set("AZ_solver", "AZ_gmres");
             //mMLParameterListf.set("coarse: type", "Amesos-Superludist")
         }
         else
@@ -131,6 +132,7 @@ public:
             mMLParameterList.set("smoother: type", "Chebyshev");
             mMLParameterList.set("smoother: sweeps", 3);
             mMLParameterList.set("smoother: pre or post", "both");
+            mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
