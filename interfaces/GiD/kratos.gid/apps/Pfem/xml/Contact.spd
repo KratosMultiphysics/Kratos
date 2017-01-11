@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Contacts" pn="Contact strategies" un="PFEM_contacts" icon="contact" help="Meshing domains database" open_window="0">
-    <blockdata n='Contact' name='Deformable contact' sequence='3' editable_name='unique' icon="contact"  open_window="0">
-      <value n="Penalty" pn="Penalty method" v="Yes" values="Yes,No" state="disabled"/>
-      <value n="PENALTY_PARAMETER" pn="Penalty parameter" v="1000" state="disabled"/> 
-      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" v="0.1" state="disabled"/> 
-      <value n="FRICTION_ACTIVE" pn="Friction" v="Yes" values="Yes,No" state="disabled"/>
-      <value n="MU_STATIC" pn="Tangential penalty ratio" v="0.3" state="disabled"/> 
-      <value n="MU_DYNAMIC" pn="Tangential penalty ratio" v="0.2" state="disabled"/> 
-      <value n="TAU_STAB" pn="Tau stab" v="1" state="disabled"/> 
+<container n="Contacts" pn="Contact strategies" un="PFEM_contacts" icon="folder" help="Meshing domains database" open_window="0">
+    <blockdata n='Contact' name='Deformable contact' sequence='3' editable_name='unique' icon="select"  open_window="0">
+      <value n="Penalty" pn="Penalty method" icon="data" v="Yes" values="Yes,No" state="disabled"/>
+      <value n="PENALTY_PARAMETER" pn="Penalty parameter" icon="data" v="1000" state="disabled"/> 
+      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" icon="data" v="0.1" state="disabled"/> 
+      <value n="FRICTION_ACTIVE" pn="Friction" icon="data" v="Yes" values="Yes,No" state="disabled"/>
+      <value n="MU_STATIC" pn="Tangential penalty ratio" icon="data" v="0.3" state="disabled"/> 
+      <value n="MU_DYNAMIC" pn="Tangential penalty ratio" icon="data" v="0.2" state="disabled"/> 
+      <value n="TAU_STAB" pn="Tau stab" icon="data" v="1" state="disabled"/> 
     </blockdata>
-    <blockdata n='Contact' name='Rigid contact' sequence='2' editable_name='unique' icon="contact"  open_window="0">
-      <value n="Penalty" pn="Penalty method" v="Yes" values="Yes,No" state="disabled"/>
-      <value n="PENALTY_PARAMETER" pn="Penalty parameter" v="1000" state="disabled"/> 
-      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" v="0.1" state="disabled"/> 
-      <value n="FRICTION_ACTIVE" pn="Friction" v="Yes" values="Yes,No" state="disabled"/>
-      <value n="MU_STATIC" pn="Tangential penalty ratio" v="0.3" state="disabled"/> 
-      <value n="MU_DYNAMIC" pn="Tangential penalty ratio" v="0.2" state="disabled"/>
-      <value n="TAU_STAB" pn="Tau stab" v="1" state="disabled"/> 
+    <blockdata n='Contact' name='Rigid contact' sequence='2' editable_name='unique' icon="select"  open_window="0">
+      <value n="Penalty" pn="Penalty method" icon="data" v="Yes" values="Yes,No" state="disabled"/>
+      <value n="PENALTY_PARAMETER" pn="Penalty parameter" icon="data" v="1000" state="disabled"/> 
+      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" icon="data" v="0.1" state="disabled"/> 
+      <value n="FRICTION_ACTIVE" pn="Friction" icon="data" v="Yes" values="Yes,No" state="disabled"/>
+      <value n="MU_STATIC" pn="Tangential penalty ratio" icon="data" v="0.3" state="disabled"/> 
+      <value n="MU_DYNAMIC" pn="Tangential penalty ratio" icon="data" v="0.2" state="disabled"/>
+      <value n="TAU_STAB" pn="Tau stab" icon="data" v="1" state="disabled"/> 
     </blockdata>
-    <blockdata n='Contact' name='Custom contact' sequence='1' editable_name='unique' icon="contact"  open_window="0">
-      <value n="Penalty" pn="Penalty method" v="Yes" values="Yes,No" actualize_tree="1">
+    <blockdata n='Contact' name='Custom contact' sequence='1' editable_name='unique' icon="select"  open_window="0">
+      <value n="Penalty" pn="Penalty method" icon="data" v="Yes" values="Yes,No" actualize_tree="1">
         <dependencies value='No' node="../value[@n='PENALTY_PARAMETER']" att1='state' v1='hidden' />
         <dependencies value='Yes' node="../value[@n='PENALTY_PARAMETER']" att1='state' v1='normal' />
         <dependencies value='No' node="../value[@n='TANGENTIAL_PENALTY_RATIO']" att1='state' v1='hidden' />
         <dependencies value='Yes' node="../value[@n='TANGENTIAL_PENALTY_RATIO']" att1='state' v1='normal' />
       </value>
-      <value n="PENALTY_PARAMETER" pn="Penalty parameter" v="1000"/> 
-      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" v="0.1" /> 
-      <value n="FRICTION_ACTIVE" pn="Friction" v="Yes" values="Yes,No" actualize_tree="1">
+      <value n="PENALTY_PARAMETER" pn="Penalty parameter" icon="data" v="1000"/> 
+      <value n="TANGENTIAL_PENALTY_RATIO" pn="Tangential penalty ratio" icon="data" v="0.1" /> 
+      <value n="FRICTION_ACTIVE" pn="Friction" icon="data" v="Yes" values="Yes,No" actualize_tree="1">
         <dependencies value='No' node="../value[@n='MU_STATIC']" att1='state' v1='hidden' />
         <dependencies value='Yes' node="../value[@n='MU_STATIC']" att1='state' v1='normal' />
         <dependencies value='No' node="../value[@n='MU_DYNAMIC']" att1='state' v1='hidden' />
         <dependencies value='Yes' node="../value[@n='MU_DYNAMIC']" att1='state' v1='normal' />
       </value>
-      <value n="MU_STATIC" pn="Mu static" v="0.3"/> 
-      <value n="MU_DYNAMIC" pn="Mu dynamic" v="0.2"/>
-      <value n="TAU_STAB" pn="Tau stab" v="1"/> 
+      <value n="MU_STATIC" pn="Mu static" icon="data" v="0.3"/> 
+      <value n="MU_DYNAMIC" pn="Mu dynamic" icon="data" v="0.2"/>
+      <value n="TAU_STAB" pn="Tau stab" icon="data" v="1"/> 
     </blockdata>
 </container>  

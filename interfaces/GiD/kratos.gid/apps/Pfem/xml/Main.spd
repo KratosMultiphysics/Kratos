@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?> 
-  <container n="Pfem" pn="PFEM Data" icon="units" prefix="PFEM_" tree_state="open" open_window="0">
+  <container n="Pfem" pn="PFEM Data" icon="pfemData" prefix="PFEM_" tree_state="open" open_window="0">
     <include n="ModelType" active="1" path="apps/Pfem/xml/ModelType.spd"/>
     <include n="Bodies" active="1" path="apps/Pfem/xml/Bodies.spd"/>
     <include n="Contact Strategies" active="1" path="apps/Pfem/xml/Contact.spd"/> 

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Boundary Conditions" pn="Boundary conditions" icon="nodal" un="PFEM_NodalConditions" open_window="0">
+<container n="Boundary Conditions" pn="Boundary conditions" icon="boundaryConditions" un="PFEM_NodalConditions" open_window="0">
 	  <dynamicnode command="spdAux::injectNodalConditions" args="App Solid"/>
 	  <dynamicnode command="Pfem::xml::injectBodyNodalConditions" args=""/>
 </container>
+
+
