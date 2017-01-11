@@ -1,4 +1,4 @@
-//    |  /           | 
+// //    |  /           | 
 //    ' /   __| _` | __|  _ \   __| 
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/ 
@@ -67,7 +67,8 @@
 
 namespace Kratos
 {
-
+  typedef array_1d<double,3> Vector3;
+    
   //Create Variables by type:
 
   //bools
@@ -185,7 +186,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, REACTION_AIR_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, FLAG_VARIABLE )
-  KRATOS_CREATE_VARIABLE( double, DISTANCE )
+  KRATOS_CREATE_VARIABLE( double,  DISTANCE )
+  KRATOS_CREATE_VARIABLE( Vector3, DISTANCE_GRADIENT )
 
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_AIR_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_WATER_PRESSURE )
@@ -785,6 +787,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( REACTION_AIR_PRESSURE )
       KRATOS_REGISTER_VARIABLE( FLAG_VARIABLE )
       KRATOS_REGISTER_VARIABLE( DISTANCE )
+      KRATOS_REGISTER_VARIABLE( DISTANCE_GRADIENT )
 
       KRATOS_REGISTER_VARIABLE( LAGRANGE_AIR_PRESSURE )
       KRATOS_REGISTER_VARIABLE( LAGRANGE_WATER_PRESSURE )
