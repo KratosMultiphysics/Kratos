@@ -56,8 +56,8 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon data.png Results NodeOutput 
     spdAux::SetValueOnTreeItem icon data.png Results SkinOutput 
     spdAux::SetValueOnTreeItem icon data.png Results OnElement 
-    spdAux::SetValueOnTreeItem icon folder.png Results OnNodes 
-    spdAux::SetValueOnTreeItem icon folder.png Results GiDOptions 
+    spdAux::SetValueOnTreeItem icon select.png Results OnNodes 
+    spdAux::SetValueOnTreeItem icon select.png Results GiDOptions 
     spdAux::SetValueOnTreeItem icon doRestart.png Restart 
     spdAux::SetValueOnTreeItem icon data.png Restart SaveRestart
     spdAux::SetValueOnTreeItem icon data.png Restart LoadRestart
