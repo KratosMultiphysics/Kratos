@@ -46,6 +46,7 @@ class DerivativeRecoveryStrategy:
                 node.AddDof(MATERIAL_ACCELERATION_X)
                 node.AddDof(MATERIAL_ACCELERATION_Y)
                 node.AddDof(MATERIAL_ACCELERATION_Z)
+                
         if self.do_recover_gradient:
             for node in self.acc_model_part.Nodes:
                 node.AddDof(VELOCITY_COMPONENT_GRADIENT_X)
@@ -70,14 +71,14 @@ class DerivativeRecoveryStrategy:
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
-        linear_solver = AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
+        linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
 
         if self.do_recover_acceleration or self.do_recover_gradient:
-            self.acc_strategy = ResidualBasedLinearStrategy(self.acc_model_part, scheme, linear_solver, False, True, False, False)
+            self.acc_strategy = ResidualBasedDerivativeRecoveryStrategy(self.acc_model_part, scheme, linear_solver, False, True, False, False)
             self.acc_strategy.SetEchoLevel(echo_level)
 
         if self.do_recover_laplacian:
-            self.lapl_strategy = ResidualBasedLinearStrategy(self.lapl_model_part, scheme, linear_solver, False, True, False, False)
+            self.lapl_strategy = ResidualBasedDerivativeRecoveryStrategy(self.lapl_model_part, scheme, linear_solver, False, True, False, False)
             self.lapl_strategy.SetEchoLevel(echo_level)
 
     def Solve(self, component = None):
