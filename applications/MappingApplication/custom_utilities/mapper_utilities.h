@@ -84,9 +84,6 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      /// Default constructor.
-      MapperUtilities() { }
-
       /// Destructor.
       virtual ~MapperUtilities() { }
 
@@ -367,6 +364,9 @@ namespace Kratos
       ///@}
       ///@name Private Operations
       ///@{
+
+      /// Default constructor.
+      MapperUtilities() { }
 
       ///@}
       ///@name Private  Access

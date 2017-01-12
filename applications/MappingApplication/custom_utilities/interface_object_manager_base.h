@@ -43,6 +43,8 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
+  typedef matrix<int> GraphType; // GraphColoringProcess
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -83,7 +85,7 @@ namespace Kratos
       ///@{
 
       /// Destructor.
-      virtual ~InterfaceObjectManagerBase(){}
+      virtual ~InterfaceObjectManagerBase() { }
 
 
       ///@}
@@ -100,6 +102,12 @@ namespace Kratos
           m_receive_objects.clear();
           m_shape_functions.clear();
           m_local_coordinates.clear();
+
+          for (auto& interface_obj : m_interface_objects) {
+              interface_obj->Reset(); // Set the object back to its initial state
+              // i.e. reset its information whether it has been sent somewhere or
+              // whether it already found a neighbor
+          }
       }
 
       template <typename T>
@@ -129,8 +137,8 @@ namespace Kratos
               }
           }
 
-          m_model_part.GetCommunicator().MinAll(all_neighbors_found);
           // This is necessary bcs not all partitions would start a new search iteration!
+          m_model_part.GetCommunicator().MinAll(all_neighbors_found);
 
           return all_neighbors_found;
       }
@@ -158,7 +166,8 @@ namespace Kratos
       // ***** InterfaceObjectManagerParallel *****
       virtual void ComputeCandidatePartitions(CandidateManager& candidate_manager, int* local_comm_list,
                                               int* local_memory_size_array,
-                                              double* global_bounding_boxes) {
+                                              double* global_bounding_boxes,
+                                              const bool last_iteration) {
           KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerBase; "
                        << "\"ComputeCandidatePartitions\" of the base "
                        << "class called!" << std::endl;
@@ -329,6 +338,12 @@ namespace Kratos
       }
 
       // ***** InterfaceObjectManagerParallel *****
+      virtual void ComputeBufferSizesAndCommunicationGraph(int& max_send_buffer_size,
+                                                           int& max_receive_buffer_size,
+                                                           GraphType& colored_graph,
+                                                           int& max_colors) {
+          // TODO error
+      }
       virtual void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
                                         const Variable<double>& variable, Kratos::Flags& options) {
           KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerBase; "

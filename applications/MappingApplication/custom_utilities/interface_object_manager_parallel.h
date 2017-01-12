@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "interface_object_manager_base.h"
+#include "mapper_utilities_mpi.h"
 
 
 namespace Kratos
@@ -103,7 +104,8 @@ namespace Kratos
 
       void ComputeCandidatePartitions(CandidateManager& candidate_manager, int* local_comm_list,
                                       int* local_memory_size_array,
-                                      double* global_bounding_boxes) override {
+                                      double* global_bounding_boxes,
+                                      const bool last_iteration) override {
           double* bounding_box[6];
           std::vector<int> partition_list; // For debugging
           for (auto& interface_obj : m_interface_objects) {
@@ -111,7 +113,7 @@ namespace Kratos
                   for (int j = 0; j < 6; ++j) { // retrieve bounding box of partition
                       bounding_box[j] = &global_bounding_boxes[(partition_index * 6) + j];
                   }
-                  // if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
+                  if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
                       if (interface_obj->IsInBoundingBox(bounding_box)) {
                           candidate_manager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
@@ -119,27 +121,29 @@ namespace Kratos
                           interface_obj->SetIsBeingSent();
                           partition_list.push_back(partition_index); // For debugging
                       }
-                  // }
+                  }
               }
 
               if (m_echo_level > 2) {
                   PrintCandidatePartitions(interface_obj, partition_list); // For debugging
               }
 
-              // Robustness check, if interface_obj is sent to at least one partition
-              if (!interface_obj->GetIsBeingSent()) {
-                  // Send interface_obj to all Partitions
-                  std::cout << "MAPPER WARNING, Rank " << m_comm_rank
-                            << ", interface_obj [ " << interface_obj->X()
-                            << " " << interface_obj->Y() << " "
-                            << interface_obj->Z() << " ] was not in a "
-                            << "bounding box and is sent to all partitions!"
-                            << std::endl;
+              if (last_iteration) {
+                  // Robustness check, if interface_obj is sent to at least one partition
+                  if (!interface_obj->GetIsBeingSent()) {
+                      // Send interface_obj to all Partitions
+                      std::cout << "MAPPER WARNING, Rank " << m_comm_rank
+                                << ", interface_obj [ " << interface_obj->X()
+                                << " " << interface_obj->Y() << " "
+                                << interface_obj->Z() << " ] was not in a "
+                                << "bounding box and is sent to all partitions!"
+                                << std::endl;
 
-                  for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
-                      candidate_manager.candidate_send_objects[partition_index].push_back(interface_obj);
-                      local_comm_list[partition_index] = 1;
-                      ++local_memory_size_array[partition_index];
+                      for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
+                          candidate_manager.candidate_send_objects[partition_index].push_back(interface_obj);
+                          local_comm_list[partition_index] = 1;
+                          ++local_memory_size_array[partition_index];
+                      }
                   }
               }
           }
@@ -280,7 +284,6 @@ namespace Kratos
           for (int i = 0; i < buffer_size; ++i) {
               if (buffer[i] == 1) { // Match
                   if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-                      // if (candidate_manager.candidate_receive_objects.at(comm_partner)[i] == nullptr) {
                       if (!candidate_manager.candidate_receive_objects.at(comm_partner)[i]) {
                           KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
                                        << "\"ProcessMatchInformation\": interface_obj pointer mismatch"
@@ -297,6 +300,34 @@ namespace Kratos
       // **********************************************************************
       // Functions for Mapping ************************************************
       // **********************************************************************
+      void ComputeBufferSizesAndCommunicationGraph(int& send_buffer_size,
+                                                   int& receive_buffer_size,
+                                                   GraphType& colored_graph,
+                                                   int& max_colors) override {
+          int* local_comm_list = new int[m_comm_size]();
+          int* local_memory_size_array = new int[m_comm_size]();
+
+          for (auto& interface_obj : m_interface_objects) {
+              if (interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
+                  int neighbor_rank = interface_obj->GetNeighborRank();
+                  local_comm_list[neighbor_rank] = 1;
+                  ++local_memory_size_array[neighbor_rank];
+              }
+          }
+
+          // sizes are switched bcs transfer direction is inverted from searching to mapping
+          MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
+                                                    receive_buffer_size,
+                                                    send_buffer_size,
+                                                    m_comm_rank,
+                                                    m_comm_size);
+                                                    
+          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, m_comm_size,
+                                                   colored_graph, max_colors);
+
+          delete [] local_comm_list;
+          delete [] local_memory_size_array;
+      }
       void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
                                 const Variable<double>& variable, Kratos::Flags& options) override {
           int i = 0;
@@ -422,8 +453,6 @@ namespace Kratos
                                                    options, factor);
           }
       }
-
-
 
       ///@}
       ///@name Access

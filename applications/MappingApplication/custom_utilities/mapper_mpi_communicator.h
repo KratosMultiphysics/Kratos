@@ -25,8 +25,8 @@
 #include "includes/define.h"
 #include "mapper_communicator.h"
 #include "interface_search_structure_mpi.h"
-#include "mapper_utilities_mpi.h"
 #include "interface_object_manager_parallel.h"
+#include "mapper_utilities_mpi.h"
 
 
 namespace Kratos
@@ -91,7 +91,7 @@ namespace Kratos
       void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
                       GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) override {
 
-          m_interface_object_manager_origin = InterfaceObjectManagerParallel::Pointer(
+          m_p_interface_object_manager_origin = InterfaceObjectManagerParallel::Pointer(
               new InterfaceObjectManagerParallel(m_model_part_origin, MyPID(),
                                                  TotalProcesses(),
                                                  i_interface_object_type_origin,
@@ -105,7 +105,7 @@ namespace Kratos
       void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
                       GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) override {
 
-          m_interface_object_manager_destination = InterfaceObjectManagerParallel::Pointer(
+          m_p_interface_object_manager_destination = InterfaceObjectManagerParallel::Pointer(
               new InterfaceObjectManagerParallel(m_model_part_destination, MyPID(),
                                                  TotalProcesses(),
                                                  i_interface_object_type_destination,
@@ -226,17 +226,11 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      int m_max_send_buffer_size_map;
-      int m_max_send_buffer_size_inverse_map;
+      int m_max_send_buffer_size;
+      int m_max_receive_buffer_size;
 
-      int m_max_receive_buffer_size_map;
-      int m_max_receive_buffer_size_inverse_map;
-
-      GraphType m_colored_graph_map;
-      GraphType m_colored_graph_inverse_map;
-
-      int m_max_colors_map;
-      int m_max_colors_inverse_map;
+      GraphType m_colored_graph;
+      int m_max_colors;
 
       ///@}
       ///@name Private Operators
@@ -248,18 +242,21 @@ namespace Kratos
       ///@{
 
       void InitializeSearchStructure() override {
-          m_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructureMPI(
-             m_interface_object_manager_destination, m_interface_object_manager_origin, m_model_part_origin,
+          m_p_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructureMPI(
+             m_p_interface_object_manager_destination, m_p_interface_object_manager_origin, m_model_part_origin,
              MyPID(), TotalProcesses(), m_echo_level) );
       }
 
       virtual void InvokeSearch(const double i_initial_search_radius,
                                 const int i_max_search_iterations) {
-          m_search_structure->Search(i_initial_search_radius, i_max_search_iterations);
-          m_search_structure->GetMPIData(m_max_send_buffer_size_map,
-                                         m_max_receive_buffer_size_map,
-                                         m_colored_graph_map,
-                                         m_max_colors_map);
+          m_p_search_structure->Search(i_initial_search_radius,
+                                       i_max_search_iterations);
+
+          m_p_interface_object_manager_destination->ComputeBufferSizesAndCommunicationGraph(
+                                           m_max_send_buffer_size,
+                                           m_max_receive_buffer_size,
+                                           m_colored_graph,
+                                           m_max_colors);
       }
 
       template <typename T>
@@ -276,8 +273,8 @@ namespace Kratos
 
           ExchangeDataRemote(origin_variable, destination_variable,
                              options, factor,
-                             m_interface_object_manager_origin,
-                             m_interface_object_manager_destination);
+                             m_p_interface_object_manager_origin,
+                             m_p_interface_object_manager_destination);
 
           MPI_Barrier(MPI_COMM_WORLD);
       }
@@ -292,30 +289,8 @@ namespace Kratos
           int send_buffer_size = 0;
           int receive_buffer_size = 0;
 
-          InterfaceObjectManagerBase::Pointer interface_object_manager_1;
-          InterfaceObjectManagerBase::Pointer interface_object_manager_2;
-
-          GraphType colored_graph;
-          int max_colors;
-          int max_send_buffer_size;
-          int max_receive_buffer_size;
-
-          if (options.IsNot(MapperFlags::INVERSE_DIRECTION)) { // map; origin -> destination
-              interface_object_manager_1 = object_manager_1;
-              interface_object_manager_2 = object_manager_2;
-              colored_graph = m_colored_graph_map;
-              max_colors = m_max_colors_map;
-              max_send_buffer_size = m_max_send_buffer_size_map;
-              max_receive_buffer_size = m_max_receive_buffer_size_map;
-          } else { // inverse map; destination -> origin // TODO I think this is not correct...
-              KRATOS_ERROR << "this direction is not yet implemented" << std::endl;
-              interface_object_manager_1 = object_manager_2;
-              interface_object_manager_2 = object_manager_1;
-              colored_graph = m_colored_graph_inverse_map;
-              max_colors = m_max_colors_inverse_map;
-              max_send_buffer_size = m_max_send_buffer_size_inverse_map;
-              max_receive_buffer_size = m_max_receive_buffer_size_inverse_map;
-          }
+          int max_send_buffer_size= m_max_send_buffer_size;
+          int max_receive_buffer_size = m_max_receive_buffer_size;
 
           int buffer_size_factor = MapperUtilitiesMPI::SizeOfVariable(T());
 
@@ -325,17 +300,17 @@ namespace Kratos
           double* send_buffer = new double[max_send_buffer_size];
           double* receive_buffer = new double[max_receive_buffer_size];
 
-          for (int i = 0; i < max_colors; ++i) { // loop over communication steps (aka. colour)
-              int comm_partner = colored_graph(MyPID(), i); // get the partner rank
+          for (int i = 0; i < m_max_colors; ++i) { // loop over communication steps (aka. colour)
+              int comm_partner = m_colored_graph(MyPID(), i); // get the partner rank
               if (comm_partner != -1) { // check if rank is communicating in this communication step (aka. colour)
-                  interface_object_manager_1->FillBufferWithValues(send_buffer, send_buffer_size, comm_partner,
-                                                                   origin_variable, options);
+                  m_p_interface_object_manager_origin->FillBufferWithValues(send_buffer, send_buffer_size, comm_partner,
+                                                                            origin_variable, options);
 
                   MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size, receive_buffer_size,
                                                   max_send_buffer_size, max_receive_buffer_size, comm_partner);
 
-                  interface_object_manager_2->ProcessValues(receive_buffer, receive_buffer_size, comm_partner,
-                                                            destination_variable, options, factor);
+                  m_p_interface_object_manager_destination->ProcessValues(receive_buffer, receive_buffer_size, comm_partner,
+                                                                          destination_variable, options, factor);
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop colors
 

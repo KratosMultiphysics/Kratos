@@ -66,11 +66,11 @@ public:
   NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
                         Parameters& i_json_parameters) : Mapper(
                         i_model_part_origin, i_model_part_destination, i_json_parameters) {
-      m_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
-      m_mapper_communicator->InitializeDestination(MapperUtilities::Node);
-      m_mapper_communicator->Initialize();
+      m_p_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
+      m_p_mapper_communicator->InitializeDestination(MapperUtilities::Node);
+      m_p_mapper_communicator->Initialize();
 
-      m_inverse_mapper.reset(); // explicitly specified to be safe
+      m_p_inverse_mapper.reset(); // explicitly specified to be safe
 
       if (i_json_parameters["non_conforming_interface"].GetBool()) {
           KRATOS_ERROR << "MappingApplication; NearestNeighborMapper; invalid "
@@ -91,9 +91,9 @@ public:
   ///@{
 
   void UpdateInterface(Kratos::Flags& options, double search_radius) override {
-      m_mapper_communicator->UpdateInterface(options, search_radius);
-      if (m_inverse_mapper) {
-          m_inverse_mapper->UpdateInterface(options, search_radius);
+      m_p_mapper_communicator->UpdateInterface(options, search_radius);
+      if (m_p_inverse_mapper) {
+          m_p_inverse_mapper->UpdateInterface(options, search_radius);
       }
 
       if (options.Is(MapperFlags::REMESHED)) {
@@ -113,7 +113,7 @@ public:
               m_num_nodes_destination);
       }
 
-      m_mapper_communicator->TransferNodalData(origin_variable,
+      m_p_mapper_communicator->TransferNodalData(origin_variable,
                                                destination_variable,
                                                options,
                                                factor);
@@ -131,7 +131,7 @@ public:
               m_num_nodes_destination);
       }
 
-      m_mapper_communicator->TransferNodalData(origin_variable,
+      m_p_mapper_communicator->TransferNodalData(origin_variable,
                                                destination_variable,
                                                options,
                                                factor);
@@ -143,12 +143,12 @@ public:
                   Kratos::Flags& options) override {
       // Construct the inverse mapper if it hasn't been done before
       // It is constructed with the order of the model_parts changed!
-      if (!m_inverse_mapper) {
-          m_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
+      if (!m_p_inverse_mapper) {
+          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
                                                                         m_model_part_origin,
                                                                         m_json_parameters) );
       }
-      m_inverse_mapper->Map(destination_variable, origin_variable, options);
+      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
   }
 
   /* This function maps from Destination to Origin */
@@ -157,12 +157,12 @@ public:
                   Kratos::Flags& options) override {
       // Construct the inverse mapper if it hasn't been done before
       // It is constructed with the order of the model_parts changed!
-      if (!m_inverse_mapper) {
-          m_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
+      if (!m_p_inverse_mapper) {
+          m_p_inverse_mapper = Mapper::Pointer( new NearestNeighborMapper(m_model_part_destination,
                                                                         m_model_part_origin,
                                                                         m_json_parameters) );
       }
-      m_inverse_mapper->Map(destination_variable, origin_variable, options);
+      m_p_inverse_mapper->Map(destination_variable, origin_variable, options);
     }
 
   ///@}
@@ -237,7 +237,7 @@ protected:
   ///@name Member Variables
   ///@{
 
-  Mapper::Pointer m_inverse_mapper;
+  Mapper::Pointer m_p_inverse_mapper;
 
   ///@}
   ///@name Private Operators
