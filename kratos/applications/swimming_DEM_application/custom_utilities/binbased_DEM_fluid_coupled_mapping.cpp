@@ -77,7 +77,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
         }
     }
 
-
     const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
 
 //    if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
