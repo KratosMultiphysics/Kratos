@@ -324,7 +324,7 @@ public:
     //**************************************************************************
     //**************************************************************************
     /** Solve the linear problem.
-     */ 
+     */
     virtual void SystemSolve(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -384,7 +384,7 @@ public:
 
 
     /** Build and solve the linear problem.
-     */ 
+     */
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -438,7 +438,7 @@ public:
     //**************************************************************************
     //**************************************************************************
     /** Build right-hand side and solve the linear problem.
-     */ 
+     */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -947,15 +947,12 @@ public:
 
         Epetra_Import dirichlet_importer(A.ColMap(), fixed_local.Map());
 
-
-
         //defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed( A.ColMap() );
 
         //importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local,dirichlet_importer,Insert);
         if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-
 
         /*        //now fill the local bitarray employed to store the dirichlet rows and cols in local numeration
                 //dirichlet_rows will be numbered according to A.RowMap()
@@ -986,15 +983,19 @@ public:
                     else mdirichlet_cols[i] = true;
                 }     */
 
+        // KRATOS_WATCH(A.NumMyRows())
+
         for (int i=0; i < A.NumMyRows(); i++)
         {
-            int numEntries;
-            double *vals;
-            int *cols;
+            int numEntries; // number of non-zero entries
+            double *vals;   // row non-zero values
+            int *cols;      // column indices of row non-zero values
             A.ExtractMyRowView(i,numEntries,vals,cols);
 
-            int lid = localmap.LID( A.RowMap().GID(i) );
-            if( fixed_local[lid] == 0) //not a dirichlet row
+            int row_gid = A.RowMap().GID(i);
+            int row_lid = localmap.LID(row_gid);
+
+            if( fixed_local[row_lid] == 0 ) //not a dirichlet row
             {
                 for (int j=0; j < numEntries; j++)
                 {
@@ -1009,15 +1010,11 @@ public:
                 //set to zero the whole row
                 for (int j=0; j < numEntries; j++)
                 {
-                    vals[j] *= static_cast<double>( fixed[ cols[j] ] ); //here we use the fact that "fixed" is constructed with A.ColMap();
-
+                    int col_gid = A.ColMap().GID(cols[j]);
+                    if (col_gid != row_gid) vals[j] = 0.0;
                 }
-
-
             }
         }
-
-
 
         //
 //        for (int i=0; i < A.NumMyRows(); i++) {
@@ -1302,4 +1299,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER  defined */
-
