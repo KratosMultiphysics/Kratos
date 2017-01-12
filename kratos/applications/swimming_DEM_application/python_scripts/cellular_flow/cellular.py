@@ -108,6 +108,7 @@ pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.material_acceleration_calculation_type = int(material_derivative_type)
 pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.vorticity_calculation_type = 5
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 4
@@ -126,6 +127,8 @@ pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
 number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+pp.CFD_DEM.print_VORTICITY_option = 1
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
