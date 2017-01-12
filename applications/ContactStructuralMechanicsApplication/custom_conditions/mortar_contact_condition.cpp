@@ -1226,20 +1226,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
         {            
             if (TDoubleLM == false)
             {
-                Matrix tangent_matrix;
-                tangent_matrix.resize(TDim - 1, TDim);
-
-                const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-                const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
-                for (unsigned int i = 0; i < TDim; i++)
-                {
-                    tangent_matrix(0, i) = tangent1[i];
-                    if (TDim == 3)
-                    {
-                        tangent_matrix(1, i) = tangent2[i];
-                    }
-                }
-                
+                const bounded_matrix<double, TDim - 1, TDim> tangent_matrix = GetTangentMatrixSlave(i_slave);
                 subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 , index_1 + TDim) = tangent_matrix;
             }
         }
@@ -1540,10 +1527,15 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
             }
             if (TDoubleLM == true)
             {
+//                const bounded_matrix<double, TDim - 1, TDim> tangent_matrix = GetTangentMatrixSlave(i_slave);
+//                const array_1d<double, TDim> lm = subrange(GetGeometry()[i_slave].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0),0, TDim);
+//                const array_1d<double, TDim - 1> tangent_lm = prod(tangent_matrix, lm);
+
                 index += TNumNodes * TDim;
-                for (unsigned int i = index + 1; i < index + TDim; i++)
+                for (unsigned int i = 1; i < TDim; i++)
                 {
-                    RHS_contact_pair[i] = 0.0;
+                    RHS_contact_pair[index + i] = 0.0;
+//                    RHS_contact_pair[index + i] = - tangent_lm[i];
                 }
             }
         }
@@ -3319,14 +3311,37 @@ unsigned int MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CaseToCompute(con
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
-bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetRotationMatrixSlave(unsigned int i_slave)
+bounded_matrix<double, TDim - 1, TDim> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetTangentMatrixSlave(unsigned int i_slave)
 {
-    bounded_matrix<double, TDim, TDim> RotationMatrix;
+    bounded_matrix<double, TDim - 1, TDim> TangenMatrix;
    
-    const array_1d<double, 3> normal      = GetGeometry()[i_slave].GetValue(NORMAL);
     const array_1d<double, 3> tangent_xi  = GetGeometry()[i_slave].GetValue(TANGENT_XI);
     const array_1d<double, 3> tangent_eta = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
     
+    for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
+    {
+        TangenMatrix(0, i_dim) = tangent_xi[i_dim];
+        if (TDim == 3)
+        {
+            TangenMatrix(1, i_dim) = tangent_eta[i_dim];
+        }
+    }
+    
+    return TangenMatrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
+bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDoubleLM>::GetRotationMatrixSlave(unsigned int i_slave)
+{
+    bounded_matrix<double, TDim, TDim> RotationMatrix;
+
+    const array_1d<double, 3> normal      = GetGeometry()[i_slave].GetValue(NORMAL);
+    const array_1d<double, 3> tangent_xi  = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+    const array_1d<double, 3> tangent_eta = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+
     for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
     {
         RotationMatrix(0, i_dim) = normal[i_dim];
@@ -3336,7 +3351,7 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
             RotationMatrix(2, i_dim) = tangent_eta[i_dim];
         }
     }
-    
+
     return RotationMatrix;
 }
 
