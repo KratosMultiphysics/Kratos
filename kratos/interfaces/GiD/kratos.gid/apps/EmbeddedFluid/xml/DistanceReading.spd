@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="DistanceReading" pn="Distance reading settings" un="EMBFLDistanceReading" help="Distance reading settings" open_window="0">
 	<value n="ReadingMode" pn="Reading mode" v="from_mdpa" values="from_mdpa,from_GiD_file" dict="from_mdpa,From mdpa,from_GiD_file,From GiD file" help="" actualize_tree="1">
-		<dependencies value="from_mdpa" node="../value[@n='Filename']" att1="state" v1="hidden"/>
+		<dependencies value="from_mdpa" node="../value[@n='distance_file_name']" att1="state" v1="hidden"/>
 		<dependencies value="from_GiD_file" node="../value[@n='distance_file_name']" att1="state" v1="normal"/>
 	</value>
 	<value n='distance_file_name' pn='Distance file name' v='-' values='[GetFilesValues]' update_proc='AddFile' help='Select a distance file .post.res' state='hidden' />
