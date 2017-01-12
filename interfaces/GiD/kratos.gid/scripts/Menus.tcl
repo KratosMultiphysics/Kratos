@@ -45,13 +45,23 @@ proc Kratos::CreatePreprocessModelTBar { {type "DEFAULT INSIDELEFT"} } {
         Kratos::ToolbarDeleteItem "SpacerApp"
     }
     if {$app_items_toolbar ne "-1"} {
+        set theme [gid_themes::GetCurrentTheme]
         set dir [file join $::Kratos::kratos_private(Path) images ]
         set iconslist [list ]
         set commslist [list ]
         set helpslist [list ]
         foreach item [dict keys $kratos_private(MenuItems)] {
             set icon [dict get $kratos_private(MenuItems) $item icon]
-            lappend iconslist [expr {$icon ne "" ? [file join $dir $icon] : "---"}]
+            if {![file exists $icon] && $icon ne ""} {
+                set good_dir $dir
+                if {$theme eq "GiD_black"} {
+                    set good_dir [file join $dir Black]
+                    if {![file exists [file join $good_dir $icon]]} {set good_dir $dir}
+                }
+                set icon [file join $good_dir $icon]
+            }
+            
+            lappend iconslist [expr {$icon ne "" ? $icon : "---"}]
             lappend commslist  [dict get $kratos_private(MenuItems) $item code]
             lappend helpslist [dict get $kratos_private(MenuItems) $item tex]
         }
@@ -83,9 +93,6 @@ proc Kratos::EndCreatePreprocessTBar {} {
     }
     update
 }
-
-
-
 
 proc Kratos::ChangeMenus { } {
     set found [GiDMenu::_FindIndex "Kratos" PRE]

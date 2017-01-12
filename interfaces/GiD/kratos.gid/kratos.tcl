@@ -119,8 +119,7 @@ proc Kratos::InitGIDProject { dir } {
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
         WarnWin [_ "Error: %s Interface requires GiD %s or later." $kratos_private(Name) $kratos_private(MinimumGiDVersion)]
     }
-    #if {[GiD_Info GiDVersion] eq "13.0-rc1"} { WarnWin "The minimum GiD version is 13.0-rc2.\n Ask the GiD Team for it."; return ""}
-        
+     
     #append to auto_path only folders that must include tcl packages (loaded on demand with package require mechanism)
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
         lappend ::auto_path [file join $dir scripts]
@@ -151,9 +150,14 @@ proc Kratos::InitGIDProject { dir } {
     Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
     #gid_groups_conds::SetHeaderBackground $HeaderBackground
-    gid_groups_conds::SetLibDir [file join $dir exec] 
-    gid_groups_conds::begin_problemtype [file join $dir kratos_default.spd] [Kratos::GiveKratosDefaultsFile]
-
+    gid_groups_conds::SetLibDir [file join $dir exec]
+    set spdfile [file join $dir kratos_default.spd]
+    gid_groups_conds::begin_problemtype $spdfile [Kratos::GiveKratosDefaultsFile]
+    if {[gid_themes::GetCurrentTheme] eq "GiD_black"} {
+        set gid_groups_conds::imagesdirList [lsearch -all -inline -not -exact $gid_groups_conds::imagesdirList [list [file join [file dirname $spdfile] images]]]
+        gid_groups_conds::add_images_dir [file join [file dirname $spdfile] images Black]
+        gid_groups_conds::add_images_dir [file join [file dirname $spdfile] images]
+    }
     spdAux::processIncludes
     spdAux::parseRoutes
     update

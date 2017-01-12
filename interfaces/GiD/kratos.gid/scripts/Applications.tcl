@@ -206,6 +206,10 @@ oo::class create App {
         set dir [file join $::Kratos::kratos_private(Path) apps $name]
         set fileName [file join $dir start.tcl]
         apps::loadAppFile $fileName
+        if {[gid_themes::GetCurrentTheme] eq "GiD_black"} {
+            set gid_groups_conds::imagesdirList [lsearch -all -inline -not -exact $gid_groups_conds::imagesdirList [list [file join $dir images]]]
+            gid_groups_conds::add_images_dir [file join $dir images Black]
+        } 
         gid_groups_conds::add_images_dir [file join $dir images]
     }
     
