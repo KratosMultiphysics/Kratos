@@ -524,6 +524,8 @@ proc spdAux::injectSolvers {basenode args} {
             set pn [$par getPublicName]
             set type [$par getType]
             set dv [$par getDv]
+            if {[write::isBooleanFalse $dv]} {set dv No}
+            if {[write::isBooleanTrue $dv]} {set dv Yes}
             append paramsnodes "<value n='$parname' pn='$pn' state='\[SolverParamState\]' v='$dv' "
             if {$type eq "bool"} {
                 append paramsnodes " values='Yes,No' "
