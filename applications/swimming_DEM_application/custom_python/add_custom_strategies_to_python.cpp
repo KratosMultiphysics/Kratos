@@ -64,9 +64,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //strategies
 #include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
+#include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
 
-//linear solvers
-//convergence criteria
+// convergence criteria
+#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
 
 //schemes
 #include "../DEM_application/custom_strategies/schemes/dem_integration_scheme.h"
@@ -79,6 +80,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //parallel strategies
 //parallel schemes
 //builder_and_solvers
+//linear solvers
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -99,6 +102,23 @@ namespace Kratos
 		  
             class_< AdamsBashforthStrategy, bases<ExplicitSolverStrategy>, boost::noncopyable>
             ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>());
+
+            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ::Pointer TConvergenceCriteriaPointer;
+            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+            typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+
+            class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >, boost::noncopyable >
+                    ("ResidualBasedDerivativeRecoveryStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
+                    .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
+                    .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
+                    .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+                    ;
 		}
 
 	}  // namespace Python.
