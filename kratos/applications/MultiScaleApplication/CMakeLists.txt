@@ -100,17 +100,21 @@ set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/linear_elastic_no_tension_plane_stress_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/linear_elastic_thick_shell_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/j2_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_iso_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_3d_law.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/interpolated_constitutive_law_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/interpolated_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/scalar_damage_interface_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/scalar_damage_interface_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_interface_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_interface_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plastic_damage_interface_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_interface_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/opt_triangle_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_quad_element_v2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/q4ristab_element.cpp
@@ -118,8 +122,11 @@ set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/convdiff_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ebst_element_2d3n.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/agq4_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_elastic_link_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/periodic_condition_lm_2D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rve_weak_periodic_condition_2D2N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rve_weak_rotation_constraint_condition_3D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rve_weak_tshear_constraint_condition_3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_geometry_descriptor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_predictor_calculator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscale_python_application.cpp
@@ -129,6 +136,7 @@ set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simplexnoise.cpp
 )
 
 ######################################################################################
@@ -259,3 +267,4 @@ foreach( lapack_lib ${LAPACK_LIBRARIES})
 		endif()
 	endif()
 endforeach(lapack_lib)
+

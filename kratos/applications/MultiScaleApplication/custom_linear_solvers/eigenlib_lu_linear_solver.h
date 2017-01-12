@@ -62,13 +62,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "..\kratos\utilities\timer.h"
+#include "utilities/timer.h"
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include <iostream>
 
-#include "./external_includes/eigen-3.2.2/Eigen/Dense"
-#include "./external_includes/eigen-3.2.2/Eigen/Sparse"
+#include "Eigen\Dense"
+#include "Eigen\Sparse"
 
 namespace Kratos
 {
@@ -141,11 +141,6 @@ public:
 		m_pSolver = new EigenFactorizationType(esm);
 		if(m_pSolver->info() != Eigen::Success)
 		{
-			/*std::stringstream ss;
-			for(size_t i = 0; i < tr.size(); i++)
-				ss << tr[i].row() << ", " << tr[i].col() << ", " << tr[i].value() << ";\n";
-			std::cout << ss.str();*/
-			//exit(-1);
 			m_failed = true;
 		}
     }
@@ -179,7 +174,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-		if (this->IsNotConsistent(rA, rX, rB)) return false;
+        if(IsNotConsistent(rA, rX, rB)) return false;
 		int n = rX.size();
 		if(n < 1) return true;
 
@@ -192,7 +187,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-		if (this->IsNotConsistent(rA, rX, rB)) return false;
+		if(IsNotConsistent(rA, rX, rB)) return false;
 		int n = rX.size1();
 		if(n < 1) return true;
 		int nrhs = rX.size2();

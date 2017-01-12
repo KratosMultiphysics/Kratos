@@ -101,6 +101,7 @@ class SolutionStage:
 				MoveMesh = True,
 				ResultsIO = None,
 				LinearSolver = SkylineLUFactorizationSolver(),
+				EchoLevel = 1,
 				CalculateTangent = True,
 				Parallel = True,
 				CustomOp = None,
@@ -168,7 +169,7 @@ class SolutionStage:
 		self.Solver.SetKeepSystemConstantDuringIterations(not CalculateTangent)
 		
 		self.Solver.Check();
-		self.Solver.SetEchoLevel(1);
+		self.Solver.SetEchoLevel(EchoLevel);
 		
 		self.IsConverged = False
 		

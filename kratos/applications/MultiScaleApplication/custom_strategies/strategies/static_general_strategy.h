@@ -10,6 +10,7 @@
 /* External includes */
 #include "boost/smart_ptr.hpp"
 #include <iomanip>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 /* Project includes */
 #include "includes/define.h"
@@ -1073,10 +1074,19 @@ public:
 				{
 					mpBuilderAndSolver->SystemSolve(mA, mDx, mb);
 
+					// check solution validity
+					if(!this->CheckSolutionValidity(mDx))
+					{
+						mIsConverged = false;
+						iteration_number = mMaxIterationNumber;
+						model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+						break;
+					}
+
 					// NEW LINE SEARCH <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-					TSystemVectorType bcopy=mb;
+					/*TSystemVectorType bcopy=mb;
 					LineSearchCalculation(CurrentAlpha, PreviousAlpha);
-					noalias(mb) = bcopy;
+					noalias(mb) = bcopy;*/
 					// NEW LINE SEARCH <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 				}
 
@@ -1090,7 +1100,7 @@ public:
 				if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 				mpScheme->FinalizeNonLinIteration(model, mA, mDx, mb);
 				// NEW LINE SEARCH <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-				mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
+				//mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
 				// NEW LINE SEARCH <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 				/* 
 				===============================================================================
@@ -1325,6 +1335,21 @@ protected:
 					return error_codes[i];
 		}
 		return 0.0;
+	}
+
+	bool CheckSolutionValidity(TSystemVectorType& mDx)
+	{
+		bool is_valid = true;
+		unsigned int eqsize = TSparseSpace::Size(mDx);
+		for(unsigned int i = 0; i < eqsize; i++) {
+			double idx = mDx[i];
+			if(!( (boost::math::isfinite)(idx) )) {
+				std::cout << "found a non finite value in the solution vector (nan or inifinite)\n";
+				is_valid = false;
+				break;
+			}
+		}
+		return is_valid;
 	}
 
 	inline void PromptSeparator()

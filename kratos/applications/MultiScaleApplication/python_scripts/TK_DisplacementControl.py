@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import datetime
 import time
+from math import *
 import TK_TimeLines
 import TK_LoadFunctions
 from KratosMultiphysics import *
@@ -171,6 +172,9 @@ class SolutionStage:
 		self.DesiredIterations = DesiredIterations
 		if(self.DesiredIterations >= self.MaxIterations):
 			self.DesiredIterations = self.MaxIterations/2;
+		
+		# for smooth adaptive time-stepping
+		self.smooth_table = [1.0, 1.0, 1.0, 1.0]
 	
 	# ==================================================================================
 	
@@ -203,6 +207,21 @@ class SolutionStage:
 				cop.Finalize(self.ModelPart)
 	
 	# ==================================================================================
+	
+	def __incr_max_mult(self,ctime):
+		x = ctime*35.0
+		AA = 0.8;
+		BB = 1.5;
+		CC = (6.0-0.5)/4.0;
+		FF = AA*exp(-(x-BB)*(x-BB)/(2.0*CC));
+		AA = -3.0;
+		BB = 25.0;
+		CC = 40.0;
+		FF = 0*FF+AA*exp(-(x-BB)*(x-BB)/(2.0*CC));
+		if(x > 25.0):
+			FF=-1.0
+		y = 1.0-FF;
+		return y
 	
 	def Solve(self):
 		
@@ -248,7 +267,11 @@ class SolutionStage:
 		self.ModelPart.ProcessInfo[LAMBDA] = 0.0 
 		
 		# begin time incrementation loop
+		# increment_max_0 = increment_max
 		while True:
+			
+			# increment_max = self.__incr_max_mult(current_time)*increment_max_0
+			# print('USING VARIABLE MAX INCREMENT: ',increment_max)
 			
 			# define the new time step size
 			old_time = current_time
@@ -304,6 +327,17 @@ class SolutionStage:
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
 					# factor = pow(0.5,0.25*(needed_iter-target_iter))
 					factor = target_iter/needed_iter
+					
+					# smooth-it
+					# accum = 0.0
+					# for ismooth in range(1,len(self.smooth_table)):
+						# accum = accum + self.smooth_table[ismooth]
+					# factor = factor + accum
+					# factor = factor / float(len(self.smooth_table))
+					factor = 0.1*self.smooth_table[1] + 0.2*self.smooth_table[2] + 0.3*self.smooth_table[3] + 0.4*factor
+					self.smooth_table.pop(0)
+					self.smooth_table.append(factor)
+					
 					increment_mult_old = increment_mult
 					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
@@ -325,6 +359,10 @@ class SolutionStage:
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
 					# factor = pow(0.5,0.25*(needed_iter-target_iter))
 					factor = target_iter/needed_iter
+					
+					self.smooth_table.pop(0)
+					self.smooth_table.append(factor)
+					
 					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
 					self.Solver.SetLoadFactors(factor, increment_mult)

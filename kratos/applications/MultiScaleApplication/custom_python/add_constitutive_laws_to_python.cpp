@@ -58,6 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "add_constitutive_laws_to_python.h"
+#include "constitutive_laws/linear_elastic_no_tension_plane_stress_2d_law.h"
+#include "constitutive_laws/linear_elastic_thick_shell_law.h"
 #include "constitutive_laws/conv_diff_constitutive_law_3d.h"
 #include "constitutive_laws/conv_diff_anisotropic_3d_law.h"
 #include "constitutive_laws/conv_diff_plane_stress_2d_law.h"
@@ -74,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/shell_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestress_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestrain_from_3d_constitutive_law_adapter.h"
+#include "constitutive_laws/interpolated_constitutive_law_2d.h"
 #include "multiscale_application_variables.h"
 
 namespace Kratos
@@ -86,6 +89,15 @@ using namespace boost::python;
 
 void AddConstitutiveLawsToPython()
 {
+	class_< InterpolatedConstitutiveLaw2D, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"InterpolatedConstitutiveLaw2D",
+		init<const RveMaterialDatabase::Pointer&>())
+		;
+
+	class_< LinearElasticNoTensionPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"LinearElasticNoTensionPlaneStress2DLaw",
+		init<>())
+		;
 
 	class_< ConvDiffConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ConvDiffConstitutiveLaw3D",
@@ -107,6 +119,12 @@ void AddConstitutiveLawsToPython()
 		init<>())
 		;
 	
+
+	class_< LinearElasticThickShellLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"LinearElasticThickShellLaw",
+		init<>())
+		;
+
 	class_< J2ConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"J2ConstitutiveLaw3D",
 		init<>())

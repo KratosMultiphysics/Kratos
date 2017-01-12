@@ -98,49 +98,54 @@ namespace Kratos
 				size_t cnd_id = 0;
 
 				// master node id
-				//ModelPart::NodeType::Pointer master_node = mp.pGetNode(geom.CornerNodesIDs()[0]);
+				ModelPart::NodeIterator node_it = mp.NodesEnd();
+				--node_it;
+				ModelPart::NodeType::Pointer master_node = mp.pGetNode(node_it->Id());
 
-				//// create a constraint condition for each boundary edge
-				//for(RveGeometryDescriptor::ContainerOfIndexContainerType::const_iterator it =
-				//	geom.BoundaryEdgesIDs().begin(); it != geom.BoundaryEdgesIDs().end(); ++it)
-				//{
-				//	const RveGeometryDescriptor::IndexContainerType& edge_nodes = *it;
-				//	Element::GeometryType::PointsArrayType nodes;
-				//	for(size_t i = 0; i < edge_nodes.size(); i++)
-				//	{
-				//		ModelPart::NodeType::Pointer inode = mp.pGetNode(edge_nodes[i]);
-				//		nodes.push_back(inode);
-				//	}
-				//	nodes.push_back(master_node);
+				 //create a constraint condition for each boundary edge
+				for(RveGeometryDescriptor::ContainerOfIndexContainerType::const_iterator it =
+					geom.BoundaryEdgesIDs().begin(); it != geom.BoundaryEdgesIDs().end(); ++it)
+				{
+					const RveGeometryDescriptor::IndexContainerType& edge_nodes = *it;
+					Element::GeometryType::PointsArrayType nodes;
+					for(size_t i = 0; i < edge_nodes.size(); i++)
+					{
+						ModelPart::NodeType::Pointer inode = mp.pGetNode(edge_nodes[i]);
+						nodes.push_back(inode);
+					}
+					nodes.push_back(master_node);
 
-				//	// constraint enforcing (3 equations for 2D, 6 equations for 3D):
-				//	// int{ (sym_grad(u))dV } = 0
-				//	// or
-				//	// int{ (ni*uj + nj*ui) dS } = 0
-				//	Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
-				//	RveWeakPeriodicCondition2D2N::Pointer cnd(new 
-				//		RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
-				//	mp.AddCondition(cnd);
+					// constraint enforcing (3 equations for 2D, 6 equations for 3D):
+					// int{ (sym_grad(u))dV } = 0
+					// or
+					// int{ (ni*uj + nj*ui) dS } = 0
+					Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
+					RveWeakPeriodicCondition2D2N::Pointer cnd(new 
+						RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
+					mp.AddCondition(cnd);
 
-				//	// constraint enforcing (1 equation for 2D, 3 equations for 3D):
-				//	// int{ (skew_grad(u))dV } = 0
-				//	// or
-				//	// int{ (ni*uj - nj*ui) dS } = 0
-				//	Element::GeometryType::PointsArrayType nodes_skew = nodes;
-				//	Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
-				//	RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
-				//		RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
-				//	cnd_skew->IsSkewSymmetricConstraint() = true;
-				//	mp.AddCondition(cnd_skew);
+					// constraint enforcing (1 equation for 2D, 3 equations for 3D):
+					// int{ (skew_grad(u))dV } = 0
+					// or
+					// int{ (ni*uj - nj*ui) dS } = 0
+					Element::GeometryType::PointsArrayType nodes_skew = nodes;
+					Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
+					RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
+						RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
+					cnd_skew->IsSkewSymmetricConstraint() = true;
+					mp.AddCondition(cnd_skew);
 
-				//	// TODO:
-				//	// these 2 constraints can be collected into a unified condition!
-				//}
+					// TODO:
+					// these 2 constraints can be collected into a unified condition!
+				}
 
 
 
-				//ModelPart::NodeType::Pointer master_node_x = mp.pGetNode(geom.CornerNodesIDs()[0]);
-				//ModelPart::NodeType::Pointer master_node_y = mp.pGetNode(geom.CornerNodesIDs()[1]);
+				//ModelPart::NodeIterator node_it = mp.NodesEnd();
+				//--node_it;
+				//ModelPart::NodeType::Pointer master_node_x = mp.pGetNode(node_it->Id());
+				//--node_it;
+				//ModelPart::NodeType::Pointer master_node_y = mp.pGetNode(node_it->Id());
 
 				//for(RveGeometryDescriptor::ContainerOfIndexContainerType::const_iterator it =
 				//	geom.BoundaryEdgesIDs().begin(); it != geom.BoundaryEdgesIDs().end(); ++it)
@@ -186,55 +191,55 @@ namespace Kratos
 				//}
 
 
-				ModelPart::NodeType::Pointer master_node_1 = mp.pGetNode(geom.CornerNodesIDs()[0]);
-				ModelPart::NodeType::Pointer master_node_2 = mp.pGetNode(geom.CornerNodesIDs()[1]);
-				ModelPart::NodeType::Pointer master_node_3 = mp.pGetNode(geom.CornerNodesIDs()[2]);
-				ModelPart::NodeType::Pointer master_node_4 = mp.pGetNode(geom.CornerNodesIDs()[3]);
+				//ModelPart::NodeType::Pointer master_node_1 = mp.pGetNode(geom.CornerNodesIDs()[0]);
+				//ModelPart::NodeType::Pointer master_node_2 = mp.pGetNode(geom.CornerNodesIDs()[1]);
+				//ModelPart::NodeType::Pointer master_node_3 = mp.pGetNode(geom.CornerNodesIDs()[2]);
+				//ModelPart::NodeType::Pointer master_node_4 = mp.pGetNode(geom.CornerNodesIDs()[3]);
 
-				for(RveGeometryDescriptor::ContainerOfIndexContainerType::const_iterator it =
-					geom.BoundaryEdgesIDs().begin(); it != geom.BoundaryEdgesIDs().end(); ++it)
-				{
-					const RveGeometryDescriptor::IndexContainerType& edge_nodes = *it;
-					Element::GeometryType::PointsArrayType nodes;
-					int edge_id = 0;
-					for(size_t i = 0; i < edge_nodes.size(); i++)
-					{
-						ModelPart::NodeType::Pointer inode = mp.pGetNode(edge_nodes[i]);
-						if(std::find(geom.CornerNodesIDs().begin(),geom.CornerNodesIDs().end(), inode->GetId()) == geom.CornerNodesIDs().end()) {
-							RveGeometryDescriptor::NodeToEdgeIDMapType::const_iterator eid_iter = geom.NodeToEdgeIDMap().find(inode->GetId());
-							if(eid_iter != geom.NodeToEdgeIDMap().end()) {
-								edge_id = eid_iter->second;
-							}
-						}
-						nodes.push_back(inode);
-					}
-					if(edge_id > 0)
-					{
-						if(edge_id==1)
-							nodes.push_back(master_node_1);
-						else if(edge_id==2)
-							nodes.push_back(master_node_2);
-						else if(edge_id==3)
-							nodes.push_back(master_node_3);
-						else
-							nodes.push_back(master_node_4);
-						Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
-						RveWeakPeriodicCondition2D2N::Pointer cnd(new 
-							RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
-						mp.AddCondition(cnd);
+				//for(RveGeometryDescriptor::ContainerOfIndexContainerType::const_iterator it =
+				//	geom.BoundaryEdgesIDs().begin(); it != geom.BoundaryEdgesIDs().end(); ++it)
+				//{
+				//	const RveGeometryDescriptor::IndexContainerType& edge_nodes = *it;
+				//	Element::GeometryType::PointsArrayType nodes;
+				//	int edge_id = 0;
+				//	for(size_t i = 0; i < edge_nodes.size(); i++)
+				//	{
+				//		ModelPart::NodeType::Pointer inode = mp.pGetNode(edge_nodes[i]);
+				//		if(std::find(geom.CornerNodesIDs().begin(),geom.CornerNodesIDs().end(), inode->GetId()) == geom.CornerNodesIDs().end()) {
+				//			RveGeometryDescriptor::NodeToEdgeIDMapType::const_iterator eid_iter = geom.NodeToEdgeIDMap().find(inode->GetId());
+				//			if(eid_iter != geom.NodeToEdgeIDMap().end()) {
+				//				edge_id = eid_iter->second;
+				//			}
+				//		}
+				//		nodes.push_back(inode);
+				//	}
+				//	if(edge_id > 0)
+				//	{
+				//		if(edge_id==1)
+				//			nodes.push_back(master_node_1);
+				//		else if(edge_id==2)
+				//			nodes.push_back(master_node_2);
+				//		else if(edge_id==3)
+				//			nodes.push_back(master_node_3);
+				//		else
+				//			nodes.push_back(master_node_4);
+				//		Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
+				//		RveWeakPeriodicCondition2D2N::Pointer cnd(new 
+				//			RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
+				//		mp.AddCondition(cnd);
 
-						// skew
-						/*Element::GeometryType::PointsArrayType nodes_skew;
-						for(unsigned int i=0; i<3; i++)
-							nodes_skew.push_back(nodes[i]);
-						nodes_skew.push_back(master_node_1);
-						Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
-						RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
-							RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
-						cnd_skew->IsSkewSymmetricConstraint() = true;
-						mp.AddCondition(cnd_skew);*/
-					}
-				}
+				//		// skew
+				//		/*Element::GeometryType::PointsArrayType nodes_skew;
+				//		for(unsigned int i=0; i<3; i++)
+				//			nodes_skew.push_back(nodes[i]);
+				//		nodes_skew.push_back(master_node_1);
+				//		Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
+				//		RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
+				//			RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
+				//		cnd_skew->IsSkewSymmetricConstraint() = true;
+				//		mp.AddCondition(cnd_skew);*/
+				//	}
+				//}
 			}
 			else
 			{
@@ -264,11 +269,16 @@ namespace Kratos
 
 			if(geom.Dimension() == 2)
 			{
-				ModelPart::NodeType& n00 = mp.GetNode( geom.CornerNodesIDs()[0] );
+				/*ModelPart::NodeType& n00 = mp.GetNode( geom.CornerNodesIDs()[0] );
 				ModelPart::NodeType& n10 = mp.GetNode( geom.CornerNodesIDs()[1] );
 				n00.Fix(DISPLACEMENT_X);
 				n00.Fix(DISPLACEMENT_Y);
-				n10.Fix(DISPLACEMENT_Y);
+				n10.Fix(DISPLACEMENT_Y);*/
+				
+				ModelPart::NodeType& n00 = mp.GetNode( geom.CornerNodesIDs()[0] );
+				n00.Fix(DISPLACEMENT_X);
+				n00.Fix(DISPLACEMENT_Y);
+
 				/*for(unsigned int i=0; i<geom.CornerNodesIDs().size(); i++) {
 					ModelPart::NodeType& inode=mp.GetNode(geom.CornerNodesIDs()[i]);
 					inode.Fix(DISPLACEMENT_X);
@@ -286,14 +296,13 @@ namespace Kratos
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const Vector& E = macroScaleData.StrainVector();
 			array_1d<double, 3> Um;
 			Um.clear();
 			if(geom.Dimension() == 2)
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
 				double exx = E(0);
 				double eyy = E(1);
 				double exy = E(2)/2.0;
@@ -313,9 +322,9 @@ namespace Kratos
 			}
 			else
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
-				double z0 = ref_node.Z0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
+				double z0 = geom.Center()[2];
 				double exx = E(0);
 				double eyy = E(1);
 				double ezz = E(2);

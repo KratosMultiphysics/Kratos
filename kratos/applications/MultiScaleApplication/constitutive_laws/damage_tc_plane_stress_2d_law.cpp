@@ -50,23 +50,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/imperfection_utilities.h"
 #include "includes/variables.h"
 
-#define DAM_TC_PREC 1.0E-12
+#define DAM_TC_PREC 0.0
 
 #define DAM_TC_SIGN(X) (X == 0.0 ? 0.0 : ( X > 0.0 ? 1.0 : -1.0 ))
-#define DAM_TC_HVS(X) ( X > 0.0 ? 1.0 : ( X < 0.0 ? -1.0 : 0.5) )
-#define DAM_TC_POS(X) ( X > 0.0 ? X : 0.0 )
-
-//#define DAM_TC_TEST_RANKINE
-//#define DAM_TC_SECANT
-
-//#define DAM_TC_USE_SMOOTH_TENSILE_LAW
-#define DAM_TC_SMOOTH_TENSILE_LAW_A0 0.5
-#define DAM_TC_SMOOTH_TENSILE_LAW_A1 1.3
+#define DAM_TC_HVS(X)  ( X > 0.0 ? 1.0 : ( X < 0.0 ? -1.0 : 0.5) )
+#define DAM_TC_POS(X)  ( X > 0.0 ? X : 0.0 )
 
 #define DAM_TC_OPTIMIZE_LCH
 
 namespace Kratos
 {
+
+	// todo: remove this. only used for very deformed rectangular geometries
 
 #ifdef DAM_TC_OPTIMIZE_LCH
 
@@ -90,8 +85,7 @@ namespace Kratos
 				double v2y = dy-cy;
 				double lx = std::sqrt(v1x*v1x+v1y*v1y);
 				double ly = std::sqrt(v2x*v2x+v2y*v2y);
-				lch = std::min(lx, ly); //rettangolo lato lungo verticale
-				//lch = std::max(lx, ly); //rettangolo lato lungo orrizontale
+				lch = std::min(lx,ly);
 			}
 		}
 		else if(geom.WorkingSpaceDimension() == 3) {
@@ -124,6 +118,8 @@ namespace Kratos
 	}
 
 #endif // DAM_TC_OPTIMIZE_LCH
+
+	// TODO: move this into a BIFURCATION_ANALYSIS_UTILS_H
 
 	inline double det_acoustic_tensor_2d(const Matrix& C, double a)
 	{
@@ -167,6 +163,8 @@ namespace Kratos
 		}
 		return dq;
 	}
+
+	// TODO: move this into a B3_HARDENING_LAW_H
 
 	inline double b3_eval_bezier(double xi,
 								 double x0, double x1, double x2,
@@ -263,6 +261,474 @@ namespace Kratos
 		return F;
 	}
 
+	// todo: move this into a DAMAGE_INCREMENTAL_FRACTURE_ENERGY_REGULARIZATION_H
+
+#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
+
+#define REG2_DIS_VEC_T std::vector<double>
+#define REG2_DIS_VEC_C std::vector<double>
+
+	template<class T>
+	inline unsigned int reg2_find_stop_id(const T& x, const T& y, double xstop)
+	{
+		unsigned int id = -1;
+		unsigned int n = x.size();
+		for(unsigned int i=0; i<n-1; i++) {
+			if(y[i+1]<y[i]) {
+				id = i;
+				break;
+			}
+		}
+		if(id == -1) {
+			id = n-1;
+		}
+		else {
+			for(unsigned int i=0; i<n; i++) {
+				if(x[i]>=xstop) {
+					id = i;
+					break;
+				}
+			}
+		}
+		return id;
+	}
+
+	inline void reg2_discrete_t_law(double E, double G, double s, REG2_DIS_VEC_T& x, REG2_DIS_VEC_T& y)
+	{
+		double h = 1.0;
+		double lt=2.0*E*G/s/s;
+		double Hs = h/(lt-h);
+		double A  = 2.0*Hs;
+		double r0 = s;
+
+		double smin = 1.0e-3*s;
+		double ru = -r0*(log(smin/r0)/A - 1.0);
+		double xu = ru/E;
+		double x0 = s/E;
+
+		unsigned int n = 200;
+		x.resize(n);
+		y.resize(n);
+
+		double x_incr = (xu-x0)/double(n - 1);
+		for(unsigned int i=0; i<n; i++) {
+			x[i] = x0 + double(i)*x_incr;
+			double rt = x[i]*E;
+			double d = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
+			y[i] = (1-d)*rt;
+		}
+	}
+
+	inline void reg2_discrete_c_law(const DamageTCPlaneStress2DLaw::CalculationData& data, double Gc,
+									REG2_DIS_VEC_C& x, REG2_DIS_VEC_C& y)
+	{
+		// extract material parameters
+		double E  = data.E;
+		double s0 = data.fc0;
+		double sp = data.fcp;
+		double sr = data.fcr;
+		double ep = data.ep;
+		double c1 = data.c1;
+		double c2 = data.c2;
+		double c3 = data.c3;
+		// auto-computation of other parameters
+		double sk    = sr + (sp-sr)*c1;
+		double e0    = s0/E;
+		double alpha = 2.0*(ep-sp/E);
+		double ej    = ep + alpha*c2;
+		double ek    = ej + alpha*(1-c2);
+		double er    = (ek-ej)/(sp-sk)*(sp-sr)+ej;
+		double eu    = er*c3;
+
+		// make the underneath area = Gc
+		double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
+		double G1      = sp*ep/2.0;
+		double stretch = (Gc-G1)/(G_bar-G1)-1.0;
+		if(stretch <= -1.0) 
+		{
+			std::stringstream ss;
+			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
+			ss << "Input Gc/lch = " << Gc << std::endl;
+			ss << "Minimum Gc to avoid constitutive snap-back = " << G1 << std::endl;
+			std::cout << ss.str();
+			exit(-1);
+		}
+		b3_stretch( stretch,ep,ej,ek,er,eu );
+
+		// generate lin-spaced abscissas
+		unsigned int n1 = 41;
+		unsigned int n2 = 80;
+		unsigned int n3 = 80;
+		unsigned int n  = n1+n2+n3;
+		x.resize(n);
+		y.resize(n);
+		double dx1 = (ep-e0)/double(n1-1);
+		double dx2 = (ek-ep)/double(n2);
+		double dx3 = (eu-ek)/double(n3);
+		unsigned int w=0;
+		for(unsigned int i=0; i<n1; i++) x[w++]=e0+double(i  )*dx1;
+		for(unsigned int i=0; i<n2; i++) x[w++]=ep+double(i+1)*dx2;
+		for(unsigned int i=0; i<n3; i++) x[w++]=ek+double(i+1)*dx3;
+
+		// generate curve
+		for(unsigned int i=0; i<n; i++) {
+			double xi = x[i];
+			if(xi <= ep)
+				y[i] = b3_eval_bezier(xi,e0,sp/E,ep,s0,sp,sp);
+			else if(xi <= ek)
+				y[i] = b3_eval_bezier(xi,ep,ej,ek,sp,sp,sk);
+			else if(xi <= eu)
+				y[i] = b3_eval_bezier(xi,ek,er,eu,sk,sr,sr);
+			else
+				y[i] = sr;
+		}
+	}
+
+	template<class T>
+	inline double reg2_interp_dis_curve(const T& x, const T& y, double ix)
+	{
+		double iy=0.0;
+		unsigned int n = x.size();
+		if(ix <= x[0]) {
+			iy = y[0];
+		}
+		else {
+			if(ix >= x[n-1]) {
+				iy = y[n-1];
+			}
+			else {
+				for(unsigned int i=0; i<n-1; i++) {
+					double x1 = x[i];
+					if(ix >= x1) {
+						double x2 = x[i+1];
+						if(ix < x2) {
+							double y1 = y[i];
+							double y2 = y[i+1];
+							iy = (ix-x1)/(x2-x1)*(y2-y1)+y1;
+						}
+					}
+				}
+			}
+		}
+		return iy;
+	}
+
+	template<class T>
+	inline void reg2_correct_snap_back(T& x)
+	{
+		unsigned int n = x.size();
+		bool found = false;
+		double last_incr=0.0;
+		for(unsigned int i=1; i<n; i++) {
+			if(x[i]<x[i-1]) {
+				x[i] = x[i-1]+last_incr*1.0E-2;
+				found=true;
+			}
+			else {
+				if(!found)
+					last_incr = x[i]-x[i-1];
+			}
+		}
+	}
+
+	template<class T>
+	inline void reg2_regularize_from_point(T& x, const T& y, unsigned int pn, double lch_old, double lch_new)
+	{
+		//double xp = x[pn];
+		//double yp = y[pn];
+		//double Ed = yp/xp; // damaged young modulus
+		//unsigned int n = x.size();
+		//for(unsigned int i=pn; i<n; i++) {
+		//	double xtot = x[i]; // total strain
+		//	double xinl = xtot-y[i]/Ed; // inelastic strain
+		//	double xinl_reg = xinl*lch_old/lch_new; // m_lch/lch = m_lch/(m_lch*m_lch_mult) = 1/m_lch_mult
+		//	x[i] = xinl_reg + y[i]/Ed; // to regularized total strain
+		//}
+
+		double xp = x[pn];
+		double yp = y[pn];
+		unsigned int n = x.size();
+		double G1 = xp*yp/2.0;
+		double G2 = 0.0;
+		for(unsigned int i = pn; i < n; i++)
+			G2 += (x[i] - x[i-1])*(y[i]+y[i-1])/2.0;
+		double G = G1+G2;
+		double Gr = G/lch_new*lch_old;
+		double S = (Gr-G1)/(G-G1)-1.0;
+		if(S < -1.0)
+			S = -0.999;
+		for(unsigned int i = pn; i < n; i++)
+			x[i] += (x[i]-xp)*S;
+	}
+
+#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
+
+	// todo: move this into a EIGENVAL_UTILITIES_H
+
+	/* Eigen decomposition code for symmetric 3x3 matrices, copied from the public domain Java Matrix library JAMA. */
+
+	#ifdef EIG3_MAX
+	#undef EIG3_MAX
+	#endif
+	#define EIG3_MAX(a, b) ((a)>(b)?(a):(b))
+
+	inline double hypot2(double x, double y) {
+		return std::sqrt(x*x+y*y);
+	}
+
+	// Symmetric Householder reduction to tridiagonal form.
+	template<class TMatrix, class TVector>
+	inline void tred2(TMatrix& V, TVector& d, TVector& e) {
+
+	//  This is derived from the Algol procedures tred2 by
+	//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
+	//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
+	//  Fortran subroutine in EISPACK.
+	  int n = d.size();
+	  for (int j = 0; j < n; j++) {
+		d(j) = V(n-1,j);
+	  }
+
+	  // Householder reduction to tridiagonal form.
+
+	  for (int i = n-1; i > 0; i--) {
+
+		// Scale to avoid under/overflow.
+
+		double scale = 0.0;
+		double h = 0.0;
+		for (int k = 0; k < i; k++) {
+		  scale = scale + fabs(d(k));
+		}
+		if (scale == 0.0) {
+		  e(i) = d(i-1);
+		  for (int j = 0; j < i; j++) {
+			d(j) = V(i-1,j);
+			V(i,j) = 0.0;
+			V(j,i) = 0.0;
+		  }
+		} else {
+
+		  // Generate Householder vector.
+
+		  for (int k = 0; k < i; k++) {
+			d(k) /= scale;
+			h += d(k) * d(k);
+		  }
+		  double f = d(i-1);
+		  double g = sqrt(h);
+		  if (f > 0) {
+			g = -g;
+		  }
+		  e(i) = scale * g;
+		  h = h - f * g;
+		  d(i-1) = f - g;
+		  for (int j = 0; j < i; j++) {
+			e(j) = 0.0;
+		  }
+
+		  // Apply similarity transformation to remaining columns.
+
+		  for (int j = 0; j < i; j++) {
+			f = d(j);
+			V(j,i) = f;
+			g = e(j) + V(j,j) * f;
+			for (int k = j+1; k <= i-1; k++) {
+			  g += V(k,j) * d(k);
+			  e(k) += V(k,j) * f;
+			}
+			e(j) = g;
+		  }
+		  f = 0.0;
+		  for (int j = 0; j < i; j++) {
+			e(j) /= h;
+			f += e(j) * d(j);
+		  }
+		  double hh = f / (h + h);
+		  for (int j = 0; j < i; j++) {
+			e(j) -= hh * d(j);
+		  }
+		  for (int j = 0; j < i; j++) {
+			f = d(j);
+			g = e(j);
+			for (int k = j; k <= i-1; k++) {
+			  V(k,j) -= (f * e(k) + g * d(k));
+			}
+			d(j) = V(i-1,j);
+			V(i,j) = 0.0;
+		  }
+		}
+		d(i) = h;
+	  }
+
+	  // Accumulate transformations.
+
+	  for (int i = 0; i < n-1; i++) {
+		V(n-1,i) = V(i,i);
+		V(i,i) = 1.0;
+		double h = d(i+1);
+		if (h != 0.0) {
+		  for (int k = 0; k <= i; k++) {
+			d(k) = V(k,i+1) / h;
+		  }
+		  for (int j = 0; j <= i; j++) {
+			double g = 0.0;
+			for (int k = 0; k <= i; k++) {
+			  g += V(k,i+1) * V(k,j);
+			}
+			for (int k = 0; k <= i; k++) {
+			  V(k,j) -= g * d(k);
+			}
+		  }
+		}
+		for (int k = 0; k <= i; k++) {
+		  V(k,i+1) = 0.0;
+		}
+	  }
+	  for (int j = 0; j < n; j++) {
+		d(j) = V(n-1,j);
+		V(n-1,j) = 0.0;
+	  }
+	  V(n-1,n-1) = 1.0;
+	  e(0) = 0.0;
+	} 
+
+	// Symmetric tridiagonal QL algorithm.
+	template<class TMatrix, class TVector>
+	inline void tql2(TMatrix& V, TVector& d, TVector& e) {
+
+	//  This is derived from the Algol procedures tql2, by
+	//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
+	//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
+	//  Fortran subroutine in EISPACK.
+
+	  int n = d.size();
+	  for (int i = 1; i < n; i++) {
+		e(i-1) = e(i);
+	  }
+	  e(n-1) = 0.0;
+
+	  double f = 0.0;
+	  double tst1 = 0.0;
+	  double eps = pow(2.0,-52.0);
+	  for (int l = 0; l < n; l++) {
+
+		// Find small subdiagonal element
+
+		tst1 = EIG3_MAX(tst1,fabs(d(l)) + fabs(e(l)));
+		int m = l;
+		while (m < n) {
+		  if (fabs(e(m)) <= eps*tst1) {
+			break;
+		  }
+		  m++;
+		}
+
+		// If m == l, d(l) is an eigenvalue,
+		// otherwise, iterate.
+
+		if (m > l) {
+		  int iter = 0;
+		  do {
+			iter = iter + 1;  // (Could check iteration count here.)
+
+			// Compute implicit shift
+
+			double g = d(l);
+			double p = (d(l+1) - g) / (2.0 * e(l));
+			double r = hypot2(p,1.0);
+			if (p < 0) {
+			  r = -r;
+			}
+			d(l) = e(l) / (p + r);
+			d(l+1) = e(l) * (p + r);
+			double dl1 = d(l+1);
+			double h = g - d(l);
+			for (int i = l+2; i < n; i++) {
+			  d(i) -= h;
+			}
+			f = f + h;
+
+			// Implicit QL transformation.
+
+			p = d(m);
+			double c = 1.0;
+			double c2 = c;
+			double c3 = c;
+			double el1 = e(l+1);
+			double s = 0.0;
+			double s2 = 0.0;
+			for (int i = m-1; i >= l; i--) {
+			  c3 = c2;
+			  c2 = c;
+			  s2 = s;
+			  g = c * e(i);
+			  h = c * p;
+			  r = hypot2(p,e(i));
+			  e(i+1) = s * r;
+			  s = e(i) / r;
+			  c = p / r;
+			  p = c * d(i) - s * g;
+			  d(i+1) = h + s * (c * g + s * d(i));
+
+			  // Accumulate transformation.
+
+			  for (int k = 0; k < n; k++) {
+				h = V(k,i+1);
+				V(k,i+1) = s * V(k,i) + c * h;
+				V(k,i) = c * V(k,i) - s * h;
+			  }
+			}
+			p = -s * s2 * c3 * el1 * e(l) / dl1;
+			e(l) = s * p;
+			d(l) = c * p;
+
+			// Check for convergence.
+
+		  } while (fabs(e(l)) > eps*tst1);
+		}
+		d(l) = d(l) + f;
+		e(l) = 0.0;
+	  }
+  
+	  // Sort eigenvalues and corresponding vectors.
+
+	  for (int i = 0; i < n-1; i++) {
+		int k = i;
+		double p = d(i);
+		for (int j = i+1; j < n; j++) {
+		  if (d(j) < p) {
+			k = j;
+			p = d(j);
+		  }
+		}
+		if (k != i) {
+		  d(k) = d(i);
+		  d(i) = p;
+		  for (int j = 0; j < n; j++) {
+			p = V(j,i);
+			V(j,i) = V(j,k);
+			V(j,k) = p;
+		  }
+		}
+	  }
+	}
+
+	inline void eigen_decomposition_sym_2x2(const Matrix& A, Matrix& V, Vector& d) {
+	  int n = d.size();
+	  Vector e(2);
+	  for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+		  V(i,j) = A(i,j);
+		}
+	  }
+	  tred2(V, d, e);
+	  tql2(V, d, e);
+	}
+
+
+
+
 	DamageTCPlaneStress2DLaw::DamageTCPlaneStress2DLaw() 
 		: ConstitutiveLaw()
 		, m_initialized(false)
@@ -287,20 +753,6 @@ namespace Kratos
 #endif // DAM_TC_2D_IMPLEX
 		, m_suggested_time_step(0.0)
 		, m_error_code(0.0)
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION
-		, m_accum_gt(0.0)
-		, m_accum_gt_converged(0.0)
-		, m_rt0(0.0)
-		, m_rt0_converged(0.0)
-		, m_dt_old(0.0)
-		, m_dt_old_converged(0.0)
-		, m_accum_gc(0.0)
-		, m_accum_gc_converged(0.0)
-		, m_rc0(0.0)
-		, m_rc0_converged(0.0)
-		, m_dc_old(0.0)
-		, m_dc_old_converged(0.0)
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION
 #ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 		, m_E(0.0)
 		, m_has_changed_reg(false)
@@ -377,10 +829,14 @@ namespace Kratos
 			rValue = m_damage_c;
 		else if(rThisVariable == CHARACTERISTIC_LENGTH_MULTIPLIER)
 			rValue = m_lch_multiplier;
-		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
+		else if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = m_error_code;
-		if(rThisVariable == SUGGESTED_TIME_STEP)
+		else if(rThisVariable == SUGGESTED_TIME_STEP)
 			rValue = m_suggested_time_step;
+		else if(rThisVariable == ENH_STRAIN_PARAM_1)
+			rValue = m_rt_converged;
+		else if(rThisVariable == ENH_STRAIN_PARAM_2)
+			rValue = m_rc_converged;
 		return rValue;
 	}
 
@@ -443,16 +899,14 @@ namespace Kratos
 					// find the equivalent strain at which the regularization has changed
 					m_change_reg_t_x = m_rt_converged / m_E;
 					m_change_reg_c_x = m_rc_converged / m_E;
-					/*std::stringstream ss;
-					ss << "CHANGED T: " << m_change_reg_t_x << std::endl;
-					ss << "CHANGED C: " << m_change_reg_c_x << std::endl;
-					std::cout << ss.str();
-					exit(-1);*/
 				}
-			}  
+			}
 #endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
-
 		}
+		else if(rVariable == ENH_STRAIN_PARAM_1)
+			m_rt_converged = rValue;
+		else if(rVariable == ENH_STRAIN_PARAM_2)
+			m_rc_converged = rValue;
 	}
 
 	void DamageTCPlaneStress2DLaw::SetValue(
@@ -525,30 +979,27 @@ namespace Kratos
 	{
 		if(!m_initialized)
 		{
-			m_error_code = 0.0;
-
 			// random imperfections
 			double impf = ImperfectionUtilties::CalculateRandomImperfectionScaleFactor(
 				rElementGeometry,rShapeFunctionsValues);
 
-#ifndef DAM_TC_USE_SMOOTH_TENSILE_LAW
 			m_rt             = rMaterialProperties[DAMAGE_STRESS_T_0]*impf;
-#else
-			m_rt             = rMaterialProperties[DAMAGE_STRESS_T_0]*impf*DAM_TC_SMOOTH_TENSILE_LAW_A0;
-#endif // DAM_TC_USE_SMOOTH_TENSILE_LAW
 			m_rt_converged   = m_rt;
 			m_rc             = rMaterialProperties[DAMAGE_STRESS_C_0]*impf;
 			m_rc_converged   = m_rc;
 			m_damage_t       = 0.0;
 			m_damage_c       = 0.0;
+
 #ifndef DAM_TC_OPTIMIZE_LCH
 			m_lch            = rElementGeometry.Length();
 #else
 			m_lch            = get_optimized_lch(rElementGeometry);
 #endif // !DAM_TC_OPTIMIZE_LCH
+
 			m_lch_multiplier = 1.0;
 			m_initial_strain = ZeroVector(this->GetStrainSize());
 			m_initialized    = true;
+
 #ifdef DAM_TC_2D_IMPLEX
 			m_rt_converged_old = m_rt;
 			m_rc_converged_old = m_rc;
@@ -561,22 +1012,6 @@ namespace Kratos
 			m_localized = false;
 			m_localized_converged = false;
 			m_localization_angle = 0.0;
-
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION
-			m_rt0 = m_rt;
-			m_rt0_converged = m_rt0;
-			m_accum_gt = m_rt0*m_rt0/rMaterialProperties[YOUNG_MODULUS]/2.0;
-			m_accum_gt_converged = m_accum_gt;
-			m_dt_old = 0.0;
-			m_dt_old_converged = 0.0;
-
-			m_rc0 = m_rc;
-			m_rc0_converged = m_rc0;
-			m_accum_gc = m_rc0*m_rc0/rMaterialProperties[YOUNG_MODULUS]/2.0;
-			m_accum_gc_converged = m_accum_gc;
-			m_dc_old = 0.0;
-			m_dc_old_converged = 0.0;
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION
 
 #ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 			m_E = rMaterialProperties[YOUNG_MODULUS];
@@ -620,17 +1055,6 @@ namespace Kratos
 		m_rc_converged = m_rc;
 
 		m_localized_converged = m_localized;
-
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION
-		m_rt0_converged = m_rt0;
-		m_accum_gt_converged = m_accum_gt;
-		m_dt_old_converged = m_dt_old;
-
-		m_rc0_converged = m_rc0;
-		m_accum_gc_converged = m_accum_gc;
-		m_dc_old_converged = m_dc_old;
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION
-
 	}
 
 	void DamageTCPlaneStress2DLaw::InitializeNonLinearIteration(
@@ -678,8 +1102,6 @@ namespace Kratos
 
 		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, data);
 
-		if (m_error_code != 0.0) return;
-
 		if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 			if(props.Has(DAMAGE_SECANT_MATRIX)) {
 				if(props[DAMAGE_SECANT_MATRIX] > 0) {
@@ -725,24 +1147,13 @@ namespace Kratos
 			// apply perturbation to each strain component...
 			for(size_t j = 0; j < n; j++)
 			{
-				h = std::max(1.0e-9, 1.0e-6*std::abs(strain_vector(j)));
-
 				noalias(strain_bar) = strain_vector;
-
-				strain_bar(j) = strain_vector(j) - h;
-				this->CalculateMaterialResponseInternal(strain_bar, S1, data);
 
 				strain_bar(j) = strain_vector(j) + h;
 				this->CalculateMaterialResponseInternal(strain_bar, S2, data);
 
 				for(size_t i = 0; i < n; i++)
-					constitutive_matrix(i,j) = (S2(i) - S1(i))/(2.0*h);
-
-				/*strain_bar(j) = strain_vector(j) + h;
-				this->CalculateMaterialResponseInternal(strain_bar, S2, data);
-
-				for(size_t i = 0; i < n; i++)
-					constitutive_matrix(i,j) = (S2(i) - stress_vector(i))/h;*/
+					constitutive_matrix(i,j) = (S2(i) - stress_vector(i))/h;
 			}
 
 			// restore internal variables
@@ -787,7 +1198,6 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
-		m_error_code = 0.0;
 		m_rt = 0.0;
 		m_rt_converged = 0.0;
 		m_rc = 0.0;
@@ -797,22 +1207,6 @@ namespace Kratos
 		m_lch = 0.0;
 		m_lch_multiplier = 1.0;
 		m_initialized = false;
-
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION
-		m_accum_gt = 0.0;
-		m_accum_gt_converged = 0.0;
-		m_rt0 = 0.0;
-		m_rt0_converged = 0.0;
-		m_dt_old = 0.0;
-		m_dt_old_converged = 0.0;
-
-		m_accum_gc = 0.0;
-		m_accum_gc_converged = 0.0;
-		m_rc0 = 0.0;
-		m_rc0_converged = 0.0;
-		m_dc_old = 0.0;
-		m_dc_old_converged = 0.0;
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION
 
 #ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 		m_E = 0.0;
@@ -923,25 +1317,25 @@ namespace Kratos
 		double impf = ImperfectionUtilties::CalculateRandomImperfectionScaleFactor(geom, N);
 
 		// elasticity
-		data.E   = props[YOUNG_MODULUS]*impf;
+		data.E   = props[YOUNG_MODULUS];//*impf;
 		data.nu  = props[POISSON_RATIO];
 		this->CalculateElasticityMatrix(data);
 
 		// tension
 		data.ft = props[DAMAGE_STRESS_T_0]*impf;
-		data.Gt = props[FRACTURE_ENERGY_T];
+		data.Gt = props[FRACTURE_ENERGY_T]*impf*impf;
 		data.m2  = props.Has(DAMAGE_TENSILE_SURFACE_S1) ? props[DAMAGE_TENSILE_SURFACE_S1] : 1.0;
 		data.m2  = std::min(std::max(data.m2,0.0),1.0);
 
 		// compression
 		data.fc0 = props[DAMAGE_STRESS_C_0]*impf;
 		data.fcp = props[DAMAGE_STRESS_C_P]*impf;
-		data.fcr = props[DAMAGE_STRESS_C_R];
+		data.fcr = props[DAMAGE_STRESS_C_R]*impf;
 		data.ep  = props[DAMAGE_STRAIN_C_P]*impf;
 		data.c1  = props.Has(DAMAGE_COMPRESSIVE_LAW_C1) ? props[DAMAGE_COMPRESSIVE_LAW_C1] : 0.65;
 		data.c2  = props.Has(DAMAGE_COMPRESSIVE_LAW_C2) ? props[DAMAGE_COMPRESSIVE_LAW_C2] : 0.50;
 		data.c3  = props.Has(DAMAGE_COMPRESSIVE_LAW_C3) ? props[DAMAGE_COMPRESSIVE_LAW_C3] : 1.50;
-		data.Gc  = props[FRACTURE_ENERGY_C];
+		data.Gc  = props[FRACTURE_ENERGY_C]*impf*impf;
 		data.bm  = props[BIAXIAL_COMPRESSION_MULTIPLIER];
 		data.m1  = props.Has(SHEAR_COMPRESSION_REDUCTION) ? props[SHEAR_COMPRESSION_REDUCTION] : 0.5;
 		data.m1  = std::min(std::max(data.m1,0.0),1.0);
@@ -955,7 +1349,7 @@ namespace Kratos
 		data.PC.resize(3,3,false);
 
 		// misc
-		data.eta = props[VISCOSITY];
+		data.eta = props[VISCOSITY]*impf;
 		data.lch = m_lch * m_lch_multiplier;
 
 		data.dTime = pinfo[DELTA_TIME];
@@ -982,9 +1376,6 @@ namespace Kratos
 		data.grank_a = props.Has(GENRANKINE_SURFACE_PARAM_A) ? props[GENRANKINE_SURFACE_PARAM_A] : 20.0;
 		data.grank_b = props.Has(GENRANKINE_SURFACE_PARAM_B) ? props[GENRANKINE_SURFACE_PARAM_B] : 10.0;
 		data.grank_c = props.Has(GENRANKINE_SURFACE_PARAM_C) ? props[GENRANKINE_SURFACE_PARAM_C] :  3.0;
-		
-		// For Damage Limit Surface
-		data.damage_limit = props.Has(CLAW_LIMIT_DAMAGE) ? props[CLAW_LIMIT_DAMAGE] : 10.0;
 	}
 
 	void DamageTCPlaneStress2DLaw::CalculateElasticityMatrix(CalculationData& data)
@@ -1057,23 +1448,37 @@ namespace Kratos
 		}
 		else
 		{
-			double Tr = S(0)+S(1);
-			double Dt = S(0)*S(1) - S(2)*S(2);
-
-			Si(0) = Tr/2.0 + std::sqrt(Tr*Tr/4.0 - Dt);
-			Si(1) = Tr/2.0 - std::sqrt(Tr*Tr/4.0 - Dt);
-
-			if(std::abs(Si(0)) < DAM_TC_PREC) Si(0) = 0.0;
-			if(std::abs(Si(1)) < DAM_TC_PREC) Si(1) = 0.0;
-
-			double N1x = Si(0)-S(1);	double N2x = Si(1)-S(1);
-			double N1y  = S(2);			double N2y = S(2);
-
+			Matrix V(2,2);
+			Matrix A(2,2);
+			A(0,0) = S(0);
+			A(1,1) = S(1);
+			A(0,1) = S(2);
+			A(1,0) = S(2);
+			eigen_decomposition_sym_2x2(A,V,Si);
+			double N1x = V(0,0);
+			double N1y = V(1,0);
+			double N2x = V(0,1);
+			double N2y = V(1,1);
 			double norm_N1 = std::sqrt(N1x*N1x + N1y*N1y);
 			double norm_N2 = std::sqrt(N2x*N2x + N2y*N2y);
-			
-			N1x /= norm_N1;	N2x /= norm_N2;
-			N1y /= norm_N1;	N2y /= norm_N2;
+			if(norm_N1 > 0.0)
+			{
+				N1x /= norm_N1;
+				N1y /= norm_N1;
+			}
+			if(norm_N2 > 0.0)
+			{
+				N2x /= norm_N2;
+				N2y /= norm_N2;
+			}
+			if(Si(0) < Si(1))
+			{
+				double aux;
+				aux = Si(0); Si(0) = Si(1); Si(1) = aux;
+				aux = N1x; N1x = N2x; N2x = aux;
+				aux = N1y; N1y = N2y; N2y = aux;
+			}
+
 
 			if(Si(0) < 0.0)
 			{
@@ -1114,31 +1519,15 @@ namespace Kratos
 		p22(0) = N2(0)*N2(0);
 		p22(1) = N2(1)*N2(1);
 		p22(2) = N2(0)*N2(1);
-		/*array_1d<double,3> p12;
-		p12(0) = N1(0)*N2(0);
-		p12(1) = N1(1)*N2(1);
-		p12(2) = (N1(0)*N2(1) + N1(1)*N2(0))/2.0;*/
 
 		array_1d<double,3> p11_voigt( p11 );
 		p11_voigt(2) *= 2.0;
 		array_1d<double,3> p22_voigt( p22 );
 		p22_voigt(2) *= 2.0;
-		/*array_1d<double,3> p12_voigt( p12 );
-		p12_voigt(2) *= 2.0;*/
 
 		PT.clear();
 		noalias(PT) += DAM_TC_HVS(Si(0)) * outer_prod(p11,p11_voigt);
 		noalias(PT) += DAM_TC_HVS(Si(1)) * outer_prod(p22,p22_voigt);
-
-		// construct Q in P
-		//if(std::abs(Si(0) - Si(1)) > 0.0) {
-		//	// QT = QT + 2.0*(Si_pos(1)-Si_pos(2))/(Si(1)-Si(2))*p12_tens_p12;
-		//	noalias(PT) += 2.0*(DAM_TC_POS(Si(0))-DAM_TC_POS(Si(1)))/(Si(0)-Si(1))*outer_prod(p12,p12_voigt);
-		//}
-		//else {
-		//	// QT = QT + p12_tens_p12;
-		//	noalias(PT) += outer_prod(p12,p12_voigt);
-		//}
 
 		noalias(PC) = IdentityMatrix(3,3) - PT;
 
@@ -1146,31 +1535,9 @@ namespace Kratos
 
 	void DamageTCPlaneStress2DLaw::TrialEquivalentStressTension(CalculationData& data, double& rt_trial)
 	{
-#ifdef DAM_TC_TEST_RANKINE
-		rt_trial = std::max(std::max(data.Si(0), data.Si(1)),0.0);
-		return;
-#endif
-
-		if( (DAM_TC_SIGN(data.Si(0)) + DAM_TC_SIGN(data.Si(1))) < 0.0 )
+		rt_trial = 0.0;
+		if(data.Si(0) > 0.0)
 		{
-			rt_trial = 0.0;
-		}
-		else
-		{
-
-			if(data.Si(0) < 0.0) {
-				if(data.Si(1) < 1.0E-7*std::abs(data.Si(0))) {
-					rt_trial = 0.0;
-					return;
-				}
-			}
-			else if(data.Si(1) < 0.0) {
-				if(data.Si(0) < 1.0E-7*std::abs(data.Si(1))) {
-					rt_trial = 0.0;
-					return;
-				}
-			}
-			
 			if(data.tensile_damage_model == 0) // LUBLINER
 			{
 				double fc = data.fcp*data.m2;
@@ -1202,7 +1569,6 @@ namespace Kratos
 				double sig_min = std::min(data.Si(0),data.Si(1));
 				if(sig_min >= 0.0 && sig_max >= 0.0) {
 					rt_trial = sig_max;
-					//rt_trial = std::sqrt( std::pow(std::max(data.Si(0),0.0),2) + std::pow(std::max(data.Si(1),0.0),2) );
 				}
 				else {
 					rt_trial=bz_2_f(sig_min,sig_max,x0,x1,x2,y0,y1,y2,ft);
@@ -1217,30 +1583,9 @@ namespace Kratos
 
 	void DamageTCPlaneStress2DLaw::TrialEquivalentStressCompression(CalculationData& data, double& rc_trial)
 	{
-#ifdef DAM_TC_TEST_RANKINE
 		rc_trial = 0.0;
-		return;
-#endif
-
-		if( (DAM_TC_SIGN(data.Si(0)) + DAM_TC_SIGN(data.Si(1))) > 0.0 )
+		if(data.Si(1) < 0.0)
 		{
-			rc_trial = 0.0;
-		}
-		else
-		{
-			if(data.Si(0) > 0.0) {
-				if(std::abs(data.Si(1)) < 1.0E-7*data.Si(0)) {
-					rc_trial = 0.0;
-					return;
-				}
-			}
-			else if(data.Si(1) > 0.0) {
-				if(std::abs(data.Si(0)) < 1.0E-7*data.Si(1)) {
-					rc_trial = 0.0;
-					return;
-				}
-			}
-
 			double fc = data.fc0;
 			double fb = fc * data.bm;
 			double alpha = (fb-fc)/(2.0*fb-fc);
@@ -1256,262 +1601,8 @@ namespace Kratos
 		}
 	}
 
-
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
-
-//#define REG2_NUM_DIS_T 100
-#define REG2_DIS_VEC_T std::vector<double>
-//#define REG2_NUM_DIS_C_1 21
-//#define REG2_NUM_DIS_C_2 40
-//#define REG2_NUM_DIS_C_3 40
-//#define REG2_NUM_DIS_C 101
-#define REG2_DIS_VEC_C std::vector<double>
-
-	template<class T>
-	inline unsigned int reg2_find_stop_id(const T& x, const T& y, double xstop)
-	{
-		unsigned int id = -1;
-		unsigned int n = x.size();
-		for(unsigned int i=0; i<n-1; i++) {
-			if(y[i+1]<y[i]) {
-				id = i;
-				break;
-			}
-		}
-		if(id == -1) {
-			id = n-1;
-		}
-		else {
-			for(unsigned int i=0; i<n; i++) {
-				if(x[i]>xstop) {
-					id = i;
-					break;
-				}
-			}
-		}
-		return id;
-	}
-
-	inline void reg2_discrete_t_law(double E, double G, double s, REG2_DIS_VEC_T& x, REG2_DIS_VEC_T& y)
-	{
-		double h = 1.0;
-		double lt=2.0*E*G/s/s;
-		double Hs = h/(lt-h);
-		double A  = 2.0*Hs;
-		double r0 = s;
-
-		double smin = 1.0e-3*s;
-		double ru = -r0*(log(smin/r0)/A - 1.0);
-		double xu = ru/E;
-		double x0 = s/E;
-
-		unsigned int n = 100;
-		x.resize(n);
-		y.resize(n);
-
-		double x_incr = (xu-x0)/double(n - 1);
-		for(unsigned int i=0; i<n; i++) {
-			x[i] = x0 + double(i)*x_incr;
-			double rt = x[i]*E;
-			double d = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
-			y[i] = (1-d)*rt;
-		}
-	}
-
-	inline void reg2_discrete_c_law(const DamageTCPlaneStress2DLaw::CalculationData& data, double Gc,
-									REG2_DIS_VEC_C& x, REG2_DIS_VEC_C& y)
-	{
-		// extract material parameters
-		double E  = data.E;
-		double s0 = data.fc0;
-		double sp = data.fcp;
-		double sr = data.fcr;
-		double ep = data.ep;
-		double c1 = data.c1;
-		double c2 = data.c2;
-		double c3 = data.c3;
-		// auto-computation of other parameters
-		double sk    = sr + (sp-sr)*c1;
-		double e0    = s0/E;
-		double alpha = 2.0*(ep-sp/E);
-		double ej    = ep + alpha*c2;
-		double ek    = ej + alpha*(1-c2);
-		double er    = (ek-ej)/(sp-sk)*(sp-sr)+ej;
-		double eu    = er*c3;
-
-		// make the underneath area = Gc
-		double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
-		double G1      = sp*ep/2.0;
-		double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-		if(stretch <= -1.0) 
-		{
-			std::stringstream ss;
-			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
-			ss << "Input Gc/lch = " << Gc << std::endl;
-			ss << "Minimum Gc to avoid constitutive snap-back = " << G1 << std::endl;
-			std::cout << ss.str();
-			exit(-1);
-		}
-		b3_stretch( stretch,ep,ej,ek,er,eu );
-
-		// generate lin-spaced abscissas
-		unsigned int n1 = 41;
-		unsigned int n2 = 80;
-		unsigned int n3 = 80;
-		unsigned int n  = n1+n2+n3;
-		x.resize(n);
-		y.resize(n);
-		double dx1 = (ep-e0)/double(n1-1);
-		double dx2 = (ek-ep)/double(n2);
-		double dx3 = (eu-ek)/double(n3);
-		unsigned int w=0;
-		for(unsigned int i=0; i<n1; i++) x[w++]=e0+double(i  )*dx1;
-		for(unsigned int i=0; i<n2; i++) x[w++]=ep+double(i+1)*dx2;
-		for(unsigned int i=0; i<n3; i++) x[w++]=ek+double(i+1)*dx3;
-
-		// generate curve
-		for(unsigned int i=0; i<n; i++) {
-			double xi = x[i];
-			if(xi <= ep)
-				y[i] = b3_eval_bezier(xi,e0,sp/E,ep,s0,sp,sp);
-			else if(xi <= ek)
-				y[i] = b3_eval_bezier(xi,ep,ej,ek,sp,sp,sk);
-			else if(xi <= eu)
-				y[i] = b3_eval_bezier(xi,ek,er,eu,sk,sr,sr);
-			else
-				y[i] = sr;
-		}
-	}
-
-	template<class T>
-	inline double reg2_interp_dis_curve(const T& x, const T& y, double ix)
-	{
-		double iy=0.0;
-		unsigned int n = x.size();
-		if(ix <= x[0]) {
-			iy = y[0];
-		}
-		else {
-			if(ix >= x[n-1]) {
-				iy = y[n-1];
-			}
-			else {
-				for(unsigned int i=0; i<n-1; i++) {
-					double x1 = x[i];
-					if(ix > x1) {
-						double x2 = x[i+1];
-						if(ix < x2) {
-							double y1 = y[i];
-							double y2 = y[i+1];
-							iy = (ix-x1)/(x2-x1)*(y2-y1)+y1;
-						}
-					}
-				}
-			}
-		}
-		return iy;
-	}
-
-	template<class T>
-	inline void reg2_correct_snap_back(T& x)
-	{
-		unsigned int n = x.size();
-		bool found = false;
-		double last_incr=0.0;
-		for(unsigned int i=1; i<n; i++) {
-			if(x[i]<x[i-1]) {
-				x[i] = x[i-1]+last_incr*1.0E-2;
-				found=true;
-			}
-			else {
-				if(!found)
-					last_incr = x[i]-x[i-1];
-			}
-		}
-	}
-
-	template<class T>
-	inline void reg2_regularize_from_point(T& x, const T& y, unsigned int pn, double lch_old, double lch_new)
-	{
-		double xp = x[pn];
-		double yp = y[pn];
-		double Ed = yp/xp; // damaged young modulus
-		unsigned int n = x.size();
-		for(unsigned int i=pn; i<n; i++) {
-			double xtot = x[i]; // total strain
-			double xinl = xtot-y[i]/Ed; // inelastic strain
-			double xinl_reg = xinl*lch_old/lch_new; // m_lch/lch = m_lch/(m_lch*m_lch_mult) = 1/m_lch_mult
-			x[i] = xinl_reg + y[i]/Ed; // to regularized total strain
-		}
-	}
-
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
-
-
 	void DamageTCPlaneStress2DLaw::CalculateDamageTension(CalculationData& data, double rt, double& dt)
 	{
-		
-#ifdef DAM_TC_USE_SMOOTH_TENSILE_LAW
-		
-		if(rt <= data.ft*DAM_TC_SMOOTH_TENSILE_LAW_A0)
-		{
-			dt = 0.0;
-		}
-		else
-		{
-			// extract material parameters
-			double E  = data.E;
-			double s0 = data.ft*DAM_TC_SMOOTH_TENSILE_LAW_A0;
-			double sp = data.ft;
-			double sr = 1.0e-3*sp;
-			double ep = s0/E+(sp-s0)/E*DAM_TC_SMOOTH_TENSILE_LAW_A1;
-			double c1 = 0.7;
-			double c2 = 0.3;
-			double c3 = 1.5;
-			double Gc = data.Gt / data.lch;
-
-			// auto-computation of other parameters
-			double sk    = sr + (sp-sr)*c1;
-			double e0    = s0/E;
-			double alpha = 2.0*(ep-sp/E);
-			double ej    = ep + alpha*c2;
-			double ek    = ej + alpha*(1-c2);
-			double er    = (ek-ej)/(sp-sk)*(sp-sr)+ej;
-			double eu    = er*c3;
-
-			// regularization
-			double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
-			double G1      = sp*ep/2.0;
-			double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-			if(stretch <= -1.0) 
-			{
-				std::stringstream ss;
-				ss << "Damage TC Error: Tensile fracture energy is too low" << std::endl;
-				ss << "Input Gt/lch = " << Gc << std::endl;
-				ss << "Minimum Gt to avoid constitutive snap-back = " << G1 << std::endl;
-				std::cout << ss.str();
-				exit(-1);
-			}
-			b3_stretch( stretch,ep,ej,ek,er,eu );
-
-			// current abscissa
-			double xi = rt/E;
-
-			// compute damage
-			double s = rt;
-			if(xi <= ep)
-				s = b3_eval_bezier(xi,e0,sp/E,ep,s0,sp,sp);
-			else if(xi <= ek)
-				s = b3_eval_bezier(xi,ep,ej,ek,sp,sp,sk);
-			else if(xi <= eu)
-				s = b3_eval_bezier(xi,ek,er,eu,sk,sr,sr);
-			else
-				s = sr;
-			dt = 1.0-s/rt;
-		}
-
-#else
-
 		if(rt <= data.ft)
 		{
 			dt = 0.0;
@@ -1535,6 +1626,18 @@ namespace Kratos
 				reg2_discrete_t_law(E,G/m_lch,ft,x,y);
 				// find the change point
 				unsigned int pn = reg2_find_stop_id(x,y,m_change_reg_t_x);
+
+				// insert point
+				double insert_y = reg2_interp_dis_curve(x,y,m_change_reg_t_x);
+				std::vector<double>::iterator x_it = x.begin();
+				std::vector<double>::iterator y_it = y.begin();
+				std::advance(x_it,pn);
+				std::advance(y_it,pn);
+				x.insert(x_it, m_change_reg_t_x);
+				y.insert(y_it, insert_y);
+				// calculate post stop inelastic strain
+				pn++;
+
 				reg2_regularize_from_point(x,y,pn,m_lch,lch);
 				// make sure no snap-back takes place! maybe a warning here...
 				reg2_correct_snap_back(x);
@@ -1572,7 +1675,6 @@ namespace Kratos
 			double Hs  = lch/(lt-lch);
 			double A   = 2.0*Hs; 
 			dt         = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
-
 			double rmin=1.0e-2*ft;
 			if((1.0-dt)*rt<rmin)
 				dt = 1.0-rmin/rt;
@@ -1580,8 +1682,6 @@ namespace Kratos
 #endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 
 		}
-
-#endif // DAM_TC_USE_SMOOTH_TENSILE_LAW
 	}
 
 	void DamageTCPlaneStress2DLaw::CalculateDamageCompression(CalculationData& data, double rc, double& dc)
@@ -1608,16 +1708,18 @@ namespace Kratos
 				reg2_discrete_c_law(data, G/m_lch, x, y);
 				// find the change point
 				unsigned int pn = reg2_find_stop_id(x,y,m_change_reg_c_x);
+
 				// insert point
-				/*double insert_y = reg2_interp_dis_curve(x,y,m_change_reg_c_x);
+				double insert_y = reg2_interp_dis_curve(x,y,m_change_reg_c_x);
 				std::vector<double>::iterator x_it = x.begin();
 				std::vector<double>::iterator y_it = y.begin();
 				std::advance(x_it,pn);
 				std::advance(y_it,pn);
 				x.insert(x_it, m_change_reg_c_x);
-				y.insert(y_it, insert_y);*/
+				y.insert(y_it, insert_y);
 				// calculate post stop inelastic strain
-				//pn++;
+				pn++;
+
 				reg2_regularize_from_point(x,y,pn,m_lch,lch);
 				// make sure no snap-back takes place! maybe a warning here...
 				reg2_correct_snap_back(x);
@@ -1695,9 +1797,6 @@ namespace Kratos
 																	 Vector& stress_vector,
 																	 CalculationData& data)
 	{
-		// Initialize error_code to 0
-		m_error_code = 0.0;
-
 		size_t strain_size = this->GetStrainSize();
 
 		if(stress_vector.size() != strain_size)
@@ -1714,7 +1813,7 @@ namespace Kratos
 		m_rc = m_rc_converged;
 
 		noalias(data.S) = prod(data.C0, strain_vector - m_initial_strain);
-
+			
 		if(std::abs(data.S(0)) < DAM_TC_PREC) data.S(0) = 0.0;
 		if(std::abs(data.S(1)) < DAM_TC_PREC) data.S(1) = 0.0;
 		if(std::abs(data.S(2)) < DAM_TC_PREC) data.S(2) = 0.0;
@@ -1776,7 +1875,7 @@ namespace Kratos
 		}
 
 		// check explicit error
-		//m_error_code = 0.0;
+		m_error_code = 0.0;
 
 		/*double dam_t_old, dam_c_old;
 		this->CalculateDamageTension(data, m_rt_converged, dam_t_old);
@@ -1786,11 +1885,7 @@ namespace Kratos
 		double dd = std::max(d1,d2);
 		if(dd > 0.01) {
 			m_error_code = -1.0;
-			std::cout << "damage[std::max(d1,d2)] > 0.01\n";
 		}*/
-
-		
-
 #else
 
 		if(rt_trial > m_rt)
@@ -1806,16 +1901,6 @@ namespace Kratos
 		// calculation of stress tensor
 		noalias(stress_vector)  = (1.0 - m_damage_t)*data.ST;
 		noalias(stress_vector) += (1.0 - m_damage_c)*data.SC;
-		
-		//double d1 = m_damage_t;
-		//double d2 = m_damage_c;
-		//double dd = std::max(d1, d2);
-		//std::cout << "m_damage_limit :" << m_damage_limit << std::endl;
-		//if (dd > data.damage_limit) {
-		//	m_error_code = -1.0;
-		//	//std::cout << "damage[std::max(d1,d2)] > 0.01\n";
-		//}
-
 	}
 
 

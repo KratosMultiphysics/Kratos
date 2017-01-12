@@ -54,7 +54,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/constitutive_law.h"
 
+//#define DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 #define DAM_TC_3D_IMPLEX
+#define DAM_TC_3D_SEQLIN
 
 namespace Kratos
 {
@@ -435,7 +437,7 @@ namespace Kratos
 			int CalculateTangent = true,
 			bool SaveInternalVariables = true);
 
-	protected:
+	public:
 
 		struct CalculationData
 		{
@@ -464,6 +466,13 @@ namespace Kratos
 			Vector Si;
 			Vector ST;
 			Vector SC;
+			Matrix PT;
+			Matrix PC;
+			Matrix QT;
+			Matrix QC;
+			array_1d<double,3> v0;
+			array_1d<double,3> v1;
+			array_1d<double,3> v2;
 			// misc
 			double eta;
 			double lch;
@@ -473,6 +482,8 @@ namespace Kratos
 			// different tensile models
 			int tensile_damage_model;
 		};
+
+	protected:
 
 		///@name Protected static Member Variables
 		///@{
@@ -504,7 +515,22 @@ namespace Kratos
 		double m_rc_impl_temp;
 #endif // DAM_TC_3D_IMPLEX
 
+#ifdef DAM_TC_3D_SEQLIN
+		Matrix m_PT_n;
+		Matrix m_PC_n;
+		Matrix m_PT_n_converged;
+		Matrix m_PC_n_converged;
+		bool m_has_n_converged_data;
+#endif // DAM_TC_3D_SEQLIN
+
 		double m_error_code;
+
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+		double m_E;
+		bool   m_has_changed_reg;
+		double m_change_reg_t_x;
+		double m_change_reg_c_x;
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 
 		///@}
 
@@ -521,15 +547,15 @@ namespace Kratos
 
 		void TensionCompressionSplit(CalculationData& data);
 
-		void TrialEquivalentStressTension(CalculationData& data, double& rt_trial);
+		void TrialEquivalentStressTension(CalculationData& data, double& rt_trial, Vector& d_rt_trial_d_sigma);
 
-		void TrialEquivalentStressCompression(CalculationData& data, double& rc_trial);
+		void TrialEquivalentStressCompression(CalculationData& data, double& rc_trial, Vector& d_rc_trial_d_sigma);
 
-		void CalculateDamageTension(CalculationData& data, double rt, double& dt);
+		void CalculateDamageTension(CalculationData& data, double rt, double& dt, double& d_dt_d_rt);
 
-		void CalculateDamageCompression(CalculationData& data, double rc, double& dc);
+		void CalculateDamageCompression(CalculationData& data, double rc, double& dc, double& d_dc_d_rc);
 
-		void CalculateMaterialResponseInternal(const Vector& strain_vector, Vector& stress_vector, CalculationData& data);
+		void CalculateMaterialResponseInternal(const Vector& strain_vector, Vector& stress_vector, Matrix& tangent_matrix, CalculationData& data);
 
 		///@}
 

@@ -61,9 +61,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rve_constraint_handler.h"
 #include "rve_geometry_descriptor.h"
 #include "rve_utilities.h"
+#include "rve_config.h"
 
 
-//#define RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_NO_ASM_ZEROS
+#define RVE_SOE_ASSEBLE_LHS(K,IG,JG,KEL,IL,JL)  if( std::abs(KEL(IL,JL)) > RVE_SOE_SMALL_NUMBER ) {  K(IG,JG) += KEL(IL,JL);  }
+#define RVE_SOE_ASSEBLE_RHS(R,IG,REL,IL)        if( std::abs(REL[IL]) > RVE_SOE_SMALL_NUMBER )    {  R[IG] += REL[IL];  }
+#else // RVE_SOE_NO_ASM_ZEROS
+#define RVE_SOE_ASSEBLE_LHS(K,IG,JG,KEL,IL,JL)  K(IG,JG) += KEL(IL,JL)
+#define RVE_SOE_ASSEBLE_RHS(R,IG,REL,IL)        R[IG] += REL[IL]
+#endif // RVE_SOE_NO_ASM_ZEROS
+
 
 namespace Kratos
 {
@@ -113,7 +121,6 @@ namespace Kratos
 		
 		RveLinearSystemOfEquations(LinearSolverPointerType pLinearSolver)
 			: m_lin_solver(pLinearSolver)
-			, m_calculate_reactions(true)
 			, m_initialized(false)
 			, m_equation_system_size(0)
 		{
@@ -139,13 +146,25 @@ namespace Kratos
 						   SchemePointerType& pScheme, 
 						   RveConstraintHandlerPointerType& chandler)
 		{
-			//if(m_initialized)return; //COMMENTED BY STEFANO
+			if(m_initialized)return;
 			if(m_initialized)
 				this->End();
 
 			chandler->SetupDofSet(mp, geom, pScheme, m_dofset);
 			chandler->SetUpSystem(mp, geom, m_dofset, m_equation_system_size, m_transformed_equation_ids, m_equation_id_flag);
 			this->ResizeAndInitializeVectors(mp);
+
+			const RveGeometryDescriptor::IndexContainerType& boundary_nodes_ids = geom.BoundaryNodesIDs();
+			m_bnd_dofset.clear();
+			for (DofsArrayType::ptr_iterator bnd_dof_iter = m_dofset.ptr_begin(); bnd_dof_iter != m_dofset.ptr_end(); ++bnd_dof_iter)
+			{
+				//Dof<double>::Pointer& dofp = *bnd_dof_iter;
+				auto& dofp = *bnd_dof_iter;
+				if(std::find(boundary_nodes_ids.begin(), boundary_nodes_ids.end(), dofp->Id()) != boundary_nodes_ids.end())
+				{
+					m_bnd_dofset.push_back(dofp);
+				}
+			}
 
 			m_initialized = true;
 		}
@@ -157,8 +176,6 @@ namespace Kratos
 			ConditionsArrayType& ConditionsArray = mp.Conditions();
 
 			TSparseSpace::SetToZero(m_b);
-			if(m_calculate_reactions)
-				TSparseSpace::SetToZero(m_r);
 
 			Element::EquationIdVectorType EquationId;
 			DenseMatrixType LHS_Contribution = DenseMatrixType(0, 0);
@@ -180,20 +197,15 @@ namespace Kratos
 				pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 				AssembleRHS(RHS_Contribution, EquationId);
 			}
-
-			if(m_calculate_reactions)
-				this->CalculateReactions(mp, pScheme);
 		}
 
-		virtual void BuildRHS_Reduced(ModelPart& mp, 
-							  SchemePointerType& pScheme,
-							  const RveGeometryDescriptor::IndexContainerType& elem_subset)
+		virtual void BuildRHS_WithReactions(ModelPart& mp,
+											SchemePointerType& pScheme)
 		{
-			//ElementsArrayType& pElements = mp.Elements();
+			ElementsArrayType& pElements = mp.Elements();
+			ConditionsArrayType& ConditionsArray = mp.Conditions();
 
 			TSparseSpace::SetToZero(m_b);
-			if(m_calculate_reactions)
-				TSparseSpace::SetToZero(m_r);
 
 			Element::EquationIdVectorType EquationId;
 			DenseMatrixType LHS_Contribution = DenseMatrixType(0, 0);
@@ -201,16 +213,167 @@ namespace Kratos
 
 			ProcessInfo& CurrentProcessInfo = mp.GetProcessInfo();
 
+			// get boundary dofs. zeroing reactions
+			DofsArrayType& boundary_dofs = m_bnd_dofset;
+			for(DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+			{
+				//Dof<double>::Pointer& dofp = *bnd_dof_iter;
+				auto& dofp = *bnd_dof_iter;
+				dofp->GetSolutionStepReactionValue() = 0.0;
+			}
+
+			// assemble elements
+			for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+			{
+				pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+				AssembleRHS(RHS_Contribution, EquationId);
+				// assemble reactions
+				for(unsigned int i_local = 0; i_local < EquationId.size(); i_local++)
+				{
+					unsigned int i_global = EquationId[i_local];
+					for (DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+					{
+						//Dof<double>::Pointer& dofp = *bnd_dof_iter;
+						auto& dofp = *bnd_dof_iter;
+						if(dofp->EquationId() == i_global)
+						{
+							dofp->GetSolutionStepReactionValue() -= RHS_Contribution(i_local);
+							break;
+						}
+					}
+				}
+			}
+
+			LHS_Contribution.resize(0, 0, false);
+			RHS_Contribution.resize(0, false);
+
+			// NOOOO: it gives the exact stresses without assembling them!
+			// assemble conditions
+			//for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+			//{
+			//	pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+			//	AssembleRHS(RHS_Contribution, EquationId);
+			//	// assemble reactions
+			//	for(unsigned int i_local = 0; i_local < EquationId.size(); i_local++)
+			//	{
+			//		unsigned int i_global = EquationId[i_local];
+			//		for (DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+			//		{
+			//			Dof<double>::Pointer& dofp = *bnd_dof_iter;
+			//			if(dofp->EquationId() == i_global)
+			//			{
+			//				dofp->GetSolutionStepReactionValue() -= RHS_Contribution(i_local);
+			//				break;
+			//			}
+			//		}
+			//	}
+			//}
+		}
+
+		virtual void BuildRHS_Reduced_WithReactions(ModelPart& mp, 
+													SchemePointerType& pScheme,
+													const RveGeometryDescriptor::IndexContainerType& elem_subset)
+		{
+			ElementsArrayType& pElements = mp.Elements();
+			ConditionsArrayType& ConditionsArray = mp.Conditions();
+
+			TSparseSpace::SetToZero(m_b);
+
+			Element::EquationIdVectorType EquationId;
+			DenseMatrixType LHS_Contribution = DenseMatrixType(0, 0);
+			VectorType RHS_Contribution = VectorType(0);
+
+			ProcessInfo& CurrentProcessInfo = mp.GetProcessInfo();
+
+			// get boundary dofs. zeroing reactions
+			DofsArrayType& boundary_dofs = m_bnd_dofset;
+			for(DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+			{
+				//Dof<double>::Pointer& dofp = *bnd_dof_iter;
+				auto& dofp = *bnd_dof_iter;
+				dofp->GetSolutionStepReactionValue() = 0.0;
+			}
+
+			// assemble elements rhs and calculate reactions
+			/** @todo
+			warning: we're using pGetElement to get the elements corresponding to the reduced subset elem_subset.
+			this is not robust! change it to something like:
+			for each element, if element is on boundary (FLAG) do something...
+			*/
 			for(RveGeometryDescriptor::IndexContainerType::const_iterator it = elem_subset.begin(); it != elem_subset.end(); ++it)
 			{
 				RveGeometryDescriptor::IndexType elemid = *it;
 				ModelPart::ElementType::Pointer ielem = mp.pGetElement(elemid);
 				pScheme->Calculate_RHS_Contribution(ielem, RHS_Contribution, EquationId, CurrentProcessInfo);
 				AssembleRHS(RHS_Contribution, EquationId);
+				// assemble reactions
+				for(unsigned int i_local = 0; i_local < EquationId.size(); i_local++)
+				{
+					unsigned int i_global = EquationId[i_local];
+					for (DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+					{
+						//Dof<double>::Pointer& dofp = *bnd_dof_iter;
+						auto& dofp = *bnd_dof_iter;
+						if(dofp->EquationId() == i_global)
+						{
+							dofp->GetSolutionStepReactionValue() -= RHS_Contribution(i_local);
+							break;
+						}
+					}
+				}
 			}
 
-			if(m_calculate_reactions)
-				this->CalculateReactions(mp, pScheme);
+			LHS_Contribution.resize(0, 0, false);
+			RHS_Contribution.resize(0, false);
+
+			// assemble conditions
+			// NOOOO: it gives the exact stresses without assembling them!
+			/** @todo
+			BUG: the following code is not robust! same reason as above!. 
+			other problem: this works if we have 1 condition per element with the same numbering!! BAD!
+			it doesn't work with minimal conditions on RVE boudnaries
+			*/
+			//for(RveGeometryDescriptor::IndexContainerType::const_iterator it = elem_subset.begin(); it != elem_subset.end(); ++it)
+			//{
+			//	RveGeometryDescriptor::IndexType elemid = *it;
+			//	ModelPart::ConditionType::Pointer icond = mp.pGetCondition(elemid);
+			//	pScheme->Condition_Calculate_RHS_Contribution(icond, RHS_Contribution, EquationId, CurrentProcessInfo);
+			//	AssembleRHS(RHS_Contribution, EquationId);
+			//	// assemble reactions
+			//	for(unsigned int i_local = 0; i_local < EquationId.size(); i_local++)
+			//	{
+			//		unsigned int i_global = EquationId[i_local];
+			//		for (DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+			//		{
+			//			Dof<double>::Pointer& dofp = *bnd_dof_iter;
+			//			if(dofp->EquationId() == i_global)
+			//			{
+			//				dofp->GetSolutionStepReactionValue() -= RHS_Contribution(i_local);
+			//				break;
+			//			}
+			//		}
+			//	}
+			//}
+			//for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+			//{
+			//	pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+			//	AssembleRHS(RHS_Contribution, EquationId);
+			//	// assemble reactions
+			//	for(unsigned int i_local = 0; i_local < EquationId.size(); i_local++)
+			//	{
+			//		unsigned int i_global = EquationId[i_local];
+			//		for (DofsArrayType::ptr_iterator bnd_dof_iter = boundary_dofs.ptr_begin(); bnd_dof_iter != boundary_dofs.ptr_end(); ++bnd_dof_iter)
+			//		{
+			//			Dof<double>::Pointer& dofp = *bnd_dof_iter;
+			//			if(dofp->EquationId() == i_global)
+			//			{
+			//				dofp->GetSolutionStepReactionValue() -= RHS_Contribution(i_local);
+			//				break;
+			//			}
+			//		}
+			//	}
+			//}
+
 		}
 
 		virtual void BuildLHS(ModelPart& mp, 
@@ -249,17 +412,15 @@ namespace Kratos
 						   SchemePointerType& pScheme)
 		{
 
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 			RveUtilities::RveTimer timer;
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 
 			ElementsArrayType& pElements = mp.Elements();
 			ConditionsArrayType& ConditionsArray = mp.Conditions();
 
 			TSparseSpace::SetToZero(m_A);
 			TSparseSpace::SetToZero(m_b);
-			if(m_calculate_reactions)
-				TSparseSpace::SetToZero(m_r);
 
 			Element::EquationIdVectorType EquationId;
 			DenseMatrixType LHS_Contribution = DenseMatrixType(0, 0);
@@ -267,31 +428,30 @@ namespace Kratos
 
 			ProcessInfo& CurrentProcessInfo = mp.GetProcessInfo();
 
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 			double time_calc = 0.0;
 			double time_assm = 0.0;
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 
 			for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 			{
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 				timer.start();
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 				pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 				timer.stop();
 				time_calc += timer.value();
 				timer.start();
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 				AssembleLHS(LHS_Contribution, EquationId);
 				AssembleRHS(RHS_Contribution, EquationId);
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 				timer.stop();
 				time_assm += timer.value();
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 				pScheme->CleanMemory(*it);
 			}
-
 			LHS_Contribution.resize(0, 0, false);
 			RHS_Contribution.resize(0, false);
 
@@ -302,15 +462,12 @@ namespace Kratos
 				AssembleRHS(RHS_Contribution, EquationId);
 			}
 
-			if(m_calculate_reactions)
-				this->CalculateReactions(mp, pScheme);
-
 			// factorize
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 			timer.start();
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 			this->m_lin_solver->InitializeSolutionStep(m_A, m_x, m_b);
-#ifdef RVE_SOE_TIMER_ON
+#ifdef RVE_SOE_TIMING
 			timer.stop();
 			double time_fact = timer.value();
 			double total_time = time_calc + time_assm + time_fact;
@@ -320,27 +477,26 @@ namespace Kratos
 			ss << "Assemble:    " << time_assm << "; % = " << time_assm/total_time << std::endl;
 			ss << "Factorize:   " << time_fact << "; % = " << time_fact/total_time << std::endl;
 			std::cout << ss.str();
-#endif // RVE_SOE_TIMER_ONE
+#endif // RVE_SOE_TIMINGE
 		}
 
 		virtual void Solve()
 		{
 			//TSparseSpace::SetToZero(m_x);
 			if(TSparseSpace::Size(m_x) == 0) return;
-			//this->m_lin_solver->PerformSolutionStep(m_A,m_x,m_b); //COMMENTED BY STEFANO
-			this->m_lin_solver->Solve(m_A,m_x,m_b); // TODO: dire a ricc se si puo splittare initi/solve/fin
+			this->m_lin_solver->PerformSolutionStep(m_A,m_x,m_b);
+			//this->m_lin_solver->Solve(m_A,m_x,m_b); // TODO: dire a ricc se si puo splittare initi/solve/fin
 		}
 
 		virtual void End()
 		{
-			//return; //COMMENTED BY STEFANO
+			return;
 			if(m_initialized)
 			{
 				this->m_lin_solver->FinalizeSolutionStep(m_A,m_x,m_b);
 
 				m_b = VectorType();
 				m_x = VectorType();
-				m_r = VectorType();
 				m_A = SparseMatrixType();
 				
 				m_dofset = DofsArrayType();
@@ -361,13 +517,6 @@ namespace Kratos
 				m_x.resize(m_equation_system_size, false);
 			if (m_b.size() != m_equation_system_size)
 				m_b.resize(m_equation_system_size, false);
-
-			if (m_calculate_reactions)
-			{
-				size_t rection_vector_size = m_dofset.size() - m_equation_system_size;
-				if (m_r.size() != rection_vector_size)
-					m_r.resize(rection_vector_size, false);
-			}
 		}
 
 		virtual void ConstructMatrixStructure(ModelPart& mp)
@@ -441,20 +590,16 @@ namespace Kratos
 			for (unsigned int i_local = 0; i_local < local_size; i_local++)
 			{
 				unsigned int i_global = EquationId[i_local];
-				// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 				i_global = m_transformed_equation_ids[i_global];
-				// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 				if (i_global < m_equation_system_size)
 				{
 					for (unsigned int j_local = 0; j_local < local_size; j_local++)
 					{
 						unsigned int j_global = EquationId[j_local];
-						// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 						j_global = m_transformed_equation_ids[j_global];
-						// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 						if (j_global < m_equation_system_size)
 						{
-							m_A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+							RVE_SOE_ASSEBLE_LHS(m_A, i_global, j_global, LHS_Contribution, i_local, j_local);
 						}
 					}
 				}
@@ -465,89 +610,30 @@ namespace Kratos
 								 Element::EquationIdVectorType& EquationId)
 		{
 			unsigned int local_size = RHS_Contribution.size();
-
-			if (!m_calculate_reactions)
-			{
-				for (unsigned int i_local = 0; i_local < local_size; i_local++)
+			for (unsigned int i_local = 0; i_local < local_size; i_local++)
 				{
 					unsigned int i_global = EquationId[i_local];
-					// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 					i_global = m_transformed_equation_ids[i_global];
-					// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 					if (i_global < m_equation_system_size)
 					{
-						m_b[i_global] += RHS_Contribution[i_local];
+						RVE_SOE_ASSEBLE_RHS(m_b, i_global, RHS_Contribution, i_local);
 					}
 				}
-			}
-			else 
-			{
-				for (unsigned int i_local = 0; i_local < local_size; i_local++)
-				{
-					//unsigned int i_global = EquationId[i_local];
-					//// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					//i_global = m_transformed_equation_ids[i_global];
-					//// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					//if (i_global < m_equation_system_size) 
-					//{
-					//	m_b[i_global] += RHS_Contribution[i_local];
-					//}
-					//else
-					//{
-					//	m_r[i_global - m_equation_system_size] -= RHS_Contribution[i_local];
-					//}
-					// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					unsigned int i_global_original = EquationId[i_local];
-					unsigned int i_global = m_transformed_equation_ids[i_global_original];
-					// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					if (i_global < m_equation_system_size) 
-					{
-						m_b[i_global] += RHS_Contribution[i_local];
-						if(i_global_original != i_global)
-						{
-							m_r[i_global_original - m_equation_system_size] -= RHS_Contribution[i_local];
-						}
-					}
-					else
-					{
-						m_r[i_global - m_equation_system_size] -= RHS_Contribution[i_local];
-					}
-				}
-			}
-		}
-
-		virtual void CalculateReactions(ModelPart& mp, 
-										SchemePointerType& pScheme)
-		{
-			for (DofsArrayType::iterator it2 = m_dofset.begin(); it2 != m_dofset.end(); ++it2)
-			{
-				Dof<double> &dofp = *it2;
-				if (dofp.IsFixed())
-				{
-					size_t i = dofp.EquationId() - m_equation_system_size;
-					dofp.GetSolutionStepReactionValue() = m_r[i];
-				}
-			}
 		}
 
 	public:
 
 		inline const LinearSolverPointerType& GetLinearSolver()const { return m_lin_solver; }
 
-		inline const bool CalculateReactions()const { return m_calculate_reactions; }
-		inline bool&      CalculateReactions()      { return m_calculate_reactions; }
-
 		inline const size_t EquationSystemSize()const { return m_equation_system_size; }
 
 		inline const VectorType&       B()const { return m_b; }
 		inline const SparseMatrixType& A()const { return m_A; }
 		inline const VectorType&       X()const { return m_x; }
-		inline const VectorType&       R()const { return m_r; }
 
 		inline VectorType&             B()      { return m_b; }
 		inline SparseMatrixType&       A()      { return m_A; }
 		inline VectorType&             X()      { return m_x; }
-		inline VectorType&             R()      { return m_r; }
 
 		inline const DofsArrayType& DofSet()const { return m_dofset; }
 		inline DofsArrayType&       DofSet()      { return m_dofset; }
@@ -557,16 +643,15 @@ namespace Kratos
 	protected:
 
 		LinearSolverPointerType m_lin_solver;
-		bool m_calculate_reactions;
 		bool m_initialized;
 		size_t m_equation_system_size;
 		VectorType m_b;
 		VectorType m_x;
-		VectorType m_r;
 		SparseMatrixType m_A;
 		DofsArrayType m_dofset;
 		IndexContainerType m_transformed_equation_ids;
 		IndexContainerType m_equation_id_flag;
+		DofsArrayType m_bnd_dofset;
 
 	};
 

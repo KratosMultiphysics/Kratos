@@ -10,6 +10,7 @@
 /* External includes */
 #include "boost/smart_ptr.hpp"
 #include <iomanip>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 /* Project includes */
 #include "includes/define.h"
@@ -135,6 +136,8 @@ public:
 		mTargetDisplacement = TargetDisplacement;
 		m_U_q_initial = 0.0;
 		m_dU_bar_q = 0.0;
+
+		mFirstStepDone = false;
     }
 
     DisplacementControlStrategy(ModelPart& model_part,
@@ -198,6 +201,8 @@ public:
 		mTargetDisplacement = TargetDisplacement;
 		m_U_q_initial = 0.0;
 		m_dU_bar_q = 0.0;
+
+		mFirstStepDone = false;
     }
 
     virtual ~DisplacementControlStrategy()
@@ -402,6 +407,7 @@ public:
 		// do not finalize this step. this is a pre-calculation to obtain Fhat!
 		//mSolutionStepIsInitialized = false;
 		this->FinalizeSolutionStep(*mpA, *mpDx, *mpb);
+		mFirstStepDone = false;
 	}
 	
 	double Solve()
@@ -511,9 +517,14 @@ public:
 			model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
 			// calculate the current stiffness matrix
-			TSparseSpace::SetToZero(mA);
 			TSparseSpace::SetToZero(mb);
-			mpBuilderAndSolver->Build(mpScheme, model, mA, mb); // <<<<<<<<<<<<<<<<<<<<<<<<<<<< CHECK INT ERROR
+			if(mReformDofSetAtEachStep || !mFirstStepDone)
+			{
+				std::cout << "FORMING PREVIOUS STIFFNESS\n";
+				// we don't have a previous converged stiffness
+				TSparseSpace::SetToZero(mA);
+				mpBuilderAndSolver->Build(mpScheme, model, mA, mb); // <<<<<<<<<<<<<<<<<<<<<<<<<<<< CHECK INT ERROR
+			}// use previous converged stiffness
 			
 			// solve for the tangential displacement due to the reference (total) load
 			mpBuilderAndSolver->SystemSolve(mA, Uhat, mFhat);
@@ -558,8 +569,21 @@ public:
 				
 				// update the stiffness matrix
 				TSparseSpace::SetToZero(mb);
-				TSparseSpace::SetToZero(mA);
-				mpBuilderAndSolver->Build(mpScheme, model, mA, mb);
+				// ----------------------------------------------------------
+				// REBUILD LHS ALWAYS
+				/*TSparseSpace::SetToZero(mA);
+				mpBuilderAndSolver->Build(mpScheme, model, mA, mb);*/
+				// REBUILD LHS ONLY ONCE PER STEP
+				if(iteration_number == 1)
+				{
+					TSparseSpace::SetToZero(mA);
+					mpBuilderAndSolver->Build(mpScheme, model, mA, mb);
+				}
+				else
+				{
+					mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
+				}
+				// ----------------------------------------------------------
 				noalias(mb) += current_lambda * mFhat;
 				if(this->CheckIntegrationErrors() != 0.0)
 				{
@@ -572,8 +596,24 @@ public:
 				
 				// update the load ratio corrector
 				mpBuilderAndSolver->SystemSolve(mA, Uaux, mb);
+				// check solution validity
+				if(!this->CheckSolutionValidity(Uaux))
+				{
+					mIsConverged = false;
+					iteration_number = mMaxIterationNumber;
+					model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+					break;
+				}
 				double U_tilde = Uaux(cequid);
 				mpBuilderAndSolver->SystemSolve(mA, Uaux, mFhat);
+				// check solution validity
+				if(!this->CheckSolutionValidity(Uaux))
+				{
+					mIsConverged = false;
+					iteration_number = mMaxIterationNumber;
+					model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+					break;
+				}
 				double U_hat = Uaux(cequid);
 				double d_lambda = U_tilde / U_hat;
 				current_lambda -= d_lambda;
@@ -583,6 +623,14 @@ public:
 				
 				// solve for the displacement correction and update
 				mpBuilderAndSolver->SystemSolve(mA, mDx, mb);
+				// check solution validity
+				if(!this->CheckSolutionValidity(mDx))
+				{
+					mIsConverged = false;
+					iteration_number = mMaxIterationNumber;
+					model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+					break;
+				}
 				mpScheme->Update(model, rDofSet, mA, mDx, mb);
 				if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 				mpScheme->FinalizeNonLinIteration(model, mA, mDx, mb);
@@ -767,6 +815,8 @@ protected:
 			this->Clear();
 
 		mSolutionStepIsInitialized = false;
+
+		mFirstStepDone = true;
 	}
 	
 	void AbortSolutionStep()
@@ -809,6 +859,21 @@ protected:
 					return error_codes[i];
 		}
 		return 0.0;
+	}
+
+	bool CheckSolutionValidity(TSystemVectorType& mDx)
+	{
+		bool is_valid = true;
+		unsigned int eqsize = TSparseSpace::Size(mDx);
+		for(unsigned int i = 0; i < eqsize; i++) {
+			double idx = mDx[i];
+			if(!( (boost::math::isfinite)(idx) )) {
+				std::cout << "found a non finite value in the solution vector (nan or inifinite)\n";
+				is_valid = false;
+				break;
+			}
+		}
+		return is_valid;
 	}
 
 	inline void PromptSeparator()
@@ -901,6 +966,8 @@ protected:
 	bool            mIsConverged;
 	
 	bool            mAllowNonConvergence;
+
+	bool            mFirstStepDone;
 
 }; /* Class DisplacementControlStrategy */
 

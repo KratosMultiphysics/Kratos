@@ -391,6 +391,15 @@ namespace Kratos
 			if(constitutive_matrix.size1() != n || constitutive_matrix.size2() != n)
 				constitutive_matrix.resize(n, n);
 
+			if(props.Has(DAMAGE_SECANT_MATRIX))
+			{
+				if(props[DAMAGE_SECANT_MATRIX] > 0.0) 
+				{
+					noalias(constitutive_matrix) = (1.0-m_damage)*data.C0;
+					return;
+				}
+			}
+
 			// save internal variables
 			double save_r = m_r;
 			double save_d = m_damage;

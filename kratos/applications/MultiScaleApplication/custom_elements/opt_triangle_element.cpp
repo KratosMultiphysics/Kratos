@@ -48,7 +48,7 @@
 #endif // OPT_USES_INTERIOR_GAUSS_POINTS
 #endif // OPT_1_POINT_INTEGRATION
 
-//#define OPT_AVARAGE_RESULTS
+#define OPT_AVARAGE_RESULTS
 
 namespace Kratos
 {
@@ -908,17 +908,17 @@ namespace Kratos
 		double loc2 = gpLoc[1];
 		double loc3 = gpLoc[2];
 
-		//const GeometryType& geom = GetGeometry();
-		//const NodeType& p1 = geom[0];
-		//const NodeType& p2 = geom[1];
-		//const NodeType& p3 = geom[2];
+		const GeometryType& geom = GetGeometry();
+		const NodeType& p1 = geom[0];
+		const NodeType& p2 = geom[1];
+		const NodeType& p3 = geom[2];
 
-		//const double x12 = p1.X0() - p2.X0();
-		//const double x23 = p2.X0() - p3.X0(); 
-		//const double x31 = p3.X0() - p1.X0();
-		//const double y12 = p1.Y0() - p2.Y0();
-		//const double y23 = p2.Y0() - p3.Y0(); 
-		//const double y31 = p3.Y0() - p1.Y0();
+		const double x12 = p1.X0() - p2.X0();
+		const double x23 = p2.X0() - p3.X0(); 
+		const double x31 = p3.X0() - p1.X0();
+		const double y12 = p1.Y0() - p2.Y0();
+		const double y23 = p2.Y0() - p3.Y0(); 
+		const double y31 = p3.Y0() - p1.Y0();
 
 		//---------------------------------------------
 		// membrane basic part L
@@ -942,7 +942,7 @@ namespace Kratos
 
 	void OptTriangleElement::CalculateBeta0(CalculationData& data)
 	{
-		data.beta0 = 0.5; // to be changed!
+		data.beta0 = 1.0; // to be changed!
 	}
 
 	void OptTriangleElement::CalculateConstitutiveLawResponse(CalculationData& data)

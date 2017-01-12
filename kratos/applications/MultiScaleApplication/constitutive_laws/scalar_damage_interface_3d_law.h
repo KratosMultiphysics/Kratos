@@ -427,7 +427,7 @@ protected:
         double K3;
 		// others
 		double MRatio;
-		array_1d<double,2> ElasticStressVector;
+		array_1d<double,3> ElasticStressVector;
 		bool ForceSecant;
 	};
 

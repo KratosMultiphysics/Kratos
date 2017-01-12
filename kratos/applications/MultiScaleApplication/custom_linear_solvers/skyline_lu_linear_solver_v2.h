@@ -407,7 +407,7 @@ public:
 
         if(entriesD[0] == 0.00)
         {
-            //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUSkylineFactorization::factorize: Error zero in diagonal" << std::endl;
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUSkylineFactorization::factorize: Error zero in diagonal" << std::endl;
         } //Roport Error zero in diagonal!!!!!!!!!!!
 
         for (k=0; k<size-1; k++)

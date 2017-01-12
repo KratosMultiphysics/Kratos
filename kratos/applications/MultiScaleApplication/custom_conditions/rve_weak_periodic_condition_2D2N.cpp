@@ -99,51 +99,54 @@ RveWeakPeriodicCondition2D2N::~RveWeakPeriodicCondition2D2N()
 
 void RveWeakPeriodicCondition2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
- //   if(rLeftHandSideMatrix.size1() != 7 || rLeftHandSideMatrix.size2() != 7) rLeftHandSideMatrix.resize(7, 7,false);
- //   noalias(rLeftHandSideMatrix) = ZeroMatrix(7, 7);
+	//{
+	//	if(rLeftHandSideMatrix.size1() != 7 || rLeftHandSideMatrix.size2() != 7) rLeftHandSideMatrix.resize(7, 7,false);
+	//	noalias(rLeftHandSideMatrix) = ZeroMatrix(7, 7);
 
- //   if(rRightHandSideVector.size() != 7) rRightHandSideVector.resize(7, false);
-	//noalias( rRightHandSideVector ) = ZeroVector(7);
+	//	if(rRightHandSideVector.size() != 7) rRightHandSideVector.resize(7, false);
+	//	noalias( rRightHandSideVector ) = ZeroVector(7);
 
-	//GeometryType& geom = GetGeometry();
+	//	GeometryType& geom = GetGeometry();
 
-	//// get current values
+	//	// get current values
 
-	//Vector currentValues(7);
-	//currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X); // node 1 UX
-	//currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 1 UY
-	//currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X); // node 2 UX
-	//currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 2 UY
-	//currentValues(4) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_X); // lagrangian node - DOF 1
-	//currentValues(5) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_Y); // lagrangian node - DOF 2
-	//currentValues(6) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_Z); // lagrangian node - DOF 3
+	//	Vector currentValues(7,0.0);
+	//	//currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X); // node 1 UX
+	//	//currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 1 UY
+	//	//currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X); // node 2 UX
+	//	//currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 2 UY
+	//	currentValues(4) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_X); // lagrangian node - DOF 1
+	//	currentValues(5) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_Y); // lagrangian node - DOF 2
+	//	currentValues(6) = geom[2].FastGetSolutionStepValue(RVE_WPC_LAGRANGIAN_DOF_Z); // lagrangian node - DOF 3
 
-	//// compute the outward normal vector
-	//// Note: 2D on XY plane is assumed. boundary nodes in CCW order assumed
+	//	// compute the outward normal vector
+	//	// Note: 2D on XY plane is assumed. boundary nodes in CCW order assumed
 
-	//double x0 = geom[0].X0();
-	//double y0 = geom[0].Y0();
-	//double x1 = geom[1].X0();
-	//double y1 = geom[1].Y0();
+	//	double x0 = geom[0].X0();
+	//	double y0 = geom[0].Y0();
+	//	double x1 = geom[1].X0();
+	//	double y1 = geom[1].Y0();
 
-	//double nxL = (y1 - y0)/2.0;
-	//double nyL = (x0 - x1)/2.0;
+	//	double nxL = (y1 - y0)/2.0;
+	//	double nyL = (x0 - x1)/2.0;
 
-	//// form the stiffness matrix
+	//	// form the stiffness matrix
 
-	//Matrix& K = rLeftHandSideMatrix;
+	//	Matrix& K = rLeftHandSideMatrix;
 
-	//K(4,0) = nxL;                 K(4,2) = nxL;
-	//               K(5,1) = nyL;                 K(5,3) = nyL;
-	//K(6,0) = nyL;  K(6,1) = nxL;  K(6,2) = nyL;  K(6,3) = nxL;
+	//	K(4,0) = nxL;                 K(4,2) = nxL;
+	//				   K(5,1) = nyL;                 K(5,3) = nyL;
+	//	K(6,0) = nyL;  K(6,1) = nxL;  K(6,2) = nyL;  K(6,3) = nxL;
 
-	//K(0,4) = nxL;                 K(2,4) = nxL;
-	//               K(1,5) = nyL;                 K(3,5) = nyL;
-	//K(0,6) = nyL;  K(1,6) = nxL;  K(2,6) = nyL;  K(3,6) = nxL;
+	//	K(0,4) = nxL;                 K(2,4) = nxL;
+	//				   K(1,5) = nyL;                 K(3,5) = nyL;
+	//	K(0,6) = nyL;  K(1,6) = nxL;  K(2,6) = nyL;  K(3,6) = nxL;
 
-	//// form residual
+	//	// form residual
 
-	//noalias(rRightHandSideVector) -= prod( rLeftHandSideMatrix, currentValues );
+	//	noalias(rRightHandSideVector) -= prod( rLeftHandSideMatrix, currentValues );
+	//	return;
+	//}
 
 	// get the number of required lagrangian dofs
 
@@ -172,11 +175,11 @@ void RveWeakPeriodicCondition2D2N::CalculateLocalSystem(MatrixType& rLeftHandSid
 
 	// get current values
 
-	Vector currentValues(n_dofs);
-	currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X); // node 1 UX
-	currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 1 UY
-	currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X); // node 2 UX
-	currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 2 UY
+	Vector currentValues(n_dofs,0.0);
+	//currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X); // node 1 UX
+	//currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 1 UY
+	//currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X); // node 2 UX
+	//currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y); // node 2 UY
 	if(m_is_skew_symmetric_constraint) {
 		currentValues(4) = geom[2].FastGetSolutionStepValue(RVE_WPR_LAGRANGIAN_DOF); // lagrangian node - DOF 1
 	}
@@ -205,7 +208,6 @@ void RveWeakPeriodicCondition2D2N::CalculateLocalSystem(MatrixType& rLeftHandSid
 	if(m_is_skew_symmetric_constraint) {
 		K(4,0) = -0.5*nyL;  K(4,1) = 0.5*nxL;  K(4,2) = -0.5*nyL;  K(4,3) = 0.5*nxL;
 		K(0,4) = -0.5*nyL;  K(1,4) = 0.5*nxL;  K(2,4) = -0.5*nyL;  K(3,4) = 0.5*nxL;
-		//std::cout << MathHelpers::MatrixToString(K,4,std::fixed) << std::endl;
 	}
 	else {
 		if(mask[0]>0) {
@@ -418,6 +420,10 @@ unsigned int RveWeakPeriodicCondition2D2N::CalculateLagrangianDofMask(array_1d<u
 		mask[1] = 0;
 	mask[2] = ++index;
 	return index-3;
+	/*mask[0] = 4;
+	mask[1] = 5;
+	mask[2] = 6;
+	return 3;*/
 }
 
 }

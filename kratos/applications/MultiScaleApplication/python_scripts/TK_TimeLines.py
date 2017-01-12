@@ -167,4 +167,85 @@ class AdaptiveTimeLine:
 		if(self.CurrentTime >= (self.EndTime - self.ASmallTolerance)):
 			self.CurrentTime = self.EndTime
 			self.Finished = True
+
+# class CompositeTimeLine:
+	
+	# def __init__(
+				# self,
+				# TimeLines = []):
 		
+		# if(len(TimeLines) < 1):
+			# raise Exception('At least one timeline is required')
+		# self.TimeLines = TimeLines
+		
+		# self.InitialTime = 0.0
+		# self.Duration = 0.0
+		# for tl in self.TimeLines:
+			# self.Duration = self.Duration + tl.Duration
+		
+		# self.TLID = 0
+		
+		# self.Increment = self.TimeLines[self.TLID].Increment
+		
+		# self.EndTime = self.InitialTime + self.Duration
+		
+		# self.CurrentIncrement = self.Increment
+		# self.CurrentTime = self.InitialTime
+		# self.LastIterationConverged = True
+		
+		# self.MinIncrement = self.TimeLines[self.TLID].MinIncrement
+		# self.MaxIncrement = self.TimeLines[self.TLID].MaxIncrement
+		
+		# self.ASmallTolerance = self.Duration * 1.0E-10
+		# if(self.ASmallTolerance > self.MinIncrement):
+			# self.ASmallTolerance = self.MinIncrement * 1.0E-2
+		
+		# self.Finished = False
+	
+	# def SetInitialTime(self, InitialTime):
+		
+		# self.InitialTime = InitialTime
+		# last_initial_time = self.InitialTime
+		# for tl in self.TimeLines:
+			# tl.SetInitialTime(last_initial_time)
+			# last_initial_time = tl.EndTime
+		# self.EndTime = self.InitialTime + self.Duration
+		# self.CurrentTime = self.InitialTime
+	
+	# def NextTimeStep(self, LastIterationConverged = True):
+		
+		
+		# if(LastIterationConverged == True):
+			
+			# self.LastIterationConverged = LastIterationConverged
+			# self.CurrentTime += self.CurrentIncrement
+			# self.CheckFinishedState()
+			# return (True, self.CurrentTime)
+			
+		# else:
+			
+			# self.LastIterationConverged = LastIterationConverged
+			# print ("")
+			# print (" Reducing Time Step due to NON CONVERGENCE: ")
+			# print ("   Previous Increment : ", self.CurrentIncrement)
+			# print ("   Current Increment  : ", self.CurrentIncrement * 0.5)
+			# print ("")
+			# self.CurrentTime -= self.CurrentIncrement
+			# self.CurrentIncrement *= 0.5
+			# if(self.CurrentIncrement < self.MinIncrement):
+				# print (" WARNING: The required increment is smaller than the Mininum increment!")
+				# print (" Current increment: ", self.CurrentIncrement, " < Min.Increment: ", self.MinIncrement)
+				# return (False, self.CurrentTime)
+			# else:
+				# self.CurrentTime += self.CurrentIncrement
+				# self.CheckFinishedState()
+				# return (True, self.CurrentTime)
+		
+		# return (False, self.CurrentTime)
+	
+	# def CheckFinishedState(self):
+		
+		# self.Finished = False
+		# if(self.CurrentTime >= (self.EndTime - self.ASmallTolerance)):
+			# self.CurrentTime = self.EndTime
+			# self.Finished = True

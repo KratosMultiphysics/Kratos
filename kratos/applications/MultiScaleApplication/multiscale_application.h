@@ -30,6 +30,7 @@
 #include "includes/ublas_interface.h"
 
 #include "custom_elements/small_displacement_interface_element.hpp"
+#include "custom_elements/shell_thick_interface_element.hpp"
 #include "custom_elements/opt_triangle_element.hpp"
 #include "custom_elements/eas_quad_element_v2.hpp"
 #include "custom_elements/q4ristab_element.hpp"
@@ -38,6 +39,7 @@
 
 #include "custom_elements/ebst_element_2d3n.h"
 #include "custom_elements/agq4_element.hpp"
+#include "custom_elements/small_displacement_elastic_link_element.hpp"
 #include "custom_conditions/periodic_condition_lm_2D2N.h"
 
 namespace Kratos
@@ -141,6 +143,62 @@ public:
     ///@{
     ///@}
 
+public:
+
+	///@name Member Variables
+	///@{
+
+	struct KeyComparor
+	{
+		bool operator()(const vector<double>& lhs, const vector<double>& rhs) const
+		{
+			if (lhs.size() != rhs.size())
+				return false;
+
+			for (unsigned int i = 0; i<lhs.size(); i++)
+			{
+				if (lhs[i] != rhs[i]) return false;
+			}
+
+			return true;
+		}
+	};
+
+	struct KeyHasher
+	{
+		std::size_t operator()(const vector<int>& k) const
+		{
+			return boost::hash_range(k.begin(), k.end());
+		}
+	};
+
+	/*Unordered maps are associative containers that store elements
+	* formed by the combination of a key value and a mapped value,
+	* and which allows for fast retrieval of individual elements based on their keys.
+	*
+	* In an unordered_map, the key value is generally used to uniquely identify the element,
+	* while the mapped value is an object with the content associated to this key.
+	* Types of key and mapped value may differ.
+	*
+	* Internally, the elements in the unordered_map are not sorted in any particular order
+	* with respect to either their key or mapped values, but organized into buckets depending
+	* on their hash values to allow for fast access to individual elements directly by their
+	* key values (with a constant average time complexity on average).
+	*
+	* unordered_map containers are faster than map containers to access individual elements
+	* by their key, although they are generally less efficient for range iteration through
+	* a subset of their elements.
+	*
+	* Unordered maps implement the direct access operator (operator[]) which allows for
+	* direct access of the mapped value using its key value as argument.
+	* Ref.: http://www.cplusplus.com/reference/unordered_map/unordered_map/
+	*/
+	typedef boost::unordered_map<vector<int>, Vector, KeyHasher, KeyComparor > UnorderedVectorVectorMap;
+
+	typedef boost::unordered_map<vector<int>, Matrix, KeyHasher, KeyComparor> UnorderedVectorMatrixMap;
+
+	///@}
+
 private:
 
     ///@name Member Variables
@@ -149,6 +207,8 @@ private:
 	const SmallDisplacementInterfaceElement mSmallDisplacementInterfaceElement2D4N;
 	const SmallDisplacementInterfaceElement mSmallDisplacementInterfaceElement3D6N;
 	const SmallDisplacementInterfaceElement mSmallDisplacementInterfaceElement3D8N;
+
+	const ShellThickInterfaceElement mShellThickInterfaceElement3D4N;
 	
 	const OptTriangleElement mOptTriangleElement2D3N;
 	const EASQuadElementV2 mEASQuadElementV22D4N;
@@ -165,6 +225,7 @@ private:
 	
 	const EBSTElement2D3N mEBSTElement2D3N;
 	const AGQ4Element mAGQ4Element2D4N;
+	const SmallDisplacementElasticLinkElement mSmallDisplacementElasticLinkElement3D2;
 
 	const PeriodicConditionLM2D2N mPeriodicConditionLM2D2N;
 

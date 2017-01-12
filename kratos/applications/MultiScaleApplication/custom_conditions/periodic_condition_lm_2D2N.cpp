@@ -106,10 +106,10 @@ void PeriodicConditionLM2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
 	// get current values and form the system matrix
 
 	Vector currentValues(6);
-	currentValues(0) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-	currentValues(1) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-	currentValues(2) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-	currentValues(3) = geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+	currentValues(0) = 0.0; // geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+	currentValues(1) = 0.0; // geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+	currentValues(2) = 0.0; // geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+	currentValues(3) = 0.0; // geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
 	currentValues(4) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_X);
 	currentValues(5) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_Y);
 	
@@ -125,7 +125,10 @@ void PeriodicConditionLM2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
 	rLeftHandSideMatrix(3,5) = -1.0;
 
 	// form residual
-
+	// external forces
+	rRightHandSideVector(4) = 0.0;
+	rRightHandSideVector(5) = 0.0;
+	// internal forces
 	noalias(rRightHandSideVector) -= prod( rLeftHandSideMatrix, currentValues );
 }
 

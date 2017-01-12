@@ -134,14 +134,13 @@ namespace Kratos
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const Vector& E = macroScaleData.StrainVector();
 			array_1d<double, 3> Um;
 			Um.clear();
 			if(geom.Dimension() == 2)
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
 				double exx = E(0);
 				double eyy = E(1);
 				double exy = E(2)/2.0;
@@ -161,9 +160,9 @@ namespace Kratos
 			}
 			else
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
-				double z0 = ref_node.Z0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
+				double z0 = geom.Center()[2];
 				double exx = E(0);
 				double eyy = E(1);
 				double ezz = E(2);

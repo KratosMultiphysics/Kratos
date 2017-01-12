@@ -17,9 +17,6 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif // !M_PI
 
-#define K_GET_SIGN(X) return X < 0.0 ? -1.0 : 1.0
-#define USE_B0
-
 namespace Kratos
 {
 
@@ -56,6 +53,12 @@ namespace Kratos
     
     void SmallDisplacementInterfaceElement::Initialize()
     {
+		/*
+		Note:
+		here we allocate 1 constitutive law for each 2 gauss points.
+		This is because GiD geometry for interfaces are the same of the corresponding continuum element.
+		So it has twice the integration points that an interface needs.
+		*/
         if(mInitialized == false)
 		{
 			ConstitutiveLaw::Pointer& pLaw = GetProperties()[CONSTITUTIVE_LAW];
@@ -629,6 +632,9 @@ namespace Kratos
 	double SmallDisplacementInterfaceElement::CalculateIntegrationWeight(double J, 
 		                                                                 double iw)
 	{
+		// Note: here we multiply the integration weight by 2,
+		// because we're using the geometry of a continuum element
+		// but we're using only half of the integration points.
 		double dV = J * iw * 2.0;
 		if(GetGeometry().WorkingSpaceDimension() == 2)
 			dV *= GetProperties()[THICKNESS];
@@ -802,48 +808,11 @@ namespace Kratos
 		}
 	}
 
-	inline double getshape2d(int p, int k)
-	{
-		if(p==0) {
-			if(k==0)
-				return 0.5*(1.0+1.0/std::sqrt(3.0));
-			else
-				return 0.5*(1.0-1.0/std::sqrt(3.0));
-		}
-		else {
-			if(k==0)
-				return 0.5*(1.0-1.0/std::sqrt(3.0));
-			else
-				return 0.5*(1.0+1.0/std::sqrt(3.0));
-		}
-	}
-
 	void SmallDisplacementInterfaceElement::CalculateBMatrix(const SizeType pointID, 
 		                                                     Matrix& B)
 	{
-		/* DELTA DISPLACEMENT MATRIX
-		Phi = [-I | I]
-		where:
-		I = identity with size = [n1 x 2*n1] where n1 =  num_dim * num_nodes / 2
-		*/
-
-		/* INTERPOLATION MATRIX
-		H = [N0 | N1 | ... | Nn]
-		where:
-		Ni = Identity(num_dim x num_dim) * N(of node i),
-		with i = 1 to num_nodes/2
-		*/
-
-		/* STRAIN DISPLACEMENT MATRIX
-		B = H * Phi
-		such that
-		Delta_U(all nodes / 2) = Phi*U
-		Delta_U(at gauss_points) = H * Delta_U = H * Phi * U = B * U
-		*/
-
 		GeometryType& geom = GetGeometry();
 		const Matrix& shapes = geom.ShapeFunctionsValues();
-		//KRATOS_WATCH(shapes);
 
 		SizeType ndim = geom.WorkingSpaceDimension();
 		SizeType nnodes = geom.size();
@@ -852,8 +821,6 @@ namespace Kratos
 		for(SizeType k = 0; k < half_nnodes; k++)
 		{
 			double Nk = shapes(pointID, k);
-			Nk = getshape2d(pointID,k);
-
 			SizeType pos1 = k * ndim;
 			SizeType pos2 = pos1 + half_nnodes*ndim;
 			for(SizeType i = 0; i < ndim; i++)
@@ -888,7 +855,7 @@ namespace Kratos
 		bool use_reduced_integration = false;
 		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
 			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
-
+		
 		// resize the LHS matrix
 		if(LHSrequired) {
 			if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
@@ -908,8 +875,7 @@ namespace Kratos
 		Vector localDisplacements(ndofs);
 		GetValuesVector(globalDisplacements);
 
-		// delta position for the jacobian computation 
-		// with respect to the reference configuration
+		// delta position for the jacobian computation with respect to the reference configuration
 		Matrix delta_position;
 		CalculateDeltaPosition(delta_position);
 
@@ -955,7 +921,6 @@ namespace Kratos
 		Vector N(nnodes);
 		Parameters.SetShapeFunctionsDerivatives(DN_DX);
 
-
 		// loop over the integration points.
 		// note: loop only the first half of them, then multiply the integration weight by 2
 		const GeometryType::IntegrationPointsArrayType& integrationPoints = geom.IntegrationPoints();
@@ -1000,9 +965,7 @@ namespace Kratos
 			// strain-displacement matrix
 			CalculateBMatrix(intp_id, B);
 			if(use_reduced_integration) {
-				//noalias(B) = B0;
-				for(unsigned int ii=0; ii < B.size2(); ii++)
-					B(1,ii)=B0(1,ii);
+				noalias(B) = B0;
 			}
 
 			// calculate generalized strains
@@ -1049,8 +1012,7 @@ namespace Kratos
 		Vector localDisplacements(ndofs);
 		GetValuesVector(globalDisplacements);
 
-		// delta position for the jacobian computation 
-		// with respect to the reference configuration
+		// delta position for the jacobian computation with respect to the reference configuration
 		Matrix delta_position;
 		CalculateDeltaPosition(delta_position);
 
@@ -1103,7 +1065,7 @@ namespace Kratos
 		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
 		{
 			// the current integration point
-			//const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
 
 			// jacobianobian and local transformation
 			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
@@ -1226,7 +1188,7 @@ namespace Kratos
 		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
 		{
 			// the current integration point
-			//const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
 
 			// jacobianobian and local transformation
 			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);

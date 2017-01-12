@@ -453,7 +453,6 @@ protected:
 	double mD2_bar;
 	double mD2_bar_converged;
 	double mYieldValue;
-	Vector mStressVector;
 	Vector m_initial_strain;
 
 #ifdef INTERF_DAM_2D_IMPLEX

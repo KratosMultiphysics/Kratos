@@ -72,7 +72,7 @@ namespace Kratos
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION(RvePredictorCalculator);
-		
+
 		struct KeyComparor
 		{
 			bool operator()(const vector<double>& lhs, const vector<double>& rhs) const
@@ -96,7 +96,7 @@ namespace Kratos
 				return boost::hash_range(k.begin(), k.end());
 			}
 		};
-		
+
 		/*Unordered maps are associative containers that store elements
 		* formed by the combination of a key value and a mapped value,
 		* and which allows for fast retrieval of individual elements based on their keys.
@@ -149,18 +149,20 @@ namespace Kratos
 
 		void PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, double& lch_macro, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged);
 
-		void CalculateFractureEnergy(const Matrix& TractionHistInfo);
+		void ReconstructStrain(Vector& eps, const double& radius, const Vector& Theta);
 
-		void CalculateAlpha(double& G0, double& Gf_bar, double& lch_macro);
+		void CalculateFractureEnergy(const Vector& radius, const Vector& Theta, Vector& sigma_xx, Vector& sigma_yy, Vector& sigma_xy);
+
+		void CalculateAlpha(double& lch_macro);
 
 		void RegularizeInterpRadius(Vector& InterpRadius, Vector& Theta);
-		
+
 		void PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged);
 
 		double ShapeFunctionValue4N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
 
 		double ShapeFunctionValue8N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
-		
+
 		double ShapeFunctionValue27N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
 
 		Vector CalculateTheta(Vector NormalizedStrainVector) const;
@@ -168,13 +170,17 @@ namespace Kratos
 		Matrix SelectInterpolationType(size_t IType) const;
 
 		//double cubicInterpolate(array_1d<double, 4> p, double x, Matrix& F) const;
-		double cubicInterpolate(array_1d<double, 4> p, double x, Matrix& F) const;
+		double Interpolate(array_1d<double, 4> p, double x, Matrix& F) const;
 
-		double nCubicInterpolate(int n, double* p, double coordinates[], Matrix& F) const;
+		double biDimInterpolate(array_1d<array_1d<double, 4>, 4> p, double x, double y, Matrix& F) const;
 
-		double bicubicInterpolate(array_1d<array_1d<double, 4>, 4> p, double x, double y, Matrix& F) const;
+		double triDimInterpolate(array_1d<array_1d<array_1d<double, 4>, 4>, 4> p, double x, double y, double z, Matrix F) const;
 
-		double tricubicInterpolate(array_1d<array_1d<array_1d<double, 4>, 4>, 4> p, double x, double y, double z, Matrix F) const;
+		double quadDimInterpolate(array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, Matrix F) const;
+
+		double pentaDimInterpolate(array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, double k, Matrix F) const;
+
+		double nDimInterpolate(size_t n, double* p, double coordinates[], Matrix& F) const;
 
 	public:
 
@@ -236,10 +242,12 @@ namespace Kratos
 		TagDamageMap mTagDamageMap;
 		rapidjson::Value* mValue;
 
+		size_t m_position_biggest_ft;
+
 		double mG0;
-		double mGf;
+		double mGf_bar;
 		double mAlpha;
-		
+
 	public:
 
 		inline const size_t Dimension()const { return m_dimension; }

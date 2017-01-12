@@ -26,7 +26,7 @@ class ResultsIO:
 		
 		self.myIO = GidIO(
 			OutputFileName,
-			GiDPostMode.GiD_PostBinary, #GiD_PostAscii, #
+			GiDPostMode.GiD_PostBinary,
 			MultiFileFlag.SingleFile,
 			WriteDeformedMeshFlag.WriteUndeformed, 
 			WriteConditionsFlag.WriteElementsOnly)
