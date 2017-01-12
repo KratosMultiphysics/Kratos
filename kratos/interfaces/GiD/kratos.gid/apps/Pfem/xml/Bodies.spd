@@ -8,7 +8,7 @@
       <dependencies node="../condition/value" actualize="1"/>
     </value>
     <value n="MeshingStrategy" pn="Meshing strategy"  icon="data" v="" values="[GetMeshingDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Fluid,Solid]"/>
-    <value n="ContactStrategy" pn="Contact strategy" v="" values="[GetContactDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Solid,Rigid]" />
+    <value n="ContactStrategy" pn="Contact strategy" icon="data" v="" values="[GetContactDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Solid,Rigid]" />
       <condition n="Parts" pn="Parts" icon="folder" ov="[PartsOverWhat]" un="[GetPartUN]" update_proc="[UpdateTree]">
       <value n="Element" pn="Element" actualize="1" values="[GetElementsValues]" v="" dict="[GetElementsDict]" state="normal" >
         <dependencies node="../value" actualize="1" />

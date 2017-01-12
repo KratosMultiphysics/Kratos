@@ -79,9 +79,10 @@ proc Pfem::xml::CustomTree { args } {
     
     
     #parallelism
+    spdAux::SetValueOnTreeItem icon select Parallelization
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
-    spdAux::SetValueOnTreeItem icon folder ParallelType
-    spdAux::SetValueOnTreeItem icon folder Parallelization OpenMPNumberOfThreads
+    spdAux::SetValueOnTreeItem icon data ParallelType
+    spdAux::SetValueOnTreeItem icon data Parallelization OpenMPNumberOfThreads
     
     #boundary conditions
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions DISPLACEMENT
