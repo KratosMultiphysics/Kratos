@@ -119,7 +119,7 @@ def RunTestSuit(application, applicationPath, path, level, verbose, command):
 
         if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
             print(
-                '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convetion.'.format(
+                '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
                     possiblePaths[0]['Found'],
                     possiblePaths[0]['Expected']),
                 file=sys.stderr)
