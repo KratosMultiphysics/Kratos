@@ -45,6 +45,8 @@ proc Pfem::xml::CustomTree { args } {
     
     # Hide Results Cut planes  
     
+    spdAux::SetValueOnTreeItem icon data nDim
+    
     #intervals
     spdAux::SetValueOnTreeItem icon timeIntervals Intervals
     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {
@@ -95,6 +97,8 @@ proc Pfem::xml::CustomTree { args } {
     foreach node [$parent_node childNodes ] { $node setAttribute icon data }
     set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_TwoStepVPStrategypressure_linear_solver_settings]"]
     foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    
+    #TODO: (for JG) the previous icons should be changed automatically looking at the strategies.xml
 
     
     #restart
