@@ -17,12 +17,12 @@ def Usage():
 
     lines = [
         'Usage:',
-        '\t python kratos_run_tests [-l level] [-v vervosity] [-a app1:[app2:...]]',  # noqa
+        '\t python kratos_run_tests [-l level] [-v verbosity] [-a app1:[app2:...]]',  # noqa
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
-        '\t -v, --verbose: Verbosty level: 0, 1 (Default), 2'
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
     ]
 
     for l in lines:
