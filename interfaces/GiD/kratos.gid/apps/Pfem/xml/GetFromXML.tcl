@@ -43,12 +43,15 @@ proc Pfem::xml::CustomTree { args } {
     #arg3: unique_name_of_the_node  ('unique name is defined by the attribute un=)
     #arg4 (optional): name_of_the_child_we_want_to_modify  ('name'is defined by the attribute n=)
     
-    # Hide Results Cut planes
+    # Hide Results Cut planes  
+    
+    #intervals
+    spdAux::SetValueOnTreeItem icon timeIntervals Intervals
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {$node setAttribute icon select}        
+    
+    #results
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem icon results Results
-    spdAux::SetValueOnTreeItem icon timeIntervals Intervals
-    #spdAux::SetValueOnTreeItem icon select.png Intervals Interval
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {$node setAttribute icon select}
     spdAux::SetValueOnTreeItem icon seeResults Results 
     spdAux::SetValueOnTreeItem icon data Results FileLabel 
     spdAux::SetValueOnTreeItem icon data Results OutputControlType 
@@ -64,13 +67,34 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon data Restart LoadRestart
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
+    
+    #parallelism
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
+    spdAux::SetValueOnTreeItem icon folder ParallelType
+    spdAux::SetValueOnTreeItem icon folder Parallelization OpenMPNumberOfThreads
+    
+    #boundary conditions
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions DISPLACEMENT
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions VELOCITY
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions ACCELERATION
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions PRESSURE
-    spdAux::SetValueOnTreeItem icon folder ParallelType
-    spdAux::SetValueOnTreeItem icon folder Parallelization OpenMPNumberOfThreads
+    [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]"] setAttribute icon select
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata"] {$node setAttribute icon select}
+    
+    #loads
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads 
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SelfWeight3D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SelfWeight2D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SelfWeight2Da
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads PointLoad2D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads PointLoad2DAxisym
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads PointLoad3D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads LineLoad2D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SLineLoad2DAxisym
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SurfaceLoad3D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads LinePressure2D
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads LinePressure2DAxisym
+    #spdAux::SetValueOnTreeItem icon folder SLLoads,PFEM_Loads SurfacePressure3D
    
 }
 
