@@ -48,7 +48,7 @@ proc Pfem::xml::CustomTree { args } {
     #intervals
     spdAux::SetValueOnTreeItem icon timeIntervals Intervals
     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {$node setAttribute icon select}        
-    
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata/value"] {$node setAttribute icon data}          
     #results
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem icon results Results
