@@ -294,7 +294,23 @@ the mass conservation equation can be rewritten as
 
 \begin_layout Standard
 where c is the sound velocity in the considered fluid.
- On the other hand, the local time derivative of the momentum conservation
+ Once arrived to this point, one can divide the previous equation by 
+\begin_inset Formula $\rho$
+\end_inset
+
+ for the sake of having a better conditioned matrix (specially in those
+ cases in where 
+\begin_inset Formula $\rho\gg1$
+\end_inset
+
+).
+ This has been implemented as an user-defined option in the symbolic element
+ generation script.
+ Note that this will also affect the stabilization terms.
+\end_layout
+
+\begin_layout Standard
+On the other hand, the local time derivative of the momentum conservation
  equation can be also developed as
 \end_layout
 
