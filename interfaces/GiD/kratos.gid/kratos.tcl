@@ -45,6 +45,7 @@ proc EndGIDPostProcess {} {
  
 # Load GiD project files (initialise XML Tdom structure)
 proc LoadGIDProject { filespd } {
+    gid_groups_conds::close_all_windows
     if { ![file exists $filespd] } { return }
     set versionPT [gid_groups_conds::give_data_version]
     gid_groups_conds::open_spd_file $filespd
