@@ -241,6 +241,13 @@ void AxisymUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
+    rVariables.F.resize(3,3,false);
+    rVariables.F = IdentityMatrix(3);
+    rVariables.F0.resize(3,3,false);
+    rVariables.F0 = IdentityMatrix(3);
+    rVariables.FT.resize(3,3,false);
+    rVariables.FT = IdentityMatrix(3);
+
     //set variables including all integration points values
 
     //reading shape functions
