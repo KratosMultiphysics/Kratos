@@ -1527,15 +1527,15 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
             }
             if (TDoubleLM == true)
             {
-//                const bounded_matrix<double, TDim - 1, TDim> tangent_matrix = GetTangentMatrixSlave(i_slave);
-//                const array_1d<double, TDim> lm = subrange(GetGeometry()[i_slave].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0),0, TDim);
-//                const array_1d<double, TDim - 1> tangent_lm = prod(tangent_matrix, lm);
+                const bounded_matrix<double, TDim - 1, TDim> tangent_matrix = GetTangentMatrixSlave(i_slave);
+                const array_1d<double, TDim> lm = subrange(GetGeometry()[i_slave].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0),0, TDim);
+                const array_1d<double, TDim - 1> tangent_lm = prod(tangent_matrix, lm);
 
                 index += TNumNodes * TDim;
                 for (unsigned int i = 1; i < TDim; i++)
                 {
-                    RHS_contact_pair[index + i] = 0.0;
-//                    RHS_contact_pair[index + i] = - tangent_lm[i];
+//                    RHS_contact_pair[index + i] = 0.0;
+                    RHS_contact_pair[index + i] = - tangent_lm[i];
                 }
             }
         }
