@@ -47,8 +47,14 @@ proc Pfem::xml::CustomTree { args } {
     
     #intervals
     spdAux::SetValueOnTreeItem icon timeIntervals Intervals
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {$node setAttribute icon select}        
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata/value"] {$node setAttribute icon data}          
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {
+        $node setAttribute icon select
+        foreach subnode [$node childNodes] {
+            $subnode setAttribute icon data
+        }
+    }        
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata/value"] {$node setAttribute icon data}   
+    
     #results
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem icon results Results
@@ -64,13 +70,32 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon select Results GiDOptions 
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
-    
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute NodalResults]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute ElementResults]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute GiDOptions]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+                
     #problem settings
     spdAux::SetValueOnTreeItem icon folder PFEM_Implicitlinear_solver_settings 
     spdAux::SetValueOnTreeItem icon folder PFEM_Explicitlinear_solver_settings
     spdAux::SetValueOnTreeItem icon folder PFEM_GenericSolStratlinear_solver_settings
     spdAux::SetValueOnTreeItem icon select PFEM_TwoStepVPStrategyvelocity_linear_solver_settings
     spdAux::SetValueOnTreeItem icon select PFEM_TwoStepVPStrategypressure_linear_solver_settings
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_StratParams]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_Implicitlinear_solver_settings]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_Explicitlinear_solver_settings]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_GenericSolStratlinear_solver_settings]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_TwoStepVPStrategyvelocity_linear_solver_settings]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_TwoStepVPStrategypressure_linear_solver_settings]"]
+    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
+
     
     #restart
     spdAux::SetValueOnTreeItem icon doRestart Restart 
@@ -90,8 +115,13 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions ACCELERATION
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions PRESSURE
     [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]"] setAttribute icon folder
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata"] {$node setAttribute icon select}
-     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata/value"] {$node setAttribute icon data}  
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata"] {
+        $node setAttribute icon select
+    }
+    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata/value"] {
+        $node setAttribute icon data
+    }  
+    
     #loads
     spdAux::SetValueOnTreeItem icon setLoad PFEM_Loads 
     spdAux::SetValueOnTreeItem icon folder PFEM_Loads SelfWeight3D
