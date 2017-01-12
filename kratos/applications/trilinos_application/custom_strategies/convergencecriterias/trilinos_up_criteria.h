@@ -1,25 +1,25 @@
-//  KRATOS  _____     _ _ _                 
-//         |_   _| __(_) (_)_ __   ___  ___ 
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
 //           | || '__| | | | '_ \ / _ \/ __|
-//           | || |  | | | | | | | (_) \__ 
+//           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    kazem
-//        
+//
 
 #if !defined(KRATOS_TRILINOS_UP_CRITERIA )
 #define  KRATOS_TRILINOS_UP_CRITERIA
 
-//  System includes 
+//  System includes
 
 
-//  External includes 
+//  External includes
 
 
-//  Project includes 
+//  Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -29,29 +29,29 @@
 namespace Kratos
 {
 
-///@name Kratos Globals 
+///@name Kratos Globals
 ///@{
 
 
 ///@{
-///@name Type Definitions 
+///@name Type Definitions
 ///@{
 
 ///@}
 
 
-///@name  Enum's 
+///@name  Enum's
 ///@{
 
 
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
 
 
 
 ///@}
-///@name Kratos Classes 
+///@name Kratos Classes
 ///@{
 
 // Short class definition
@@ -82,7 +82,7 @@ template<class TSparseSpace,
 class TrilinosUPCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    ///@name Type Definitions 
+    ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosUPCriteria );
 
@@ -100,11 +100,11 @@ public:
 
     ///@}
     ///@name Life Cycle
-    
+
     ///@{
 
     // * Constructor.
-    
+
     TrilinosUPCriteria(
         TDataType VelRatioTolerance,
         TDataType VelAbsTolerance,
@@ -122,13 +122,13 @@ public:
     }
 
     // * Destructor.
-    
+
     virtual ~TrilinosUPCriteria() {}
 
 
     ///@}
     ///@name Operators
-    
+
     ///@{
 
     /// ***************Pre Criteria
@@ -223,7 +223,7 @@ public:
                 if( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) && (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance) )
                 {
                     converged = 1;
-                    std::cout << "-- Convergence in achieved --" << std::endl;
+                    std::cout << "Convergence is achieved" << std::endl;
                 }
             }
 
@@ -267,34 +267,34 @@ public:
 
 
     ///@}
-    ///@name Operations 
+    ///@name Operations
     ///@{
 
 
     ///@}
-    ///@name Access 
+    ///@name Access
     ///@{
 
 
     ///@}
-    ///@name Inquiry 
+    ///@name Inquiry
     ///@{
 
 
     ///@}
-    ///@name Friends 
+    ///@name Friends
     ///@{
 
 
     ///@}
 
 protected:
-    ///@name Protected static Member Variables 
+    ///@name Protected static Member Variables
     ///@{
 
 
     ///@}
-    ///@name Protected member Variables 
+    ///@name Protected member Variables
     ///@{
 
 
@@ -309,17 +309,17 @@ protected:
 
 
     ///@}
-    ///@name Protected  Access 
+    ///@name Protected  Access
     ///@{
 
 
     ///@}
-    ///@name Protected Inquiry 
+    ///@name Protected Inquiry
     ///@{
 
 
     ///@}
-    ///@name Protected LifeCycle 
+    ///@name Protected LifeCycle
     ///@{
 
 
@@ -327,12 +327,12 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables 
+    ///@name Static Member Variables
     ///@{
 
 
     ///@}
-    ///@name Member Variables 
+    ///@name Member Variables
     ///@{
     TDataType mVelRatioTolerance;
     TDataType mVelAbsTolerance;
@@ -350,27 +350,27 @@ private:
 
 
     ///@}
-    ///@name Private  Access 
+    ///@name Private  Access
     ///@{
 
 
     ///@}
-    ///@name Private Inquiry 
+    ///@name Private Inquiry
     ///@{
 
 
     ///@}
-    ///@name Un accessible methods 
+    ///@name Un accessible methods
     ///@{
 
 
     ///@}
 
-}; //  Class ClassName 
+}; //  Class ClassName
 
 ///@}
 
-///@name Type Definitions 
+///@name Type Definitions
 ///@{
 
 
@@ -378,5 +378,4 @@ private:
 
 }  //  namespace Kratos.
 
-#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined 
-
+#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined
