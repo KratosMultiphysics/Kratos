@@ -308,6 +308,7 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b) 
 	{
+		mDx_converged = Dx;
 	}
 
 
@@ -384,6 +385,7 @@ private:
 	TDataType mRatioTolerance;
     TDataType mAlwaysConvergedNorm;
 	bool mVerbose;
+	Vector mDx_converged;
 
 	bool mInitialized;
 	TDataType mInitialNorm;
@@ -405,26 +407,26 @@ private:
 
 	void CalculateDispNorms(DofsArrayType& rDofSet,const TSystemVectorType& Dx,TDataType& disp_norm,TDataType& delta_disp_norm)
     {
-    //    for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-    //    {
-    //        if(i_dof->IsFree())
-    //        {
-				////here we do: d_n+1^it-d_n
-				//TDataType dxi = Dx[i_dof->EquationId()];
-    //            delta_disp_norm += dxi * dxi;
-				//TDataType xi = i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1);
-    //            disp_norm       += xi * xi;
-    //        }
-    //    }
-		if(mDx_converged.size() != Dx.size())
+		//for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+		//{
+		//    if(i_dof->IsFree())
+		//    {
+		//	////here we do: d_n+1^it-d_n
+		//	//TDataType dxi = Dx[i_dof->EquationId()];
+		//        delta_disp_norm += dxi * dxi;
+		//	//TDataType xi = i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1);
+		//        disp_norm       += xi * xi;
+		//    }
+		//}
+		if (mDx_converged.size() != Dx.size())
 			mDx_converged = ZeroVector(Dx.size());
 		disp_norm = 0.0;
 		delta_disp_norm = 0.0;
-		for(unsigned int i = 0; i < Dx.size(); i++) {
+		for (unsigned int i = 0; i < Dx.size(); i++) {
 			double dxi = Dx[i];
 			delta_disp_norm += dxi * dxi;
 			double xi = Dx[i] - mDx_converged[i];
-			disp_norm       += xi * xi;
+			disp_norm += xi * xi;
 		}
 
         delta_disp_norm = sqrt(delta_disp_norm);
