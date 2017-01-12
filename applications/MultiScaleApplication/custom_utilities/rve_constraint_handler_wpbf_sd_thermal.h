@@ -287,8 +287,8 @@ namespace Kratos
 			double T_m;
 			if (geom.Dimension() == 2)
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
 				double gT_x = grad_T_M[0];
 				double gT_y = grad_T_M[1];
 				for (ModelPart::NodeIterator it = mp.NodesBegin(); it != mp.NodesEnd(); ++it)
@@ -306,9 +306,9 @@ namespace Kratos
 			}
 			else
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
-				double z0 = ref_node.Z0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
+				double z0 = geom.Center()[2];
 				double gT_x = grad_T_M[0];
 				double gT_y = grad_T_M[1];
 				double gT_z = grad_T_M[2];
