@@ -191,7 +191,6 @@ public:
             for (unsigned int j=0; j<LocalSize; ++j){
                 rLeftHandSideMatrix(i, j) = 0.0;
             }
-            rLeftHandSideMatrix(i, i) = 0.0;
             rRightHandSideVector(i) = 0.0;
         }
 
@@ -220,16 +219,16 @@ public:
 
         const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
         unsigned int LocalIndex = 0;
-        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(MATERIAL_ACCELERATION_X);
+        unsigned int local_position = this->GetGeometry()[0].GetDofPosition(MATERIAL_ACCELERATION_X);
 
         if (rResult.size() != LocalSize)
             rResult.resize(LocalSize, false);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
         {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_X,lappos).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Y,lappos+1).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Z,lappos+2).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_X, local_position).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Y, local_position + 1).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Z, local_position + 2).EquationId();
         }
 //Z
     }
@@ -243,13 +242,6 @@ public:
                             ProcessInfo& rCurrentProcessInfo)
     {
 
-//        unsigned int number_of_nodes = TDim+1;
-// G
-//        if (rElementalDofList.size() != number_of_nodes)
-//            rElementalDofList.resize(number_of_nodes);
-
-//        for (unsigned int i = 0; i < number_of_nodes; i++)
-//            rElementalDofList[i] = GetGeometry()[i].pGetDof(DISTANCE);
         const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
         if (rElementalDofList.size() != LocalSize)
@@ -327,9 +319,9 @@ public:
 //                KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
 //        }
 
-        if(MATERIAL_ACCELERATION.Key() == 0)
-
+        if (MATERIAL_ACCELERATION.Key() == 0){
             KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_ACCELERATION Key is 0. Check if the application was correctly registered.","");
+        }
 
         // Checks on nodes
 
@@ -535,11 +527,8 @@ private:
             const double Weight)
     {
 //G
-        //const unsigned int BlockSize = TDim + 1;
         const unsigned int BlockSize = TDim;
 
-
-//        double Coef = Density * Weight;
         double Coef = Weight;
 //Z
         unsigned int FirstRow(0), FirstCol(0);
