@@ -161,7 +161,7 @@ public:
 			   << std::scientific << currentNorm << " - ITER: " << pinfo[NL_ITERATION_NUMBER];
 		}
 
-		if(boost::math::isnan(currentNorm))
+		if(!boost::math::isfinite(currentNorm))
 		{
 			convergence_flag = -1;
 		}
@@ -174,7 +174,7 @@ public:
 			}
 		}
 		mRatioOld = ratio;
-		if(mNumDivergence > 3)
+		if(mNumDivergence > 1)
 			convergence_flag = -1;
 
 		pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
@@ -182,28 +182,6 @@ public:
 		mInitialized = true;
 
 		bool res = (ratio <= mRelativeTolerance || currentNorm <= mAbsoluteTolerance);
-		//if(!res) {
-		//	if(pinfo.Has(DELTA_TIME)) {
-		//		double delta_t = pinfo[DELTA_TIME];
-		//		if(delta_t <= 1.0E-5) {
-		//			bool accept_alternative_tolerance = true;
-		//			if(pinfo.Has(NL_ITERATION_NUMBER)) {
-		//				// todo: check max iterations
-		//				if(pinfo[NL_ITERATION_NUMBER] < 9)
-		//					accept_alternative_tolerance = false;
-		//			}
-		//			if(accept_alternative_tolerance) {
-		//				double alternative_tolerance = 1.0e-1;
-		//				if(ratio <= alternative_tolerance) {
-		//					res = true;
-		//					if(do_print) {
-		//						ss << " | ALTERNATIVE TOLERANCE";
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
 
 		if(do_print) {
 			ss << std::endl;

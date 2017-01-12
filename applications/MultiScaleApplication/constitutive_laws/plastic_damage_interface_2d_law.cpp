@@ -52,6 +52,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define M_PI 3.1415926535897932384626433832795
 #endif // !M_PI
 
+//#define PDINTERF_2D_TEST_ELASTIC
+
 namespace Kratos
 {
 
@@ -256,6 +258,7 @@ namespace Kratos
     {
 		if( !rMaterialProperties.Has(NORMAL_STIFFNESS) ) return false;
 		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) ) return false;
+#ifndef PDINTERF_2D_TEST_ELASTIC
 		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) ) return false;
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) ) return false;
 		if( !rMaterialProperties.Has(INITIAL_COHESION) ) return false;
@@ -265,7 +268,8 @@ namespace Kratos
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_S0) ) return false;
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_SP) ) return false;
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_EP) ) return false;
-		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) return false;
+		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) return false;  
+#endif // !PDINTERF_2D_TEST_ELASTIC
 		return true;
     }
 
@@ -579,6 +583,7 @@ namespace Kratos
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: NORMAL_STIFFNESS", "");
 		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) ) 
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TANGENTIAL_STIFFNESS", "");
+#ifndef PDINTERF_2D_TEST_ELASTIC
 		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) ) 
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_TENSILE_LAW_S0", "");
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) ) 
@@ -598,7 +603,8 @@ namespace Kratos
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_EP) ) 
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_COMPRESSIVE_LAW_EP", "");
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) 
-			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_III", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_III", "");  
+#endif // !PDINTERF_2D_TEST_ELASTIC
 			
 		return 0;
 		
@@ -700,7 +706,7 @@ namespace Kratos
 		double c3    = d.c3;
 		double c4    = d.c4;
 		// fracture energy
-		//double lch   = d.lch;
+		double lch   = d.lch;
 		double Gdis = GfIII; // /lch; // note: already regularized in initialize data
 		// auto-computed stress parameters
 		double si = sp;
@@ -796,7 +802,7 @@ namespace Kratos
 		double c3 = d.c3;
 		double c4 = d.c4;
 		// fracture energy
-		//double lch   = d.lch;
+		double lch   = d.lch;
 		double Gdis = GfIII; // /lch; // note: already regularized in initialize data
 		// auto-computed stress parameters
 		double si = sp;
@@ -973,8 +979,7 @@ namespace Kratos
 		double tanpsi = 0.0;
 		double rdum = 0.0;
 
-		// Newton loop to solve for the
-		// plastic multiplier
+		// Newton loop to solve for the plastic multiplier
 		bool converged = false;
 		double f=1.0;
 		for (int iter = 1; iter <= miter; iter++)
@@ -1233,8 +1238,7 @@ namespace Kratos
 		double dk1dl1, dk1dl2, dk2dl1, dk2dl2;
 		double tanpsi;
 
-		// Newton loop to solve for the
-		// plastic multiplier
+		// Newton loop to solve for the plastic multiplier
 		bool converged = false;
 		double f = 1.0;
 		array_1d<double,2> func;
@@ -1423,8 +1427,7 @@ namespace Kratos
 		double norm_gradf3;
 		double dk3dl3;
 
-		// Newton loop to solve for the
-		// plastic multiplier
+		// Newton loop to solve for the plastic multiplier
 		bool converged = false;
 		double f = 1.0;
 		for (int iter = 1; iter <= miter; iter++)
@@ -1601,9 +1604,20 @@ namespace Kratos
 	void PlasticDamageInterface2DLaw::CalculateAll(Parameters& rValues)
 	{
 		// get some references
-		//const ProcessInfo&  pinfo = rValues.GetProcessInfo();
-		//const GeometryType& geom  = rValues.GetElementGeometry();
-		//const Properties&   props = rValues.GetMaterialProperties();
+		const ProcessInfo&  pinfo = rValues.GetProcessInfo();
+		const GeometryType& geom  = rValues.GetElementGeometry();
+		const Properties&   props = rValues.GetMaterialProperties();
+
+#ifdef PDINTERF_2D_TEST_ELASTIC
+		Matrix& KKK = rValues.GetConstitutiveMatrix();
+		if(KKK.size1() != 2 || KKK.size2() != 2)
+			KKK.resize(2,2,false);
+		KKK.clear();
+		KKK(0,0) = props[TANGENTIAL_STIFFNESS];
+		KKK(1,1) = props[NORMAL_STIFFNESS];
+		rValues.GetStressVector() = prod(KKK, rValues.GetStrainVector());
+		return;
+#endif // PDINTERF_2D_TEST_ELASTIC
 
 		// input and output
 		Vector strain = rValues.GetStrainVector();
@@ -1688,7 +1702,7 @@ namespace Kratos
 		noalias(pt) = prod(p,trat);
 		double f3 = 0.5 * inner_prod(trat,pt) - fc*fc;
 		f3 *= CHULAFUN(trat(0));
-		//double f30 = f3;
+		double f30 = f3;
 
 		// compute a tolerance parameter for the evaluation of yielding
 		double tolarance_0 = RMAP_TOL;

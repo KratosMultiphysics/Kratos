@@ -10,6 +10,7 @@
 /* External includes */
 #include "boost/smart_ptr.hpp"
 #include <iomanip>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 /* Project includes */
 #include "includes/define.h"
@@ -536,8 +537,7 @@ public:
 
 			// create the accelerator
 			KrylovSubspaceAcceleratorUtilties::KrylovAcceleratorLapack krylov_acc;
-			int new_numEqns = TSparseSpace::Size(mDx);
-			krylov_acc.BeginSolutionStep(new_numEqns);
+			krylov_acc.BeginSolutionStep(TSparseSpace::Size(mDx));
 			
 			unsigned int iteration_number = 0;
 			model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -561,7 +561,6 @@ public:
 				Build system matrices and vectors
 				===============================================================================
 				*/
-				
 				TSparseSpace::SetToZero(mDx);
 				TSparseSpace::SetToZero(mb);
 				if(iteration_number == 1)
@@ -585,10 +584,9 @@ public:
 				otherwise solve the system of equations
 				===============================================================================
 				*/
-				//std::cout << "SOLVE\n";
+
 				if(this->CheckIntegrationErrors() != 0.0)
 				{
-					//std::cout << " INT ERROR IN LOOP\n";
 					if(verbose) this->PromptIntegrationErrors();
 					mIsConverged = false;
 					iteration_number = mMaxIterationNumber;
@@ -598,6 +596,14 @@ public:
 				else
 				{
 					mpBuilderAndSolver->SystemSolve(mA, mDx, mb);
+					// check solution validity
+					if(!this->CheckSolutionValidity(mDx))
+					{
+						mIsConverged = false;
+						iteration_number = mMaxIterationNumber;
+						model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+						break;
+					}
 				}
 				
 				/* 
@@ -606,7 +612,7 @@ public:
 				===============================================================================
 				*/
 
-				if(krylov_acc.LeastSquares(*mpDx)<0)
+				if(krylov_acc.LeastSquares(mDx)<0)
 				{
 					if(verbose) this->PromptIntegrationErrors();
 					mIsConverged = false;
@@ -622,8 +628,7 @@ public:
 				===============================================================================
 				*/
 				
-				//std::cout << "UPDATE\n";
-				krylov_acc.AccelerateSolution(*mpDx);
+				krylov_acc.AccelerateSolution(mDx);
 				rDofSet = mpBuilderAndSolver->GetDofSet();
 				mpScheme->Update(model, rDofSet, mA, mDx, mb);
 				if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
@@ -635,15 +640,13 @@ public:
 				Also check for divergence and if so, abort solution step.
 				===============================================================================
 				*/
-
+				
 				model.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] = 0;
 
-				//std::cout << "CHECK CONVERGENCE\n";
 				mIsConverged = mpConvergenceCriteria->PostCriteria(model, rDofSet, mA, mDx, mb);
 
 				if(model.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] != 0)
 				{
-					//std::cout << " INT ERROR IN CONVERGENCE CRITERIA FLAG\n";
 					if(verbose) this->PromptIntegrationErrors();
 					mIsConverged = false;
 					iteration_number = mMaxIterationNumber;
@@ -658,7 +661,6 @@ public:
 			mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
 			if(this->CheckIntegrationErrors() != 0.0)
 			{
-				//std::cout << " INT ERROR IN FINAL ITER\n";
 				if(verbose) this->PromptIntegrationErrors();
 				mIsConverged = false;
 				iteration_number = mMaxIterationNumber;
@@ -842,6 +844,21 @@ protected:
 					return error_codes[i];
 		}
 		return 0.0;
+	}
+
+	bool CheckSolutionValidity(TSystemVectorType& mDx)
+	{
+		bool is_valid = true;
+		unsigned int eqsize = TSparseSpace::Size(mDx);
+		for(unsigned int i = 0; i < eqsize; i++) {
+			double idx = mDx[i];
+			if(!( (boost::math::isfinite)(idx) )) {
+				std::cout << "found a non finite value in the solution vector (nan or inifinite)\n";
+				is_valid = false;
+				break;
+			}
+		}
+		return is_valid;
 	}
 
 	inline void PromptSeparator()

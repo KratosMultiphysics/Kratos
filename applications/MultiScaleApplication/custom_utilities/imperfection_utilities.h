@@ -73,22 +73,17 @@ namespace ImperfectionUtilties
 			}
 		}
 		if(do_imperf) {
-			/*double noiseval=0.0;
-			double lumpfactor = 1.0/double(rElementGeometry.PointsNumber());
-			for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++) {
-				noiseval += lumpfactor*rElementGeometry[i].FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR);
-			}
-			impf = 1.0-noiseval;*/
 			double noiseval=0.0;
-			//KRATOS_WATCH(rShapeFunctionsValues);
-			/*if(rElementGeometry.PointsNumber() != rShapeFunctionsValues.size())
-			{
-				KRATOS_WATCH(rElementGeometry.PointsNumber());
-				KRATOS_WATCH(rShapeFunctionsValues.size());
-				exit(-1);
-			}*/	
 			for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++) {
 				noiseval += rShapeFunctionsValues[i]*(rElementGeometry[i].FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR));
+				/*double inoise = rElementGeometry[i].FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR);
+				if(std::abs(inoise) > std::abs(noiseval))
+					noiseval = inoise;*/
+				/*if(std::abs(inoise) < 1.0e-9)
+				{
+					noiseval = 0.0;
+					break;
+				}*/
 			}
 			impf = 1.0-noiseval;
 		}

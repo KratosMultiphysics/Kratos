@@ -497,9 +497,17 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<double>& rVaria
                                                        std::vector<double>& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
-	if(rValues.size() != 1) rValues.resize(1);
+	/*if(rValues.size() != 1) rValues.resize(1);
 	rValues[0] = 0.0;
-	mConstitutiveLawVector[0]->GetValue(rVariable, rValues[0]);
+	mConstitutiveLawVector[0]->GetValue(rVariable, rValues[0]);*/
+	double maxval = 0.0;
+	for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++) {
+		double ival(0.0);
+		mConstitutiveLawVector[i]->GetValue(rVariable, ival);
+		if(ival > maxval) maxval = ival;
+	}
+	if(rValues.size() != 1) rValues.resize(1);
+	rValues[0] = maxval;
 }
 
 void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,

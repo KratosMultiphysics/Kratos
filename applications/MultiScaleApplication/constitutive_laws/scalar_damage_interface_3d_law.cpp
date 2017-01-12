@@ -341,6 +341,20 @@ namespace Kratos
 		
 		CalculateElasticStressVector( data, strainVector );
 
+		stressVector = data.ElasticStressVector;
+		if(compute_constitutive_tensor)
+		{
+			// elastic case
+			constitutiveMatrix(0, 0) = data.Kt1;
+			constitutiveMatrix(1, 1) = data.Kt2;
+			constitutiveMatrix(2, 2) = data.Kn;
+			constitutiveMatrix(0, 1) = constitutiveMatrix(1, 0) = 0.0;
+			constitutiveMatrix(0, 2) = constitutiveMatrix(2, 0) = 0.0;
+			constitutiveMatrix(1, 2) = constitutiveMatrix(2, 1) = 0.0;
+		}
+
+		return;
+
 		CalculateEquivalentMeasure( data );
 
 		UpdateDamage( data );
@@ -457,17 +471,17 @@ namespace Kratos
 															   CalculationData& data)
 	{
 		data.Kn  = props[NORMAL_STIFFNESS];
-		data.Kt1  = props[TANGENTIAL_STIFFNESS]*0.0;
-		data.Kt2  = props[TANGENTIAL_STIFFNESS]*0.0;
+		data.Kt1  = props[TANGENTIAL_STIFFNESS];
+		data.Kt2  = props[TANGENTIAL_STIFFNESS];
 
 		data.Kn_compression_multiplier = 1.0;
-		if(props.Has(NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER)) {
+		/*if(props.Has(NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER)) {
 			data.Kn_compression_multiplier = props[NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER];
 			if(data.Kn_compression_multiplier < 1.0)
 				data.Kn_compression_multiplier = 1.0;
 			if(strainVector(2) <= 0.0)
 				data.Kn *= data.Kn_compression_multiplier;
-		}
+		}*/
 
 		data.Ft  = props[YIELD_STRESS_T];
 
@@ -531,6 +545,10 @@ namespace Kratos
 		data.K1 = 0.0;
 		data.K2 = 0.0;
 		//lambda2 = 0.0; // only for test!!!
+
+		// elastic test
+		lambda1 = 0.0;
+		lambda2 = 0.0;
 
 		if(lambda1 > 0.0)
 		{

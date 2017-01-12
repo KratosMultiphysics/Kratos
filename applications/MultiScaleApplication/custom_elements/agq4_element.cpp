@@ -25,7 +25,7 @@
 #define AGQ4_NQ 4
 
 // default integration method. can be 2x2 or 3x3. what's the best is still to be evaluated
-#define AGQ4_DEF_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
+#define AGQ4_DEF_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_3
 
 // this flag activate the correction matrix for the incompatible modes to pass the patch test.
 // this makes BQ = BQ - 1/V*int{BQ*dV}
@@ -451,6 +451,47 @@ namespace Kratos
 		if(!m_first_step_finalized)
 			m_first_step_finalized = true;
 #endif
+
+		/*const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mThisIntegrationMethod);
+		unsigned int ngauss = integration_points.size();
+
+		Matrix delta_position;
+		delta_position = CalculateDeltaPosition(delta_position);
+		GeometryType::JacobiansType all_jacobians;
+		all_jacobians = geom.Jacobian(all_jacobians, mThisIntegrationMethod, delta_position);
+
+		double total_volume = 0.0;
+		double mean_rt = 0.0;
+		double mean_rc = 0.0;
+		for(SizeType i = 0; i < ngauss; i++) {
+
+			const GeometryType::IntegrationPointType & ip = integration_points[i];
+			double gpw = ip.Weight();
+			double det_jacobian = MathUtils<double>::Det2(all_jacobians[i]);
+			double dV = det_jacobian*gpw;
+			total_volume += dV;
+
+			ConstitutiveLaw::Pointer& pclaw = mConstitutiveLawVector[i];
+			double i_rt=0.0;
+			double i_rc=0.0;
+			pclaw->GetValue(ENH_STRAIN_PARAM_1, i_rt);
+			pclaw->GetValue(ENH_STRAIN_PARAM_2, i_rc);
+			mean_rt += i_rt*dV;
+			mean_rc += i_rc*dV;
+		}
+		
+		double tau = 0.25;
+		mean_rt /= total_volume;
+		mean_rc /= total_volume;
+		for(SizeType i = 0; i < ngauss; i++) {
+			ConstitutiveLaw::Pointer& pclaw = mConstitutiveLawVector[i];
+			double i_rt=0.0;
+			double i_rc=0.0;
+			pclaw->GetValue(ENH_STRAIN_PARAM_1, i_rt);
+			pclaw->GetValue(ENH_STRAIN_PARAM_2, i_rc);
+			pclaw->SetValue(ENH_STRAIN_PARAM_1, tau*mean_rt+(1.0-tau)*i_rt, CurrentProcessInfo);
+			pclaw->SetValue(ENH_STRAIN_PARAM_2, tau*mean_rc+(1.0-tau)*i_rc, CurrentProcessInfo);
+		}*/
     }
 
     void AGQ4Element::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)

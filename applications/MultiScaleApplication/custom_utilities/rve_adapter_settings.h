@@ -101,6 +101,8 @@ struct RveAdapterSettings_PlaneStress
 
 	static SizeType GetStrainSize() { return 3; }
 	static SizeType WorkingSpaceDimension() { return 2; }
+	static ConstitutiveLaw::StrainMeasure GetStrainMeasure() { return ConstitutiveLaw::StrainMeasure_Infinitesimal; }
+	static ConstitutiveLaw::StressMeasure GetStressMeasure() { return ConstitutiveLaw::StressMeasure_Cauchy; }
 	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
 	{
 		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRESS_LAW );
@@ -120,6 +122,8 @@ struct RveAdapterSettings_PlaneStrain
 
 	static SizeType GetStrainSize() { return 4; }
 	static SizeType WorkingSpaceDimension() { return 2; }
+	static ConstitutiveLaw::StrainMeasure GetStrainMeasure() { return ConstitutiveLaw::StrainMeasure_Infinitesimal; }
+	static ConstitutiveLaw::StressMeasure GetStressMeasure() { return ConstitutiveLaw::StressMeasure_Cauchy; }
 	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
 	{
 		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRAIN_LAW );
@@ -139,9 +143,53 @@ struct RveAdapterSettings_3D
 
 	static SizeType GetStrainSize() { return 6; }
 	static SizeType WorkingSpaceDimension() { return 3; }
+	static ConstitutiveLaw::StrainMeasure GetStrainMeasure() { return ConstitutiveLaw::StrainMeasure_Infinitesimal; }
+	static ConstitutiveLaw::StressMeasure GetStressMeasure() { return ConstitutiveLaw::StressMeasure_Cauchy; }
 	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
 	{
 		rFeatures.mOptions.Set( ConstitutiveLaw::THREE_DIMENSIONAL_LAW );
+		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
+struct RveAdapterSettings_ThickShell
+{
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 8; }
+	static SizeType WorkingSpaceDimension() { return 3; }
+	static ConstitutiveLaw::StrainMeasure GetStrainMeasure() { return ConstitutiveLaw::StrainMeasure_Infinitesimal; }
+	static ConstitutiveLaw::StressMeasure GetStressMeasure() { return ConstitutiveLaw::StressMeasure_Cauchy; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set( ConstitutiveLaw::THREE_DIMENSIONAL_LAW );
+		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
+struct RveAdapterSettings_ThinShell
+{
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 6; }
+	static SizeType WorkingSpaceDimension() { return 3; }
+	static ConstitutiveLaw::StrainMeasure GetStrainMeasure() { return ConstitutiveLaw::StrainMeasure_Infinitesimal; }
+	static ConstitutiveLaw::StressMeasure GetStressMeasure() { return ConstitutiveLaw::StressMeasure_Cauchy; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRESS_LAW );
 		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
 
 		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);

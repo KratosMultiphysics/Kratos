@@ -621,7 +621,7 @@ namespace Kratos
 	{
 		GeometryType& geom = GetGeometry();
 		SizeType nnodes = geom.size();
-		//SizeType ndim = geom.WorkingSpaceDimension();
+		SizeType ndim = geom.WorkingSpaceDimension();
 		if (P.HasPermutation_temp)
 		{
 			for (SizeType inode = 0; inode < nnodes; inode++)
@@ -904,7 +904,7 @@ namespace Kratos
 		Matrix F(IdentityMatrix(ndim, ndim));
 		Matrix F0(IdentityMatrix(ndim, ndim));
 		double detF(1.0);
-		//double detF0(1.0);
+		double detF0(1.0);
 		Vector N(nnodes);
 		Matrix DN_DX(nnodes, ndim, 0.0);
 		Parameters.SetDeformationGradientF(F);

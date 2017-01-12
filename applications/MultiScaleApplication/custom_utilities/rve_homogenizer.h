@@ -58,10 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "rve_linear_system_of_equations.h"
 #include "rve_utilities.h"
-
-//#define RVE_OPTIMIZATION 0 // sigma = 1/V(int(sigma_i))
-//#define RVE_OPTIMIZATION 1 // sigma = 1/V(sum(boundary_F X))
-#define  RVE_OPTIMIZATION 2 // sigma = 1/V(sum(boundary_F X))(with build rhs reduced)
+#include "rve_config.h"
 
 namespace Kratos
 {
@@ -123,8 +120,8 @@ namespace Kratos
 														 const Vector& U,
 														 bool move_mesh)
 		{
-			size_t strain_size = geomDescriptor.Dimension() == 2 ? 3 : 6;
-
+			size_t strain_size = macroScaleData.StrainVector().size();
+			
 			Vector saved_strain_vector(strain_size);
 			noalias(saved_strain_vector) = macroScaleData.StrainVector();
 
@@ -133,11 +130,12 @@ namespace Kratos
 			if(C.size1() != strain_size || C.size2() != strain_size)
 				C.resize(strain_size, strain_size, false);
 			noalias(C) = ZeroMatrix(strain_size, strain_size);
-
+			
 			// compute the perturbation parameters
 			double perturbation = 1.0E-6*norm_1(macroScaleData.StrainVectorOld());
 			if(perturbation < 1.0e-7)
 				perturbation = 1.0e-7;
+			perturbation = 1.0e-6;
 
 			for(size_t j = 0; j < strain_size; j++)
 			{
@@ -153,27 +151,60 @@ namespace Kratos
 				constraintHandler->Update(mp,geomDescriptor,macroScaleData, 
 				                        soe->TransformedEquationIds(), *pScheme,
 				                        soe->DofSet(), soe->A(), soe->X(), soe->B(),
-										soe->R(), soe->EquationSystemSize());
+										soe->EquationSystemSize());
 				if(move_mesh) this->MoveMesh(mp);
 
-#if RVE_OPTIMIZATION == 1
+#if RVE_HOMOGENIZER_OPTIMIZATION == 1
 				soe->BuildRHS(mp, pScheme);
-#elif RVE_OPTIMIZATION == 2
-				soe->BuildRHS_Reduced(mp, pScheme, geomDescriptor.BoundaryElementsIDs());
+#elif RVE_HOMOGENIZER_OPTIMIZATION == 2
+				soe->BuildRHS_Reduced_WithReactions(mp, pScheme, geomDescriptor.BoundaryElementsIDs());
+#else
+				// this is just to plot reactions
+				soe->BuildRHS_Reduced_WithReactions(mp, pScheme, geomDescriptor.BoundaryElementsIDs());
 #endif
-				constraintHandler->PostUpdate(mp,geomDescriptor,macroScaleData, 
-				                        soe->TransformedEquationIds(), *pScheme,
-				                        soe->DofSet(), soe->A(), soe->X(), soe->B(),
-										soe->R(), soe->EquationSystemSize());
+
 				this->HomogenizeStressTensor(mp, geomDescriptor, soe, constraintHandler, macroScaleData, pert_stress_vector);
 				for(size_t i = 0; i < strain_size; i++)
 					C(i, j) = (pert_stress_vector(i) - S(i))/perturbation;
 			}
-
 			// reset stored strain vector
 			noalias(macroScaleData.StrainVector()) = saved_strain_vector;
 		}
 		
+		virtual void HomogenizeVariable(ModelPart& mp, 
+										const RveGeometryDescriptor& geomDescriptor,
+										const Variable<int>& rThisVariable, 
+										int& rValue)
+		{
+			rValue = 0;
+			//double d_rValue = 0.0;
+			//std::vector< int > gp_values;
+			//ProcessInfo& processInfo = mp.GetProcessInfo();
+			//double totalVolume(0.0);
+			//for(ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
+			//{
+			//	Element& ielem = *it;
+			//	Element::GeometryType& igeom = ielem.GetGeometry();
+			//	Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
+			//	const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
+
+			//	ielem.GetValueOnIntegrationPoints(rThisVariable, gp_values, processInfo);
+			//	if(gp_values.size() != ipts.size()) continue;
+
+			//	for(size_t point_id = 0; point_id < ipts.size(); point_id++)
+			//	{
+			//		double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
+			//		d_rValue += gp_values[point_id] * dV;
+			//		totalVolume += dV;
+			//	}
+			//}
+			//if(totalVolume > 0.0)
+			//	d_rValue /= totalVolume;
+			//else
+			//	d_rValue = 0.0;
+			//rValue = (int)rValue;
+		}
+
 		virtual void HomogenizeVariable(ModelPart& mp, 
 										const RveGeometryDescriptor& geomDescriptor,
 										const Variable<double>& rThisVariable, 
@@ -262,6 +293,9 @@ namespace Kratos
 			std::vector< Matrix > gp_values;
 			ProcessInfo& processInfo = mp.GetProcessInfo();
 			double totalVolume(0.0);
+
+			//Vector all_detJ; // <<<<<<<<<<<<<<<
+
 			for(ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
 			{
 				Element& ielem = *it;
@@ -272,9 +306,12 @@ namespace Kratos
 				ielem.GetValueOnIntegrationPoints(rThisVariable, gp_values, processInfo);
 				if(gp_values.size() != ipts.size()) continue;
 
+				//all_detJ = igeom.DeterminantOfJacobian(all_detJ, intmethod); // <<<<<<<<<<<<<<<<<
+
 				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
 				{
 					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
+					//double dV = all_detJ[point_id] * ipts[point_id].Weight();
 
 					Matrix& i_gp_value = gp_values[point_id];
 					if(rValue.size1() == 0 && rValue.size2() == 0) 
@@ -373,12 +410,12 @@ namespace Kratos
 											   RveMacroscaleData& macroScaleData,
 											   Vector& S)
 		{
-			//ProcessInfo& processInfo = mp.GetProcessInfo();
+			ProcessInfo& processInfo = mp.GetProcessInfo();
 
 			if(S.size() != 3) S.resize(3, false);
 			noalias(S) = ZeroVector(3);
 
-#if RVE_OPTIMIZATION == 0
+#if RVE_HOMOGENIZER_OPTIMIZATION == 0
 			double totalVolume(0.0);
 
 			std::vector< Matrix > stressTensors;
@@ -413,10 +450,46 @@ namespace Kratos
 				noalias(S) = ZeroVector(3);
 			else
 				S /= totalVolume;
-			
+				
+			/*{
+				double X_center = geomDescriptor.Center()[0];
+				double Y_center = geomDescriptor.Center()[1];
+				array_1d<double, 2> X;
+				array_1d<double, 2> f;
+				Matrix Sig(2,2,0.0);
+				Vector S2(S.size(),0.0);
+				for(RveGeometryDescriptor::IndexContainerType::const_iterator it =
+					geomDescriptor.BoundaryNodesIDs().begin(); it != geomDescriptor.BoundaryNodesIDs().end(); ++it)
+				{
+					RveGeometryDescriptor::IndexType index = *it;
+					ModelPart::NodeType& bnd_node = mp.GetNode(index);
+					X[0] = bnd_node.X0() - X_center;
+					X[1] = bnd_node.Y0() - Y_center;
+					ModelPart::NodeType::DofType& dof_x = bnd_node.GetDof(DISPLACEMENT_X);
+					ModelPart::NodeType::DofType& dof_y = bnd_node.GetDof(DISPLACEMENT_Y);
+					f[0] = dof_x.GetSolutionStepReactionValue();
+					f[1] = dof_y.GetSolutionStepReactionValue();
+					Sig += outer_prod(f,X);
+				}
+				S2(0) = Sig(0,0);
+				S2(1) = Sig(1,1);
+				S2(2) = 0.5*(Sig(0,1)+Sig(1,0));
+				if(totalVolume == 0.0)
+					noalias(S2) = ZeroVector(3);
+				else
+					S2 /= totalVolume;
+				std::stringstream ss;
+				ss << "-------------------------------\n";
+				ss << MathHelpers::VectorToString(S,4,std::scientific);
+				ss << MathHelpers::VectorToString(S2,4, std::scientific);
+				ss << "-------------------------------\n";
+				std::cout << ss.str();
+			}*/
+
 #else
 			double totalVolume = geomDescriptor.DomainSize();
-			ModelPart::NodeType& ref_node = mp.GetNode(geomDescriptor.ReferenceNodeID());
+			double X_center = geomDescriptor.Center()[0];
+			double Y_center = geomDescriptor.Center()[1];
 			array_1d<double, 2> X;
 			array_1d<double, 2> f;
 			Matrix Sig(2,2,0.0);
@@ -425,8 +498,8 @@ namespace Kratos
 			{
 				RveGeometryDescriptor::IndexType index = *it;
 				ModelPart::NodeType& bnd_node = mp.GetNode(index);
-				X[0] = bnd_node.X0() - ref_node.X0();
-				X[1] = bnd_node.Y0() - ref_node.Y0();
+				X[0] = bnd_node.X0() - X_center;
+				X[1] = bnd_node.Y0() - Y_center;
 				ModelPart::NodeType::DofType& dof_x = bnd_node.GetDof(DISPLACEMENT_X);
 				ModelPart::NodeType::DofType& dof_y = bnd_node.GetDof(DISPLACEMENT_Y);
 				f[0] = dof_x.GetSolutionStepReactionValue();
@@ -450,12 +523,12 @@ namespace Kratos
 											   RveMacroscaleData& macroScaleData,
 											   Vector& S)
 		{
-			//ProcessInfo& processInfo = mp.GetProcessInfo();
+			ProcessInfo& processInfo = mp.GetProcessInfo();
 
 			if(S.size() != 6) S.resize(6, false);
 			noalias(S) = ZeroVector(6);
 
-#if RVE_OPTIMIZATION == 0
+#if RVE_HOMOGENIZER_OPTIMIZATION == 0
 			double totalVolume(0.0);
 
 			std::vector< Matrix > stressTensors;
@@ -468,7 +541,6 @@ namespace Kratos
 				const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
 
 				ielem.GetValueOnIntegrationPoints(PK2_STRESS_TENSOR, stressTensors, processInfo);
-				
 				if(stressTensors.size() != ipts.size()) continue;
 
 				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
@@ -491,39 +563,46 @@ namespace Kratos
 				noalias(S) = ZeroVector(6);
 			else
 				S /= totalVolume;
+
 #else
+
 			double totalVolume = geomDescriptor.DomainSize();
-			ModelPart::NodeType& ref_node = mp.GetNode(geomDescriptor.ReferenceNodeID());
+			double X_center = geomDescriptor.Center()[0];
+			double Y_center = geomDescriptor.Center()[1];
+			double Z_center = geomDescriptor.Center()[2];
 			array_1d<double, 3> X;
 			array_1d<double, 3> f;
-			Matrix Sig(3, 3, 0.0);
-			for (RveGeometryDescriptor::IndexContainerType::const_iterator it =
+			Matrix Sig(3,3,0.0);
+			for(RveGeometryDescriptor::IndexContainerType::const_iterator it =
 				geomDescriptor.BoundaryNodesIDs().begin(); it != geomDescriptor.BoundaryNodesIDs().end(); ++it)
 			{
 				RveGeometryDescriptor::IndexType index = *it;
 				ModelPart::NodeType& bnd_node = mp.GetNode(index);
-				X[0] = bnd_node.X0() - ref_node.X0();
-				X[1] = bnd_node.Y0() - ref_node.Y0();
-				X[2] = bnd_node.Z0() - ref_node.Z0();
+				X[0] = bnd_node.X0() - X_center;
+				X[1] = bnd_node.Y0() - Y_center;
+				X[2] = bnd_node.Z0() - Z_center;
 				ModelPart::NodeType::DofType& dof_x = bnd_node.GetDof(DISPLACEMENT_X);
 				ModelPart::NodeType::DofType& dof_y = bnd_node.GetDof(DISPLACEMENT_Y);
 				ModelPart::NodeType::DofType& dof_z = bnd_node.GetDof(DISPLACEMENT_Z);
 				f[0] = dof_x.GetSolutionStepReactionValue();
 				f[1] = dof_y.GetSolutionStepReactionValue();
 				f[2] = dof_z.GetSolutionStepReactionValue();
-				Sig += outer_prod(f, X);
+				Sig += outer_prod(f,X);
 			}
-			S(0) = Sig(0, 0);
-			S(1) = Sig(1, 1);
-			S(2) = Sig(2, 2);
-			S(3) = 0.5*(Sig(0, 1) + Sig(1, 0));
-			S(4) = 0.5*(Sig(1, 2) + Sig(2, 1));
-			S(5) = 0.5*(Sig(0, 2) + Sig(2, 0));
-			if (totalVolume == 0.0)
+			S(0) = Sig(0,0);
+			S(1) = Sig(1,1);
+			S(2) = Sig(2,2);
+			S(3) = 0.5*(Sig(0,1)+Sig(1,0));
+			S(4) = 0.5*(Sig(1,2)+Sig(2,1));
+			S(5) = 0.5*(Sig(0,2)+Sig(2,0));
+
+			if(totalVolume == 0.0)
 				noalias(S) = ZeroVector(6);
 			else
 				S /= totalVolume;
+
 #endif
+
 		}
 
 		/**

@@ -124,6 +124,16 @@ public:
         return mpAdaptee->GetStrainSize();
     }
 
+	/**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    virtual bool Has(const Variable<int>& rThisVariable)
+	{
+		return mpAdaptee->Has(rThisVariable);
+	}
+
     /**
      * returns whether this constitutive Law has specified variable
      * @param rThisVariable the variable to be checked for
@@ -174,6 +184,17 @@ public:
     virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 	{
 		return mpAdaptee->Has(rThisVariable);
+	}
+
+	/**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue)
+	{
+		return mpAdaptee->GetValue(rThisVariable, rValue);
 	}
 
     /**
@@ -230,6 +251,19 @@ public:
                                             array_1d<double, 6 > & rValue)
 	{
 		return mpAdaptee->GetValue(rVariable, rValue);
+	}
+
+	/**
+     * sets the value of a specified variable
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<int>& rVariable,
+                          const int& rValue,
+                          const ProcessInfo& rCurrentProcessInfo)
+	{
+		mpAdaptee->SetValue(rVariable, rValue, rCurrentProcessInfo);
 	}
 
     /**

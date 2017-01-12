@@ -140,18 +140,17 @@ namespace Kratos
 
 			for (typename DofsArrayType::iterator dof_iterator = dofset.begin(); dof_iterator != dofset.end(); ++dof_iterator)
 			{
-				Dof<double> &dofp = *dof_iterator;
-				if (dofp.IsFixed())
+				if (dof_iterator->IsFixed())
 				{
 					size_t index = --fix_id;
-					dofp.SetEquationId(index);
+					dof_iterator->SetEquationId(index);
 					equation_id_flag[index] = 0;
 					transformed_equation_ids[index] = index;
 				}
 				else
 				{
 					size_t index = free_id++;
-					dofp.SetEquationId(index);
+					dof_iterator->SetEquationId(index);
 					equation_id_flag[index] = 0;
 					transformed_equation_ids[index] = index;
 				}
@@ -186,12 +185,6 @@ namespace Kratos
 		{
 		}
 
-		// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++
-		// this method can be used to modifiy the standard update
-		// made by the scheme. 
-		// TODO:
-		// check if this is better than creating ad-hoc schemes
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		virtual void Update(ModelPart& mp,
 							const RveGeometryDescriptor& geom,
 							const RveMacroscaleData& macroScaleData,
@@ -201,25 +194,10 @@ namespace Kratos
 							SparseMatrixType& A,
 							VectorType& Dx,
 							VectorType& b,
-							VectorType& R,
 							size_t equation_system_size)
 		{
 			// standard: call the scheme and do nothing else!
 			scheme.Update(mp, dofset, A, Dx, b);
-		}
-
-		virtual void PostUpdate(ModelPart& mp,
-							const RveGeometryDescriptor& geom,
-							const RveMacroscaleData& macroScaleData,
-							const IndexContainerType& trasformed_eq_ids,
-							SchemeType& scheme,
-							DofsArrayType& dofset,
-							SparseMatrixType& A,
-							VectorType& Dx,
-							VectorType& b,
-							VectorType& R,
-							size_t equation_system_size)
-		{
 		}
 
 	};

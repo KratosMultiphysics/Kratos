@@ -118,7 +118,7 @@ namespace Kratos
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
+			//const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const double T_M = macroScaleData.Mean_Temp();
 			Vector grad_T_M = macroScaleData.StrainVector();
 			double T_m;

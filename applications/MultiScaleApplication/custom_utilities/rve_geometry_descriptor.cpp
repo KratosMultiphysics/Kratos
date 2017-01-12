@@ -90,7 +90,6 @@ void RveGeometryDescriptor::Build(ModelPart& modelPart)
 	this->FindDomainSize(modelPart);
 	this->FindCornerNodes(modelPart);
 	this->FindBoundaryNodes(modelPart);
-	this->FindReferenceNode(modelPart);
 	this->FindPeriodicNodes(modelPart);
 	this->ExtractIndexArrays(modelPart);
 }
@@ -152,28 +151,44 @@ void RveGeometryDescriptor::FindDimension(ModelPart& modelPart)
 {
 	double zmin = std::numeric_limits<double>::max();
 	double zmax = -zmin;
+	double xmin = zmin;
+	double xmax = -xmin;
+	double ymin = zmin;
+	double ymax = -ymin;
 	for(ModelPart::NodeIterator it = modelPart.NodesBegin(); it != modelPart.NodesEnd(); ++it)
 	{
+		double ix = it->X0();
+		if(ix < xmin)
+			xmin = ix;
+		else if(ix > xmax)
+			xmax = ix;
+
+		double iy = it->Y0();
+		if(iy < ymin)
+			ymin = iy;
+		else if(iy > ymax)
+			ymax = iy;
+
 		double iz = it->Z0();
-		zmin = std::min(zmin, iz);
-		zmax = std::max(zmax, iz);
+		if(iz < zmin)
+			zmin = iz;
+		else if(iz > zmax)
+			zmax = iz;
 	}
 	double tolerance = RveUtilities::Precision()*std::max(zmin,zmax);
 	if(std::abs(zmax - zmin) <= tolerance)
 		m_dimension = 2;
 	else
 		m_dimension = 3;
+
+	m_center[0] = (xmin + xmax)/2.0;
+	m_center[1] = (ymin + ymax)/2.0;
+	m_center[2] = (zmin + zmax)/2.0;
 }
 
 void RveGeometryDescriptor::FindDomainSize(ModelPart& modelPart)
 {
 	m_domain_size = 0.0;
-	/*for(ModelPart::ElementIterator it = modelPart.ElementsBegin(); it != modelPart.ElementsEnd(); ++it)
-	{
-		Element& ielem = *it;
-		Element::GeometryType& igeom = ielem.GetGeometry();
-		m_domain_size += igeom.DomainSize();
-	}*/
 	if(m_dimension == 2)
 	{
 		for(ModelPart::ElementIterator it = modelPart.ElementsBegin(); it != modelPart.ElementsEnd(); ++it)
@@ -653,6 +668,41 @@ void RveGeometryDescriptor::FindPeriodicNodes_2D(ModelPart& modelPart)
 	std::sort(edge_left.begin(),   edge_left.end(),   RveUtilities::RveBoundarySortYFunctor_2DGeneric(xform));
 	std::sort(edge_right.begin(),  edge_right.end(),  RveUtilities::RveBoundarySortYFunctor_2DGeneric(xform));
 
+	// begin: post-process coinciding nodes (in case of zero-thickness interfaces
+	/*std::vector< NodePointerContainerType& > ref_array;
+	ref_array.push_back( &edge_bottom );
+	ref_array.push_back( &edge_top );
+	ref_array.push_back( &edge_left );
+	ref_array.push_back( &edge_right );
+	for(unsigned int iedge_id = 0; iedge_id < 4; iedge_id++)
+	{
+		NodePointerContainerType& iedge = ref_array[iedge_id];
+		for(unsigned int ii=1; ii<iedge.size(); ii++)
+		{
+			NodePointerType& first_node = iedge[ii-1];
+			NodePointerType& second_node = iedge[ii];
+			double dx = second_node->X0() - first_node->X0();
+			double dy = second_node->Y0() - first_node->Y0();
+			double distance = std::sqrt( dx*dx + dy*dy );
+			if(distance < tolerance)
+			{
+				for(ModelPart::ElementIterator el_iter = modelPart.ElementsBegin(); el_iter != modelPart.ElementsEnd(); ++el_iter)
+				{
+					const ModelPart::ElementType& ielem = *el_iter;
+					const ModelPart::ElementType::GeometryType& igeom = ielem.GetGeometry();
+					for(unsigned int jj=0; jj<igeom.PointsNumber(); jj++)
+					{
+						if(igeom[jj].Id() == first_node->Id())
+						{
+
+						}
+					}
+				}
+			}
+		}
+	}*/
+	// end: post-process coinciding nodes (in case of zero-thickness interfaces
+
 	if(edge_bottom.size() != edge_top.size() || edge_left.size() != edge_right.size())
 	{
 		KRATOS_WATCH(edge_bottom.size());
@@ -660,9 +710,7 @@ void RveGeometryDescriptor::FindPeriodicNodes_2D(ModelPart& modelPart)
 		KRATOS_WATCH(edge_left.size());
 		KRATOS_WATCH(edge_right.size());
 		KRATOS_TRY
-			//std::cout << "edge_bottom.size() " << edge_bottom.size() << " - edge_top.size() " << edge_top.size() << " - edge_left.size() " << edge_left.size() << " - edge_right.size() " << edge_right.size() << std::endl;
-			std::cout << "THE MESH SEEMS TO BE NON - PERIODIC" << std::endl;
-			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+		KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
 		KRATOS_CATCH("")
 	}
 
@@ -891,7 +939,6 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 		if(edges[index+1].size() != nn || edges[index+2].size() != nn || edges[index+3].size() != nn)
 		{
 			KRATOS_TRY
-			std::cout << "THE MESH SEEMS TO BE NON-PERIODIC IN THE EDGES" << std::endl;
 			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC IN THE EDGES", "");
 			KRATOS_CATCH("")
 		}
@@ -900,7 +947,6 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 	if(face_bottom.size() != face_top.size() || face_left.size() != face_right.size() || face_front.size() != face_back.size())
 	{
 		KRATOS_TRY
-		std::cout << "THE MESH SEEMS TO BE NON-PERIODIC IN THE FACES" << std::endl;
 		KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC IN THE FACES", "");
 		KRATOS_CATCH("")
 	}
@@ -938,11 +984,6 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 		NodePointerType& aMaster = face_front[i];
 		this->m_periodic_nodes.push_back(PeriodicNodePointerPairType(aMaster, aSlave));
 	}
-}
-
-void RveGeometryDescriptor::FindReferenceNode(ModelPart& modelPart)
-{
-	m_reference_node = m_corner_nodes[0];
 }
 
 void RveGeometryDescriptor::ExtractIndexArrays(ModelPart& modelPart)
@@ -1015,12 +1056,6 @@ void RveGeometryDescriptor::ExtractIndexArrays(ModelPart& modelPart)
 			}
 		}
 	}
-
-	// reference node
-	if(m_reference_node)
-		m_reference_node_id = m_reference_node->GetId();
-	else
-		m_reference_node_id = 0;
 
 	// boudnary edges
 	if(m_boundary_edges_ids.size() > 0)

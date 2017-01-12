@@ -118,6 +118,8 @@ public:
 		, mRatioTolerance(NewRatioTolerance)
 		, mAlwaysConvergedNorm(AlwaysConvergedNorm)
 		, mVerbose(true)
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
@@ -126,6 +128,8 @@ public:
 		, mRatioTolerance(NewRatioTolerance)
 		, mAlwaysConvergedNorm(AlwaysConvergedNorm)
 		, mVerbose(Verbose)
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
@@ -145,40 +149,142 @@ public:
                       const TSystemVectorType& Dx,
                       const TSystemVectorType& b)
     {
+		//ProcessInfo& pinfo = r_model_part.GetProcessInfo();
+
+		//SizeType vsize = TSparseSpace::Size(Dx);
+		//
+		//int convergence_flag = 0;
+		//if(vsize == 0) 
+		//{
+		//	pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+		//	return true;
+		//}
+
+		//TDataType disp_norm       = 0;
+  //      TDataType delta_disp_norm = 0;
+  //      TDataType ratio           = 0;
+
+  //      CalculateDispNorms(rDofSet, Dx, disp_norm, delta_disp_norm);
+
+		//if(disp_norm > 0.0)
+		//	ratio = delta_disp_norm / disp_norm;
+		//else
+		//	ratio = 1.0;
+
+		//TDataType absoluteNorm = delta_disp_norm / (TDataType)vsize;
+
+		//bool do_print = (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose);
+		//if (do_print)
+		//{
+		//	std::stringstream ss;
+		//	ss.precision(3);
+		//	ss << "   DISPLACEMENT NORM | Ratio : " 
+		//	   << std::scientific << ratio << 
+		//	   " | Norm : " 
+		//	   << std::scientific << absoluteNorm 
+		//	   << " - ITER: " << pinfo[NL_ITERATION_NUMBER]
+		//	   << std::endl;
+		//	std::cout << ss.str();
+		//}
+
+		//if(!boost::math::isfinite(disp_norm))
+		//{
+		//	convergence_flag = -1;
+		//}
+		//else
+		//{
+		//	if(BaseType::mConvergenceCriteriaIsInitialized)
+		//	{
+		//		if(ratio > mRatioOld /*&& ratio > 1.0*/)
+		//			mNumDivergence++;
+		//	}
+		//}
+		//mRatioOld = ratio;
+		//if(mNumDivergence > 1)
+		//	convergence_flag = -1;
+
+		//pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+
+		//return (ratio <= mRatioTolerance || absoluteNorm < mAlwaysConvergedNorm);
+
+		ProcessInfo& pinfo = r_model_part.GetProcessInfo();
+
 		SizeType vsize = TSparseSpace::Size(Dx);
-		if(vsize == 0) return true;
 
-		TDataType disp_norm       = 0;
-        TDataType delta_disp_norm = 0;
-        TDataType ratio           = 0;
-
-        CalculateDispNorms(rDofSet, Dx, disp_norm, delta_disp_norm);
-
-		if(disp_norm > 0.0)
-			ratio = delta_disp_norm / disp_norm;
-		else
-			ratio = 1.0;
-
-		TDataType absoluteNorm = delta_disp_norm / (TDataType)vsize;
-
-		if (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose)
+		int convergence_flag = 0;
+		if(vsize == 0) 
 		{
-			std::stringstream ss;
+			pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+			return true;
+		}
+
+		TDataType currentNorm;
+
+		if(!mInitialized) 
+		{
+			mInitialNorm = TSparseSpace::TwoNorm(Dx);
+			currentNorm = mInitialNorm;
+		}
+		else 
+		{
+			currentNorm = TSparseSpace::TwoNorm(Dx);
+		}
+
+		TDataType ratio = 1.0;
+		if(mInitialNorm != 0.0)
+			ratio = currentNorm/mInitialNorm;
+		
+		currentNorm /= (TDataType)vsize;
+		
+		std::stringstream ss;
+		bool do_print = (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose);
+		if (do_print)
+		{
 			ss.precision(3);
-			ss << "   DISPLACEMENT NORM | Ratio : " 
+			ss << "   DISPL.INCR. NORM     | Ratio : " 
 			   << std::scientific << ratio << 
 			   " | Norm : " 
-			   << std::scientific << absoluteNorm 
-			   << std::endl;
+			   << std::scientific << currentNorm << " - ITER: " << pinfo[NL_ITERATION_NUMBER];
+		}
+
+		if(!boost::math::isfinite(currentNorm))
+		{
+			convergence_flag = -1;
+		}
+		else
+		{
+			if(mInitialized)
+			{
+				if(ratio > mRatioOld && ratio > 1.0)
+					mNumDivergence++;
+			}
+		}
+		mRatioOld = ratio;
+		if(mNumDivergence > 1)
+			convergence_flag = -1;
+
+		pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+
+		mInitialized = true;
+
+		bool res = (ratio <= mRatioTolerance || currentNorm <= mAlwaysConvergedNorm);
+
+		if(do_print) {
+			ss << std::endl;
 			std::cout << ss.str();
 		}
 
-		return (ratio <= mRatioTolerance || absoluteNorm < mAlwaysConvergedNorm);
+		return res;
     }
 
     void Initialize(ModelPart& r_model_part)
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
+
+		mInitialized = false;
+		mInitialNorm = 0.0;
     }
 
     void InitializeSolutionStep(
@@ -188,6 +294,11 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b)
     {
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
+
+		mInitialized = false;
+		mInitialNorm = 0.0;
     }
 
     void FinalizeSolutionStep(
@@ -274,6 +385,16 @@ private:
     TDataType mAlwaysConvergedNorm;
 	bool mVerbose;
 
+	bool mInitialized;
+	TDataType mInitialNorm;
+
+	// criteria for divergence check:
+	// 1) if norm(R) is NAN -> divergence
+	// 2) temp_diverg = (ratio > 1 || ratio > ratio_old)
+	// if temp_diverg > max_diverg -> divergence
+	int mNumDivergence;
+	TDataType mRatioOld;
+
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -284,17 +405,27 @@ private:
 
 	void CalculateDispNorms(DofsArrayType& rDofSet,const TSystemVectorType& Dx,TDataType& disp_norm,TDataType& delta_disp_norm)
     {
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            if(i_dof->IsFree())
-            {
-				//here we do: d_n+1^it-d_n
-				TDataType dxi = Dx[i_dof->EquationId()];
-                delta_disp_norm += dxi * dxi;
-				TDataType xi = i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1);
-                disp_norm       += xi * xi;
-            }
-        }
+    //    for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+    //    {
+    //        if(i_dof->IsFree())
+    //        {
+				////here we do: d_n+1^it-d_n
+				//TDataType dxi = Dx[i_dof->EquationId()];
+    //            delta_disp_norm += dxi * dxi;
+				//TDataType xi = i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1);
+    //            disp_norm       += xi * xi;
+    //        }
+    //    }
+		if(mDx_converged.size() != Dx.size())
+			mDx_converged = ZeroVector(Dx.size());
+		disp_norm = 0.0;
+		delta_disp_norm = 0.0;
+		for(unsigned int i = 0; i < Dx.size(); i++) {
+			double dxi = Dx[i];
+			delta_disp_norm += dxi * dxi;
+			double xi = Dx[i] - mDx_converged[i];
+			disp_norm       += xi * xi;
+		}
 
         delta_disp_norm = sqrt(delta_disp_norm);
         disp_norm = sqrt(disp_norm);

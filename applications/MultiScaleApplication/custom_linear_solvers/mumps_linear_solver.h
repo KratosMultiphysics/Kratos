@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "..\kratos\utilities\timer.h"
+#include "utilities/timer.h"
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include <iostream>
@@ -170,11 +170,14 @@ public:
 	typedef DMUMPS_STRUC_C StructureType;
 	static void RunMUMPS(StructureType &s) 
 	{
+		//#pragma omp critical
+		//{
 #ifdef USE_MUMPS_STATIC_LIB
 		dmumps_c(&s);
 #else
 		RunMUMPS_d(&s);
 #endif // USE_MUMPS_STATIC_LIB
+		//}
 	}
 };
 

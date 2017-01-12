@@ -455,6 +455,7 @@ private:
 			//std::cout << "PlaneStress from 3d material adapter - Maximum iteration reached!\n";
 			m_error_code = 1.0;
 		}
+
 		/*std::stringstream ss;
 		ss << "Ez: " << mEz(0) << ", " << mEz(1) << ", " << mEz(2) << std::endl;
 		ss << "Sz: " << Szz(0) << ", " << Szz(1) << ", " << Szz(2) << std::endl;

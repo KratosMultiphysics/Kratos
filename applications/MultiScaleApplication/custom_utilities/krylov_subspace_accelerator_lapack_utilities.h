@@ -49,6 +49,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
+/*
+Krylov accelerator utility, using LAPACK subroutine DGELS
+to solve the least square problem required by the algorithm.
+Reference:
+Scott, Michael H., and Gregory L. Fenves. 
+"A Krylov subspace accelerated Newton algorithm." 
+Proc., 2003 ASCE Structures Congress. 2003.
+*/
+
 #if !defined(KRYLOV_SUBSPACE_ACCELERATOR_LAPACK_UTILITIES_H_INCLUDED)
 #define KRYLOV_SUBSPACE_ACCELERATOR_LAPACK_UTILITIES_H_INCLUDED
 

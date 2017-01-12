@@ -94,7 +94,6 @@ namespace Kratos
 		typedef std::vector< IndexContainerType > ContainerOfIndexContainerType;
 		typedef std::map< IndexType, int > NodeToEdgeIDMapType;
 
-		// MAZ_01
 		// add a vector of flags, with the same size of the vector containing boundary nodes ids,
 		// so that we can mark each boundary node as STANDARD, MASTER or SLAVE
 		enum BoundaryNodeType
@@ -135,8 +134,6 @@ namespace Kratos
 		void FindPeriodicNodes_2D(ModelPart& modelPart);
 		void FindPeriodicNodes_3D(ModelPart& modelPart);
 
-		void FindReferenceNode(ModelPart& modelPart);
-
 		void ExtractIndexArrays(ModelPart& modelPart);
 
 	public:
@@ -151,8 +148,6 @@ namespace Kratos
 
 		inline const PeriodicIndexContainerType& PeriodicNodesIDs()const { return m_periodic_nodes_ids; }
 
-		inline const IndexType ReferenceNodeID()const { return m_reference_node_id; }
-
 		inline const ContainerOfIndexContainerType& BoundaryEdgesIDs()const { return m_boundary_edges_ids; }
 
 		inline void SetUserCornerNodes(IndexContainerType& ids) { m_user_corner_nodes_id = ids; }
@@ -162,6 +157,8 @@ namespace Kratos
 		inline const IndexContainerType& BoundaryElementsIDs()const { return m_boundary_elements_ids; }
 
 		inline const NodeToEdgeIDMapType& NodeToEdgeIDMap()const { return m_node_to_edge_id_map; }
+
+		inline const array_1d<double, 3>& Center()const { return m_center; }
 
 	protected:
 
@@ -174,12 +171,11 @@ namespace Kratos
 		IndexContainerType               m_boundary_nodes_ids;
 		PeriodicNodePointerContainerType m_periodic_nodes;
 		PeriodicIndexContainerType       m_periodic_nodes_ids;
-		NodePointerType                  m_reference_node;
-		IndexType                        m_reference_node_id;
 		ContainerOfIndexContainerType    m_boundary_edges_ids;
 		NodeToEdgeIDMapType              m_node_to_edge_id_map;
 		BoundaryNodeTypeContainerType    m_boundary_nodes_types;
 		IndexContainerType               m_boundary_elements_ids;
+		array_1d<double,3>               m_center;
 		
 	};
 

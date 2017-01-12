@@ -318,11 +318,6 @@ private:
 	{
 		CHECK_STRAIN_CALCULATION;
 
-		// some parameters
-		const int maxiter = 10;
-		const double relative_tolerance = 1.0E-3;
-		const double always_converged_tolerance = 1.0E-5;
-
 		// get references (for the adapted shell material)
 		Vector& StrainVector = rValues.GetStrainVector();
 		Vector& StressVector = rValues.GetStressVector();
@@ -339,9 +334,12 @@ private:
 		Matrix tangent_3d(6,6,0.0);
 		Vector stress_3d(6, 0.0);
 
+		double nu = rValues.GetMaterialProperties()[POISSON_RATIO];
+		mEz = (StrainVector(0)*nu + StrainVector(1)*nu)/(nu - 1.0);
+
 		strain_3d(0) = StrainVector(0);
 		strain_3d(1) = StrainVector(1);
-		strain_3d(2) = mEz; // from previous step (if any)
+		strain_3d(2) = mEz;
 		strain_3d(3) = StrainVector(2);
 		strain_3d(4) = StrainVector(3);
 		strain_3d(5) = StrainVector(4);
@@ -354,39 +352,7 @@ private:
 		options3D.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 		options3D.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-		// begin
-		int iter(0);
-		double tolerance = relative_tolerance;
-		bool converged = false;
-		double Czz(0.0);
-		double Szz(0.0);
-		for(iter = 0; iter < maxiter; iter++)
-		{
-			// calculate 3d material response
-            MyBase::mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
-
-			Czz = tangent_3d(2,2);
-			Szz = stress_3d(2);
-
-			// initialize tolerance
-			if(iter == 0) {
-				tolerance = std::abs(Szz) * relative_tolerance;
-				if(tolerance < always_converged_tolerance)
-					tolerance = always_converged_tolerance;
-			}
-
-			// check convergence
-			if(std::abs(Szz) <= tolerance) {
-				converged = true;
-				break;
-			}
-
-			mEz -= Szz / Czz;
-			strain_3d(2) = mEz;
-		}
-		if(!converged) {
-			std::cout << "Shell from 3d material adapter - Maximum iteration reached! : " << Szz << "\n";
-		}
+		MyBase::mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
 
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < 2; j++)
@@ -402,32 +368,133 @@ private:
 				ConstitutiveMatrix(j-1, i) = tangent_3d(j,i);
 			}
 		}
-
-		double invCzz = 1.0 / Czz;
-
-		Vector L(5);
-		L(0) = tangent_3d(2,0);
-		L(1) = tangent_3d(2,1);
-		L(2) = tangent_3d(2,3);
-		L(3) = tangent_3d(2,4);
-		L(4) = tangent_3d(2,5);
-
-		Vector LTinvC(5);
-		LTinvC(0) = tangent_3d(0,2) * invCzz;
-		LTinvC(1) = tangent_3d(1,2) * invCzz;
-		LTinvC(2) = tangent_3d(3,2) * invCzz;
-		LTinvC(3) = tangent_3d(4,2) * invCzz;
-		LTinvC(4) = tangent_3d(5,2) * invCzz;
-
-		noalias(ConstitutiveMatrix) -= outer_prod(LTinvC, L);
-
-		// just in case of non convergence, we modify the residual
-		StressVector(0) = stress_3d(0) + LTinvC(0) * Szz;
-		StressVector(1) = stress_3d(1) + LTinvC(1) * Szz;
-		StressVector(2) = stress_3d(3) + LTinvC(2) * Szz;
-		StressVector(3) = stress_3d(4) + LTinvC(3) * Szz;
-		StressVector(4) = stress_3d(5) + LTinvC(4) * Szz;
+		StressVector(0) = stress_3d(0);
+		StressVector(1) = stress_3d(1);
+		StressVector(2) = stress_3d(3);
+		StressVector(3) = stress_3d(4);
+		StressVector(4) = stress_3d(5);
 	}
+
+	//void CalculateAdaptedMaterialResponse(ConstitutiveLaw::Parameters& rValues, ConstitutiveLaw::StressMeasure rStressMeasure)
+	//{
+	//	CHECK_STRAIN_CALCULATION;
+
+	//	// some parameters
+	//	const int maxiter = 30;
+	//	const double relative_tolerance = 1.0E-5;
+	//	const double always_converged_tolerance = 1.0E-5;
+
+	//	// get references (for the adapted shell material)
+	//	Vector& StrainVector = rValues.GetStrainVector();
+	//	Vector& StressVector = rValues.GetStressVector();
+	//	Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+	//	if(StressVector.size() != 5)
+	//		StressVector.resize(5, false);
+	//	if(ConstitutiveMatrix.size1() != 5 || ConstitutiveMatrix.size2() != 5)
+	//		ConstitutiveMatrix.resize(5, 5, false);
+
+	//    // construct the parameters for the 3D adaptee
+	//	ConstitutiveLaw::Parameters rValues3D( rValues );
+
+	//	Vector strain_3d(6);
+	//	Matrix tangent_3d(6,6,0.0);
+	//	Vector stress_3d(6, 0.0);
+
+	//	strain_3d(0) = StrainVector(0);
+	//	strain_3d(1) = StrainVector(1);
+	//	strain_3d(2) = mEz; // from previous step (if any)
+	//	strain_3d(3) = StrainVector(2);
+	//	strain_3d(4) = StrainVector(3);
+	//	strain_3d(5) = StrainVector(4);
+	//	
+	//	rValues3D.SetStrainVector(strain_3d);
+	//	rValues3D.SetStressVector(stress_3d);
+	//	rValues3D.SetConstitutiveMatrix(tangent_3d);
+	//	
+	//	Flags& options3D = rValues3D.GetOptions();
+	//	options3D.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+	//	options3D.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+	//	// begin
+	//	int iter(0);
+	//	double tolerance = relative_tolerance;
+	//	bool converged = false;
+	//	double Czz(0.0);
+	//	double Szz(0.0);
+	//	for(iter = 0; iter < maxiter; iter++)
+	//	{
+	//		// calculate 3d material response
+ //           MyBase::mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
+
+	//		Czz = tangent_3d(2,2);
+	//		Szz = stress_3d(2);
+
+	//		// initialize tolerance
+	//		if(iter == 0) {
+	//			tolerance = std::abs(Szz) * relative_tolerance;
+	//			if(tolerance < always_converged_tolerance)
+	//				tolerance = always_converged_tolerance;
+	//		}
+
+	//		// check convergence
+	//		if(std::abs(Szz) <= tolerance) {
+	//			converged = true;
+	//			break;
+	//		}
+
+	//		mEz -= Szz / Czz;
+	//		strain_3d(2) = mEz;
+	//	}
+	//	/*if(!converged) {
+	//		std::cout << "Shell from 3d material adapter - Maximum iteration reached! : " << Szz << "\n";
+	//	}*/
+	//	if(converged)
+	//	{
+	//		Szz = 0.0;
+	//	}
+
+	//	for(int i = 0; i < 2; i++)
+	//		for(int j = 0; j < 2; j++)
+	//			ConstitutiveMatrix(i,j) = tangent_3d(i,j);
+
+	//	for(int i = 3; i < 6; i++)
+	//		for(int j = 3; j < 6; j++)
+	//			ConstitutiveMatrix(i-1,j-1) = tangent_3d(i,j);
+
+	//	for(int i = 0; i < 2; i++) {
+	//		for(int j = 3; j < 6; j++) {
+	//			ConstitutiveMatrix(i, j-1) = tangent_3d(i,j);
+	//			ConstitutiveMatrix(j-1, i) = tangent_3d(j,i);
+	//		}
+	//	}
+
+	//	double invCzz = 1.0 / Czz;
+
+	//	Vector L(5);
+	//	L(0) = tangent_3d(2,0);
+	//	L(1) = tangent_3d(2,1);
+	//	L(2) = tangent_3d(2,3);
+	//	L(3) = tangent_3d(2,4);
+	//	L(4) = tangent_3d(2,5);
+
+	//	Vector LTinvC(5);
+	//	LTinvC(0) = tangent_3d(0,2) * invCzz;
+	//	LTinvC(1) = tangent_3d(1,2) * invCzz;
+	//	LTinvC(2) = tangent_3d(3,2) * invCzz;
+	//	LTinvC(3) = tangent_3d(4,2) * invCzz;
+	//	LTinvC(4) = tangent_3d(5,2) * invCzz;
+
+	//	noalias(ConstitutiveMatrix) -= outer_prod(LTinvC, L);
+
+	//	// just in case of non convergence, we modify the residual
+	//	StressVector(0) = stress_3d(0) + LTinvC(0) * Szz;
+	//	StressVector(1) = stress_3d(1) + LTinvC(1) * Szz;
+	//	StressVector(2) = stress_3d(3) + LTinvC(2) * Szz;
+	//	StressVector(3) = stress_3d(4) + LTinvC(3) * Szz;
+	//	StressVector(4) = stress_3d(5) + LTinvC(4) * Szz;
+	//}
+
+
 
     ///@}
     

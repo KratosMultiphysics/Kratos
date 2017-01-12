@@ -102,7 +102,7 @@ namespace Kratos
 					 const RveGeometryDescriptor& geomdes)
 		{
 			mStrainVector = param_macro.GetStrainVector();
-			//std::cout << "SetData -> mStrainVector = " << mStrainVector << std::endl;
+			
 			/**
 			we can get also other stuff like:
 			TEMPERATURE on nodes (geom[i].FastGet,....) and interpolate them with (params.GetShapeFunc...)
@@ -126,8 +126,7 @@ namespace Kratos
 			}
 			if(mHasTemperature)
 			{
-				mhomogen_alpha = 0.0;
-				//double alpha(0.0);
+				double alpha(0.0);
 				double totalVolume(0.0);
 				double iterpolated_temp = 0.0;
 				double T0 = param_macro.GetMaterialProperties().Has(AMBIENT_TEMPERATURE) ? param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE] : 0.0;
@@ -138,7 +137,6 @@ namespace Kratos
 				{
 					iterpolated_temp += geom_macro[i].FastGetSolutionStepValue(TEMPERATURE) * N[i];
 				}
-				//std::cout << "iterpolated_temp = " << iterpolated_temp << std::endl;
 
 				mMean_Temp = iterpolated_temp - T0;
 

@@ -420,21 +420,6 @@ namespace Kratos
 			const GeometryType& rElementGeometry,
 			const ProcessInfo& rCurrentProcessInfo);
 
-	private:
-
-		///@name Static Member Variables
-		///@{
-
-		double m_xi;
-		double m_xi_converged;
-		array_1d<double, 6> m_eps_pl;
-		array_1d<double, 6> m_eps_pl_converged;
-		bool m_initialized;
-		double m_error_code;
-		double m_lch;
-		double m_lch_multiplier;
-		///@}
-		
 	protected:
 
 		///@name Protected static Member Variables
@@ -487,6 +472,16 @@ namespace Kratos
 
 		///@name Static Member Variables
 		///@{
+
+		double m_xi;
+		double m_xi_converged;
+		array_1d<double, 6> m_eps_pl;
+		array_1d<double, 6> m_eps_pl_converged;
+		double m_lch;
+		double m_lch_multiplier;
+		bool m_initialized;
+
+		double m_error_code;
 		///@}
 
 		///@name Member Variables

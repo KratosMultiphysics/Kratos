@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RVE_CONSTRAINT_HANDLER_PBF_SD_H_INCLUDED
 
 #include "rve_constraint_handler.h"
-//#include "../custom_conditions/rve_weak_periodic_condition_2D2N.h"
+#include "../custom_conditions/rve_weak_periodic_condition_2D2N.h"
 
 namespace Kratos
 {
@@ -228,14 +228,13 @@ namespace Kratos
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const Vector& E = macroScaleData.StrainVector();
 			array_1d<double, 3> Um;
 			Um.clear();
 			if(geom.Dimension() == 2)
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
 				double exx = E(0);
 				double eyy = E(1);
 				double exy = E(2)/2.0;
@@ -255,9 +254,9 @@ namespace Kratos
 			}
 			else
 			{
-				double x0 = ref_node.X0();
-				double y0 = ref_node.Y0();
-				double z0 = ref_node.Z0();
+				double x0 = geom.Center()[0];
+				double y0 = geom.Center()[1];
+				double z0 = geom.Center()[2];
 				double exx = E(0);
 				double eyy = E(1);
 				double ezz = E(2);
@@ -297,57 +296,12 @@ namespace Kratos
 							SparseMatrixType& A,
 							VectorType& Dx,
 							VectorType& b,
-							VectorType& R,
 							size_t equation_system_size)
 		{
 			for(typename DofsArrayType::iterator i_dof = dofset.begin() ; i_dof != dofset.end() ; ++i_dof) {
-				Dof<double> &it_dof = *i_dof;
-				if(it_dof.IsFree()) {
-					it_dof.GetSolutionStepValue() += Dx[trasformed_eq_ids[it_dof.EquationId()]];
-				}
-			}
-		}
-
-		virtual void PostUpdate(ModelPart& mp,
-							const RveGeometryDescriptor& geom,
-							const RveMacroscaleData& macroScaleData,
-							const IndexContainerType& trasformed_eq_ids,
-							SchemeType& scheme,
-							DofsArrayType& dofset,
-							SparseMatrixType& A,
-							VectorType& Dx,
-							VectorType& b,
-							VectorType& R,
-							size_t equation_system_size)
-		{
-			for(RveGeometryDescriptor::PeriodicIndexContainerType::const_iterator it = geom.PeriodicNodesIDs().begin();
-				it != geom.PeriodicNodesIDs().end(); ++it) 
-			{
-				RveGeometryDescriptor::PeriodicIndexPairType ipair = *it;
-				RveGeometryDescriptor::IndexType index_slave =  ipair.second;
-				RveGeometryDescriptor::IndexType index_master =  ipair.first;
-				ModelPart::NodeType& slave_node = mp.GetNode(index_slave);
-				ModelPart::NodeType& master_node = mp.GetNode(index_master);
-
-				ModelPart::DofType::Pointer slave_dof_x = slave_node.pGetDof( DISPLACEMENT_X );
-				ModelPart::DofType::Pointer master_dof_x = master_node.pGetDof( DISPLACEMENT_X );
-				double RX = R[slave_dof_x->EquationId() - equation_system_size];
-				slave_dof_x->GetSolutionStepReactionValue() = RX;
-				master_dof_x->GetSolutionStepReactionValue() = -RX;
-
-				ModelPart::DofType::Pointer slave_dof_y = slave_node.pGetDof( DISPLACEMENT_Y );
-				ModelPart::DofType::Pointer master_dof_y = master_node.pGetDof( DISPLACEMENT_Y );
-				double RY = R[slave_dof_y->EquationId() - equation_system_size];
-				slave_dof_y->GetSolutionStepReactionValue() = RY;
-				master_dof_y->GetSolutionStepReactionValue() = -RY;
-
-				if(geom.Dimension() == 3)
-				{
-					ModelPart::DofType::Pointer slave_dof_z = slave_node.pGetDof( DISPLACEMENT_Z );
-					ModelPart::DofType::Pointer master_dof_z = master_node.pGetDof( DISPLACEMENT_Z );
-					double RZ = R[slave_dof_z->EquationId() - equation_system_size];
-					slave_dof_z->GetSolutionStepReactionValue() = RZ;
-					master_dof_z->GetSolutionStepReactionValue() = -RZ;
+				if(i_dof->IsFree()) {
+					i_dof->GetSolutionStepValue() += Dx[trasformed_eq_ids[i_dof->EquationId()]];
+					
 				}
 			}
 		}

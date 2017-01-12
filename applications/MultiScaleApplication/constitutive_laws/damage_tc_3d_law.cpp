@@ -53,21 +53,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <math.h>
 
-#define DAM_TC_PREC 1.0E-12
+#ifdef MULTISCALE_APPLICATION_USE_EIGEN
+#include <external_includes/eigen-3.2.2/Eigen/Dense>
+#endif // MULTISCALE_APPLICATION_USE_EIGEN
+
+
+
+#define DAM_TC_PREC 0.0
 
 #define DAM_TC_SIGN(X) (X == 0.0 ? 0.0 : ( X > 0.0 ? 1.0 : -1.0 ))
-#define DAM_TC_HVS(X) ( X > 0.0 ? 1.0 : ( X < 0.0 ? -1.0 : 0.5) )
-#define DAM_TC_POS(X) ( X > 0.0 ? X : 0.0 )
-
-//#define DAM_TC_TEST_RANKINE
-//#define DAM_TC_SECANT
-
-//#define DAM_TC_NO_REGULARIZATION
-#ifdef DAM_TC_NO_REGULARIZATION
-#define DAM_TC_FIXED_LCH 200.0
-#endif // DAM_TC_NO_REGULARIZATION
-
-//#define DAM_TC_TEST_TENSILE_LAW
+#define DAM_TC_HVS(X)  ( X > 0.0 ? 1.0 : ( X < 0.0 ? -1.0 : 0.5) )
+#define DAM_TC_POS(X)  ( X > 0.0 ? X : 0.0 )
 
 #define DAM_TC_OPTIMIZE_LCH
 
@@ -84,41 +80,61 @@ namespace Kratos
 	//
 	// =====================================================================================================
 
+	// todo: remove this. only used for very deformed rectangular geometries
+
 #ifdef DAM_TC_OPTIMIZE_LCH
 
 	inline double get_optimized_lch(const Element::GeometryType& geom)
 	{
 		double lch = geom.Length();
 		if(geom.WorkingSpaceDimension() == 3) {
-			if(geom.PointsNumber() == 4 /*&& geom.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral*/) {
-				// 3D 4N (shell)
-				double ax = (geom[0].X0()+geom[3].X0())/2.0;
-				double ay = (geom[0].Y0()+geom[3].Y0())/2.0;
-				double az = (geom[0].Z0()+geom[3].Z0())/2.0;
-				double bx = (geom[1].X0()+geom[2].X0())/2.0;
-				double by = (geom[1].Y0()+geom[2].Y0())/2.0;
-				double bz = (geom[1].Z0()+geom[2].Z0())/2.0;
-				double cx = (geom[0].X0()+geom[1].X0())/2.0;
-				double cy = (geom[0].Y0()+geom[1].Y0())/2.0;
-				double cz = (geom[0].Z0()+geom[1].Z0())/2.0;
-				double dx = (geom[2].X0()+geom[3].X0())/2.0;
-				double dy = (geom[2].Y0()+geom[3].Y0())/2.0;
-				double dz = (geom[2].Z0()+geom[3].Z0())/2.0;
-				double v1x = bx-ax;
-				double v1y = by-ay;
-				double v1z = bz-az;
-				double v2x = dx-cx;
-				double v2y = dy-cy;
-				double v2z = dz-cz;
-				double lx = std::sqrt(v1x*v1x+v1y*v1y+v1z*v1z);
-				double ly = std::sqrt(v2x*v2x+v2y*v2y+v2z*v2z);
-				lch = std::min(lx,ly);
+			//if(geom.PointsNumber() == 4 /*&& geom.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral*/) {
+			//	// 3D 4N (shell)
+			//	double ax = (geom[0].X0()+geom[3].X0())/2.0;
+			//	double ay = (geom[0].Y0()+geom[3].Y0())/2.0;
+			//	double az = (geom[0].Z0()+geom[3].Z0())/2.0;
+			//	double bx = (geom[1].X0()+geom[2].X0())/2.0;
+			//	double by = (geom[1].Y0()+geom[2].Y0())/2.0;
+			//	double bz = (geom[1].Z0()+geom[2].Z0())/2.0;
+			//	double cx = (geom[0].X0()+geom[1].X0())/2.0;
+			//	double cy = (geom[0].Y0()+geom[1].Y0())/2.0;
+			//	double cz = (geom[0].Z0()+geom[1].Z0())/2.0;
+			//	double dx = (geom[2].X0()+geom[3].X0())/2.0;
+			//	double dy = (geom[2].Y0()+geom[3].Y0())/2.0;
+			//	double dz = (geom[2].Z0()+geom[3].Z0())/2.0;
+			//	double v1x = bx-ax;
+			//	double v1y = by-ay;
+			//	double v1z = bz-az;
+			//	double v2x = dx-cx;
+			//	double v2y = dy-cy;
+			//	double v2z = dz-cz;
+			//	double lx = std::sqrt(v1x*v1x+v1y*v1y+v1z*v1z);
+			//	double ly = std::sqrt(v2x*v2x+v2y*v2y+v2z*v2z);
+			//	lch = std::min(lx,ly);
+			//}
+			//
+			double min_x = std::numeric_limits<double>::max();
+			double max_x = -min_x;
+			double min_y = min_x;
+			double max_y = max_x;
+			for(size_t i = 0; i < geom.size(); i++) {
+				double ix = geom[i].X0();
+				double iy = geom[i].Y0();
+				min_x = std::min(min_x, ix);
+				max_x = std::max(max_x, ix);
+				min_y = std::min(min_y, iy);
+				max_y = std::max(max_y, iy);
 			}
+			double lx = max_x-min_x;
+			double ly = max_y-min_y;
+			double lch = (lx+ly)/2.0;
 		}
 		return lch;
 	}
 
 #endif // DAM_TC_OPTIMIZE_LCH
+
+	// TODO: move this into a B3_HARDENING_LAW_H
 
 	inline double b3_eval_bezier(double xi,
 								 double x0, double x1, double x2,
@@ -175,10 +191,342 @@ namespace Kratos
 		S(3)+=x*n(0)*n(1);
 		S(4)+=x*n(1)*n(2);
 		S(5)+=x*n(0)*n(2);
+	}	
+	inline void dam_tc_pii(const array_1d<double,3>& ni, Matrix& pii)
+	{
+		double A1 = ni(2)*ni(2);
+		double A2 = ni(1)*ni(1);
+		double A3 = ni(0)*ni(0);
+		double A4 = ni(2);
+		double A5 = ni(0);
+		double A6 = ni(1);
+		double A7 = 2.0*A1*A5*A6;
+		double A8 = 2.0*A3*A4*A6;
+		double A9 = 2.0*A2*A4*A5;
+		double A10 = A1*A2;
+		pii(0, 0) = A3*A3;
+		pii(0, 1) = A2*A3;
+		pii(0, 2) = A1*A3;
+		pii(0, 3) = 2.0*A3*A5*A6;
+		pii(0, 4) = A8;
+		pii(0, 5) = 2.0*A3*A4*A5;
+		pii(1, 0) = A2*A3;
+		pii(1, 1) = A2*A2;
+		pii(1, 2) = A10;
+		pii(1, 3) = 2.0*A2*A5*A6;
+		pii(1, 4) = 2.0*A2*A4*A6;
+		pii(1, 5) = A9;
+		pii(2, 0) = A1*A3;
+		pii(2, 1) = A10;
+		pii(2, 2) = A1*A1;
+		pii(2, 3) = A7;
+		pii(2, 4) = 2.0*A1*A4*A6;
+		pii(2, 5) = 2.0*A1*A4*A5;
+		pii(3, 0) = A3*A5*A6;
+		pii(3, 1) = A2*A5*A6;
+		pii(3, 2) = A1*A5*A6;
+		pii(3, 3) = 2.0*A2*A3;
+		pii(3, 4) = A9;
+		pii(3, 5) = A8;
+		pii(4, 0) = A3*A4*A6;
+		pii(4, 1) = A2*A4*A6;
+		pii(4, 2) = A1*A4*A6;
+		pii(4, 3) = A9;
+		pii(4, 4) = 2.0*A1*A2;
+		pii(4, 5) = A7;
+		pii(5, 0) = A3*A4*A5;
+		pii(5, 1) = A2*A4*A5;
+		pii(5, 2) = A1*A4*A5;
+		pii(5, 3) = A8;
+		pii(5, 4) = A7;
+		pii(5, 5) = 2.0*A1*A3;
 	}
-	
-	/* Eigen decomposition code for symmetric 3x3 matrices, copied from the public
-	domain Java Matrix library JAMA. */
+	inline void dam_tc_pij(const array_1d<double,3>& ni, const array_1d<double,3>& nj, Matrix& pij)
+	{
+		double A1 = ni(0)*nj(2) + ni(2)*nj(0);
+		double A2 = ni(1)*nj(2) + ni(2)*nj(1);
+		double A3 = ni(0)*nj(1) + ni(1)*nj(0);
+		double A4 = nj(2);
+		double A5 = ni(2);
+		double A6 = nj(1);
+		double A7 = ni(1);
+		double A8 = nj(0);
+		double A9 = ni(0);
+		double A10 = A4*A4;
+		double A11 = A5*A5;
+		double A12 = A6*A6;
+		double A13 = A7*A7;
+		double A14 = A8*A8;
+		double A15 = A9*A9;
+		double A16 = (A1*A2)/2.0;
+		double A17 = (A1*A3)/2.0;
+		double A18 = (A2*A3)/2.0;
+		double A19 = A4*A5*A6*A7;
+		double A20 = A4*A5*A8*A9;
+		pij(0, 0) = A14*A15;
+		pij(0, 1) = A6*A7*A8*A9;
+		pij(0, 2) = A20;
+		pij(0, 3) = A6*A8*A15 + A7*A9*A14;
+		pij(0, 4) = A2*A8*A9;
+		pij(0, 5) = A4*A8*A15 + A5*A9*A14;
+		pij(1, 0) = A6*A7*A8*A9;
+		pij(1, 1) = A12*A13;
+		pij(1, 2) = A19;
+		pij(1, 3) = A6*A8*A13 + A7*A9*A12;
+		pij(1, 4) = A4*A6*A13 + A5*A7*A12;
+		pij(1, 5) = A1*A6*A7;
+		pij(2, 0) = A20;
+		pij(2, 1) = A19;
+		pij(2, 2) = A10*A11;
+		pij(2, 3) = A3*A4*A5;
+		pij(2, 4) = A4*A6*A11 + A5*A7*A10;
+		pij(2, 5) = A4*A8*A11 + A5*A9*A10;
+		pij(3, 0) = (A6*A8*A15)/2.0 + (A7*A9*A14)/2.0;
+		pij(3, 1) = (A6*A8*A13)/2.0 + (A7*A9*A12)/2.0;
+		pij(3, 2) = (A3*A4*A5)/2.0;
+		pij(3, 3) = A3*A3/2.0;
+		pij(3, 4) = A18;
+		pij(3, 5) = A17;
+		pij(4, 0) = (A2*A8*A9)/2.0;
+		pij(4, 1) = (A4*A6*A13)/2.0 + (A5*A7*A12)/2.0;
+		pij(4, 2) = (A4*A6*A11)/2.0 + (A5*A7*A10)/2.0;
+		pij(4, 3) = A18;
+		pij(4, 4) = A2*A2/2.0;
+		pij(4, 5) = A16;
+		pij(5, 0) = (A4*A8*A15)/2.0 + (A5*A9*A14)/2.0;
+		pij(5, 1) = (A1*A6*A7)/2.0;
+		pij(5, 2) = (A4*A8*A11)/2.0 + (A5*A9*A10)/2.0;
+		pij(5, 3) = A17;
+		pij(5, 4) = A16;
+		pij(5, 5) = A1*A1/2.0;
+	}
+
+	// todo: move this into a DAMAGE_INCREMENTAL_FRACTURE_ENERGY_REGULARIZATION_H
+
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+
+#define REG2_DIS_VEC_T std::vector<double>
+#define REG2_DIS_VEC_C std::vector<double>
+
+	template<class T>
+	inline unsigned int reg2_find_stop_id(const T& x, const T& y, double xstop)
+	{
+		/*unsigned int id = -1;
+		unsigned int n = x.size();
+		for(unsigned int i=0; i<n-1; i++) {
+			if(y[i+1]<y[i]) {
+				id = i;
+				break;
+			}
+		}
+		if(id == -1) {
+			id = n-1;
+		}
+		else {
+			for(unsigned int i=0; i<n; i++) {
+				if(x[i]>=xstop) {
+					id = i;
+					break;
+				}
+			}
+		}
+		return id;*/
+
+		unsigned int n = x.size();
+		unsigned int id = n-1;
+		for(unsigned int i=1; i<n; i++) {
+			if(y[i]<y[i-1]) {
+				id = i-1;
+				break;
+			}
+		}
+		
+		for(unsigned int i=id; i<n; i++) {
+			if(x[i]>=xstop) {
+				id = i;
+				break;
+			}
+		}
+
+		return id;
+	}
+
+	inline void reg2_discrete_t_law(double E, double G, double s, REG2_DIS_VEC_T& x, REG2_DIS_VEC_T& y)
+	{
+		double h = 1.0;
+		double lt=2.0*E*G/s/s;
+		double Hs = h/(lt-h);
+		double A  = 2.0*Hs;
+		double r0 = s;
+
+		double smin = 1.0e-3*s;
+		double ru = -r0*(log(smin/r0)/A - 1.0);
+		double xu = ru/E;
+		double x0 = s/E;
+
+		unsigned int n = 200;
+		x.resize(n);
+		y.resize(n);
+
+		double x_incr = (xu-x0)/double(n - 1);
+		for(unsigned int i=0; i<n; i++) {
+			x[i] = x0 + double(i)*x_incr;
+			double rt = x[i]*E;
+			double d = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
+			y[i] = (1-d)*rt;
+		}
+	}
+
+	inline void reg2_discrete_c_law(const DamageTC3DLaw::CalculationData& data, double Gc,
+									REG2_DIS_VEC_C& x, REG2_DIS_VEC_C& y)
+	{
+		// extract material parameters
+		double E  = data.E;
+		double s0 = data.fc0;
+		double sp = data.fcp;
+		double sr = data.fcr;
+		double ep = data.ep;
+		double c1 = data.c1;
+		double c2 = data.c2;
+		double c3 = data.c3;
+		// auto-computation of other parameters
+		double sk    = sr + (sp-sr)*c1;
+		double e0    = s0/E;
+		double alpha = 2.0*(ep-sp/E);
+		double ej    = ep + alpha*c2;
+		double ek    = ej + alpha*(1-c2);
+		double er    = (ek-ej)/(sp-sk)*(sp-sr)+ej;
+		double eu    = er*c3;
+
+		// make the underneath area = Gc
+		double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
+		double G1      = sp*ep/2.0;
+		double stretch = (Gc-G1)/(G_bar-G1)-1.0;
+		if(stretch <= -1.0) 
+		{
+			std::stringstream ss;
+			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
+			ss << "Input Gc/lch = " << Gc << std::endl;
+			ss << "Minimum Gc to avoid constitutive snap-back = " << G1 << std::endl;
+			std::cout << ss.str();
+			exit(-1);
+		}
+		b3_stretch( stretch,ep,ej,ek,er,eu );
+
+		// generate lin-spaced abscissas
+		unsigned int n1 = 41;
+		unsigned int n2 = 80;
+		unsigned int n3 = 80;
+		unsigned int n  = n1+n2+n3;
+		x.resize(n);
+		y.resize(n);
+		double dx1 = (ep-e0)/double(n1-1);
+		double dx2 = (ek-ep)/double(n2);
+		double dx3 = (eu-ek)/double(n3);
+		unsigned int w=0;
+		for(unsigned int i=0; i<n1; i++) x[w++]=e0+double(i  )*dx1;
+		for(unsigned int i=0; i<n2; i++) x[w++]=ep+double(i+1)*dx2;
+		for(unsigned int i=0; i<n3; i++) x[w++]=ek+double(i+1)*dx3;
+
+		// generate curve
+		for(unsigned int i=0; i<n; i++) {
+			double xi = x[i];
+			if(xi <= ep)
+				y[i] = b3_eval_bezier(xi,e0,sp/E,ep,s0,sp,sp);
+			else if(xi <= ek)
+				y[i] = b3_eval_bezier(xi,ep,ej,ek,sp,sp,sk);
+			else if(xi <= eu)
+				y[i] = b3_eval_bezier(xi,ek,er,eu,sk,sr,sr);
+			else
+				y[i] = sr;
+		}
+	}
+
+	template<class T>
+	inline double reg2_interp_dis_curve(const T& x, const T& y, double ix)
+	{
+		double iy=0.0;
+		unsigned int n = x.size();
+		if(ix <= x[0]) {
+			iy = y[0];
+		}
+		else {
+			if(ix >= x[n-1]) {
+				iy = y[n-1];
+			}
+			else {
+				for(unsigned int i=0; i<n-1; i++) {
+					double x1 = x[i];
+					if(ix >= x1) {
+						double x2 = x[i+1];
+						if(ix < x2) {
+							double y1 = y[i];
+							double y2 = y[i+1];
+							if(x2-x1 > 0.0)
+								iy = (ix-x1)/(x2-x1)*(y2-y1)+y1;
+							else
+								iy = y1;
+						}
+					}
+				}
+			}
+		}
+		return iy;
+	}
+
+	template<class T>
+	inline void reg2_correct_snap_back(T& x)
+	{
+		unsigned int n = x.size();
+		bool found = false;
+		double last_incr=0.0;
+		for(unsigned int i=1; i<n; i++) {
+			if(x[i]<x[i-1]) {
+				x[i] = x[i-1]+last_incr*1.0E-2;
+				found=true;
+			}
+			else {
+				if(!found)
+					last_incr = x[i]-x[i-1];
+			}
+		}
+	}
+
+	template<class T>
+	inline void reg2_regularize_from_point(T& x, const T& y, unsigned int pn, double lch_old, double lch_new)
+	{
+		//double xp = x[pn];
+		//double yp = y[pn];
+		//double Ed = yp/xp; // damaged young modulus
+		//unsigned int n = x.size();
+		//for(unsigned int i=pn; i<n; i++) {
+		//	double xtot = x[i]; // total strain
+		//	double xinl = xtot-y[i]/Ed; // inelastic strain
+		//	double xinl_reg = xinl*lch_old/lch_new; // m_lch/lch = m_lch/(m_lch*m_lch_mult) = 1/m_lch_mult
+		//	x[i] = xinl_reg + y[i]/Ed; // to regularized total strain
+		//}
+		if(pn == x.size()-1) return;
+		double xp = x[pn];
+		double yp = y[pn];
+		unsigned int n = x.size();
+		double G1 = xp*yp/2.0;
+		double G2 = 0.0;
+		for(unsigned int i = pn; i < n; i++)
+			G2 += (x[i] - x[i-1])*(y[i]+y[i-1])/2.0;
+		double G = G1+G2;
+		double Gr = G/lch_new*lch_old;
+		double S = (Gr-G1)/(G-G1)-1.0;
+		if(S < -1.0)
+			S = -0.99;
+		for(unsigned int i = pn; i < n; i++)
+			x[i] += (x[i]-xp)*S;
+	}
+
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+
+	// todo: move this into a EIGENVAL_UTILITIES_H
+
+	/* Eigen decomposition code for symmetric 3x3 matrices, copied from the public domain Java Matrix library JAMA. */
 
 	#ifdef EIG3_MAX
 	#undef EIG3_MAX
@@ -190,7 +538,8 @@ namespace Kratos
 	}
 
 	// Symmetric Householder reduction to tridiagonal form.
-	inline void tred2(Matrix& V, Vector& d, Vector& e) {
+	template<class TMatrix, class TVector>
+	inline void tred2(TMatrix& V, TVector& d, TVector& e) {
 
 	//  This is derived from the Algol procedures tred2 by
 	//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
@@ -306,7 +655,8 @@ namespace Kratos
 	} 
 
 	// Symmetric tridiagonal QL algorithm.
-	inline void tql2(Matrix& V, Vector& d, Vector& e) {
+	template<class TMatrix, class TVector>
+	inline void tql2(TMatrix& V, TVector& d, TVector& e) {
 
 	//  This is derived from the Algol procedures tql2, by
 	//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
@@ -465,7 +815,20 @@ namespace Kratos
 		, m_rt_impl_temp(0.0)
 		, m_rc_impl_temp(0.0)
 #endif // DAM_TC_3D_IMPLEX
+#ifdef DAM_TC_3D_SEQLIN
+		, m_PT_n(6,6)
+		, m_PC_n(6,6)
+		, m_PT_n_converged(6,6)
+		, m_PC_n_converged(6,6)
+		, m_has_n_converged_data(false)
+#endif // DAM_TC_3D_SEQLIN
 		, m_error_code(0.0)
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+		, m_E(0.0)
+		, m_has_changed_reg(false)
+		, m_change_reg_t_x(0.0)
+		, m_change_reg_c_x(0.0)
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 	{
 	}
 
@@ -530,8 +893,6 @@ namespace Kratos
 			rValue = m_damage_c;
 		else if(rThisVariable == CHARACTERISTIC_LENGTH_MULTIPLIER)
 			rValue = m_lch_multiplier;
-		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
-			rValue = m_error_code;
 		else if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = m_error_code;
 		return rValue;
@@ -581,8 +942,28 @@ namespace Kratos
 			m_damage_t = rValue;
 		else if(rVariable == DAMAGE_C)
 			m_damage_c = rValue;
-		else if(rVariable == CHARACTERISTIC_LENGTH_MULTIPLIER)
+		else if(rVariable == CHARACTERISTIC_LENGTH_MULTIPLIER){
+			/*m_lch_multiplier = rValue;*/
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+			if(!m_has_changed_reg) {
+				//if(m_lch_multiplier != 1.0) {
+				//	m_has_changed_reg = true;
+				//	// find the equivalent strain at which the regularization has changed
+				//	m_change_reg_t_x = m_rt_converged / m_E;
+				//	m_change_reg_c_x = m_rc_converged / m_E;
+				//}
+				if(  std::abs(m_lch_multiplier-rValue) > 1.0e-10 /*m_lch_multiplier != rValue*/) {
+					m_lch_multiplier = rValue;
+					m_has_changed_reg = true;
+					// find the equivalent strain at which the regularization has changed
+					m_change_reg_t_x = m_rt_converged / m_E;
+					m_change_reg_c_x = m_rc_converged / m_E;
+				}
+			}
+#else
 			m_lch_multiplier = rValue;
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+		}
 	}
 
 	void DamageTC3DLaw::SetValue(
@@ -670,6 +1051,9 @@ namespace Kratos
 #else
 			m_lch            = get_optimized_lch(rElementGeometry);
 #endif // !DAM_TC_OPTIMIZE_LCH
+
+			//m_lch = 1.0; // occhio
+
 			m_lch_multiplier = 1.0;
 			m_initial_strain = ZeroVector(this->GetStrainSize());
 			m_initialized    = true;
@@ -682,20 +1066,12 @@ namespace Kratos
 			m_dTime_n_converged = 0.0;
 #endif // DAM_TC_3D_IMPLEX
 
-			// MOD
-			/*double yavg = 0.0;
-			for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++)
-				yavg += rElementGeometry[i].Y0();
-			yavg /= double(rElementGeometry.PointsNumber());
-			if(yavg > 3600.0) {
-				double fact = 2.0/3.0;
-				m_rt            *= fact;
-				m_rt_converged  *= fact;
-				m_rc            *= fact;
-				m_rc_converged  *= fact;
-			}*/
-			// END MOD
-
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+			m_E = rMaterialProperties[YOUNG_MODULUS];
+			m_has_changed_reg = false;
+			m_change_reg_t_x = 0.0;
+			m_change_reg_c_x = 0.0;
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 		}
 		m_verbose = false;
 		m_error_code = 0.0;
@@ -715,18 +1091,22 @@ namespace Kratos
 		const Vector& rShapeFunctionsValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-#ifdef DAM_TC_3D_IMPLEX
 
+#ifdef DAM_TC_3D_IMPLEX
+		// save implicit values
 		m_rt = m_rt_impl_temp;
 		m_rc = m_rc_impl_temp;
-
 		// move from n to n-1
 		m_rt_converged_old  = m_rt_converged;
 		m_rc_converged_old  = m_rc_converged;
 		m_dTime_n_converged = m_dTime_n;
-		m_strain_converged = m_strain;
-
+		m_strain_converged  = m_strain;
 #endif // DAM_TC_3D_IMPLEX
+
+#ifdef DAM_TC_3D_SEQLIN
+		noalias(m_PT_n_converged) = m_PT_n;
+		noalias(m_PC_n_converged) = m_PC_n;
+#endif // DAM_TC_3D_SEQLIN
 
 		// save converged values
 		m_rt_converged = m_rt;
@@ -774,110 +1154,8 @@ namespace Kratos
 		Vector&       stress_vector       = rValues.GetStressVector();
 
 		CalculationData data;
-
-		//bool verb = m_verbose;
 		this->InitializeCalculationData(props, geom, rValues.GetShapeFunctionsValues(), pinfo, data);
-		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, data);
-		m_verbose = false;
-
-		/*if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
-			if(props.Has(DAMAGE_SECANT_MATRIX)) {
-				if(props[DAMAGE_SECANT_MATRIX] > 0) {
-					size_t n = GetStrainSize();
-					Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-					if(constitutive_matrix.size1() != n || constitutive_matrix.size2() != n)
-						constitutive_matrix.resize(n, n);
-
-					Matrix W( IdentityMatrix(3,3) );
-					noalias(W) -= m_damage_t*data.PT;
-					noalias(W) -= m_damage_c*data.PC;
-
-					noalias(constitutive_matrix) = prod(W, data.C0);
-
-					return;
-				}
-			}
-		}*/
-
-		//std::stringstream ss;
-
-		if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR))
-		{
-			size_t n = GetStrainSize();
-
-			// prepare constitutive matrix
-			Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-			if(constitutive_matrix.size1() != n || constitutive_matrix.size2() != n)
-				constitutive_matrix.resize(n, n);
-
-			// save internal variables
-			double save_rt = m_rt;
-			double save_rc = m_rc;
-			double save_dt = m_damage_t;
-			double save_dc = m_damage_c;
-
-			// perturbation parameter
-			double h = 1.0E-9;
-
-			// perturbed vectors
-			Vector strain_bar(n);
-			Vector S1(n);
-			Vector S2(n);
-
-			// apply perturbation to each strain component...
-			for(size_t j = 0; j < n; j++)
-			{
-				h = std::max(1.0e-9, 1.0e-6*std::abs(strain_vector(j)));
-
-				noalias(strain_bar) = strain_vector;
-
-				/*strain_bar(j) = strain_vector(j) - h;
-				this->CalculateMaterialResponseInternal(strain_bar, S1, data);
-
-				strain_bar(j) = strain_vector(j) + h;
-				this->CalculateMaterialResponseInternal(strain_bar, S2, data);
-
-				for(size_t i = 0; i < n; i++)
-					constitutive_matrix(i,j) = (S2(i) - S1(i))/(2.0*h);*/
-
-				strain_bar(j) = strain_vector(j) + h;
-				this->CalculateMaterialResponseInternal(strain_bar, S2, data);
-
-				/*ss << MathHelpers::VectorToString(data.S, 4, std::scientific);
-				ss << MathHelpers::VectorToString(data.Si, 4, std::scientific);
-				ss << MathHelpers::VectorToString(data.ST, 4, std::scientific);
-				ss << MathHelpers::VectorToString(data.SC, 4, std::scientific);
-				ss << MathHelpers::VectorToString(S2, 4, std::scientific);
-				ss << "****\n";*/
-
-				for(size_t i = 0; i < n; i++)
-					constitutive_matrix(i,j) = (S2(i) - stress_vector(i))/h;
-			}
-
-			// restore internal variables
-			m_rt	   = save_rt;
-			m_rc	   = save_rc;
-			m_damage_t = save_dt;
-			m_damage_c = save_dc;
-		}
-
-		/*ss << " ----------------\n";
-		ss << "E:\n";
-		ss << data.E << std::endl;
-		ss << "STRAIN:\n";
-		ss << MathHelpers::VectorToString(strain_vector, 4, std::scientific);
-		ss << "STRESS:\n";
-		ss << MathHelpers::VectorToString(stress_vector, 4, std::scientific);
-		ss << "TANGENT:\n";
-		ss << MathHelpers::MatrixToString(rValues.GetConstitutiveMatrix(), 4, std::scientific);
-		ss << "C0:\n";
-		ss << MathHelpers::MatrixToString(data.C0, 4, std::scientific);
-		if(data.E < 50000.0) {
-			std::cout << ss.str();
-			exit(-1);
-		}
-
-		m_verbose = verb;*/
+		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, rValues.GetConstitutiveMatrix(), data);
 	}
 
 	void DamageTC3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
@@ -914,6 +1192,13 @@ namespace Kratos
 		m_lch = 0.0;
 		m_lch_multiplier = 1.0;
 		m_initialized = false;
+
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+		m_E = 0.0;
+		m_has_changed_reg = false;
+		m_change_reg_t_x = 0.0;
+		m_change_reg_c_x = 0.0;
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 	}
 
 	void DamageTC3DLaw::GetLawFeatures(Features& rFeatures)
@@ -970,6 +1255,9 @@ namespace Kratos
 		if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
+		if( !rMaterialProperties.Has(VISCOSITY) )
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: VISCOSITY", "");
+
 		return 0;
 
 		KRATOS_CATCH("");
@@ -1019,7 +1307,7 @@ namespace Kratos
 
 		// tension
 		data.ft = props[DAMAGE_STRESS_T_0]*impf;
-		data.Gt = props[FRACTURE_ENERGY_T];
+		data.Gt = props[FRACTURE_ENERGY_T]*impf*impf;
 		data.m2  = props.Has(DAMAGE_TENSILE_SURFACE_S1) ? props[DAMAGE_TENSILE_SURFACE_S1] : 1.0;
 		data.m2  = std::min(std::max(data.m2,0.0),1.0);
 
@@ -1031,45 +1319,26 @@ namespace Kratos
 		data.c1  = props.Has(DAMAGE_COMPRESSIVE_LAW_C1) ? props[DAMAGE_COMPRESSIVE_LAW_C1] : 0.65;
 		data.c2  = props.Has(DAMAGE_COMPRESSIVE_LAW_C2) ? props[DAMAGE_COMPRESSIVE_LAW_C2] : 0.50;
 		data.c3  = props.Has(DAMAGE_COMPRESSIVE_LAW_C3) ? props[DAMAGE_COMPRESSIVE_LAW_C3] : 1.50;
-		data.Gc  = props[FRACTURE_ENERGY_C];
+		data.Gc  = props[FRACTURE_ENERGY_C]*impf*impf;
 		data.bm  = props[BIAXIAL_COMPRESSION_MULTIPLIER];
 		data.m1  = props.Has(SHEAR_COMPRESSION_REDUCTION) ? props[SHEAR_COMPRESSION_REDUCTION] : 0.5;
 		data.m1  = std::min(std::max(data.m1,0.0),1.0);
 
-		// MOD
-		//double yavg = 0.0;
-		//for(unsigned int i=0; i<geom.PointsNumber(); i++)
-		//	yavg += geom[i].Y0();
-		//yavg /= double(geom.PointsNumber());
-		//if(yavg > 3600.0) {
-		//	double fact = 2.0/3.0;
-		//	//data.E*=fact;
-		//	data.fc0*=fact;
-		//	data.fcp*=fact;
-		//	data.fcm*=fact;
-		//	data.fcr*=fact;
-		//	data.Gc*=fact;
-		//	data.ft*=fact;
-		//	data.Gt*=fact;
-		//}
-		// END MOD
-
 		// lubliner parameter for compressive states
-		data.Kc = 2.0/3.0;
-		if(props.Has(LUBLINER_SURFACE_PARAM_KC)) {
-			data.Kc = props[LUBLINER_SURFACE_PARAM_KC];
-		}
+		data.Kc  = props.Has(LUBLINER_SURFACE_PARAM_KC) ? props[LUBLINER_SURFACE_PARAM_KC] : 2.0/3.0;
 		
 		// effective stress data
 		data.S.resize(6,false);
 		data.Si.resize(3,false);
 		data.ST.resize(6,false);
 		data.SC.resize(6,false);
-		//data.PT.resize(6,6,false);
-		//data.PC.resize(6,6,false);
+		data.PT.resize(6,6,false);
+		data.PC.resize(6,6,false);
+		data.QT.resize(6,6,false);
+		data.QC.resize(6,6,false);
 
 		// misc
-		data.eta = props[VISCOSITY];
+		data.eta = props[VISCOSITY]*impf;
 		data.lch = m_lch * m_lch_multiplier;
 
 		data.dTime = pinfo[DELTA_TIME];
@@ -1098,9 +1367,9 @@ namespace Kratos
 			data.C0.resize(6,6,false);
 		data.C0.clear();
 		
-		//double c1 = data.E / (1.0 - data.nu * data.nu);
-		//double c2 = c1 * data.nu;
-		//double c3 = c1 * (1.0 - data.nu) / 2.0;
+		double c1 = data.E / (1.0 - data.nu * data.nu);
+		double c2 = c1 * data.nu;
+		double c3 = c1 * (1.0 - data.nu) / 2.0;
 
 		data.C0(0, 0) = (data.E*(1.0 - data.nu) / ((1.0 + data.nu)*(1.0 - 2.0*data.nu)));
 		data.C0(1, 1) = data.C0(0, 0);
@@ -1126,21 +1395,25 @@ namespace Kratos
 		Vector&       Si = data.Si;
 		Vector&       ST = data.ST;
 		Vector&       SC = data.SC;
-
-		if(Si.size() != 3) Si.resize(3,false);
-		if(ST.size() != 6) ST.resize(6,false);
-		if(SC.size() != 6) SC.resize(6,false);
+		Matrix&       PT = data.PT;
+		Matrix&       PC = data.PC;
+		Matrix&       QT = data.QT;
+		Matrix&       QC = data.QC;
 
 		ST.clear();
 		SC.clear();
+		PT.clear();
+		PC.clear();
+		QT.clear();
+		QC.clear();
 
-		array_1d<double,3> v0;
-		array_1d<double,3> v1;
-		array_1d<double,3> v2;
+		array_1d<double,3>& v0 = data.v0;
+		array_1d<double,3>& v1 = data.v1;
+		array_1d<double,3>& v2 = data.v2;
 		array_1d<double,3> vtemp;
 		
+		// compute eigenvalues and eigenvectors
 		double p1 = S(3)*S(3) + S(4)*S(4) + S(5)*S(5);
-		/*if(p1 <= DAM_TC_PREC)*/
 		if(p1 == 0.0)
 		{
 			v0(0)=1.0; v0(1)=0.0; v0(2)=0.0;
@@ -1163,18 +1436,19 @@ namespace Kratos
 			A(1,0) = S(3);
 			A(2,1) = S(4);
 			A(2,0) = S(5);
-
 			eigen_decomposition_sym_3x3(A,V,Si);
 			for(int i=0; i<3; i++) {
 				v0(i) = V(i,0);
 				v1(i) = V(i,1);
 				v2(i) = V(i,2);
-				// watch out! the algo above assumes eigenvectors on rows!!! bloodclat!!!!
 			}
+
 			v0 /= norm_2(v0);
 			v1 /= norm_2(v1);
 			v2 /= norm_2(v2);
 		}
+
+		// order eigenvalues and eigenvectors : 1>2>3
 		if (Si(0) < Si(1)) {
 			dam_tc_swap(Si(0),Si(1));
 			dam_tc_swap(v0,v1,vtemp);
@@ -1187,217 +1461,250 @@ namespace Kratos
 			dam_tc_swap(Si(0),Si(1));
 			dam_tc_swap(v0,v1,vtemp);
 		}
-		if(Si(0)>0.0)
-			dam_tc_add_dyad(v0, Si(0), ST);
-		else if(Si(0)<0.0)
-			dam_tc_add_dyad(v0, Si(0), SC);
-		if(Si(1)>0.0)
-			dam_tc_add_dyad(v1, Si(1), ST);
-		else if(Si(1)<0.0)
-			dam_tc_add_dyad(v1, Si(1), SC);
-		if(Si(2)>0.0)
-			dam_tc_add_dyad(v2, Si(2), ST);
-		else if(Si(2)<0.0)
-			dam_tc_add_dyad(v2, Si(2), SC);
+
+		// construct matrices PT and PC
+		Matrix pii(6,6);
+		// p11
+		dam_tc_pii(v0, pii);
+		double hs1 = DAM_TC_HVS(Si(0));
+		if(hs1 > 0.0) PT += hs1*pii;
+		// p22
+		dam_tc_pii(v1, pii);
+		double hs2 = DAM_TC_HVS(Si(1));
+		if(hs2 > 0.0) PT += hs2*pii;
+		// p33
+		dam_tc_pii(v2, pii);
+		double hs3 = DAM_TC_HVS(Si(2));
+		if(hs3 > 0.0) PT += hs3*pii;
+		// PC
+		noalias(PC) = IdentityMatrix(6,6) - PT;
+
+		// construct ST and SC
+		noalias(ST) = prod( PT, S );
+		noalias(SC) = prod( PC, S );
+
+		// construct QT and QC
+		// QT
+		noalias(QT) = PT;
+		// p12
+		dam_tc_pij(v0, v1, pii);
+		double s12 = Si(0) - Si(1);
+		double pos_s12 = DAM_TC_POS(Si(0)) - DAM_TC_POS(Si(1));
+		if(std::abs(s12) > 0.0)
+			QT += 2.0*pos_s12/s12*pii;
+		else
+			QT += pii;
+		// p13
+		dam_tc_pij(v0, v2, pii);
+		double s13 = Si(0) - Si(2);
+		double pos_s13 = DAM_TC_POS(Si(0)) - DAM_TC_POS(Si(2));
+		if(std::abs(s13) > 0.0)
+			QT += 2.0*pos_s13/s13*pii;
+		else
+			QT += pii;
+		// p23
+		dam_tc_pij(v1, v2, pii);
+		double s23 = Si(1) - Si(2);
+		double pos_s23 = DAM_TC_POS(Si(1)) - DAM_TC_POS(Si(2));
+		if(std::abs(s23) > 0.0)
+			QT += 2.0*pos_s23/s23*pii;
+		else
+			QT += pii;
+		// QC
+		noalias(QC) = IdentityMatrix(6,6) - QT;
 	}
 	
-	void DamageTC3DLaw::TrialEquivalentStressTension(CalculationData& data, double& rt_trial)
+	void DamageTC3DLaw::TrialEquivalentStressTension(CalculationData& data, double& rt_trial, Vector& d_rt_trial_d_sigma)
 	{
-		if(data.tensile_damage_model == 0) // LUBLINER
+		rt_trial = 0.0;
+		if(d_rt_trial_d_sigma.size() != 6) d_rt_trial_d_sigma.resize(6, false);
+		d_rt_trial_d_sigma.clear();
+
+		if(data.Si(0) > 0.0)
 		{
-			double fc = data.fcp*data.m2;
-			double fb = fc * data.bm;
-			double alpha = (fb-fc)/(2.0*fb-fc);
-			double ft = data.ft;
-			double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
-			double I1 = data.Si(0) + data.Si(1) + data.Si(2);
-			array_1d<double,3>Sdev;
-			for(size_t i=0; i < 3; i++)
-				Sdev(i) = data.Si(i)-I1/3.0;
-			double J2 = 0.5*inner_prod(Sdev,Sdev);
-			double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
-			double smax_alg = data.Si(0);
-			double smax = std::max( smax_alg,0.0);
-			double smin = std::max(-smax_alg,0.0);
-			rt_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + beta*smax - gamma*smin) /fc*ft;
+			if(data.tensile_damage_model == 0) // LUBLINER
+			{
+				// equivalent stress
+				double fc    = data.fcp*data.m2;
+				double fb    = fc * data.bm;
+				double alpha = (fb-fc)/(2.0*fb-fc);
+				double ft    = data.ft;
+				double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
+				double I1 = data.Si(0) + data.Si(1) + data.Si(2);
+				array_1d<double,3>Sdev;
+				for(size_t i=0; i < 3; i++)
+					Sdev(i) = data.Si(i)-I1/3.0;
+				double J2 = 0.5*inner_prod(Sdev,Sdev);
+				double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
+				double smax_alg = data.Si(0);
+				double smax = DAM_TC_POS( smax_alg);
+				double smin = DAM_TC_POS(-smax_alg);
+				rt_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + beta*smax - gamma*smin) /fc*ft;
+				// derivative
+				// d_rt_trial_d_sigma = alpha*I + beta*H(s0)*(v0 x v0) - gamma*(-H(-s0))*(v0 x v0);
+				array_1d<double,3>& v0 = data.v0;
+				double Hsmax = DAM_TC_HVS( smax_alg);
+				double Hsmin = DAM_TC_HVS(-smax_alg);
+				double coeff_v0_tens_v0 = beta*Hsmax + gamma*Hsmin;
+				d_rt_trial_d_sigma(0) = alpha +     v0(0)*v0(0)*coeff_v0_tens_v0;
+				d_rt_trial_d_sigma(1) = alpha +     v0(1)*v0(1)*coeff_v0_tens_v0;
+				d_rt_trial_d_sigma(2) = alpha +     v0(2)*v0(2)*coeff_v0_tens_v0;
+				d_rt_trial_d_sigma(3) =         2.0*v0(0)*v0(1)*coeff_v0_tens_v0;
+				d_rt_trial_d_sigma(4) =         2.0*v0(1)*v0(2)*coeff_v0_tens_v0;
+				d_rt_trial_d_sigma(5) =         2.0*v0(0)*v0(2)*coeff_v0_tens_v0;
+				if(std::abs(J2) > 0.0)
+				{
+					// d_rt_trial_d_sigma += 3/(2*sqrt(3*J2))*SDev.*[1 1 1 2 2 2];
+					Vector& S = data.S;
+					double d_q_d_j2 = 3.0/(2.0*std::sqrt(3.0*J2));
+					d_rt_trial_d_sigma(0) += d_q_d_j2 * (S(0) - I1/3.0);
+					d_rt_trial_d_sigma(1) += d_q_d_j2 * (S(1) - I1/3.0);
+					d_rt_trial_d_sigma(2) += d_q_d_j2 * (S(2) - I1/3.0);
+					d_rt_trial_d_sigma(3) += d_q_d_j2 * (2.0*S(3));
+					d_rt_trial_d_sigma(4) += d_q_d_j2 * (2.0*S(4));
+					d_rt_trial_d_sigma(5) += d_q_d_j2 * (2.0*S(5));
+				}
+				d_rt_trial_d_sigma *= 1.0/(1.0-alpha)/fc*ft;
+			}
+			else if(data.tensile_damage_model == 1) // RANKINE
+			{
+				// equivalent stress
+				rt_trial = data.Si(0);
+				// derivative = v0 tens v0
+				array_1d<double,3>& v0 = data.v0;
+				d_rt_trial_d_sigma(0) = v0(0)*v0(0);
+				d_rt_trial_d_sigma(1) = v0(1)*v0(1);
+				d_rt_trial_d_sigma(2) = v0(2)*v0(2);
+				d_rt_trial_d_sigma(3) = 2.0*v0(0)*v0(1);
+				d_rt_trial_d_sigma(4) = 2.0*v0(1)*v0(2);
+				d_rt_trial_d_sigma(5) = 2.0*v0(0)*v0(2);
+			}
 		}
-		else if(data.tensile_damage_model == 1) // RANKINE
-		{
-			rt_trial = std::max(std::max(data.Si(0), data.Si(1)), 0.0);
-		}
-		else // NO DAMAGE IN TENSION
-		{
-			rt_trial = 0.0;
-		}
-
-		double sign_check = data.Si(0) > 0.0 ? 1.0 : 0.0;
-		rt_trial *= sign_check;
-
-		//if( (DAM_TC_SIGN(data.Si(0)) + DAM_TC_SIGN(data.Si(1)) + DAM_TC_SIGN(data.Si(2))) < 0.0 )
-		//{
-		//	rt_trial = 0.0;
-		//}
-		//else
-		//{
-
-		//	if(data.Si(0) < 0.0) {
-		//		double daux = 1.0E-7*std::abs(data.Si(0));
-		//		if(data.Si(1) < daux && data.Si(2) < daux) {
-		//			rt_trial = 0.0;
-		//			return;
-		//		}
-		//	}
-		//	if(data.Si(1) < 0.0) {
-		//		double daux = 1.0E-7*std::abs(data.Si(1));
-		//		if(data.Si(0) < daux && data.Si(2) < daux) {
-		//			rt_trial = 0.0;
-		//			return;
-		//		}
-		//	}
-		//	if(data.Si(2) < 0.0) {
-		//		double daux = 1.0E-7*std::abs(data.Si(2));
-		//		if(data.Si(0) < daux && data.Si(1) < daux) {
-		//			rt_trial = 0.0;
-		//			return;
-		//		}
-		//	}
-
-
-		//	if(data.tensile_damage_model == 0) // LUBLINER
-		//	{
-		//		double fc = data.fcp*data.m2;
-		//		double fb = fc * data.bm;
-		//		double alpha = (fb-fc)/(2.0*fb-fc);
-		//		double ft = data.ft;
-		//		double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
-		//		double I1 = data.Si(0) + data.Si(1) + data.Si(2);
-		//		array_1d<double,3>Sdev;
-		//		for(size_t i=0; i < 3; i++)
-		//			Sdev(i) = data.Si(i)-I1/3.0;
-		//		double J2 = 0.5*inner_prod(Sdev,Sdev);
-		//		double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
-		//		double smax_alg = data.Si(0);
-		//		double smax = std::max( smax_alg,0.0);
-		//		double smin = std::max(-smax_alg,0.0);
-		//		rt_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + beta*smax - gamma*smin) /fc*ft;
-		//	}
-		//	else if(data.tensile_damage_model == 1) // RANKINE
-		//	{
-		//		rt_trial = std::max(std::max(data.Si(0), data.Si(1)), 0.0);
-		//	}
-		//	else // NO DAMAGE IN TENSION
-		//	{
-		//		rt_trial = 0.0;
-		//	}
-
-		//	//if(data.tensile_damage_model == 1) { // rankine
-		//	//	rt_trial = std::max(data.Si(0),0.0);
-		//	//	return;
-		//	//}
-
-		//	//double fc = data.fcp*data.m2;
-		//	//double fb = fc * data.bm;
-		//	//double alpha = (fb-fc)/(2.0*fb-fc);
-		//	//double ft = data.ft;
-
-		//	//double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
-		//	//
-		//	//double I1 = data.Si(0) + data.Si(1) + data.Si(2);
-		//	//array_1d<double,3>Sdev;
-		//	//for(size_t i=0; i < 3; i++)
-		//	//	Sdev(i) = data.Si(i)-I1/3.0;
-		//	//double J2 = 0.5*inner_prod(Sdev,Sdev);
-
-		//	//double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
-		//	//double smax_alg = data.Si(0);
-		//	//double smax = std::max( smax_alg,0.0);
-		//	//double smin = std::max(-smax_alg,0.0);
-
-		//	//rt_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + beta*smax - gamma*smin) /fc*ft;
-		//}
 	}
 
-	void DamageTC3DLaw::TrialEquivalentStressCompression(CalculationData& data, double& rc_trial)
+	void DamageTC3DLaw::TrialEquivalentStressCompression(CalculationData& data, double& rc_trial, Vector& d_rc_trial_d_sigma)
 	{
-		double fc = data.fc0;
-		double fb = fc * data.bm;
-		double alpha = (fb-fc)/(2.0*fb-fc);
-		double ft = data.ft*data.fc0/data.fcp;
+		rc_trial = 0.0;
+		if(d_rc_trial_d_sigma.size() != 6) d_rc_trial_d_sigma.resize(6, false);
+		d_rc_trial_d_sigma.clear();
 
-		double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
-
-		double I1 = data.Si(0) + data.Si(1) + data.Si(2);
-		array_1d<double,3>Sdev;
-		for(size_t i=0; i < 3; i++)
-			Sdev(i) = data.Si(i)-I1/3.0;
-		double J2 = 0.5*inner_prod(Sdev,Sdev);
-
-		double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
-		double smax_alg = data.Si(0);
-		double smax = std::max( smax_alg,0.0);
-		double smin = std::max(-smax_alg,0.0);
-		rc_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + data.m1*beta*smax - gamma*smin);
-
-		double sign_check = data.Si(2) < 0.0 ? 1.0 : 0.0;
-		rc_trial *= sign_check;
-
-		/*if( (DAM_TC_SIGN(data.Si(0)) + DAM_TC_SIGN(data.Si(1)) + DAM_TC_SIGN(data.Si(2))) > 0.0 )
+		if(data.Si(2) < 0.0)
 		{
-			rc_trial = 0.0;
-		}
-		else
-		{
-			if(data.Si(0) > 0.0) {
-				double daux = 1.0E-7*std::abs(data.Si(0));
-				if(data.Si(1) < daux && data.Si(2) < daux) {
-					rc_trial = 0.0;
-					return;
-				}
-			}
-			if(data.Si(1) > 0.0) {
-				double daux = 1.0E-7*std::abs(data.Si(1));
-				if(data.Si(0) < daux && data.Si(2) < daux) {
-					rc_trial = 0.0;
-					return;
-				}
-			}
-			if(data.Si(2) > 0.0) {
-				double daux = 1.0E-7*std::abs(data.Si(2));
-				if(data.Si(0) < daux && data.Si(1) < daux) {
-					rc_trial = 0.0;
-					return;
-				}
-			}
-			
+			// equivalent stress
 			double fc = data.fc0;
 			double fb = fc * data.bm;
 			double alpha = (fb-fc)/(2.0*fb-fc);
 			double ft = data.ft*data.fc0/data.fcp;
-
 			double gamma = 3.0*(1.0-data.Kc)/(2.0*data.Kc-1.0);
-
 			double I1 = data.Si(0) + data.Si(1) + data.Si(2);
 			array_1d<double,3>Sdev;
 			for(size_t i=0; i < 3; i++)
 				Sdev(i) = data.Si(i)-I1/3.0;
 			double J2 = 0.5*inner_prod(Sdev,Sdev);
-
 			double beta = fc/ft*(1.0-alpha)-(1.0+alpha);
 			double smax_alg = data.Si(0);
 			double smax = std::max( smax_alg,0.0);
 			double smin = std::max(-smax_alg,0.0);
 			rc_trial = 1.0/(1.0-alpha)*(alpha*I1 + std::sqrt(3.0*J2) + data.m1*beta*smax - gamma*smin);
-		}*/
+			// derivative
+			// d_rc_trial_d_sigma = alpha*I + m1*beta*H(s0)*(v0 x v0) - gamma*(-H(-s0))*(v0 x v0);
+			array_1d<double,3>& v0 = data.v0;
+			double Hsmax = DAM_TC_HVS( smax_alg);
+			double Hsmin = DAM_TC_HVS(-smax_alg);
+			double coeff_v0_tens_v0 = data.m1*beta*Hsmax + gamma*Hsmin;
+			d_rc_trial_d_sigma(0) = alpha +     v0(0)*v0(0)*coeff_v0_tens_v0;
+			d_rc_trial_d_sigma(1) = alpha +     v0(1)*v0(1)*coeff_v0_tens_v0;
+			d_rc_trial_d_sigma(2) = alpha +     v0(2)*v0(2)*coeff_v0_tens_v0;
+			d_rc_trial_d_sigma(3) =         2.0*v0(0)*v0(1)*coeff_v0_tens_v0;
+			d_rc_trial_d_sigma(4) =         2.0*v0(1)*v0(2)*coeff_v0_tens_v0;
+			d_rc_trial_d_sigma(5) =         2.0*v0(0)*v0(2)*coeff_v0_tens_v0;
+			if(std::abs(J2) > 0.0)
+			{
+				// d_rt_trial_d_sigma += 3/(2*sqrt(3*J2))*SDev.*[1 1 1 2 2 2];
+				Vector& S = data.S;
+				double d_q_d_j2 = 3.0/(2.0*std::sqrt(3.0*J2));
+				d_rc_trial_d_sigma(0) += d_q_d_j2 * (S(0) - I1/3.0);
+				d_rc_trial_d_sigma(1) += d_q_d_j2 * (S(1) - I1/3.0);
+				d_rc_trial_d_sigma(2) += d_q_d_j2 * (S(2) - I1/3.0);
+				d_rc_trial_d_sigma(3) += d_q_d_j2 * (2.0*S(3));
+				d_rc_trial_d_sigma(4) += d_q_d_j2 * (2.0*S(4));
+				d_rc_trial_d_sigma(5) += d_q_d_j2 * (2.0*S(5));
+			}
+			d_rc_trial_d_sigma *= 1.0/(1.0-alpha)/fc*ft;
+		}
 	}
 
-	void DamageTC3DLaw::CalculateDamageTension(CalculationData& data, double rt, double& dt)
+	void DamageTC3DLaw::CalculateDamageTension(CalculationData& data, double rt, double& dt, double& d_dt_d_rt)
 	{
 		if(rt <= data.ft)
 		{
 			dt = 0.0;
+			d_dt_d_rt = 0.0;
 		}
 		else
 		{
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+
+			REG2_DIS_VEC_T x;
+			REG2_DIS_VEC_T y;
+
+			double lch = data.lch;
+			double E   = data.E;
+			double ft  = data.ft;
+			double G   = data.Gt;
+
+			if(m_has_changed_reg)
+			{
+				// unsing initial lch
+				reg2_discrete_t_law(E,G/m_lch,ft,x,y);
+				// find the change point
+				unsigned int pn = reg2_find_stop_id(x,y,m_change_reg_t_x);
+
+				// insert point
+				double insert_y = reg2_interp_dis_curve(x,y,m_change_reg_t_x);
+				std::vector<double>::iterator x_it = x.begin();
+				std::vector<double>::iterator y_it = y.begin();
+				std::advance(x_it,pn);
+				std::advance(y_it,pn);
+				x.insert(x_it, m_change_reg_t_x);
+				y.insert(y_it, insert_y);
+				// calculate post stop inelastic strain
+				pn++;
+				//pn++;
+				//if(pn > x.size()-1) pn = x.size()-1;
+
+				reg2_regularize_from_point(x,y,pn,m_lch,lch);
+				// make sure no snap-back takes place! maybe a warning here...
+				//reg2_correct_snap_back(x);
+				// evaluate the hardening value
+				double ix = rt/E;
+				double iy = reg2_interp_dis_curve(x,y,ix);
+				dt = 1.0-iy/rt;
+				// derivative
+				double pert = 1.0e-6*ft;
+				double rt_pert = rt+pert;
+				double ix_pert = rt_pert/E;
+				double iy_pert = reg2_interp_dis_curve(x,y,ix_pert);
+				double dt_pert = 1.0-iy_pert/rt_pert;
+				d_dt_d_rt = (dt_pert-dt)/pert;
+			}
+			else
+			{
+				reg2_discrete_t_law(E,G/m_lch,ft,x,y);
+				double ix = rt/E;
+				double iy = reg2_interp_dis_curve(x,y,ix);
+				dt = 1.0-iy/rt;
+				// derivative
+				double pert = 1.0e-6*ft;
+				double rt_pert = rt+pert;
+				double ix_pert = rt_pert/E;
+				double iy_pert = reg2_interp_dis_curve(x,y,ix_pert);
+				double dt_pert = 1.0-iy_pert/rt_pert;
+				d_dt_d_rt = (dt_pert-dt)/pert;
+			}
+
+#else
+
 			double lch = data.lch;
 			double E   = data.E;
 			double ft  = data.ft;
@@ -1417,14 +1724,98 @@ namespace Kratos
 			double Hs  = lch/(lt-lch);
 			double A   = 2.0*Hs; 
 			dt         = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
-
+			d_dt_d_rt  = (r0 + A*rt)/(rt*rt*std::exp(A*(rt/r0 - 1.0)));
 			double rmin=1.0e-2*ft;
-			if((1.0-dt)*rt<rmin)
+			if((1.0-dt)*rt<rmin) {
 				dt = 1.0-rmin/rt;
+				d_dt_d_rt = rmin/rt/rt;
+			}
+
+			//double e0 = ft/E;
+			//double s0 = ft*0.5;
+			//double su = 0.0;
+			////double eu;
+			//double G1 = ft*e0/2.0;
+			////double G2 = s0*(eu-e0)/2.0;
+			//// G1+G2 = G/lch
+			///*
+			//G2 = G/lch - G1
+			//s0*eu/2.0 -s0*e0/2.0 = G/lch - G1
+			//s0*eu/2.0 = G/lch - G1 + s0*e0/2.0
+			//*/
+			//double eu = (G/lch - G1 + s0*e0/2.0)*2.0/s0;
+			//if(rt/E < eu) {
+			//	//double ss = s0 - s0/(eu-e0)*(rt/E-e0);
+			//	double c1 = s0/(eu-e0)/E;
+			//	double c2 = s0/(eu-e0)*e0;
+			//	double ss = s0 - rt*c1 + c2;
+			//	// ss = (1-dt)*rt;
+			//	// s0 -rt*c1 + c2 = rt-d*rt;
+			//	// s0 -rt*c1 +c2 -rt = -dt*rt;
+			//	// s0 +c2 -rt*(c1+1) = -dt*rt;
+			//	// rt*(c1+1) - s0 - c2 = dt*rt;
+			//	// dt = (c1+1) -s0/rt - c2/rt
+			//	// ss = rt - dt*rt;
+			//	// ss -rt = -dt*rt;
+			//	// 1 - ss/rt = dt
+			//	// dt = 1- ss/rt
+			//	dt = 1.0 - ss / rt;
+			//	d_dt_d_rt = 0.0;
+			//}
+			//else {
+			//	dt = 1.0;
+			//	d_dt_d_rt = 0.0;
+			//}
+			//double rmin=1.0e-2*ft;
+			//if((1.0-dt)*rt<rmin) {
+			//	dt = 1.0-rmin/rt;
+			//	d_dt_d_rt = rmin/rt/rt;
+			//}
+
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+
+			//G = G/lch;
+			//double A1 = ft*ft/2.0/E/G; // 1.0/2.0;
+			//double A2 = 0.25; //1.0/6.0;
+			//double G1 = A1*G;
+			//double G2 = G-G1;
+			//double s0 = ft;
+			//double e0 = s0/E;
+			//double s1 = s0*A2;
+			//double e1 = 2.0/s0*(G1 + e0*s1/2.0);
+			//if(e1 < e0) e1 = 1.01*e0;
+			//double e2 = 2.0*G2/s1;
+			//if(e2 < e1) e1 = 1.01*e1;
+			//
+			//double ix = rt/E;
+
+
+			//double y      = 0.0;
+			//double dy_dix = 0.0;
+			//if(ix<=e0) {
+			//	y = E*ix;
+			//	dy_dix = E;
+			//}
+			//else if(ix <= e1) {
+			//	y = s0+(s1-s0)/(e1-e0)*(ix-e0);
+			//	dy_dix = (s0-s1)/(e0-e1);
+			//}
+			//else if(ix <= e2) {
+			//	y = s1-s1/(e2-e1)*(ix-e1);
+			//	dy_dix = s1/(e1-e2);
+			//}
+			//dt        = 1.0-y/rt;
+			//d_dt_d_rt = -(dy_dix/E/rt - y/(rt*rt));
+
+			//double rmin=1.0e-2*ft;
+			//if((1.0-dt)*rt<rmin) {
+			//	dt = 1.0-rmin/rt;
+			//	d_dt_d_rt = rmin/rt/rt;
+			//}
 		}
 	}
 
-	void DamageTC3DLaw::CalculateDamageCompression(CalculationData& data, double rc, double& dc)
+	void DamageTC3DLaw::CalculateDamageCompression(CalculationData& data, double rc, double& dc, double& d_dc_d_rc)
 	{
 		if(rc <= data.fc0)
 		{
@@ -1432,6 +1823,67 @@ namespace Kratos
 		}
 		else
 		{
+#ifdef DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
+
+			REG2_DIS_VEC_C x;
+			REG2_DIS_VEC_C y;
+
+			double lch = data.lch;
+			double E   = data.E;
+			double G   = data.Gc;
+
+			if(m_has_changed_reg)
+			{
+				// unsing initial lch
+				reg2_discrete_c_law(data, G/m_lch, x, y);
+				// find the change point
+				unsigned int pn = reg2_find_stop_id(x,y,m_change_reg_c_x);
+
+				// insert point
+				double insert_y = reg2_interp_dis_curve(x,y,m_change_reg_c_x);
+				std::vector<double>::iterator x_it = x.begin();
+				std::vector<double>::iterator y_it = y.begin();
+				std::advance(x_it,pn);
+				std::advance(y_it,pn);
+				x.insert(x_it, m_change_reg_c_x);
+				y.insert(y_it, insert_y);
+				// calculate post stop inelastic strain
+				pn++;
+				//pn++;
+				if(pn > x.size()-1) pn = x.size()-1;
+
+				reg2_regularize_from_point(x,y,pn,m_lch,lch);
+				// make sure no snap-back takes place! maybe a warning here...
+				//reg2_correct_snap_back(x);
+				// evaluate the hardening value
+				double ix = rc/E;
+				double iy = reg2_interp_dis_curve(x,y,ix);
+				dc = 1.0-iy/rc;
+				// derivative
+				double pert = 1.0e-6*data.fcp;
+				double rc_pert = rc+pert;
+				double ix_pert = rc_pert/E;
+				double iy_pert = reg2_interp_dis_curve(x,y,ix_pert);
+				double dc_pert = 1.0-iy_pert/rc_pert;
+				d_dc_d_rc = (dc_pert-dc)/pert;
+			}
+			else
+			{
+				reg2_discrete_c_law(data, G/m_lch, x, y);
+				double ix = rc/E;
+				double iy = reg2_interp_dis_curve(x,y,ix);
+				dc = 1.0-iy/rc;
+				// derivative
+				double pert = 1.0e-6*data.fcp;
+				double rc_pert = rc+pert;
+				double ix_pert = rc_pert/E;
+				double iy_pert = reg2_interp_dis_curve(x,y,ix_pert);
+				double dc_pert = 1.0-iy_pert/rc_pert;
+				d_dc_d_rc = (dc_pert-dc)/pert;
+			}
+
+#else
+
 			// extract material parameters
 			double E  = data.E;
 			double s0 = data.fc0;
@@ -1481,17 +1933,39 @@ namespace Kratos
 			else
 				s = sr;
 			dc = 1.0-s/rc;
+
+			// derivative
+			double h = (sp-s0)/100.0;
+			xi = (rc+h)/E;
+			if(xi <= ep)
+				s = b3_eval_bezier(xi,e0,sp/E,ep,s0,sp,sp);
+			else if(xi <= ek)
+				s = b3_eval_bezier(xi,ep,ej,ek,sp,sp,sk);
+			else if(xi <= eu)
+				s = b3_eval_bezier(xi,ek,er,eu,sk,sr,sr);
+			else
+				s = sr;
+			double dch = 1.0-s/(rc+h);
+			d_dc_d_rc = (dch-dc)/h;
+
+#endif // DAM_TC_3D_INCREMENTAL_REGULARIZATION_V2
 		}
 	}
 
 	void DamageTC3DLaw::CalculateMaterialResponseInternal(const Vector& strain_vector,
-																	 Vector& stress_vector,
-																	 CalculationData& data)
+														  Vector& stress_vector,
+														  Matrix& tangent_matrix,
+														  CalculationData& data)
 	{
+		m_error_code = 0.0;
+
 		size_t strain_size = this->GetStrainSize();
 
 		if(stress_vector.size() != strain_size)
 			stress_vector.resize(strain_size,false);
+
+		if(tangent_matrix.size1() != strain_size || tangent_matrix.size2() != strain_size)
+			tangent_matrix.resize(strain_size, strain_size, false);
 
 		// set up coefficients for the rate-dependent model
 
@@ -1514,83 +1988,121 @@ namespace Kratos
 
 		double rt_trial;
 		double rc_trial;
-		this->TrialEquivalentStressTension(data, rt_trial);
-		this->TrialEquivalentStressCompression(data, rc_trial);
+		Vector d_rt_trial_d_sigma;
+		Vector d_rc_trial_d_sigma;
+		this->TrialEquivalentStressTension(data, rt_trial, d_rt_trial_d_sigma);
+		this->TrialEquivalentStressCompression(data, rc_trial, d_rc_trial_d_sigma);
 
 		// damage update
+
+		double d_dt_d_rt = 0.0;
+		double d_dc_d_rc = 0.0;
 
 #ifdef DAM_TC_3D_IMPLEX
 
 		// time factor
 		double time_factor = 0.0;
-		if(m_dTime_n_converged>0.0) time_factor = data.dTime/m_dTime_n_converged;
+		if(m_dTime_n_converged>0.0) 
+			time_factor = data.dTime/m_dTime_n_converged;
 		m_dTime_n = data.dTime;
 
-		if(true)//data.dTime < 1.0E-4)
-		{
-			// IMPLEX INTEGRATION
+		// explicit evaluation
+		m_rt = m_rt_converged + time_factor * (m_rt_converged-m_rt_converged_old);
+		m_rc = m_rc_converged + time_factor * (m_rc_converged-m_rc_converged_old);
 
-			// explicit evaluation
-			m_rt = m_rt_converged + time_factor * (m_rt_converged-m_rt_converged_old);
-			m_rc = m_rc_converged + time_factor * (m_rc_converged-m_rc_converged_old);
+		// save implicit variables for the finalize_solution_step
+		double rt_impl = m_rt_converged;
+		double rc_impl = m_rc_converged;
+		if(rt_trial > rt_impl)
+			rt_impl = rate_coeff_1*rt_impl + rate_coeff_2*rt_trial;
+		if(rc_trial > rc_impl)
+			rc_impl = rate_coeff_1*rc_impl + rate_coeff_2*rc_trial;
+		m_rt_impl_temp = rt_impl;
+		m_rc_impl_temp = rc_impl;
 
-			// save implicit variables for the finalize_solution_step
-			double rt_impl = m_rt_converged;
-			double rc_impl = m_rc_converged;
-			if(rt_trial > rt_impl)
-				rt_impl = rate_coeff_1*rt_impl + rate_coeff_2*rt_trial;
-			if(rc_trial > rc_impl)
-				rc_impl = rate_coeff_1*rc_impl + rate_coeff_2*rc_trial;
-			m_rt_impl_temp = rt_impl;
-			m_rc_impl_temp = rc_impl;
-
-			// new damage variables (explicit)
-
-			this->CalculateDamageTension(data, m_rt, m_damage_t);
-			this->CalculateDamageCompression(data, m_rc, m_damage_c);
-		}
-		else
-		{
-			// IMPLICIT INTEGRATION
-			if(rt_trial > m_rt)
-				m_rt = rate_coeff_1*m_rt + rate_coeff_2*rt_trial;
-			this->CalculateDamageTension(data, m_rt, m_damage_t);
-
-			if(rc_trial > m_rc)
-				m_rc = rate_coeff_1*m_rc + rate_coeff_2*rc_trial;
-			this->CalculateDamageCompression(data, m_rc, m_damage_c);
-
-			m_rt_impl_temp = m_rt;
-			m_rc_impl_temp = m_rc;
-		}
-
-		// check explicit error
-		m_error_code = 0.0;
-
-		/*double dam_t_old, dam_c_old;
-		this->CalculateDamageTension(data, m_rt_converged, dam_t_old);
-		this->CalculateDamageCompression(data, m_rc_converged, dam_c_old);
-		double d1 = m_damage_t - dam_t_old;
-		double d2 = m_damage_c - dam_c_old;
-		double dd = std::max(d1,d2);
-		if(dd > 0.01) {
-			m_error_code = -1.0;
-		}*/
+		// new damage variables (explicit)
+		this->CalculateDamageTension(data, m_rt, m_damage_t, d_dt_d_rt);
+		this->CalculateDamageCompression(data, m_rc, m_damage_c, d_dc_d_rc);
 #else
 
 		if(rt_trial > m_rt)
 			m_rt = rate_coeff_1*m_rt + rate_coeff_2*rt_trial;
-		this->CalculateDamageTension(data, m_rt, m_damage_t);
+		this->CalculateDamageTension(data, m_rt, m_damage_t, d_dt_d_rt);
 
 		if(rc_trial > m_rc)
 			m_rc = rate_coeff_1*m_rc + rate_coeff_2*rc_trial;
-		this->CalculateDamageCompression(data, m_rc, m_damage_c);
+		this->CalculateDamageCompression(data, m_rc, m_damage_c, d_dc_d_rc);
 
 #endif // DAM_TC_3D_IMPLEX
 
+#ifdef DAM_TC_3D_SEQLIN
+		noalias(m_PT_n) = data.PT;
+		noalias(m_PC_n) = data.PC;
+		if(!m_has_n_converged_data)
+		{
+			noalias(m_PT_n_converged) = m_PT_n;
+			noalias(m_PC_n_converged) = m_PC_n;
+			m_has_n_converged_data = true;
+		}
+		
+#ifndef DAM_TC_3D_IMPLEX
+
+		this->CalculateDamageTension(data, m_rt_converged, m_damage_t, d_dt_d_rt);
+		this->CalculateDamageCompression(data, m_rc_converged, m_damage_c, d_dc_d_rc);
+
+#endif // !DAM_TC_3D_IMPLEX
+
+		// error control
+#ifdef DAM_TC_3D_IMPLEX
+		/*double aux_dt = 0.0;
+		double aux_dc = 0.0;
+		double dummy;
+		this->CalculateDamageTension(data, m_rt_converged, aux_dt, dummy);
+		this->CalculateDamageCompression(data, m_rc_converged, aux_dc, dummy);
+		aux_dt += m_damage_t;
+		aux_dc += m_damage_c;
+		if(data.dTime >= 1.0e-4)
+		{
+			double max_dam_incr = 0.1;
+			if(aux_dt > max_dam_incr)
+				m_error_code = -1.0;
+			if(aux_dc > max_dam_incr)
+				m_error_code = -1.0;
+		}*/
+#endif // DAM_TC_3D_IMPLEX
+
+#endif // DAM_TC_3D_SEQLIN
+
 		// calculation of stress tensor
+#ifdef DAM_TC_3D_SEQLIN
+		noalias(data.ST) = prod(m_PT_n_converged, data.S);
+		noalias(data.SC) = prod(m_PC_n_converged, data.S);
+#endif // DAM_TC_3D_SEQLIN
 		noalias(stress_vector)  = (1.0 - m_damage_t)*data.ST;
 		noalias(stress_vector) += (1.0 - m_damage_c)*data.SC;
+
+		// calculation of tangent matrix
+		Matrix W( IdentityMatrix(6,6) );
+#ifdef DAM_TC_3D_SEQLIN
+		if(m_damage_t > 0.0) 
+			noalias(W) -= m_damage_t*m_PT_n_converged;
+		if(m_damage_c > 0.0) 
+			noalias(W) -= m_damage_c*m_PC_n_converged;
+#else
+		if(m_damage_t > 0.0) 
+			noalias(W) -= m_damage_t*data.QT;
+		if(m_damage_c > 0.0) 
+			noalias(W) -= m_damage_c*data.QC;
+#ifndef DAM_TC_3D_IMPLEX
+		if(d_dt_d_rt != 0.0)
+			noalias(W) -= rate_coeff_2*d_dt_d_rt*outer_prod( data.ST, d_rt_trial_d_sigma );
+		if(d_dc_d_rc != 0.0)
+			noalias(W) -= rate_coeff_2*d_dc_d_rc*outer_prod( data.SC, d_rc_trial_d_sigma );
+#endif // !DAM_TC_3D_IMPLEX
+#endif // DAM_TC_3D_SEQLIN
+
+
+		noalias(tangent_matrix) = prod( W, data.C0 );
 	}
 
 

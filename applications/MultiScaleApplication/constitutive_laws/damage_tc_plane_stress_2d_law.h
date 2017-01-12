@@ -55,8 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 //#define DAM_TC_2D_IMPLEX
-
-//#define DAM_TC_2D_INCREMENTAL_REGULARIZATION
 //#define DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 
 namespace Kratos
@@ -480,8 +478,6 @@ namespace Kratos
 			double grank_a;
 			double grank_b;
 			double grank_c;
-
-			double damage_limit;
 		};
 
 	protected:
@@ -522,22 +518,6 @@ namespace Kratos
 		double m_localized;
 		double m_localized_converged;
 		double m_localization_angle;
-
-#ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION
-		double m_accum_gt;
-		double m_accum_gt_converged;
-		double m_rt0;
-		double m_rt0_converged;
-		double m_dt_old;
-		double m_dt_old_converged;
-
-		double m_accum_gc;
-		double m_accum_gc_converged;
-		double m_rc0;
-		double m_rc0_converged;
-		double m_dc_old;
-		double m_dc_old_converged;
-#endif // DAM_TC_2D_INCREMENTAL_REGULARIZATION
 
 #ifdef DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2
 		double m_E;

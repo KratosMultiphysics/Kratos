@@ -14,6 +14,7 @@
 
 /* Enhanced strain parameters */
 #define EASQ4_NE 2 // EAS2 test
+//#define EASQ4_NE 3 // EAS2 + directional linear
 //#define EASQ4_NE 4 // Taylor
 //#define EASQ4_NE 5 // Simo and Rifai
 //#define EASQ4_NE 6 // Pantuso
@@ -37,6 +38,9 @@
 
 //#define EASQ4_DRILLING_DOF_MOD
 #define EASQ4_DRILLING_PENALTY_SCALE 0.1
+
+// default integration method. can be 2x2 or 3x3. what's the best is still to be evaluated
+#define EASQ4_DEF_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
 
 namespace Kratos
 {
@@ -306,6 +310,11 @@ namespace Kratos
 		/*E(3,2) = jac.Determinant()/(2.0*mJ0*mJ0)*(xi);
 		E(3,3) = jac.Determinant()/(2.0*mJ0*mJ0)*(-eta);*/
 #endif
+#elif EASQ4_NE == 3
+		E(0,0) = 0.0;
+		E(1,0) = xi;
+		E(2,1) = xi;
+		E(2,2) = eta;
 #elif EASQ4_NE == 4
 		// Taylor
 		E(0,0) = xi ; 
@@ -439,7 +448,7 @@ namespace Kratos
                                    GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
-		mThisIntegrationMethod = Kratos::GeometryData::GI_GAUSS_2;
+		mThisIntegrationMethod = EASQ4_DEF_INTEGRATION_METHOD;
     }
     
     EASQuadElementV2::EASQuadElementV2(IndexType NewId, 
@@ -447,7 +456,7 @@ namespace Kratos
                                    PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
-		mThisIntegrationMethod = Kratos::GeometryData::GI_GAUSS_2;
+		mThisIntegrationMethod = EASQ4_DEF_INTEGRATION_METHOD;
     }
 
     EASQuadElementV2::~EASQuadElementV2()
@@ -555,7 +564,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for(size_t i = 0; i < geom.PointsNumber(); i++)
+        for(int i = 0; i < geom.PointsNumber(); i++)
         {
 #ifdef EASQ4_DRILLING_DOF
 			int index = i * 3;
@@ -579,7 +588,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for (size_t i = 0; i < geom.PointsNumber(); i++)
+        for (int i = 0; i < geom.PointsNumber(); i++)
         {
             NodeType & iNode = geom[i];
 
@@ -661,7 +670,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (size_t i = 0; i < geom.PointsNumber(); i++)
+        for (int i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
            
@@ -688,7 +697,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (size_t i = 0; i < geom.PointsNumber(); i++)
+        for (int i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
 			const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
@@ -714,7 +723,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (size_t i = 0; i < geom.PointsNumber(); i++)
+        for (int i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
 			const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
@@ -903,7 +912,7 @@ namespace Kratos
                                                      std::vector<double>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
     {
-		size_t numgp = mConstitutiveLawVector.size();
+		unsigned int numgp = mConstitutiveLawVector.size();
         if(rValues.size() != numgp)
             rValues.resize(numgp);
 		
@@ -987,7 +996,7 @@ namespace Kratos
 		}
 #endif
 
-        for(size_t i = 0; i < numgp; i++) {
+        for(int i = 0; i < numgp; i++) {
 			rValues[i] = 0.0;
             mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
 		}
@@ -997,11 +1006,11 @@ namespace Kratos
                                                      std::vector<Vector>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
     {
-		size_t numgp = mConstitutiveLawVector.size();
+		unsigned int numgp = mConstitutiveLawVector.size();
 		if(rValues.size() != numgp)
             rValues.resize(numgp);
 
-        for(size_t i = 0; i < numgp; i++) {
+        for(int i = 0; i < numgp; i++) {
             mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
 		}
     }
@@ -1010,7 +1019,7 @@ namespace Kratos
                                                      std::vector<Matrix>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
 	{
-		size_t numgp = mConstitutiveLawVector.size();
+		unsigned int numgp = mConstitutiveLawVector.size();
 		if(rValues.size() != numgp)
 			rValues.resize(numgp);
 
@@ -1077,7 +1086,7 @@ namespace Kratos
 
 				// Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
 				// and Shape functions derivatives in the local coordinate system
-				jacOp.Calculate(geom, local_gradients[i]); // geom.ShapeFunctionLocalGradient(i));
+				jacOp.Calculate(geom, local_gradients[i]);
 
 				// Compute all strain-displacement matrices
 				CalculateBMatrix( ip.X(), ip.Y(), jacOp, iN, B );
@@ -1421,7 +1430,7 @@ namespace Kratos
 		// Gauss Loop.
 		const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mThisIntegrationMethod);
 		const GeometryType::ShapeFunctionsGradientsType& local_gradients = geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
-        for(size_t i = 0; i < integration_points.size(); i++)
+        for(int i = 0; i < integration_points.size(); i++)
         {
             // get a reference of the current integration point and shape functions
             const GeometryType::IntegrationPointType & ip = integration_points[i];
@@ -1429,7 +1438,7 @@ namespace Kratos
 
             // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
             // and Shape functions derivatives in the local coordinate system
-			jacOp.Calculate(geom, local_gradients[i]); // geom.ShapeFunctionLocalGradient(i));
+			jacOp.Calculate(geom, local_gradients[i]);
 
             // compute the 'volume' of the current integration point
             double dV = ip.Weight() * jacOp.Determinant() * th;

@@ -60,7 +60,6 @@ namespace Kratos
     ScalarDamageInterface2DLaw::ScalarDamageInterface2DLaw() 
         : ConstitutiveLaw()
 		, mInitialized(false)
-		, mStressVector()
 		, m_initial_strain()
 #ifdef INTERF_DAM_2D_IMPLEX
 		, mK1_converged_old(0.0)
@@ -89,9 +88,9 @@ namespace Kratos
 
     bool ScalarDamageInterface2DLaw::Has(const Variable<double>& rThisVariable)
     {
-		if(rThisVariable == DAMAGE_T_INTERFACE)
+		if(rThisVariable == DAMAGE_T)
 			return true;
-		if(rThisVariable == DAMAGE_C_INTERFACE)
+		if(rThisVariable == DAMAGE_C)
 			return true;
 		if(rThisVariable == YIELD_FUNCTION_VALUE)
 			return true;
@@ -125,9 +124,9 @@ namespace Kratos
     double& ScalarDamageInterface2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
 		rValue = 0.0;
-		if(rThisVariable == DAMAGE_T_INTERFACE)
+		if(rThisVariable == DAMAGE_T)
 			rValue = mD1;
-		if(rThisVariable == DAMAGE_C_INTERFACE)
+		if(rThisVariable == DAMAGE_C)
 			rValue = mD2;
 		if(rThisVariable == YIELD_FUNCTION_VALUE)
 			rValue = mYieldValue;
@@ -135,16 +134,7 @@ namespace Kratos
     }
 
     Vector& ScalarDamageInterface2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
-	{
-		//if (rThisVariable == CAUCHY_STRESS_TENSOR || rThisVariable == PK2_STRESS_TENSOR) { //For Output
-		//	if (rValue.size() != 3)
-		//	{
-		//		rValue.resize(3);
-		//	}
-		//	rValue(0) = mStressVector(0); // 1.0e6;//[W/mm^2]
-		//	rValue(1) = mStressVector(1); // 1.0e6;
-		//	rValue(2) = 0.0;
-		//}
+    {
 		if (rThisVariable == INITIAL_STRAIN) {
 			if (rValue.size() != m_initial_strain.size())
 				rValue.resize(m_initial_strain.size());
@@ -198,9 +188,9 @@ namespace Kratos
                                               const double& rValue,
                                               const ProcessInfo& rCurrentProcessInfo)
     {
-		if(rVariable == DAMAGE_T_INTERFACE)
+		if(rVariable == DAMAGE_T)
 			mD1 = rValue;
-		if(rVariable == DAMAGE_C_INTERFACE)
+		if(rVariable == DAMAGE_C)
 			mD2 = rValue;
     }
 
@@ -272,7 +262,6 @@ namespace Kratos
 			mD2_bar = 0.0;
 			mD2_bar_converged = 0.0;
 			mYieldValue = 0.0;
-			mStressVector = ZeroVector(this->GetStrainSize());
 			m_initial_strain = ZeroVector(this->GetStrainSize());
 			mInitialized = true;
 #ifdef INTERF_DAM_2D_IMPLEX
@@ -395,8 +384,7 @@ namespace Kratos
 
 		CalculationData data;
 		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, rValues.GetProcessInfo(), data );
-		CalculateElasticStressVector(data, strainVector);
-		//std::cout << "ElasticStressVector :" << stressVector << std::endl;
+		CalculateElasticStressVector( data, strainVector );
 
 #ifdef INTERF_DAM_2D_IMPLEX
 
@@ -428,14 +416,8 @@ namespace Kratos
 #endif // INTERF_DAM_2D_IMPLEX
 
 		mD1 = data.D1;
-		//std::stringstream ss;
-		//if (data.D1 > 1.0e-8)
-		//	ss << "-------- Mecc D1 = " << data.D1 << ", " << std::endl;
-		//std::cout << ss.str();
-		//std::cout << "--------  D1 = " << data.D1 << ", " << std::endl;
 		mD2 = data.D2;
-
-		//std::cout << "mD1 :" << mD1 << std::endl;
+		
 		if( compute_stress )
 			CalculateStress( data, stressVector );
 
@@ -460,8 +442,6 @@ namespace Kratos
 				CalculateConstitutiveMatrix( data, strainVector, stressVector, constitutiveMatrix );
 			}
 		}
-		noalias(mStressVector) = stressVector;
-		//std::cout << "stress_vector :" << stressVector << std::endl;
     }
 
     void ScalarDamageInterface2DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
@@ -813,6 +793,7 @@ namespace Kratos
 	{
 		double sigma_n = data.ElasticStressVector(1);
 		double sigma_t = data.ElasticStressVector(0);
+
 		if(sigma_n > 0.0) sigma_n *= (1.0 - data.D1);
 		stressVector(1) = sigma_n;
 
