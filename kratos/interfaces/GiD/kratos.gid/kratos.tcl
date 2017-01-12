@@ -153,7 +153,11 @@ proc Kratos::InitGIDProject { dir } {
     #gid_groups_conds::SetHeaderBackground $HeaderBackground
     gid_groups_conds::SetLibDir [file join $dir exec]
     set spdfile [file join $dir kratos_default.spd]
-    gid_groups_conds::begin_problemtype $spdfile [Kratos::GiveKratosDefaultsFile]
+    if { [GidUtils::VersionCmp 13.1.4d] < 0 } {
+        gid_groups_conds::begin_problemtype $spdfile [Kratos::GiveKratosDefaultsFile] 
+    } {
+        gid_groups_conds::begin_problemtype $spdfile [Kratos::GiveKratosDefaultsFile] "" 0
+    }
     if {[gid_themes::GetCurrentTheme] eq "GiD_black"} {
         set gid_groups_conds::imagesdirList [lsearch -all -inline -not -exact $gid_groups_conds::imagesdirList [list [file join [file dirname $spdfile] images]]]
         gid_groups_conds::add_images_dir [file join [file dirname $spdfile] images Black]
