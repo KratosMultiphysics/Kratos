@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolStrat" pn="Problem Settings" un="PFEM_StratSection" icon="settings" help="Solution Strategy" open_window="0">
   <container n="TimeParameters" pn="Time parameters" un="PFEM_TimeParameters" icon="select" help="Problem parameters" open_window="0">
-    <value n="StartTime" pn="Start time" state="hidden" v="0.0" help=""/>
-    <value n="DeltaTime"  pn="Time Step (s)" v="0.001" help=""/>
-    <value n="EndTime" pn="End time" v="1.0" help=""/>    
+    <value n="StartTime" pn="Start time" icon="data" state="hidden" v="0.0" help=""/>
+    <value n="DeltaTime"  pn="Time Step (s)" icon="data" v="0.001" help=""/>
+    <value n="EndTime" pn="End time" icon="data" v="1.0" help=""/>    
     <!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
   </container>
   <container n="Gravity" pn="Gravity" un="FLGravity" icon="select" help="Body forces" open_window="0">
-    <value n="Cx" pn="X value" v="0.0" help="X Vector"/>
-    <value n="Cy" pn="Y value" v="-9.81" help="Y Vector"/>
-    <value n="Cz" pn="Z value" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
+    <value n="Cx" pn="X value" icon="data" v="0.0" help="X Vector"/>
+    <value n="Cy" pn="Y value" icon="data" v="-9.81" help="Y Vector"/>
+    <value n="Cz" pn="Z value" icon="data" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
   </container>
   <container n="StratParams" pn="Strategy parameters" un="PFEM_StratParams" icon="select"  state="normal" open_window="0">
     <dynamicnode command="spdAux::injectSolStratParams" args=""/>
