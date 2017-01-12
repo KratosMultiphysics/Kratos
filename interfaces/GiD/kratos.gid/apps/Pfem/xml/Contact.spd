@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Contacts" pn="Contact strategies" un="PFEM_contacts" icon="folder" help="Meshing domains database" open_window="0">
+<container n="Contacts" pn="Contact strategies" un="PFEM_contacts" icon="contactStrategy" help="Meshing domains database" open_window="0">
     <blockdata n='Contact' name='Deformable contact' sequence='3' editable_name='unique' icon="select"  open_window="0">
       <value n="Penalty" pn="Penalty method" icon="data" v="Yes" values="Yes,No" state="disabled"/>
       <value n="PENALTY_PARAMETER" pn="Penalty parameter" icon="data" v="1000" state="disabled"/> 
