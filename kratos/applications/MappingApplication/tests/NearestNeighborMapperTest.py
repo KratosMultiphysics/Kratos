@@ -44,15 +44,23 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
             variable_list.extend([PARTITION_INDEX])
             self.parallel_execution = True
 
-        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin", input_file_origin, 3, variable_list, self.num_processors)
-        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination", input_file_destination, 3, variable_list, self.num_processors)
+        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin",
+                                                                     input_file_origin, 3,
+                                                                     variable_list,
+                                                                     self.num_processors)
+        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination",
+                                                                         input_file_destination, 3,
+                                                                         variable_list,
+                                                                         self.num_processors)
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart("FluidNoSlipInterface3D_interface_orig_fluid")
         self.interface_sub_model_part_destination = self.model_part_destination.GetSubModelPart("StructureInterface3D_interface_dest_struct")
 
         # Initialize Mapper
-        self.nearest_neighbor_mapper = MapperFactory(self.model_part_origin, self.model_part_destination, project_parameters_mapper_1)
+        self.nearest_neighbor_mapper = MapperFactory(self.model_part_origin,
+                                                     self.model_part_destination,
+                                                     project_parameters_mapper_1)
 
         if (self.GiD_output):
             self.InitializeGiD()
@@ -67,37 +75,60 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         variable_origin = PRESSURE
         variable_destination = TEMPERATURE
 
-        self.SetValuesOnNodes(self.model_part_origin, variable_origin, map_value)
+        self.SetValuesOnNodes(self.model_part_origin,
+                              variable_origin,
+                              map_value)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
 
         # Overwriting Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination, map_value)
 
 
         # Adding Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination, MapperFactory.ADD_VALUES)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination,
+                                         MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.1)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value*2)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination, map_value*2)
 
 
         # Swaping the sign of the Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination, MapperFactory.SWAP_SIGN)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination,
+                                         MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.2)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time + 0.2)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, -map_value)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         -map_value)
 
 
         # Conservative Mapping
@@ -105,12 +136,19 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Number of Nodes in Destination: 25
         # => Values in Destination are multiplied with a factor of 1.48 (37/25)
         # to conserve the sum of quantities aka conservative mapping
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination, MapperFactory.CONSERVATIVE)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination,
+                                         MapperFactory.CONSERVATIVE)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.3)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time + 0.3)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value*1.48)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         map_value*1.48)
 
 
         self.nearest_neighbor_mapper.UpdateInterface()
@@ -120,37 +158,62 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         variable_origin = TEMPERATURE
         variable_destination = PRESSURE
 
-        self.SetValuesOnNodes(self.model_part_destination, variable_destination, map_value)
+        self.SetValuesOnNodes(self.model_part_destination,
+                              variable_destination,
+                              map_value)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
 
         # Overwriting Values
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
-        self.CheckValues(self.interface_sub_model_part_origin, variable_origin, map_value)
+        self.CheckValues(self.interface_sub_model_part_origin,
+                         variable_origin,
+                         map_value)
 
 
         # Adding Values
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination, MapperFactory.ADD_VALUES)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination,
+                                                MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.1)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_origin, variable_origin, map_value*2)
+        self.CheckValues(self.interface_sub_model_part_origin,
+                         variable_origin,
+                         map_value*2)
 
 
         # Swaping the sign of the Values and adding them
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination, MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination,
+                                                MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.2)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time + 0.2)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         map_value)
 
 
         self.nearest_neighbor_mapper.UpdateInterface(MapperFactory.REMESHED)
@@ -160,153 +223,250 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         variable_origin = FORCE
         variable_destination = VELOCITY
 
-        self.SetValuesOnNodes(self.model_part_origin, variable_origin, map_value)
+        self.SetValuesOnNodes(self.model_part_origin,
+                              variable_origin,
+                              map_value)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
 
         # Overwriting Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
-        self.CheckValues(self.interface_sub_model_part_destination, variable_destination, map_value)
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         map_value)
 
 
         # Adding Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination, MapperFactory.ADD_VALUES)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination,
+                                         MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.1)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY, [2*x for x in map_value])
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         [2*x for x in map_value])
 
 
         # Swaping the sign of the Values
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination, MapperFactory.SWAP_SIGN)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination,
+                                         MapperFactory.SWAP_SIGN)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time + 0.2)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time + 0.2)
 
-        self.CheckValues(self.interface_sub_model_part_destination, VELOCITY, [-x for x in map_value])
+        self.CheckValues(self.interface_sub_model_part_destination,
+                         variable_destination,
+                         [-x for x in map_value])
 
     def TestInverseMapConstantVectorValues(self, output_time):
         map_value = [1.4785, -0.88, -33.123]
         variable_origin = VELOCITY
         variable_destination = FORCE
 
-        self.SetValuesOnNodes(self.model_part_destination, variable_destination, map_value)
+        self.SetValuesOnNodes(self.model_part_destination,
+                              variable_destination,
+                              map_value)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
         # Overwriting Values
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
-        self.CheckValues(self.interface_sub_model_part_origin, variable_origin, map_value)
+        self.CheckValues(self.interface_sub_model_part_origin,
+                         variable_origin,
+                         map_value)
 
         # Adding Values
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination, MapperFactory.ADD_VALUES)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination,
+                                                MapperFactory.ADD_VALUES)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.1)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time + 0.1)
 
-        self.CheckValues(self.interface_sub_model_part_origin, variable_origin, [2*x for x in map_value])
+        self.CheckValues(self.interface_sub_model_part_origin,
+                         variable_origin,
+                         [2*x for x in map_value])
 
         # Conservative Mapping
         # Number of Nodes on Origin: 37
         # Number of Nodes in Destination: 25
         # => Values in Origin are multiplied with a factor of 0.675675676 (25/37)
         # to conserve the sum of quantities aka conservative mapping
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination, MapperFactory.CONSERVATIVE)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination,
+                                                MapperFactory.CONSERVATIVE)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time + 0.2)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time + 0.2)
 
-        self.CheckValues(self.interface_sub_model_part_origin, variable_origin, [0.675675676*x for x in map_value])
+        self.CheckValues(self.interface_sub_model_part_origin,
+                         variable_origin,
+                         [0.675675676*x for x in map_value])
 
 
     def TestMapNonConstantScalarValues(self, output_time):
         variable_origin = PRESSURE
         variable_destination = TEMPERATURE
 
-        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.scalar_values_origin_send)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin,
+                                        variable_origin,
+                                        self.scalar_values_origin_send)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
         # self.PrintMappedValues(self.interface_sub_model_part_destination, variable_destination) # needed to set up test
-        self.CheckValuesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.scalar_values_destination_receive)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_destination,
+                                   variable_destination,
+                                   self.scalar_values_destination_receive)
 
     def TestInverseMapNonConstantScalarValues(self, output_time):
         variable_origin = TEMPERATURE
         variable_destination = PRESSURE
 
-        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.scalar_values_destination_send)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination,
+                                        variable_destination,
+                                        self.scalar_values_destination_send)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
         # self.PrintMappedValues(self.interface_sub_model_part_origin, variable_origin) # needed to set up test
-        self.CheckValuesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.scalar_values_origin_receive)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_origin,
+                                   variable_origin,
+                                   self.scalar_values_origin_receive)
 
     def TestMapNonConstantVectorValues(self, output_time):
         variable_origin = FORCE
         variable_destination = VELOCITY
 
-        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.vector_values_origin_send)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_origin,
+                                        variable_origin,
+                                        self.vector_values_origin_send)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
-        self.nearest_neighbor_mapper.Map(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.Map(variable_origin,
+                                         variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
         # self.PrintMappedValues(self.interface_sub_model_part_destination, variable_destination) # needed to set up test
-        self.CheckValuesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.vector_values_destination_receive)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_destination,
+                                   variable_destination,
+                                   self.vector_values_destination_receive)
 
     def TestInverseMapNonConstantVectorValues(self, output_time):
         variable_origin = VELOCITY
         variable_destination = FORCE
 
-        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination, variable_destination, self.vector_values_destination_send)
+        self.SetValuesOnNodesPrescribed(self.interface_sub_model_part_destination,
+                                        variable_destination,
+                                        self.vector_values_destination_send)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination, self.model_part_destination, variable_destination, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_destination,
+                                         self.model_part_destination,
+                                         variable_destination,
+                                         output_time)
 
-        self.nearest_neighbor_mapper.InverseMap(variable_origin, variable_destination)
+        self.nearest_neighbor_mapper.InverseMap(variable_origin,
+                                                variable_destination)
 
         if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin, self.model_part_origin, variable_origin, output_time)
+            self.WriteNodalResultsCustom(self.gid_io_origin,
+                                         self.model_part_origin,
+                                         variable_origin,
+                                         output_time)
 
         # self.PrintMappedValues(self.interface_sub_model_part_origin, variable_origin) # needed to set up test
-        self.CheckValuesPrescribed(self.interface_sub_model_part_origin, variable_origin, self.vector_values_origin_receive)
+        self.CheckValuesPrescribed(self.interface_sub_model_part_origin,
+                                   variable_origin,
+                                   self.vector_values_origin_receive)
 
-    def partition_and_read_model_part(self, model_part_name, model_part_input_file, size_domain, variable_list, number_of_partitions):
+    def partition_and_read_model_part(self, model_part_name,
+                                      model_part_input_file,
+                                      size_domain, variable_list,
+                                      number_of_partitions):
         model_part = ModelPart(model_part_name)
         for variable in variable_list:
             model_part.AddNodalSolutionStepVariable(variable)
 
-        if (self.parallel_execution):
-            if mpi.size > 1:
-                if mpi.rank == 0:
+        if (number_of_partitions > 1):
+            if (mpi.size > 1):
+                if (mpi.rank == 0):
                     model_part_io = ReorderConsecutiveModelPartIO(model_part_input_file)
 
                     partitioner = MetisDivideHeterogeneousInputProcess(
@@ -324,7 +484,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(model_part_input_file)
         model_part_io.ReadModelPart(model_part)
 
-        if (self.parallel_execution):
+        if (number_of_partitions > 1):
             MPICommSetup = SetMPICommunicatorProcess(model_part)
             MPICommSetup.Execute()
 
@@ -411,8 +571,10 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
         write_conditions = WriteConditionsFlag.WriteConditions
 
-        self.gid_io_origin = GidIO(output_file_origin, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-        self.gid_io_destination  = GidIO(output_file_destination,  gid_mode, multifile, deformed_mesh_flag, write_conditions)
+        self.gid_io_origin = GidIO(output_file_origin, gid_mode, multifile,
+                                   deformed_mesh_flag, write_conditions)
+        self.gid_io_destination = GidIO(output_file_destination, gid_mode, multifile,
+                                        deformed_mesh_flag, write_conditions)
 
         # Initialize Results Output
         self.gid_io_origin.InitializeResults(0, self.model_part_origin.GetMesh())

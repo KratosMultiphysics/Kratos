@@ -94,7 +94,7 @@ namespace Kratos
       virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
                       GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) {
 
-          m_interface_object_manager_origin = InterfaceObjectManagerBase::Pointer(
+          m_p_interface_object_manager_origin = InterfaceObjectManagerBase::Pointer(
               new InterfaceObjectManagerSerial(m_model_part_origin, MyPID(),
                                                TotalProcesses(),
                                                i_interface_object_type_origin,
@@ -109,7 +109,7 @@ namespace Kratos
       virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
                       GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) {
 
-          m_interface_object_manager_destination = InterfaceObjectManagerBase::Pointer(
+          m_p_interface_object_manager_destination = InterfaceObjectManagerBase::Pointer(
               new InterfaceObjectManagerSerial(m_model_part_destination, MyPID(),
                                                TotalProcesses(),
                                                i_interface_object_type_destination,
@@ -131,10 +131,9 @@ namespace Kratos
               InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
               InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
               InitializeSearchStructure();
-              // TODO update number of nodes / conditions in mapper.h ...?
           } else { // clear the managers
-              m_interface_object_manager_origin->Clear();
-              m_interface_object_manager_destination->Clear();
+              m_p_interface_object_manager_origin->Clear();
+              m_p_interface_object_manager_destination->Clear();
           }
 
           if (i_initial_search_radius < 0.0f) {
@@ -203,11 +202,11 @@ namespace Kratos
       }
 
       InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerOrigin() {
-          return m_interface_object_manager_origin;
+          return m_p_interface_object_manager_origin;
       }
 
       InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerDestination() {
-          return m_interface_object_manager_destination;
+          return m_p_interface_object_manager_destination;
       }
 
       void PrintTime(const std::string& mapper_name,
@@ -265,15 +264,15 @@ namespace Kratos
       ModelPart& m_model_part_origin;
       ModelPart& m_model_part_destination;
 
-      InterfaceObjectManagerBase::Pointer m_interface_object_manager_origin;
-      InterfaceObjectManagerBase::Pointer m_interface_object_manager_destination;
+      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_origin;
+      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_destination;
 
       MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_origin;
       GeometryData::IntegrationMethod m_integration_method_origin;
       MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_destination;
       GeometryData::IntegrationMethod m_integration_method_destination;
 
-      InterfaceSearchStructure::Pointer m_search_structure;
+      InterfaceSearchStructure::Pointer m_p_search_structure;
 
       double m_initial_search_radius;
       int m_max_search_iterations;
@@ -290,30 +289,13 @@ namespace Kratos
       ///@{
 
       template <typename T>
-      void TransferDataSerial(const Variable< T >& origin_variable,
-                              const Variable< T >& destination_variable,
-                              Kratos::Flags& options,
-                              double factor) {
-          if (options.Is(MapperFlags::SWAP_SIGN)) {
-              factor *= (-1);
-          }
-
-          ExchangeDataLocal(origin_variable, destination_variable, options, factor);
-      }
-
-      template <typename T>
       void ExchangeDataLocal(const Variable< T >& origin_variable,
                              const Variable< T >& destination_variable,
                              Kratos::Flags& options,
                              const double factor) {
-
           std::vector< T > values;
-          if (options.IsNot(MapperFlags::INVERSE_DIRECTION)) {
-              m_interface_object_manager_origin->FillBufferWithValues(values, origin_variable, options);
-              m_interface_object_manager_destination->ProcessValues(values, destination_variable, options, factor);
-          } else {
-              KRATOS_ERROR << "this direction is not yet implemented" << std::endl;
-          }
+          m_p_interface_object_manager_origin->FillBufferWithValues(values, origin_variable, options);
+          m_p_interface_object_manager_destination->ProcessValues(values, destination_variable, options, factor);
       }
 
       ///@}
@@ -353,13 +335,26 @@ namespace Kratos
       ///@{
 
       virtual void InitializeSearchStructure() {
-          m_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
-            m_interface_object_manager_destination, m_interface_object_manager_origin, m_echo_level) );
+          m_p_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
+            m_p_interface_object_manager_destination, m_p_interface_object_manager_origin, m_echo_level) );
       }
 
       virtual void InvokeSearch(const double i_initial_search_radius,
                                 const int i_max_search_iterations) {
-          m_search_structure->Search(i_initial_search_radius, i_max_search_iterations);
+          m_p_search_structure->Search(i_initial_search_radius,
+                                       i_max_search_iterations);
+      }
+
+      template <typename T>
+      void TransferDataSerial(const Variable< T >& origin_variable,
+                              const Variable< T >& destination_variable,
+                              Kratos::Flags& options,
+                              double factor) {
+          if (options.Is(MapperFlags::SWAP_SIGN)) {
+              factor *= (-1);
+          }
+
+          ExchangeDataLocal(origin_variable, destination_variable, options, factor);
       }
 
       ///@}

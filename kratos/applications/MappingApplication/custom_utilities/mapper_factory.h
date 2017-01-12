@@ -85,7 +85,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~MapperFactory(){}
+      virtual ~MapperFactory() { }
 
 
       ///@}
@@ -117,7 +117,6 @@ namespace Kratos
       void Map(const Variable<double>& origin_variable,
                const Variable<double>& destination_variable,
                Kratos::Flags& options) {
-          CheckImplementedOptions(options); // TODO remove once everything is implemented
           double start_time = MapperUtilities::GetCurrentTime();
           m_p_mapper->Map(origin_variable, destination_variable, options);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -131,7 +130,6 @@ namespace Kratos
       void Map(const Variable< array_1d<double,3> >& origin_variable,
                const Variable< array_1d<double,3> >& destination_variable,
                Kratos::Flags& options) {
-          CheckImplementedOptions(options); // TODO remove once everything is implemented
           double start_time = MapperUtilities::GetCurrentTime();
           m_p_mapper->Map(origin_variable, destination_variable, options);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -146,7 +144,6 @@ namespace Kratos
       void InverseMap(const Variable<double>& origin_variable,
                       const Variable<double>& destination_variable,
                       Kratos::Flags& options) {
-          CheckImplementedOptions(options); // TODO remove once everything is implemented
           double start_time = MapperUtilities::GetCurrentTime();
           m_p_mapper->InverseMap(origin_variable, destination_variable, options);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -160,7 +157,6 @@ namespace Kratos
       void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
                       const Variable< array_1d<double,3> >& destination_variable,
                       Kratos::Flags& options) {
-          CheckImplementedOptions(options); // TODO remove once everything is implemented
           double start_time = MapperUtilities::GetCurrentTime();
           m_p_mapper->InverseMap(origin_variable, destination_variable, options);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -259,8 +255,8 @@ namespace Kratos
       ModelPart& m_model_part_origin;
       ModelPart& m_model_part_destination;
 
-      ModelPart* m_interface_model_part_origin;
-      ModelPart* m_interface_model_part_destination;
+      ModelPart* m_p_interface_model_part_origin;
+      ModelPart* m_p_interface_model_part_destination;
 
       Parameters& m_json_parameters;
       Parameters m_default_settings = Parameters( R"(
@@ -328,23 +324,23 @@ namespace Kratos
       void ReadAndCheckInterfaceModelParts() {
         // TODO discuss pointer stuff with someone
         std::string name_interface_submodel_part = m_json_parameters["interface_submodel_part_origin"].GetString();
-        m_interface_model_part_origin = &m_model_part_origin.GetSubModelPart(name_interface_submodel_part);
+        m_p_interface_model_part_origin = &m_model_part_origin.GetSubModelPart(name_interface_submodel_part);
 
         name_interface_submodel_part = m_json_parameters["interface_submodel_part_destination"].GetString();
-        m_interface_model_part_destination = &m_model_part_destination.GetSubModelPart(name_interface_submodel_part);
+        m_p_interface_model_part_destination = &m_model_part_destination.GetSubModelPart(name_interface_submodel_part);
 
-        if (MapperUtilities::ComputeNumberOfNodes(*m_interface_model_part_origin) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*m_interface_model_part_origin) < 1)
+        if (MapperUtilities::ComputeNumberOfNodes(*m_p_interface_model_part_origin) < 1 &&
+            MapperUtilities::ComputeNumberOfConditions(*m_p_interface_model_part_origin) < 1)
             KRATOS_ERROR << "MappingApplication; MapperFactory; Neither nodes nor "
                          << "conditions found in the origin model part" << std::endl;
 
-        if (MapperUtilities::ComputeNumberOfNodes(*m_interface_model_part_destination) < 1 &&
-            MapperUtilities::ComputeNumberOfConditions(*m_interface_model_part_destination) < 1)
+        if (MapperUtilities::ComputeNumberOfNodes(*m_p_interface_model_part_destination) < 1 &&
+            MapperUtilities::ComputeNumberOfConditions(*m_p_interface_model_part_destination) < 1)
             KRATOS_ERROR << "MappingApplication; MapperFactory; Neither nodes nor "
                          << "conditions found in the destination model part" << std::endl;
 
-        int domain_size_origin = m_interface_model_part_origin->GetProcessInfo()[DOMAIN_SIZE];
-        int domain_size_destination = m_interface_model_part_destination->GetProcessInfo()[DOMAIN_SIZE];
+        int domain_size_origin = m_p_interface_model_part_origin->GetProcessInfo()[DOMAIN_SIZE];
+        int domain_size_destination = m_p_interface_model_part_destination->GetProcessInfo()[DOMAIN_SIZE];
 
         if (domain_size_origin != domain_size_destination) {
             KRATOS_ERROR << "MappingApplication; MapperFactory; Domain sizes of the "
@@ -353,8 +349,8 @@ namespace Kratos
 
         // Compute the search radius in case it was not specified, can only be done after the modelparts are read
         if (m_compute_search_radius) {
-          double search_radius = MapperUtilities::ComputeSearchRadius(*m_interface_model_part_origin,
-                                                                      *m_interface_model_part_destination);
+          double search_radius = MapperUtilities::ComputeSearchRadius(*m_p_interface_model_part_origin,
+                                                                      *m_p_interface_model_part_destination);
           m_json_parameters["search_radius"].SetDouble(search_radius);
         }
       }
@@ -365,37 +361,37 @@ namespace Kratos
           double start_time = MapperUtilities::GetCurrentTime();
 
           if (m_mapper_type == "NearestNeighbor") {
-              m_p_mapper = Mapper::Pointer(new NearestNeighborMapper(*m_interface_model_part_origin,
-                                                                     *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new NearestNeighborMapper(*m_p_interface_model_part_origin,
+                                                                     *m_p_interface_model_part_destination,
                                                                      m_json_parameters));
           } /*else if (m_mapper_type == "NearestElement") {
-              m_p_mapper = Mapper::Pointer(new NearestElementMapper(*m_interface_model_part_origin,
-                                                                    *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new NearestElementMapper(*m_p_interface_model_part_origin,
+                                                                    *m_p_interface_model_part_destination,
                                                                     m_json_parameters));
 
           } *//*else if (m_mapper_type == "Barycentric") {
-              m_p_mapper = Mapper::Pointer(new BarycentricMapper(*m_interface_model_part_origin,
-                                                                 *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new BarycentricMapper(*m_p_interface_model_part_origin,
+                                                                 *m_p_interface_model_part_destination,
                                                                  m_json_parameters));
 
           } *//*else if (m_mapper_type == "RBF") {
-              m_p_mapper = Mapper::Pointer(new RBFMapper(*m_interface_model_part_origin,
-                                                         *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new RBFMapper(*m_p_interface_model_part_origin,
+                                                         *m_p_interface_model_part_destination,
                                                          m_json_parameters));
 
           } *//*else if (m_mapper_type == "ApproximateMortar") {
-              m_p_mapper = Mapper::Pointer(new ApproximateMortarMapper(*m_interface_model_part_origin,
-                                                                       *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new ApproximateMortarMapper(*m_p_interface_model_part_origin,
+                                                                       *m_p_interface_model_part_destination,
                                                                        m_json_parameters));
 
           } *//*else if (m_mapper_type == "Mortar") {
-              m_p_mapper = Mapper::Pointer(new MortarMapper(*m_interface_model_part_origin,
-                                                            *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new MortarMapper(*m_p_interface_model_part_origin,
+                                                            *m_p_interface_model_part_destination,
                                                             m_json_parameters));
 
           } *//*else if (m_mapper_type == "IGA") {
-              m_p_mapper = Mapper::Pointer(new IGAMapper(*m_interface_model_part_origin,
-                                                         *m_interface_model_part_destination,
+              m_p_mapper = Mapper::Pointer(new IGAMapper(*m_p_interface_model_part_origin,
+                                                         *m_p_interface_model_part_destination,
                                                          m_json_parameters));
 
           } */else {
@@ -410,13 +406,6 @@ namespace Kratos
                                                          "Mapper Construction",
                                                          elapsed_time);
 
-      }
-
-      void CheckImplementedOptions(const Kratos::Flags& options) {
-        // TODO This is an auxillary function, it can be removed once all options are implemented
-        // Remove the checks once a specific option is implemented
-        if (options.Is(MapperFlags::POINT_WISE_VALUES))
-            KRATOS_ERROR << "MappingApplication; MapperFactory; POINT_WISE_VALUES-option not yet implemented!" << std::endl;
       }
 
       ///@}

@@ -175,7 +175,6 @@ namespace Python
 
       mapper_factory.attr("SWAP_SIGN") = MapperFlags::SWAP_SIGN;
       mapper_factory.attr("ADD_VALUES") = MapperFlags::ADD_VALUES;
-      mapper_factory.attr("POINT_WISE_VALUES") = MapperFlags::POINT_WISE_VALUES;
       mapper_factory.attr("CONSERVATIVE") = MapperFlags::CONSERVATIVE;
     	mapper_factory.attr("REMESHED") = MapperFlags::REMESHED;
 

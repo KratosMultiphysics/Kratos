@@ -67,12 +67,21 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      /// Default constructor.
-      InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f) {  } // Default Constructor
+      InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f) {  // Default Constructor
+          SetInitialValuesToMembers();
+      }
 
-      InterfaceObject(Node<3>& i_node) : Point<3>(i_node) {  }               // constuct point from node
-      InterfaceObject(array_1d<double, 3> coords) : Point<3>(coords) {  }    // constuct point from coordinate-array
-      InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z) {  } // constuct point from coordinates
+      InterfaceObject(Node<3>& i_node) : Point<3>(i_node) { // constuct from node
+          SetInitialValuesToMembers();
+      }
+
+      InterfaceObject(array_1d<double, 3> coords) : Point<3>(coords) { // constuct from coordinate-array
+          SetInitialValuesToMembers();
+      }
+
+      InterfaceObject(double X, double Y, double Z) : Point<3>(X, Y, Z) { // constuct from coordinates
+          SetInitialValuesToMembers();
+      }
 
       /// Destructor.
       virtual ~InterfaceObject() { }
@@ -86,6 +95,10 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+
+      void Reset() {
+          SetInitialValuesToMembers();
+      }
 
       bool IsInBoundingBox(double* bounding_box[]){
           // xmax, xmin,  ymax, ymin,  zmax, zmin
@@ -134,6 +147,10 @@ namespace Kratos
           return m_is_being_sent;
       }
 
+      int GetNeighborRank() {
+          return m_neighbor_rank;
+      }
+
       virtual int GetObjectId() {
           KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectId\" "
                        << "of the base class called!" << std::endl;
@@ -149,7 +166,7 @@ namespace Kratos
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
           KRATOS_ERROR << "MappingApplication; InterfaceObject; \"EvaluateResult\" "
-          << "of the base class called!" << std::endl;
+                       << "of the base class called!" << std::endl;
           return false;
       }
 
@@ -278,10 +295,10 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      double m_min_distance_neighbor = std::numeric_limits<double>::max();
-      bool m_neighbor_found = false;
-      bool m_is_being_sent = false;
-      int m_neighbor_rank = 0;
+      double m_min_distance_neighbor;
+      bool m_neighbor_found;
+      bool m_is_being_sent;
+      int m_neighbor_rank;
 
       ///@}
       ///@name Private Operators
@@ -292,6 +309,12 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      void SetInitialValuesToMembers() {
+          m_min_distance_neighbor = std::numeric_limits<double>::max();
+          m_neighbor_found = false;
+          m_is_being_sent = false;
+          m_neighbor_rank = 0;
+      }
 
       ///@}
       ///@name Private  Access

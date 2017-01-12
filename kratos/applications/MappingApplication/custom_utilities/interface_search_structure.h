@@ -41,9 +41,6 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
-  // TODO
-  // typedef boost::shared_ptr<matrix<int> > GraphType; // GraphColoringProcess
-
   typedef matrix<int> GraphType; // GraphColoringProcess
 
   ///@}
@@ -77,8 +74,8 @@ namespace Kratos
       InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer i_interface_object_manager,
                                InterfaceObjectManagerBase::Pointer i_interface_object_manager_bins,
                                int i_echo_level) :
-                               m_interface_object_manager(i_interface_object_manager),
-                               m_interface_object_manager_bins(i_interface_object_manager_bins) {
+                               m_p_interface_object_manager(i_interface_object_manager),
+                               m_p_interface_object_manager_bins(i_interface_object_manager_bins) {
           m_echo_level = i_echo_level;
           Initialize();
       }
@@ -100,48 +97,42 @@ namespace Kratos
       void Search(const double i_search_radius, const int i_max_search_iterations) {
           m_search_radius = i_search_radius;
           m_max_search_iterations = i_max_search_iterations;
-          // int increase_factor = 4;
-          // int num_iteration = 1;
+          int increase_factor = 4;
+          int num_iteration = 1;
+          bool last_iteration = false;
 
           // First Iteration is done outside the search loop bcs it has
           // to be done in any case
           // one search iteration should be enough in most cases (if the search
           // radius was either computed or specified properly)
-          // only if some points dont have a valid projection, more search
-          // iterations are necessary
-          ConductSearchIteration();
+          // only if some points did not find a neighbor or dont have a valid
+          // projection, more search iterations are necessary
+          ConductSearchIteration(last_iteration);
 
-          // while (num_iteration < m_max_search_iterations && !m_interface_object_manager->AllNeighborsFound()) {
-          //     m_search_radius *= increase_factor;
-          //     ++num_iteration;
-          //
-          //     if (m_comm_rank == 0) {
-          //         std::cout << "MAPPER WARNING, search radius was increased, "
-          //                   << "another search iteration is conducted, "
-          //                   << "search iteration " << num_iteration
-          //                   << ", search radius " << m_search_radius
-          //                   << std::endl;
-          //     }
-          //
-          //     // Clearing the managers is ugly, because all interface objects are
-          //     // sent again, not just the ones that havent found a neighbor
-          //     // m_interface_object_manager->Clear();
-          //     // m_interface_object_manager_bins->Clear();
-          //     ConductSearchIteration();
-          // }
+          while (num_iteration < m_max_search_iterations && !m_p_interface_object_manager->AllNeighborsFound()) {
+              m_search_radius *= increase_factor;
+              ++num_iteration;
 
-          m_interface_object_manager->CheckResults();
+              if (num_iteration == m_max_search_iterations) {
+                  last_iteration = true;
+              }
+
+              if (m_comm_rank == 0) {
+                  std::cout << "MAPPER WARNING, search radius was increased, "
+                            << "another search iteration is conducted, "
+                            << "search iteration " << num_iteration << " / "
+                            << m_max_search_iterations << ", search radius "
+                            << m_search_radius << std::endl;
+              }
+
+              ConductSearchIteration(last_iteration);
+          }
+
+          m_p_interface_object_manager->CheckResults();
 
           // TODO
           // PrintPairs(); // makes only sense in serial, since there is no information locally existing abt the neighbor
           // Might be implemented at some point...
-      }
-
-      virtual void GetMPIData(int& max_send_buffer_size, int& max_receive_buffer_size,
-                              GraphType& colored_graph, int& max_colors) {
-          KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; "
-                       << "\"GetMPIData\" of the base class (serial "
-                       << "version) called!" << std::endl;
       }
 
 
@@ -190,10 +181,10 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      InterfaceObjectManagerBase::Pointer m_interface_object_manager;
-      InterfaceObjectManagerBase::Pointer m_interface_object_manager_bins;
+      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager;
+      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_bins;
 
-      BinsObjectDynamic<InterfaceObjectConfigure>::Pointer m_local_bin_structure;
+      BinsObjectDynamic<InterfaceObjectConfigure>::Pointer m_p_local_bin_structure;
       int m_local_bin_structure_size;
 
       double m_search_radius;
@@ -221,7 +212,7 @@ namespace Kratos
           // It must be executable by serial and parallel version!
           // interface_objects_size must be passed bcs interface_objects might contain old entries (it has the max receive buffer size as size)!
 
-          if (m_local_bin_structure) { // this partition has a bin structure
+          if (m_p_local_bin_structure) { // this partition has a bin structure
               InterfaceObjectConfigure::ResultContainerType neighbor_results(m_local_bin_structure_size);
               std::vector<double> neighbor_distances(m_local_bin_structure_size);
 
@@ -237,7 +228,7 @@ namespace Kratos
                   results_itr = neighbor_results.begin();
                   distance_itr = neighbor_distances.begin();
 
-                  std::size_t number_of_results = m_local_bin_structure->SearchObjectsInRadius(
+                  std::size_t number_of_results = m_p_local_bin_structure->SearchObjectsInRadius(
                               *interface_object_itr, search_radius, results_itr,
                               distance_itr, m_local_bin_structure_size);
 
@@ -318,19 +309,19 @@ namespace Kratos
       ///@{
 
       void Initialize() { // build the local bin-structure
-          InterfaceObjectConfigure::ContainerType interface_objects_bins = m_interface_object_manager_bins->GetInterfaceObjects();
+          InterfaceObjectConfigure::ContainerType interface_objects_bins = m_p_interface_object_manager_bins->GetInterfaceObjects();
 
           m_local_bin_structure_size = interface_objects_bins.size();
 
           if (m_local_bin_structure_size > 0) { // only construct the bins if the partition has a part of the interface
-              m_local_bin_structure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
+              m_p_local_bin_structure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
                   new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
           }
       }
 
-      virtual void ConductSearchIteration() {
+      virtual void ConductSearchIteration(const bool last_iteration) {
           InterfaceObjectConfigure::ContainerType interface_objects;
-          m_interface_object_manager->GetInterfaceObjectsSerialSearch(interface_objects);
+          m_p_interface_object_manager->GetInterfaceObjectsSerialSearch(interface_objects);
 
           int num_objects = interface_objects.size();
 
@@ -342,15 +333,15 @@ namespace Kratos
           FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
                              min_distances, local_coordinates, shape_functions, m_comm_rank);
 
-          m_interface_object_manager_bins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
-          m_interface_object_manager->PostProcessReceivedResults(min_distances, interface_objects);
+          m_p_interface_object_manager_bins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
+          m_p_interface_object_manager->PostProcessReceivedResults(min_distances, interface_objects);
       }
 
       virtual void PrintPairs() {
-          std::vector<InterfaceObject::Pointer> interface_objects = m_interface_object_manager->GetDestinationInterfaceObjects();
+          std::vector<InterfaceObject::Pointer> interface_objects = m_p_interface_object_manager->GetDestinationInterfaceObjects();
           int num_objects = interface_objects.size();
 
-          std::vector<InterfaceObject::Pointer> interface_objects_bins = m_interface_object_manager_bins->GetOriginInterfaceObjects();
+          std::vector<InterfaceObject::Pointer> interface_objects_bins = m_p_interface_object_manager_bins->GetOriginInterfaceObjects();
           if (num_objects != static_cast<int>(interface_objects_bins.size()))
               KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; \"PrintPairs\" size mismatch!" << std::endl;
           for (int i = 0; i < num_objects; ++i) {

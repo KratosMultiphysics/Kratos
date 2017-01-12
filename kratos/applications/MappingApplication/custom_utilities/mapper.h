@@ -86,18 +86,18 @@ public:
           int mpi_initialized;
           MPI_Initialized(&mpi_initialized);
           if (mpi_initialized) { // parallel execution, i.e. mpi imported in python
-              m_mapper_communicator = MapperCommunicator::Pointer (
+              m_p_mapper_communicator = MapperCommunicator::Pointer (
                   new MapperMPICommunicator(m_model_part_origin,
                                             m_model_part_destination,
                                             m_json_parameters) );
           } else { // serial execution, i.e. mpi NOT imported in python
-              m_mapper_communicator = MapperCommunicator::Pointer (
+              m_p_mapper_communicator = MapperCommunicator::Pointer (
                   new MapperCommunicator(m_model_part_origin,
                                          m_model_part_destination,
                                          m_json_parameters) );
           }
       #else // serial compilation
-          m_mapper_communicator = MapperCommunicator::Pointer (
+          m_p_mapper_communicator = MapperCommunicator::Pointer (
               new MapperCommunicator(m_model_part_origin,
                                      m_model_part_destination,
                                      m_json_parameters) );
@@ -139,7 +139,7 @@ public:
                           Kratos::Flags& options) = 0;
 
   MapperCommunicator::Pointer GetMapperCommunicator() {
-      return m_mapper_communicator;
+      return m_p_mapper_communicator;
   }
 
   ///@}
@@ -187,7 +187,7 @@ protected:
 
   Parameters m_json_parameters;
 
-  MapperCommunicator::Pointer m_mapper_communicator;
+  MapperCommunicator::Pointer m_p_mapper_communicator;
 
   // global, aka of the entire submodel-parts
   int m_num_conditions_origin;

@@ -28,8 +28,8 @@ class NearestNeighborMapperTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            GiD_output = True # set to "True" if GiD output is wanted
-            self.nearest_neighbor_mapper_test = NearestNeighborMapperTest(GiD_output)
+            output_post = True # set to "True" if GiD output is wanted
+            self.nearest_neighbor_mapper_test = NearestNeighborMapperTest(output_post)
 
     def test_execution(self):
         # Within this location context:
