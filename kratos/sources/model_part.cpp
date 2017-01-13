@@ -1192,6 +1192,18 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     mSubModelParts.erase(name);
 }
 
+std::vector<std::string> ModelPart::GetSubModelPartNames()
+{
+    std::vector<std::string> SubModelPartsNames;
+    
+    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
+    {
+        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    }
+
+    return SubModelPartsNames;
+}
+
 void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 {
     if (IsSubModelPart())
