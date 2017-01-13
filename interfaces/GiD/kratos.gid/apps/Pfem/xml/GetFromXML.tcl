@@ -79,7 +79,7 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions VELOCITY
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions ACCELERATION
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions PRESSURE
-    [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]"] setAttribute icon folder
+    [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]"] setAttribute icon sheets
     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata"] {
         $node setAttribute icon select
     } 
