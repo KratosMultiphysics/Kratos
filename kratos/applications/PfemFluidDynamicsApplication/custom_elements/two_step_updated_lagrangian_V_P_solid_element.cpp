@@ -893,7 +893,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
       for (unsigned int g = 0; g < NumGauss; g++)
 	{
 
-	  double theta=0.5;
+	  double theta=0;
 	  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
 	  if(computeElement==true){
 	    // this->UpdateCauchyStress(g);

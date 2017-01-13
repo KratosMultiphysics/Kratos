@@ -38,6 +38,7 @@
 /* //elements */
 #include "custom_elements/two_step_updated_lagrangian_V_P_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
 
 //constitutive laws
@@ -233,6 +234,10 @@ namespace Kratos
     const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D;
     /// 3D two step element for solid
     const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D;
+   /*  /// 2D two step element for solid */
+    const UpdatedLagrangianVSolidElement<2> mUpdatedLagrangianVSolidElement2D;
+    /// 3D two step element for solid
+    const UpdatedLagrangianVSolidElement<3> mUpdatedLagrangianVSolidElement3D;
    /// 2D two step element for solid
     const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
     /// 3D two step element for solid

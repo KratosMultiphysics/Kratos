@@ -379,7 +379,8 @@ public:
 
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
-	    double ElementalVolume =  (itElem)->GetGeometry().Volume();
+	    /* double ElementalVolume =  (itElem)->GetGeometry().Volume(); */
+	    double ElementalVolume =  0;
 	    /* double CriticalVolume=0.001*mrRemesh.Refine->MeanVolume; */
 	    double CriticalVolume=0;
 	    if(ElementalVolume<CriticalVolume){
