@@ -1203,6 +1203,8 @@ public:
     ///@name Operations
     ///@{
 
+    std::vector<std::string> GetSubModelPartNames();
+    
     void SetBufferSize(IndexType NewBufferSize);
 
     IndexType GetBufferSize()
