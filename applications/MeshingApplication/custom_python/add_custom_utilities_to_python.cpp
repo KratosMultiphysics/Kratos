@@ -28,6 +28,7 @@
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/tetgen_volume_mesher.h"
+#include "custom_utilities/mmg_utility.h"
 #include "custom_utilities/cutting_iso_app.h"
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
 #include "utilities/split_tetrahedra.h"
@@ -128,6 +129,15 @@ void AddCustomUtilitiesToPython()
     ("TetgenVolumeMesher", init<ModelPart&>())
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
+    ;
+    
+    class_<MmgUtility, boost::noncopyable >
+    ("MmgUtility", init<const std::string>())
+    .def("ComputeExistingModelPart", &MmgUtility::ComputeExistingModelPart)
+    .def("ReadFiles", &MmgUtility::ReadFiles)
+    .def("Execute", &MmgUtility::Execute)
+    .def("SaveSolutionToFile", &MmgUtility::SaveSolutionToFile)
+    .def("FreeMemory", &MmgUtility::FreeMemory)
     ;
 
     #ifdef PRAGMATIC_ACTIVATED
