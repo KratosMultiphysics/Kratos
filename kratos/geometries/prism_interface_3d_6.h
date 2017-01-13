@@ -488,7 +488,7 @@ public:
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> X;
         boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
+        for(unsigned int i=0; i<3;i++)
         {
             X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+3 ).X());
             X(1,i ) = 0.5*(this->GetPoint( i ).Y() + this->GetPoint( i+3 ).Y());
