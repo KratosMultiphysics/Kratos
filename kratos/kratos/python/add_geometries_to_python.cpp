@@ -35,13 +35,13 @@ namespace Python
 {
     const PointerVector< Node<3> >& ConstGetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
-    
 void  AddGeometriesToPython()
 {
   
     typedef Geometry<Node<3> > GeometryType;
     class_<GeometryType, GeometryType::Pointer >("Geometry", init<>())
     .def(init< GeometryType::PointsArrayType& >())
+	.def("DomainSize",&GeometryType::DomainSize)
 //     .def("Points", &GeometryType::ConstGetPoints)
 //     .def("Points", &GeometryType::GetPoints)
     ;
