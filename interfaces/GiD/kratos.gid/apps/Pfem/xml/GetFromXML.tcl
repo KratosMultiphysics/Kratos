@@ -141,6 +141,8 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon folder PFEM_Loads LinePressure2DAxisym
     spdAux::SetValueOnTreeItem icon folder PFEM_Loads SurfacePressure3D
    
+    [[customlib::GetBaseRoot] selectNodes "/Kratos_data/blockdata\[@n = 'units'\]"] setAttribute icon setUnits
+    foreach nodo [[customlib::GetBaseRoot] selectNodes "/Kratos_data/blockdata\[@n = 'units'\]/value"] {$nodo setAttribute icon data}
 }
 
 proc Pfem::xml::CheckElementOutputState { domNode args } {
