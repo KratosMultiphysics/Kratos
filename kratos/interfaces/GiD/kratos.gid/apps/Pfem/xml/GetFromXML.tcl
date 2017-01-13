@@ -44,74 +44,35 @@ proc Pfem::xml::CustomTree { args } {
     #arg4 (optional): name_of_the_child_we_want_to_modify  ('name'is defined by the attribute n=)
     
     # Hide Results Cut planes  
-    
-    spdAux::SetValueOnTreeItem icon data nDim
-    
+    foreach node [[customlib::GetBaseRoot] getElementsByTagName value ] { $node setAttribute icon data }
+
     #intervals
     spdAux::SetValueOnTreeItem icon timeIntervals Intervals
     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata"] {
         $node setAttribute icon select
-        foreach subnode [$node childNodes] {
-            $subnode setAttribute icon data
-        }
     }        
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute Intervals]/blockdata/value"] {$node setAttribute icon data}   
     
     #results
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem icon results Results
     spdAux::SetValueOnTreeItem icon seeResults Results 
-    spdAux::SetValueOnTreeItem icon data Results FileLabel 
-    spdAux::SetValueOnTreeItem icon data Results OutputControlType 
-    spdAux::SetValueOnTreeItem icon data Results OutputDeltaTime 
-    spdAux::SetValueOnTreeItem icon data Results BodyOutput 
-    spdAux::SetValueOnTreeItem icon data Results NodeOutput 
-    spdAux::SetValueOnTreeItem icon data Results SkinOutput 
-    spdAux::SetValueOnTreeItem icon data Results OnElement 
+    spdAux::SetValueOnTreeItem icon select Results OnElement 
     spdAux::SetValueOnTreeItem icon select Results OnNodes 
     spdAux::SetValueOnTreeItem icon select Results GiDOptions 
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute NodalResults]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute ElementResults]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute GiDOptions]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
                 
     #problem settings
-    spdAux::SetValueOnTreeItem icon folder PFEM_Implicitlinear_solver_settings 
-    spdAux::SetValueOnTreeItem icon folder PFEM_Explicitlinear_solver_settings
-    spdAux::SetValueOnTreeItem icon folder PFEM_GenericSolStratlinear_solver_settings
-    spdAux::SetValueOnTreeItem icon select PFEM_TwoStepVPStrategyvelocity_linear_solver_settings
-    spdAux::SetValueOnTreeItem icon select PFEM_TwoStepVPStrategypressure_linear_solver_settings
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_StratParams]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_Implicitlinear_solver_settings]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_Explicitlinear_solver_settings]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_GenericSolStratlinear_solver_settings]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_TwoStepVPStrategyvelocity_linear_solver_settings]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    set  parent_node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_TwoStepVPStrategypressure_linear_solver_settings]"]
-    foreach node [$parent_node childNodes ] { $node setAttribute icon data }
-    
+    foreach node [[customlib::GetBaseRoot] getElementsByTagName container ] { if {[$node hasAttribute solstratname]} {$node setAttribute icon folder } }
     #TODO: (for JG) the previous icons should be changed automatically looking at the strategies.xml
 
     
     #restart
-    spdAux::SetValueOnTreeItem icon doRestart Restart 
-    spdAux::SetValueOnTreeItem icon data Restart SaveRestart
-    spdAux::SetValueOnTreeItem icon data Restart LoadRestart
-    
+    spdAux::SetValueOnTreeItem icon doRestart Restart     
     
     #parallelism
     spdAux::SetValueOnTreeItem icon select Parallelization
     spdAux::SetValueOnTreeItem values OpenMP ParallelType 
-    spdAux::SetValueOnTreeItem icon data ParallelType
-    spdAux::SetValueOnTreeItem icon data Parallelization OpenMPNumberOfThreads
     
     #boundary conditions
     spdAux::SetValueOnTreeItem icon folder PFEM_NodalConditions DISPLACEMENT
@@ -121,10 +82,7 @@ proc Pfem::xml::CustomTree { args } {
     [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]"] setAttribute icon folder
     foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata"] {
         $node setAttribute icon select
-    }
-    foreach node [[customlib::GetBaseRoot] selectNodes "[spdAux::getRoute PFEM_NodalConditions]/container\[@n='BODYDISPLACEMENT'\]/blockdata/value"] {
-        $node setAttribute icon data
-    }  
+    } 
     
     #loads
     spdAux::SetValueOnTreeItem icon setLoad PFEM_Loads 
@@ -142,7 +100,6 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon folder PFEM_Loads SurfacePressure3D
    
     [[customlib::GetBaseRoot] selectNodes "/Kratos_data/blockdata\[@n = 'units'\]"] setAttribute icon setUnits
-    foreach nodo [[customlib::GetBaseRoot] selectNodes "/Kratos_data/blockdata\[@n = 'units'\]/value"] {$nodo setAttribute icon data}
 }
 
 proc Pfem::xml::CheckElementOutputState { domNode args } {
@@ -562,7 +519,6 @@ proc Pfem::xml::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
         }
         gid_groups_conds::addF $block_path value [list n Body pn Body v - values {[GetBodiesValues]} help $help]
     }
-    
 }
 
 Pfem::xml::Init
