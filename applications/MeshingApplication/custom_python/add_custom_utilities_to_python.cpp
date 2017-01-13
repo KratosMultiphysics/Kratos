@@ -131,14 +131,14 @@ void AddCustomUtilitiesToPython()
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
     
-    class_<MmgUtility, boost::noncopyable >
-    ("MmgUtility", init<const std::string>())
-    .def("ComputeExistingModelPart", &MmgUtility::ComputeExistingModelPart)
-    .def("ReadFiles", &MmgUtility::ReadFiles)
-    .def("Execute", &MmgUtility::Execute)
-    .def("SaveSolutionToFile", &MmgUtility::SaveSolutionToFile)
-    .def("FreeMemory", &MmgUtility::FreeMemory)
-    ;
+//     class_<MmgUtility, boost::noncopyable >
+//     ("MmgUtility", init<const std::string>())
+//     .def("ComputeExistingModelPart", &MmgUtility::ComputeExistingModelPart)
+//     .def("ReadFiles", &MmgUtility::ReadFiles)
+//     .def("Execute", &MmgUtility::Execute)
+//     .def("SaveSolutionToFile", &MmgUtility::SaveSolutionToFile)
+//     .def("FreeMemory", &MmgUtility::FreeMemory)
+//     ;
 
     #ifdef PRAGMATIC_ACTIVATED
     class_<PragmaticAdaptor >("PragmaticAdaptor", init< >())
