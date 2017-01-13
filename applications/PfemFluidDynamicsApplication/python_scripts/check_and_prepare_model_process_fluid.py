@@ -126,7 +126,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                             fluid_part.Nodes.append(node)
             StopTimeMeasuring(clock_time,"1.rigid_body_model_parts  part.Nodes", True);
 
-
             
         #construct the computing model part:        
         domain_parts = []
@@ -136,7 +135,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         processes_parts = []
         for i in range(self.processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
-        
+       
         #construct a model part which contains the mesh to compute
         self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         fluid_computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
@@ -147,14 +146,16 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computing_model_part.Set(KratosMultiphysics.FLUID)
         #set flag to identify the computing model part
         fluid_computing_model_part.Set(KratosMultiphysics.ACTIVE)
-        
+       
         for node in self.main_model_part.Nodes:
-            fluid_computing_model_part.AddNode(node,0)
- 
+            #fluid_computing_model_part.AddNode(node,0)
+            fluid_computing_model_part.Nodes.append(node)
+
         for part in domain_parts:
             #part.Set(KratosMultiphysics.FLUID)
             for elem in part.Elements:
-                fluid_computing_model_part.AddElement(elem,0)
+                #fluid_computing_model_part.AddElement(elem,0)
+                fluid_computing_model_part.Elements.append(elem)
             #for node in part.Nodes:
             #    fluid_computing_model_part.Nodes.append(node)
             
@@ -162,6 +163,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             part.Set(KratosMultiphysics.BOUNDARY)
             for cond in part.Conditions:
                 fluid_computing_model_part.AddCondition(cond,0)  
+                #fluid_computing_model_part.Conditions.append(cond)  
 
         #delete body parts: (materials have to be already assigned)
         if( self.bodies_list == True ):
