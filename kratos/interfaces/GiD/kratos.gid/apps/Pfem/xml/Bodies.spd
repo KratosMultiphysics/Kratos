@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Bodies" pn="Bodies" un="PFEM_Bodies" icon="bodies" help="Select your group" open_window="0">
-  <blockdata n='Body' name='Body1' icon="folder" editable="false" sequence='1' editable_name='unique' open_window="0">
+  <blockdata n='Body' name='Body1' icon="select" editable="false" sequence='1' editable_name='unique' open_window="0">
     <value n="BodyType" pn="Body type"  icon="data" v="" values="[GetBodyTypeValues]" actualize_tree="1">
       <dependencies value='Rigid' node="../value[@n='MeshingStrategy']" att1='v' v1='No remesh' />
       <dependencies value='Fluid' node="../value[@n='MeshingStrategy']" att1='v' v1='Remesh and Refine' />
