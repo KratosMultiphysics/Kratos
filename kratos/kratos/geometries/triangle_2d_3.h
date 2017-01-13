@@ -563,13 +563,12 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
     {
-        const double zero = 1E-14;
         this->PointLocalCoordinates( rResult, rPoint );
-        if( ( rResult[0] >= (0.0-zero) ) && ( rResult[0] <= 1.0 + zero ) )
-            if( ( rResult[1] >= 0.0-zero ) && (rResult[1] <= 1.0 + zero ) )
-                if(((1.0-(rResult[0] + rResult[1])) >= 0.0-zero) &&  ((1.0-(rResult[0] + rResult[1])) <= 1.0 + zero))
+        if( rResult[0] >= (0.0-Tolerance) )
+            if( rResult[1] >= (0.0-Tolerance) )
+                if( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
                     return true;
 
         return false;

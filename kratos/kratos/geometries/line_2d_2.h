@@ -820,15 +820,11 @@ public:
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        const double tol = 1.0e-14;
-
-//        KRATOS_WATCH( rResult[0]);
-
-        if ( rResult[0] >= (-1.0 - tol) && rResult[0] <= (1.0 + tol) )
+        if ( (rResult[0] >= (-1.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
         {
             return true;
         }
