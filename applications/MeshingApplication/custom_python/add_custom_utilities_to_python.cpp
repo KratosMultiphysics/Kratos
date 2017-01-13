@@ -28,7 +28,7 @@
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/tetgen_volume_mesher.h"
-#include "custom_utilities/mmg_utility.h"
+// #include "custom_utilities/mmg_utility.h"
 #include "custom_utilities/cutting_iso_app.h"
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
 #include "utilities/split_tetrahedra.h"
@@ -109,7 +109,7 @@ void AddCustomUtilitiesToPython()
     ("LocalRefineTriangleMesh", init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTriangleMesh::LocalRefineMesh)
     ;
-    
+
     class_<LocalRefinePrismMesh, boost::noncopyable >
     ("LocalRefinePrismMesh", init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefinePrismMesh::LocalRefineMesh)
@@ -130,7 +130,7 @@ void AddCustomUtilitiesToPython()
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
-    
+
 //     class_<MmgUtility, boost::noncopyable >
 //     ("MmgUtility", init<const std::string>())
 //     .def("ComputeExistingModelPart", &MmgUtility::ComputeExistingModelPart)
@@ -143,9 +143,9 @@ void AddCustomUtilitiesToPython()
     #ifdef PRAGMATIC_ACTIVATED
     class_<PragmaticAdaptor >("PragmaticAdaptor", init< >())
     .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
-    ;        
+    ;
     #endif
-    
+
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
     .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
@@ -170,4 +170,3 @@ void AddCustomUtilitiesToPython()
 } // namespace Python.
 
 } // Namespace Kratos
-
