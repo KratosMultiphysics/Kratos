@@ -126,6 +126,30 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+// This function modifies the material derivative using the pre-computed value of the gradient
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeFromGradient(ModelPart& r_model_part,
+                                                                             Variable<array_1d<double, 3> >& vector_gradient_container_x,
+                                                                             Variable<array_1d<double, 3> >& vector_gradient_container_y,
+                                                                             Variable<array_1d<double, 3> >& vector_gradient_container_z,
+                                                                             Variable<array_1d<double, 3> >& vector_rate_container,
+                                                                             Variable<array_1d<double, 3>  >& material_derivative_container)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        const array_1d <double, 3>& velocity = p_node->FastGetSolutionStepValue(VELOCITY);
+        array_1d <double, 3>& material_derivative = p_node->FastGetSolutionStepValue(material_derivative_container);
+        material_derivative[0] = DEM_INNER_PRODUCT_3(velocity, p_node->FastGetSolutionStepValue(vector_gradient_container_x));
+        material_derivative[1] = DEM_INNER_PRODUCT_3(velocity, p_node->FastGetSolutionStepValue(vector_gradient_container_y));
+        material_derivative[2] = DEM_INNER_PRODUCT_3(velocity, p_node->FastGetSolutionStepValue(vector_gradient_container_z));
+    }
+
+    AddTimeDerivative(r_model_part, material_derivative_container);
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 // This function modifies one component of the material derivative using the pre-computed value of the gradient of the first component of the velocity
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container)
@@ -206,6 +230,27 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+// This function adds the contribution to the vorticity corresponding to the pre-computed gradient of one velocity component
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::CalculateVorticityFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_gradient_container_x, Variable<array_1d<double, 3> >& vector_gradient_container_y, Variable<array_1d<double, 3> >& vector_gradient_container_z, Variable<array_1d<double, 3>  >& vorticity_container)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        array_1d<double, 3>& vorticity = p_node->FastGetSolutionStepValue(vorticity_container);
+        const array_1d<double, 3>& gradient_x = p_node->FastGetSolutionStepValue(vector_gradient_container_x);
+        const array_1d<double, 3>& gradient_y = p_node->FastGetSolutionStepValue(vector_gradient_container_y);
+        const array_1d<double, 3>& gradient_z = p_node->FastGetSolutionStepValue(vector_gradient_container_z);
+
+        vorticity[0] = gradient_z[1] - gradient_y[2];
+        vorticity[1] = gradient_x[2] - gradient_z[0];
+        vorticity[2] = gradient_y[0] - gradient_x[1];
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 // This function adds the contribution to the vorticity corresponding to the pre-computed gradient of one velocity component
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVorticityContributionOfTheGradientOfAComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3>  >& vorticity_container)
