@@ -125,7 +125,11 @@ void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variabl
 
 void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container);
 
+void CalculateVectorMaterialDerivativeFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_gradient_container_x, Variable<array_1d<double, 3> >& vector_gradient_container_y, Variable<array_1d<double, 3> >& vector_gradient_container_z, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container);
+
 void CalculateVectorMaterialDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container);
+
+void CalculateVorticityFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_gradient_container_x, Variable<array_1d<double, 3> >& vector_gradient_container_y, Variable<array_1d<double, 3> >& vector_gradient_container_z, Variable<array_1d<double, 3>  >& vorticity_container);
 
 void CalculateVorticityContributionOfTheGradientOfAComponent(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_component_gradient_container, Variable<array_1d<double, 3>  >& vorticity_container);
 
