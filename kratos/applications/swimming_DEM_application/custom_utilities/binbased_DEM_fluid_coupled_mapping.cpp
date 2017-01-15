@@ -111,7 +111,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFlowOnDEMFromField(
-    FieldUtility& r_flow,
+    FluidFieldUtility& r_flow,
     ModelPart& r_dem_model_part)
 {
     KRATOS_TRY
@@ -124,7 +124,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromField(
-    FieldUtility& r_flow,
+    FluidFieldUtility& r_flow,
     ModelPart& r_dem_model_part)
 {
     KRATOS_TRY
