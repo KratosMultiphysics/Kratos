@@ -45,7 +45,12 @@ virtual ~VectorField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0){}
+virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0)
+{
+    vector[0] = 0.0;
+    vector[1] = 0.0;
+    vector[2] = 0.0;
+}
 
 virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const int i_thread = 0){}
 
@@ -57,7 +62,12 @@ virtual void CalculateRotational(const double time, const array_1d<double, 3>& c
 
 virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread = 0){}
 
-virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
+virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0)
+{
+    result[0] = 0.0;
+    result[1] = 0.0;
+    result[2] = 0.0;
+}
 
 virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
 
@@ -71,7 +81,7 @@ virtual void ResizeVectorsForParallelism(const int n_threads){}
 
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed){}
 
-virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable){}
+//virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
