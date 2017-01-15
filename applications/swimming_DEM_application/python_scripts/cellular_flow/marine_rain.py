@@ -539,7 +539,7 @@ if DEM_parameters.coupling_level_type:
     omega = math.pi
     flow_field = CellularFlowField(L, U, k, omega)
     space_time_set = SpaceTimeSet()
-    field_utility = FieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+    field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
     #Z
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
