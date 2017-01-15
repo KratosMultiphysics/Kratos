@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-class FieldUtility
+class KRATOS_API(SWIMMING_DEM_APPLICATION) FieldUtility
 {
 public:
 
@@ -38,8 +38,8 @@ KRATOS_CLASS_POINTER_DEFINITION(FieldUtility);
 
 FieldUtility(): mDomain(), mpVectorField(){}
 
-FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
-    mDomain(p_sts), mpVectorField(p_vector_field), mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
+FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field):
+    mDomain(p_sts), mpVectorField(p_vector_field){}
 
 /// Destructor.
 
@@ -94,6 +94,7 @@ array_1d<double, 3> EvaluateFieldAtPoint(const double& time,
     }
 
     return(ZeroVector(3));
+
 }
 
 //***************************************************************************************************************
@@ -168,30 +169,8 @@ virtual void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_vari
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed)
-{
-    const unsigned int nnodes = r_model_part.Nodes().size();
-
-    MarkNodesInside(r_model_part, r_model_part.GetProcessInfo());
-
-    #pragma omp parallel for
-    for (int i = 0; i < (int)nnodes; ++i){
-        ModelPart::NodeIterator node_it = r_model_part.NodesBegin() + i;
-        double& fluid_viscosity = node_it->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-        double& fluid_density = node_it->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-        fluid_viscosity = mFluidViscosity;
-        fluid_density = mFluidDensity;
-    }
-
-    mpVectorField->ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable)
-{
-    mpVectorField->ImposeVelocityOnNodes(r_model_part, container_variable);
-}
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed);
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -241,7 +220,10 @@ protected:
 ///@name Protected member r_variables
 ///@{ template<class T, std::size_t dim>
 
-
+RealField::Pointer mFormula;
+SpaceTimeSet::Pointer mDomain;
+VectorField<3>::Pointer mpVectorField;
+std::vector<bool> mIsInArray;
 ///@}
 ///@name Protected Operators
 ///@{
@@ -277,12 +259,7 @@ private:
 ///@}
 ///@name Member r_variables
 ///@{
-RealField::Pointer mFormula;
-SpaceTimeSet::Pointer mDomain;
-VectorField<3>::Pointer mpVectorField;
-std::vector<bool> mIsInArray;
-double mFluidDensity;
-double mFluidViscosity;
+
 ///@}
 ///@name Private Operators
 ///@{
