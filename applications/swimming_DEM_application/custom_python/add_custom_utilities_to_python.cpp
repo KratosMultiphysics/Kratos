@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/space_time_rule.h"
 #include "custom_utilities/space_time_set.h"
 #include "custom_utilities/field_utility.h"
+#include "custom_utilities/fluid_field_utility.h"
 #include "custom_utilities/vector_field.h"
 #include "custom_utilities/velocity_field.h"
 #include "custom_utilities/cellular_flow_field.h"
@@ -138,7 +139,7 @@ using namespace boost::python;
     class_<VectorField<2> > ("VectorField2D", boost::python::no_init)
         ;
 
-    class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
+    class_<VectorField<3> > ("VectorField3D", init<>())
         ;
     typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
     Evaluate EvaluateVector = &VelocityField::Evaluate;
@@ -235,19 +236,53 @@ using namespace boost::python;
     typedef void (FieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (FieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (FieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
+    typedef void (FieldUtility::*ImposeFieldOnNodes)(ModelPart&, const Variable<array_1d<double, 3> >&);
 
     ImposeDoubleFieldOnNodes ImposeDoubleField = &FieldUtility::ImposeFieldOnNodes;
     ImposeVectorFieldOnNodes ImposeVectorField = &FieldUtility::ImposeFieldOnNodes;
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
+    ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
 
-    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer, VectorField<3>::Pointer, const double, const double >())
+    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
         .def("MarkNodesInside", &FieldUtility::MarkNodesInside)
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
         .def("ImposeFieldOnNodes", ImposeDoubleField)
         .def("ImposeFieldOnNodes", ImposeVectorField)
         .def("ImposeFieldOnNodes", ImposeVelocityField)
+        .def("ImposeFieldOnNodes", ImposeField)
         ;
+
+    // and the same for 'FluidFieldUtility' ...
+
+    typedef double (FluidFieldUtility::*EvaluateDoubleFluidFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
+    typedef array_1d<double, 3> (FluidFieldUtility::*EvaluateVectorFluidFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
+
+    EvaluateDoubleFluidFieldAtPoint EvaluateDoubleFluidField = &FieldUtility::EvaluateFieldAtPoint;
+    EvaluateVectorFluidFieldAtPoint EvaluateVectorFluidField = &FieldUtility::EvaluateFieldAtPoint;
+
+    typedef void (FluidFieldUtility::*ImposeVelocityFluidFieldOnNodes)(ModelPart&, const VariablesList&);
+
+    ImposeVelocityFluidFieldOnNodes ImposeVelocityFluidField = &FluidFieldUtility::ImposeFieldOnNodes;
+
+    class_<FluidFieldUtility> ("FluidFieldUtility", init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
+        .def("MarkNodesInside", &FluidFieldUtility::MarkNodesInside)
+        .def("EvaluateFieldAtPoint", EvaluateDoubleFluidField)
+        .def("EvaluateFieldAtPoint", EvaluateVectorFluidField)
+        .def("ImposeFieldOnNodes", ImposeDoubleField)
+        .def("ImposeFieldOnNodes", ImposeVectorField)
+        .def("ImposeFieldOnNodes", ImposeVelocityFluidField)
+        ;
+
+    typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const Variable<double>&, const Variable<double>&);
+    typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);
+    typedef void (CustomFunctionsCalculator<3>::*SetValuesScalar)(ModelPart&, const double&, const Variable<double>&);
+    typedef void (CustomFunctionsCalculator<3>::*SetValuesVector)(ModelPart&, const array_1d<double, 3>&, const Variable<array_1d<double, 3>>&);
+
+    CopyValuesScalar CopyValuesFromFirstToSecondScalar = &CustomFunctionsCalculator<3>::CopyValuesFromFirstToSecond;
+    CopyValuesVector CopyValuesFromFirstToSecondVector = &CustomFunctionsCalculator<3>::CopyValuesFromFirstToSecond;
+    SetValuesScalar SetValueOfAllNotesScalar = &CustomFunctionsCalculator<3>::SetValueOfAllNotes;
+    SetValuesVector SetValueOfAllNotesVector = &CustomFunctionsCalculator<3>::SetValueOfAllNotes;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
@@ -256,7 +291,7 @@ using namespace boost::python;
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <2>::CalculateTotalHydrodynamicForceOnParticles)
         .def("CalculateTotalHydrodynamicForceOnFluid", &CustomFunctionsCalculator <2>::CalculateTotalHydrodynamicForceOnFluid)
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <2>::CalculateGlobalFluidVolume)
-        ; 
+        ;
 
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
@@ -265,6 +300,10 @@ using namespace boost::python;
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnParticles)
         .def("CalculateTotalHydrodynamicForceOnFluid", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnFluid)
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <3>::CalculateGlobalFluidVolume)
+        .def("CopyValuesFromFirstToSecond", CopyValuesFromFirstToSecondScalar)
+        .def("CopyValuesFromFirstToSecond", CopyValuesFromFirstToSecondVector)
+        .def("SetValueOfAllNotes", SetValueOfAllNotesScalar)
+        .def("SetValueOfAllNotes", SetValueOfAllNotesVector)
         ;
 
     //**********************************************************************************************************************************************
@@ -274,7 +313,9 @@ using namespace boost::python;
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient)
         .def("RecoverSuperconvergentLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentLaplacian)
         .def("RecoverSuperconvergentMatDeriv", &DerivativeRecovery <3>::RecoverSuperconvergentMatDeriv)
+        .def("CalculateVectorMaterialDerivativeFromGradient", &DerivativeRecovery <3>::CalculateVectorMaterialDerivativeFromGradient)
         .def("CalculateVectorMaterialDerivativeComponent", &DerivativeRecovery <3>::CalculateVectorMaterialDerivativeComponent)
+        .def("CalculateVorticityFromGradient", &DerivativeRecovery <3>::CalculateVorticityFromGradient)
         .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <3>::CalculateVorticityContributionOfTheGradientOfAComponent)
         .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentMatDerivAndLaplacian)
         .def("CalculateGradient", &DerivativeRecovery <3>::CalculateGradient)
