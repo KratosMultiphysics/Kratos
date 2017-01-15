@@ -24,7 +24,7 @@
 #include "density_function_polynomial.h"
 #include "custom_functions.h"
 #include "velocity_field.h"
-#include "field_utility.h"
+#include "fluid_field_utility.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
@@ -175,8 +175,8 @@ void AddDEMVariablesToImpose(const VariableData& r_variable){
 }
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
-void ImposeFlowOnDEMFromField(FieldUtility& r_flow, ModelPart& r_dem_model_part);
-void ImposeVelocityOnDEMFromField(FieldUtility& r_flow, ModelPart& r_dem_model_part);
+void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
+void ImposeVelocityOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void InterpolateVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
@@ -272,7 +272,7 @@ VariablesList mFluidCouplingVariables;
 VariablesList mDEMVariablesToBeImposed;
 PointPointSearch::Pointer mpPointPointSearch;
 
-FieldUtility mFlowField;
+FluidFieldUtility mFlowField;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
