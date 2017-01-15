@@ -60,12 +60,22 @@ virtual double CalculateTimeDerivative(const double time, const array_1d<double,
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient){}
+virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+{
+    gradient[0] = 0.0;
+    gradient[1] = 0.0;
+    gradient[2] = 0.0;
+}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian){}
+virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+{
+    laplacian[0] = 0.0;
+    laplacian[1] = 0.0;
+    laplacian[2] = 0.0;
+}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
