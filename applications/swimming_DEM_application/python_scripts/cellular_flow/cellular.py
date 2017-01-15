@@ -104,6 +104,7 @@ file_name, n_div, material_derivative_type, laplacian_type = sys.argv
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 0
+pp.CFD_DEM.store_full_gradient = 0
 pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.material_acceleration_calculation_type = int(material_derivative_type)
@@ -132,7 +133,6 @@ pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
-
 # Creating a code for the used input variables
 run_code = '_ndiv_' + str(n_div ) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
 #Z
@@ -529,7 +529,7 @@ if DEM_parameters.coupling_level_type:
     omega = 0*math.pi
     flow_field = CellularFlowField(L, U, k, omega)
     space_time_set = SpaceTimeSet()
-    field_utility = FieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+    field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
     #Z
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
