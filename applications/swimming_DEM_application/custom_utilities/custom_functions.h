@@ -491,7 +491,56 @@ const boost::numeric::ublas::matrix<double> Inverse(
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
+void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>& origin_variable, const Variable<double>& destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
+        const double& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
+        destination_value = origin_value;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<array_1d<double, 3>>& origin_variable, const Variable<array_1d<double, 3>>& destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
+        const array_1d<double, 3>& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
+        noalias(destination_value) = origin_value;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+void SetValueOfAllNotes(ModelPart& r_model_part, const double& value, const Variable<double>& destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
+        destination_value = value;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+void SetValueOfAllNotes(ModelPart& r_model_part, const array_1d<double, 3>& value, const Variable<array_1d<double, 3>>& destination_variable)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
+        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
+        noalias(destination_value) = value;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 
 private:
 
