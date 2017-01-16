@@ -30,6 +30,18 @@ class Logger(object):
         #you might want to specify some extra behavior here.
         pass    
 
+def num_type(value):
+  try:
+    int(str(value))
+    return 'int'
+  except:
+    try:
+        float(str(value))
+        return 'float'
+    except:
+        return None
+  
+
 sys.stdout = Logger()
 import math
 
@@ -37,7 +49,6 @@ import math
 from matplotlib import pyplot as plt
 import pylab
 #Z
-
 simulation_start_time = timer.clock()
 
 # Kratos
@@ -99,7 +110,7 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 n_div = 20
 material_derivative_type = 2
 laplacian_type = 2
-file_name, n_div, material_derivative_type, laplacian_type = sys.argv
+file_name, size_parameter, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
@@ -134,7 +145,7 @@ print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 # Creating a code for the used input variables
-run_code = '_ndiv_' + str(n_div ) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
+run_code = '_ndiv_' + str(size_parameter) + '_mat_deriv_type_' + str(material_derivative_type) + '_lapl_type_' + str(laplacian_type)
 #Z
 
 # Creating swimming DEM procedures
@@ -228,7 +239,11 @@ vars_man.AddNodalVariables(fluid_model_part, pp.fluid_vars)  #     MOD.
 input_file_name = pp.problem_name
 
 # reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_ndiv_' + str(n_div)))
+if num_type(size_parameter) == 'int':
+    model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_ndiv_' + str(size_parameter)))
+elif num_type(size_parameter) == 'float':
+    model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_h_' + str(size_parameter)))
+    
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #_____________________________________________________________________________________________________________________________________
@@ -1034,11 +1049,15 @@ print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 if not os.path.exists('../errors_recorded'):
     os.makedirs('../errors_recorded')
-    
-with open('../errors_recorded/mat_deriv_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.material_acceleration_calculation_type) + '.txt', 'w') as mat_errors_file:
+
+if num_type(size_parameter) == 'int':
+    size_parameter_name = '_ndiv_'
+elif num_type(size_parameter) == 'float':
+    size_parameter_name = '_h_'
+with open('../errors_recorded/mat_deriv_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(pp.CFD_DEM.material_acceleration_calculation_type) + '.txt', 'w') as mat_errors_file:
     for error in mat_deriv_errors:
         mat_errors_file.write(str(error) + '\n')
-with open('../errors_recorded/laplacian_errors_ndiv_' + str(n_div) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
+with open('../errors_recorded/laplacian_errors' + size_parameter_name + str(size_parameter) + '_type_' + str(pp.CFD_DEM.laplacian_calculation_type) + '.txt', 'w') as laplacian_errors_file:
     for error in laplacian_errors:
         laplacian_errors_file.write(str(error) + '\n')
 sys.stdout.flush()
