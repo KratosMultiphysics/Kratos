@@ -1537,7 +1537,6 @@ private:
             {
                 for(unsigned int i = 0; i < rAuxPropagationVariables.TopFrontFracturePoints.size(); i++)
                 {
-                    KRATOS_WATCH(rAuxPropagationVariables.TopFrontFracturePoints[i]->CosAngle);
                     if(rAuxPropagationVariables.TopFrontFracturePoints[i]->CosAngle >= PropagationCosAngle)
                     {
                         this->ComputeBifurcationFactor(PropagationFactor,PropagationFactorDenominator,*(rAuxPropagationVariables.TopFrontFracturePoints[i]),PropagationLength);
@@ -1552,7 +1551,6 @@ private:
             {
                 for(unsigned int i = 0; i < rAuxPropagationVariables.BotFrontFracturePoints.size(); i++)
                 {
-                    KRATOS_WATCH(rAuxPropagationVariables.BotFrontFracturePoints[i]->CosAngle);
                     if(rAuxPropagationVariables.BotFrontFracturePoints[i]->CosAngle >= PropagationCosAngle)
                     {
                         this->ComputeBifurcationFactor(PropagationFactor,PropagationFactorDenominator,*(rAuxPropagationVariables.BotFrontFracturePoints[i]),PropagationLength);
