@@ -55,7 +55,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"characteristic_length\":              [GiD_AccessValue get gendata Characteristic_Length],"
     ## linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\":             \{"
-    if {[GiD_AccessValue get gendata Solver_Type]=="AMGCL"} {
+    if {[GiD_AccessValue get gendata Solver_Type] eq "AMGCL"} {
         puts $FileVar "            \"solver_type\":                    \"AMGCL\","
         puts $FileVar "            \"smoother_type\":                  \"ilu0\","
         puts $FileVar "            \"krylov_type\":                    \"gmres\","
@@ -69,7 +69,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "            \"block_size\":                     1,"
         puts $FileVar "            \"use_block_matrices_if_possible\": true,"
         puts $FileVar "            \"coarse_enough\":                  5000"
-    } elseif {[GiD_AccessValue get gendata Solver_Type]=="BICGSTABSolver"} {
+    } elseif {[GiD_AccessValue get gendata Solver_Type] eq "BICGSTABSolver"} {
         puts $FileVar "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
         puts $FileVar "            \"tolerance\":                      1.0e-6,"
         puts $FileVar "            \"max_iteration\":                  100,"
@@ -87,15 +87,19 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Body_Part
     # Interface_Part
     AppendGroupNames PutStrings Interface_Part
-    set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]
+    if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
+        append PutStrings \" PropagationUnion_3d_6 \" \]
+    } else {
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+    }
     puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
     ## body_domain_sub_model_part_list
     set PutStrings \[
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $FileVar "        \"body_domain_sub_model_part_list\":      $PutStrings,"
+    puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
@@ -171,7 +175,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    if {[GiD_AccessValue get gendata Fracture_Propagation]==true} {
+    if {[GiD_AccessValue get gendata Fracture_Propagation] eq true} {
         puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"time\","
@@ -192,7 +196,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Solid_Displacement DISPLACEMENT
     AppendOutputVariables PutStrings iGroup Write_Fluid_Pressure WATER_PRESSURE
-    if {[GiD_AccessValue get gendata Write_Reactions]==true} {
+    if {[GiD_AccessValue get gendata Write_Reactions] eq true} {
         incr iGroup
         append PutStrings \" REACTION \" , \" REACTION_WATER_PRESSURE \" ,
     }

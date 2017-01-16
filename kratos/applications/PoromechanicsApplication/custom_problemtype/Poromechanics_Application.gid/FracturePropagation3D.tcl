@@ -11,7 +11,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
         for {set j 0} {$j < [llength $BodyEntities]} {incr j} {
             set BodyVolume [GiD_Geometry get volume [lindex $BodyEntities $j]]
             set Groups [GiD_EntitiesGroups entity_groups volumes [lindex $BodyEntities $j]]
-            dict set BodyVolumesDict [lindex $BodyEntities $j] Layer [lindex $BodyVolume 0]
             dict set BodyVolumesDict [lindex $BodyEntities $j] Groups $Groups
             set Surfaces [list]
             for {set k 0} {$k < [lindex $BodyVolume 1]} {incr k} {
@@ -29,8 +28,8 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     # Auxiliar Dictionary of points to determine the TipPoint of each crack
     set PointsDict [dict create]
     for {set i 0} {$i < [llength $InterfaceGroups]} {incr i} {
-        # Notes: eq-> for string comparison (and int), ==-> for numerical comparison
-        #        ne-> for string comparison (and int), !=-> for numerical comparison
+        # Notes: eq -> for string comparison (and int), == -> for numerical comparison
+        #        ne -> for string comparison (and int), != -> for numerical comparison
         if {[lindex [lindex $InterfaceGroups $i] 3] eq false} {
             set InterfaceEntities [GiD_EntitiesGroups get [lindex [lindex $InterfaceGroups $i] 1] volumes]
             for {set j 0} {$j < [llength $InterfaceEntities]} {incr j} {
@@ -52,9 +51,9 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                         set Line2Id [lindex [lindex $Surface2 [expr { 9+$l }]] 0]
                         if {$Line1Id eq $Line2Id} {
                             set AxisLine [GiD_Geometry get line $Line1Id]
-                            dict set PointsDict [lindex $AxisLine 2] ${FractureHalf}Volume [lindex $InterfaceEntities $j]
+                            dict set PointsDict [lindex $AxisLine 2] ${FractureHalf}InterfaceVolume [lindex $InterfaceEntities $j]
                             dict set PointsDict [lindex $AxisLine 2] ${FractureHalf}Line $Line1Id
-                            dict set PointsDict [lindex $AxisLine 3] ${FractureHalf}Volume [lindex $InterfaceEntities $j]
+                            dict set PointsDict [lindex $AxisLine 3] ${FractureHalf}InterfaceVolume [lindex $InterfaceEntities $j]
                             dict set PointsDict [lindex $AxisLine 3] ${FractureHalf}Line $Line1Id
                         }
                     }
@@ -65,7 +64,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     set FracturesDict [dict create]
     set FractureId -1
     dict for {PointId Info} $PointsDict {
-        if {[dict exists $Info RightVolume] && [dict exists $Info LeftVolume]} {
+        if {[dict exists $Info RightInterfaceVolume] && [dict exists $Info LeftInterfaceVolume]} {
             # Define new fracture
             incr FractureId
             # Set TipPoint
@@ -73,16 +72,16 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
             AddPointToFracturesDict FracturesDict $FractureId $PointId $TipPoint TipPoint
             # Set BodyVolume
             AddBodyVolumeToFracturesDict FracturesDict $FractureId $BodyVolumesDict
-            # Set LeftVolume and RightVolume
-            set LeftVolume [GiD_Geometry get volume [dict get $Info LeftVolume]]
-            AddInterfaceVolumeToFracturesDict FracturesDict $FractureId [dict get $Info LeftVolume] $LeftVolume LeftVolume
-            set RightVolume [GiD_Geometry get volume [dict get $Info RightVolume]]
-            AddInterfaceVolumeToFracturesDict FracturesDict $FractureId [dict get $Info RightVolume] $RightVolume RightVolume
+            # Set LeftInterfaceVolume and RightInterfaceVolume
+            set LeftInterfaceVolume [GiD_Geometry get volume [dict get $Info LeftInterfaceVolume]]
+            AddInterfaceVolumeToFracturesDict FracturesDict $FractureId [dict get $Info LeftInterfaceVolume] $LeftInterfaceVolume LeftInterfaceVolume
+            set RightInterfaceVolume [GiD_Geometry get volume [dict get $Info RightInterfaceVolume]]
+            AddInterfaceVolumeToFracturesDict FracturesDict $FractureId [dict get $Info RightInterfaceVolume] $RightInterfaceVolume RightInterfaceVolume
             # Set LeftLine and RightLine
             set LeftLine [GiD_Geometry get line [dict get $Info LeftLine]]
-            AddLineToFracturesDict FracturesDict $FractureId [dict get $Info LeftLine] $LeftLine LeftLine
+            dict set FracturesDict $FractureId LeftLine Id [dict get $Info LeftLine]
             set RightLine [GiD_Geometry get line [dict get $Info RightLine]]
-            AddLineToFracturesDict FracturesDict $FractureId [dict get $Info RightLine] $RightLine RightLine
+            dict set FracturesDict $FractureId RightLine Id [dict get $Info RightLine]
             # Set LeftPoint and RightPoint
             if {[lindex $LeftLine 2] eq [lindex $RightLine 2]} {
                 set LeftPoint [GiD_Geometry get point [lindex $LeftLine 3]]
@@ -106,10 +105,10 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 AddPointToFracturesDict FracturesDict $FractureId [lindex $RightLine 2] $RightPoint RightPoint
             }
             # Set TopPoint, BotPoint, TopLine, BotLine, TopLeftSurface, TopRightSurface, BotLeftSurface and BotRightSurface
-            set LeftSurface1 [GiD_Geometry get surface [lindex [lindex $LeftVolume 2] 0]]
-            set LeftSurface2 [GiD_Geometry get surface [lindex [lindex $LeftVolume 3] 0]]
-            set RightSurface1 [GiD_Geometry get surface [lindex [lindex $RightVolume 2] 0]]
-            set RightSurface2 [GiD_Geometry get surface [lindex [lindex $RightVolume 3] 0]]
+            set LeftSurface1 [GiD_Geometry get surface [lindex [lindex $LeftInterfaceVolume 2] 0]]
+            set LeftSurface2 [GiD_Geometry get surface [lindex [lindex $LeftInterfaceVolume 3] 0]]
+            set RightSurface1 [GiD_Geometry get surface [lindex [lindex $RightInterfaceVolume 2] 0]]
+            set RightSurface2 [GiD_Geometry get surface [lindex [lindex $RightInterfaceVolume 3] 0]]
             set IsRightSurface1 0
             set IsTop 0
             for {set i 0} {$i < [lindex $LeftSurface1 2]} {incr i} {
@@ -152,36 +151,36 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                 }
             }
             if {$IsTop eq 1} {
-                AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $LeftVolume 2] 0] $LeftSurface1 TopLeftSurface
-                AddLineToFracturesDict FracturesDict $FractureId $AxisLineId $AxisLine TopLine
+                dict set FracturesDict $FractureId TopLeftSurface Id [lindex [lindex $LeftInterfaceVolume 2] 0]
+                dict set FracturesDict $FractureId TopLine Id $AxisLineId
                 AddPointToFracturesDict FracturesDict $FractureId $TopBotPointId $TopBotPoint TopPoint
-                if {$IsRightSurface1 eq 1} {                
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 2] 0] $RightSurface1 TopRightSurface
+                if {$IsRightSurface1 eq 1} {
+                    dict set FracturesDict $FractureId TopRightSurface Id [lindex [lindex $RightInterfaceVolume 2] 0]
                     SearchAxis AxisLineId AxisLine TopBotPointId TopBotPoint $LeftSurface2 $RightSurface2 $PointId
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 3] 0] $RightSurface2 BotRightSurface
+                    dict set FracturesDict $FractureId BotRightSurface Id [lindex [lindex $RightInterfaceVolume 3] 0]
                 } else {
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 3] 0] $RightSurface2 TopRightSurface
+                    dict set FracturesDict $FractureId TopRightSurface Id [lindex [lindex $RightInterfaceVolume 3] 0]
                     SearchAxis AxisLineId AxisLine TopBotPointId TopBotPoint $LeftSurface2 $RightSurface1 $PointId
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 2] 0] $RightSurface1 BotRightSurface
+                    dict set FracturesDict $FractureId BotRightSurface Id [lindex [lindex $RightInterfaceVolume 2] 0]
                 }
-                AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $LeftVolume 3] 0] $LeftSurface2 BotLeftSurface
-                AddLineToFracturesDict FracturesDict $FractureId $AxisLineId $AxisLine BotLine
+                dict set FracturesDict $FractureId BotLeftSurface Id [lindex [lindex $LeftInterfaceVolume 3] 0]
+                dict set FracturesDict $FractureId BotLine Id $AxisLineId
                 AddPointToFracturesDict FracturesDict $FractureId $TopBotPointId $TopBotPoint BotPoint
             } else {
-                AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $LeftVolume 2] 0] $LeftSurface1 BotLeftSurface
-                AddLineToFracturesDict FracturesDict $FractureId $AxisLineId $AxisLine BotLine
+                dict set FracturesDict $FractureId BotLeftSurface Id [lindex [lindex $LeftInterfaceVolume 2] 0]
+                dict set FracturesDict $FractureId BotLine Id $AxisLineId
                 AddPointToFracturesDict FracturesDict $FractureId $TopBotPointId $TopBotPoint BotPoint
                 if {$IsRightSurface1 eq 1} {
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 2] 0] $RightSurface1 BotRightSurface
+                    dict set FracturesDict $FractureId BotRightSurface Id [lindex [lindex $RightInterfaceVolume 2] 0]
                     SearchAxis AxisLineId AxisLine TopBotPointId TopBotPoint $LeftSurface2 $RightSurface2 $PointId
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 3] 0] $RightSurface2 TopRightSurface
+                    dict set FracturesDict $FractureId TopRightSurface Id [lindex [lindex $RightInterfaceVolume 3] 0]
                 } else {
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 3] 0] $RightSurface2 BotRightSurface
+                    dict set FracturesDict $FractureId BotRightSurface Id [lindex [lindex $RightInterfaceVolume 3] 0]
                     SearchAxis AxisLineId AxisLine TopBotPointId TopBotPoint $LeftSurface2 $RightSurface1 $PointId
-                    AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $RightVolume 2] 0] $RightSurface1 TopRightSurface
+                    dict set FracturesDict $FractureId TopRightSurface Id [lindex [lindex $RightInterfaceVolume 2] 0]
                 }
-                AddSurfaceToFracturesDict FracturesDict $FractureId [lindex [lindex $LeftVolume 3] 0] $LeftSurface2 TopLeftSurface
-                AddLineToFracturesDict FracturesDict $FractureId $AxisLineId $AxisLine TopLine
+                dict set FracturesDict $FractureId TopLeftSurface Id [lindex [lindex $LeftInterfaceVolume 3] 0]
+                dict set FracturesDict $FractureId TopLine Id $AxisLineId
                 AddPointToFracturesDict FracturesDict $FractureId $TopBotPointId $TopBotPoint TopPoint
             }
         }
@@ -195,7 +194,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 
     ## fracture_data
     puts $FileVar1 "    \"fracture_data\": \{"
-    puts $FileVar1 "        \"gid_path\":                                 \"$gidpath\","
+    puts $FileVar1 "        \"gid_path\":                             \"$gidpath\","
     # propagation parameters and body_domain_sub_model_part_list
     WriteFractureData FileVar1
     # interface_domain_sub_model_part_list
@@ -204,9 +203,13 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
     }
-    set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]
-    puts $FileVar1 "        \"interface_domain_sub_model_part_list\":     $PutStrings"
+    if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
+        append PutStrings \" PropagationUnion_3d_6 \" \]
+    } else {
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+    }
+    puts $FileVar1 "        \"interface_domain_sub_model_part_list\": $PutStrings"
     puts $FileVar1 "    \},"
     
     ## body_volumes_list
@@ -238,18 +241,392 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir FracturePropagation3DAuxProcs.tcl]
+
+    # Previous Fractures dictionaries
+    set BodyVolumesDict [lindex $PropagationData 1]
+    set FracturesDict [lindex $PropagationData 2]
     
-    ###TODO
-    ## Grups fills d'un grup especial (Prova) amb els nodes dels elements de colze
-    #~ set Groups [GiD_Groups list Prova]
-    #~ WarnWin $Groups
-    #~ set NomGroup1 "Prova//[lindex $Groups 0]"
-    #~ set NomGroup2 "Prova//[lindex $Groups 1]"
-    #~ set Entities [GiD_EntitiesGroups get $NomGroup1 nodes]
-    #~ WarnWin "Node Group1: $Entities"
-    #~ set Entities [GiD_EntitiesGroups get $NomGroup2 nodes]
-    #~ WarnWin "Node Group2: $Entities"
-    ## Auxiliar Condition to save groups in it. Ja no cal
-    #~ GiD_CreateData create condition AuxCond ovgroup ovnode {{Zero} {0.0}}
-    ###TODO
+    # Propagation and Bifurcation dictionaries
+    set PropagationDict [lindex $PropagationData 3]
+    set BifurcationDict [lindex $PropagationData 4]
+
+    # interface_domain_sub_model_part_old_list
+    set InterfaceGroupsOld \[
+    set Groups [GiD_Info conditions Interface_Part groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        append InterfaceGroupsOld \" [lindex [lindex $Groups $i] 1] \" ,
+    }
+    if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
+        append InterfaceGroupsOld \" PropagationUnion_3d_6 \" \]
+    } else {
+        set InterfaceGroupsOld [string trimright $InterfaceGroupsOld ,]
+        append InterfaceGroupsOld \]
+        # Create PropagationUnion group if it does not exist
+        GiD_Groups create PropagationUnion_3d_6
+    }    
+    set NumPropUnionGroups [llength [GiD_Groups list PropagationUnion_3d_6]]
+    
+    # create link interface group if bifurcation occurs and it does not exist
+    if {[dict size $BifurcationDict] > 0} {
+        set LinkInterfaceGroup 0
+        #set Groups [GiD_Info conditions Interface_Part groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 3] eq true} {
+                set LinkInterfaceGroup [lindex [lindex $Groups $i] 1]
+                break
+            }
+        }
+        if {$LinkInterfaceGroup eq 0} {
+            GiD_Groups create Bifurcation_Link_Part_9
+            set LinkInterfaceGroup Bifurcation_Link_Part_9
+            set ConditionValues "true [lindex [lindex $Groups 0] 4] [lindex [lindex $Groups 0] 5] [lindex [lindex $Groups 0] 6] [lindex [lindex $Groups 0] 7] \
+            [lindex [lindex $Groups 0] 8] [lindex [lindex $Groups 0] 9] [lindex [lindex $Groups 0] 10] [lindex [lindex $Groups 0] 11] [lindex [lindex $Groups 0] 12]\
+            [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] [lindex [lindex $Groups 0] 17]\
+            0.0 [lindex [lindex $Groups 0] 19]"
+            GiD_AssignData condition Interface_Part groups $ConditionValues $LinkInterfaceGroup
+        }
+    }   
+    
+    # Delete all BodyVolumes
+    dict for {BodyId BodyVolume} $BodyVolumesDict {
+        GiD_Process Mescape Geometry Delete Volumes $BodyId escape
+    }
+
+    # Loop through all Propagation Fractures
+    dict for {PropId Propagation} $PropagationDict {
+        set MotherFractureId [dict get $Propagation MotherFractureId]
+
+        set BodyVolumeId [lindex [dict get $FracturesDict $MotherFractureId BodyVolumes] 0]
+        set BodyVolumeSurfaces [dict get $BodyVolumesDict $BodyVolumeId Surfaces]
+        
+        ## Modify Geometry
+        # Delete InterfaceVolume
+        GiD_Process Mescape Geometry Delete Volumes [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id] escape
+        # Delete old crack surfaces
+        GiD_Process Mescape Geometry Delete Surfaces [dict get $FracturesDict $MotherFractureId TopLeftSurface Id] [dict get $FracturesDict $MotherFractureId TopRightSurface Id] \
+            [dict get $FracturesDict $MotherFractureId BotLeftSurface Id] [dict get $FracturesDict $MotherFractureId BotRightSurface Id] escape
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId TopLeftSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId TopRightSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId BotLeftSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId BotRightSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        # Delete old crack lines
+        GiD_Process Mescape Geometry Delete Lines [dict get $FracturesDict $MotherFractureId TopLine Id] [dict get $FracturesDict $MotherFractureId BotLine Id] \
+            [dict get $FracturesDict $MotherFractureId LeftLine Id] [dict get $FracturesDict $MotherFractureId RightLine Id] escape
+        # Delete old TipPoint
+        GiD_Process Mescape Geometry Delete Points [dict get $FracturesDict $MotherFractureId TipPoint Id] escape
+        
+        # Create new points
+        GiD_Process Mescape Geometry Create Point
+        # Create new point in TopInitCoordinates location
+        GiD_Process [lindex [dict get $Propagation TopInitCoordinates] 0] [lindex [dict get $Propagation TopInitCoordinates] 1] [lindex [dict get $Propagation TopInitCoordinates] 2]
+        # Create new point in BotInitCoordinates location
+        GiD_Process [lindex [dict get $Propagation BotInitCoordinates] 0] [lindex [dict get $Propagation BotInitCoordinates] 1] [lindex [dict get $Propagation BotInitCoordinates] 2]
+        # Create new point in LeftInitCoordinates location
+        GiD_Process [lindex [dict get $Propagation LeftInitCoordinates] 0] [lindex [dict get $Propagation LeftInitCoordinates] 1] [lindex [dict get $Propagation LeftInitCoordinates] 2]
+        # Create new point in RightInitCoordinates location
+        GiD_Process [lindex [dict get $Propagation RightInitCoordinates] 0] [lindex [dict get $Propagation RightInitCoordinates] 1] [lindex [dict get $Propagation RightInitCoordinates] 2]
+        # Create new point in TopEndCoordinates location
+        GiD_Process [lindex [dict get $Propagation TopEndCoordinates] 0] [lindex [dict get $Propagation TopEndCoordinates] 1] [lindex [dict get $Propagation TopEndCoordinates] 2]
+        # Create new point in BotEndCoordinates location
+        GiD_Process [lindex [dict get $Propagation BotEndCoordinates] 0] [lindex [dict get $Propagation BotEndCoordinates] 1] [lindex [dict get $Propagation BotEndCoordinates] 2]
+        # Create new point in LeftEndCoordinates location
+        GiD_Process [lindex [dict get $Propagation LeftEndCoordinates] 0] [lindex [dict get $Propagation LeftEndCoordinates] 1] [lindex [dict get $Propagation LeftEndCoordinates] 2]
+        # Create new point in RightEndCoordinates location
+        GiD_Process [lindex [dict get $Propagation RightEndCoordinates] 0] [lindex [dict get $Propagation RightEndCoordinates] 1] [lindex [dict get $Propagation RightEndCoordinates] 2]
+        # Create new point in TipCoordinates location
+        GiD_Process [lindex [dict get $Propagation TipCoordinates] 0] [lindex [dict get $Propagation TipCoordinates] 1] [lindex [dict get $Propagation TipCoordinates] 2]
+        GiD_Process escape
+        
+        # Regenerate lines for old BotLeftSurface
+        GiD_Process Mescape Geometry Create Line Join [dict get $FracturesDict $MotherFractureId BotPoint Id] [expr { [GiD_Info Geometry MaxNumPoints]-7 }] \
+            [expr { [GiD_Info Geometry MaxNumPoints]-6 }] [dict get $FracturesDict $MotherFractureId LeftPoint Id] escape escape
+        # Regenerate old BotLeftSurface with its normal pointing outside the contact volume
+        GiD_Process Mescape Geometry Create NurbsSurface Search [GiD_Info Geometry MaxNumLines] escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $Propagation BotInitCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # Regenerate lines for old BotRightSurface
+        GiD_Process Mescape Geometry Create Line Join [dict get $FracturesDict $MotherFractureId RightPoint Id] [expr { [GiD_Info Geometry MaxNumPoints]-5 }] \
+            [expr { [GiD_Info Geometry MaxNumPoints]-7 }] escape escape
+        # Regenerate old BotRightSurface with its normal pointing outside the contact volume
+        GiD_Process Mescape Geometry Create NurbsSurface Search [expr {[GiD_Info Geometry MaxNumLines]-1}] escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] [dict get $Propagation BotInitCoordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # Regenerate lines for old TopLeftSurface
+        GiD_Process Mescape Geometry Create Line Join [dict get $FracturesDict $MotherFractureId TopPoint Id] [expr { [GiD_Info Geometry MaxNumPoints]-8 }] \
+            [expr { [GiD_Info Geometry MaxNumPoints]-6 }] escape escape
+        # Regenerate old TopLeftSurface with its normal pointing outside the contact volume
+        GiD_Process Mescape Geometry Create NurbsSurface Search [expr {[GiD_Info Geometry MaxNumLines]-4}] escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $Propagation TopInitCoordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # Regenerate lines for old TopRightSurface
+        GiD_Process Mescape Geometry Create Line Join [expr { [GiD_Info Geometry MaxNumPoints]-8 }] [expr { [GiD_Info Geometry MaxNumPoints]-5 }] escape escape
+        # Regenerate old TopRightSurface with its normal pointing outside the contact volume
+        GiD_Process Mescape Geometry Create NurbsSurface Search [expr {[GiD_Info Geometry MaxNumLines]-4}] escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $Propagation TopInitCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # Regenerate old LeftInterfaceVolume
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] 0]
+        # Note: the orientation 1 for the first surface means that its normal points outside the contact volume
+        # Note: the orientation 0 for the second surface means that its normal points outside the contact volume
+        set TransformMatrix [ComputeTransformMatrix [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] \
+            [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $Propagation LeftInitCoordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates]]
+        GiD_Geometry create volume [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        # Regenerate old RightInterfaceVolume
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] 1]
+        set Surf2 [list [GiD_Info Geometry MaxNumSurfaces] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] \
+            [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $Propagation RightInitCoordinates]]
+        GiD_Geometry create volume [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        
+        # Create lines of PropagationUnion
+        GiD_Process Mescape Geometry Create Line Join [expr {[GiD_Info Geometry MaxNumPoints]-7}] [expr {[GiD_Info Geometry MaxNumPoints]-3}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-6}] [expr {[GiD_Info Geometry MaxNumPoints]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-8}] [expr {[GiD_Info Geometry MaxNumPoints]-4}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-5}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-7}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] [expr {[GiD_Info Geometry MaxNumPoints]-8}] \
+            [expr {[GiD_Info Geometry MaxNumPoints]-2}] [expr {[GiD_Info Geometry MaxNumPoints]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-3}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] \
+            [expr {[GiD_Info Geometry MaxNumPoints]-4}] [expr {[GiD_Info Geometry MaxNumPoints]-2}] [expr {[GiD_Info Geometry MaxNumPoints]-3}] escape escape
+        # Create surfaces of PropagationUnion
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-15}] [expr {[GiD_Info Geometry MaxNumLines]-8}] [expr {[GiD_Info Geometry MaxNumLines]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-12}] [expr {[GiD_Info Geometry MaxNumLines]-8}] [expr {[GiD_Info Geometry MaxNumLines]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-11}] [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-3}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-9}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-18}] [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-4}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-13}] [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-5}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-11}] [expr {[GiD_Info Geometry MaxNumLines]-4}] [GiD_Info Geometry MaxNumLines] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-9}] [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-1}] escape escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-1}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-2}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-3}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-4}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-5}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-6}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-7}]
+        # Create PropagationUnion subgroups and assign points
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-5}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        # Prism 1
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-5}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-5}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        # Prism 2
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        # Prism 3
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        # Prism 4
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        
+        # Create lines for new crack tip
+        GiD_Process Mescape Geometry Create Line Join [expr {[GiD_Info Geometry MaxNumPoints]-4}] [GiD_Info Geometry MaxNumPoints] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-3}] [GiD_Info Geometry MaxNumPoints] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-2}] [GiD_Info Geometry MaxNumPoints] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-1}] [GiD_Info Geometry MaxNumPoints] escape escape
+        # Create surfaces for new crack tip
+        # New BotLeftSurface
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [expr {[GiD_Info Geometry MaxNumLines]-1}] escape escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $Propagation LeftEndCoordinates] [dict get $Propagation TipCoordinates] [dict get $Propagation BotEndCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # New TopLeftSurface
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-1}] [expr {[GiD_Info Geometry MaxNumLines]-3}] escape escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $Propagation LeftEndCoordinates] [dict get $Propagation TopEndCoordinates] [dict get $Propagation TipCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # New BotRightSurface
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [GiD_Info Geometry MaxNumLines] escape escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $Propagation RightEndCoordinates] [dict get $Propagation BotEndCoordinates] [dict get $Propagation TipCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # New TopRightSurface
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [GiD_Info Geometry MaxNumLines] escape escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $Propagation RightEndCoordinates] [dict get $Propagation TipCoordinates] [dict get $Propagation TopEndCoordinates]] Yes escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        # Create new LeftInterfaceVolume
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Propagation LeftEndCoordinates] [dict get $Propagation BotEndCoordinates] \
+            [dict get $Propagation TopEndCoordinates] [dict get $Propagation TipCoordinates] [dict get $Propagation LeftEndCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        # Create new RightInterfaceVolume
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] 1]
+        set Surf2 [list [GiD_Info Geometry MaxNumSurfaces] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Propagation RightEndCoordinates] [dict get $Propagation BotEndCoordinates] \
+            [dict get $Propagation TopEndCoordinates] [dict get $Propagation RightEndCoordinates] [dict get $Propagation TipCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        
+        
+        ## Set Conditions
+        for {set i 0} {$i < [llength [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups]]} {incr i} {
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [expr {[GiD_Info Geometry MaxNumVolumes]-1}]
+        }
+        for {set i 0} {$i < [llength [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups]]} {incr i} {
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups] $i] volumes [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups] $i] volumes [GiD_Info Geometry MaxNumVolumes]
+        }
+        
+        
+        ## Set Mesh options
+        set Distance1 [ComputeDistance [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]]
+        set Distance2 [ComputeDistance [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]]
+        #~ set Distance [expr {($Distance1+$Distance2)*0.5}]
+        #~ GiD_Process Mescape Meshing AssignSizes Surfaces [expr {$Distance*2.0}] [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
+            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
+            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
+            #~ [GiD_Info Geometry MaxNumSurfaces] escape escape
+        GiD_Process Mescape Meshing AssignSizes Lines [expr {$Distance1+$Distance2}] [expr {[GiD_Info Geometry MaxNumLines]-23}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-18}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [expr {[GiD_Info Geometry MaxNumLines]-1}] \
+            [GiD_Info Geometry MaxNumLines] escape escape
+        GiD_Process Mescape Meshing Structured Surfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-11}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-10}] [expr {[GiD_Info Geometry MaxNumSurfaces]-9}] [expr {[GiD_Info Geometry MaxNumSurfaces]-8}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-7}] [expr {[GiD_Info Geometry MaxNumSurfaces]-6}] [expr {[GiD_Info Geometry MaxNumSurfaces]-5}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-4}] escape 1 [expr {[GiD_Info Geometry MaxNumLines]-12}] escape escape
+        #~ GiD_Process Mescape Meshing AssignSizes Points $Distance [GiD_Info Geometry MaxNumPoints] escape escape
+
+
+        ## Update dictionaries
+        dict set FracturesDict $MotherFractureId TipPoint Id [GiD_Info Geometry MaxNumPoints]
+        dict set FracturesDict $MotherFractureId TipPoint Coordinates [dict get $Propagation TipCoordinates]
+        dict set FracturesDict $MotherFractureId TopPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        dict set FracturesDict $MotherFractureId TopPoint Coordinates [dict get $Propagation TopEndCoordinates]
+        dict set FracturesDict $MotherFractureId BotPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        dict set FracturesDict $MotherFractureId BotPoint Coordinates [dict get $Propagation BotEndCoordinates]
+        dict set FracturesDict $MotherFractureId LeftPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        dict set FracturesDict $MotherFractureId LeftPoint Coordinates [dict get $Propagation LeftEndCoordinates]
+        dict set FracturesDict $MotherFractureId RightPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        dict set FracturesDict $MotherFractureId RightPoint Coordinates [dict get $Propagation RightEndCoordinates]
+        dict set FracturesDict $MotherFractureId TopLine Id [expr {[GiD_Info Geometry MaxNumLines]-3}]
+        dict set FracturesDict $MotherFractureId BotLine Id [expr {[GiD_Info Geometry MaxNumLines]-2}]
+        dict set FracturesDict $MotherFractureId LeftLine Id [expr {[GiD_Info Geometry MaxNumLines]-1}]
+        dict set FracturesDict $MotherFractureId RightLine Id [GiD_Info Geometry MaxNumLines]
+        dict set FracturesDict $MotherFractureId TopLeftSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-2}]
+        dict set FracturesDict $MotherFractureId TopRightSurface Id [GiD_Info Geometry MaxNumSurfaces]
+        dict set FracturesDict $MotherFractureId BotLeftSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-3}]
+        dict set FracturesDict $MotherFractureId BotRightSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-1}]
+        dict set FracturesDict $MotherFractureId LeftInterfaceVolume Id [expr {[GiD_Info Geometry MaxNumVolumes]-1}]
+        dict set FracturesDict $MotherFractureId RightInterfaceVolume Id [GiD_Info Geometry MaxNumVolumes]
+        dict set BodyVolumesDict $BodyVolumeId Surfaces $BodyVolumeSurfaces
+    }
+
+    # Loop through all Bifurcation Fractures
+    dict for {BifId Bifurcation} $BifurcationDict {
+        set MotherFractureId [dict get $Bifurcation MotherFractureId]
+
+        set BodyVolumeId [lindex [dict get $FracturesDict $MotherFractureId BodyVolumes] 0]
+        set BodyVolumeSurfaces [dict get $BodyVolumesDict $BodyVolumeId Surfaces]
+        
+        ## Modify Geometry
+        # Delete InterfaceVolume
+        # TODO : Bifurcation is currently under development
+        WarnWin "Bifurcation is currently under development"
+    }
+
+    # Create BodyVolumes again assign conditions and replace BodyVolumesDict and FracturesDict with the new values
+    set BodyVolumesAuxDict $BodyVolumesDict
+    unset BodyVolumesDict
+    dict for {BodyId BodyVolume} $BodyVolumesAuxDict {
+        set BodyVolumeSurfaces [dict get $BodyVolume Surfaces]
+        GiD_Process Mescape Geometry Create volume
+        for {set i 0} {$i < [llength $BodyVolumeSurfaces]} {incr i} {
+            GiD_Process [lindex $BodyVolumeSurfaces $i]
+        }
+        GiD_Process escape escape
+        
+        set NewBodyVolumeId [GiD_Info Geometry MaxNumVolumes]
+        
+        set BodyVolumeGroups [dict get $BodyVolume Groups]
+        for {set i 0} {$i < [llength $BodyVolumeGroups]} {incr i} {
+            GiD_EntitiesGroups assign [lindex $BodyVolumeGroups $i] volumes $NewBodyVolumeId
+        }
+        
+        dict set BodyVolumesDict $NewBodyVolumeId Groups [dict get $BodyVolume Groups]
+        dict set BodyVolumesDict $NewBodyVolumeId Surfaces [dict get $BodyVolume Surfaces]
+    }
+
+    dict for {Id Fracture} $FracturesDict {
+        set BodyVolumes [list]
+        dict for {BodyId BodyVolume} $BodyVolumesDict {
+            if {[GiD_Info IsPointInside Volume $BodyId [dict get $Fracture TipPoint Coordinates]] eq 1} {
+                lappend BodyVolumes $BodyId
+            }
+        }
+        dict set FracturesDict $Id BodyVolumes $BodyVolumes
+    }
+
+    # Generate New Mesh
+    GiD_Process Mescape Meshing Generate Yes [GiD_Info Project LastElementSize] MeshingParametersFrom=Preferences
+
+    ## Update FracturesData.json file
+    set filename [file join $dir FracturesData.json]
+    set FileVar [open $filename w]
+        
+    puts $FileVar "\{"
+
+    ## fracture_data
+    puts $FileVar "    \"fracture_data\": \{"
+    puts $FileVar "        \"gid_path\":                             \"[lindex $PropagationData 0]\","
+    # propagation parameters and body_domain_sub_model_part_list
+    WriteFractureData FileVar
+    # interface_domain_sub_model_part_list
+    set PutStrings \[
+    set Groups [GiD_Info conditions Interface_Part groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
+    }
+    append PutStrings \" PropagationUnion_3d_6 \" \]
+    puts $FileVar "        \"interface_domain_sub_model_part_list\": $PutStrings,"
+    # interface_domain_sub_model_part_old_list
+    puts $FileVar "        \"interface_domain_sub_model_part_old_list\": $InterfaceGroupsOld"
+    puts $FileVar "    \},"
+
+    ## body_volumes_list
+    WriteBodyVolumesList FileVar $BodyVolumesDict
+
+    ## fractures_list
+    WriteFracturesList FileVar $FracturesDict
+
+    puts $FileVar "\}"
+
+    close $FileVar
 }

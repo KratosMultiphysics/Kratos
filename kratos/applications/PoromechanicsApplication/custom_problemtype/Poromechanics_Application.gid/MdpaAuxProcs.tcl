@@ -7,7 +7,7 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
 
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
-            if {[lindex [lindex $Groups $i] 6]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 6] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                 lappend AuxList $MyTableId
@@ -21,7 +21,7 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
             } else {
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
             }
-            if {[lindex [lindex $Groups $i] 11]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 11] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
                 lappend AuxList $MyTableId
@@ -35,7 +35,7 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
             } else {
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 0
             }
-            if {[lindex [lindex $Groups $i] 16]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 16] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 $MyTableId
                 lappend AuxList $MyTableId
@@ -65,7 +65,7 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
-            if {[lindex [lindex $Groups $i] 9]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 9] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                 lappend AuxList $MyTableId
@@ -95,7 +95,7 @@ proc VectorTable {FileVar TableId TableDict CondName VarName} {
 
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
-            if {[lindex [lindex $Groups $i] 5]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 5] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                 lappend AuxList $MyTableId
@@ -109,7 +109,7 @@ proc VectorTable {FileVar TableId TableDict CondName VarName} {
             } else {
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
             }
-            if {[lindex [lindex $Groups $i] 9]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 9] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
                 lappend AuxList $MyTableId
@@ -123,7 +123,7 @@ proc VectorTable {FileVar TableId TableDict CondName VarName} {
             } else {
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 0
             }
-            if {[lindex [lindex $Groups $i] 13]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 13] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 $MyTableId
                 lappend AuxList $MyTableId
@@ -153,7 +153,7 @@ proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName Tan
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
-            if {[lindex [lindex $Groups $i] 9]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 9] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                 lappend AuxList $MyTableId
@@ -167,7 +167,7 @@ proc NormalTangentialTable {FileVar TableId TableDict CondName NormalVarName Tan
             } else {
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
             }
-            if {[lindex [lindex $Groups $i] 13]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 13] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
                 lappend AuxList $MyTableId
@@ -197,7 +197,7 @@ proc ScalarTable {FileVar TableId TableDict CondName VarName} {
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
-            if {[lindex [lindex $Groups $i] 4]=="Table_Interpolation"} {
+            if {[lindex [lindex $Groups $i] 4] eq "Table_Interpolation"} {
                 incr MyTableId
                 dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
                 lappend AuxList $MyTableId
@@ -232,6 +232,34 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
         puts $MyFileVar "End Elements"
         puts $MyFileVar ""
     }
+}
+
+#-------------------------------------------------------------------------------
+
+proc WritePropUnionElements {FileVar PropertyId} {
+    upvar $FileVar MyFileVar
+    
+    set Groups [GiD_Groups list PropagationUnion_3d_6]
+    set ElementId [GiD_Info Mesh MaxNumElements]
+    set PropUnionElementList [list]
+    
+    puts $MyFileVar "Begin Elements UPwSmallStrainInterfaceElement3D6N"
+    for {set i 0} {$i < [llength $Groups]} {incr i 6} {
+        incr ElementId
+        lappend PropUnionElementList $ElementId
+        set Connectivities [list [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups $i]" nodes] 0] \
+                                [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups [expr {($i+1)}]]" nodes] 0] \
+                                [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups [expr {($i+2)}]]" nodes] 0] \
+                                [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups [expr {($i+3)}]]" nodes] 0] \
+                                [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups [expr {($i+4)}]]" nodes] 0] \
+                                [lindex [GiD_EntitiesGroups get "PropagationUnion_3d_6//[lindex $Groups [expr {($i+5)}]]" nodes] 0]]
+        
+        puts $MyFileVar "  $ElementId  $PropertyId  $Connectivities"
+    }
+    puts $MyFileVar "End Elements"
+    puts $MyFileVar ""
+    
+    return $PropUnionElementList
 }
 
 #-------------------------------------------------------------------------------
@@ -275,7 +303,7 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
                 lappend MyConditionList $MyConditionId
                 set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
                 for {set k 0} {$k < [llength ElementGroup]} {incr k} {
-                    if {[dict exists $PropertyDict [lindex $ElementGroup $k]]==1} {
+                    if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                         set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
                     }
                 }
@@ -304,7 +332,7 @@ proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType C
             lappend MyConditionList $MyConditionId
             set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
             for {set k 0} {$k < [llength ElementGroup]} {incr k} {
-                if {[dict exists $PropertyDict [lindex $ElementGroup $k]]==1} {
+                if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                     set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
                 }
             }
@@ -798,6 +826,35 @@ proc WriteElementSubmodelPart {FileVar CondName} {
             puts $MyFileVar ""
         }
     }    
+}
+
+#-------------------------------------------------------------------------------
+
+proc WritePropUnionElementSubmodelPart {FileVar PropUnionElementList} {
+    upvar $FileVar MyFileVar
+    
+    puts $MyFileVar "Begin SubModelPart PropagationUnion_3d_6"
+    # Tables
+    puts $MyFileVar "  Begin SubModelPartTables"
+    puts $MyFileVar "  End SubModelPartTables"
+    # Nodes
+    set Entities [GiD_EntitiesGroups get "PropagationUnion_3d_6" nodes]
+    puts $MyFileVar "  Begin SubModelPartNodes"
+    for {set i 0} {$i < [llength $Entities]} {incr i} {
+        puts $MyFileVar "    [lindex $Entities $i]"
+    }
+    puts $MyFileVar "  End SubModelPartNodes"
+    # Elements
+    puts $MyFileVar "  Begin SubModelPartElements"
+    for {set i 0} {$i < [llength $PropUnionElementList]} {incr i} {
+        puts $MyFileVar "    [lindex $PropUnionElementList $i]"
+    }
+    puts $MyFileVar "  End SubModelPartElements"
+    # Conditions
+    puts $MyFileVar "  Begin SubModelPartConditions"
+    puts $MyFileVar "  End SubModelPartConditions"
+    puts $MyFileVar "End SubModelPart"
+    puts $MyFileVar ""
 }
 
 #-------------------------------------------------------------------------------

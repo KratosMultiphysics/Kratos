@@ -37,7 +37,7 @@ proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
     
-    if {[GiD_AccessValue get gendata $QuestionName]==true} {
+    if {[GiD_AccessValue get gendata $QuestionName] eq true} {
         incr MyGroupNum
         append MyString \" $VarName \" ,
     }
@@ -94,15 +94,15 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
             puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
             puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 4],"
             puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
-            if {[lindex [lindex $Groups $i] 3] == "Hydrostatic"} {
+            if {[lindex [lindex $Groups $i] 3] eq "Hydrostatic"} {
                 set PutStrings true
             } else {
                 set PutStrings false
             }
             puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
-            if {[lindex [lindex $Groups $i] 5] == "Y"} {
+            if {[lindex [lindex $Groups $i] 5] eq "Y"} {
                 set PutStrings 2
-            } elseif {[lindex [lindex $Groups $i] 5] == "Z"} {
+            } elseif {[lindex [lindex $Groups $i] 5] eq "Z"} {
                 set PutStrings 3
             } else {
                 set PutStrings 1
@@ -137,7 +137,7 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
             puts $MyFileVar "            \"table\":           \[0,0,0\]"
         } else {
             puts $MyFileVar "            \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
@@ -168,20 +168,20 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"variable_name\":        \"$VarName\","
         puts $MyFileVar "            \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
             puts $MyFileVar "            \"table\":                \[0,0\],"
         } else {
             puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
         }
-        if {[lindex [lindex $Groups $i] 4] == "Hydrostatic"} {
+        if {[lindex [lindex $Groups $i] 4] eq "Hydrostatic"} {
             set PutStrings true
         } else {
             set PutStrings false
         }
         puts $MyFileVar "            \"hydrostatic\":          $PutStrings,"
-        if {[lindex [lindex $Groups $i] 6] == "Y"} {
+        if {[lindex [lindex $Groups $i] 6] eq "Y"} {
             set PutStrings 2
-        } elseif {[lindex [lindex $Groups $i] 6] == "Z"} {
+        } elseif {[lindex [lindex $Groups $i] 6] eq "Z"} {
             set PutStrings 3
         } else {
             set PutStrings 1
@@ -214,7 +214,7 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"value\":           [lindex [lindex $Groups $i] 3],"
-        if {[GiD_AccessValue get gendata Strategy_Type]=="Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
             puts $MyFileVar "            \"table\":           0"
         } else {
             puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"

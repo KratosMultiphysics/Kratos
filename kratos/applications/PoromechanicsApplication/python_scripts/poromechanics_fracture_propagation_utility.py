@@ -19,8 +19,7 @@ class FracturePropagationUtility:
             self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
             self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
         else:
-            print("**************** For the moment FracturePropagationUtility is NOT available in 3D ****************")
-            self.PropagationUtility = 0
+            self.PropagationUtility = KratosPoro.FracturePropagation3DUtilities()
             self.tcl_proc = "Poromechanics_Application::PropagateFractures3D"
         
         import platform
@@ -67,30 +66,30 @@ class FracturePropagationUtility:
             shutil.rmtree(str(self.last_state_path), ignore_errors=True)
             os.mkdir(str(self.last_state_path))
         
-        # Save list of files names (TODO: are all these files necessary?)
+        # Save list of files names
         self.list_of_files_names = []
-        filename = str(self.problem_name)+".cnd"
-        self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".geo"
         self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".lin"
-        self.list_of_files_names.append(filename)
-        filename = str(self.problem_name)+".mdpa"
-        self.list_of_files_names.append(filename)
-        filename = str(self.problem_name)+".msh"
-        self.list_of_files_names.append(filename)
-        filename = str(self.problem_name)+".prb"
         self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".prj"
         self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".tree"
         self.list_of_files_names.append(filename)
-        filename = str(self.problem_name)+".vv"
+        filename = str(self.problem_name)+".msh"
+        self.list_of_files_names.append(filename)
+        filename = str(self.problem_name)+".cnd"
+        self.list_of_files_names.append(filename)
+        filename = str(self.problem_name)+".prb"
+        self.list_of_files_names.append(filename)
+        filename = str(self.problem_name)+".mdpa"
         self.list_of_files_names.append(filename)
         filename = "ProjectParameters.json"
         self.list_of_files_names.append(filename)
         filename = "FracturesData.json"
         self.list_of_files_names.append(filename)
+        #~ filename = str(self.problem_name)+".vv"
+        #~ self.list_of_files_names.append(filename)
         
         for filename in self.list_of_files_names:
             filepath = os.path.join(str(self.problem_path),str(filename))
@@ -160,7 +159,7 @@ class FracturePropagationUtility:
 
         for process in list_of_processes:
             process.ExecuteFinalize()
-            
+        
         # Finalizing strategy
         solver.Clear()
         
@@ -259,7 +258,7 @@ class FracturePropagationUtility:
         for process in list_of_processes:
             process.ExecuteBeforeSolutionLoop()
             
-        ## Set results when they are written in a single file (TODO: only multiplefiles for the moment)
+        ## Set results when they are written in a single file (only multiplefiles for the moment)
         gid_output.ExecuteBeforeSolutionLoop()
         
         ### Mapping between old and new model parts ------------------------------------------------------------------
