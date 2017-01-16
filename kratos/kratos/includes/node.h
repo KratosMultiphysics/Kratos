@@ -135,7 +135,7 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
     {
@@ -146,7 +146,7 @@ public:
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
-        
+
 
 
     }
@@ -159,10 +159,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
-#endif    
-        {
+#endif
+    {
         KRATOS_THROW_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
         CreateSolutionStepData();
 
@@ -177,10 +177,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -197,10 +197,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -217,10 +217,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY, NewZ)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
@@ -240,10 +240,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rThisPoint)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
 
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -265,9 +265,9 @@ public:
     /** Copy constructor from a point with different dimension.*/
     template<SizeType TOtherDimension>
     Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint) = delete;
-    
-    
-    /** 
+
+
+    /**
      * Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template<class TVectorType>
@@ -279,10 +279,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rOtherCoordinates)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
 
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
@@ -305,10 +305,10 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
@@ -328,45 +328,32 @@ public:
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
-#ifdef _OPENMP        
+#ifdef _OPENMP
         , mnode_lock()
 #endif
-        {
+    {
 // 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
     }
 
-        typename Node<TDimension>::Pointer Clone()
-        {
-            Node<3>::Pointer pnew_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-            pnew_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
-            pnew_node->mDofs = this->mDofs;
-            pnew_node->mData = this->mData;
-            pnew_node->mInitialPosition = this->mInitialPosition;
-            KRATOS_THROW_ERROR(std::logic_error,"must implement correctly the copy of the flags","");
-            return pnew_node;
-        }
-//         : BaseType(rOtherNode)
-//         , IndexedObject(rOtherNode)
-//         , Flags(rOtherNode)
-//         , mData(rOtherNode.mData)
-//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
-//         , mInitialPosition(rOtherNode.mInitialPosition)
-//     {
-//         //TODO ... this copy constructor should be removed sometimes as it is often source of error
-//         //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
-// 
-//         // Deep copying the dofs
-//         for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
-//            pAddDof(*i_dof);
-// 
-// #ifdef _OPENMP
-//         omp_init_lock(&mnode_lock);
-// #endif
-//     }
+    typename Node<TDimension>::Pointer Clone()
+    {
+        Node<3>::Pointer pnew_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        pnew_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
+        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
+        for (typename DofsContainerType::const_iterator i_dof = my_dofs.begin(); i_dof != my_dofs.end(); i_dof++)
+            pnew_node->pAddDof(*i_dof);
+
+        pnew_node->mData = this->mData;
+        pnew_node->mInitialPosition = this->mInitialPosition;
+
+        pnew_node->Set(Flags(*this));
+        //KRATOS_THROW_ERROR(std::logic_error,"must implement correctly the copy of the flags","");
+        return pnew_node;
+    }
 
     /// Destructor.
     virtual ~Node()
@@ -417,9 +404,9 @@ public:
     {
         BaseType::operator=(rOther);
 
-	// Deep copying the dofs
+        // Deep copying the dofs
         for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
-           pAddDof(*i_dof);
+            pAddDof(*i_dof);
 
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
@@ -436,7 +423,7 @@ public:
         Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
         for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
-           pAddDof(*i_dof);
+            pAddDof(*i_dof);
 
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
@@ -833,10 +820,10 @@ public:
         }
         else
         {
-            #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
                 KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-            #endif 
+#endif
             pAddDof(rDofVariable)->FixDof();
         }
     }
@@ -851,10 +838,10 @@ public:
         }
         else
         {
-            #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
                 KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
-            #endif 
+#endif
             pAddDof(rDofVariable)->FreeDof();
         }
     }
@@ -1013,13 +1000,13 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *(i_dof.base());
-        
+
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
-        
+
 //         if(!mDofs.IsSorted())
-            mDofs.Sort();
-        
+        mDofs.Sort();
+
         return p_new_dof;
 
         KRATOS_CATCH_LEVEL_3(*this);
@@ -1041,9 +1028,9 @@ public:
         p_new_dof->SetId(Id());
 
         p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
-        
+
 //         if(!mDofs.IsSorted())
-            mDofs.Sort();
+        mDofs.Sort();
 
         return p_new_dof;
 
@@ -1063,13 +1050,13 @@ public:
             i_dof->SetReaction(rDofReaction);
             return *(i_dof.base());
         }
-        
+
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
-        
+
 //         if(!mDofs.IsSorted())
-            mDofs.Sort();
-        
+        mDofs.Sort();
+
         return p_new_dof;
 
         KRATOS_CATCH_LEVEL_3(*this);
@@ -1085,13 +1072,13 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *i_dof;
-        
+
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
-        
+
 //         if(!mDofs.IsSorted())
-            mDofs.Sort();
-        
+        mDofs.Sort();
+
         return *p_new_dof;
 
         KRATOS_CATCH_LEVEL_3(*this);
@@ -1107,15 +1094,15 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *i_dof;
-        
+
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
-        
+
 //         if(!mDofs.IsSorted())
-            mDofs.Sort();
-        
-        return *p_new_dof;        
-        
+        mDofs.Sort();
+
+        return *p_new_dof;
+
         KRATOS_CATCH_LEVEL_3(*this);
 
     }
