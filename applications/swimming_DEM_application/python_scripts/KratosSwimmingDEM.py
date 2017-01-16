@@ -93,6 +93,7 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 1
+pp.CFD_DEM.store_full_gradient = 0
 pp.CFD_DEM.laplacian_calculation_type = 0
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
