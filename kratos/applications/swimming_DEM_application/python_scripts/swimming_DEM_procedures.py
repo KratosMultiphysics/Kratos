@@ -375,8 +375,12 @@ class Counter:
         self.steps_in_cycle = steps_in_cycle
         self.step_in_cycle  = steps_in_cycle
         self.is_active      = is_active
+        self.is_dead        = False
 
     def Tick(self):
+        
+        if self.is_dead:
+            return False
 
         if self.step < self.beginning_step or not self.is_active:
             self.step += 1
@@ -395,10 +399,10 @@ class Counter:
     def SetActivation(self, is_active):
         self.is_active = is_active
 
-    def Activate(self, activate):
+    def Activate(self, activate = True):
         self.is_active = self.is_active or activate
 
-    def Deactivate(self, deactivate):
+    def Deactivate(self, deactivate = True):
         self.is_active = self.is_active and not deactivate
 
     def Switch(self, condition = None):
@@ -412,6 +416,9 @@ class Counter:
 
     def GetStepInCycle(self):
         return self.step_in_cycle
+    
+    def Kill(self):
+        self.is_dead = True
 
 
 class Averager:
