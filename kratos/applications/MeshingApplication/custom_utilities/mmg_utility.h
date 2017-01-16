@@ -21,9 +21,10 @@
 #include <set>
 #include <map>
 // The includes related with the MMG library
-// #include "mmg/mmg2d/libmmg2d.h" // TODO: Version in 2D
+#include "mmg/libmmg.h"
+#include "mmg/mmg2d/libmmg2d.h" // TODO: Version in 2D
 #include "mmg/mmg3d/libmmg3d.h"
-// #include "mmg/mmgs/libmmgs.h" // TODO: what is this libarry doing?
+#include "mmg/mmgs/libmmgs.h" // TODO: what is this library doing?
 
 // NOTE: Inspired in the documentation from:
 // https://github.com/MmgTools/mmg/blob/master/libexamples/
@@ -119,6 +120,9 @@ public:
        
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
+       
+       mmgMesh = NULL;
+       mmgSol = NULL;
        
        MMG3D_Init_mesh(
                   MMG5_ARG_start,
@@ -264,8 +268,8 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            const double scalar_value = itNode->GetValue(rVariable);
-            const array_1d<double, 3> gradient_value = itNode->GetValue(rVariableGradient);
+            const double scalar_value = itNode->FastGetSolutionStepValue(rVariable);
+            const array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
             double element_size = itNode->GetValue(NODAL_VOLUME);
             if (element_size > elementary_length)
             {
@@ -298,7 +302,7 @@ public:
                 }
             }
             
-            ComputeTensorH(scalar_value, gradient_value, ratio, element_size,value_threshold);
+            ComputeTensorH(scalar_value, gradient_value, ratio, element_size, value_threshold, i + 1);
         }
         
         /** 4) If you don't use the API functions, you MUST call
@@ -324,9 +328,13 @@ public:
        return ier;
     }
     
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
     /**
      * We consider as input an already existing files , so this reads the input files 
      */
+    
     void ReadFiles()
     {
        // NOTE: Step one in the constructor
@@ -369,6 +377,7 @@ public:
      * @param save_to_file: Save the solution to a *.sol and *.mesh files
      */
     
+    // FIXME: Core here
     int Execute( // NOTE: Properties are going to give problems (we need to define new properies copying the old ones)
         ModelPart& rThisModelPart, //NOTE: The model part shoul be empty
         Properties::Pointer pProperties, // TODO: Solve the problem, just one property
@@ -663,6 +672,7 @@ protected:
      * This functions gets the "colors", parts of a model part to process
      * @param rThisModelPart: The model part to get the colors
      */
+    
     void ComputeColors(
         ModelPart& rThisModelPart,
         std::map<int,int>& node_colors,
@@ -672,16 +682,38 @@ protected:
     {        
         // Initialize and create the auxiliar maps
         const std::vector<std::string> SubModelPartNames = rThisModelPart.GetSubModelPartNames();
-        
         std::map<int,std::set<int>> aux_node_colors, aux_cond_colors, aux_elem_colors;
         
+        // TODO: Add when subsubmodelparts work correctly
+//         const unsigned int initsub = SubModelPartNames.size(); 
+//         for (unsigned int i_sub = 0; i_sub < initsub; i_sub++)
+//         {
+//             ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_sub]);
+            
+//             const std::vector<std::string> SubSubModelPartNames = rSubModelPart.GetSubModelPartNames();
+//             
+//             for (unsigned int i_sub_sub = 0; i_sub_sub < SubSubModelPartNames.size(); i_sub_sub++)
+//             {
+//                 SubModelPartNames.push_back(SubSubModelPartNames[i_sub_sub]);
+//             }
+//         }
+        
+        std::vector<std::string> ModelPartNames;
+        ModelPartNames.push_back(rThisModelPart.Name());
         for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
         {
-            mColors[i_sub].push_back(SubModelPartNames[i_sub]);
+            ModelPartNames.push_back(SubModelPartNames[i_sub]);
+        }
+        
+        // Initialize colors
+        int color = 0;
+        for (unsigned int i_sub = 0; i_sub < ModelPartNames.size(); i_sub++)
+        {
+            mColors[i_sub].push_back(ModelPartNames[i_sub]);
             
-            if (i_sub > 0)
+            if (color > 0)
             {
-                ModelPart rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_sub]);
+                ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
                 
                 // Iterate in the nodes
                 NodesArrayType& pNode = rSubModelPart.Nodes();
@@ -700,7 +732,7 @@ protected:
                 for(unsigned int i = 0; i < numNodes; i++) 
                 {
                     auto itNode = pNode.begin() + i;
-                    aux_node_colors[itNode->Id()].insert(i_sub);
+                    aux_node_colors[itNode->Id()].insert(color);
                 }
                 
                 /* Conditions */
@@ -708,7 +740,7 @@ protected:
                 for(unsigned int i = 0; i < numConditions; i++) 
                 {
                     auto itCond = pConditions.begin() + i;
-                    aux_cond_colors[itCond->Id()].insert(i_sub);
+                    aux_cond_colors[itCond->Id()].insert(color);
                 }
                 
                 /* Elements */
@@ -716,9 +748,11 @@ protected:
                 for(unsigned int i = 0; i < numElements; i++) 
                 {
                     auto itElem = pElements.begin() + i;
-                    aux_elem_colors[itElem->Id()].insert(i_sub);
+                    aux_elem_colors[itElem->Id()].insert(color);
                 }
             }
+            
+            color += 1;
         }
         
         // The iterator for the auxiliar maps is created
@@ -730,8 +764,8 @@ protected:
         /* Nodes */
         for(it_type iterator = aux_node_colors.begin(); iterator != aux_node_colors.end(); iterator++) 
         {
-//             int key = iterator->first;
-            std::set<int> value = iterator->second;
+//             const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() > 1)
             {
@@ -742,8 +776,8 @@ protected:
         /* Conditions */
         for(it_type iterator = aux_cond_colors.begin(); iterator != aux_cond_colors.end(); iterator++) 
         {
-//             int key = iterator->first;
-            std::set<int> value = iterator->second;
+//             const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() > 1)
             {
@@ -754,8 +788,8 @@ protected:
         /* Elements */
         for(it_type iterator = aux_elem_colors.begin(); iterator != aux_elem_colors.end(); iterator++) 
         {
-//             int key = iterator->first;
-            std::set<int> value = iterator->second;
+//             const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() > 1)
             {
@@ -764,12 +798,11 @@ protected:
         }
         
         /* Combinations */
-        int color = SubModelPartNames.size();
         typedef std::map<std::set<int>,int>::iterator comb_type;
         for(comb_type iterator = combinations.begin(); iterator != combinations.end(); iterator++) 
         {
-            std::set<int> key = iterator->first;
-//             int value = iterator->second;
+            const std::set<int> key = iterator->first;
+//             const int value = iterator->second;
             
             for( auto it = key.begin(); it != key.end(); ++it ) 
             {
@@ -784,8 +817,8 @@ protected:
         /* Nodes */
         for(it_type iterator = aux_node_colors.begin(); iterator != aux_node_colors.end(); iterator++) 
         {
-            int key = iterator->first;
-            std::set<int> value = iterator->second;
+            const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() == 0)
             {
@@ -804,8 +837,8 @@ protected:
         /* Conditions */
         for(it_type iterator = aux_cond_colors.begin(); iterator != aux_cond_colors.end(); iterator++) 
         {
-            int key = iterator->first;
-            std::set<int> value = iterator->second;
+            const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() == 0)
             {
@@ -824,8 +857,8 @@ protected:
         /* Elements */
         for(it_type iterator = aux_elem_colors.begin(); iterator != aux_elem_colors.end(); iterator++) 
         {
-            int key = iterator->first;
-            std::set<int> value = iterator->second;
+            const int key = iterator->first;
+            const std::set<int> value = iterator->second;
             
             if (value.size() == 0)
             {
@@ -844,14 +877,6 @@ protected:
     
     /***********************************************************************************/
     /***********************************************************************************/
-    
-//     void PostComputeColors()
-//     {
-//         
-//     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * It calculates the tensor of the scalar, necessary to get the solution before remeshing
@@ -867,36 +892,34 @@ protected:
         const array_1d<double, 3>& gradient_value,
         const double& ratio,
         const double& element_size,
-        const double& value_threshold
+        const double& value_threshold,
+        const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
     )
     {
-        const int iadr = mmgSol->size; // Size
-        double *ma;
-        ma = &mmgSol->m[iadr];
-            
+        const int initial_index = 6 * (node_id - 1);
         const double coeff0 = 1.0/(element_size * element_size);
         
         if (scalar_value > value_threshold) // We don't reach the minimum
 //         if (scalar_value > element_size) // NOTE: In the case that the scalar value is related with a distance, better to consider an independent variable
         {
-            ma[0] = coeff0;
-            ma[1] = 0.0;
-            ma[2] = coeff0;
-            ma[3] = 0.0;
-            ma[4] = 0.0;
-            ma[5] = coeff0;
+            mmgSol->m[initial_index + 1] = coeff0;
+            mmgSol->m[initial_index + 2] = 0.0;
+            mmgSol->m[initial_index + 3] = coeff0;
+            mmgSol->m[initial_index + 4] = 0.0;
+            mmgSol->m[initial_index + 5] = 0.0;
+            mmgSol->m[initial_index + 6] = coeff0;
         }
         else
         {
             const double aux = ratio + (scalar_value * element_size)*(1.0 - ratio);
             const double coeff1 = coeff0/(aux * aux);
             
-            ma[0] = coeff0*(1-gradient_value[0]*gradient_value[0]) + coeff1*gradient_value[0]*gradient_value[0];
-            ma[1] = coeff0*(gradient_value[0]*gradient_value[1]) + coeff1*gradient_value[0]*gradient_value[1];
-            ma[2] = coeff0*(1-gradient_value[1]*gradient_value[1]) + coeff1*gradient_value[1]*gradient_value[1];
-            ma[3] = coeff0*(gradient_value[0]*gradient_value[2]) + coeff1*gradient_value[0]*gradient_value[2];
-            ma[4] = coeff0*(gradient_value[1]*gradient_value[2]) + coeff1*gradient_value[1]*gradient_value[2];
-            ma[5] = coeff0*(1-gradient_value[2]*gradient_value[2]) + coeff1*gradient_value[2]*gradient_value[2];
+            mmgSol->m[initial_index + 1] = coeff0*(1-gradient_value[0]*gradient_value[0]) + coeff1*gradient_value[0]*gradient_value[0];
+            mmgSol->m[initial_index + 2] = coeff0*(gradient_value[0]*gradient_value[1]) + coeff1*gradient_value[0]*gradient_value[1];
+            mmgSol->m[initial_index + 3] = coeff0*(1-gradient_value[1]*gradient_value[1]) + coeff1*gradient_value[1]*gradient_value[1];
+            mmgSol->m[initial_index + 4] = coeff0*(gradient_value[0]*gradient_value[2]) + coeff1*gradient_value[0]*gradient_value[2];
+            mmgSol->m[initial_index + 5] = coeff0*(gradient_value[1]*gradient_value[2]) + coeff1*gradient_value[1]*gradient_value[2];
+            mmgSol->m[initial_index + 6] = coeff0*(1-gradient_value[2]*gradient_value[2]) + coeff1*gradient_value[2]*gradient_value[2];
         }
     }
     
