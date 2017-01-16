@@ -24,6 +24,7 @@ class ProjectionModule:
         self.shape_factor                = pp.CFD_DEM.shape_factor
         self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
         self.flow_field                  = flow_field
+        
         if (self.dimension == 3):
 
             if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
