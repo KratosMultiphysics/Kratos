@@ -624,15 +624,14 @@ embedded_counter             = swim_proc.Counter(1,
 DEM_to_fluid_counter         = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type > 1)
-derivative_recovery_counter    = swim_proc.Counter(1, 
+derivative_recovery_counter  = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
                                                  1, 
                                                  DEM_parameters.stationary_problem_option)
-print_counter                = swim_proc.Counter(1, 
-                                                 1, 
-                                                 out >= output_time)
+print_counter                = swim_proc.Counter(int(pp.CFD_DEM.OutputTimeStep / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)), 
+                                                 1)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 
                                                  1, 
                                                  DEM_parameters.print_debug_info_option)
@@ -746,7 +745,7 @@ post_utils.Writeresults(time)
 
 import hdf5_io_tools
 fluid_loader = hdf5_io_tools.FluidHDF5Loader(fluid_model_part, pp, main_path)
-
+done = False
 while (time <= final_time):
 
     time = time + Dt
@@ -809,10 +808,12 @@ while (time <= final_time):
         out = 0
 
     # solving the DEM part
-    derivative_recovery_counter.Switch(time > DEM_parameters.interaction_start_time)
+    derivative_recovery_counter.Activate(time > DEM_parameters.interaction_start_time)
 
     if derivative_recovery_counter.Tick():
-        recovery.Recover()
+        recovery.Recover()       
+        if done:
+            derivative_recovery_counter.Kill()
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -825,7 +826,9 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
         
         if fluid_loader_counter.Tick():
-            fluid_loader.LoadFluid(time_dem)
+            fluid_loader.LoadFluid(0.45)
+            fluid_loader_counter.Kill()
+            done = True
         
         # NANO BEGIN
         if cation_concentration_counter.Tick():
@@ -874,7 +877,7 @@ while (time <= final_time):
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
-        if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+        if print_counter.Tick() and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
             if DEM_parameters.coupling_level_type:
                 projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
