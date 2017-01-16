@@ -139,8 +139,6 @@ public:
         // Define necessary variables
         UtilityVariables AuxVariables;
 
-        // Note: after the CheckFracturePropagation method the rModelPartOld is in the reference state
-
         this->InitializeMapping(AuxVariables,rModelPartNew, move_mesh_flag);
 
         this->NodalVariablesMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
@@ -324,9 +322,6 @@ protected:
         {
             Id = rParameters["body_surfaces_list"][i]["id"].GetInt();
 
-            PropDataFile << "dict set BodySurfacesDict " << Id << " Layer \""
-                         << rParameters["body_surfaces_list"][i]["layer"].GetString() << "\"" << std::endl;
-
             PropDataFile << "set Groups [list]" << std::endl;
             for(unsigned int j = 0; j < rParameters["body_surfaces_list"][i]["groups"].size(); j++)
             {
@@ -351,14 +346,6 @@ protected:
             // TipPoint
             PropDataFile << "dict set FracturesDict " << Id << " TipPoint Id "
                          << rParameters["fractures_list"][i]["tip_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Layer \""
-                         << rParameters["fractures_list"][i]["tip_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["tip_point"]["groups"].size(); j++)
-            {
-                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["tip_point"]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "dict set FracturesDict " << Id << " TipPoint Groups $Groups" << std::endl;
             PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["tip_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["tip_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["tip_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
@@ -366,14 +353,6 @@ protected:
             // TopPoint
             PropDataFile << "dict set FracturesDict " << Id << " TopPoint Id "
                          << rParameters["fractures_list"][i]["top_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Layer \""
-                         << rParameters["fractures_list"][i]["top_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_point"]["groups"].size(); j++)
-            {
-                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["top_point"]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "dict set FracturesDict " << Id << " TopPoint Groups $Groups" << std::endl;
             PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["top_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["top_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["top_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
@@ -381,14 +360,6 @@ protected:
             // BotPoint
             PropDataFile << "dict set FracturesDict " << Id << " BotPoint Id "
                          << rParameters["fractures_list"][i]["bot_point"]["id"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Layer \""
-                         << rParameters["fractures_list"][i]["bot_point"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_point"]["groups"].size(); j++)
-            {
-                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["bot_point"]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "dict set FracturesDict " << Id << " BotPoint Groups $Groups" << std::endl;
             PropDataFile << "set Coordinates \"" << rParameters["fractures_list"][i]["bot_point"]["coordinates"][0].GetDouble()
                          << " " << rParameters["fractures_list"][i]["bot_point"]["coordinates"][1].GetDouble() << " "
                          << rParameters["fractures_list"][i]["bot_point"]["coordinates"][2].GetDouble() << "\"" << std::endl;
@@ -396,25 +367,9 @@ protected:
             // TopLine
             PropDataFile << "dict set FracturesDict " << Id << " TopLine Id "
                          << rParameters["fractures_list"][i]["top_line"]["id"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " TopLine Layer \""
-                         << rParameters["fractures_list"][i]["top_line"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_line"]["groups"].size(); j++)
-            {
-                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["top_line"]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "dict set FracturesDict " << Id << " TopLine Groups $Groups" << std::endl;
             // BotLine
             PropDataFile << "dict set FracturesDict " << Id << " BotLine Id "
                          << rParameters["fractures_list"][i]["bot_line"]["id"].GetInt() << std::endl;
-            PropDataFile << "dict set FracturesDict " << Id << " BotLine Layer \""
-                         << rParameters["fractures_list"][i]["bot_line"]["layer"].GetString() << "\"" << std::endl;
-            PropDataFile << "set Groups [list]" << std::endl;
-            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_line"]["groups"].size(); j++)
-            {
-                PropDataFile << "lappend Groups \"" << rParameters["fractures_list"][i]["bot_line"]["groups"][j].GetString() << "\"" << std::endl;
-            }
-            PropDataFile << "dict set FracturesDict " << Id << " BotLine Groups $Groups" << std::endl;
             // InterfaceSurface
             PropDataFile << "dict set FracturesDict " << Id << " InterfaceSurface Id "
                          << rParameters["fractures_list"][i]["interface_surface"]["id"].GetInt() << std::endl;
@@ -652,7 +607,6 @@ protected:
 
         array_1d<double,3> GlobalCoordinates;
         array_1d<double,3> LocalCoordinates;
-        double Tolerance = 1.0e-5;
 
         #pragma omp parallel for private(X_me,Y_me,PointsNumber,GlobalCoordinates,LocalCoordinates)
         for(int i = 0; i < NNodes; i++)
@@ -685,24 +639,8 @@ protected:
                 for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
                 {
                     pElementOld = ElementOldCellMatrix[Row][Column][m];
-                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates);
-                    PointsNumber = pElementOld->GetGeometry().PointsNumber();
-                    if(PointsNumber == 3)
-                    {
-                        if(((LocalCoordinates[0]+Tolerance)>=0)&&((LocalCoordinates[1]+Tolerance)>=0)&&((LocalCoordinates[1]-Tolerance)<=(1-LocalCoordinates[0])))
-                        {
-                            IsInside = true;
-                            break;
-                        }
-                    }
-                    else if(PointsNumber == 4)
-                    {
-                        if(((LocalCoordinates[0]+Tolerance)>=-1)&&((LocalCoordinates[0]-Tolerance)<=1)&&((LocalCoordinates[1]+Tolerance)>=-1)&&((LocalCoordinates[1]-Tolerance)<=1))
-                        {
-                            IsInside = true;
-                            break;
-                        }
-                    }
+                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+                    if(IsInside) break;
                 }
             }
             if(IsInside == false)

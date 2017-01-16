@@ -11,7 +11,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
         for {set l 0} {$l < [llength $BodyEntities]} {incr l} {
             set BodySurface [GiD_Geometry get surface [lindex $BodyEntities $l]]
             set Groups [GiD_EntitiesGroups entity_groups surfaces [lindex $BodyEntities $l]]
-            dict set BodySurfacesDict [lindex $BodyEntities $l] Layer [lindex $BodySurface 1]
             dict set BodySurfacesDict [lindex $BodyEntities $l] Groups $Groups
             set Lines [list]
             for {set m 0} {$m < [lindex $BodySurface 2]} {incr m} {
@@ -29,51 +28,59 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
         WarnWin "ERROR: Fracture Propagation needs at least 1 pre-defined fracture tip"
     }
     for {set i 0} {$i < [llength $InterfaceGroups]} {incr i} {
-        if {[lindex [lindex $InterfaceGroups $i] 3] == false} {
+        if {[lindex [lindex $InterfaceGroups $i] 3] eq false} {
             set InterfaceEntities [GiD_EntitiesGroups get [lindex [lindex $InterfaceGroups $i] 1] surfaces]
             for {set j 0} {$j < [llength $InterfaceEntities]} {incr j} {
                 set InterfaceSurface [GiD_Geometry get surface [lindex $InterfaceEntities $j]]
                 set BotLine [GiD_Geometry get line [lindex [lindex $InterfaceSurface 3] 0]]
                 set TopLine [GiD_Geometry get line [lindex [lindex $InterfaceSurface 4] 0]]
-                if {([lindex $BotLine 2] == [lindex $TopLine 2]) || ([lindex $BotLine 3] == [lindex $TopLine 2])} {
+                if {([lindex $BotLine 2] eq [lindex $TopLine 2]) || ([lindex $BotLine 3] eq [lindex $TopLine 2])} {
                     # Define new fracture
                     incr FractureId
                     # Set TipPoint
-                    AddPointToFracturesDict FracturesDict $FractureId $TopLine 2 TipPoint
+                    set PointId [lindex $TopLine 2]
+                    AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] TipPoint
                     # Set TopPoint
-                    AddPointToFracturesDict FracturesDict $FractureId $TopLine 3 TopPoint
+                    set PointId [lindex $TopLine 3]
+                    AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] TopPoint
                     # Set BotPoint
                     if {[lindex $BotLine 2] != [lindex $TopLine 2]} {
-                        AddPointToFracturesDict FracturesDict $FractureId $BotLine 2 BotPoint
+                        set PointId [lindex $BotLine 2]
+                        AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] BotPoint
                     } else {
-                        AddPointToFracturesDict FracturesDict $FractureId $BotLine 3 BotPoint
+                        set PointId [lindex $BotLine 3]
+                        AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] BotPoint
                     }
                     # Set TopLine
-                    AddLineToFracturesDict FracturesDict $FractureId $InterfaceSurface 4 $TopLine TopLine
+                    dict set FracturesDict $FractureId TopLine Id [lindex [lindex $InterfaceSurface 4] 0]
                     # Set BotLine
-                    AddLineToFracturesDict FracturesDict $FractureId $InterfaceSurface 3 $BotLine BotLine
+                    dict set FracturesDict $FractureId BotLine Id [lindex [lindex $InterfaceSurface 3] 0]
                     # Set InterfaceSurface
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
                     AddBodySurfaceToFracturesDict FracturesDict $FractureId $BodySurfacesDict
                     
-                } elseif {([lindex $BotLine 2] == [lindex $TopLine 3]) || ([lindex $BotLine 3] == [lindex $TopLine 3])} {
+                } elseif {([lindex $BotLine 2] eq [lindex $TopLine 3]) || ([lindex $BotLine 3] eq [lindex $TopLine 3])} {
                     # Define new fracture
                     incr FractureId
                     # Set TipPoint
-                    AddPointToFracturesDict FracturesDict $FractureId $TopLine 3 TipPoint
+                    set PointId [lindex $TopLine 3]
+                    AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] TipPoint
                     # Set TopPoint
-                    AddPointToFracturesDict FracturesDict $FractureId $TopLine 2 TopPoint
+                    set PointId [lindex $TopLine 2]
+                    AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] TopPoint
                     # Set BotPoint
                     if {[lindex $BotLine 2] != [lindex $TopLine 3]} {
-                        AddPointToFracturesDict FracturesDict $FractureId $BotLine 2 BotPoint
+                        set PointId [lindex $BotLine 2]
+                        AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] BotPoint
                     } else {
-                        AddPointToFracturesDict FracturesDict $FractureId $BotLine 3 BotPoint
+                        set PointId [lindex $BotLine 3]
+                        AddPointToFracturesDict FracturesDict $FractureId $PointId [GiD_Geometry get point $PointId] BotPoint
                     }
                     # Set TopLine
-                    AddLineToFracturesDict FracturesDict $FractureId $InterfaceSurface 4 $TopLine TopLine
+                    dict set FracturesDict $FractureId TopLine Id [lindex [lindex $InterfaceSurface 4] 0]
                     # Set BotLine
-                    AddLineToFracturesDict FracturesDict $FractureId $InterfaceSurface 3 $BotLine BotLine
+                    dict set FracturesDict $FractureId BotLine Id [lindex [lindex $InterfaceSurface 3] 0]
                     # Set InterfaceSurface
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
@@ -91,7 +98,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
 
     ## fracture_data
     puts $FileVar1 "    \"fracture_data\": \{"
-    puts $FileVar1 "        \"gid_path\":                                 \"$gidpath\","
+    puts $FileVar1 "        \"gid_path\":                             \"$gidpath\","
     # propagation parameters and body_domain_sub_model_part_list
     WriteFractureData FileVar1
     # interface_domain_sub_model_part_list
@@ -102,7 +109,7 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
     }
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $FileVar1 "        \"interface_domain_sub_model_part_list\":     $PutStrings"
+    puts $FileVar1 "        \"interface_domain_sub_model_part_list\": $PutStrings"
     puts $FileVar1 "    \},"
 
     ## body_surfaces_list
@@ -157,18 +164,18 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         set LinkInterfaceGroup 0
         #set Groups [GiD_Info conditions Interface_Part groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
-            if {[lindex [lindex $Groups $i] 3]==true} {
+            if {[lindex [lindex $Groups $i] 3] eq true} {
                 set LinkInterfaceGroup [lindex [lindex $Groups $i] 1]
                 break
             }
         }
-        if {$LinkInterfaceGroup == 0} {
+        if {$LinkInterfaceGroup eq 0} {
             GiD_Groups create Bifurcation_Link_Part_9
             set LinkInterfaceGroup Bifurcation_Link_Part_9
             set ConditionValues "true [lindex [lindex $Groups 0] 4] [lindex [lindex $Groups 0] 5] [lindex [lindex $Groups 0] 6] [lindex [lindex $Groups 0] 7] \
             [lindex [lindex $Groups 0] 8] [lindex [lindex $Groups 0] 9] [lindex [lindex $Groups 0] 10] [lindex [lindex $Groups 0] 11] [lindex [lindex $Groups 0] 12]\
-            [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] 0.0\
-            [lindex [lindex $Groups 0] 18] [lindex [lindex $Groups 0] 19]"
+            [lindex [lindex $Groups 0] 13] [lindex [lindex $Groups 0] 14] [lindex [lindex $Groups 0] 15] [lindex [lindex $Groups 0] 16] [lindex [lindex $Groups 0] 17]\
+            0.0 [lindex [lindex $Groups 0] 19]"
             GiD_AssignData condition Interface_Part groups $ConditionValues $LinkInterfaceGroup
         }
     }
@@ -185,7 +192,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         set BodySurfaceId [lindex [dict get $FracturesDict $MotherFractureId BodySurfaces] 0]
         set BodySurfaceLines [dict get $BodySurfacesDict $BodySurfaceId Lines]
         
-        ## Modify Geometry        
+        ## Modify Geometry
         # Delete InterfaceSurface
         GiD_Process Mescape Geometry Delete Surfaces [dict get $FracturesDict $MotherFractureId InterfaceSurface Id] escape
         # Create new poin in TopInitCoordinates location
@@ -210,6 +217,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         GiD_Process Mescape Geometry Create Line Join \
             [dict get $FracturesDict $MotherFractureId BotPoint Id] [GiD_Info Geometry MaxNumPoints] escape escape
         lappend BodySurfaceLines [GiD_Info Geometry MaxNumLines]
+        # Delete old TipPoint
+        GiD_Process Mescape Geometry Delete Points [dict get $FracturesDict $MotherFractureId TipPoint Id] escape
         # Create ContactSurface for the old crack
         set BotLine [list [GiD_Info Geometry MaxNumLines] 1]
         set TopLine [list [expr { [GiD_Info Geometry MaxNumLines]-1 }] 0]
@@ -382,30 +391,20 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         ## Add an additional value in $FracturesDict for the new BotTip fracture
         set NewFractureId [dict size $FracturesDict]
         dict set FracturesDict $NewFractureId TipPoint Id [GiD_Info Geometry MaxNumPoints]
-        dict set FracturesDict $NewFractureId TipPoint Layer [dict get $FracturesDict $MotherFractureId TipPoint Layer]
-        dict set FracturesDict $NewFractureId TipPoint Groups [dict get $FracturesDict $MotherFractureId TipPoint Groups]
         dict set FracturesDict $NewFractureId TipPoint Coordinates [dict get $Bifurcation BotTipCoordinates]
         dict set FracturesDict $NewFractureId TopPoint Id [dict get $FracturesDict $MotherFractureId BotPoint Id]
-        dict set FracturesDict $NewFractureId TopPoint Layer [dict get $FracturesDict $MotherFractureId TopPoint Layer]
-        dict set FracturesDict $NewFractureId TopPoint Groups [dict get $FracturesDict $MotherFractureId TopPoint Groups]
         dict set FracturesDict $NewFractureId TopPoint Coordinates [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]
         dict set FracturesDict $NewFractureId BotPoint Id [expr { [GiD_Info Geometry MaxNumPoints]-2 }]
-        dict set FracturesDict $NewFractureId BotPoint Layer [dict get $FracturesDict $MotherFractureId BotPoint Layer]
-        dict set FracturesDict $NewFractureId BotPoint Groups [dict get $FracturesDict $MotherFractureId BotPoint Groups]
         dict set FracturesDict $NewFractureId BotPoint Coordinates [dict get $Bifurcation BotInitCoordinates]
         dict set FracturesDict $NewFractureId TopLine Id [expr { [GiD_Info Geometry MaxNumLines]-4 }]
-        dict set FracturesDict $NewFractureId TopLine Layer [dict get $FracturesDict $MotherFractureId TopLine Layer]
-        dict set FracturesDict $NewFractureId TopLine Groups [dict get $FracturesDict $MotherFractureId TopLine Groups]
         dict set FracturesDict $NewFractureId BotLine Id [expr { [GiD_Info Geometry MaxNumLines]-3 }]
-        dict set FracturesDict $NewFractureId BotLine Layer [dict get $FracturesDict $MotherFractureId BotLine Layer]
-        dict set FracturesDict $NewFractureId BotLine Groups [dict get $FracturesDict $MotherFractureId BotLine Groups]
         dict set FracturesDict $NewFractureId InterfaceSurface Id [expr { [GiD_Info Geometry MaxNumSurfaces]-1 }]
         dict set FracturesDict $NewFractureId InterfaceSurface Layer [dict get $FracturesDict $MotherFractureId InterfaceSurface Layer]
         dict set FracturesDict $NewFractureId InterfaceSurface Groups [dict get $FracturesDict $MotherFractureId InterfaceSurface Groups]
         
         dict set BodySurfacesDict $BodySurfaceId Lines $BodySurfaceLines
     }
-    
+
     # Create BodySurfaces again assign conditions and replace BodySurfacesDict and FracturesDict with the new values
     set BodySurfacesAuxDict $BodySurfacesDict
     unset BodySurfacesDict
@@ -423,8 +422,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         for {set i 0} {$i < [llength $BodySurfaceGroups]} {incr i} {
             GiD_EntitiesGroups assign [lindex $BodySurfaceGroups $i] surfaces $NewBodySurfaceId
         }
-                        
-        dict set BodySurfacesDict $NewBodySurfaceId Layer [dict get $BodySurface Layer]
+        
         dict set BodySurfacesDict $NewBodySurfaceId Groups [dict get $BodySurface Groups]
         dict set BodySurfacesDict $NewBodySurfaceId Lines [dict get $BodySurface Lines]
     }
@@ -432,7 +430,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     dict for {Id Fracture} $FracturesDict {
         set BodySurfaces [list]
         dict for {BodyId BodySurface} $BodySurfacesDict {
-            if {[GiD_Info IsPointInside Surface $BodyId [dict get $Fracture TipPoint Coordinates]] == 1} {
+            if {[GiD_Info IsPointInside Surface $BodyId [dict get $Fracture TipPoint Coordinates]] eq 1} {
                 lappend BodySurfaces $BodyId
             }
         }
@@ -450,7 +448,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
 
     ## fracture_data
     puts $FileVar "    \"fracture_data\": \{"
-    puts $FileVar "        \"gid_path\":                                 \"[lindex $PropagationData 0]\","
+    puts $FileVar "        \"gid_path\":                             \"[lindex $PropagationData 0]\","
     # propagation parameters and body_domain_sub_model_part_list
     WriteFractureData FileVar
     # interface_domain_sub_model_part_list
@@ -461,7 +459,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
     }
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $FileVar "        \"interface_domain_sub_model_part_list\":     $PutStrings,"
+    puts $FileVar "        \"interface_domain_sub_model_part_list\": $PutStrings,"
     # interface_domain_sub_model_part_old_list
     puts $FileVar "        \"interface_domain_sub_model_part_old_list\": $InterfaceGroupsOld"
     puts $FileVar "    \},"
