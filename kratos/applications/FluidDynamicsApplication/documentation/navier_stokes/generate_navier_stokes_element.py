@@ -159,7 +159,7 @@ for dim in dim_vector:
     else:
         rv_stab = tau1*rho*grad_q.transpose()*vel_residual
     rv_stab += tau1*rho*(grad_w*vconv_gauss).transpose()*vel_residual
-    rv_stab -= tau2*div_w*mas_residual
+    rv_stab += tau2*div_w*mas_residual
     if (artificial_compressibility == True):
         rv_stab -= tau1*(1/(c*c))*pder_gauss*w_gauss.transpose()*vel_residual
 

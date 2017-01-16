@@ -149,8 +149,10 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_lhs_3D
 
@@ -198,8 +200,10 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_lhs_2D
 
@@ -252,8 +256,10 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_rhs_3D
 }
@@ -305,8 +311,10 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    const double tau2 = (h*h)/(c1*tau1);
 
     //substitute_rhs_2D
 }
@@ -358,8 +366,10 @@ double NavierStokes<3>::SubscaleErrorEstimate(const element_data& data)
     const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    // const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     // Gauss point velocity subscale value computation
     //substitute_gausspt_subscale_3D
@@ -412,8 +422,10 @@ double NavierStokes<2>::SubscaleErrorEstimate(const element_data& data)
     const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (2*rho*vconv_norm)/h + (4*mu)/(h*h));
-    // const double tau2 = mu + 0.5*h*vconv_norm;
+    const double c1 = 4.0;
+    const double c2 = 2.0;
+    const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
+    // const double tau2 = (h*h)/(c1*tau1);
 
     // Gauss point velocity subscale value computation
     //substitute_gausspt_subscale_2D
