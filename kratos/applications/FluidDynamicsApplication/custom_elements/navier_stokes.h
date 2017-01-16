@@ -27,6 +27,9 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
 
+// Application includes
+#include "fluid_dynamics_application_variables.h"
+
 namespace Kratos
 {
 
@@ -83,6 +86,7 @@ public:
         double bdf2;
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
+        double volume;        // In 2D: element area. In 3D: element volume
         double delta_t;       // Only, needed if the temporal dependent term is considered in the subscales
         double dyn_tau_coeff; // Only, needed if the temporal dependent term is considered in the subscales
     };
@@ -129,7 +133,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -143,53 +147,50 @@ public:
 
         // Struct to pass around the data
         element_data data;
+        this->FillElementData(data, rCurrentProcessInfo);
 
-        // Getting data for the given geometry
-        double Volume; // In 2D cases Volume variable contains the element area
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-
-        // Compute element size
-        data.h = ComputeH(data.DN_DX, Volume);
-
-        // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
-        GetShapeFunctionsOnGauss(Ncontainer);
-
-        // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        data.bdf0 = BDFVector[0];
-        data.bdf1 = BDFVector[1];
-        data.bdf2 = BDFVector[2];
-
-        data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
-        data.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
-
-        data.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-
-            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                data.v(i,k)   = vel[k];
-                data.vn(i,k)  = vel_n[k];
-                data.vnn(i,k) = vel_nn[k];
-                data.vmesh(i,k) = vel_mesh[k];
-                data.f(i,k)   = body_force[k];
-            }
-
-            data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            data.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-            data.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-            data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-        }
+        // // Getting data for the given geometry
+        // double Volume; // In 2D cases Volume variable contains the element area
+        // GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        //
+        // // Compute element size
+        // data.h = ComputeH(data.DN_DX, Volume);
+        //
+        // // Database access to all of the variables needed
+        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        // data.bdf0 = BDFVector[0];
+        // data.bdf1 = BDFVector[1];
+        // data.bdf2 = BDFVector[2];
+        //
+        // data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
+        // data.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
+        //
+        // data.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
+        //
+        // for (unsigned int i = 0; i < TNumNodes; i++)
+        // {
+        //
+        //     const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+        //     const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        //     const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+        //     const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
+        //     const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+        //
+        //     for(unsigned int k=0; k<TDim; k++)
+        //     {
+        //         data.v(i,k)   = vel[k];
+        //         data.vn(i,k)  = vel_n[k];
+        //         data.vnn(i,k) = vel_nn[k];
+        //         data.vmesh(i,k) = vel_mesh[k];
+        //         data.f(i,k)   = body_force[k];
+        //     }
+        //
+        //     data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+        //     data.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
+        //     data.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
+        //     data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+        //     data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+        // }
 
         // Allocate memory needed
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -198,6 +199,10 @@ public:
         // Loop on gauss points
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+
+        // Gauss point position
+        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        GetShapeFunctionsOnGauss(Ncontainer);
 
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
         {
@@ -213,14 +218,16 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rLeftHandSideMatrix  *= Volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
+        // rLeftHandSideMatrix  *= Volume/static_cast<double>(TNumNodes);
+        rLeftHandSideMatrix  *= data.volume/static_cast<double>(TNumNodes);
+        // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("Error in Stokes Element Symbolic")
     }
 
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -231,55 +238,60 @@ public:
 
         // Struct to pass around the data
         element_data data;
+        this->FillElementData(data, rCurrentProcessInfo);
 
-        // Getting data for the given geometry
-        double Volume; // In 2D cases Volume variable contains the element area
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        // // Getting data for the given geometry
+        // double Volume; // In 2D cases Volume variable contains the element area
+        // GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        //
+        // // Compute element size
+        // //~ data.h = ComputeH<4,3>(data.DN_DX, Volume);
+        // data.h = ComputeH(data.DN_DX, Volume);
+        //
+        // // Gauss point position
+        // bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        // GetShapeFunctionsOnGauss(Ncontainer);
+        //
+        // // Database access to all of the variables needed
+        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        // data.bdf0 = BDFVector[0];
+        // data.bdf1 = BDFVector[1];
+        // data.bdf2 = BDFVector[2];
+        //
+        // data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
+        // data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
+        //
+        // data.c = rCurrentProcessInfo[SOUND_VELOCITY];                      // Wave velocity
+        //
+        // for (unsigned int i = 0; i < TNumNodes; i++)
+        // {
+        //
+        //     const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+        //     const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        //     const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+        //     const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
+        //     const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+        //
+        //     for(unsigned int k=0; k<TDim; k++)
+        //     {
+        //         data.v(i,k)   = vel[k];
+        //         data.vn(i,k)  = vel_n[k];
+        //         data.vnn(i,k) = vel_nn[k];
+        //         data.vmesh(i,k) = vel_mesh[k];
+        //         data.f(i,k)   = body_force[k];
+        //     }
+        //
+        //     data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+        //     data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+        //     data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+        // }
 
-        // Compute element size
-        //~ data.h = ComputeH<4,3>(data.DN_DX, Volume);
-        data.h = ComputeH(data.DN_DX, Volume);
+        // Allocate memory needed
+        array_1d<double,MatrixSize> rhs_local;
 
         // Gauss point position
         bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
-
-        // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        data.bdf0 = BDFVector[0];
-        data.bdf1 = BDFVector[1];
-        data.bdf2 = BDFVector[2];
-
-        data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
-        data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
-
-        data.c = rCurrentProcessInfo[SOUND_VELOCITY];                      // Wave velocity
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-
-            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                data.v(i,k)   = vel[k];
-                data.vn(i,k)  = vel_n[k];
-                data.vnn(i,k) = vel_nn[k];
-                data.vmesh(i,k) = vel_mesh[k];
-                data.f(i,k)   = body_force[k];
-            }
-
-            data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-        }
-
-        // Allocate memory needed
-        array_1d<double,MatrixSize> rhs_local;
 
         // Loop on gauss point
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
@@ -295,7 +307,8 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
+        // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("")
 
@@ -362,62 +375,70 @@ public:
 
     // TODO: Check this Calculate function
     virtual void Calculate(const Variable<double>& rVariable,
-                           double& Output,
+                           double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        if(rVariable == HEAT_FLUX) //compute the heat flux per unit volume induced by the shearing
+        element_data data;
+        this->FillElementData(data, rCurrentProcessInfo);
+
+        if (rVariable == ERROR_RATIO)
         {
-            const unsigned int strain_size = (TDim*3)-3;
-
-            //struct to pass around the data
-            element_data data;
-
-            //getting data for the given geometry
-            double Volume;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-
-            //~ for (unsigned int i = 0; i < NumNodes; i++)
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {
-                const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-
-                //~ for(unsigned int k=0; k<Dim; k++)
-                for(unsigned int k=0; k<TDim; k++)
-                {
-                    data.v(i,k)   = vel[k];
-                }
-            }
-
-            if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
-
-            //compute strain
-            Vector strain(strain_size);
-            ComputeStrain(data, strain_size, strain);
-
-            //create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-            //set constitutive law flags:
-            Flags& ConstitutiveLawOptions = Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-            //this is to pass the shape functions. Unfortunately it is needed to make a copy to a flexible size vector
-            const Vector Nvec(data.N);
-            Values.SetShapeFunctionsValues(Nvec);
-
-            Values.SetStrainVector(strain); //this is the input parameter
-            Values.SetStressVector(data.stress); //this is an ouput parameter
-            // Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
-
-            //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-            //this is ok under the hypothesis that no history dependent behaviour is employed
-            mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
-
-            Output = inner_prod(data.stress, strain);
+            rOutput = this->SubscaleErrorEstimate(data);
+            this->SetValue(ERROR_RATIO, rOutput);
         }
+        // if(rVariable == HEAT_FLUX) //compute the heat flux per unit volume induced by the shearing
+        // {
+        //     const unsigned int strain_size = (TDim*3)-3;
+        //
+        //     //struct to pass around the data
+        //     element_data data;
+        //
+        //     //getting data for the given geometry
+        //     double Volume;
+        //     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        //
+        //     //~ for (unsigned int i = 0; i < NumNodes; i++)
+        //     for (unsigned int i = 0; i < TNumNodes; i++)
+        //     {
+        //         const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        //
+        //         //~ for(unsigned int k=0; k<Dim; k++)
+        //         for(unsigned int k=0; k<TDim; k++)
+        //         {
+        //             data.v(i,k)   = vel[k];
+        //         }
+        //     }
+        //
+        //     if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
+        //
+        //     //compute strain
+        //     Vector strain(strain_size);
+        //     ComputeStrain(data, strain_size, strain);
+        //
+        //     //create constitutive law parameters:
+        //     ConstitutiveLaw::Parameters Values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        //
+        //     //set constitutive law flags:
+        //     Flags& ConstitutiveLawOptions = Values.GetOptions();
+        //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        //
+        //     //this is to pass the shape functions. Unfortunately it is needed to make a copy to a flexible size vector
+        //     const Vector Nvec(data.N);
+        //     Values.SetShapeFunctionsValues(Nvec);
+        //
+        //     Values.SetStrainVector(strain); //this is the input parameter
+        //     Values.SetStressVector(data.stress); //this is an ouput parameter
+        //     // Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+        //
+        //     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+        //     //this is ok under the hypothesis that no history dependent behaviour is employed
+        //     mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
+        //
+        //     Output = inner_prod(data.stress, strain);
+        // }
 
         KRATOS_CATCH("")
     }
@@ -478,6 +499,8 @@ protected:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
+    double SubscaleErrorEstimate(const element_data& data);
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -489,8 +512,56 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void FillElementData(element_data& rData, const ProcessInfo& rCurrentProcessInfo)
+    {
+        // Getting data for the given geometry
+        // double Volume; // In 2D cases Volume variable contains the element area
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.volume);
+
+        // Compute element size
+        rData.h = ComputeH(rData.DN_DX);
+
+        // Database access to all of the variables needed
+        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        rData.bdf0 = BDFVector[0];
+        rData.bdf1 = BDFVector[1];
+        rData.bdf2 = BDFVector[2];
+
+        rData.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
+        rData.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
+
+        rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
+
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+
+            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
+            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+
+            for(unsigned int k=0; k<TDim; k++)
+            {
+                rData.v(i,k)   = vel[k];
+                rData.vn(i,k)  = vel_n[k];
+                rData.vnn(i,k) = vel_nn[k];
+                rData.vmesh(i,k) = vel_mesh[k];
+                rData.f(i,k)   = body_force[k];
+            }
+
+            rData.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            rData.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
+            rData.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
+            rData.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+            rData.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+        }
+
+    }
+
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
+    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
     {
         double h=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -515,7 +586,7 @@ protected:
         Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
     }
 
-    //2D triangle shape functions values at Gauss points
+    // 2D triangle shape functions values at Gauss points
     void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
@@ -525,11 +596,23 @@ protected:
         Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
     }
 
-
-    void ComputeStrain(const element_data& data, const unsigned int& strain_size, Vector& strain)
+    // 3D tetrahedra shape functions values at centered Gauss point
+    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
     {
-        const bounded_matrix<double, TNumNodes, TDim>& v = data.v;
-        const bounded_matrix<double, TNumNodes, TDim>& DN = data.DN_DX;
+        Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
+    }
+
+    // 2D triangle shape functions values at centered Gauss point
+    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
+    {
+        Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
+    }
+
+    // Computes the strain rate in Voigt notation
+    void ComputeStrain(const element_data& rData, const unsigned int& strain_size, Vector& strain)
+    {
+        const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
+        const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
 
         // Compute strain (B*v)
         // 3D strain computation
@@ -551,23 +634,23 @@ protected:
         }
     }
 
-
-    virtual void ComputeConstitutiveResponse(element_data& data, ProcessInfo& rCurrentProcessInfo)
+    // Call the constitutive law to get the stress value
+    virtual void ComputeConstitutiveResponse(element_data& rData, const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int strain_size = (TDim*3)-3;
 
-        if(data.C.size1() != strain_size)
-            data.C.resize(strain_size,strain_size,false);
-        if(data.stress.size() != strain_size)
-            data.stress.resize(strain_size,false);
+        if(rData.C.size1() != strain_size)
+            rData.C.resize(strain_size,strain_size,false);
+        if(rData.stress.size() != strain_size)
+            rData.stress.resize(strain_size,false);
 
         Vector strain(strain_size);
-        ComputeStrain(data, strain_size, strain);
+        ComputeStrain(rData, strain_size, strain);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(this->GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-        const Vector Nvec(data.N);
+        const Vector Nvec(rData.N);
         Values.SetShapeFunctionsValues(Nvec);
 
         // Set constitutive law flags:
@@ -576,8 +659,8 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
         Values.SetStrainVector(strain);            //this is the input parameter
-        Values.SetStressVector(data.stress);       //this is an ouput parameter
-        Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+        Values.SetStressVector(rData.stress);       //this is an ouput parameter
+        Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
 
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //this is ok under the hypothesis that no history dependent behaviour is employed
@@ -614,7 +697,7 @@ protected:
     ///@}
 
 
-protected:
+// protected:
     ConstitutiveLaw::Pointer mp_constitutive_law = nullptr;
 
 private:

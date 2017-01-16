@@ -184,8 +184,8 @@ for dim in dim_vector:
     ## Compute LHS and RHS
     rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
 
-    lhs_out = OutputMatrix_CollectingFactors(lhs,"lhs", mode)
-    rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
 
     if(dim == 2):
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
@@ -193,6 +193,18 @@ for dim in dim_vector:
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+
+    ## Compute velocity subscale Gauss point value
+    v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
+    if (artificial_compressibility == True):
+        v_s_gauss -= (tau1/(c*c))*(pder_gauss*v_gauss.transpose()).transpose()
+
+    v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
+
+    if(dim == 2):
+        outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
+    elif(dim == 3):
+        outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
 
 ## Write the modified template
 out = open("navier_stokes.cpp",'w')

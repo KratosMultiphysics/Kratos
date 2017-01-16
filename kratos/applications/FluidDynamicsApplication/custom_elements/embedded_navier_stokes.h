@@ -150,11 +150,11 @@ public:
         ElementDataType data;
 
         // Getting data for the given geometry
-        double Volume;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        // double Volume;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.volume);
 
         // Compute element size
-        data.h = BaseType::ComputeH(data.DN_DX, Volume); // TODO: Check if h has to be recomputed in split elements
+        data.h = BaseType::ComputeH(data.DN_DX); // TODO: Check if h has to be recomputed in split elements
 
         // Database access to all of the variables needed
         const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -176,7 +176,6 @@ public:
             const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
             const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
             const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-            //~ const array_1d<double,3>& vel_conv = vel - vel_mesh;
 
             for(unsigned int k=0; k<TDim; k++)
             {
@@ -215,7 +214,8 @@ public:
         // Element LHS and RHS contributions computation
         if(npos == TNumNodes) // All nodes belong to fluid domain
         {
-            ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+            // ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+            ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
         }
         else if(nneg == TNumNodes) // All nodes belong to structure domain
         {
@@ -224,7 +224,8 @@ public:
         }
         else // Element intersects both fluid and structure domains
         {
-            ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
+            // ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
+            ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
         }
 
         KRATOS_CATCH("Error in embedded Navier-Stokes symbolic element")
@@ -353,7 +354,7 @@ public:
                                array_1d<double,MatrixSize>& rhs_local,
                                MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const double& Volume,
+                            //    const double& Volume,
                                ElementDataType& data,
                                ProcessInfo& rCurrentProcessInfo)
     {
@@ -376,8 +377,8 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);;
+        rLeftHandSideMatrix *= data.volume/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);;
     }
 
 
@@ -386,7 +387,7 @@ public:
                                array_1d<double,MatrixSize>& rhs_local,
                                MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const double& Volume,
+                            //    const double& Volume,
                                ElementDataType& data,
                                ProcessInfo& rCurrentProcessInfo,
                                array_1d<double, TNumNodes>& distances)
@@ -416,7 +417,8 @@ public:
             // Gauss pt. is FLUID (the element is close to be full of fluid)
             if(dgauss > 0.0)
             {
-                ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+                // ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+                ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
             }
         }
         else
