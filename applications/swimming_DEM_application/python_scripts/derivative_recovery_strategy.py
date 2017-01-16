@@ -65,7 +65,8 @@ class DerivativeRecoveryStrategy:
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-        linear_solver = CGSolver()
+        linear_solver = SuperLUIterativeSolver()
+        #linear_solver = CGSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()        
         amgcl_smoother = AMGCLSmoother.ILU0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
