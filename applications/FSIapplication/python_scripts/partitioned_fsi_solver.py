@@ -75,15 +75,15 @@ class PartitionedFSISolver:
             "solution_type": "Dynamic",
             "scheme_type": "Newmark",
             "convergence_criterion": "Residual_criteria",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-4,
+            "displacement_relative_tolerance": 1.0e-3,
+            "displacement_absolute_tolerance": 1.0e-5,
+            "residual_relative_tolerance": 1.0e-3,
+            "residual_absolute_tolerance": 1.0e-5,
             "max_iteration": 10,
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
+                "max_iteration": 200,
+                "tolerance": 1e-7,
                 "scaling": false,
                 "verbosity": 1
             },
@@ -106,10 +106,10 @@ class PartitionedFSISolver:
             "compute_reactions": true,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
                 "solver_type" : "AMGCL_NS_Solver",
                 "krylov_type" : "bicgstab",
@@ -121,7 +121,7 @@ class PartitionedFSISolver:
                     "tolerance" : 1e-2,
                     "precondioner_type" : "spai0"
                 },
-                "tolerance" : 1e-6,
+                "tolerance" : 1e-7,
                 "krylov_type": "bicgstab",
                 "gmres_krylov_space_dimension": 50,
                 "max_iteration": 50,
@@ -693,7 +693,7 @@ class PartitionedFSISolver:
 
 
     # Neumann-Neumann scheme interface velocity residual
-    def _NeumannNeumannResidual(self):
+    def _ComputeNeumannNeumannResidual(self):
 
         # Fluid domain interface flux imposition
         i = 0
