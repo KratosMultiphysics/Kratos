@@ -424,15 +424,39 @@ protected:
             // TopLeftSurface
             PropDataFile << "dict set FracturesDict " << Id << " TopLeftSurface Id "
                          << rParameters["fractures_list"][i]["top_left_surface"]["id"].GetInt() << std::endl;
+            PropDataFile << "set Lines [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_left_surface"]["lines"].size(); j++)
+            {
+                PropDataFile << "lappend Lines " << rParameters["fractures_list"][i]["top_left_surface"]["lines"][j].GetInt() << std::endl;
+            }
+            PropDataFile << "dict set FracturesDict " << Id << " TopLeftSurface Lines $Lines" << std::endl;
             // TopRightSurface
             PropDataFile << "dict set FracturesDict " << Id << " TopRightSurface Id "
                          << rParameters["fractures_list"][i]["top_right_surface"]["id"].GetInt() << std::endl;
+            PropDataFile << "set Lines [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["top_right_surface"]["lines"].size(); j++)
+            {
+                PropDataFile << "lappend Lines " << rParameters["fractures_list"][i]["top_right_surface"]["lines"][j].GetInt() << std::endl;
+            }
+            PropDataFile << "dict set FracturesDict " << Id << " TopRightSurface Lines $Lines" << std::endl;
             // BotLeftSurface
             PropDataFile << "dict set FracturesDict " << Id << " BotLeftSurface Id "
                          << rParameters["fractures_list"][i]["bot_left_surface"]["id"].GetInt() << std::endl;
+            PropDataFile << "set Lines [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_left_surface"]["lines"].size(); j++)
+            {
+                PropDataFile << "lappend Lines " << rParameters["fractures_list"][i]["bot_left_surface"]["lines"][j].GetInt() << std::endl;
+            }
+            PropDataFile << "dict set FracturesDict " << Id << " BotLeftSurface Lines $Lines" << std::endl;
             // BotRightSurface
             PropDataFile << "dict set FracturesDict " << Id << " BotRightSurface Id "
                          << rParameters["fractures_list"][i]["bot_right_surface"]["id"].GetInt() << std::endl;
+            PropDataFile << "set Lines [list]" << std::endl;
+            for(unsigned int j = 0; j < rParameters["fractures_list"][i]["bot_right_surface"]["lines"].size(); j++)
+            {
+                PropDataFile << "lappend Lines " << rParameters["fractures_list"][i]["bot_right_surface"]["lines"][j].GetInt() << std::endl;
+            }
+            PropDataFile << "dict set FracturesDict " << Id << " BotRightSurface Lines $Lines" << std::endl;
             // LeftInterfaceVolume
             PropDataFile << "dict set FracturesDict " << Id << " LeftInterfaceVolume Id "
                          << rParameters["fractures_list"][i]["left_interface_volume"]["id"].GetInt() << std::endl;

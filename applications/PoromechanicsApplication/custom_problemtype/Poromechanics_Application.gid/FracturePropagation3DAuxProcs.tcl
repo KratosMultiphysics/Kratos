@@ -16,12 +16,17 @@ proc AddPointToFracturesDict {FracturesDict FractureId PointId Point PointType} 
 
 #-------------------------------------------------------------------------------
 
-#~ proc AddSurfaceToFracturesDict {FracturesDict FractureId SurfaceId SurfaceType} {
-    #~ upvar $FracturesDict MyFracturesDict
+proc AddSurfaceToFracturesDict {FracturesDict FractureId SurfaceId Surface SurfaceType} {
+    upvar $FracturesDict MyFracturesDict
     
-    #~ dict set MyFracturesDict $FractureId $SurfaceType Id $SurfaceId
-    #~ dict set MyFracturesDict $FractureId $SurfaceType Groups [GiD_EntitiesGroups entity_groups surfaces $SurfaceId]
-#~ }
+    dict set MyFracturesDict $FractureId $SurfaceType Id $SurfaceId
+    set Lines [list]
+    for {set i 0} {$i<[lindex $Surface 2]} {incr i} {
+        lappend Lines [lindex [lindex $Surface [expr { 9+$i }]] 0]
+    }
+    dict set MyFracturesDict $FractureId $SurfaceType Lines $Lines
+    #dict set MyFracturesDict $FractureId $SurfaceType Groups [GiD_EntitiesGroups entity_groups surfaces $SurfaceId]
+}
 
 #-------------------------------------------------------------------------------
 
@@ -247,19 +252,47 @@ proc WriteFracturesList {FileVar FracturesDict} {
         puts $MyFileVar "        \},"
         # TopLeftSurface
         puts $MyFileVar "        \"top_left_surface\":       \{"
-        puts $MyFileVar "            \"id\": [dict get $Fracture TopLeftSurface Id]"
+        puts $MyFileVar "            \"id\":    [dict get $Fracture TopLeftSurface Id],"
+        set PutStrings \[
+        for {set i 0} {$i < [llength [dict get $Fracture TopLeftSurface Lines]]} {incr i} {
+            append PutStrings [lindex [dict get $Fracture TopLeftSurface Lines] $i] ,
+        }
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+        puts $MyFileVar "            \"lines\": $PutStrings"
         puts $MyFileVar "        \},"
         # TopRightSurface
         puts $MyFileVar "        \"top_right_surface\":      \{"
-        puts $MyFileVar "            \"id\": [dict get $Fracture TopRightSurface Id]"
+        puts $MyFileVar "            \"id\":    [dict get $Fracture TopRightSurface Id],"
+        set PutStrings \[
+        for {set i 0} {$i < [llength [dict get $Fracture TopRightSurface Lines]]} {incr i} {
+            append PutStrings [lindex [dict get $Fracture TopRightSurface Lines] $i] ,
+        }
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+        puts $MyFileVar "            \"lines\": $PutStrings"
         puts $MyFileVar "        \},"
         # BotLeftSurface
         puts $MyFileVar "        \"bot_left_surface\":       \{"
-        puts $MyFileVar "            \"id\": [dict get $Fracture BotLeftSurface Id]"
+        puts $MyFileVar "            \"id\":    [dict get $Fracture BotLeftSurface Id],"
+        set PutStrings \[
+        for {set i 0} {$i < [llength [dict get $Fracture BotLeftSurface Lines]]} {incr i} {
+            append PutStrings [lindex [dict get $Fracture BotLeftSurface Lines] $i] ,
+        }
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+        puts $MyFileVar "            \"lines\": $PutStrings"
         puts $MyFileVar "        \},"
         # BotRightSurface
         puts $MyFileVar "        \"bot_right_surface\":      \{"
-        puts $MyFileVar "            \"id\": [dict get $Fracture BotRightSurface Id]"
+        puts $MyFileVar "            \"id\":    [dict get $Fracture BotRightSurface Id],"
+        set PutStrings \[
+        for {set i 0} {$i < [llength [dict get $Fracture BotRightSurface Lines]]} {incr i} {
+            append PutStrings [lindex [dict get $Fracture BotRightSurface Lines] $i] ,
+        }
+        set PutStrings [string trimright $PutStrings ,]
+        append PutStrings \]
+        puts $MyFileVar "            \"lines\": $PutStrings"
         puts $MyFileVar "        \},"
         # LeftInterfaceVolume
         puts $MyFileVar "        \"left_interface_volume\":  \{"
