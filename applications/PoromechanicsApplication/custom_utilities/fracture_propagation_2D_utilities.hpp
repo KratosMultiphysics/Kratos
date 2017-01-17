@@ -1324,7 +1324,7 @@ private:
         array_1d<double,2> AuxArray2;
 
         // Bifurcation
-        if(PropagationFactor < PropagationDamage
+        if(PropagationFactor < (0.25*PropagationDamage)
             && TopBifurcationFactor > PropagationDamage && BotBifurcationFactor > PropagationDamage)
         {
             Bifurcation MyBifurcation;
