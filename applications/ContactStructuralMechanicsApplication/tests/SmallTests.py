@@ -42,11 +42,11 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
-class BasicCATest(StructuralMechanichsTestFactory):
-    file_name = "CA_test/basic_CA_test"
+#class BasicCATest(StructuralMechanichsTestFactory):
+    #file_name = "CA_test/basic_CA_test"
     
-class SolidCATest(StructuralMechanichsTestFactory):
-    file_name = "CA_test/solid_CA_test"
+#class SolidCATest(StructuralMechanichsTestFactory):
+    #file_name = "CA_test/solid_CA_test"
     
 class HyperSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/hyper_simple_patch_test"
