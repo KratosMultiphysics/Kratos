@@ -1579,15 +1579,13 @@ private:
         const double PropagationDamage = rParameters["fracture_data"]["propagation_damage"].GetDouble();
         const double PropagationWidth = rParameters["fracture_data"]["propagation_width"].GetDouble();
         const double PropagationHeight = rParameters["fracture_data"]["propagation_height"].GetDouble();
-        double PropagationDistance = PropagationWidth;
-        if(PropagationHeight > PropagationDistance)
-            PropagationDistance = PropagationHeight;
+        double PropagationDistance = 0.1*PropagationLength;
         int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         array_1d<double,3> AuxArray1;
         //array_1d<double,3> AuxArray2;
 
         // Bifurcation
-        if(PropagationFactor < PropagationDamage
+        if(PropagationFactor < (0.25*PropagationDamage)
             && TopBifurcationFactor > PropagationDamage && BotBifurcationFactor > PropagationDamage)
         {
             Bifurcation MyBifurcation;
@@ -1630,22 +1628,22 @@ private:
 
             // LeftInitCoordinates
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-            AuxArray1[0] -= 0.5*PropagationDistance;
+            AuxArray1[0] -= PropagationDistance;
             AuxArray1[1] += 0.5*PropagationHeight;
             noalias(MyBifurcation.LeftInitCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
             // RightInitCoordinates
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-            AuxArray1[0] -= 0.5*PropagationDistance;
+            AuxArray1[0] -= PropagationDistance;
             AuxArray1[1] -= 0.5*PropagationHeight;
             noalias(MyBifurcation.RightInitCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
             // TopInitCoordinates
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-            AuxArray1[0] -= 0.5*PropagationDistance;
+            AuxArray1[0] -= PropagationDistance;
             AuxArray1[2] += 0.5*PropagationWidth;
             noalias(MyBifurcation.TopInitCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
             // BotInitCoordinates
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-            AuxArray1[0] -= 0.5*PropagationDistance;
+            AuxArray1[0] -= PropagationDistance;
             AuxArray1[2] -= 0.5*PropagationWidth;
             noalias(MyBifurcation.BotInitCoordinates) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
             
@@ -1881,7 +1879,7 @@ void ComputeCosAngle(
         Vx[2] *= inv_norm;
         
         array_1d<double,3> CenterPoint;
-        noalias(CenterPoint) = rAuxPropagationVariables.TipCoordinates + 0.5*PropagationDistance*(Vx);
+        noalias(CenterPoint) = rAuxPropagationVariables.TipCoordinates + PropagationDistance*(Vx);
         
         array_1d<double,3> LeftLine;
         noalias(LeftLine) = NewTipCoordinates - LeftInitCoordinates;

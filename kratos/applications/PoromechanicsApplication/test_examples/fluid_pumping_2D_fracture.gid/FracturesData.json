@@ -1,0 +1,44 @@
+{
+    "fracture_data": {
+        "gid_path":                             "/full/path/to/GiD/",
+        "propagation_damage":                   0.5,
+        "propagation_length":                   0.05,
+        "propagation_width":                    0.01,
+        "propagation_cosangle":                 0.0,
+        "propagation_frequency":                1,
+        "body_domain_sub_model_part_list":      ["Body_Part-auto-1"],
+        "interface_domain_sub_model_part_list": ["Interface_Part-auto-1"]
+    },
+    "body_surfaces_list": [{
+        "id":     2,
+        "groups": ["Body_Part-auto-1"],
+        "lines":  [1,2,3,4,9,8,7,6,5]
+    }],
+    "fractures_list": [{
+        "id":                0,
+        "tip_point":         {
+            "id":          8,
+            "coordinates": [1.0,2.5,0.0]
+        },
+        "top_point":         {
+            "id":          9,
+            "coordinates": [0.5,2.5100000000000002,0.0]
+        },
+        "bot_point":         {
+            "id":          7,
+            "coordinates": [0.5,2.4899999999999998,0.0]
+        },
+        "top_line":          {
+            "id": 8
+        },
+        "bot_line":          {
+            "id": 7
+        },
+        "interface_surface": {
+            "id":     1,
+            "layer":  "Layer0",
+            "groups": ["Interface_Part-auto-1"]
+        },
+        "body_surfaces":     [2]
+    }]
+}

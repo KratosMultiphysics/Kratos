@@ -6,26 +6,26 @@ QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
-VALUE: 3.0
+VALUE: 2.4
 HELP: Units in IS: s
 QUESTION: Delta_Time
-VALUE: 0.01
+VALUE: 0.1
 HELP: Units in IS: s
 QUESTION: Echo_Level
 VALUE: 1
 QUESTION: OMP_Threads
 VALUE: 1
 QUESTION: FIC_Stabilization#CB#(true,false)
-VALUE: false
+VALUE: true
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
 QUESTION: Non-local_Damage#CB#(true,false)
-VALUE: false
+VALUE: true
 DEPENDENCIES: (true,RESTORE,Characteristic_Length,#CURRENT#)(false,HIDE,Characteristic_Length,#CURRENT#)
 QUESTION: Characteristic_Length
-VALUE: 0.05
+VALUE: 0.1
 HELP: Length defining the domain of interaction between non-local damaged points.
 QUESTION: Fracture_Propagation#CB#(true,false)
-VALUE: false
+VALUE: true
 DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
@@ -76,15 +76,15 @@ VALUE: 1.0E-4
 QUESTION: Residual_Absolute_Tolerance
 VALUE: 1.0E-9
 QUESTION: Max_Iterations
-VALUE: 15
+VALUE: 20
 QUESTION: Desired_Iterations
 VALUE: 4
 HELP: The larger this number, the larger the radius
 QUESTION: Max_Radius_Factor
-VALUE: 20.0
+VALUE: 2.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Min_Radius_Factor
-VALUE: 0.5
+VALUE: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Builder#CB#(Elimination,Block)
 VALUE: Elimination
@@ -105,13 +105,13 @@ VALUE: false
 QUESTION: Write_Force#CB#(true,false)
 VALUE: false
 QUESTION: Write_Face_Load#CB#(true,false)
-VALUE: true
+VALUE: false
 QUESTION: Write_Normal_Load#CB#(true,false)
 VALUE: false
 QUESTION: Write_Tangential_Load#CB#(true,false)
 VALUE: false
 QUESTION: Write_Normal_Fluid_Flux#CB#(true,false)
-VALUE: false
+VALUE: true
 QUESTION: Write_Body_Acceleration#CB#(true,false)
 VALUE: false
 QUESTION: Write_Strain#CB#(true,false)
@@ -119,15 +119,15 @@ VALUE: false
 QUESTION: Write_Effective_Stress#CB#(true,false)
 VALUE: true
 QUESTION: Write_Total_Stress#CB#(true,false)
-VALUE: true
+VALUE: false
 QUESTION: Write_Von_Mises_Stress#CB#(true,false)
 VALUE: false
 QUESTION: Write_Fluid_Flux#CB#(true,false)
-VALUE: false
+VALUE: true
 QUESTION: Write_Permeability#CB#(true,false)
 VALUE: false
 QUESTION: Write_Damage#CB#(true,false)
-VALUE: false
+VALUE: true
 QUESTION: Write_Joint_Width#CB#(true,false)
 VALUE: false
 QUESTION: Write_Local_Stress_Vector#CB#(true,false)
@@ -147,13 +147,13 @@ QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditions
 VALUE: WriteElementsOnly
 HELP: Write Gauss points results also on the conditions.
 QUESTION: Multi_file_flag#CB#(SingleFile,MultipleFiles)
-VALUE: SingleFile
+VALUE: MultipleFiles
 QUESTION: File_label#CB#(step,time)
-VALUE: step
+VALUE: time
 QUESTION: Output_control_type#CB#(step,time)
-VALUE: step
+VALUE: time
 QUESTION: Output_frequency
-VALUE: 1
+VALUE: 0.0001
 QUESTION: Body_output#CB#(true,false)
 VALUE: true
 QUESTION: Node_output#CB#(true,false)
