@@ -10,8 +10,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from SmallTests import BasicCATest as TBasicCATest
-from SmallTests import SolidCATest as TSolidCATest
+#from SmallTests import BasicCATest as TBasicCATest
+#from SmallTests import SolidCATest as TSolidCATest
 from SmallTests import HyperSimplePatchTestContact as THyperSimplePatchTestContact
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
@@ -50,8 +50,8 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TBasicCATest('test_execution'))
-    smallSuite.addTest(TSolidCATest('test_execution'))
+    #smallSuite.addTest(TBasicCATest('test_execution'))
+    #smallSuite.addTest(TSolidCATest('test_execution'))
     smallSuite.addTest(THyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
@@ -81,8 +81,8 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TBasicCATest,
-            TSolidCATest,
+            #TBasicCATest,
+            #TSolidCATest,
             THyperSimplePatchTestContact,
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,
