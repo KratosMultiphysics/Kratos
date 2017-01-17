@@ -4,24 +4,27 @@ from KratosMultiphysics import * # TODO: Don't call everything at once!!!
 import math
 
 def ComputeTensorH(d,v,ratio,h,distance_threshold):
+    #print(d, distance_threshold)
+    
     if(d>distance_threshold):
     #if(d>h):
         coeff = 1/(h*h)
         mystring = str(coeff)+" 0 "+str(coeff) + " 0 0 "+str(coeff) + str("\n")
     else:
         
-        coeff1 = 1/h*h
+        coeff1 = 1/(h*h)
         
         a = ratio + (d/h)*(1-ratio)
 
         coeff2 = coeff1/(a*a)
-        mystring = str(coeff1*(1-v[0]*v[0]) + coeff2*v[0]*v[0]) + " "
-        mystring += str(coeff1*(v[0]*v[1]) + coeff2*v[0]*v[1]) + " "
-        mystring += str(coeff1*(1-v[1]*v[1]) + coeff2*v[1]*v[1]) + " "
-        mystring += str(coeff1*(v[0]*v[2]) + coeff2*v[0]*v[2]) + " "
-        mystring += str(coeff1*(v[1]*v[2]) + coeff2*v[1]*v[2]) + " "
-        mystring += str(coeff1*(1-v[2]*v[2]) + coeff2*v[2]*v[2]) + " "
+        mystring  = str(coeff1*(1.0-v[0]*v[0]) + coeff2*v[0]*v[0]) + " "
+        mystring += str(coeff1*(    v[0]*v[1]) + coeff2*v[0]*v[1]) + " "
+        mystring += str(coeff1*(1.0-v[1]*v[1]) + coeff2*v[1]*v[1]) + " "
+        mystring += str(coeff1*(    v[0]*v[2]) + coeff2*v[0]*v[2]) + " "
+        mystring += str(coeff1*(    v[1]*v[2]) + coeff2*v[1]*v[2]) + " "
+        mystring += str(coeff1*(1.0-v[2]*v[2]) + coeff2*v[2]*v[2]) + " "
         mystring +=" \n"
+        
     return mystring
 
 
@@ -234,13 +237,13 @@ def WriteMmgFile(input_file, elementary_length = 0.1, initial_alpha_parameter = 
         
         # NOTE: In case the gradient gives wrong results because the distance is 0 or almost 0
         if distance < 1.0e-6:
-            vector_gradient[0] = 1.0 # NOTE: Is it right?
-            vector_gradient[1] = 0.0
-            vector_gradient[2] = 0.0
+            vector_gradient[0] = 1.0; # NOTE: Is it right?
+            vector_gradient[1] = 0.0;
+            vector_gradient[2] = 0.0;
         else:
-            vector_gradient[0] /= norm
-            vector_gradient[1] /= norm
-            vector_gradient[2] /= norm
+            vector_gradient[0] /= norm;
+            vector_gradient[1] /= norm;
+            vector_gradient[2] /= norm;
         
         if (distance < distance_threshold): # Considering until distance threshold 
             if (interpolation == "Constant"):

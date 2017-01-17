@@ -166,8 +166,6 @@ def ParseMmgFile(input_file, model_part_name = "MainModelPart"):
     #with open('part_colors.json', 'w') as output_data:    
         #json.dump(parts, output_data)
     
-    # TODO: Use the C++
-    
     print("Reading the vertices")
     ReadVertices(input_file, model_part, parts)
     
@@ -181,16 +179,6 @@ def ParseMmgFile(input_file, model_part_name = "MainModelPart"):
     AddNodesToSubmodelParts(model_part, parts)
     
     print(model_part)
-    
-    ## NOTE: Esto es una chapuza, arreglar
-    #model_part.AddNodalSolutionStepVariable(DISTANCE) 
-    #model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT) 
-    
-    ## NOTE: En C++ poner pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
-    ## Para copiar lista de variables
-    #for node in model_part.Nodes:
-        ##node.GetSolutionStepValue(DISTANCE, 0)
-        #node.SetSolutionStepValue(DISTANCE, 0, abs(node.X))
     
     #from gid_output_process import GiDOutputProcess
     #gid_output = GiDOutputProcess(model_part,

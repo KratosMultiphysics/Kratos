@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KratosMultiphysics
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 import os
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -24,7 +25,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "elementary_length"       : 0.1,
             "initial_alpha_parameter" : 0.01,
             "distance_threshold"      : 1.0,
-            "interpolation"           : "Constant"
+            "interpolation"           : "Constant",
+            "save_external_files"     : true
         }
         """)
         
@@ -45,6 +47,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.mmg_location = self.params["mmg_location"].GetString()
         self.output_file_name = self.params["output_file_name"].GetString()
         self.step_frequency = self.params["step_frequency"].GetInt()
+        self.save_external_files = self.params["save_external_files"].GetBool()
         
     def ExecuteInitialize(self):
                 
@@ -57,6 +60,8 @@ class MmgProcess(KratosMultiphysics.Process):
         KratosMultiphysics.ModelPartIO(self.input_file_name).ReadModelPart(self.Model[self.model_part_name])
         
         self._CreateGradientProcess()
+        
+        self.MmgUtility = MeshingApplication.MmgUtility(self.input_file_name)
         
         self._ExecuteRefinement()
         
@@ -123,6 +128,16 @@ class MmgProcess(KratosMultiphysics.Process):
             nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA, 0)
             if nodal_area > 0.0:
                 node.SetValue(KratosMultiphysics.NODAL_VOLUME, aux/nodal_area)
+        
+        ##TODO: Define the variables in the input of the json
+        #self.MmgUtility.ComputeExistingModelPart(self.Model[self.model_part_name], KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, self.elementary_length, self.initial_alpha_parameter, self.distance_threshold, self.interpolation, self.save_external_files)
+        
+        #self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files)
+        
+        ## In case memory is not erased
+        ##self.MmgUtility.FreeMemory()
+        
+        # LEGACY MMG 
         
         import write_mmg_mesh as write
         #write.WriteMmgFile(self.input_file_name, self.elementary_length,self.initial_alpha_parameter, self.distance_threshold, self.model_part_name, self.interpolation)
