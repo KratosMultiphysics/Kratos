@@ -91,8 +91,10 @@ public:
     typedef std::size_t                                                SizeType;
     typedef Dof<double>                                                 DofType;
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
-    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
+    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
+    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
+    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
     ///@}
     ///@name Life Cycle
@@ -156,7 +158,7 @@ public:
      * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
      */
     
-    int ComputeExistingModelPart(
+    void ComputeExistingModelPart(
         ModelPart& rThisModelPart,
         const Variable<double> & rVariable,
         const Variable<array_1d<double,3>> & rVariableGradient,
@@ -175,9 +177,11 @@ public:
         
         ////////* MESH FILE *////////
                 
-        /** 2) Build mesh in MMG5 format */
-        /** Two solutions: just use the MMG3D_loadMesh function that will read a .mesh(b)
-        file formatted or manually set your mesh using the MMG3D_Set* functions */
+        /** 
+         * 2) Build mesh in MMG5 format 
+         */
+        
+        // Two solutions: just use the MMG3D_loadMesh function that will read a .mesh(b) file formatted or manually set your mesh using the MMG3D_Set* functions 
         
         // Iterate in the nodes
         NodesArrayType& pNode = rThisModelPart.Nodes();
@@ -191,8 +195,9 @@ public:
         ElementsArrayType& pElements = rThisModelPart.Elements();
         auto numElements = pElements.end() - pElements.begin();
         
-        /** Manually set of the mesh */
-        /** a) give the size of the mesh: numNodes vertices, numElements tetra, numConditions triangles, 0 edges (3D) */
+        /* Manually set of the mesh */
+        
+        // Give the size of the mesh: numNodes vertices, numElements tetra, numConditions triangles, 0 edges (3D) 
         if ( MMG3D_Set_meshSize(mmgMesh,numNodes,numElements,numConditions,0) != 1 ) 
         {
             exit(EXIT_FAILURE);
@@ -204,19 +209,19 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            /** b) give the vertices: for each vertex, give the coordinates, the reference
-             *and the position in mesh of the vertex */
+            // Give the vertices: for each vertex, give the coordinates, the reference and the position in mesh of the vertex 
             
-            mmgMesh->point[i + 1].c[0] = itNode->X();  
-            mmgMesh->point[i + 1].c[1] = itNode->Y(); 
-            mmgMesh->point[i + 1].c[2] = itNode->Z(); 
-            mmgMesh->point[i + 1].ref  = node_colors[itNode->Id()];
+            // Manually 
+//             mmgMesh->point[i + 1].c[0] = itNode->X();  
+//             mmgMesh->point[i + 1].c[1] = itNode->Y(); 
+//             mmgMesh->point[i + 1].c[2] = itNode->Z(); 
+//             mmgMesh->point[i + 1].ref  = node_colors[itNode->Id()];
             
-            /* or with the api function :*/
-//             if ( MMG3D_Set_vertex(mmgMesh, itNode.X(), itNode.Y(), itNode.Z(), node_colors[itNode.Id()], i  + 1) != 1 )  
-//             {
-//                 exit(EXIT_FAILURE); 
-//             }
+            // Using the API
+            if ( MMG3D_Set_vertex(mmgMesh, itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i  + 1) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
         }
         
         /* Conditions */
@@ -224,17 +229,18 @@ public:
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-           /* tria*/
-           mmgMesh->tria[i + 1].v[0] = itCond->GetGeometry()[0].Id();  
-           mmgMesh->tria[i + 1].v[1] = itCond->GetGeometry()[1].Id();  
-           mmgMesh->tria[i + 1].v[2] = itCond->GetGeometry()[2].Id();
-           mmgMesh->tria[i + 1].ref  = cond_colors[itCond->Id()];
+            
+           // Manually
+//            mmgMesh->tria[i + 1].v[0] = itCond->GetGeometry()[0].Id();  
+//            mmgMesh->tria[i + 1].v[1] = itCond->GetGeometry()[1].Id();  
+//            mmgMesh->tria[i + 1].v[2] = itCond->GetGeometry()[2].Id();
+//            mmgMesh->tria[i + 1].ref  = cond_colors[itCond->Id()];
            
-           /* or with the api function :*/
-//            if ( MMG3D_Set_triangle(mmgMesh, itElem.GetGeometry()[0].Id() ,itElem.GetGeometry()[1].Id() ,itElem.GetGeometry()[2].Id(), cond_colors[itCond.Id()], i + 1) != 1 )  
-//            {
-//                exit(EXIT_FAILURE); 
-//            }
+           // Using the API
+           if ( MMG3D_Set_triangle(mmgMesh, itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1) != 1 )  
+           {
+               exit(EXIT_FAILURE); 
+           }
         }
         
         /* Elements */
@@ -242,18 +248,19 @@ public:
         for(unsigned int i = 0; i < numElements; i++) 
         {
             auto itElem = pElements.begin() + i;
-           /* tetra*/
-           mmgMesh->tetra[i + 1].v[0] = itElem->GetGeometry()[0].Id();  
-           mmgMesh->tetra[i + 1].v[1] = itElem->GetGeometry()[1].Id();  
-           mmgMesh->tetra[i + 1].v[2] = itElem->GetGeometry()[2].Id();
-           mmgMesh->tetra[i + 1].v[3] = itElem->GetGeometry()[3].Id();
-           mmgMesh->tetra[i + 1].ref  = elem_colors[itElem->Id()];
+
+            // Manually 
+//             mmgMesh->tetra[i + 1].v[0] = itElem->GetGeometry()[0].Id();  
+//             mmgMesh->tetra[i + 1].v[1] = itElem->GetGeometry()[1].Id();  
+//             mmgMesh->tetra[i + 1].v[2] = itElem->GetGeometry()[2].Id();
+//             mmgMesh->tetra[i + 1].v[3] = itElem->GetGeometry()[3].Id();
+//             mmgMesh->tetra[i + 1].ref  = elem_colors[itElem->Id()];
            
-           /* or with the api function :*/
-//            if ( MMG3D_Set_tetrahedra(mmgMesh, itElem.GetGeometry()[0].Id() ,itElem.GetGeometry()[1].Id() ,itElem.GetGeometry()[2].Id() ,itElem.GetGeometry()[3].Id(), elem_colors[itCond.Id()], i + 1) != 1 )  
-//            {
-//                exit(EXIT_FAILURE); 
-//            }
+           // Using the API
+           if ( MMG3D_Set_tetrahedron(mmgMesh, itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1) != 1 )  
+           {
+               exit(EXIT_FAILURE); 
+           }
         }
         
         ////////* SOLUTION FILE *////////
@@ -269,7 +276,21 @@ public:
             auto itNode = pNode.begin() + i;
             
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable);
-            const array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
+            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
+            
+            const double tol = 1.0e-6;
+            if (scalar_value < tol) //NOTE: Is it right?
+            {
+                gradient_value[0] = 1.0;
+                gradient_value[1] = 0.0;
+                gradient_value[2] = 0.0;
+            }
+            else
+            {
+                const double norm = norm_2(gradient_value);
+                gradient_value /= norm;
+            }
+            
             double element_size = itNode->GetValue(NODAL_VOLUME);
             if (element_size > elementary_length)
             {
@@ -305,27 +326,30 @@ public:
             ComputeTensorH(scalar_value, gradient_value, ratio, element_size, value_threshold, i + 1);
         }
         
-        /** 4) If you don't use the API functions, you MUST call
-        * the MMG3D_Set_handGivenMesh() function. Don't call it if you use
-        * the API functions */
-        MMG3D_Set_handGivenMesh(mmgMesh);
+        /** 
+         * 4) If you don't use the API functions, you MUST call
+         * the MMG3D_Set_handGivenMesh() function. Don't call it if you use
+         * the API functions 
+         */
         
-        /** 5) (not mandatory): check if the number of given entities match with mesh size */
+//         MMG3D_Set_handGivenMesh(mmgMesh);
+        
+        /** 
+         * 5) (not mandatory): check if the number of given entities match with mesh size 
+         */
+        
         if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 ) 
         {
             exit(EXIT_FAILURE);
         }
         
        // Save to file
-       int ier = 0;
        if (save_to_file == true)
        {
-           ier = SaveSolutionToFile(false);
+           SaveSolutionToFile(false);
        }
        
        //NOTE: Don't free memmory, it will be used in the Execute
-       
-       return ier;
     }
     
     /***********************************************************************************/
@@ -339,29 +363,43 @@ public:
     {
        // NOTE: Step one in the constructor
         
-       /** 2) Build mesh in MMG5 format */
+       /** 
+        * 2) Build mesh in MMG5 format 
+        */
+       
        if ( MMG3D_Set_inputMeshName(mmgMesh,mFilename) != 1 )
        {
            exit(EXIT_FAILURE);
        }
        
-       /** 3) Build sol in MMG5 format */
-       /* With MMG3D_loadSol function */
-       /* a) (not mandatory): give the sol name
+       /** 
+        * 3) Build sol in MMG5 format 
+        */
+       
+       /* With MMG3D_loadSol function 
+        * a) (not mandatory): give the sol name
         * (by default, the "mesh.sol" file is oppened)
         */
+       
        if ( MMG3D_Set_inputSolName(mmgMesh,mmgSol,mFilename) != 1 )
        {
            exit(EXIT_FAILURE);
        }
        
-       /** b) function calling */
+       /**
+        * b) function calling 
+        */
+       
        if ( MMG3D_loadSol(mmgMesh,mmgSol,mFilename) != 1 )
        {
            exit(EXIT_FAILURE);
        }
        
-       /** 4) (not mandatory): check if the number of given entities match with mesh size */if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 ) 
+       /** 
+        * 4) (not mandatory): check if the number of given entities match with mesh size
+        */
+       
+       if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 ) 
        {
            exit(EXIT_FAILURE);
        }
@@ -372,98 +410,128 @@ public:
     
     /**
      * The operation related with the libray is executed
-     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
+     * @param rThisModelPart: The model part to modify (first we empty, later we fill)
      * @param mColors: The external dictionary needed to know how to assign the submodelparts
      * @param save_to_file: Save the solution to a *.sol and *.mesh files
      */
-    
-    // FIXME: Core here
-    int Execute( // NOTE: Properties are going to give problems (we need to define new properies copying the old ones)
-        ModelPart& rThisModelPart, //NOTE: The model part shoul be empty
-        Properties::Pointer pProperties, // TODO: Solve the problem, just one property
-//         std::vector<Properties::Pointer> pPropertiesVector,
+
+    void Execute(
+        ModelPart& rThisModelPart,
         const bool save_to_file = false
         )
-    {        
-        // Create iterator
-        typedef std::map<int,std::vector<std::string>>::iterator it_type;
-        for(it_type iterator = mColors.begin(); iterator != mColors.end(); iterator++) 
+    {   
+        ////////* MMG LIBRARY CALL *////////
+        
+        const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+        
+        if ( ier == MMG5_STRONGFAILURE ) 
         {
-            const int key = iterator->first;
-            const std::vector<std::string> value = iterator->second;
-            
-            if (key != 0)
+            std::cout << "BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH" << std::endl;
+        }
+        else if ( ier == MMG5_LOWFAILURE )
+        {
+            std::cout << "BAD ENDING OF MMG3DLIB" << std::endl;
+        }
+        
+        ////////* EMPTY THE MODEL PART *////////
+        
+        // First we empty the model part
+        for (NodeConstantIterator node_iterator = rThisModelPart.NodesBegin(); node_iterator != rThisModelPart.NodesEnd(); node_iterator++)
+        {
+            node_iterator->Set(TO_ERASE, true);
+        }
+        rThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
+        
+        for (ConditionConstantIterator condition_iterator = rThisModelPart.ConditionsBegin(); condition_iterator != rThisModelPart.ConditionsEnd(); condition_iterator++)
+        {
+            condition_iterator->Set(TO_ERASE, true);
+        }
+        rThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
+        
+        for (ElementConstantIterator elem_iterator = rThisModelPart.ElementsBegin(); elem_iterator != rThisModelPart.ElementsEnd(); elem_iterator++)
+        {
+            elem_iterator->Set(TO_ERASE, true);
+        }
+        rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
+
+        // NOTE: Technically not necessary
+//         // Create iterator
+//         typedef std::map<int,std::vector<std::string>>::iterator it_type;
+//         
+//         // Adding the submodelparts
+//         for(it_type iterator = mColors.begin(); iterator != mColors.end(); iterator++) 
+//         {
+//             const int key = iterator->first;
+//             const std::vector<std::string> value = iterator->second;
+//             
+//             if (key != 0)
+//             {
+//                 for (unsigned int it_name = 0; it_name < value.size(); it_name++)
+//                 {
+//                     if ((value[it_name].find(rThisModelPart.Name()) != std::string::npos) == false) // TODO: Check this!!!
+//                     {
+//                         if (rThisModelPart.HasSubModelPart(value[it_name]) == false)
+//                         {
+//                             rThisModelPart.CreateSubModelPart(value[it_name]);
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+        
+        // Create a new model part
+        /* NODES */
+        unsigned int node_id = 0;
+        for (int i_node = 1; i_node <= mmgMesh->np; i_node++)
+        {
+            node_id += 1;
+            rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+        }
+        
+        /* TRIANGLES */
+        unsigned int cond_id = 0;
+        std::string ConditionName = "Condition3D"; // NOTE: The condition should change the name to Condition3D3N for coherence
+        std::vector<IndexType> ConditionNodeIds (3, 0);
+        for (int i_cond = 1; i_cond <= mmgMesh->nt; i_cond++)
+        {
+            cond_id += 1;
+            ConditionNodeIds[0] = mmgMesh->tria[i_cond].v[0];
+            ConditionNodeIds[1] = mmgMesh->tria[i_cond].v[1];
+            ConditionNodeIds[2] = mmgMesh->tria[i_cond].v[2];
+            const unsigned int prop_id = mmgMesh->tria[i_cond].ref;
+//             rThisModelPart.AddProperties(pPropertiesVector[prop_id]);
+//             PropertiesType::Pointer pProperties = rThisModelPart.pGetProperties(prop_id);
+            Properties::Pointer pProp = rThisModelPart.pGetProperties(0);
+            ConditionType::Pointer pCondition = rThisModelPart.CreateNewCondition(ConditionName ,cond_id, ConditionNodeIds, pProp, 0);
+           
+            if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
             {
-                for (unsigned int it_name = 0; it_name < value.size(); it_name++)
+                std::vector<std::string> ColorList = mColors[prop_id];
+                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                 {
-                    if ((value[it_name].find(rThisModelPart.Name()) != std::string::npos) == false) // TODO: Check this!!!
-                    {
-                        if (rThisModelPart.HasSubModelPart(value[it_name]) == false)
-                        {
-                            rThisModelPart.CreateSubModelPart(value[it_name]);
-                        }
-                    }
+                    std::string SubModelPartName = ColorList[colors];
+                    ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                    SubModelPart.AddCondition(pCondition);
                 }
             }
         }
         
-        // Create a new model part
-        /* NODES */
-        unsigned int nnodes  = sizeof(mmgMesh->point);
-        NodesArrayType& rNodes = rThisModelPart.Nodes();
-        unsigned int node_id = rNodes.size();
-        for (unsigned int i_node = 0; i_node < nnodes; i_node++)
-        {
-            node_id += 1;
-            rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node + 1].c[0], mmgMesh->point[i_node + 1].c[1], mmgMesh->point[i_node + 1].c[2]);
-        }
-       
-        /* TRIANGLES */
-        unsigned int ncond = sizeof(mmgMesh->tria);
-        ConditionsArrayType& rConditions = rThisModelPart.Conditions();
-        unsigned int cond_id = rConditions.size();
-        std::string ConditionName = "Condition3D"; // NOTE: The condition should change the name to Condition3D3N for coherence
-        std::vector<IndexType> ConditionNodeIds (3, 0);
-        for (unsigned int i_cond = 0; i_cond < ncond; i_cond++)
-        {
-            cond_id += 1;
-            ConditionNodeIds[0] = mmgMesh->tria[i_cond + 1].v[0];
-            ConditionNodeIds[1] = mmgMesh->tria[i_cond + 1].v[1];
-            ConditionNodeIds[2] = mmgMesh->tria[i_cond + 1].v[2];
-            const unsigned int prop_id = mmgMesh->tria[i_cond + 1].ref;
-//             rThisModelPart.AddProperties(pPropertiesVector[prop_id]);
-//             PropertiesType::Pointer pProperties = rThisModelPart.pGetProperties(prop_id);
-            rThisModelPart.CreateNewCondition(ConditionName ,cond_id, ConditionNodeIds, pProperties, 0);
-           
-            if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-            {
-                std::vector<std::string> ColorList = mColors[prop_id];
-                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
-                {
-                    std::string SubModelPartName = ColorList[colors];
-                    std::vector<IndexType> ConditionsIds (1, cond_id);
-                    (rThisModelPart.GetSubModelPart(SubModelPartName)).AddConditions(ConditionsIds);
-                }
-            }
-        }
-       
         /* TETRAHEDRAS */
-        unsigned int nelem = sizeof(mmgMesh->tetra);
-        ElementsArrayType& rElements = rThisModelPart.Elements();
-        unsigned int elem_id = rElements.size();
+        unsigned int elem_id = 0;
         std::string ElementName = "Element3D4N";
         std::vector<IndexType> ElementNodeIds (4, 0);
-        for (unsigned int i_elem = 0; i_elem < nelem; i_elem++)
+        for (int i_elem = 1; i_elem <= mmgMesh->ne; i_elem++)
         {
             elem_id += 1;
-            ElementNodeIds[0] = mmgMesh->tetra[i_elem + 1].v[0];
-            ElementNodeIds[1] = mmgMesh->tetra[i_elem + 1].v[1];
-            ElementNodeIds[2] = mmgMesh->tetra[i_elem + 1].v[2];
-            ElementNodeIds[3] = mmgMesh->tetra[i_elem + 1].v[3];
-            const unsigned int prop_id = mmgMesh->tetra[i_elem + 1].ref;
+            ElementNodeIds[0] = mmgMesh->tetra[i_elem].v[0];
+            ElementNodeIds[1] = mmgMesh->tetra[i_elem].v[1];
+            ElementNodeIds[2] = mmgMesh->tetra[i_elem].v[2];
+            ElementNodeIds[3] = mmgMesh->tetra[i_elem].v[3];
+            const unsigned int prop_id = mmgMesh->tetra[i_elem].ref;
 //             rThisModelPart.AddProperties(pPropertiesVector[prop_id]);
 //             PropertiesType::Pointer pProperties = rThisModelPart.pGetProperties(prop_id);
-            rThisModelPart.CreateNewElement(ElementName ,elem_id, ElementNodeIds, pProperties, 0);
+            Properties::Pointer pProp = rThisModelPart.pGetProperties(1);
+            ElementType::Pointer pElement = rThisModelPart.CreateNewElement(ElementName ,elem_id, ElementNodeIds, pProp, 0);
            
             if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
             {
@@ -471,19 +539,19 @@ public:
                 for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                 {
                     std::string SubModelPartName = ColorList[colors];
-                    std::vector<IndexType> ElementsIds (1, elem_id);
-                    (rThisModelPart.GetSubModelPart(SubModelPartName)).AddElements(ElementsIds);
+                    ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                    SubModelPart.AddElement(pElement);
                 }
             }
         }
-       
+        
         //  Get the list of submodelparts names
         const std::vector<std::string> SubModelPartNames = rThisModelPart.GetSubModelPartNames();
        
         // Add the nodes to the differents submodelparts
         for (unsigned int i_model_part = 0; i_model_part < rThisModelPart.NumberOfSubModelParts(); i_model_part++)
         {
-            ModelPart rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_model_part]);
+            ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_model_part]);
            
             std::set<int> aux_set;
            
@@ -512,18 +580,18 @@ public:
            
             rSubModelPart.AddNodes(NodesIds);
         }
-       
+        
         // Save to file
-        int ier = 0;
         if (save_to_file == true)
         {
-            ier = SaveSolutionToFile(true);
+            SaveSolutionToFile(true);
         }
        
         // Free memory
         FreeMemory();
-       
-        return(ier);
+        
+        // We print the resulting model part
+        KRATOS_WATCH(rThisModelPart);
     }
     
     /** ------------------------------ STEP III -------------------------- */
@@ -536,26 +604,20 @@ public:
      * @param post_output: If the file to save is after or before remeshing
      */
     
-    int SaveSolutionToFile(const bool post_output)
+    void SaveSolutionToFile(const bool post_output)
     {
-        /** MMG library call */
-        int ier = MMG3D_mmg3dlib(mmgMesh,mmgSol);
-       
-        if ( ier == MMG5_STRONGFAILURE ) 
-        {
-            std::cout << "BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH" << std::endl;
-        }
-        else if ( ier == MMG5_LOWFAILURE )
-        {
-            std::cout << "BAD ENDING OF MMG3DLIB" << std::endl;
-        }
-       
-        /** get results */
-        /** Two solutions: just use the MMG3D_saveMesh/MMG3D_saveSol functions
-        that will write .mesh(b)/.sol formatted files or manually get your mesh/sol
-        using the MMG3D_getMesh/MMG3D_getSol functions */
+        /* GET RESULTS */
+        
+        /** 
+         * Two solutions: just use the MMG3D_saveMesh/MMG3D_saveSol functions
+         * that will write .mesh(b)/.sol formatted files or manually get your mesh/sol
+         * using the MMG3D_getMesh/MMG3D_getSol functions
+         */
 
-        /** 1) Automatically save the mesh */
+        /** 
+         *1) Automatically save the mesh 
+         */
+        
         std::string MeshName;
         if (post_output == true)
         {
@@ -565,20 +627,30 @@ public:
         {
             MeshName = mStdStringFilename+".mesh";
         }
+        
         char* MeshFile = new char [MeshName.length() + 1];
         std::strcpy (MeshFile, MeshName.c_str());
        
-        /** a)  (not mandatory): give the ouptut mesh name using MMG3D_Set_outputMeshName
-        (by default, the mesh is saved in the "mesh.o.mesh" file */
+        /** 
+         * a)  (not mandatory): give the ouptut mesh name using MMG3D_Set_outputMeshName
+         * (by default, the mesh is saved in the "mesh.o.mesh" file 
+         */
+        
         MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
-        /** b) function calling */
+        
+        /** 
+         * b) function calling 
+         */
+        
         if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1 ) 
         {
             std::cout << "UNABLE TO SAVE MESH" << std::endl;
-            return(MMG5_STRONGFAILURE);
         }
 
-        /** 2) Automatically save the solution */
+        /** 
+         * 2) Automatically save the solution 
+         */
+        
         std::string SolName;
         if (post_output == true)
         {
@@ -590,17 +662,22 @@ public:
         }
         char* SolFile = new char [SolName.length() + 1];
         std::strcpy (SolFile, SolName.c_str());
-        /** a)  (not mandatory): give the ouptut sol name using MMG3D_Set_outputSolName
-        (by default, the mesh is saved in the "mesh.o.sol" file */
+        
+        /** 
+         * a)  (not mandatory): give the ouptut sol name using MMG3D_Set_outputSolName
+         *(by default, the mesh is saved in the "mesh.o.sol" file 
+         */
+        
         MMG3D_Set_outputSolName(mmgMesh,mmgSol,SolFile);
-        /** b) function calling */
+        
+        /** 
+         * b) function calling 
+         */
+        
         if ( MMG3D_saveSol(mmgMesh,mmgSol,SolFile) != 1 ) 
         {
             std::cout << "UNABLE TO SAVE SOL" << std::endl;
-            return(MMG5_LOWFAILURE);
         }
-        
-        return ier;
     }
     
     /***********************************************************************************/
@@ -658,7 +735,6 @@ protected:
     
     // Where the sub model parts IDs are stored
     std::map<int,std::vector<std::string>> mColors;
-//     std::map<int,std::set<std::string>> mColors; // TODO: Maybe I need to change to set
     
     ///@}
     ///@name Protected Operators
@@ -896,30 +972,61 @@ protected:
         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
     )
     {
-        const int initial_index = 6 * (node_id - 1);
+        // The order of the metric is m11,m12,m13,m22,m23,m33
+        
+//         double* m = &mmgSol->m[6 * node_id];
+        
         const double coeff0 = 1.0/(element_size * element_size);
         
         if (scalar_value > value_threshold) // We don't reach the minimum
 //         if (scalar_value > element_size) // NOTE: In the case that the scalar value is related with a distance, better to consider an independent variable
         {
-            mmgSol->m[initial_index + 1] = coeff0;
-            mmgSol->m[initial_index + 2] = 0.0;
-            mmgSol->m[initial_index + 3] = coeff0;
-            mmgSol->m[initial_index + 4] = 0.0;
-            mmgSol->m[initial_index + 5] = 0.0;
-            mmgSol->m[initial_index + 6] = coeff0;
+//             // Manually 
+//             m[0] = coeff0;
+//             m[1] = 0.0;
+//             m[2] = 0.0;
+//             m[3] = coeff0;
+//             m[4] = 0.0;
+//             m[5] = coeff0;
+            
+            // Using API
+            if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
         }
         else
         {
-            const double aux = ratio + (scalar_value * element_size)*(1.0 - ratio);
+            const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
             const double coeff1 = coeff0/(aux * aux);
             
-            mmgSol->m[initial_index + 1] = coeff0*(1-gradient_value[0]*gradient_value[0]) + coeff1*gradient_value[0]*gradient_value[0];
-            mmgSol->m[initial_index + 2] = coeff0*(gradient_value[0]*gradient_value[1]) + coeff1*gradient_value[0]*gradient_value[1];
-            mmgSol->m[initial_index + 3] = coeff0*(1-gradient_value[1]*gradient_value[1]) + coeff1*gradient_value[1]*gradient_value[1];
-            mmgSol->m[initial_index + 4] = coeff0*(gradient_value[0]*gradient_value[2]) + coeff1*gradient_value[0]*gradient_value[2];
-            mmgSol->m[initial_index + 5] = coeff0*(gradient_value[1]*gradient_value[2]) + coeff1*gradient_value[1]*gradient_value[2];
-            mmgSol->m[initial_index + 6] = coeff0*(1-gradient_value[2]*gradient_value[2]) + coeff1*gradient_value[2]*gradient_value[2];
+            const double v0v0 = gradient_value[0]*gradient_value[0];
+            const double v0v1 = gradient_value[0]*gradient_value[1];
+            const double v0v2 = gradient_value[0]*gradient_value[2];
+            const double v1v1 = gradient_value[1]*gradient_value[1];
+            const double v1v2 = gradient_value[1]*gradient_value[2];
+            const double v2v2 = gradient_value[2]*gradient_value[2];
+            
+//             // Manually 
+//             m[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
+//             m[1] = coeff0*(      v0v1) + coeff1*v0v1;
+//             m[2] = coeff0*(      v0v2) + coeff1*v0v2;
+//             m[3] = coeff0*(1.0 - v1v1) + coeff1*v1v1;
+//             m[4] = coeff0*(      v1v2) + coeff1*v1v2;
+//             m[5] = coeff0*(1.0 - v2v2) + coeff1*v2v2;
+            
+            // Using API
+            if ( MMG3D_Set_tensorSol(mmgSol, 
+                                     coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                     coeff0*(      v0v1) + coeff1*v0v1, 
+                                     coeff0*(      v0v2) + coeff1*v0v2, 
+                                     coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+                                     coeff0*(      v1v2) + coeff1*v1v2, 
+                                     coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+                                     node_id) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
         }
     }
     
