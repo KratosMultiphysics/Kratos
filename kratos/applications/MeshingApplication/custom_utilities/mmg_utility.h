@@ -22,14 +22,14 @@
 #include <map>
 // The includes related with the MMG library
 #include "mmg/libmmg.h"
-#include "mmg/mmg2d/libmmg2d.h" // TODO: Version in 2D
+#include "mmg/mmg2d/libmmg2d.h" 
 #include "mmg/mmg3d/libmmg3d.h"
-#include "mmg/mmgs/libmmgs.h" // TODO: what is this library doing?
+#include "mmg/mmgs/libmmgs.h"
 
 // NOTE: Inspired in the documentation from:
 // https://github.com/MmgTools/mmg/blob/master/libexamples/
 
-// NOTE: The following contains the license of the MMG library //TODO: Ask Riccardo about this
+// NOTE: The following contains the license of the MMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
 **
@@ -110,16 +110,7 @@ public:
     
     MmgUtility(const std::string Filename)
         :mStdStringFilename(Filename)
-    {
-       /** 1) Initialisation of mesh and sol structures */
-       /* args of InitMesh:
-        * MMG5_ARG_start: we start to give the args of a variadic func
-        * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
-        * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
-        * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
-        * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
-        */
-       
+    {       
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
        
@@ -204,6 +195,12 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
+            // We copy the DOF from the fisrt node
+            if (i == 0)
+            {
+                mDofs = itNode->GetDofs();
+            }
+            
             SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i + 1);
             
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -216,7 +213,18 @@ public:
         {
             auto itCond = pConditions.begin() + i;
            
+            // We clone the first condition
+            if (i == 0)
+            {
+                mpRefCondition = itCond->Clone(0, itCond->GetGeometry()); // NOTE: The clone must be implemented in the condition
+            }
+            
             SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1);
+        }
+        
+        if (numConditions == 0)
+        {
+            mpRefCondition = nullptr;
         }
         
         /* Elements */
@@ -225,7 +233,18 @@ public:
         {
             auto itElem = pElements.begin() + i;
             
+            // We clone the first element
+            if (i == 0)
+            {
+                mpRefElement = itElem->Clone(0, itElem->GetGeometry());  // NOTE: The clone must be implemented in the element
+            }
+            
             SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1);
+        }
+        
+        if (numElements == 0)
+        {
+            mpRefElement = nullptr;
         }
         
         ////////* SOLUTION FILE *////////
@@ -404,62 +423,108 @@ public:
         for (int i_node = 1; i_node <= mmgMesh->np; i_node++)
         {
             node_id += 1;
-            rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+            NodeType::Pointer pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+            
+            // Set the DOFs in the nodes 
+            for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
+            {
+                pNode->pAddDof(*i_dof);
+            }
         }
         
-        /* TRIANGLES */
-        unsigned int cond_id = 0;
-        std::string ConditionName = "Condition3D"; // NOTE: The condition should change the name to Condition3D3N for coherence
-        std::vector<IndexType> ConditionNodeIds (3, 0);
-        for (int i_cond = 1; i_cond <= mmgMesh->nt; i_cond++)
+        /* CONDITIONS */
+        if (mpRefCondition != nullptr)
         {
-            cond_id += 1;
-            ConditionNodeIds[0] = mmgMesh->tria[i_cond].v[0];
-            ConditionNodeIds[1] = mmgMesh->tria[i_cond].v[1];
-            ConditionNodeIds[2] = mmgMesh->tria[i_cond].v[2];
-            const unsigned int prop_id = mmgMesh->tria[i_cond].ref;
-//             rThisModelPart.AddProperties(pPropertiesVector[prop_id]);
-//             PropertiesType::Pointer pProperties = rThisModelPart.pGetProperties(prop_id);
-            Properties::Pointer pProp = rThisModelPart.pGetProperties(0);
-            ConditionType::Pointer pCondition = rThisModelPart.CreateNewCondition(ConditionName ,cond_id, ConditionNodeIds, pProp, 0);
-           
-            if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+            unsigned int cond_id = 0;
+
+            for (int i_cond = 1; i_cond <= mmgMesh->nt; i_cond++)
             {
-                std::vector<std::string> ColorList = mColors[prop_id];
-                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                cond_id += 1;
+                ConditionType::Pointer pCondition;
+                unsigned int prop_id;
+                
+                if (TDim == 2)
                 {
-                    std::string SubModelPartName = ColorList[colors];
-                    ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
-                    SubModelPart.AddCondition(pCondition);
+                    std::vector<NodeType::Pointer> ConditionNodeIds (2);
+                    ConditionNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
+                    ConditionNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
+                    
+                    prop_id = mmgMesh->edge[i_cond].ref;
+                    
+                    pCondition = mpRefCondition->Clone(cond_id, ConditionNodeIds);
+                }
+                else
+                {
+                    std::vector<NodeType::Pointer> ConditionNodeIds (3);
+                    ConditionNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
+                    ConditionNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
+                    ConditionNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2]);
+                    
+                    prop_id = mmgMesh->tria[i_cond].ref;
+                    
+                    pCondition = mpRefCondition->Clone(cond_id, ConditionNodeIds);
+                }
+                
+                rThisModelPart.AddCondition(pCondition);
+            
+                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                {
+                    std::vector<std::string> ColorList = mColors[prop_id];
+                    for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                    {
+                        std::string SubModelPartName = ColorList[colors];
+                        ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                        SubModelPart.AddCondition(pCondition);
+                    }
                 }
             }
         }
         
-        /* TETRAHEDRAS */
-        unsigned int elem_id = 0;
-        std::string ElementName = "Element3D4N";
-        std::vector<IndexType> ElementNodeIds (4, 0);
-        for (int i_elem = 1; i_elem <= mmgMesh->ne; i_elem++)
+        /* ELEMENTS */
+        if (mpRefElement != nullptr)
         {
-            elem_id += 1;
-            ElementNodeIds[0] = mmgMesh->tetra[i_elem].v[0];
-            ElementNodeIds[1] = mmgMesh->tetra[i_elem].v[1];
-            ElementNodeIds[2] = mmgMesh->tetra[i_elem].v[2];
-            ElementNodeIds[3] = mmgMesh->tetra[i_elem].v[3];
-            const unsigned int prop_id = mmgMesh->tetra[i_elem].ref;
-//             rThisModelPart.AddProperties(pPropertiesVector[prop_id]);
-//             PropertiesType::Pointer pProperties = rThisModelPart.pGetProperties(prop_id);
-            Properties::Pointer pProp = rThisModelPart.pGetProperties(1);
-            ElementType::Pointer pElement = rThisModelPart.CreateNewElement(ElementName ,elem_id, ElementNodeIds, pProp, 0);
-           
-            if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+            unsigned int elem_id = 0;
+            for (int i_elem = 1; i_elem <= mmgMesh->ne; i_elem++)
             {
-                std::vector<std::string> ColorList = mColors[prop_id];
-                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                elem_id += 1;
+                ElementType::Pointer pElement;
+                unsigned int prop_id;
+                
+                if (TDim == 2)
                 {
-                    std::string SubModelPartName = ColorList[colors];
-                    ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
-                    SubModelPart.AddElement(pElement);
+                    std::vector<NodeType::Pointer> ElementNodeIds (2);
+                    ElementNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
+                    ElementNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
+                    ElementNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2]);
+                    
+                    prop_id = mmgMesh->tria[i_elem].ref;
+                    
+                    pElement = mpRefElement->Clone(elem_id, ElementNodeIds);
+                }
+                else
+                {
+                    std::vector<NodeType::Pointer> ElementNodeIds (4);
+                    ElementNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
+                    ElementNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
+                    ElementNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2]);
+                    ElementNodeIds[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3]);
+                    
+                    prop_id = mmgMesh->tetra[i_elem].ref;
+                    
+                    pElement = mpRefElement->Clone(elem_id, ElementNodeIds);
+                }
+                
+                rThisModelPart.AddElement(pElement);
+                
+                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                {
+                    std::vector<std::string> ColorList = mColors[prop_id];
+                    for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                    {
+                        std::string SubModelPartName = ColorList[colors];
+                        ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                        SubModelPart.AddElement(pElement);
+                    }
                 }
             }
         }
@@ -588,6 +653,9 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    // Storage for the dof of the node
+    Node<3>::DofsContainerType  mDofs;
+    
     // I/O information
     char* mFilename;
     std::string mStdStringFilename;
@@ -598,6 +666,10 @@ protected:
     
     // Where the sub model parts IDs are stored
     std::map<int,std::vector<std::string>> mColors;
+    
+    // Reference element and condition
+    Element::Pointer mpRefElement;
+    Condition::Pointer mpRefCondition;
     
     ///@}
     ///@name Protected Operators
@@ -613,6 +685,15 @@ protected:
     
     void InitMesh()
     {
+       /** 1) Initialisation of mesh and sol structures 
+        * args of InitMesh:
+        * MMG5_ARG_start: we start to give the args of a variadic func
+        * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
+        * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
+        * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
+        * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
+        */
+       
         if (TDim == 2)
         {
             MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 

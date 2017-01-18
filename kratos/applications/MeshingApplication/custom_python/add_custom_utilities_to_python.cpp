@@ -28,7 +28,6 @@
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/tetgen_volume_mesher.h"
-// #include "custom_utilities/mmg_utility.h"
 #include "custom_utilities/cutting_iso_app.h"
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
 #include "utilities/split_tetrahedra.h"
@@ -37,6 +36,9 @@
     #include "external_includes/pragmatic_adapt_3d.h"
 #endif
 
+#ifdef INCLUDE_MMG
+    #include "custom_utilities/mmg_utility.h"
+#endif
 
 namespace Kratos
 {
@@ -130,22 +132,36 @@ void AddCustomUtilitiesToPython()
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
-
-//     class_<MmgUtility, boost::noncopyable >
-//     ("MmgUtility", init<const std::string>())
-//     .def("ComputeExistingModelPart", &MmgUtility::ComputeExistingModelPart)
-//     .def("ReadFiles", &MmgUtility::ReadFiles)
-//     .def("Execute", &MmgUtility::Execute)
-//     .def("SaveSolutionToFile", &MmgUtility::SaveSolutionToFile)
-//     .def("FreeMemory", &MmgUtility::FreeMemory)
-//     ;
-
-    #ifdef PRAGMATIC_ACTIVATED
+    
+#ifdef PRAGMATIC_ACTIVATED
     class_<PragmaticAdaptor >("PragmaticAdaptor", init< >())
     .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
     ;
-    #endif
+#endif
 
+#ifdef INCLUDE_MMG
+    /* MMG mmg_utility */
+    // 2D
+    class_<MmgUtility<2>, boost::noncopyable >
+    ("MmgUtility2D", init<const std::string>())
+    .def("ComputeExistingModelPart", &MmgUtility<2>::ComputeExistingModelPart)
+    .def("ReadFiles", &MmgUtility<2>::ReadFiles)
+    .def("Execute", &MmgUtility<2>::Execute)
+    .def("SaveSolutionToFile", &MmgUtility<2>::SaveSolutionToFile)
+    .def("FreeMemory", &MmgUtility<2>::FreeMemory)
+    ;
+    
+    // 3D
+    class_<MmgUtility<3>, boost::noncopyable >
+    ("MmgUtility3D", init<const std::string>())
+    .def("ComputeExistingModelPart", &MmgUtility<3>::ComputeExistingModelPart)
+    .def("ReadFiles", &MmgUtility<3>::ReadFiles)
+    .def("Execute", &MmgUtility<3>::Execute)
+    .def("SaveSolutionToFile", &MmgUtility<3>::SaveSolutionToFile)
+    .def("FreeMemory", &MmgUtility<3>::FreeMemory)
+    ;
+#endif  
+    
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
     .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
