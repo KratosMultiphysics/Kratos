@@ -21,6 +21,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "input_file_name"         : "",
             "output_file_name"        : "",
             "model_part_name"         : "MainModelPart",
+            "scalar_variable"         : "DISTANCE",
+            "gradient_variable"       : "DISTANCE_GRADIENT",
             "step_frequency"          : 0,
             "elementary_length"       : 0.1,
             "initial_alpha_parameter" : 0.01,
@@ -49,11 +51,14 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         
+        self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["scalar_variable"].GetString() )
+        self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["gradient_variable"].GetString() )
+        
     def ExecuteInitialize(self):
                 
         # Basic variables necessary for reading the model_part
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.scalar_variable)
+        self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.gradient_variable)
         self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
 
@@ -61,7 +66,10 @@ class MmgProcess(KratosMultiphysics.Process):
         
         self._CreateGradientProcess()
         
-        self.MmgUtility = MeshingApplication.MmgUtility(self.input_file_name)
+        if (self.dim == 2):
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.input_file_name)
+        else:
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.input_file_name)
         
         self._ExecuteRefinement()
         
@@ -71,14 +79,13 @@ class MmgProcess(KratosMultiphysics.Process):
         
     def ExecuteInitializeSolutionStep(self):
         
-        ## NOTE: Defining by hand the distance, implementation required
-        #for node in self.Model[self.model_part_name].Nodes:
-            #node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, abs(node.X))
-        #self.local_gradient.Execute()
-        
         self.step += 1
         if self.step_frequency > 0: # NOTE: Requires to recalculate the DISTANCE in each node
             if self.step == self.step_frequency:
+                ## NOTE: Defining by hand the scalar value, implementation required
+                #for node in self.Model[self.model_part_name].Nodes:
+                    #node.SetSolutionStepValue(self.scalar_variable, abs(node.X))
+                #self.local_gradient.Execute()
                 self._ExecuteRefinement()
                 self.step = 0 # Reset
             
@@ -97,11 +104,11 @@ class MmgProcess(KratosMultiphysics.Process):
     def _CreateGradientProcess(self):
         self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         
-        # We compute the distance gradient
+        # We compute the scalar value gradient
         if (self.dim == 2):
-            self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.Model[self.model_part_name], KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+            self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
         else: 
-            self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+            self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
             
     def _ExecuteRefinement(self):
         
@@ -128,23 +135,33 @@ class MmgProcess(KratosMultiphysics.Process):
             nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA, 0)
             if nodal_area > 0.0:
                 node.SetValue(KratosMultiphysics.NODAL_VOLUME, aux/nodal_area)
+
+        print("Preparing the solution and mesh information")
+        self.MmgUtility.ComputeExistingModelPart(
+            self.Model[self.model_part_name], 
+            self.scalar_variable, 
+            self.gradient_variable, 
+            self.elementary_length, 
+            self.initial_alpha_parameter, 
+            self.distance_threshold, 
+            self.interpolation, 
+            self.save_external_files
+            )
         
-        ##TODO: Define the variables in the input of the json
-        #self.MmgUtility.ComputeExistingModelPart(self.Model[self.model_part_name], KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, self.elementary_length, self.initial_alpha_parameter, self.distance_threshold, self.interpolation, self.save_external_files)
+        print("Remeshing")
+        self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files)
         
-        #self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files)
-        
-        ## In case memory is not erased
-        ##self.MmgUtility.FreeMemory()
+        # In case memory is not erased
+        #print("Cleaing memory")
+        #self.MmgUtility.FreeMemory()
         
         # LEGACY MMG 
+        #import write_mmg_mesh as write
+        ##write.WriteMmgFile(self.input_file_name, self.elementary_length,self.initial_alpha_parameter, self.distance_threshold, self.model_part_name, self.interpolation)
+        #write.WriteMmgFile(self.input_file_name, self.elementary_length,self.initial_alpha_parameter, self.distance_threshold, self.interpolation, self.model_part_name, self.Model[self.model_part_name])
         
-        import write_mmg_mesh as write
-        #write.WriteMmgFile(self.input_file_name, self.elementary_length,self.initial_alpha_parameter, self.distance_threshold, self.model_part_name, self.interpolation)
-        write.WriteMmgFile(self.input_file_name, self.elementary_length,self.initial_alpha_parameter, self.distance_threshold, self.interpolation, self.model_part_name, self.Model[self.model_part_name])
+        ## Call to the library
+        #os.system(self.mmg_location+" -in "+ self.input_file_name +".mesh -out "+ self.output_file_name +".mesh")
         
-        # Call to the library
-        os.system(self.mmg_location+" -in "+ self.input_file_name +".mesh -out "+ self.output_file_name +".mesh")
-        
-        import parse_mmg_file as parse 
-        self.Model[self.model_part_name] = parse.ParseMmgFile(self.output_file_name+".mesh", self.model_part_name)
+        #import parse_mmg_file as parse 
+        #self.Model[self.model_part_name] = parse.ParseMmgFile(self.output_file_name+".mesh", self.model_part_name)
