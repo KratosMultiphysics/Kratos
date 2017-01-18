@@ -60,8 +60,7 @@ namespace Kratos
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
-class NavierStokes
-    : public Element
+class NavierStokes : public Element
 {
 public:
     ///@name Type Definitions
@@ -133,7 +132,10 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                            //   const ProcessInfo& rCurrentProcessInfo) override
+                              ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -227,7 +229,9 @@ public:
     }
 
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                // const ProcessInfo& rCurrentProcessInfo) override
+                                ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -323,7 +327,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -376,7 +380,7 @@ public:
     // TODO: Check this Calculate function
     virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -459,15 +463,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "NavierStokes #";
     }
 
     /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -513,6 +515,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // Auxiliar function to fill the element data structure
     void FillElementData(element_data& rData, const ProcessInfo& rCurrentProcessInfo)
     {
         // Getting data for the given geometry
@@ -668,8 +671,8 @@ protected:
 
     }
 
-
-    void Initialize()
+    // Element initialization (constitutive law)
+    void Initialize() override
     {
         KRATOS_TRY
 
