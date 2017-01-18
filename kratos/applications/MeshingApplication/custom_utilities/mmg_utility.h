@@ -72,7 +72,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// template< unsigned int TDim>  // TODO: Use a template to define the 3D or 2D case
+template< unsigned int TDim>  
 class MmgUtility
 {
 public:
@@ -126,14 +126,7 @@ public:
        mmgMesh = NULL;
        mmgSol = NULL;
        
-       MMG3D_Init_mesh(
-                  MMG5_ARG_start,
-                  MMG5_ARG_ppMesh,
-                  &mmgMesh,
-                  MMG5_ARG_ppMet,
-                  &mmgSol,
-                  MMG5_ARG_end
-                  );
+       InitMesh();
     }
     
     /// Destructor.
@@ -171,6 +164,14 @@ public:
     {
         // NOTE: Step one in the constructor
         
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        
+        KRATOS_WATCH(rThisModelPart);
+        
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
@@ -180,8 +181,6 @@ public:
         /** 
          * 2) Build mesh in MMG5 format 
          */
-        
-        // Two solutions: just use the MMG3D_loadMesh function that will read a .mesh(b) file formatted or manually set your mesh using the MMG3D_Set* functions 
         
         // Iterate in the nodes
         NodesArrayType& pNode = rThisModelPart.Nodes();
@@ -196,12 +195,7 @@ public:
         auto numElements = pElements.end() - pElements.begin();
         
         /* Manually set of the mesh */
-        
-        // Give the size of the mesh: numNodes vertices, numElements tetra, numConditions triangles, 0 edges (3D) 
-        if ( MMG3D_Set_meshSize(mmgMesh,numNodes,numElements,numConditions,0) != 1 ) 
-        {
-            exit(EXIT_FAILURE);
-        }
+        SetMeshSize(numNodes, numElements, numConditions);
         
         /* Nodes */
 //         #pragma omp parallel for 
@@ -209,19 +203,7 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            // Give the vertices: for each vertex, give the coordinates, the reference and the position in mesh of the vertex 
-            
-            // Manually 
-//             mmgMesh->point[i + 1].c[0] = itNode->X();  
-//             mmgMesh->point[i + 1].c[1] = itNode->Y(); 
-//             mmgMesh->point[i + 1].c[2] = itNode->Z(); 
-//             mmgMesh->point[i + 1].ref  = node_colors[itNode->Id()];
-            
-            // Using the API
-            if ( MMG3D_Set_vertex(mmgMesh, itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i  + 1) != 1 )  
-            {
-                exit(EXIT_FAILURE); 
-            }
+            SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], itNode->Id());
         }
         
         /* Conditions */
@@ -229,18 +211,8 @@ public:
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-            
-           // Manually
-//            mmgMesh->tria[i + 1].v[0] = itCond->GetGeometry()[0].Id();  
-//            mmgMesh->tria[i + 1].v[1] = itCond->GetGeometry()[1].Id();  
-//            mmgMesh->tria[i + 1].v[2] = itCond->GetGeometry()[2].Id();
-//            mmgMesh->tria[i + 1].ref  = cond_colors[itCond->Id()];
            
-           // Using the API
-           if ( MMG3D_Set_triangle(mmgMesh, itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1) != 1 )  
-           {
-               exit(EXIT_FAILURE); 
-           }
+            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], itCond->Id());
         }
         
         /* Elements */
@@ -248,27 +220,13 @@ public:
         for(unsigned int i = 0; i < numElements; i++) 
         {
             auto itElem = pElements.begin() + i;
-
-            // Manually 
-//             mmgMesh->tetra[i + 1].v[0] = itElem->GetGeometry()[0].Id();  
-//             mmgMesh->tetra[i + 1].v[1] = itElem->GetGeometry()[1].Id();  
-//             mmgMesh->tetra[i + 1].v[2] = itElem->GetGeometry()[2].Id();
-//             mmgMesh->tetra[i + 1].v[3] = itElem->GetGeometry()[3].Id();
-//             mmgMesh->tetra[i + 1].ref  = elem_colors[itElem->Id()];
-           
-           // Using the API
-           if ( MMG3D_Set_tetrahedron(mmgMesh, itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1) != 1 )  
-           {
-               exit(EXIT_FAILURE); 
-           }
+            
+            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], itElem->Id());
         }
         
         ////////* SOLUTION FILE *////////
         
-        if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
-        {
-            exit(EXIT_FAILURE);
-        }
+        SetSolSize(numNodes);
 
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
@@ -327,29 +285,18 @@ public:
         }
         
         /** 
-         * 4) If you don't use the API functions, you MUST call
-         * the MMG3D_Set_handGivenMesh() function. Don't call it if you use
-         * the API functions 
+         * 4) Check if the number of given entities match with mesh size 
          */
         
-//         MMG3D_Set_handGivenMesh(mmgMesh);
+        CheckMeshData();
         
-        /** 
-         * 5) (not mandatory): check if the number of given entities match with mesh size 
-         */
-        
-        if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 ) 
+        // Save to file
+        if (save_to_file == true)
         {
-            exit(EXIT_FAILURE);
+            SaveSolutionToFile(false);
         }
-        
-       // Save to file
-       if (save_to_file == true)
-       {
-           SaveSolutionToFile(false);
-       }
        
-       //NOTE: Don't free memmory, it will be used in the Execute
+        //NOTE: Don't free memmory, it will be used in the Execute
     }
     
     /***********************************************************************************/
@@ -367,42 +314,19 @@ public:
         * 2) Build mesh in MMG5 format 
         */
        
-       if ( MMG3D_Set_inputMeshName(mmgMesh,mFilename) != 1 )
-       {
-           exit(EXIT_FAILURE);
-       }
+       SetInputMeshName();
        
        /** 
         * 3) Build sol in MMG5 format 
         */
        
-       /* With MMG3D_loadSol function 
-        * a) (not mandatory): give the sol name
-        * (by default, the "mesh.sol" file is oppened)
-        */
-       
-       if ( MMG3D_Set_inputSolName(mmgMesh,mmgSol,mFilename) != 1 )
-       {
-           exit(EXIT_FAILURE);
-       }
-       
-       /**
-        * b) function calling 
-        */
-       
-       if ( MMG3D_loadSol(mmgMesh,mmgSol,mFilename) != 1 )
-       {
-           exit(EXIT_FAILURE);
-       }
+       SetInputSolName();
        
        /** 
-        * 4) (not mandatory): check if the number of given entities match with mesh size
+        * 4) Check if the number of given entities match with mesh size
         */
        
-       if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 ) 
-       {
-           exit(EXIT_FAILURE);
-       }
+       CheckMeshData();
     }
     
     /***********************************************************************************/
@@ -422,16 +346,7 @@ public:
     {   
         ////////* MMG LIBRARY CALL *////////
         
-        const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
-        
-        if ( ier == MMG5_STRONGFAILURE ) 
-        {
-            std::cout << "BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH" << std::endl;
-        }
-        else if ( ier == MMG5_LOWFAILURE )
-        {
-            std::cout << "BAD ENDING OF MMG3DLIB" << std::endl;
-        }
+        MMGLibCall();
         
         ////////* EMPTY THE MODEL PART *////////
         
@@ -591,6 +506,12 @@ public:
         FreeMemory();
         
         // We print the resulting model part
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        
         KRATOS_WATCH(rThisModelPart);
     }
     
@@ -607,77 +528,18 @@ public:
     void SaveSolutionToFile(const bool post_output)
     {
         /* GET RESULTS */
-        
-        /** 
-         * Two solutions: just use the MMG3D_saveMesh/MMG3D_saveSol functions
-         * that will write .mesh(b)/.sol formatted files or manually get your mesh/sol
-         * using the MMG3D_getMesh/MMG3D_getSol functions
-         */
 
         /** 
          *1) Automatically save the mesh 
          */
         
-        std::string MeshName;
-        if (post_output == true)
-        {
-            MeshName = mStdStringFilename+".o.mesh";
-        }
-        else
-        {
-            MeshName = mStdStringFilename+".mesh";
-        }
-        
-        char* MeshFile = new char [MeshName.length() + 1];
-        std::strcpy (MeshFile, MeshName.c_str());
-       
-        /** 
-         * a)  (not mandatory): give the ouptut mesh name using MMG3D_Set_outputMeshName
-         * (by default, the mesh is saved in the "mesh.o.mesh" file 
-         */
-        
-        MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
-        
-        /** 
-         * b) function calling 
-         */
-        
-        if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1 ) 
-        {
-            std::cout << "UNABLE TO SAVE MESH" << std::endl;
-        }
+        OutputMesh(post_output);
 
         /** 
          * 2) Automatically save the solution 
          */
         
-        std::string SolName;
-        if (post_output == true)
-        {
-            SolName = mStdStringFilename+".o.sol";
-        }
-        else
-        {
-            SolName = mStdStringFilename+".sol";
-        }
-        char* SolFile = new char [SolName.length() + 1];
-        std::strcpy (SolFile, SolName.c_str());
-        
-        /** 
-         * a)  (not mandatory): give the ouptut sol name using MMG3D_Set_outputSolName
-         *(by default, the mesh is saved in the "mesh.o.sol" file 
-         */
-        
-        MMG3D_Set_outputSolName(mmgMesh,mmgSol,SolFile);
-        
-        /** 
-         * b) function calling 
-         */
-        
-        if ( MMG3D_saveSol(mmgMesh,mmgSol,SolFile) != 1 ) 
-        {
-            std::cout << "UNABLE TO SAVE SOL" << std::endl;
-        }
+        OutputSol(post_output);
     }
     
     /***********************************************************************************/
@@ -689,15 +551,11 @@ public:
     
     void FreeMemory()
     {
-        /** 3) Free the MMG3D5 structures */
-        MMG3D_Free_all(
-            MMG5_ARG_start,
-            MMG5_ARG_ppMesh,
-            &mmgMesh,
-            MMG5_ARG_ppMet,
-            &mmgSol,
-            MMG5_ARG_end
-            );
+        /** 
+         * 3) Free the MMG3D5 structures 
+         */
+        
+        FreeAll();
 
         free(mFilename);
         mFilename = NULL;
@@ -743,6 +601,437 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * This inits the mesh
+     */
+    
+    void InitMesh()
+    {
+        if (TDim == 2)
+        {
+            MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+        }
+        else
+        {
+            MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the size of the mesh
+     * @param numNodes: Number of nodes
+     * @param numElements: Number of Elements
+     * @param numConditions: Number of Conditions
+     */
+    
+    void SetMeshSize(
+        const int numNodes,
+        const int numElements,
+        const int numConditions
+        )
+    {
+        if (TDim == 2)
+        {
+            //Give the size of the mesh: numNodes vertices, numElements triangles, numConditions edges (2D) 
+            if ( MMG2D_Set_meshSize(mmgMesh, numNodes, numElements, numConditions) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            //Give the size of the mesh: numNodes vertex, numElements tetra, numConditions triangles, 0 edges (3D) 
+            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numElements, numConditions, 0) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the size of the solution
+     * @param numNodes: Number of nodes
+     */
+    
+    void SetSolSize(const int numNodes)
+    {
+        if (TDim == 2)
+        {
+            if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This checks the mesh data
+     */
+    
+    void CheckMeshData()
+    {
+        if (TDim == 2)
+        {
+            if ( MMG2D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This set the input mesh name
+     */
+    
+    void SetInputMeshName()
+    {
+        if (TDim == 2)
+        {
+            if ( MMG2D_Set_inputMeshName(mmgMesh, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Set_inputMeshName(mmgMesh, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the output mesh
+     */
+    
+    void OutputMesh(const bool post_output)
+    {
+        std::string MeshName;
+        if (post_output == true)
+        {
+            MeshName = mStdStringFilename+".o.mesh";
+        }
+        else
+        {
+            MeshName = mStdStringFilename+".mesh";
+        }
+        
+        char* MeshFile = new char [MeshName.length() + 1];
+        std::strcpy (MeshFile, MeshName.c_str());
+        
+        if (TDim == 2)
+        { 
+            // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file  
+            MMG2D_Set_outputMeshName(mmgMesh,MeshFile);
+
+            // b) function calling 
+            if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1 ) 
+            {
+                std::cout << "UNABLE TO SAVE MESH" << std::endl;
+            }
+        }
+        else
+        {
+            // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file 
+            MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
+
+            // b) function calling 
+            if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1 ) 
+            {
+                std::cout << "UNABLE TO SAVE MESH" << std::endl;
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the input sol name
+     */
+    
+    void SetInputSolName()
+    {
+        if (TDim == 2)
+        {
+            // a) Give the sol name (by default, the "mesh.sol" file is oppened)
+            if ( MMG2D_Set_inputSolName(mmgMesh, mmgSol, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+
+            // b) Function calling 
+            if ( MMG2D_loadSol(mmgMesh, mmgSol, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            // a) Give the sol name (by default, the "mesh.sol" file is oppened)
+            if ( MMG3D_Set_inputSolName(mmgMesh, mmgSol, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+
+            // b) Function calling 
+            if ( MMG3D_loadSol(mmgMesh, mmgSol, mFilename) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the output sol
+     */
+    
+    void OutputSol(const bool post_output)
+    {
+        std::string SolName;
+        if (post_output == true)
+        {
+            SolName = mStdStringFilename+".o.sol";
+        }
+        else
+        {
+            SolName = mStdStringFilename+".sol";
+        }
+        
+        char* SolFile = new char [SolName.length() + 1];
+        std::strcpy (SolFile, SolName.c_str());
+        
+        if (TDim == 2)
+        { 
+            // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
+            MMG2D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
+
+            // b) Function calling 
+            if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1 ) 
+            {
+                std::cout << "UNABLE TO SAVE SOL" << std::endl;
+            }
+        }
+        else
+        {
+            // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
+            MMG3D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
+
+            // b) Function calling 
+            if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1 ) 
+            {
+                std::cout << "UNABLE TO SAVE SOL" << std::endl;
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This loads the solution
+     */
+    
+    void MMGLibCall()
+    {
+        if (TDim == 2)
+        {
+            const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
+
+            if ( ier == MMG5_STRONGFAILURE ) 
+            {
+                std::cout << "BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH" << std::endl;
+            }
+            else if ( ier == MMG5_LOWFAILURE )
+            {
+                std::cout << "BAD ENDING OF MMG2DLIB" << std::endl;
+            }
+        }
+        else
+        {
+            const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+
+            if ( ier == MMG5_STRONGFAILURE ) 
+            {
+                std::cout << "BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH" << std::endl;
+            }
+            else if ( ier == MMG5_LOWFAILURE )
+            {
+                std::cout << "BAD ENDING OF MMG3DLIB" << std::endl;
+            }
+        }
+
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This frees the MMG structures
+     */
+    
+    void FreeAll()
+    {
+        if (TDim == 2)
+        {
+            MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
+        }
+        else
+        {
+            MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
+        }
+
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the nodes of the mesh
+     * @param X: Coordinate X
+     * @param Y: Coordinate Y
+     * @param Z: Coordinate Z
+     * @param color: Reference of the node(submodelpart)
+     * @param index: The index number of the node 
+     */
+    
+    void SetNodes(
+        const double X,
+        const double Y,
+        const double Z,
+        const int color,
+        const int index
+        )
+    {
+        // Using API
+        if (TDim == 2)
+        {
+            if ( MMG2D_Set_vertex(mmgMesh, X, Y, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Set_vertex(mmgMesh, X, Y, Z, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets the conditions of the mesh
+     * @param id1: Node id of node 1
+     * @param id2: Node id of node 2
+     * @param id3: Node id of node 3
+     * @param color: Reference of the node(submodelpart)
+     * @param index: The index number of the node 
+     */
+    
+    void SetConditions(
+        const int id1,
+        const int id2,
+        const int id3,
+        const int color,
+        const int index
+        )
+    {
+        // Using API
+        if (TDim == 2)
+        {
+            if ( MMG2D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This sets elements of the mesh
+     * @param id1: Node id of node 1
+     * @param id2: Node id of node 2
+     * @param id3: Node id of node 3
+     * @param id4: Node id of node 4
+     * @param color: Reference of the node(submodelpart)
+     * @param index: The index number of the node 
+     */
+    
+    void SetElements(
+        const int id1,
+        const int id2,
+        const int id3,
+        const int id4,
+        const int color,
+        const int index
+        )
+    {
+        // Using API
+        if (TDim == 2)
+        {
+            if ( MMG2D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 ) 
+            {
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            if ( MMG3D_Set_tetrahedron(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
     
     /**
      * This functions gets the "colors", parts of a model part to process
@@ -972,60 +1261,75 @@ protected:
         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
     )
     {
-        // The order of the metric is m11,m12,m13,m22,m23,m33
-        
-//         double* m = &mmgSol->m[6 * node_id];
-        
         const double coeff0 = 1.0/(element_size * element_size);
         
-        if (scalar_value > value_threshold) // We don't reach the minimum
-//         if (scalar_value > element_size) // NOTE: In the case that the scalar value is related with a distance, better to consider an independent variable
+        const double threshold = value_threshold; // We don't reach the minimum
+//         const double threshold = element_size; // NOTE: In the case that the scalar value is related with a distance, better to consider an independent variable
+        
+        if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
         {
-//             // Manually 
-//             m[0] = coeff0;
-//             m[1] = 0.0;
-//             m[2] = 0.0;
-//             m[3] = coeff0;
-//             m[4] = 0.0;
-//             m[5] = coeff0;
-            
-            // Using API
-            if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
+            if (scalar_value > threshold) 
             {
-                exit(EXIT_FAILURE);
+                // Using API
+                if ( MMG2D_Set_tensorSol(mmgSol, coeff0, 0.0, coeff0, node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else
+            {
+                const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
+                const double coeff1 = coeff0/(aux * aux);
+                
+                const double v0v0 = gradient_value[0]*gradient_value[0];
+                const double v0v1 = gradient_value[0]*gradient_value[1];
+                const double v1v1 = gradient_value[1]*gradient_value[1];
+                
+                // Using API
+                if ( MMG2D_Set_tensorSol(mmgSol, 
+                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                        coeff0*(      v0v1) + coeff1*v0v1,  
+                                        coeff0*(1.0 - v1v1) + coeff1*v1v1,
+                                        node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
             }
         }
-        else
+        else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
         {
-            const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
-            const double coeff1 = coeff0/(aux * aux);
-            
-            const double v0v0 = gradient_value[0]*gradient_value[0];
-            const double v0v1 = gradient_value[0]*gradient_value[1];
-            const double v0v2 = gradient_value[0]*gradient_value[2];
-            const double v1v1 = gradient_value[1]*gradient_value[1];
-            const double v1v2 = gradient_value[1]*gradient_value[2];
-            const double v2v2 = gradient_value[2]*gradient_value[2];
-            
-//             // Manually 
-//             m[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
-//             m[1] = coeff0*(      v0v1) + coeff1*v0v1;
-//             m[2] = coeff0*(      v0v2) + coeff1*v0v2;
-//             m[3] = coeff0*(1.0 - v1v1) + coeff1*v1v1;
-//             m[4] = coeff0*(      v1v2) + coeff1*v1v2;
-//             m[5] = coeff0*(1.0 - v2v2) + coeff1*v2v2;
-            
-            // Using API
-            if ( MMG3D_Set_tensorSol(mmgSol, 
-                                     coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                     coeff0*(      v0v1) + coeff1*v0v1, 
-                                     coeff0*(      v0v2) + coeff1*v0v2, 
-                                     coeff0*(1.0 - v1v1) + coeff1*v1v1, 
-                                     coeff0*(      v1v2) + coeff1*v1v2, 
-                                     coeff0*(1.0 - v2v2) + coeff1*v2v2, 
-                                     node_id) != 1 )
+            if (scalar_value > threshold)
             {
-                exit(EXIT_FAILURE);
+                // Using API
+                if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else
+            {
+                const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
+                const double coeff1 = coeff0/(aux * aux);
+                
+                const double v0v0 = gradient_value[0]*gradient_value[0];
+                const double v0v1 = gradient_value[0]*gradient_value[1];
+                const double v0v2 = gradient_value[0]*gradient_value[2];
+                const double v1v1 = gradient_value[1]*gradient_value[1];
+                const double v1v2 = gradient_value[1]*gradient_value[2];
+                const double v2v2 = gradient_value[2]*gradient_value[2];
+                
+                // Using API
+                if ( MMG3D_Set_tensorSol(mmgSol, 
+                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                        coeff0*(      v0v1) + coeff1*v0v1, 
+                                        coeff0*(      v0v2) + coeff1*v0v2, 
+                                        coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+                                        coeff0*(      v1v2) + coeff1*v1v2, 
+                                        coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+                                        node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
             }
         }
     }
