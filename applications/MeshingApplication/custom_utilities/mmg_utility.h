@@ -169,6 +169,7 @@ public:
         std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << std::endl;
         
         KRATOS_WATCH(rThisModelPart);
         
@@ -203,7 +204,10 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], itNode->Id());
+            SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i + 1);
+            
+            // RESETING THE ID OF THE NODES (important for non consecutive meshes)
+            itNode->SetId(i + 1);
         }
         
         /* Conditions */
@@ -212,7 +216,7 @@ public:
         {
             auto itCond = pConditions.begin() + i;
            
-            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], itCond->Id());
+            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1);
         }
         
         /* Elements */
@@ -221,7 +225,7 @@ public:
         {
             auto itElem = pElements.begin() + i;
             
-            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], itElem->Id());
+            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1);
         }
         
         ////////* SOLUTION FILE *////////
@@ -511,6 +515,7 @@ public:
         std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << std::endl;
         
         KRATOS_WATCH(rThisModelPart);
     }
