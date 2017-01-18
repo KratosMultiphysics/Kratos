@@ -128,7 +128,9 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -232,7 +234,8 @@ public:
     }
 
 
-    //~ void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    //~ void CalculateRightHandSide(VectorType& rRightHandSideVector,
+    //~                             ProcessInfo& rCurrentProcessInfo) override
     //~ {
         //~ KRATOS_TRY
 
@@ -331,7 +334,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -558,7 +561,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "EmbeddedNavierStokes3D #";
     }
