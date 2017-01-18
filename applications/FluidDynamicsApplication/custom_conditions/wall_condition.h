@@ -219,6 +219,24 @@ namespace Kratos
 	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
         }
 
+        
+        /**
+         * Clones the selected element variables, creating a new one
+         * @param NewId: the ID of the new element
+         * @param ThisNodes: the nodes of the new element
+         * @param pProperties: the properties assigned to the new element
+         * @return a Pointer to the new element
+         */
+        
+        virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+        {
+            Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+            
+            pNewCondition->SetData(this->GetData());
+            pNewCondition->SetFlags(this->GetFlags());
+            
+            return pNewCondition;
+        }
 
 
         virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
