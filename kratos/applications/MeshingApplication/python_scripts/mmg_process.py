@@ -61,8 +61,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.gradient_variable)
         self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
-
-        KratosMultiphysics.ModelPartIO(self.input_file_name).ReadModelPart(self.Model[self.model_part_name])
+        
+        # LEGACY MMG
+        #KratosMultiphysics.ModelPartIO(self.input_file_name).ReadModelPart(self.Model[self.model_part_name])
         
         self._CreateGradientProcess()
         
@@ -150,10 +151,6 @@ class MmgProcess(KratosMultiphysics.Process):
         
         print("Remeshing")
         self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files)
-        
-        # In case memory is not erased
-        #print("Cleaing memory")
-        #self.MmgUtility.FreeMemory()
         
         # LEGACY MMG 
         #import write_mmg_mesh as write
