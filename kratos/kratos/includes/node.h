@@ -957,7 +957,7 @@ public:
         KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
     }
 
-    /** retuns the Dof asociated with variable  */
+    /** returns the Dof asociated with variable  */
     template<class TVariableType>
     inline DofType& GetDof(TVariableType const& rDofVariable)
     {
@@ -971,13 +971,13 @@ public:
 
     }
 
-    /** retuns all of the Dofs  */
+    /** returns all of the Dofs  */
     DofsContainerType& GetDofs()
     {
         return mDofs;
     }
 
-    /** retuns a counted pointer to the Dof asociated with variable  */
+    /** returns a counted pointer to the Dof asociated with variable  */
     template<class TVariableType>
     inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable)
     {
