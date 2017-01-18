@@ -128,6 +128,24 @@ public:
     }
 
 
+    /**
+     * Clones the selected element variables, creating a new one
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+    {
+        Element::Pointer pNewElement = Create(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+        
+        pNewElement->SetData(this->GetData());
+        pNewElement->SetFlags(this->GetFlags());
+        
+        return pNewElement;
+    }
+    
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override
