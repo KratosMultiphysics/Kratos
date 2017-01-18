@@ -190,6 +190,24 @@ public:
     {
         return boost::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
+    
+    /**
+     * Clones the selected element variables, creating a new one
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    
+    virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+    {
+        Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+        
+        pNewCondition->SetData(this->GetData());
+        pNewCondition->SetFlags(this->GetFlags());
+        
+        return pNewCondition;
+    }
 
     /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).
     /** The actual local contributions are computed in the Damping functions

@@ -218,7 +218,6 @@ namespace Kratos
         {
 	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
         }
-
         
         /**
          * Clones the selected element variables, creating a new one
