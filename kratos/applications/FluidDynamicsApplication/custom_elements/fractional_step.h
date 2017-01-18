@@ -173,9 +173,10 @@ namespace Kratos
 	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             Element::PropertiesType::Pointer pProperties) const
 	{
-	  return boost::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+            return boost::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	}
-	        /**
+	
+        /**
          * Returns a pointer to a new FractionalStep element, created using given input
          * @param NewId: the ID of the new element
          * @param pGeom: a pointer to the geometry
@@ -185,9 +186,27 @@ namespace Kratos
 		
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const
         {
-	  return boost::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
+            return boost::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
-
+        
+        /**
+         * Clones the selected element variables, creating a new one
+         * @param NewId: the ID of the new element
+         * @param ThisNodes: the nodes of the new element
+         * @param pProperties: the properties assigned to the new element
+         * @return a Pointer to the new element
+         */
+        
+        Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+        {
+            Element::Pointer pNewElement = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+            
+            pNewElement->SetData(this->GetData());
+            pNewElement->SetFlags(this->GetFlags());
+            
+            return pNewElement;
+        }
+        
         virtual void Initialize();
 
         /// Initializes the element and all geometric information required for the problem.
