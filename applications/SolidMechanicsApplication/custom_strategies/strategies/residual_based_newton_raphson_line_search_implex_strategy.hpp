@@ -180,7 +180,6 @@ namespace Kratos
     //Set and Get Scheme ... containing Builder, Update and other
     virtual bool  GetImplexSetToConstitutiveEquations()
     {
-       std::cout << " we are asking that here " << std::endl;
        if ( mImplexFlag == true) {
           if ( this->GetModelPart().GetProcessInfo()[IMPLEX] == 1) {
              return true;
@@ -196,6 +195,7 @@ namespace Kratos
     {
        KRATOS_TRY
 
+       mImplexFlag = true;
        if ( mImplexFlag == true)
           this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
 
