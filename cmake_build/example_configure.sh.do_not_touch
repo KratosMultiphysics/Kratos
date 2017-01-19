@@ -44,6 +44,7 @@ cmake ..  									                                                    \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
 -DALE_APPLICATION=ON 								                                            \
 -DFSI_APPLICATION=ON 								                                            \
+-DMAPPING_APPLICATION=OFF 								                                            \
 -DOPENCL_APPLICATION=OFF							                                          \
 -DMIXED_ELEMENT_APPLICATION=ON							                                    \
 -DMKL_SOLVERS_APPLICATION=OFF							                                      \
