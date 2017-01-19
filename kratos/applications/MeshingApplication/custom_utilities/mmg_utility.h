@@ -5,7 +5,7 @@
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
-//                                       license: structural_mechanics_application/license.txt
+//                       license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrándiz
 //
@@ -25,6 +25,8 @@
 #include "mmg/mmg2d/libmmg2d.h" 
 #include "mmg/mmg3d/libmmg3d.h"
 #include "mmg/mmgs/libmmgs.h"
+// Include the point locator
+#include "utilities/binbased_fast_point_locator.h"
 
 // NOTE: Inspired in the documentation from:
 // https://github.com/MmgTools/mmg/blob/master/libexamples/
@@ -164,6 +166,7 @@ public:
         
         KRATOS_WATCH(rThisModelPart);
         
+        
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
@@ -261,19 +264,23 @@ public:
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
             
-            const double tol = 1.0e-6;
-            if (scalar_value < tol) //NOTE: Is it right?
-            {
-                gradient_value[0] = 1.0;
-                gradient_value[1] = 0.0;
-                gradient_value[2] = 0.0;
-            }
-            else
-            {
-                const double norm = norm_2(gradient_value);
-                gradient_value /= norm;
-            }
+//             const double tol = 1.0e-6;
+//             if (std::abs(scalar_value) < tol) //NOTE: Is it right?
+//             {
+//                 gradient_value[0] = 1.0;
+// //                 gradient_value[0] = 0.0;
+//                 gradient_value[1] = 0.0;
+//                 gradient_value[2] = 0.0;
+//             }
+//             else
+//             {
+//                 const double norm = norm_2(gradient_value);
+//                 gradient_value /= norm;
+//             }
             
+            const double norm = norm_2(gradient_value);
+            gradient_value /= norm;
+                
             double element_size = itNode->GetValue(NODAL_VOLUME);
             if (element_size > elementary_length)
             {
@@ -372,36 +379,39 @@ public:
         ////////* MMG LIBRARY CALL *////////
         
         MMGLibCall();
-        const unsigned int numNodes = mmgMesh->np;
-        unsigned int numConditions;
+        const unsigned int nNodes = mmgMesh->np;
+        unsigned int nConditions;
         if (TDim == 2)
         {
-            numConditions = mmgMesh->na;
+            nConditions = mmgMesh->na;
         }
         else
         {
-            numConditions = mmgMesh->nt;
+            nConditions = mmgMesh->nt;
         }
-        unsigned int numElements;
+        unsigned int nElements;
         if (TDim == 2)
         {
-            numElements = mmgMesh->nt;
+            nElements = mmgMesh->nt;
         }
         else
         {
-            numElements = mmgMesh->ne;
+            nElements = mmgMesh->ne;
         }
         
-        std::cout << "     Nodes created: " << numNodes << std::endl;
-        std::cout << "Conditions created: " << numConditions << std::endl;
-        std::cout << "  Elements created: " << numElements << std::endl;
+        std::cout << "     Nodes created: " << nNodes << std::endl;
+        std::cout << "Conditions created: " << nConditions << std::endl;
+        std::cout << "  Elements created: " << nElements << std::endl;
         
-        ////////* EMPTY THE MODEL PART *////////
+        ////////* EMPTY AND BACKUP THE MODEL PART *////////
+        
+        ModelPart OldModelPart;
         
         // First we empty the model part
         for (NodeConstantIterator node_iterator = rThisModelPart.NodesBegin(); node_iterator != rThisModelPart.NodesEnd(); node_iterator++)
         {
             node_iterator->Set(TO_ERASE, true);
+            OldModelPart.AddNode(*(node_iterator.base()));
         }
         rThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
         
@@ -414,9 +424,13 @@ public:
         for (ElementConstantIterator elem_iterator = rThisModelPart.ElementsBegin(); elem_iterator != rThisModelPart.ElementsEnd(); elem_iterator++)
         {
             elem_iterator->Set(TO_ERASE, true);
+            OldModelPart.AddElement(*(elem_iterator.base()));
         }
         rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
 
+        // We create the locator
+        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(OldModelPart);
+        
         // NOTE: Technically not necessary
 //         // Create iterator
 //         typedef std::map<int,std::vector<std::string>>::iterator it_type;
@@ -445,7 +459,7 @@ public:
         // Create a new model part
         /* NODES */
         unsigned int node_id = 0;
-        for (int unsigned i_node = 1; i_node <= numNodes; i_node++)
+        for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
             node_id += 1;
             NodeType::Pointer pNode;
@@ -471,7 +485,7 @@ public:
         {
             unsigned int cond_id = 0;
 
-            for (int unsigned i_cond = 1; i_cond <= numConditions; i_cond++)
+            for (int unsigned i_cond = 1; i_cond <= nConditions; i_cond++)
             {
                 cond_id += 1;
                 ConditionType::Pointer pCondition;
@@ -519,7 +533,7 @@ public:
         if (mpRefElement != nullptr)
         {
             unsigned int elem_id = 0;
-            for (int unsigned i_elem = 1; i_elem <= numElements; i_elem++)
+            for (int unsigned i_elem = 1; i_elem <= nElements; i_elem++)
             {
                 elem_id += 1;
                 ElementType::Pointer pElement;
@@ -601,16 +615,53 @@ public:
             rSubModelPart.AddNodes(NodesIds);
         }
         
-        // Save to file
+//         /* We interpolate all the values */
+//         // Iterate in the nodes
+//         NodesArrayType& pNode = rThisModelPart.Nodes();
+//         auto numNodes = pNode.end() - pNode.begin();
+//         
+//         /* Nodes */
+// //         #pragma omp parallel for 
+//         for(unsigned int i = 0; i < numNodes; i++) 
+//         {
+//             auto itNode = pNode.begin() + i;
+//             
+//             Vector N;
+//             ElementType::Pointer pElement;
+//             const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement);
+//             
+//             if (found == false)
+//             {
+//                 std::cout << "WARNING: Node "<< itNode->Id() <<" not found (interpolation not posible :P)" << std::endl;
+//             }
+//             
+//             const VariablesList* pVariablesList = pElement->GetGeometry()[0].pGetVariablesList();
+//             
+//             // NOTE: There is going to be problems with the GetValue and the FastGetSolutionStepValue
+// //             SizeType size = pVariablesList->DataSize();
+//             
+//             for (VariablesList::const_iterator i_variable = pVariablesList->begin() ; i_variable != pVariablesList->end() ; i_variable++)
+//             {
+//                 auto& NewValue = itNode->FastGetSolutionStepValue(i_variable, 0);
+//                 NewValue = 0.0; // Initialize the variable
+//                 for (unsigned int i_node = 0; i_node < pElement->GetGeometry().size(); i_node++)
+//                 {
+// //                     const auto OriValue = pElement->GetGeometry()[i_node].FastGetSolutionStepValue(i_variable , 0);
+// //                     NewValue += N[i_node] * OriValue;
+//                 }
+//             }
+//         }
+//         
+        /* Save to file */
         if (save_to_file == true)
         {
             SaveSolutionToFile(true);
         }
        
-        // Free memory
+        /* Free memory */
         FreeMemory();
         
-        // We print the resulting model part
+        /* We print the resulting model part */
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
