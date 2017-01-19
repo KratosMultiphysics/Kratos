@@ -69,7 +69,7 @@ public:
     /// Counted pointer of
     KRATOS_CLASS_POINTER_DEFINITION(NavierStokes);
 
-    struct element_data
+    struct ElementDataStruct
     {
         bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
         array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
@@ -117,14 +117,14 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return boost::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return boost::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return boost::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
@@ -134,7 +134,6 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                            //   const ProcessInfo& rCurrentProcessInfo) override
                               ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -148,51 +147,8 @@ public:
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
         // Struct to pass around the data
-        element_data data;
+        ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
-
-        // // Getting data for the given geometry
-        // double Volume; // In 2D cases Volume variable contains the element area
-        // GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-        //
-        // // Compute element size
-        // data.h = ComputeH(data.DN_DX, Volume);
-        //
-        // // Database access to all of the variables needed
-        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        // data.bdf0 = BDFVector[0];
-        // data.bdf1 = BDFVector[1];
-        // data.bdf2 = BDFVector[2];
-        //
-        // data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
-        // data.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
-        //
-        // data.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
-        //
-        // for (unsigned int i = 0; i < TNumNodes; i++)
-        // {
-        //
-        //     const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-        //     const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        //     const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-        //     const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-        //     const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-        //
-        //     for(unsigned int k=0; k<TDim; k++)
-        //     {
-        //         data.v(i,k)   = vel[k];
-        //         data.vn(i,k)  = vel_n[k];
-        //         data.vnn(i,k) = vel_nn[k];
-        //         data.vmesh(i,k) = vel_mesh[k];
-        //         data.f(i,k)   = body_force[k];
-        //     }
-        //
-        //     data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-        //     data.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-        //     data.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-        //     data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-        //     data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-        // }
 
         // Allocate memory needed
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
@@ -220,9 +176,7 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        // rLeftHandSideMatrix  *= Volume/static_cast<double>(TNumNodes);
         rLeftHandSideMatrix  *= data.volume/static_cast<double>(TNumNodes);
-        // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("Error in Stokes Element Symbolic")
@@ -230,7 +184,6 @@ public:
 
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                // const ProcessInfo& rCurrentProcessInfo) override
                                 ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -241,54 +194,8 @@ public:
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
         // Struct to pass around the data
-        element_data data;
+        ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
-
-        // // Getting data for the given geometry
-        // double Volume; // In 2D cases Volume variable contains the element area
-        // GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-        //
-        // // Compute element size
-        // //~ data.h = ComputeH<4,3>(data.DN_DX, Volume);
-        // data.h = ComputeH(data.DN_DX, Volume);
-        //
-        // // Gauss point position
-        // bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
-        // GetShapeFunctionsOnGauss(Ncontainer);
-        //
-        // // Database access to all of the variables needed
-        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        // data.bdf0 = BDFVector[0];
-        // data.bdf1 = BDFVector[1];
-        // data.bdf2 = BDFVector[2];
-        //
-        // data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
-        // data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
-        //
-        // data.c = rCurrentProcessInfo[SOUND_VELOCITY];                      // Wave velocity
-        //
-        // for (unsigned int i = 0; i < TNumNodes; i++)
-        // {
-        //
-        //     const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-        //     const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        //     const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-        //     const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-        //     const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-        //
-        //     for(unsigned int k=0; k<TDim; k++)
-        //     {
-        //         data.v(i,k)   = vel[k];
-        //         data.vn(i,k)  = vel_n[k];
-        //         data.vnn(i,k) = vel_nn[k];
-        //         data.vmesh(i,k) = vel_mesh[k];
-        //         data.f(i,k)   = body_force[k];
-        //     }
-        //
-        //     data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-        //     data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-        //     data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-        // }
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_local;
@@ -366,10 +273,10 @@ public:
         }
 
         // Check constitutive law
-        if(mp_constitutive_law == nullptr)
-            KRATOS_ERROR << "The constitutive law was not set. Cannot proceed.";
+        if(mpConstitutiveLaw == nullptr)
+            KRATOS_ERROR << "The constitutive law was not set. Cannot proceed. Call the navier_stokes.h Initialize() method needs to be called.";
 
-        mp_constitutive_law->Check(GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
+        mpConstitutiveLaw->Check(GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
 
         return 0;
 
@@ -384,7 +291,7 @@ public:
     {
         KRATOS_TRY
 
-        element_data data;
+        ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);
 
         if (rVariable == ERROR_RATIO)
@@ -397,7 +304,7 @@ public:
         //     const unsigned int strain_size = (TDim*3)-3;
         //
         //     //struct to pass around the data
-        //     element_data data;
+        //     ElementDataStruct data;
         //
         //     //getting data for the given geometry
         //     double Volume;
@@ -439,14 +346,13 @@ public:
         //
         //     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //     //this is ok under the hypothesis that no history dependent behaviour is employed
-        //     mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
+        //     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
         //
         //     Output = inner_prod(data.stress, strain);
         // }
 
         KRATOS_CATCH("")
     }
-
 
     ///@}
     ///@name Access
@@ -475,8 +381,7 @@ public:
     }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
-
+    // virtual void PrintData(std::ostream& rOStream) const override
 
     ///@}
     ///@name Friends
@@ -486,7 +391,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected static member variables
     ///@{
 
 
@@ -494,14 +399,17 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // Constitutive law pointer
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
     // Symbolic function implementing the element
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const element_data& data);
-    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const element_data& data);
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
+    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ElementDataStruct& data);
 
-    double SubscaleErrorEstimate(const element_data& data);
+    double SubscaleErrorEstimate(const ElementDataStruct& data);
 
     ///@}
     ///@name Protected Operators
@@ -515,8 +423,19 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // Element initialization (constitutive law)
+    void Initialize() override
+    {
+        KRATOS_TRY
+
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
+
+        KRATOS_CATCH( "" )
+    }
+
     // Auxiliar function to fill the element data structure
-    void FillElementData(element_data& rData, const ProcessInfo& rCurrentProcessInfo)
+    void FillElementData(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     {
         // Getting data for the given geometry
         // double Volume; // In 2D cases Volume variable contains the element area
@@ -612,7 +531,7 @@ protected:
     }
 
     // Computes the strain rate in Voigt notation
-    void ComputeStrain(const element_data& rData, const unsigned int& strain_size, Vector& strain)
+    void ComputeStrain(const ElementDataStruct& rData, const unsigned int& strain_size, Vector& strain)
     {
         const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
         const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
@@ -638,7 +557,7 @@ protected:
     }
 
     // Call the constitutive law to get the stress value
-    virtual void ComputeConstitutiveResponse(element_data& rData, const ProcessInfo& rCurrentProcessInfo)
+    virtual void ComputeConstitutiveResponse(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int strain_size = (TDim*3)-3;
 
@@ -667,19 +586,8 @@ protected:
 
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
         //this is ok under the hypothesis that no history dependent behaviour is employed
-        mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
+        mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
-    }
-
-    // Element initialization (constitutive law)
-    void Initialize() override
-    {
-        KRATOS_TRY
-
-        mp_constitutive_law = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mp_constitutive_law->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
-
-        KRATOS_CATCH( "" )
     }
 
     ///@}
@@ -698,11 +606,6 @@ protected:
 
 
     ///@}
-
-
-// protected:
-    ConstitutiveLaw::Pointer mp_constitutive_law = nullptr;
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -716,12 +619,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
@@ -745,10 +648,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
-
-
 
     ///@}
 
