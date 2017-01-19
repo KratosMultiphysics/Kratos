@@ -89,14 +89,17 @@ public:
               int comm_size;
               MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
               if (comm_size > 1) {
-                  InitializeParallelCommunicator();
+                  m_p_mapper_communicator = MapperCommunicator::Pointer (
+                      new MapperMPICommunicator(m_model_part_origin,
+                                                m_model_part_destination,
+                                                m_json_parameters) );
               } else { // mpi importet in python, but execution with one process only
                   InitializeSerialCommunicator();
               }
           } else { // serial execution, i.e. mpi NOT imported in python
               InitializeSerialCommunicator();
           }
-          
+
       #else // serial compilation
           InitializeSerialCommunicator();
       #endif
@@ -256,13 +259,6 @@ private:
           new MapperCommunicator(m_model_part_origin,
                                  m_model_part_destination,
                                  m_json_parameters) );
-  }
-
-  void InitializeParallelCommunicator() {
-      m_p_mapper_communicator = MapperCommunicator::Pointer (
-          new MapperMPICommunicator(m_model_part_origin,
-                                    m_model_part_destination,
-                                    m_json_parameters) );
   }
 
   ///@}
