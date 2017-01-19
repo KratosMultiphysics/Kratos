@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Aitken acceleration scheme 
+/** @brief Aitken acceleration scheme
  */
 template<class TSpace>
 class AitkenConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
@@ -53,12 +53,13 @@ public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( AitkenConvergenceAccelerator );
-    
+
     typedef ConvergenceAccelerator<TSpace>                                 BaseType;
-    
+
     typedef typename BaseType::Pointer                              BaseTypePointer;
-    
+
     typedef typename BaseType::VectorType                                VectorType;
+    typedef typename BaseType::VectorPointerType                  VectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -73,7 +74,7 @@ public:
         mOmega_0 = rOmegaInitial;
     }
 
-    /** 
+    /**
      * Copy Constructor.
      */
     AitkenConvergenceAccelerator(const AitkenConvergenceAccelerator& rOther)
@@ -89,18 +90,18 @@ public:
         return BaseTypePointer( new AitkenConvergenceAccelerator(*this) );
     }
 
-    /** 
+    /**
      * Destructor.
      */
     virtual ~AitkenConvergenceAccelerator
     () {}
 
     ///@}
-    
+
     ///@name Operators
     ///@{
     ///@}
-    
+
     ///@name Operations
     ///@{
 
@@ -117,38 +118,45 @@ public:
     }
 
     /**
-     * Performs the solution update 
+     * Performs the solution update
      * The correction is done as u_i+1 = u_i + w_i+1*r_i+1 where w_i+1 is de relaxation parameter computed using the Aitken's formula.
      * @param rResidualVector: Residual vector from the residual evaluation
      * @param rIterationGuess: Current iteration guess
-     * @param rCorrectedValue: Computed corrected value
      */
-    void UpdateSolution(
-        const VectorType& rResidualVector,
-        VectorType& rIterationGuess) override
+    void UpdateSolution(const VectorType& rResidualVector,
+                        VectorType& rIterationGuess) override
     {
         KRATOS_TRY;
 
-        mResidualVector_1 = rResidualVector;
+        // (*mpResidualVector_1) = rResidualVector;
+        VectorPointerType pAux(new VectorType(rResidualVector));
+        std::swap(mpResidualVector_1, pAux);
 
         if (mConvergenceAcceleratorIteration == 1)
         {
-            rIterationGuess += mOmega_0*mResidualVector_1;
+            // rIterationGuess += mOmega_0*mResidualVector_1;
+            TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
         }
         else
         {
-            double aux1 = inner_prod(mResidualVector_0,(mResidualVector_1-mResidualVector_0));
-            double aux2 = inner_prod((mResidualVector_1-mResidualVector_0),(mResidualVector_1-mResidualVector_0));
-            
-            mOmega_1 = -mOmega_0*(aux1/aux2);
-            
-            rIterationGuess += mOmega_1*mResidualVector_1;
+            VectorType Aux1minus0(*mpResidualVector_1);                  // Auxiliar copy of mResidualVector_1
+            TSpace::UnaliasedAdd(Aux1minus0, -1.0, *mpResidualVector_0); // mResidualVector_1 - mResidualVector_0
+
+            // double num = inner_prod(mResidualVector_0,(mResidualVector_1-mResidualVector_0));
+            // double den = inner_prod((mResidualVector_1-mResidualVector_0),(mResidualVector_1-mResidualVector_0));
+            double den = TSpace::Dot(Aux1minus0, Aux1minus0);
+            double num = TSpace::Dot(*mpResidualVector_0, Aux1minus0);
+
+            mOmega_1 = -mOmega_0*(num/den);
+
+            // rIterationGuess += mOmega_1*mResidualVector_1;
+            TSpace::UnaliasedAdd(rIterationGuess, mOmega_1, *mpResidualVector_1);
             mOmega_0 = mOmega_1;
         }
-                        
+
         KRATOS_CATCH( "" );
     }
-    
+
     /**
      * Updates the Aitken iteration values for the next non-linear iteration
      */
@@ -156,12 +164,13 @@ public:
     {
         KRATOS_TRY;
 
-        mResidualVector_0 = mResidualVector_1;
+        // *mResidualVector_0 = *mResidualVector_1;
+        mpResidualVector_0 = mpResidualVector_1;
         mConvergenceAcceleratorIteration += 1;
 
         KRATOS_CATCH( "" );
     }
-    
+
     /**
      * Reset the convergence accelerator iterations counter
      */
@@ -175,19 +184,19 @@ public:
     }
 
     ///@}
-    
+
     ///@name Access
     ///@{
     ///@}
-    
+
     ///@name Inquiry
     ///@{
     ///@}
-    
+
     ///@name Input and output
     ///@{
     ///@}
-    
+
     ///@name Friends
     ///@{
     ///@}
@@ -197,7 +206,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     ///@}
-    
+
     ///@name Protected member Variables
     ///@{
 
@@ -205,28 +214,28 @@ protected:
 
     double mOmega_0;
     double mOmega_1;
-    
-    VectorType mResidualVector_0;
-    VectorType mResidualVector_1;
-    
+
+    VectorPointerType mpResidualVector_0;
+    VectorPointerType mpResidualVector_1;
+
     ///@}
-    
+
     ///@name Protected Operators
     ///@{
     ///@}
-    
+
     ///@name Protected Operations
     ///@{
     ///@}
-    
+
     ///@name Protected  Access
     ///@{
     ///@}
-    
+
     ///@name Protected Inquiry
     ///@{
     ///@}
-    
+
     ///@name Protected LifeCycle
     ///@{
     ///@}
@@ -236,19 +245,19 @@ private:
     ///@name Static Member Variables
     ///@{
     ///@}
-    
+
     ///@name Member Variables
     ///@{
     ///@}
-    
+
     ///@name Private Operators
     ///@{
     ///@}
-    
+
     ///@name Private Operations
     ///@{
     ///@}
-    
+
     ///@name Private  Access
     ///@{
     ///@}
@@ -260,11 +269,11 @@ private:
     ///@name Private Inquiry
     ///@{
     ///@}
-    
+
     ///@name Un accessible methods
     ///@{
     ///@}
-    
+
 }; /* Class AitkenConvergenceAccelerator */
 
 ///@}

@@ -50,48 +50,28 @@ namespace Kratos
 
 /** Short class definition.
 Detail class definition.
-
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
 */
-//~ template<class TSparseSpace,
-         //~ class TDenseSpace,
-         //~ class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         //~ >
+
 template<class TSpace>
 class ConvergenceAccelerator
 {
+
 public:
-    /**@name Type Definitions */
+
+    /** Type Definitions
+    */
+
     /*@{ */
-    
     typedef typename TSpace::VectorType                             VectorType;
     typedef typename TSpace::MatrixType                             MatrixType;
-    
+
     typedef typename TSpace::VectorPointerType               VectorPointerType;
     typedef typename TSpace::MatrixPointerType               MatrixPointerType;
-    
+
     //~ typedef typename TSpace::MatrixType::size_type                    SizeType;
-        
+
     //~ /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ConvergenceAccelerator );
-
     /*@} */
 
     /** Constructor.
@@ -102,10 +82,10 @@ public:
     {
     }
     /*@} */
-    
+
     /** Copy constructor.
     */
-    
+
     /*@{ */
     ConvergenceAccelerator(const ConvergenceAccelerator& Other);
     /*@{ */
@@ -148,12 +128,11 @@ public:
     /**
     Computes the correction over the given iteration guess
      */
-    virtual void UpdateSolution(
-        const VectorType& rResidualVector,
-        VectorType& rIterationGuess)
+    virtual void UpdateSolution(const VectorType& rResidualVector,
+                                VectorType& rIterationGuess)
     {
     }
-    
+
     /**
     Performs all the required operations that should be done at the end of each non-linear iteration.
      */
@@ -175,7 +154,7 @@ public:
     virtual void Clear()
     {
     }
-	
+
     //*********************************************************************************
 
     /**level of echo for the convergence accelerator
@@ -227,8 +206,8 @@ protected:
     /*@} */
     /**@name Protected Inquiry */
     /*@{ */
-    
-    
+
+
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
@@ -288,4 +267,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_CONVERGENCE_ACCELERATOR  defined */
-
