@@ -96,7 +96,8 @@ namespace Kratos
               if (!interface_obj->NeighborFound()) {
                   std::cout << "MAPPER WARNING, Rank " << m_comm_rank
                             << "\tPoint has not found a neighbor, [ "
-                            << interface_obj->X() << " | " << interface_obj->Y() << " | "
+                            << interface_obj->X() << " | "
+                            << interface_obj->Y() << " | "
                             << interface_obj->Z() << " ]" << std::endl;
               }
           }
@@ -321,7 +322,7 @@ namespace Kratos
                                                     send_buffer_size,
                                                     m_comm_rank,
                                                     m_comm_size);
-                                                    
+
           MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, m_comm_size,
                                                    colored_graph, max_colors);
 

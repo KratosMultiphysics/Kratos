@@ -28,7 +28,7 @@
 #include "mapper_utilities.h"
 
 #include "custom_utilities/nearest_neighbor_mapper.h"
-// #include "custom_utilities/nearest_element_mapper.h"
+#include "custom_utilities/nearest_element_mapper.h"
 // #include "custom_utilities/approximate_mortar_mapper.h"
 
 
@@ -98,11 +98,6 @@ namespace Kratos
       ///@{
 
       void UpdateInterface(Kratos::Flags& options, double search_radius) {
-          if (options.Is(MapperFlags::REMESHED)) { // TODO remove warning once properly tested!
-              std::cout << "MAPPER WARNNING, \"UpdateInterface\" called with the "
-                        << "\"REMESHED\"-option. This is an experimental and "
-                        << "untested option!" << std::endl;
-          }
           double start_time = MapperUtilities::GetCurrentTime();
           m_p_mapper->UpdateInterface(options, search_radius);
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
@@ -364,12 +359,12 @@ namespace Kratos
               m_p_mapper = Mapper::Pointer(new NearestNeighborMapper(*m_p_interface_model_part_origin,
                                                                      *m_p_interface_model_part_destination,
                                                                      m_json_parameters));
-          } /*else if (m_mapper_type == "NearestElement") {
+          } else if (m_mapper_type == "NearestElement") {
               m_p_mapper = Mapper::Pointer(new NearestElementMapper(*m_p_interface_model_part_origin,
                                                                     *m_p_interface_model_part_destination,
                                                                     m_json_parameters));
 
-          } *//*else if (m_mapper_type == "Barycentric") {
+          } /*else if (m_mapper_type == "Barycentric") {
               m_p_mapper = Mapper::Pointer(new BarycentricMapper(*m_p_interface_model_part_origin,
                                                                  *m_p_interface_model_part_destination,
                                                                  m_json_parameters));

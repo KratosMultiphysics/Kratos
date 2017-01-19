@@ -138,17 +138,42 @@ namespace Kratos
           double search_safety_factor = 1.2;
           double max_element_size = 0.0;
 
-          // Loop through each edge of a geometrical entity ONCE
-          for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
-              for (std::size_t i = 0; i < (condition.GetGeometry().size() - 1); ++i) {
-                  double node_1_x = condition.GetGeometry()[i].X();
-                  double node_1_y = condition.GetGeometry()[i].Y();
-                  double node_1_z = condition.GetGeometry()[i].Z();
+          int num_conditions_global = ComputeNumberOfConditions(model_part);
 
-                  for (std::size_t j = i + 1; j < condition.GetGeometry().size(); ++j) {
-                      double node_2_x = condition.GetGeometry()[j].X();
-                      double node_2_y = condition.GetGeometry()[j].Y();
-                      double node_2_z = condition.GetGeometry()[j].Z();
+          if (num_conditions_global > 0) {
+              // Loop through each edge of a geometrical entity ONCE
+              for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
+                  for (std::size_t i = 0; i < (condition.GetGeometry().size() - 1); ++i) {
+                      double node_1_x = condition.GetGeometry()[i].X();
+                      double node_1_y = condition.GetGeometry()[i].Y();
+                      double node_1_z = condition.GetGeometry()[i].Z();
+
+                      for (std::size_t j = i + 1; j < condition.GetGeometry().size(); ++j) {
+                          double node_2_x = condition.GetGeometry()[j].X();
+                          double node_2_y = condition.GetGeometry()[j].Y();
+                          double node_2_z = condition.GetGeometry()[j].Z();
+
+                          double edge_length = sqrt(pow(node_1_x - node_2_x , 2) +
+                                                    pow(node_1_y - node_2_y , 2) +
+                                                    pow(node_1_z - node_2_z , 2));
+
+                          max_element_size = std::max(max_element_size, edge_length);
+                      }
+                  }
+              }
+          } else {
+              std::cout << "MAPPER WARNING, no conditions for search radius "
+                        << "computations found, using nodes (less efficient)"
+                        << std::endl;
+              // TODO modify loop such that it loop only once over the nodes
+              for (auto& node_1 : model_part.GetCommunicator().LocalMesh().Nodes()) {
+                  double node_1_x = node_1.X();
+                  double node_1_y = node_1.Y();
+                  double node_1_z = node_1.Z();
+                  for (auto& node_2 : model_part.GetCommunicator().LocalMesh().Nodes()) {
+                      double node_2_x = node_2.X();
+                      double node_2_y = node_2.Y();
+                      double node_2_z = node_2.Z();
 
                       double edge_length = sqrt(pow(node_1_x - node_2_x , 2) +
                                                 pow(node_1_y - node_2_y , 2) +
@@ -158,6 +183,7 @@ namespace Kratos
                   }
               }
           }
+
           model_part.GetCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
           return max_element_size * search_safety_factor;
       }
