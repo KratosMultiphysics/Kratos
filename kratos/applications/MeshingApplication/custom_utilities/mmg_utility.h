@@ -216,15 +216,10 @@ public:
             // We clone the first condition
             if (i == 0)
             {
-                mpRefCondition = itCond->Clone(0, itCond->GetGeometry()); // NOTE: The clone must be implemented in the condition
+                mpRefCondition = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
             }
             
             SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1);
-        }
-        
-        if (numConditions == 0)
-        {
-            mpRefCondition = nullptr;
         }
         
         /* Elements */
@@ -236,15 +231,10 @@ public:
             // We clone the first element
             if (i == 0)
             {
-                mpRefElement = itElem->Clone(0, itElem->GetGeometry());  // NOTE: The clone must be implemented in the element
+                mpRefElement = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties()); 
             }
             
             SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1);
-        }
-        
-        if (numElements == 0)
-        {
-            mpRefElement = nullptr;
         }
         
         ////////* SOLUTION FILE *////////
@@ -451,7 +441,7 @@ public:
                     
                     prop_id = mmgMesh->edge[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Clone(cond_id, ConditionNodeIds);
+                    pCondition = mpRefCondition->Create(cond_id, ConditionNodeIds, mpRefCondition->pGetProperties());
                 }
                 else
                 {
@@ -462,9 +452,10 @@ public:
                     
                     prop_id = mmgMesh->tria[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Clone(cond_id, ConditionNodeIds);
+                    pCondition = mpRefCondition->Create(cond_id, ConditionNodeIds, mpRefCondition->pGetProperties());
                 }
                 
+                pCondition->Initialize();
                 rThisModelPart.AddCondition(pCondition);
             
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -499,7 +490,7 @@ public:
                     
                     prop_id = mmgMesh->tria[i_elem].ref;
                     
-                    pElement = mpRefElement->Clone(elem_id, ElementNodeIds);
+                    pElement = mpRefElement->Create(elem_id, ElementNodeIds, mpRefElement->pGetProperties());
                 }
                 else
                 {
@@ -511,9 +502,10 @@ public:
                     
                     prop_id = mmgMesh->tetra[i_elem].ref;
                     
-                    pElement = mpRefElement->Clone(elem_id, ElementNodeIds);
+                    pElement = mpRefElement->Create(elem_id, ElementNodeIds, mpRefElement->pGetProperties());
                 }
                 
+                pElement->Initialize();
                 rThisModelPart.AddElement(pElement);
                 
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -668,8 +660,8 @@ protected:
     std::map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
-    Element::Pointer mpRefElement;
-    Condition::Pointer mpRefCondition;
+    Element::Pointer mpRefElement = nullptr;
+    Condition::Pointer mpRefCondition = nullptr;
     
     ///@}
     ///@name Protected Operators
