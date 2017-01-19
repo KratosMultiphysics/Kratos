@@ -219,7 +219,13 @@ public:
                 mpRefCondition = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
             }
             
-            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id() ,itCond->GetGeometry()[2].Id(), cond_colors[itCond->Id()], i + 1);
+            unsigned int id3 = 0;
+            if(TDim == 3)
+            {
+                id3 = itCond->GetGeometry()[2].Id();
+            }
+            
+            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id(), id3, cond_colors[itCond->Id()], i + 1);
         }
         
         /* Elements */
@@ -234,7 +240,13 @@ public:
                 mpRefElement = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties()); 
             }
             
-            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), itElem->GetGeometry()[3].Id(), elem_colors[itElem->Id()], i + 1);
+            unsigned int id4 = 0;
+            if(TDim == 3)
+            {
+                id4 = itElem->GetGeometry()[3].Id();
+            }
+            
+            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), id4, elem_colors[itElem->Id()], i + 1);
         }
         
         ////////* SOLUTION FILE *////////
@@ -360,6 +372,29 @@ public:
         ////////* MMG LIBRARY CALL *////////
         
         MMGLibCall();
+        const unsigned int numNodes = mmgMesh->np;
+        unsigned int numConditions;
+        if (TDim == 2)
+        {
+            numConditions = mmgMesh->na;
+        }
+        else
+        {
+            numConditions = mmgMesh->nt;
+        }
+        unsigned int numElements;
+        if (TDim == 2)
+        {
+            numElements = mmgMesh->nt;
+        }
+        else
+        {
+            numElements = mmgMesh->ne;
+        }
+        
+        std::cout << "     Nodes created: " << numNodes << std::endl;
+        std::cout << "Conditions created: " << numConditions << std::endl;
+        std::cout << "  Elements created: " << numElements << std::endl;
         
         ////////* EMPTY THE MODEL PART *////////
         
@@ -410,10 +445,19 @@ public:
         // Create a new model part
         /* NODES */
         unsigned int node_id = 0;
-        for (int i_node = 1; i_node <= mmgMesh->np; i_node++)
+        for (int unsigned i_node = 1; i_node <= numNodes; i_node++)
         {
             node_id += 1;
-            NodeType::Pointer pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+            NodeType::Pointer pNode;
+            
+            if (TDim == 2)
+            {
+                pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+            }
+            else
+            {
+                pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+            }
             
             // Set the DOFs in the nodes 
             for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
@@ -427,7 +471,7 @@ public:
         {
             unsigned int cond_id = 0;
 
-            for (int i_cond = 1; i_cond <= mmgMesh->nt; i_cond++)
+            for (int unsigned i_cond = 1; i_cond <= numConditions; i_cond++)
             {
                 cond_id += 1;
                 ConditionType::Pointer pCondition;
@@ -435,29 +479,29 @@ public:
                 
                 if (TDim == 2)
                 {
-                    std::vector<NodeType::Pointer> ConditionNodeIds (2);
-                    ConditionNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
-                    ConditionNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
+                    std::vector<NodeType::Pointer> ConditionNodes (2);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
                     
                     prop_id = mmgMesh->edge[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Create(cond_id, ConditionNodeIds, mpRefCondition->pGetProperties());
+                    pCondition = mpRefCondition->Create(cond_id, ConditionNodes, mpRefCondition->pGetProperties());
                 }
                 else
                 {
-                    std::vector<NodeType::Pointer> ConditionNodeIds (3);
-                    ConditionNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
-                    ConditionNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
-                    ConditionNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2]);
+                    std::vector<NodeType::Pointer> ConditionNodes (3);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2]);
                     
                     prop_id = mmgMesh->tria[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Create(cond_id, ConditionNodeIds, mpRefCondition->pGetProperties());
+                    pCondition = mpRefCondition->Create(cond_id, ConditionNodes, mpRefCondition->pGetProperties());
                 }
                 
                 pCondition->Initialize();
                 rThisModelPart.AddCondition(pCondition);
-            
+                                    
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
                     std::vector<std::string> ColorList = mColors[prop_id];
@@ -475,7 +519,7 @@ public:
         if (mpRefElement != nullptr)
         {
             unsigned int elem_id = 0;
-            for (int i_elem = 1; i_elem <= mmgMesh->ne; i_elem++)
+            for (int unsigned i_elem = 1; i_elem <= numElements; i_elem++)
             {
                 elem_id += 1;
                 ElementType::Pointer pElement;
@@ -483,26 +527,26 @@ public:
                 
                 if (TDim == 2)
                 {
-                    std::vector<NodeType::Pointer> ElementNodeIds (2);
-                    ElementNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
-                    ElementNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
-                    ElementNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2]);
+                    std::vector<NodeType::Pointer> ElementNodes (3);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2]);
                     
                     prop_id = mmgMesh->tria[i_elem].ref;
                     
-                    pElement = mpRefElement->Create(elem_id, ElementNodeIds, mpRefElement->pGetProperties());
+                    pElement = mpRefElement->Create(elem_id, ElementNodes, mpRefElement->pGetProperties());
                 }
                 else
                 {
-                    std::vector<NodeType::Pointer> ElementNodeIds (4);
-                    ElementNodeIds[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
-                    ElementNodeIds[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
-                    ElementNodeIds[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2]);
-                    ElementNodeIds[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3]);
+                    std::vector<NodeType::Pointer> ElementNodes (4);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2]);
+                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3]);
                     
                     prop_id = mmgMesh->tetra[i_elem].ref;
                     
-                    pElement = mpRefElement->Create(elem_id, ElementNodeIds, mpRefElement->pGetProperties());
+                    pElement = mpRefElement->Create(elem_id, ElementNodes, mpRefElement->pGetProperties());
                 }
                 
                 pElement->Initialize();
