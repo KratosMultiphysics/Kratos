@@ -33,7 +33,7 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
-        
+
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
@@ -90,12 +90,12 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element1,
                                         SphericParticle* const element2);
-        
+
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
                                         DEMWall* const wall);
-        
+
         void CalculateElasticEnergyDEM(double& elastic_energy,
                                        double indentation,
                                        double LocalElasticContactForce[3]);
