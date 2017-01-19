@@ -69,7 +69,7 @@ namespace Kratos {
         InitializeContact(element1, element2, indentation);
         
         LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);
-        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                     
+        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
         
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
         
@@ -309,7 +309,7 @@ namespace Kratos {
     
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
         return 0.666666666666666666667 * mKn * indentation;
-    }    
+    }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){        
         return 0.0;
