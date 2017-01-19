@@ -107,6 +107,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add specific variables needed for the embedded solver
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME) # Nodal volume necessary for refinement
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Wave velocity
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
