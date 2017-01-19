@@ -48,6 +48,12 @@ class FracturePropagationUtility:
         self.last_state_path = os.path.join(str(self.problem_path),"LastState")
         self.gid_preferences_path = os.path.join(str(self.problem_path),"gid_preferences.ini")
         
+        # Create the file containing a list with all post.bin files
+        all_list_filename = str(self.problem_name)+"_all.post.lst"
+        all_list_file = open(all_list_filename,'w')
+        all_list_file.write("Multiple\n")
+        all_list_file.close()
+        
         # Save files of the original state
         self.SaveInitialProblemFiles()
 
@@ -164,11 +170,14 @@ class FracturePropagationUtility:
         solver.Clear()
         
         # Save old .post.list file
-        original_filename = str(self.problem_name)+".post.lst"
-        original_filepath = os.path.join(str(self.problem_path),str(original_filename))
-        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".post.lst"
-        new_filepath = os.path.join(str(self.problem_path),str(new_filename))
-        shutil.copy(str(original_filepath), str(new_filepath))
+        all_list_filename = str(self.problem_name)+"_all.post.lst"
+        all_list_file = open(all_list_filename,'a')
+        partial_list_filename = str(self.problem_name)+".post.lst"
+        with open(partial_list_filename) as partial_list_file:
+            next(partial_list_file)
+            for line in partial_list_file:
+                    all_list_file.write(line)
+        all_list_file.close()
         # Save old .time file
         original_filename = str(self.problem_name)+".time"
         original_filepath = os.path.join(str(self.problem_path),str(original_filename))
