@@ -43,9 +43,9 @@ namespace Kratos {
         equiv_young                  = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
 
         //Get equivalent Shear Modulus
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+        equiv_shear                      = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
         //Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
@@ -55,7 +55,7 @@ namespace Kratos {
     
     void DEM_D_Conical_damage::DamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force) {
 
-        double indentation_old  = indentation;
+        //double indentation_old  = indentation;
         //Get new Equivalent Radius
         double equiv_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(KRATOS_M_PI * element1->GetParticleMaxStress(),1.5));
 
@@ -64,10 +64,10 @@ namespace Kratos {
 
         //New indentation
         if (indentation > offset) indentation -= offset;
-        else indentation = 0.0;
+        else indentation = 1.0e-18;
         
         //New Normal and Tangent elastic constants
-        const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius_new * indentation_old);
+        const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius_new * indentation/*_old*/);
         mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
@@ -89,14 +89,14 @@ namespace Kratos {
 
         InitializeDamageContact(element1, element2, equiv_radius, equiv_young, equiv_shear, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                     
         
         double contact_stress = (3 * LocalElasticContactForce[2]) / (2 * KRATOS_M_PI * equiv_radius * indentation);
         
         if (contact_stress > element1->GetParticleMaxStress()) {
             DamageContact(element1, element2, equiv_radius, equiv_young, equiv_shear, indentation, LocalElasticContactForce[2]);
-            LocalElasticContactForce[2] = CalculateNormalForce(indentation);
+            LocalElasticContactForce[2] = CalculateNormalForce(element1, element2, indentation);
         }
 
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -177,7 +177,7 @@ namespace Kratos {
     
     void DEM_D_Conical_damage::DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force) {
         
-        double indentation_old      = indentation;
+        //double indentation_old      = indentation;
         //Get new Effective Radius
         double effective_radius_new = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(KRATOS_M_PI * element->GetParticleMaxStress(),1.5));
         
@@ -189,7 +189,7 @@ namespace Kratos {
         else indentation = 0.0;
 
         //New Normal and Tangent elastic constants
-        const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius_new * indentation_old);
+        const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius_new * indentation/*_old*/);
         mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
@@ -211,7 +211,7 @@ namespace Kratos {
         
         InitializeDamageContactWithFEM(element, wall, effective_radius, equiv_young, equiv_shear, indentation);
 
-        LocalElasticContactForce[2] = CalculateNormalForce(indentation);
+        LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
 
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
@@ -220,7 +220,7 @@ namespace Kratos {
 
         if (contact_stress > element->GetParticleMaxStress()) {
             DamageContactWithFEM(element, wall, effective_radius, equiv_young, equiv_shear, indentation, LocalElasticContactForce[2]);
-            LocalElasticContactForce[2] = CalculateNormalForce(indentation);
+            LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         }
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);        
@@ -253,25 +253,25 @@ namespace Kratos {
     template<class NeighbourClassType>
 
     void DEM_D_Conical_damage::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                                                            const double OldLocalElasticContactForce[3],
-                                                                            double LocalElasticContactForce[3],
-                                                                            double ViscoDampingLocalContactForce[3],
-                                                                            const double LocalDeltDisp[3],            
-                                                                            bool& sliding,
-                                                                            SphericParticle* const element,
-                                                                            NeighbourClassType* const neighbour,
-                                                                            const double equiv_radius,
-                                                                            const double equiv_young,
-                                                                            double indentation,
-                                                                            double previous_indentation,
-                                                                            double& AuxElasticShearForce,
-                                                                            double& MaximumAdmisibleShearForce) {
+                                                                     const double OldLocalElasticContactForce[3],
+                                                                     double LocalElasticContactForce[3],
+                                                                     double ViscoDampingLocalContactForce[3],
+                                                                     const double LocalDeltDisp[3],            
+                                                                     bool& sliding,
+                                                                     SphericParticle* const element,
+                                                                     NeighbourClassType* const neighbour,
+                                                                     const double equiv_radius,
+                                                                     const double equiv_young,
+                                                                     double indentation,
+                                                                     double previous_indentation,
+                                                                     double& AuxElasticShearForce,
+                                                                     double& MaximumAdmisibleShearForce) {
 
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-        
+
         const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
         const double neighbour_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
         double equiv_tg_of_fri_ang                  = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);    
@@ -336,9 +336,9 @@ namespace Kratos {
     }
     
     void DEM_D_Conical_damage::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                                                double ViscoDampingLocalContactForce[3],
-                                                                SphericParticle* const element,
-                                                                DEMWall* const wall) {                                        
+                                                                 double ViscoDampingLocalContactForce[3],
+                                                                 SphericParticle* const element,
+                                                                 DEMWall* const wall) {                                        
         
         const double my_mass    = element->GetMass();              
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
