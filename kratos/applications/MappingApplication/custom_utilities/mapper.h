@@ -86,21 +86,19 @@ public:
           int mpi_initialized;
           MPI_Initialized(&mpi_initialized);
           if (mpi_initialized) { // parallel execution, i.e. mpi imported in python
-              m_p_mapper_communicator = MapperCommunicator::Pointer (
-                  new MapperMPICommunicator(m_model_part_origin,
-                                            m_model_part_destination,
-                                            m_json_parameters) );
+              int comm_size;
+              MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+              if (comm_size > 1) {
+                  InitializeParallelCommunicator();
+              } else { // mpi importet in python, but execution with one process only
+                  InitializeSerialCommunicator();
+              }
           } else { // serial execution, i.e. mpi NOT imported in python
-              m_p_mapper_communicator = MapperCommunicator::Pointer (
-                  new MapperCommunicator(m_model_part_origin,
-                                         m_model_part_destination,
-                                         m_json_parameters) );
+              InitializeSerialCommunicator();
           }
+          
       #else // serial compilation
-          m_p_mapper_communicator = MapperCommunicator::Pointer (
-              new MapperCommunicator(m_model_part_origin,
-                                     m_model_part_destination,
-                                     m_json_parameters) );
+          InitializeSerialCommunicator();
       #endif
   }
 
@@ -252,6 +250,20 @@ private:
   ///@}
   ///@name Private Operations
   ///@{
+
+  void InitializeSerialCommunicator() {
+      m_p_mapper_communicator = MapperCommunicator::Pointer (
+          new MapperCommunicator(m_model_part_origin,
+                                 m_model_part_destination,
+                                 m_json_parameters) );
+  }
+
+  void InitializeParallelCommunicator() {
+      m_p_mapper_communicator = MapperCommunicator::Pointer (
+          new MapperMPICommunicator(m_model_part_origin,
+                                    m_model_part_destination,
+                                    m_json_parameters) );
+  }
 
   ///@}
   ///@name Private  Access

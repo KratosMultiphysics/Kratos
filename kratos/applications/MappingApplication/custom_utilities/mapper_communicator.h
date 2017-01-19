@@ -132,8 +132,14 @@ namespace Kratos
               InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
               InitializeSearchStructure();
           } else { // clear the managers
-              m_p_interface_object_manager_origin->Clear();
-              m_p_interface_object_manager_destination->Clear();
+              // TODO does the same for now, since the InterfaceObjects do not use the refs to their
+              // original entities, so their position is not updated!
+              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
+              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
+              InitializeSearchStructure();
+              // m_p_interface_object_manager_origin->Clear();
+              // m_p_interface_object_manager_destination->Clear();
+              // InitializeSearchStructure();
           }
 
           if (i_initial_search_radius < 0.0f) {

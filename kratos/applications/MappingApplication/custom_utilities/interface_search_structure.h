@@ -221,6 +221,11 @@ namespace Kratos
               std::vector<double>::iterator distance_itr;
 
             //   Searching the neighbors
+            //   num_threads(variable)
+            //   #pragma omp parallel for schedule(dynamic) if(interface_objects_size > m_omp_threshold_num_nodes) \
+            //                            firstprivate(neighbor_results, neighbor_distances) \
+            //                            private(interface_object_itr, \
+            //                            results_itr, distance_itr)
               for (int i = 0; i < interface_objects_size; ++i){
                   interface_object_itr = interface_objects.begin() + i;
                   double search_radius = m_search_radius; // reset search radius
