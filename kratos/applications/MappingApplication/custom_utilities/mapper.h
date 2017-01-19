@@ -71,39 +71,6 @@ public:
   ///@name Life Cycle
   ///@{
 
-  Mapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-         Parameters i_json_parameters) :
-  	  m_model_part_origin(i_model_part_origin),
-      m_model_part_destination(i_model_part_destination),
-      m_json_parameters(i_json_parameters) {
-
-      ComputeNumberOfNodesAndConditions();
-
-      m_echo_level = i_json_parameters["echo_level"].GetInt();
-
-      // Create the mapper communicator
-      #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-          int mpi_initialized;
-          MPI_Initialized(&mpi_initialized);
-          if (mpi_initialized) { // parallel execution, i.e. mpi imported in python
-              int comm_size;
-              MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-              if (comm_size > 1) {
-                  m_p_mapper_communicator = MapperCommunicator::Pointer (
-                      new MapperMPICommunicator(m_model_part_origin,
-                                                m_model_part_destination,
-                                                m_json_parameters) );
-              } else { // mpi importet in python, but execution with one process only
-                  InitializeSerialCommunicator();
-              }
-          } else { // serial execution, i.e. mpi NOT imported in python
-              InitializeSerialCommunicator();
-          }
-
-      #else // serial compilation
-          InitializeSerialCommunicator();
-      #endif
-  }
 
   /// Destructor.
   virtual ~Mapper() {
@@ -206,6 +173,41 @@ protected:
   ///@}
   ///@name Protected Operations
   ///@{
+
+  // Constructor, can only be called by derived classes (actual mappers)
+  Mapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
+         Parameters i_json_parameters) :
+  	  m_model_part_origin(i_model_part_origin),
+      m_model_part_destination(i_model_part_destination),
+      m_json_parameters(i_json_parameters) {
+
+      ComputeNumberOfNodesAndConditions();
+
+      m_echo_level = i_json_parameters["echo_level"].GetInt();
+
+      // Create the mapper communicator
+      #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+          int mpi_initialized;
+          MPI_Initialized(&mpi_initialized);
+          if (mpi_initialized) { // parallel execution, i.e. mpi imported in python
+              int comm_size;
+              MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+              if (comm_size > 1) {
+                  m_p_mapper_communicator = MapperCommunicator::Pointer (
+                      new MapperMPICommunicator(m_model_part_origin,
+                                                m_model_part_destination,
+                                                m_json_parameters) );
+              } else { // mpi importet in python, but execution with one process only
+                  InitializeSerialCommunicator();
+              }
+          } else { // serial execution, i.e. mpi NOT imported in python
+              InitializeSerialCommunicator();
+          }
+
+      #else // serial compilation
+          InitializeSerialCommunicator();
+      #endif
+  }
 
   void ComputeNumberOfNodesAndConditions() {
     // Compute the quantities of the local model_parts

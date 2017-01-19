@@ -247,7 +247,7 @@ namespace Kratos
              MyPID(), TotalProcesses(), m_echo_level) );
       }
 
-      virtual void InvokeSearch(const double i_initial_search_radius,
+      void InvokeSearch(const double i_initial_search_radius,
                                 const int i_max_search_iterations) {
           m_p_search_structure->Search(i_initial_search_radius,
                                        i_max_search_iterations);
