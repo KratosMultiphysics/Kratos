@@ -46,6 +46,7 @@ protected:
     {
         array_1d<double,3> Coordinates;
         double Damage, Weight, TipDistance, CosAngle;
+        //~ double StateVariable;
     };
 
     ///------------------------------------------------------------------------------------
@@ -1483,6 +1484,8 @@ private:
                 unsigned int NumGPoints = IntegrationPoints.size();
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
+                //~ std::vector<double> StateVariableVector(NumGPoints);
+                //~ itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfo);
                 std::vector<double> DamageVector(NumGPoints);
                 itElem->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                 int Row;
@@ -1503,6 +1506,7 @@ private:
 
                     // FracturePoint Damage
                     MyFracturePoint.Damage = DamageVector[GPoint];
+                    //~ MyFracturePoint.StateVariable = StateVariableVector[GPoint];
 
                     // FracturePoint Row, Column and Section
                     Row = int((rAuxVariables.Y_max-MyFracturePoint.Coordinates[1])/rAuxVariables.RowSize);
@@ -1884,6 +1888,11 @@ void ComputeCosAngle(
         rTipY += MyFracturePoint.Weight * MyFracturePoint.Damage * (MyFracturePoint.Coordinates[1]);
         rTipZ += MyFracturePoint.Weight * MyFracturePoint.Damage * (MyFracturePoint.Coordinates[2]);
         rTipDenominator += MyFracturePoint.Weight * MyFracturePoint.Damage;
+
+        //~ rTipX += MyFracturePoint.Weight * MyFracturePoint.StateVariable * (MyFracturePoint.Coordinates[0]);
+        //~ rTipY += MyFracturePoint.Weight * MyFracturePoint.StateVariable * (MyFracturePoint.Coordinates[1]);
+        //~ rTipZ += MyFracturePoint.Weight * MyFracturePoint.StateVariable * (MyFracturePoint.Coordinates[2]);
+        //~ rTipDenominator += MyFracturePoint.Weight * MyFracturePoint.StateVariable;
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
