@@ -218,7 +218,7 @@ namespace Kratos
         {
 	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
         }
-        
+
         /**
          * Clones the selected element variables, creating a new one
          * @param NewId: the ID of the new element
@@ -226,14 +226,14 @@ namespace Kratos
          * @param pProperties: the properties assigned to the new element
          * @return a Pointer to the new element
          */
-        
-        virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+
+        virtual Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
         {
             Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-            
+
             pNewCondition->SetData(this->GetData());
             pNewCondition->SetFlags(this->GetFlags());
-            
+
             return pNewCondition;
         }
 
@@ -284,19 +284,19 @@ namespace Kratos
                     array_1d<double,3> rNormal;
                     this->CalculateNormal(rNormal); //this already contains the area
                     const double Area = norm_2(rNormal);
-                    
+
                     if (rLeftHandSideMatrix.size1() != TNumNodes)
                         rLeftHandSideMatrix.resize(TNumNodes,TNumNodes,false);
                     if (rRightHandSideVector.size() != TNumNodes)
                         rRightHandSideVector.resize(TNumNodes,false);
-                    
+
                     noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes,TNumNodes);
                     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
-                    
+
                     const double dt = rCurrentProcessInfo[DELTA_TIME];
                     const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
                     const double diag_term = dt*Area*N/( equivalent_structural_density );
-					
+
 					//KRATOS_WATCH(equivalent_structural_density)
 
                     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -308,7 +308,7 @@ namespace Kratos
                 {
                     if (rLeftHandSideMatrix.size1() != 0)
                         rLeftHandSideMatrix.resize(0,0,false);
-                 
+
                     if (rRightHandSideVector.size() != 0)
                         rRightHandSideVector.resize(0,false);
                 }
