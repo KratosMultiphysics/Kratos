@@ -73,7 +73,7 @@ public:
 
     typedef NavierStokes<TDim, TNumNodes>                              BaseType;
 
-    typedef typename BaseType::element_data                     ElementDataType;
+    typedef typename BaseType::ElementDataStruct                ElementDataType;
 
     typedef typename BaseType::VectorType                            VectorType;
 
@@ -114,15 +114,15 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Element::PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
-    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
@@ -131,21 +131,19 @@ public:
     /**
      * Clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param rThisNodes: the nodes of the new element
      * @return a Pointer to the new element
      */
-    
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
-        Element::Pointer pNewElement = Create(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
-        
+        Element::Pointer pNewElement = Create(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+
         pNewElement->SetData(this->GetData());
         pNewElement->SetFlags(this->GetFlags());
-        
+
         return pNewElement;
     }
-    
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override
@@ -168,49 +166,12 @@ public:
 
         // Struct to pass around the data
         ElementDataType data;
+        this->FillElementData(data, rCurrentProcessInfo);
 
-        // Getting data for the given geometry
-        // double Volume;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.volume);
-
-        // Compute element size
-        data.h = BaseType::ComputeH(data.DN_DX); // TODO: Check if h has to be recomputed in split elements
-
-        // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        data.bdf0 = BDFVector[0];
-        data.bdf1 = BDFVector[1];
-        data.bdf2 = BDFVector[2];
-
-        data.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only needed if the temporal dependent term is considered in the subscales
-        data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only needed if the temporal dependent term is considered in the subscales
-
-        data.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
-
-        array_1d<double, TNumNodes> distances;                  // Array to store the nodal value of the distance function
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        // Getting the nodal distance values
+        array_1d<double, TNumNodes> distances;
+        for(unsigned int i=0; i<TNumNodes; i++)
         {
-            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                data.v(i,k)   = vel[k];
-                data.vn(i,k)  = vel_n[k];
-                data.vnn(i,k) = vel_nn[k];
-                data.vmesh(i,k) = vel_mesh[k];
-                data.f(i,k)   = body_force[k];
-            }
-
-            data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            data.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-            data.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-            data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            data.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
             distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
 
@@ -234,7 +195,6 @@ public:
         // Element LHS and RHS contributions computation
         if(npos == TNumNodes) // All nodes belong to fluid domain
         {
-            // ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
             ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
         }
         else if(nneg == TNumNodes) // All nodes belong to structure domain
@@ -244,7 +204,6 @@ public:
         }
         else // Element intersects both fluid and structure domains
         {
-            // ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
             ComputeElementAsMixed<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo, distances);
         }
 
@@ -264,50 +223,14 @@ public:
 
         //~ // Struct to pass around the data
         //~ ElementDataType data;
+        // this->FillElementData(data, rCurrentProcessInfo);
 
-        //~ // Getting data for the given geometry
-        //~ double Volume;
-        //~ GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-
-        //~ // Compute element size
-        //~ data.h = NavierStokes<TDim, TNumNodes>::ComputeH(data.DN_DX, Volume);
-
-        //~ // Database access to all of the variables needed
-        //~ const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        //~ data.bdf0 = BDFVector[0];
-        //~ data.bdf1 = BDFVector[1];
-        //~ data.bdf2 = BDFVector[2];
-
-        //~ data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
-        //~ data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
-
-        //~ array_1d<double, TNumNodes> distances;   // Array to store the nodal value of the distance function
-
-        //~ // Data collection
-        //~ for (unsigned int i = 0; i < TNumNodes; i++)
-        //~ {
-
-            //~ const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            //~ const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            //~ const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            //~ const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            //~ const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-            //const array_1d<double,3>& vel_conv = vel - vel_mesh;
-
-            //~ for(unsigned int k=0; k<TDim; k++)
-            //~ {
-                //~ data.v(i,k)   = vel[k];
-                //~ data.vn(i,k)  = vel_n[k];
-                //~ data.vnn(i,k) = vel_nn[k];
-                //~ data.vmesh(i,k) = vel_mesh[k];
-                //~ data.f(i,k)   = body_force[k];
-            //~ }
-
-            //~ data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            //~ data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            //~ data.nu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
-            //~ distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        //~ }
+        // // Getting the nodal distance values
+        // array_1d<double, TNumNodes> distances;
+        // for(unsigned int i=0; i<TNumNodes; i++)
+        // {
+        //     distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        // }
 
         //~ // Allocate memory needed
         //~ array_1d<double, MatrixSize> rhs_local;
@@ -327,7 +250,7 @@ public:
         //~ // Element LHS and RHS contributions computation
         //~ if(npos == TNumNodes) // All nodes belong to fluid domain
         //~ {
-            //~ ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+            //~ ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, data, rCurrentProcessInfo);
         //~ }
         //~ if(nneg == TNumNodes) // All nodes belong to structure domain
         //~ {
@@ -335,7 +258,7 @@ public:
         //~ }
         //~ else // Element intersects both fluid and structure domains
         //~ {
-            //~ ComputeRHSAsMixed<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
+            //~ ComputeRHSAsMixed<MatrixSize>(rhs_local, rRightHandSideVector, data, rCurrentProcessInfo, distances);
         //~ }
 
         //~ KRATOS_CATCH("")
@@ -498,7 +421,7 @@ public:
             //~ noalias(rRightHandSideVector) += rhs_local;
         //~ }
 
-        //~ rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);;
+        //~ rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);;
     //~ }
 
 
@@ -1358,12 +1281,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
