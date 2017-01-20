@@ -29,6 +29,14 @@ KratosMappingApplication::KratosMappingApplication() {}
 void KratosMappingApplication::Register() {
  	// calling base class register to register Kratos components
  	KratosApplication::Register();
+
+  std::cout << "    KRATOS ______  ___                      _____  "                          << std::endl;
+  std::cout << "           ___   |/  /_____ ___________________(_)_____________ _  "          << std::endl;
+  std::cout << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/  "       << std::endl;
+  std::cout << "           _  /  / / / /_/ /__  /_/ /_  /_/ /  / _  / / /  /_/ /  "           << std::endl;
+  std::cout << "           /_/  /_/  \\__,_/ _  .___/_  .___//_/  /_/ /_/_\\__, /  "          << std::endl;
+  std::cout << "                            /_/     /_/                 /____/ Application"   << std::endl;
+
  	std::cout << "Initializing KratosMappingApplication... " << std::endl;
 
 
