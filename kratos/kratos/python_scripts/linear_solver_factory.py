@@ -27,7 +27,7 @@ def ConstructPreconditioner(configuration):
 #
 #
 def ConstructSolver(configuration):
-    
+
     params = 0
     ##############################################################
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
@@ -36,24 +36,24 @@ def ConstructSolver(configuration):
         import new_linear_solver_factory
         return new_linear_solver_factory.ConstructSolver(configuration)
         #solver_type = configuration["solver_type"].GetString()
-        
+
         #import json
         #tmp = json.loads(configuration.PrettyPrintJsonString())
-        
+
         #params = configuration
-        
+
         #class aux(object):
-            #pass 
-        
+            #pass
+
         #configuration = aux()
         #configuration.__dict__.update(tmp)
     ##############################################################
-            
-        
-        
-    
-    
-    
+
+
+
+
+
+
     solver_type = configuration.solver_type
 
     scaling = False
@@ -191,7 +191,7 @@ def ConstructSolver(configuration):
             tol, restart, ilu_level_of_fill, verbosity, is_symmetric)
     #
     elif(solver_type == "AMGCL"):
-        
+
         if(params == 0): #old style construction
             if hasattr(configuration, 'preconditioner_type'):
                 if(configuration.preconditioner_type != "None"):
@@ -222,9 +222,11 @@ def ConstructSolver(configuration):
                 amgcl_smoother = AMGCLSmoother.ILU0
 
             if hasattr(configuration, 'krylov_type'):
-                krylov_type = configuration.krylov_type  # options are GMRES, BICGSTAB, CG
+                krylov_type = configuration.krylov_type
                 if(krylov_type == "GMRES"):
                     amgcl_krylov_type = AMGCLIterativeSolverType.GMRES
+                if(krylov_type == "LGMRES"):
+                    amgcl_krylov_type = AMGCLIterativeSolverType.LGMRES
                 elif(krylov_type == "BICGSTAB"):
                     amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
                 elif(krylov_type == "CG"):
@@ -234,14 +236,14 @@ def ConstructSolver(configuration):
                 elif(krylov_type == "BICGSTAB_WITH_GMRES_FALLBACK"):
                     amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
                 else:
-                    print("ERROR: krylov_type shall be one of \"GMRES\", \"BICGSTAB\", \"CG\", \"BICGSTAB2\", \"BICGSTAB_WITH_GMRES_FALLBACK\", got \"{0}\".\n\"GMRES\" will be used".format(krylov_type))
+                    print("ERROR: krylov_type shall be one of \"GMRES\", \"LGMRES\",\"BICGSTAB\", \"CG\", \"BICGSTAB2\", \"BICGSTAB_WITH_GMRES_FALLBACK\", got \"{0}\".\n\"GMRES\" will be used".format(krylov_type))
                     amgcl_krylov_type = AMGCLIterativeSolverType.GMRES
             else:
                 print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
                 amgcl_krylov_type = AMGCLIterativeSolverType.GMRES
-                
-                
-                
+
+
+
             if hasattr(configuration, 'coarsening_type'):
                 coarsening_type = configuration.coarsening_type
                 if(coarsening_type == "RUGE_STUBEN"):
@@ -262,16 +264,16 @@ def ConstructSolver(configuration):
                 m = configuration.gmres_krylov_space_dimension
             else:
                 m = max_it
-                
+
 
             if hasattr(configuration, 'provide_coordinates'):
                 provide_coordinates = configuration.provide_coordinates
             else:
                 provide_coordinates = False
-                
+
             linear_solver = AMGCLSolver(
                 amgcl_smoother, amgcl_krylov_type, amgcl_coarsening_type, tol, max_it, verbosity, m, provide_coordinates)
-            
+
         else: ##construction by parameters
             linear_solver = AMGCLSolver(params)
 
@@ -303,7 +305,7 @@ def ConstructSolver(configuration):
                                    }
                 """)
         scaling = params["scaling"].GetBool()
-        
+
         linear_solver = AMGCL_NS_Solver(params)
     #
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
