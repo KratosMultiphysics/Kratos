@@ -39,6 +39,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_Sensitivity'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_OneElement'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_Cylinder'))
+    smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_SteadyCylinder'))
 
 
     # Create a test suite with the selected tests plus all small tests
