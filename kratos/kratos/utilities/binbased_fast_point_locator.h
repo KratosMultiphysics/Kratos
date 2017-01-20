@@ -8,7 +8,8 @@
 //                       license: license.txt
 //
 //  License:          BSD License
-//  Original author:  Pablo Becker
+//  Main authors:     Riccardo Rossi
+//                    Pablo Becker
 //                    Carlos Roig
 //
 
@@ -134,17 +135,17 @@ public:
     {
         typedef std::size_t SizeType;
 
-        //ask to the container for the list of candidate elements
+        // Ask to the container for the list of candidate elements
         SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults);
 
         if (results_found > 0)
         {
-            //loop over the candidate elements and check if the particle falls within
+            // Loop over the candidate elements and check if the particle falls within
             for (SizeType i = 0; i < results_found; i++)
             {
                 Geometry<Node < 3 > >& geom = (*(result_begin + i))->GetGeometry();
 
-                //find local position
+                // Find local position
                 bool is_found = CalculatePosition(geom, coords[0], coords[1], coords[2], N);
 
                 if (is_found == true)
@@ -155,7 +156,7 @@ public:
             }
         }
 
-        //not found case
+        // Not found case
         return false;
     }
 
@@ -167,9 +168,10 @@ public:
     ///REMARK: this function is threadsafe and can be used within OpenMP loops
     bool FindPointOnMeshSimplified(const array_1d<double, 3 >& coords,
                                    Vector& N,
-                                   Element::Pointer& pelement)
+                                   Element::Pointer& pelement,
+                                   const unsigned int max_results = 1000
+                                   )
     {
-        const int max_results = 1000;
         ResultContainerType results(max_results);
         if(N.size() != TDim+1)
             N.resize(TDim+1,false);
