@@ -403,7 +403,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    char mCurrentComponent;
 
     ///@}
     ///@name Protected Operators
@@ -435,7 +435,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    char mCurrentComponent;
     ///@}
     ///@name Member Variables
     ///@{
