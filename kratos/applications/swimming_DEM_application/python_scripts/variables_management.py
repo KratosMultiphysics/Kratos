@@ -23,10 +23,10 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
 
     if pp.CFD_DEM.laplacian_calculation_type == 3: # recovery through solving a system
         fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 1)
-    elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5: # recovery through solving a system
+    elif pp.CFD_DEM.material_acceleration_calculation_type == 4 or pp.CFD_DEM.material_acceleration_calculation_type == 5 or pp.CFD_DEM.material_acceleration_calculation_type == 6: # recovery through solving a system
         fluid_model_part.ProcessInfo.SetValue(COMPUTE_LUMPED_MASS_MATRIX, 0)
 
-    if pp.CFD_DEM.material_acceleration_calculation_type == 5:
+    if pp.CFD_DEM.material_acceleration_calculation_type == 5 or pp.CFD_DEM.material_acceleration_calculation_type == 6:
          fluid_model_part.ProcessInfo.SetValue(CURRENT_COMPONENT, 0)
 
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
@@ -90,7 +90,7 @@ def ConstructListsOfVariables(pp):
     if pp.CFD_DEM.material_acceleration_calculation_type:
         pp.fluid_vars += [MATERIAL_ACCELERATION]
         
-        if pp.CFD_DEM.material_acceleration_calculation_type == 5:
+        if pp.CFD_DEM.material_acceleration_calculation_type == 5 or pp.CFD_DEM.material_acceleration_calculation_type == 6:
             if pp.CFD_DEM.store_full_gradient:
                 pp.fluid_vars += [VELOCITY_X_GRADIENT]
                 pp.fluid_vars += [VELOCITY_Y_GRADIENT]
