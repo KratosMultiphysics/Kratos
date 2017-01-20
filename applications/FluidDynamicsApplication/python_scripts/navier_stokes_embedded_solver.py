@@ -46,10 +46,10 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
                 "solver_type"         : "AMGCL",
-                "max_iteration"       : 50,
-                "tolerance"           : 1e-6,
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
-                "smoother_type"       : "damped_jacobi",
+                "smoother_type"       : "ilu0",
                 "krylov_type"         : "lgmres",
                 "coarsening_type"     : "aggregation",
                 "scaling"             : true,
