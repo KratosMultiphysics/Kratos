@@ -27,6 +27,7 @@
 // Application includes
 #include "includes/variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "calculate_component_gradient_simplex_element.h"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeGradientFortin2012 : public Element
+class ComputeGradientFortin2012 : public ComputeComponentGradientSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -67,6 +68,7 @@ public:
     /// Pointer definition of ComputeGradientFortin2012
     KRATOS_CLASS_POINTER_DEFINITION(ComputeGradientFortin2012);
 
+    typedef ComputeComponentGradientSimplex<TDim, TNumNodes> BaseType;
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
 
@@ -81,6 +83,8 @@ public:
 
     /// Matrix type for local contributions to the linear system
     typedef Matrix MatrixType;
+
+    typedef Properties PropertiesType;
 
     typedef std::size_t IndexType;
 
@@ -114,7 +118,7 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     ComputeGradientFortin2012(IndexType NewId = 0) :
-        Element(NewId), mCurrentComponent('X')
+        BaseType(NewId)
     {}
 
     /// Constructor using an array of nodes.
@@ -123,7 +127,7 @@ public:
      * @param ThisNodes An array containing the nodes of the new element
      */
     ComputeGradientFortin2012(IndexType NewId, const NodesArrayType& ThisNodes) :
-        Element(NewId, ThisNodes), mCurrentComponent('X')
+        BaseType(NewId, ThisNodes)
     {}	
 
     /// Constructor using a geometry object.
@@ -132,7 +136,7 @@ public:
      * @param pGeometry Pointer to a geometry object
      */
     ComputeGradientFortin2012(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId, pGeometry), mCurrentComponent('X')
+        BaseType(NewId, pGeometry)
     {}
 
     /// Constuctor using geometry and properties.
@@ -142,7 +146,7 @@ public:
      * @param pProperties Pointer to the element's properties
      */
     ComputeGradientFortin2012(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-       Element(NewId, pGeometry, pProperties), mCurrentComponent('X')
+       BaseType(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
@@ -170,62 +174,15 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const
     {
-        return Element::Pointer(new ComputeGradientFortin2012(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new ComputeGradientFortin2012(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
-    /// Calculate the element's local contribution to the system for the current step.
+    /// Calculate the element's local contribution to the system for the current step. It is a combination of the
+    /// RHS of the Base class (weighed by a small parameter to stabilize the system) and the contribution described in
+    /// the Fortin 2012 paper
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
-    {
-        //KRATOS_WATCH(this->Id())
-        const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
-
-        if (current_component == 0){
-            mCurrentComponent = 'X';
-        }
-
-        else if (current_component == 1){
-            mCurrentComponent = 'Y';
-        }
-
-        else if (current_component == 2){
-            mCurrentComponent = 'Z';
-        }
-
-        else {
-            KRATOS_THROW_ERROR(std::invalid_argument, "The value of CURRENT_COMPONENT passed to the ComputeGradientFortin2012 element is not 0, 1 or 2, but ", current_component);
-        }
-
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-
-        for (unsigned int i=0; i<LocalSize; ++i){
-            for (unsigned int j=0; j<LocalSize; ++j){
-                rLeftHandSideMatrix(i, j) = 0.0;
-            }
-            rRightHandSideVector(i) = 0.0;
-        }
-
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-        array_1d<double, TDim+1 > N;
-        double Area;
-
-        CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-        //getting data for the given geometry
-        AddFortin2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-        CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-
-        AddFortin2012RHS(rRightHandSideVector, rCurrentProcessInfo);
-    }
+                                      ProcessInfo& rCurrentProcessInfo);
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -380,7 +337,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "ComputeGradientFortin2012 #" << Id();
+        buffer << "ComputeGradientFortin2012 #" << this->Id();
         return buffer.str();
     }
 
@@ -440,7 +397,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    char mCurrentComponent;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -473,97 +430,6 @@ private:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = TDim * TNumNodes;
-
-        // Resize and set to zero
-        if (rMassMatrix.size1() != LocalSize)
-            rMassMatrix.resize(LocalSize, LocalSize, false);
-
-        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
-
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-
-        // Add 'classical' mass matrix (lumped)
-        if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
-            double Coeff = Area / TNumNodes; //Optimize!
-            this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
-        }
-
-        else {
-            // Add 'consistent' mass matrix
-            MatrixType NContainer;
-            ShapeFunctionDerivativesArrayType DN_DXContainer;
-            VectorType GaussWeights;
-            this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-            const SizeType NumGauss = NContainer.size1();
-
-            for (SizeType g = 0; g < NumGauss; g++){
-                const double GaussWeight = GaussWeights[g];
-                const ShapeFunctionsType& Ng = row(NContainer, g);
-                this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
-            }
-        }
-    }
-
-    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
-                                   const double Mass)
-    {
-        unsigned int DofIndex = 0;
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rLHSMatrix(DofIndex, DofIndex) += Mass;
-                ++DofIndex;
-            }
-//G
-//            ++DofIndex; // Skip pressure Dof
-//Z
-        }
-    }
-
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
-            const array_1d<double,TNumNodes>& rShapeFunc,
-            const double Weight)
-    {
-//G
-        //const unsigned int BlockSize = TDim + 1;
-        const unsigned int BlockSize = TDim;
-
-
-//        double Coef = Density * Weight;
-        double Coef = 1.0e-2 * Weight;
-//Z
-        unsigned int FirstRow(0), FirstCol(0);
-        double K; // Temporary results
-
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            // Loop over columns
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
-                K = Coef * rShapeFunc[i] * rShapeFunc[j];
-
-                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
-                }
-                // Update column index
-                FirstCol += BlockSize;
-            }
-            // Update matrix indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-    }
 
     virtual void AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo){
         const int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
@@ -604,27 +470,6 @@ private:
         }
     }
 
-    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
-    {
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        MatrixType NContainer;
-        ShapeFunctionDerivativesArrayType DN_DXContainer;
-        VectorType GaussWeights;
-        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-        const SizeType NumGauss = NContainer.size1();
-
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = 1.0e-2 * GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddRHSGradient(F, Ng, DN_DX, GaussWeight);
-        }
-    }
-
     virtual void AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
     {
         const int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
@@ -650,11 +495,11 @@ private:
             edge_lengths_inv[e] = he_inv;
             le *= he_inv;
 
-            if (mCurrentComponent == 'X'){
+            if (this->mCurrentComponent == 'X'){
                 AssembleEdgeRHSContributionX(edges[e], he_inv, le, F);
             }
 
-            else if (mCurrentComponent == 'Y'){
+            else if (this->mCurrentComponent == 'Y'){
                 AssembleEdgeRHSContributionY(edges[e], he_inv, le, F);
             }
 
@@ -697,15 +542,7 @@ private:
         }
     }
 
-    void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
-    void EvaluateInPoint(array_1d< double, 3 > & rResult,
-                         const Variable< array_1d< double, 3 > >& rVariable,
-                         const array_1d< double, TNumNodes >& rShapeFunc);
 
-    void AddRHSGradient(VectorType& F,
-                         const array_1d<double,TNumNodes>& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                         const double Weight);
     ///@}
     ///@name Private Operations
     ///@{
