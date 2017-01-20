@@ -60,37 +60,37 @@ for method in recovery_types:
         mat_deriv_type = 'standard'
         line_width = 1
         color = 'r'
-        marker_type = '--'
-        marker_size = 20
+        marker_type = '-o'
+        marker_size = 10
     elif method == 2:
-        mat_deriv_type = 'superconvergent'
+        mat_deriv_type = 'local least squares'
         line_width = 1
         color = 'k'
-        marker_type = '-+'
-        marker_size = 20
+        marker_type = '-D'
+        marker_size = 10
         
     elif method == 3:
         mat_deriv_type = 'L2 (lumped)'
         line_width = 1
         color = 'b'
-        marker_type = '-*'
-        marker_size = 5
+        marker_type = '-d'
+        marker_size = 10
         
     elif method == 4:
         mat_deriv_type = 'L2'
         line_width = 1
         color = 'b'
-        marker_type = '-*'
-        marker_size = 15
+        marker_type = '-D'
+        marker_size = 10
         
     elif method == 5:
         mat_deriv_type = 'L2 only gradient'
         line_width = 1
         color = 'b'
-        marker_type = '-*'
-        marker_size = 30
+        marker_type = '-v'
+        marker_size = 10
 
-    plt.plot(sizes, mat_deriv_average_errors, marker_type, ms = marker_size, color=color, label= mat_deriv_type + ' material derivative (average)', linewidth = line_width, linestyle='solid', markersize = 20)
+    plt.plot(sizes, mat_deriv_average_errors, marker_type, ms = marker_size, color=color, label= mat_deriv_type, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, mat_deriv_max_errors, marker_type, ms = marker_size, color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     #plt.plot(sizes, laplacian_average_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (average)', linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
@@ -101,8 +101,9 @@ for method in recovery_types:
 min_error /= 2
 slope_1 = [min_error * 10 * (n_divs[-1] / n_div) for n_div in n_divs]
 slope_2 = [min_error * (n_divs[-1] / n_div) ** 2 for n_div in n_divs]
-plt.plot(sizes, slope_1, linestyle='dashed',  label='slope = 1')
-plt.plot(sizes, slope_2, linestyle='dashed',  label='slope = 2')
-plt.legend(loc = 'upper left')
-plt.savefig('derivative_recovery_errors.pdf')    
+plt.plot(sizes, slope_1, '--',  label='slope = 1', color='k')
+plt.plot(sizes, slope_2, '-.',  label='slope = 2', color='k')
+plt.legend(loc = 'upper left', frameon=False)
+plt.tight_layout()
+plt.savefig('derivative_recovery_error_order_cellular_regular_mesh.pdf', format='eps', dpi=1000)    
 plt.show()
