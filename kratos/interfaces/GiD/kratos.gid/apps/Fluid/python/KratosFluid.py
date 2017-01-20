@@ -9,12 +9,13 @@ from KratosMultiphysics.MeshingApplication import *
 ######################################################################################
 ######################################################################################
 ######################################################################################
-##PARSING THE PARAMETERS
-#import define_output
 
+## Parse the ProjectParameters
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
+## Get echo level and parallel type
+verbosity = ProjectParameters["problem_data"]["echo_level"].GetInt()
 parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
 
 ## Import KratosMPI if needed
@@ -54,10 +55,6 @@ elif (parallel_type == "MPI"):
 
 gid_output.ExecuteInitialize()
 
-##here all of the allocation of the strategies etc is done
-solver.Initialize()
-
-
 ##TODO: replace MODEL for the Kratos one ASAP
 ## Get the list of the skin submodel parts in the object Model
 for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
@@ -79,6 +76,12 @@ for i in range(ProjectParameters["gravity"].size()):
     gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
     Model.update({gravity_part_name: main_model_part.GetSubModelPart(gravity_part_name)})
 
+## Print model_part and properties
+if(verbosity > 1):
+    print("")
+    print(main_model_part)
+    for properties in main_model_part.Properties:
+        print(properties)
 
 ## Processes construction
 import process_factory
@@ -89,9 +92,16 @@ list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfP
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
 
+if(verbosity > 1):
+    for process in list_of_processes:
+        print(process)
+
 ## Processes initialization
 for process in list_of_processes:
     process.ExecuteInitialize()
+
+## Solver initialization
+solver.Initialize()
 
 #TODO: think if there is a better way to do this
 fluid_model_part = solver.GetComputingModelPart()
@@ -108,6 +118,12 @@ gid_output.ExecuteBeforeSolutionLoop()
 
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
+
+## Writing the full ProjectParameters file before solving
+if ((parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (verbosity > 0):
+    f = open("ProjectParametersOutput.json", 'w')
+    f.write(ProjectParameters.PrettyPrintJsonString())
+    f.close()
 
 while(time <= end_time):
 

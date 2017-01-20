@@ -27,7 +27,7 @@ import streamlines_output_utility
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
-########################## MODEL PART DEFINITIONS ########################## 
+########################## MODEL PART DEFINITIONS ##########################
 
 main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["general_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["general_data"]["domain_size"].GetInt())
@@ -42,7 +42,7 @@ parallel=KratosMultiphysics.OpenMPUtils()
 parallel.SetNumThreads(int(ProjectParameters["general_data"]["NumberofThreads"].GetInt()))
 
 
-########################## IMPORTING THE SOLVER ########################## 
+########################## IMPORTING THE SOLVER ##########################
 
 # Thermal Solver
 thermal_solver_module = __import__("dam_eulerian_convection_diffusion_solver")
@@ -64,7 +64,7 @@ thermal_solver.AddDofs()
 solver.AddDofs()
 
 
-########################## IMPORTING NECESSARY MODULES ########################## 
+########################## IMPORTING NECESSARY MODULES ##########################
 
 # Import process modules
 from gid_output_process import GiDOutputProcess
@@ -72,7 +72,7 @@ import cleaning_utility
 import process_factory
 
 
-############################### PREVIOUS DEFINITIONS ############################# 
+############################### PREVIOUS DEFINITIONS #############################
 
 # Problem parameters
 problem_path = KratosMultiphysics.os.getcwd()
@@ -97,26 +97,26 @@ elif(time_converter=="Days"):               # Factor to pass from days to second
 elif(time_converter=="Hours"):              # Factor to pass from hours to seconds
     time_unit_converter = 3600.0
 else:                                       # No changes
-    time_unit_converter = 1.0               
+    time_unit_converter = 1.0
 
 main_model_part.ProcessInfo[KratosMultiphysics.PoromechanicsApplication.TIME_UNIT_CONVERTER] = time_unit_converter
 
 #Thermal Parameters
 if (type_of_problem == "Thermo-Mechanical"):
-    
+
     #Type of reference temperature
     main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.REFERENCE_TEMPERATURE] = ProjectParameters["diffusion_settings"]["reference_temperature"].GetDouble()
-    
+
     #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
     thermal_scheme = ProjectParameters["diffusion_settings"]["temporal_scheme"].GetString()
-    
+
     if(thermal_scheme=="Backward-Euler"):
         main_model_part.ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.THETA] = 1.0
-    elif(thermal_scheme=="Crank-Nicolson"):   
+    elif(thermal_scheme=="Crank-Nicolson"):
         main_model_part.ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.THETA] = 0.5
     else:
         main_model_part.ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.THETA] = 0.0
-    
+
 # Update time variables
 delta_time = delta_time * time_unit_converter
 ending_time = ending_time * time_unit_converter
@@ -135,7 +135,7 @@ if(echo_level > 1):
         print(properties)
 
 
-########################## INITIALIZE ########################## 
+########################## INITIALIZE ##########################
 
 # Construct the processes to be applied
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["nodal_processes_sub_model_part_list"] )
@@ -182,13 +182,19 @@ for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
 
-# Set the results 
+# Set the results
 gid_output.ExecuteBeforeSolutionLoop()
 
-################################# TEMPORAL LOOP ####3########################## 
+# Writing the full ProjectParameters file before solving
+if (echo_level > 0):
+    f = open("ProjectParametersOutput.json", 'w')
+    f.write(ProjectParameters.PrettyPrintJsonString())
+    f.close()
+
+################################# TEMPORAL LOOP ###############################
 
 while( (current_time+tol) < ending_time ):
-    
+
     # Update temporal variables
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
     current_time = current_time + delta_time
@@ -196,18 +202,18 @@ while( (current_time+tol) < ending_time ):
     main_model_part.CloneTimeStep(current_time)
     print("--------------------------------------------------")
     print("STEP",current_step," - TIME","%.5f" % current_time)
-    
+
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
 
-    
+
     # Solve thermal step
     clock_time = clock()
     thermal_solver.Solve()
     print("Thermal Solving Time = ","%.5f" % (clock() - clock_time)," seconds")
-        
+
     # Solve mechanical step
     clock_time = clock()
     solver.Solve()
@@ -215,36 +221,36 @@ while( (current_time+tol) < ending_time ):
 
 
     gid_output.ExecuteFinalizeSolutionStep()
-    
-    
+
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-    
-    
+
+
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-    
+
     # We compute the ouptut variable
     if (domain_size==3):
         streamline_utility.ComputeOutputStep( main_model_part ,domain_size)
-    
+
     # Write GiD results
     if gid_output.IsOutputStep():
         gid_output.PrintOutput()
-    
-    
+
+
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
 
-############################### FINALIZE ############################### 
+############################### FINALIZE ###############################
 
 # Finalizing output files
 gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-        
+
 # Finalizing strategy
 solver.Clear()
 

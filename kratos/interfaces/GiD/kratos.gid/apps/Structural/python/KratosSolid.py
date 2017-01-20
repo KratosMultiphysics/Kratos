@@ -45,7 +45,7 @@ if parallel_type == "MPI":
     import KratosMultiphysics.mpi as KratosMPI
 
 # Set echo level
-echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
+verbosity = ProjectParameters["problem_data"]["echo_level"].GetInt()
 
 #### Model_part settings start ####
 
@@ -77,7 +77,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
     Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 #print model_part and properties
-if(echo_level>1):
+if(verbosity>1):
     print("")
     print(main_model_part)
     for properties in main_model_part.Properties:
@@ -107,7 +107,7 @@ list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOf
 #    print("done ",i)
 
 #print list of constructed processes
-if(echo_level>1):
+if(verbosity>1):
     for process in list_of_processes:
         print(process)
 
@@ -144,7 +144,6 @@ gid_output.ExecuteInitialize()
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
-solver.SetEchoLevel(echo_level)
 
 if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
     print(" ")
@@ -172,6 +171,12 @@ end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 # writing a initial state results file (if no restart)
 # gid_io.write_results(time, computing_model_part) done in ExecuteBeforeSolutionLoop()
+
+## Writing the full ProjectParameters file before solving
+if ((parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (verbosity > 0):
+    f = open("ProjectParametersOutput.json", 'w')
+    f.write(ProjectParameters.PrettyPrintJsonString())
+    f.close()
 
 # Solving the problem (time integration)
 while(time <= end_time):
