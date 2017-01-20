@@ -30,6 +30,7 @@
 #include "custom_elements/calculate_laplacian_simplex_element.h"
 #include "custom_elements/calculate_mat_deriv_simplex_element.h"
 #include "custom_elements/calculate_component_gradient_simplex_element.h"
+#include "custom_elements/calculate_gradient_Fortin_2012.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
@@ -46,8 +47,8 @@ namespace Kratos
     #define SWIMMING_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
     #define SWIMMING_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
     #define SWIMMING_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
-    #define SWIMMING_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-    #define SWIMMING_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+    #define SWIMMING_MODULUS_3(a)                            std::sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+    #define SWIMMING_INNER_PRODUCT_3(a, b)                            (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
     #define SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
     #define SWIMMING_POW_2(a)                                (a * a)
     #define SWIMMING_POW_3(a)                                (a * a * a)
@@ -123,6 +124,9 @@ private:
 
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
+
+    const ComputeGradientFortin2012<2> mComputeGradientFortin20122D;
+    const ComputeGradientFortin2012<3> mComputeGradientFortin20123D;
 
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
