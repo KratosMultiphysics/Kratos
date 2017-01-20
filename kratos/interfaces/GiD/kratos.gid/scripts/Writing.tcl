@@ -19,13 +19,13 @@ proc write::Init { } {
     variable parts
     variable meshes
     variable groups_type_name
-    
+
     set mat_dict ""
     set dir ""
     set parts ""
     set meshes [dict create]
     set groups_type_name "SubModelPart"
-    
+
     variable MDPA_loop_control
     set MDPA_loop_control 0
 }
@@ -36,10 +36,10 @@ proc write::initWriteData {partes mats} {
     variable meshes
     set parts $partes
     set matun $mats
-    
+
     variable MDPA_loop_control
     set MDPA_loop_control 0
-    
+
     #set meshes [dict create]
     processMaterials
 }
@@ -57,14 +57,14 @@ proc write::writeEvent { filename } {
     #set inittime [clock seconds]
     set activeapp [::apps::getActiveApp]
     set appid [::apps::getActiveAppId]
-    
+
     #### MDPA Write ####
     set errcode [writeAppMDPA $appid]
-	
+
     #### Project Parameters Write ####
     set wevent [$activeapp getWriteParametersEvent]
     set filename "ProjectParameters.json"
-    
+
     catch {CloseFile}
     OpenFile $filename
     if {$::kratos_debug} {
@@ -75,19 +75,19 @@ proc write::writeEvent { filename } {
             set errcode 1
         }
     }
-    
+
     catch {CloseFile}
-	
+
     #### Custom File Write ####
     set wevent [$activeapp getWriteCustomEvent]
-    
+
     catch {CloseFile}
     if { [catch {eval $wevent} fid] } {
         W "Problem Writing Custom block:\n$fid\nEnd problems"
         set errcode 1
     }
     catch {CloseFile}
-	    
+
     return $errcode
     # set endtime [clock seconds]
     # set ttime [expr {$endtime-$inittime}]
@@ -98,17 +98,17 @@ proc write::writeAppMDPA {appid} {
     variable MDPA_loop_control
     incr MDPA_loop_control
     if {$MDPA_loop_control > 10} {error [= "Infinite loop on MDPA - Check recursive or cyclic calls"]}
-    
+
     set errcode 0
     set activeapp [::apps::getAppById $appid]
-    
+
     #### MDPA Write ####
     set wevent [$activeapp getWriteModelPartEvent]
     set filename "[file tail [GiD_Info project ModelName]].mdpa"
-    
+
     catch {CloseFile}
     OpenFile $filename
-    
+
     if {$::kratos_debug} {
         eval $wevent
     } else {
@@ -123,7 +123,7 @@ proc write::writeAppMDPA {appid} {
 
 proc write::writeModelPartData { } {
     # Write the model part data
-     
+
 	WriteString "Begin ModelPartData"
 	WriteString "//  VARIABLE_NAME value"
 	WriteString "End ModelPartData"
@@ -132,7 +132,7 @@ proc write::writeModelPartData { } {
 
 proc write::writeTables { } {
     # Write the model part data
-     
+
 	WriteString "Begin Table"
 	WriteString "Table content"
 	WriteString "End Tablee"
@@ -141,7 +141,7 @@ proc write::writeTables { } {
 
 proc write::writeMaterials { {appid ""}} {
     variable mat_dict
-    
+
     set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material" "Element"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
@@ -173,9 +173,9 @@ proc write::writeNodalCoordinates { } {
     # Write the nodal coordinates block
     # Nodes block format
     # Begin Nodes
-    # // id          X        Y        Z 
+    # // id          X        Y        Z
     # End Nodes
-    
+
     WriteString "Begin Nodes"
     customlib::WriteCoordinates "%5d %14.10f %14.10f %14.10f\n"
     WriteString "End Nodes"
@@ -188,46 +188,46 @@ proc write::processMaterials { } {
     variable mat_dict
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set xp1 "[spdAux::getRoute $parts]/group"
     set xp2 ".//value\[@n='Material']"
-    
-    set material_number [llength [dict keys $mat_dict] ] 
+
+    set material_number [llength [dict keys $mat_dict] ]
 
     foreach gNode [$root selectNodes $xp1] {
         set nodeApp [spdAux::GetAppIdFromNode $gNode]
         set group [$gNode getAttribute n]
         #set valueNode [$gNode selectNodes $xp2]
-        #set material_name [get_domnode_attribute $valueNode v] 
+        #set material_name [get_domnode_attribute $valueNode v]
         set material_name "material $material_number"
-        if { ![dict exists $mat_dict $group] } {            
+        if { ![dict exists $mat_dict $group] } {
             incr material_number
             set mid $material_number
-            
+
             set xp3 [spdAux::getRoute $matun]
             append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-        
-            dict set mat_dict $group MID $material_number 
+
+            dict set mat_dict $group MID $material_number
             dict set mat_dict $group APPID $nodeApp
-            
+
             set s1 [$gNode selectNodes ".//value"]
             set s2 [$root selectNodes $xp3]
             set us [join [list $s1 $s2]]
-            
+
             foreach valueNode $us {
                 set name [$valueNode getAttribute n]
                 set state [get_domnode_attribute $valueNode state]
                 if {$state ne "hidden"} {
                     # All the introduced values are translated to 'm' and 'kg' with the help of this function
                     set value [gid_groups_conds::convert_value_to_default $valueNode]
-                    
+
                     if {[string is double $value]} {
                         set value [format "%13.5E" $value]
                     }
                     dict set mat_dict $group $name $value
                 }
             }
-        } 
+        }
     }
 }
 
@@ -235,11 +235,11 @@ proc write::writeElementConnectivities { } {
     variable parts
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set xp1 "[spdAux::getRoute $parts]/group"
     foreach gNode [$root selectNodes $xp1] {
         write::writeGroupElementConnectivities $gNode
-    } 
+    }
 }
 
 # gNode must be a tree group, have a value n = Element
@@ -247,7 +247,7 @@ proc write::writeGroupElementConnectivities { gNode } {
     variable mat_dict
     set formats ""
     set group [get_domnode_attribute $gNode n]
-    if { [dict exists $mat_dict $group] } {          
+    if { [dict exists $mat_dict $group] } {
         set mid [dict get $mat_dict $group MID]
         if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
         lassign [getEtype $ov $group] etype nnodes
@@ -275,7 +275,7 @@ proc write::writeGroupElementConnectivities { gNode } {
             }
         } else {
             error [= "You have not assigned a proper entity to group $group"]
-        } 
+        }
     } else {
         error [= "Group $group not in the material database. Call write::initWriteData first"]
     }
@@ -285,7 +285,7 @@ proc write::writeConditions { baseUN } {
     set dictGroupsIterators [dict create]
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set xp1 "[spdAux::getRoute $baseUN]/condition/group"
     set iter 1
     foreach groupNode [$root selectNodes $xp1] {
@@ -300,7 +300,7 @@ proc write::writeConditions { baseUN } {
             WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
             if {$etype eq "Point"} {
                 set formats [dict create $groupid "%10d \n"]
-                
+
                 #set obj [GiD_WriteCalculationFile nodes -return $formats]
                 #set obj [list 3 5]
                 set obj [GiD_EntitiesGroups get $groupid nodes]
@@ -343,7 +343,7 @@ proc write::GetListsOfNodes {elems nnodes {ignore 0} } {
 
 proc write::getMeshId {cid group} {
     variable meshes
-    
+
     set find [list $cid ${group}]
     if {[dict exists $meshes $find]} {
         return [dict get $meshes [list $cid ${group}]]
@@ -365,7 +365,7 @@ proc write::transformGroupName {groupid} {
 proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid_list ""} } {
     variable meshes
     variable groups_type_name
-    
+
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
         set mid [expr [llength [dict keys $meshes]] +1]
@@ -441,15 +441,15 @@ proc write::getEtype {ov group} {
         set ret [list "Point" 1]
         set b 1
     }
-    
+
     if {$ov eq "line"} {
         if {$b} {error "Multiple element types in $group over $ov"}
         switch $isquadratic {
             0 { set ret [list "Linear" 2] }
-            default { set ret [list "Linear" 2] }                                         
-        } 
+            default { set ret [list "Linear" 2] }
+        }
     }
-    
+
     if {$ov eq "surface"} {
         if {[GiD_EntitiesGroups get $group elements -count -element_type Triangle]} {
             if {$b} {error "Multiple element types in $group over $ov"}
@@ -462,54 +462,54 @@ proc write::getEtype {ov group} {
         if {[GiD_EntitiesGroups get $group elements -count -element_type Quadrilateral]} {
             if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
-		        0 { set ret [list "Quadrilateral" 4]  }                
-		        1 { set ret [list "Quadrilateral" 8]  }                
-		        2 { set ret [list "Quadrilateral" 9]  }                
+		        0 { set ret [list "Quadrilateral" 4]  }
+		        1 { set ret [list "Quadrilateral" 8]  }
+		        2 { set ret [list "Quadrilateral" 9]  }
 		    }
             set b 1
 		}
         if {[GiD_EntitiesGroups get $group elements -count -element_type Circle]} {
             if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
-		        0 { set ret [list "Circle" 1]  }                 
+		        0 { set ret [list "Circle" 1]  }
 		    }
             set b 1
 		}
     }
-    
+
     if {$ov eq "volume"} {
         if {[GiD_EntitiesGroups get $group elements -count -element_type Tetrahedra]} {
             if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
-		        0 { set ret [list "Tetrahedra" 4]  }               
-		        1 { set ret [list "Tetrahedra" 10] }                
-		        2 { set ret [list "Tetrahedra" 10] }  
+		        0 { set ret [list "Tetrahedra" 4]  }
+		        1 { set ret [list "Tetrahedra" 10] }
+		        2 { set ret [list "Tetrahedra" 10] }
 		    }
             set b 1
 		}
         if {[GiD_EntitiesGroups get $group elements -count -element_type Hexahedra]} {
             if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
-		        0 { set ret [list "Hexahedra" 8]  }                
-		        1 { set ret [list "Hexahedra" 20]  }                
-		        2 { set ret [list "Hexahedra" 27]  }                
+		        0 { set ret [list "Hexahedra" 8]  }
+		        1 { set ret [list "Hexahedra" 20]  }
+		        2 { set ret [list "Hexahedra" 27]  }
 		    }
             set b 1
 	    }
         if {[GiD_EntitiesGroups get $group elements -count -element_type Prism]} {
             if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
-		        0 { set ret [list "Hexahedra" 6]  }                
-		        1 { set ret [list "Hexahedra" 1]  }                
-		        2 { set ret [list "Hexahedra" 27]  }                
+		        0 { set ret [list "Hexahedra" 6]  }
+		        1 { set ret [list "Hexahedra" 1]  }
+		        2 { set ret [list "Hexahedra" 27]  }
 		    }
             set b 1
 	    }
     }
-    
+
     return $ret
 }
-proc write::isquadratic {} {  
+proc write::isquadratic {} {
     set err [catch { GiD_Set Model(QuadraticType) } isquadratic]
     if { $err } {
 	set isquadratic [lindex [GiD_Info Project] 5]
@@ -547,11 +547,11 @@ proc write::getPartsGroupsId {} {
     variable parts
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set listOfGroups [list ]
     set xp1 "[spdAux::getRoute $parts]/group"
     set groups [$root selectNodes $xp1]
-    
+
     foreach group $groups {
         set groupName [get_domnode_attribute $group n]
         lappend listOfGroups $groupName
@@ -562,7 +562,7 @@ proc write::getPartsMeshId {} {
     variable parts
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set listOfGroups [list ]
 
     foreach group [getPartsGroupsId] {
@@ -574,7 +574,7 @@ proc write::getPartsMeshId {} {
 proc write::writePartMeshes { } {
     foreach group [getPartsGroupsId] {
         writeGroupMesh Parts $group "Elements"
-    } 
+    }
 }
 
 proc write::dict2json {dictVal} {
@@ -660,7 +660,7 @@ proc write::WriteJSON {processDict} {
 proc write::GetDefaultOutputDict { {appid ""} } {
     set outputDict [dict create]
     set resultDict [dict create]
-    
+
     if {$appid eq ""} {set results_UN Results } {set results_UN [apps::getAppUniqueName $appid Results]}
     set GiDPostDict [dict create]
     dict set GiDPostDict GiDPostMode                [getValue $results_UN GiDPostMode]
@@ -668,22 +668,22 @@ proc write::GetDefaultOutputDict { {appid ""} } {
     dict set GiDPostDict WriteConditionsFlag        [getValue $results_UN GiDWriteConditionsFlag]
     dict set GiDPostDict MultiFileFlag              [getValue $results_UN GiDMultiFileFlag]
     dict set resultDict gidpost_flags $GiDPostDict
-    
+
     dict set resultDict file_label                 [getValue $results_UN FileLabel]
     set outputCT [getValue $results_UN OutputControlType]
     dict set resultDict output_control_type $outputCT
     if {$outputCT eq "time"} {set frequency [getValue $results_UN OutputDeltaTime]} {set frequency [getValue $results_UN OutputDeltaStep]}
-    dict set resultDict output_frequency $frequency     
-    
+    dict set resultDict output_frequency $frequency
+
     dict set resultDict body_output           [getValue $results_UN BodyOutput]
     dict set resultDict node_output           [getValue $results_UN NodeOutput]
     dict set resultDict skin_output           [getValue $results_UN SkinOutput]
-    
+
     dict set resultDict plane_output [GetCutPlanesList $results_UN]
 
     dict set resultDict nodal_results [GetResultsList $results_UN OnNodes]
     dict set resultDict gauss_point_results [GetResultsList $results_UN OnElement]
-    
+
     dict set outputDict "result_file_configuration" $resultDict
     dict set outputDict "point_data_configuration" [GetEmptyList]
     return $outputDict
@@ -698,10 +698,10 @@ proc write::GetCutPlanesList { {results_UN Results} } {
     set root [$doc documentElement]
 
     set list_of_planes [list ]
-    
+
     set xp1 "[spdAux::getRoute $results_UN]/container\[@n='CutPlanes'\]/blockdata"
     set planes [$root selectNodes $xp1]
-    
+
     foreach plane $planes {
         set pdict [dict create]
         set points [split [get_domnode_attribute [$plane firstChild] v] ","]
@@ -709,7 +709,7 @@ proc write::GetCutPlanesList { {results_UN Results} } {
         dict set pdict point $points
         dict set pdict normal $normals
         if {![isVectorNull $normals]} {lappend list_of_planes $pdict}
-        unset pdict 
+        unset pdict
     }
     return $list_of_planes
 }
@@ -733,14 +733,14 @@ proc write::GetDataType {value} {
 proc write::getSolutionStrategyParametersDict {} {
     set solStratUN [apps::getCurrentUniqueName SolStrat]
     set schemeUN [apps::getCurrentUniqueName Scheme]
-    
+
     set solstratName [write::getValue $solStratUN]
     set schemeName [write::getValue $schemeUN]
     set sol [::Model::GetSolutionStrategy $solstratName]
     set sch [$sol getScheme $schemeName]
-    
+
     set paramsPath [apps::getCurrentUniqueName StratParams]
-    
+
     foreach {n in} [$sol getInputs] {
         dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
     }
@@ -754,7 +754,7 @@ proc write::getSolutionStrategyParametersDict {} {
 proc write::getSubModelPartNames { args } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set listOfProcessedGroups [list ]
     set groups [list ]
     foreach un $args {
@@ -771,7 +771,7 @@ proc write::getSubModelPartNames { args } {
         set gname [::write::getMeshId $cid $groupName]
         if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
     }
-    
+
     return $listOfProcessedGroups
 }
 
@@ -789,7 +789,7 @@ proc write::getSolversParametersDict { {appid ""} } {
         set un [apps::getAppUniqueName $appid "$solstratName[$se getName]"]
         if {[spdAux::getRoute $un] ne ""} {
             set solverName [write::getValue $un Solver]
-            if {$solverName ne "Default"} {
+            if {$solverName ni [list "Default" "AutomaticOpenMP" "AutomaticMPI"]} {
                 dict set solverEntryDict solver_type $solverName
                 set solver [::Model::GetSolver $solverName]
                 foreach {n in} [$solver getInputs] {
@@ -817,7 +817,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
     set root [$doc documentElement]
 
     set bcCondsDict [list ]
-    
+
     set xp1 "[spdAux::getRoute $un]/condition/group"
     set groups [$root selectNodes $xp1]
     if {$groups eq ""} {
@@ -840,14 +840,14 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         set paramDict [dict create]
         dict set paramDict mesh_id 0
         dict set paramDict model_part_name $groupId
-        
+
         set process_attributes [$process getAttributes]
         set process_parameters [$process getInputs]
-        
+
         dict set process_attributes process_name [dict get $process_attributes n]
         dict unset process_attributes n
         dict unset process_attributes pn
-        
+
         set processDict [dict merge $processDict $process_attributes]
         catch {
             set variable_name [$condition getAttribute VariableName]
@@ -877,21 +877,21 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                                         set Val$i $value
                                         set printed 1
                                     }
-                                } 
+                                }
                                 if {!$printed} {
                                     set value [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}$i] ] ]
                                     set Val$i $value
                                 }
                             }
-                        } 
+                        }
                     } else {
                         set ValX [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}X] ] ]
-                        set ValY [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}Y] ] ] 
+                        set ValY [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}Y] ] ]
                         set ValZ [expr 0.0]
                         catch {set ValZ [expr [gid_groups_conds::convert_value_to_default [$group find n ${inputName}Z] ]]}
                     }
                     dict set paramDict $inputName [list $ValX $ValY $ValZ]
-                } 
+                }
             } elseif {$in_type eq "double" || $in_type eq "integer"} {
                 set printed 0
                 if {[$in_obj getAttribute "function"] eq "1"} {
@@ -901,22 +901,22 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                         dict set paramDict $inputName $value
                         set printed 1
                     }
-                } 
+                }
                 if {!$printed} {
                     set value [gid_groups_conds::convert_value_to_default [$group find n $inputName]]
-                    #set value [get_domnode_attribute [$group find n $inputName] v] 
+                    #set value [get_domnode_attribute [$group find n $inputName] v]
                     dict set paramDict $inputName [expr $value]
                 }
             } elseif {$in_type eq "bool"} {
-                set value [get_domnode_attribute [$group find n $inputName] v] 
+                set value [get_domnode_attribute [$group find n $inputName] v]
                 set value [expr $value ? True : False]
                 dict set paramDict $inputName [expr $value]
             } elseif {$in_type eq "tablefile"} {
-                set value [get_domnode_attribute [$group find n $inputName] v] 
+                set value [get_domnode_attribute [$group find n $inputName] v]
                 dict set paramDict $inputName $value
             } else {
                 if {[get_domnode_attribute [$group find n $inputName] state] ne "hidden" } {
-                    set value [get_domnode_attribute [$group find n $inputName] v] 
+                    set value [get_domnode_attribute [$group find n $inputName] v]
                     dict set paramDict $inputName $value
                 }
             }
@@ -931,7 +931,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
 proc write::GetResultsList { un {cnd ""} } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set result [list ]
     if {$cnd eq ""} {set xp1 "[spdAux::getRoute $un]/value"} {set xp1 "[spdAux::getRoute $un]/container\[@n = '$cnd'\]/value"}
     set resultxml [$root selectNodes $xp1]
@@ -943,20 +943,20 @@ proc write::GetResultsList { un {cnd ""} } {
     }
     return $result
 }
-    
+
 proc write::GetRestartProcess { {un ""} {name "" } } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set resultDict [dict create ]
     if {$un eq ""} {set un "Restart"}
     if {$name eq ""} {set name "RestartOptions"}
-    
+
     dict set resultDict "python_module" "restart_process"
     dict set resultDict "kratos_module" "KratosMultiphysics.SolidMechanicsApplication"
     dict set resultDict "help" "This process writes restart files"
     dict set resultDict "process_name" "RestartProcess"
-    
+
     set params [dict create]
     set saveValue [write::getStringBinaryValue $un SaveRestart]
 
@@ -972,8 +972,8 @@ proc write::GetRestartProcess { {un ""} {name "" } } {
     if {$output_control eq "time"} {dict set params "output_frequency" [getValue $un RestartDeltaTime]} {dict set params "output_frequency" [getValue $un RestartDeltaStep]}
     set jsonoutput [write::getStringBinaryValue $un json_output]
     dict set params "json_output" $jsonoutput
-	
-    
+
+
     dict set resultDict "Parameters" $params
     return $resultDict
 }
@@ -981,10 +981,10 @@ proc write::GetRestartProcess { {un ""} {name "" } } {
 proc write::GetMeshFromCondition { base_UN condition_id } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set xp1 "[spdAux::getRoute $base_UN]/condition\[@n='$condition_id'\]/group"
     set groups [$root selectNodes $xp1]
-    
+
     set meshes [list ]
     foreach gNode $groups {
         set group [$gNode @n]
@@ -998,9 +998,9 @@ proc write::getAllMaterialParametersDict {matname} {
     variable matun
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set md [dict create]
-    
+
     set xp3 [spdAux::getRoute $matun]
     append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $matname]
 
@@ -1014,7 +1014,7 @@ proc write::getAllMaterialParametersDict {matname} {
 proc write::getIntervalsDict { { un "Intervals" } {appid "" } } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     set intervalsDict [dict create]
     set xp3 "[spdAux::getRoute $un]/blockdata\[@n='Interval'\]"
     if {$xp3 ne ""} {
@@ -1074,7 +1074,7 @@ proc write::Duration { int_time } {
     }
     return [join $timeList]
 }
- 
+
 proc write::getValueByNode { node } {
     if {[get_domnode_attribute $node v] eq ""} {
         catch {get_domnode_attribute $node dict}
@@ -1093,10 +1093,10 @@ proc write::getValue { name { it "" } } {
     set xp [spdAux::getRoute $name]
     set node [$root selectNodes $xp]
     if {$it ne ""} {set node [$node find n $it]}
-    
+
     return [getValueByNode $node]
  }
- 
+
 proc write::isBoolean {value} {
    set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true" "No" "0" "no" "NO" "False" "FALSE" "false"]
    if {$value in $goodList} {return 1} {return 0}
@@ -1118,7 +1118,7 @@ proc write::getStringBinaryFromValue {v} {
     set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true"]
     if {$v in $goodList} {return "true" } {return "false"}
 }
- 
+
 proc write::OpenFile { fn } {
     variable dir
     set filename [file join $dir $fn]
@@ -1155,7 +1155,7 @@ proc write::getSpacing {number} {
 
 proc write::CopyFileIntoModel { filepath } {
     variable dir
-    
+
     set activeapp [::apps::getActiveApp]
     set inidir [apps::getMyDir [$activeapp getName]]
     set totalpath [file join $inidir $filepath]
@@ -1174,7 +1174,7 @@ write::Init
 proc write::WriteAssignedValues {condNode} {
     set assignedVector [list 1 0 1]
     set valuesVector [list 0.0 null 0.0]
-    
+
     for {set i 0} {$i<3} {incr i} {
         set assigned [lindex $assignedVector $i]
         if {!$assigned} {set assignedVector [lreplace $assignedVector $i $i null]}
