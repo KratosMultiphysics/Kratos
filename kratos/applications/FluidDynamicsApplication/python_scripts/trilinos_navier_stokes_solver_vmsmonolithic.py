@@ -50,7 +50,7 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
                 "tolerance"                          : 1e-8,
                 "max_levels"                         : 3,
                 "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : false,
+                "reform_preconditioner_at_each_step" : true,
                 "scaling"                            : true
             },
             "volume_model_part_name" : "volume_model_part",

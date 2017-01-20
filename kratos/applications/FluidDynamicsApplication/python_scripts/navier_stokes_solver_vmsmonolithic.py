@@ -36,13 +36,13 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
                 "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "bicgstab",
+                "krylov_type" : "lgmres",
                 "velocity_block_preconditioner" : {
                     "krylov_type" : "bicgstab",
                     "tolerance" : 1e-3,
@@ -55,10 +55,9 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
                     "preconditioner_type" : "spai0",
                     "max_iteration": 50
                 },
-                "tolerance" : 1e-6,
-                "krylov_type": "bicgstab",
+                "tolerance" : 1e-7,
                 "gmres_krylov_space_dimension": 50,
-                "max_iteration": 50,
+                "max_iteration": 200,
                 "verbosity" : 0,
                 "scaling": true,
                 "coarse_enough" : 5000
