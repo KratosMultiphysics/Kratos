@@ -22,6 +22,10 @@ proc ::Fluid::write::getParametersDict { } {
         #set nthreads [write::getValue Parallelization MPINumberOfProcessors]
         #dict set problemDataDict NumberofProcessors $nthreads
     }
+    
+    # Write the echo level in the problem data section
+    set echo_level [write::getValue Results EchoLevel]
+    dict set problemDataDict echo_level $echo_level
 
     # Time Parameters
     dict set problemDataDict start_step [write::getValue FLTimeParameters StartTime]
