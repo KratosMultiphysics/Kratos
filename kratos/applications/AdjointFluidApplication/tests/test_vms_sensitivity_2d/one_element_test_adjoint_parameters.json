@@ -11,7 +11,8 @@
         "time_step"       :-1.0
     },
     "solver_settings" : {
-        "solver_type"                   : "adjoint_bossak_vmsmonolithic",
+        "solver_type"                   : "adjoint_vmsmonolithic_solver",
+        "scheme_type"                  : "bossak_drag",
         "maximum_iterations"            : 10,
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,

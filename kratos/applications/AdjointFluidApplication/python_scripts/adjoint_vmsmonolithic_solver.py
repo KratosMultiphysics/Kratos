@@ -8,9 +8,9 @@ import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
-    return AdjointBossakVMSMonolithic(main_model_part, custom_settings)
+    return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
 
-class AdjointBossakVMSMonolithic:
+class AdjointVMSMonolithicSolver:
 
     ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part. This is needed since at the point of constructing the
@@ -26,7 +26,8 @@ class AdjointBossakVMSMonolithic:
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "adjoint_bossak_vmsmonolithic",
+            "solver_type": "adjoint_vmsmonolithic_solver",
+            "scheme_type": "bossak_drag",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -84,7 +85,7 @@ class AdjointBossakVMSMonolithic:
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of AdjointBossakVMSMonolithic finished")
+        print("Construction of AdjointVMSMonolithicSolver finished")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -175,7 +176,10 @@ class AdjointBossakVMSMonolithic:
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        self.time_scheme = AdjointFluidApplication.AdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
+        if self.settings["scheme_type"].GetString() == "bossak_drag":
+            self.time_scheme = AdjointFluidApplication.AdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
+        elif self.settings["scheme_type"].GetString() == "steady_drag":
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyDragScheme()
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
