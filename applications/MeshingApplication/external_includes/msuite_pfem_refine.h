@@ -1,11 +1,14 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-22 17:13:57 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_MSUITE_PFEM_MODELER_H_INCLUDED )
 #define  KRATOS_MSUITE_PFEM_MODELER_H_INCLUDED
