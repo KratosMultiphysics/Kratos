@@ -112,7 +112,7 @@ class PartitionedFSISolver:
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
                 "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "bicgstab",
+                "krylov_type" : "lgmres",
                 "velocity_block_preconditioner" : {
                     "tolerance" : 1e-3,
                     "precondioner_type" : "spai0"
@@ -122,7 +122,6 @@ class PartitionedFSISolver:
                     "precondioner_type" : "spai0"
                 },
                 "tolerance" : 1e-7,
-                "krylov_type": "bicgstab",
                 "gmres_krylov_space_dimension": 50,
                 "max_iteration": 50,
                 "verbosity" : 0,
