@@ -14,8 +14,17 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
+## Get echo level and parallel type
+verbosity_fluid = ProjectParameters["fluid_solver_settings"]["problem_data"]["echo_level"].GetInt()
+verbosity_structure = ProjectParameters["structure_solver_settings"]["problem_data"]["echo_level"].GetInt()
+verbosity = max(verbosity_fluid, verbosity_structure)
+parallel_type = ProjectParameters["coupling_solver_settings"]["problem_data"]["parallel_type"].GetString()
 
-## Fluid-Structure model parts definition 
+## Import KratosMPI if needed
+if (parallel_type == "MPI"):
+    import KratosMultiphysics.mpi as KratosMPI
+
+## Fluid-Structure model parts definition
 structure_main_model_part = ModelPart(ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
 structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["structure_solver_settings"]["problem_data"]["domain_size"].GetInt())
 
@@ -39,29 +48,34 @@ solver.ImportModelPart()
 solver.AddDofs()
 
 ## Initialize GiD  I/O
-from gid_output_process import GiDOutputProcess
+if (parallel_type == "OpenMP"):
+    from gid_output_process import GiDOutputProcess
+    gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputingModelPart(),
+                                        ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
+                                        ProjectParameters["structure_solver_settings"]["output_configuration"])
+    gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputingModelPart(),
+                                        ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
+                                        ProjectParameters["fluid_solver_settings"]["output_configuration"])
 
-gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputingModelPart(),
-                                    ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
-                                    ProjectParameters["structure_solver_settings"]["output_configuration"])
+elif (parallel_type == "MPI"):
+    from gid_output_process_mpi import GiDOutputProcessMPI
+    gid_output_structure = GiDOutputProcessMPI(solver.structure_solver.GetComputingModelPart(),
+                                               ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
+                                               ProjectParameters["structure_solver_settings"]["output_configuration"])
 
-gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputingModelPart(),
-                                    ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
-                                    ProjectParameters["fluid_solver_settings"]["output_configuration"])
+    gid_output_fluid = GiDOutputProcessMPI(solver.fluid_solver.GetComputingModelPart(),
+                                           ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
+                                           ProjectParameters["fluid_solver_settings"]["output_configuration"])
 
 gid_output_structure.ExecuteInitialize()
 gid_output_fluid.ExecuteInitialize()
-
-#~ ##here all of the allocation of the strategies etc is done
-#~ solver.Initialize()
-
 
 ##TODO: replace MODEL for the Kratos one ASAP
 ## Get the list of the skin submodel parts in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["solver_settings"]["skin_parts"].size()):
     skin_part_name = ProjectParameters["fluid_solver_settings"]["solver_settings"]["skin_parts"][i].GetString()
     FluidModel.update({skin_part_name: fluid_main_model_part.GetSubModelPart(skin_part_name)})
-    
+
 ## Get the list of the no-skin submodel parts in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["solver_settings"]["no_skin_parts"].size()):
     no_skin_part_name = ProjectParameters["fluid_solver_settings"]["solver_settings"]["no_skin_parts"][i].GetString()
@@ -71,9 +85,9 @@ for i in range(ProjectParameters["fluid_solver_settings"]["solver_settings"]["no
 for i in range(ProjectParameters["fluid_solver_settings"]["initial_conditions_process_list"].size()):
     initial_cond_part_name = ProjectParameters["fluid_solver_settings"]["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
     FluidModel.update({initial_cond_part_name: fluid_main_model_part.GetSubModelPart(initial_cond_part_name)})
-    
+
 ## Get the gravity submodel part in the object Model (FLUID)
-for i in range(ProjectParameters["fluid_solver_settings"]["gravity"].size()):   
+for i in range(ProjectParameters["fluid_solver_settings"]["gravity"].size()):
     gravity_part_name = ProjectParameters["fluid_solver_settings"]["gravity"][i]["Parameters"]["model_part_name"].GetString()
     FluidModel.update({gravity_part_name: fluid_main_model_part.GetSubModelPart(gravity_part_name)})
 
@@ -82,10 +96,22 @@ for i in range(ProjectParameters["structure_solver_settings"]["solver_settings"]
     part_name = ProjectParameters["structure_solver_settings"]["solver_settings"]["processes_sub_model_part_list"][i].GetString()
     SolidModel.update({part_name: structure_main_model_part.GetSubModelPart(part_name)})
 
+# Print model_parts and properties
+if(fluid_verbosity > 1):
+    print("")
+    print(fluid_main_model_part)
+    for properties in fluid_main_model_part.Properties:
+        print(properties)
 
-## Processes construction    
+if(structure_verbosity > 1):
+    print("")
+    print(structure_main_model_part)
+    for properties in structure_main_model_part.Properties:
+        print(properties)
+
+## Processes construction
 import process_factory
-# "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity) 
+# "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
 # Note that the conditions are firstly constructed. Otherwise, they may overwrite the BCs information.
 
 # FLUID DOMAIN PROCESSES
@@ -97,15 +123,16 @@ list_of_processes += process_factory.KratosProcessFactory(FluidModel).ConstructL
 list_of_processes += process_factory.KratosProcessFactory(SolidModel).ConstructListOfProcesses( ProjectParameters["structure_solver_settings"]["constraints_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(SolidModel).ConstructListOfProcesses( ProjectParameters["structure_solver_settings"]["loads_process_list"] )
 
+if(verbosity > 1):
+    for process in list_of_processes:
+        print(process)
 
 ## Processes initialization
 for process in list_of_processes:
     process.ExecuteInitialize()
-    
-    
-# Solver initialization moved after the processes initialization, otherwise the flag INTERFACE is not set 
-solver.Initialize()
 
+# Solver initialization moved after the processes initialization, otherwise the flag INTERFACE is not set
+solver.Initialize()
 
 ## Stepping and time settings
 Dt = ProjectParameters["fluid_solver_settings"]["problem_data"]["time_step"].GetDouble()
@@ -121,33 +148,43 @@ gid_output_fluid.ExecuteBeforeSolutionLoop()
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
+## Writing the full ProjectParameters file before solving
+if ((parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (verbosity > 0):
+    f = open("ProjectParametersOutput.json", 'w')
+    f.write(ProjectParameters.PrettyPrintJsonString())
+    f.close()
+
 while(time <= end_time):
 
     time = time + Dt
     step = step + 1
 
     solver.SetTimeStep(step)
-    
-    structure_main_model_part.CloneTimeStep(time)    
-    fluid_main_model_part.CloneTimeStep(time)   
 
-    print("STEP = ", step)
-    print("TIME = ", time)
+    structure_main_model_part.CloneTimeStep(time)
+    fluid_main_model_part.CloneTimeStep(time)
 
-    #~ if(step >= 3):
+    if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("STEP = ", step)
+        print("TIME = ", time)
+
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
-    
+
     gid_output_structure.ExecuteInitializeSolutionStep()
     gid_output_fluid.ExecuteInitializeSolutionStep()
-    
-    print("Time step ",step," resolution starts...")
+
+    if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("Time step ",step," resolution starts...")
+
     solver.Solve()
-    print("Time step ",step," solved.")
-    
+
+    if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("Time step ",step," solved.")
+
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-        
+
     gid_output_structure.ExecuteFinalizeSolutionStep()
     gid_output_fluid.ExecuteFinalizeSolutionStep()
 
@@ -157,10 +194,10 @@ while(time <= end_time):
 
     if gid_output_structure.IsOutputStep():
         gid_output_structure.PrintOutput()
-        
+
     if gid_output_fluid.IsOutputStep():
         gid_output_fluid.PrintOutput()
-    
+
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
@@ -168,6 +205,6 @@ while(time <= end_time):
 
 for process in list_of_processes:
     process.ExecuteFinalize()
-    
+
 gid_output_structure.ExecuteFinalize()
 gid_output_fluid.ExecuteFinalize()
