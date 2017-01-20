@@ -264,20 +264,6 @@ public:
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
             
-//             const double tol = 1.0e-6;
-//             if (std::abs(scalar_value) < tol) //NOTE: Is it right?
-//             {
-//                 gradient_value[0] = 1.0;
-// //                 gradient_value[0] = 0.0;
-//                 gradient_value[1] = 0.0;
-//                 gradient_value[2] = 0.0;
-//             }
-//             else
-//             {
-//                 const double norm = norm_2(gradient_value);
-//                 gradient_value /= norm;
-//             }
-            
             const double norm = norm_2(gradient_value);
             gradient_value /= norm;
                 
@@ -373,9 +359,16 @@ public:
 
     void Execute(
         ModelPart& rThisModelPart,
-        const bool save_to_file = false
+        const bool save_to_file = false,
+        const unsigned int MaxNumberOfResults = 1000
         )
     {   
+        // We initialize some values
+        unsigned int step_data_size = rThisModelPart.GetNodalSolutionStepDataSize();
+        unsigned int buffer_size    = rThisModelPart.NodesBegin()->GetBufferSize();
+                
+        std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size << std::endl; 
+        
         ////////* MMG LIBRARY CALL *////////
         
         MMGLibCall();
@@ -430,6 +423,7 @@ public:
 
         // We create the locator
         BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(OldModelPart);
+        PointLocator.UpdateSearchDatabase();
         
         // NOTE: Technically not necessary
 //         // Create iterator
@@ -615,43 +609,64 @@ public:
             rSubModelPart.AddNodes(NodesIds);
         }
         
-//         /* We interpolate all the values */
-//         // Iterate in the nodes
-//         NodesArrayType& pNode = rThisModelPart.Nodes();
-//         auto numNodes = pNode.end() - pNode.begin();
-//         
-//         /* Nodes */
-// //         #pragma omp parallel for 
-//         for(unsigned int i = 0; i < numNodes; i++) 
-//         {
-//             auto itNode = pNode.begin() + i;
-//             
-//             Vector N;
-//             ElementType::Pointer pElement;
-//             const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), N, pElement);
-//             
-//             if (found == false)
-//             {
-//                 std::cout << "WARNING: Node "<< itNode->Id() <<" not found (interpolation not posible :P)" << std::endl;
-//             }
-//             
-//             const VariablesList* pVariablesList = pElement->GetGeometry()[0].pGetVariablesList();
-//             
-//             // NOTE: There is going to be problems with the GetValue and the FastGetSolutionStepValue
-// //             SizeType size = pVariablesList->DataSize();
-//             
-//             for (VariablesList::const_iterator i_variable = pVariablesList->begin() ; i_variable != pVariablesList->end() ; i_variable++)
-//             {
-//                 auto& NewValue = itNode->FastGetSolutionStepValue(i_variable, 0);
-//                 NewValue = 0.0; // Initialize the variable
-//                 for (unsigned int i_node = 0; i_node < pElement->GetGeometry().size(); i_node++)
-//                 {
-// //                     const auto OriValue = pElement->GetGeometry()[i_node].FastGetSolutionStepValue(i_variable , 0);
-// //                     NewValue += N[i_node] * OriValue;
-//                 }
-//             }
-//         }
-//         
+        /* We interpolate all the values */
+        // Iterate in the nodes
+        NodesArrayType& pNode = rThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        /* Nodes */
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            Vector shape_functions;
+            ElementType::Pointer pElement;
+            
+            const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), shape_functions, pElement, MaxNumberOfResults);
+            
+            if (found == false)
+            {
+                std::cout << "WARNING: Node "<< itNode->Id() <<" not found (interpolation not posible :P)" << std::endl;
+            }
+            else
+            {
+                for(unsigned int step = 0; step < buffer_size; step++)
+                {
+                    double* step_data = (itNode)->SolutionStepData().Data(step);
+                    
+                    if (TDim == 2)
+                    {
+                        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
+                        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
+                        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
+                        
+                        for (unsigned int j = 0; j < step_data_size; j++)
+                        {
+                            step_data[j] = shape_functions[0] * node0_data[j]
+                                         + shape_functions[1] * node1_data[j]
+                                         + shape_functions[2] * node2_data[j];
+                        }
+                    }
+                    else
+                    {
+                        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
+                        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
+                        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
+                        double* node3_data = pElement->GetGeometry()[3].SolutionStepData().Data(step);
+                        
+                        for (unsigned int j = 0; j < step_data_size; j++)
+                        {
+                            step_data[j] = shape_functions[0] * node0_data[j]
+                                         + shape_functions[1] * node1_data[j]
+                                         + shape_functions[2] * node2_data[j]
+                                         + shape_functions[3] * node3_data[j];
+                        }
+                    }
+                }
+            }
+        }
+        
         /* Save to file */
         if (save_to_file == true)
         {

@@ -28,7 +28,9 @@ class MmgProcess(KratosMultiphysics.Process):
             "initial_alpha_parameter" : 0.01,
             "distance_threshold"      : 1.0,
             "interpolation"           : "Constant",
-            "save_external_files"     : true
+            "save_external_files"     : true,
+            "initialize_nodal_value"  : 1,
+            "max_number_of_searchs"   : 1000
         }
         """)
         
@@ -38,7 +40,7 @@ class MmgProcess(KratosMultiphysics.Process):
         
         self.Model= Model
         self.model_part_name = self.params["model_part_name"].GetString()
-
+        self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.params = params
 
         self.input_file_name = self.params["input_file_name"].GetString()
@@ -53,16 +55,17 @@ class MmgProcess(KratosMultiphysics.Process):
         
         self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["scalar_variable"].GetString() )
         self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["gradient_variable"].GetString() )
+        self.initialize_nodal_value = self.params["initialize_nodal_value"].GetInt() 
+        self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
         
-    def ExecuteInitialize(self):
-                
-        # Basic variables necessary for reading the model_part
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.scalar_variable)
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.gradient_variable)
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
-        
+    def ExecuteInitialize(self):  
         # LEGACY MMG
+        ## Basic variables necessary for reading the model_part
+        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.scalar_variable)
+        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.gradient_variable)
+        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
+        
         #KratosMultiphysics.ModelPartIO(self.input_file_name).ReadModelPart(self.Model[self.model_part_name])
         
         self._CreateGradientProcess()
@@ -76,17 +79,11 @@ class MmgProcess(KratosMultiphysics.Process):
         
     def ExecuteBeforeSolutionLoop(self):
         self.step = 0
-        self._CreateGradientProcess()
         
     def ExecuteInitializeSolutionStep(self):
-        
         self.step += 1
-        if self.step_frequency > 0: # NOTE: Requires to recalculate the DISTANCE in each node
+        if self.step_frequency > 0: # NOTE: Requires to recalculate the scalar value in each node (we interpolate)
             if self.step == self.step_frequency:
-                ## NOTE: Defining by hand the scalar value, implementation required
-                #for node in self.Model[self.model_part_name].Nodes:
-                    #node.SetSolutionStepValue(self.scalar_variable, abs(node.X))
-                #self.local_gradient.Execute()
                 self._ExecuteRefinement()
                 self.step = 0 # Reset
             
@@ -103,8 +100,6 @@ class MmgProcess(KratosMultiphysics.Process):
         pass
     
     def _CreateGradientProcess(self):
-        self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        
         # We compute the scalar value gradient
         if (self.dim == 2):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
@@ -112,7 +107,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
             
     def _ExecuteRefinement(self):
-        
+            
         self.local_gradient.Execute()
             
         for node in self.Model[self.model_part_name].Nodes:
@@ -121,7 +116,7 @@ class MmgProcess(KratosMultiphysics.Process):
         for elem in self.Model[self.model_part_name].Elements:
             area = elem.GetArea()# Area or volume, depending triangle or tetraedra
             if (len(elem.GetNodes()) == 3):
-                L = 2.0 * math.sqrt(area)
+                L = 2.0 * area**(0.5)
             elif (len(elem.GetNodes()) == 4):
                 L = 2.0396489026555 * (area)**(1.0/3.0)
             else:
@@ -150,7 +145,19 @@ class MmgProcess(KratosMultiphysics.Process):
             )
         
         print("Remeshing")
-        self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files)
+        self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
+        
+        if (self.initialize_nodal_value == 1): # Density and kinematic viscosity
+            # Read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
+            for el in self.Model[self.model_part_name].Elements:
+                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+                kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+                break
+
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.Model[self.model_part_name].Nodes)
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.Model[self.model_part_name].Nodes)
+        
+        self.local_gradient.Execute() # Recalculate gradient after remeshing
         
         # LEGACY MMG 
         #import write_mmg_mesh as write
