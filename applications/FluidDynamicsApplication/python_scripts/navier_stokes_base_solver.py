@@ -99,6 +99,9 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
 
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
             #~ if hasattr(config, "TurbulenceModel"):
