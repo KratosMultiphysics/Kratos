@@ -7,7 +7,7 @@
     <value n="OutputDeltaTime" pn="Time between outputs (s)" v="1.0" help="Output will be printed in intervals of this time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
     <value n="OutputDeltaStep" pn="Time steps between outputs" v="1" help="Output will be printed in intervals of this number of steps" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
     <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="The interior of the volume is printed" state="[ShowInMode Developer]"/>
-    <value n="NodeOutput" pn="Node output" v="Yes" values="Yes,No" help="The nodes are printed as a separate layer" state="[ShowInMode Developer]"/>
+    <value n="NodeOutput" pn="Node output" v="No" values="Yes,No" help="The nodes are printed as a separate layer" state="[ShowInMode Developer]"/>
     <value n="SkinOutput" pn="Skin output" v="No" values="Yes,No" help="" state="[ShowInMode Developer]"/>
     <container n="OnElement" pn="On element" un="ElementResults" icon="triangle" help="Activate the results you want to see in the elements" state="[ActiveIfAnyPartState]" open_window="0">
         <dynamicnode command="spdAux::injectElementOutputs" args=""/>
@@ -21,7 +21,7 @@
         <value n="GiDPostMode" pn="Result format" v="GiD_PostBinary" values="GiD_PostBinary,GiD_PostAscii,GiD_PostAsciiZipped" dict="GiD_PostBinary,Binary,GiD_PostAscii,Ascii,GiD_PostAsciiZipped,Ascii zipped" help="GiD result file format" />
         <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="WriteDeformed" values="WriteDeformed,WriteUndeformed" dict="WriteDeformed,Write deformed,WriteUndeformed, Write undeformed" help="Write the GiD deformed or undeformed mesh"/>
         <value n="GiDWriteConditionsFlag" pn="Write conditions" v="WriteConditions" values="WriteConditions,WriteElementsOnly,WriteConditionsOnly" dict="WriteConditions,Write conditions,WriteElementsOnly,Write elements only,WriteConditionsOnly,Write conditions only" help="Write the conditions or only element to the GiD result file"/>
-        <value n="GiDMultiFileFlag" pn="Result file" v="MultipleFiles" values="SingleFile,MultipleFiles" dict="SingleFile,Single,MultipleFiles,Multiple" help="Write one GiD result file or multiple files"/>
+        <value n="GiDMultiFileFlag" pn="Result file" v="SingleFile" values="SingleFile,MultipleFiles" dict="SingleFile,Single,MultipleFiles,Multiple" help="Write one GiD result file or multiple files"/>
         <value n="EchoLevel" pn="Verbosity of terminal output" v="0" values="0,1,2,3" help="Verbosity on screen output during process. \n0 -> Low verbosity \n3 -> High verbosity"/>
     </container>
     <container n="CutPlanes" pn="Cut planes"  icon="cut" state="[checkStateByUniqueName nDim 3D]" open_window="0">
@@ -31,4 +31,3 @@
         </blockdata>
     </container>
 </container>
-    
