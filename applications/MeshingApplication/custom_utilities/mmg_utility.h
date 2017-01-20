@@ -833,7 +833,7 @@ protected:
         else
         {
             //Give the size of the mesh: numNodes vertex, numElements tetra, numConditions triangles, 0 edges (3D) 
-            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numElements, numConditions, 0) != 1 ) 
+            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numElements, numConditions, 0, 0, 0) != 1 ) 
             {
                 exit(EXIT_FAILURE);
             }
