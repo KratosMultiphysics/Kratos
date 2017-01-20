@@ -40,7 +40,7 @@
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-7" help=""/>
             <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/>
             <parameter n="smoother_type" pn="Smoother type" type="combo" values="ilu0,damped_jacobi,spai0,gauss_seidel,chebyshev" pvalues="ILU0,Damped Jacobi,SPAI0,Gauss Seidel,Chebyshev" v="ilu0" help=""/>
-            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback" v="gmres" pvalues="GMRES,BICGSTAB,CG,BICGSTABL,BICGSTAB with GMRES fallback" help=""/>
+            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,lgmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback" v="lgmres" pvalues="GMRES,LGMRES,BICGSTAB,CG,BICGSTABL,BICGSTAB with GMRES fallback" help=""/>
             <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="aggregation,ruge_stuben,smoothed_aggregation,smoothed_aggr_emin" pvalues="Aggregation,Ruge-Stuben,Smoothed Aggregation,Smoothed Aggregation Emin" v="aggregation" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
         </inputs>
