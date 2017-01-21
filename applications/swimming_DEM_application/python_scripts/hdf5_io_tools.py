@@ -24,11 +24,16 @@ class FluidHDF5Loader:
         self.n_nodes = len(fluid_model_part.Nodes)
         self.shape = (self.n_nodes,)
         self.store_pressure = pp.CFD_DEM.store_fluid_pressure
+        self.store_gradient = pp.CFD_DEM.store_full_gradient
+        
+        number_of_variables = 3
         
         if pp.CFD_DEM.store_fluid_pressure:
-            self.extended_shape = self.shape + (4,)
-        else:
-            self.extended_shape = self.shape + (3,)
+            number_of_variables += 1
+        if pp.CFD_DEM.load_derivatives:
+            number_of_variables += 9
+            
+        self.extended_shape = self.shape + (number_of_variables,)
             
         self.file_name = main_path + '/fluid_results.hdf5'
         self.fluid_model_part = fluid_model_part
@@ -63,6 +68,12 @@ class FluidHDF5Loader:
             
         self.current_data_array = np.zeros(self.extended_shape)     
 
+    def Index(self):
+        index = 0
+        while True:
+            yield index
+            index += 1
+
     def FillUpSingleDataset(self, name, variable, variable_index_in_temp_array):
         with h5py.File(self.file_name, 'r+') as f:
             f.create_dataset(name, compression = self.compression_type, shape = self.shape, dtype = self.dtype)
@@ -74,13 +85,25 @@ class FluidHDF5Loader:
         time = self.fluid_model_part.ProcessInfo[TIME]
         name = str(time)
 
+        indices = self.Index()
         if not self.last_time == time:
-            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, 0)
-            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, 1)
-            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, 2)
+            self.FillUpSingleDataset(name + '/vx', VELOCITY_X, next(indices))
+            self.FillUpSingleDataset(name + '/vy', VELOCITY_Y, next(indices))
+            self.FillUpSingleDataset(name + '/vz', VELOCITY_Z, next(indices))                 
             
             if self.store_pressure:
-                self.FillUpSingleDataset(name + '/p', PRESSURE, 3)
+                self.FillUpSingleDataset(name + '/p', PRESSURE, next(indices))
+            
+        if self.store_gradient:
+            self.FillUpSingleDataset(name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices))
+            self.FillUpSingleDataset(name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices))
+            self.FillUpSingleDataset(name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices))       
+            self.FillUpSingleDataset(name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(indices))
+            self.FillUpSingleDataset(name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(indices))
+            self.FillUpSingleDataset(name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(indices))      
+            self.FillUpSingleDataset(name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices))
+            self.FillUpSingleDataset(name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices))
+            self.FillUpSingleDataset(name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices))                    
                 
             self.last_time = time
 
@@ -104,10 +127,21 @@ class FluidHDF5Loader:
         if must_load_from_database: 
             # new old becomes old future
             self.old_data_array, self.future_data_array = self.future_data_array, self.old_data_array
-            
-        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, 0, must_load_from_database, alpha_old, alpha_future)
-        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, 1, must_load_from_database, alpha_old, alpha_future)  
-        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, 2, must_load_from_database, alpha_old, alpha_future)  
+        
+        indices = self.Index()
+        self.UpdateFluidVariable(future_step_dataset_name + '/vx', VELOCITY_X, next(indices), must_load_from_database, alpha_old, alpha_future)
+        self.UpdateFluidVariable(future_step_dataset_name + '/vy', VELOCITY_Y, next(indices), must_load_from_database, alpha_old, alpha_future)  
+        self.UpdateFluidVariable(future_step_dataset_name + '/vz', VELOCITY_Z, next(indices), must_load_from_database, alpha_old, alpha_future)  
 
         if self.store_pressure:
-            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, 3, must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/p', PRESSURE, next(indices), must_load_from_database, alpha_old, alpha_future)
+        if self.store_gradient:
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxx', VELOCITY_X_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxy', VELOCITY_X_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvxz', VELOCITY_X_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyx', VELOCITY_Y_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyy', VELOCITY_Y_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvyz', VELOCITY_Y_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzx', VELOCITY_Z_GRADIENT_X, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzy', VELOCITY_Z_GRADIENT_Y, next(indices), must_load_from_database, alpha_old, alpha_future)
+            self.UpdateFluidVariable(future_step_dataset_name + '/dvzz', VELOCITY_Z_GRADIENT_Z, next(indices), must_load_from_database, alpha_old, alpha_future)            
