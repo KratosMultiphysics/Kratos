@@ -92,17 +92,20 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.fluid_already_calculated = 1
+pp.CFD_DEM.load_derivatives = 1
 pp.CFD_DEM.DEM_steps_per_fluid_load_step = 50
 pp.CFD_DEM.store_fluid_in_single_precision = 1
 pp.CFD_DEM.store_fluid_pressure = 1
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 1
+pp.CFD_DEM.store_full_gradient = 1
 pp.CFD_DEM.laplacian_calculation_type = 0
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.vorticity_calculation_type = 5
-pp.CFD_DEM.material_acceleration_calculation_type = 5
+pp.CFD_DEM.material_acceleration_calculation_type = 6
 pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.vorticity_calculation_type = 5
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 0
@@ -627,6 +630,7 @@ DEM_to_fluid_counter         = swim_proc.Counter(1,
 derivative_recovery_counter  = swim_proc.Counter(1, 
                                                  1, 
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
                                                  1, 
                                                  DEM_parameters.stationary_problem_option)
@@ -745,7 +749,7 @@ post_utils.Writeresults(time)
 
 import hdf5_io_tools
 fluid_loader = hdf5_io_tools.FluidHDF5Loader(fluid_model_part, pp, main_path)
-done = False
+
 while (time <= final_time):
 
     time = time + Dt
@@ -809,12 +813,10 @@ while (time <= final_time):
 
     # solving the DEM part
     derivative_recovery_counter.Activate(time > DEM_parameters.interaction_start_time)
-
+    
     if derivative_recovery_counter.Tick():
         recovery.Recover()       
-        if done:
-            derivative_recovery_counter.Kill()
-
+        
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
     first_dem_iter = True
@@ -826,9 +828,7 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
         
         if fluid_loader_counter.Tick():
-            fluid_loader.LoadFluid(0.45)
-            fluid_loader_counter.Kill()
-            done = True
+            fluid_loader.LoadFluid(time_dem)
         
         # NANO BEGIN
         if cation_concentration_counter.Tick():
