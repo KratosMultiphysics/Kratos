@@ -365,7 +365,7 @@ class ProjectionDebugUtils:
 
 class Counter:
 
-    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True):
+    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True, is_dead = False):
 
         if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
@@ -375,7 +375,7 @@ class Counter:
         self.steps_in_cycle = steps_in_cycle
         self.step_in_cycle  = steps_in_cycle
         self.is_active      = is_active
-        self.is_dead        = False
+        self.is_dead        = is_dead
 
     def Tick(self):
         
