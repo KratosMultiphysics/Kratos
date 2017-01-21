@@ -1,14 +1,5 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
-//    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
-//
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
-//
 //  Main authors:    Guillermo Casas gcasas@gmail.com
-//
+
 #include "calculate_laplacian_simplex_condition.h"
 
 namespace Kratos
@@ -20,91 +11,49 @@ namespace Kratos
 /**
  * @see ComputeLaplacianSimplexCondition::EquationIdVector
  */
-template <>
-void ComputeLaplacianSimplexCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
+template< unsigned int TDim, unsigned int TNumNodes >
+void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes = 2;
-    const unsigned int LocalSize = 4;
+    const SizeType LocalSize = TDim * TNumNodes;
     unsigned int LocalIndex = 0;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
     {
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y).EquationId();
-    }
-}
-
-/**
- * @see ComputeLaplacianSimplexCondition::EquationIdVector
- */
-template <>
-void ComputeLaplacianSimplexCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    const SizeType NumNodes = 3;
-    const SizeType LocalSize = 9;
-    unsigned int LocalIndex = 0;
-
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
-
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z).EquationId();
+        if (TDim == 3){
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z).EquationId();
+        }
     }
 }
 
 /**
  * @see ComputeLaplacianSimplexCondition::GetDofList
  */
-template <>
-void ComputeLaplacianSimplexCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
+template< unsigned int TDim, unsigned int TNumNodes >
+void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = 2;
-    const SizeType LocalSize = 4;
+    const SizeType LocalSize = TDim * TNumNodes;
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
 
     unsigned int LocalIndex = 0;
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
     {
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
+        if (TDim == 3){
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
+        }
     }
 }
-
-/**
- * @see ComputeLaplacianSimplexCondition::GetDofList
- */
-template <>
-void ComputeLaplacianSimplexCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    const SizeType NumNodes = 3;
-    const SizeType LocalSize = 9;
-
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
-
-    unsigned int LocalIndex = 0;
-
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
-    }
-}
-
 
 // protected funcions
 
@@ -137,8 +86,7 @@ void ComputeLaplacianSimplexCondition<3,3>::CalculateNormal(array_1d<double,3>& 
     An *= 0.5;
 }
 
-
-template class ComputeLaplacianSimplexCondition<2,2>;
-template class ComputeLaplacianSimplexCondition<3,3>;
-
+// Explicit instantiations
+template class ComputeLaplacianSimplexCondition<2, 2>;
+template class ComputeLaplacianSimplexCondition<3, 3>;
 } // namespace Kratos
