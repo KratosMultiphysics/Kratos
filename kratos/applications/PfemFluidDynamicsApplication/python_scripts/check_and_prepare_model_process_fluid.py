@@ -118,12 +118,25 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
             clock_time = StartTimeMeasuring()
 
+            #for fluid_part in fluid_body_model_parts:
+            #    for rigid_part in rigid_body_model_parts:
+            #        for node in rigid_part.Nodes:
+            #            if( node.IsNot(KratosMultiphysics.FLUID) ):
+            #                #fluid_part.AddNode(node,0)
+            #                fluid_part.Nodes.append(node)
+            #                print("Node Inserted Py",node.Id)
+
+            #add walls in fluid domains:
+            node_flags = FlagsContainer()
+            #node_flags.PushBack(KratosMultiphysics.RIGID)
+            node_flags.PushBack(KratosMultiphysics.NOT_FLUID)
+            
             for fluid_part in fluid_body_model_parts:
                 for rigid_part in rigid_body_model_parts:
-                    for node in rigid_part.Nodes:
-                        if( node.IsNot(KratosMultiphysics.FLUID) ):
-                            #fluid_part.AddNode(node,0)
-                            fluid_part.Nodes.append(node)
+                    transfer_process = TransferNodesProcess(fluid_part,rigid_part,node_flags)
+                    transfer_process.Execute()
+ 
+                            
             StopTimeMeasuring(clock_time,"1.rigid_body_model_parts  part.Nodes", True);
 
             

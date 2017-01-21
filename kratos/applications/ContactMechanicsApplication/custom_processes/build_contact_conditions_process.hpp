@@ -128,18 +128,8 @@ namespace Kratos
 
 
       //*******************************************************************
-      //restore global ID's
-      int id=0;
-      for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
-	{
-	  id= i_node->Id();
-	  i_node->SetId( mrRemesh.NodalPreIds[ id ] );
-	}
-
-
-      //*******************************************************************
       //set consecutive ids for global conditions
-      id=1;
+      int id=1;
       for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin(mMeshId) ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd(mMeshId) ; i_cond++)
 	{
 	  i_cond->SetId(id);
@@ -161,6 +151,9 @@ namespace Kratos
 
       int previous_id = mrModelPart.GetParentModelPart()->Conditions().back().Id();
       id = previous_id;
+
+      ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+
       for(int el = 0; el<OutNumberOfElements; el++)
 	{
 	  if(mrRemesh.PreservedElements[el])
@@ -168,12 +161,28 @@ namespace Kratos
 	      Geometry<Node<3> > Vertices;
 	      for(unsigned int i=0; i<nds; i++)
 		{
-		  Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
+		  //note that OutElementList, starts from node 1, not from node 0, it can be directly assigned to mrRemesh.NodalPreIds.
+
+		  // detected problems in find() method for mesh nodes
+		  // bool node_exists = mrModelPart.GetMesh().HasNode(OutElementList[el*nds+i]);
+		  // if(!node_exists){
+		    
+		  //   std::cout<<" ERROR node "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<" is not in the modelpart "<<std::endl;
+		  //   std::cout<<" Element["<<el<<"] lnode["<<i<<"]: ["<<el*nds+i<<"] ElList["<<OutElementList[el*nds+i]<<"]: NODE "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<std::endl;
+		  //   for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+		  //     {
+		  // 	if( i_node->Id() == (unsigned int)mrRemesh.NodalPreIds[OutElementList[el*nds+i]] )
+		  // 	  std::cout<<" Node "<<i_node->Id()<<" is in Model PART !!!! "<<std::endl;
+		  //     }
+		  // }
+
+		  Vertices.push_back(*(nodes_begin + OutElementList[el*nds+i]-1).base());
+		  //Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
 		  Vertices.back().Set(CONTACT);
 		}
 	      
 	      id += 1;
-	      
+
 	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices, pProperties);
 	      
 
@@ -208,6 +217,13 @@ namespace Kratos
 
 	      }
 	    }
+	}
+
+
+      //Restore global ID's
+      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(mMeshId) ; in != mrModelPart.NodesEnd(mMeshId) ; in++)
+	{
+	  in->SetId( mrRemesh.NodalPreIds[ in->Id() ] );
 	}
       
       std::cout<<"   [END   contact Elements Generation ["<<id-previous_id<<"] ]"<<std::endl;

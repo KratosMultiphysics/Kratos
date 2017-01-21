@@ -16,11 +16,13 @@
 #include "includes/node.h"
 #include "includes/define.h"
 #include "processes/process.h"
+#include "containers/flags.h"
 
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
+#include "custom_processes/transfer_nodes_to_model_part_process.h"
 #include "custom_processes/assign_scalar_field_to_nodes_process.h"
 #include "custom_processes/assign_scalar_field_to_conditions_process.h"
 #include "custom_processes/assign_scalar_variable_to_nodes_process.h"
@@ -35,13 +37,38 @@ namespace Kratos
 	
   namespace Python
   {
- 	
+
+    typedef std::vector<Flags>  FlagsContainer;
+    
+    
+    void Push_Back_Flags( FlagsContainer& ThisFlagContainer,
+			  Flags ThisFlag )
+    {
+      ThisFlagContainer.push_back( ThisFlag );
+    }
+
+    
     void  AddCustomProcessesToPython()
     {
 
       using namespace boost::python;
       typedef Process                                         ProcessBaseType;
 
+
+      class_< FlagsContainer >( "FlagsContainer", init<>() )
+	.def( "PushBack", Push_Back_Flags )
+	;
+
+
+      //**********TRANSFER NODES TO MODEL PART*********//
+
+      class_<TransferNodesToModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "TransferNodesProcess", init<ModelPart&, ModelPart&, const FlagsContainer&>()
+      	)
+        .def("Execute", &TransferNodesToModelPartProcess::Execute)
+      	;
+      
       
       //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
