@@ -34,6 +34,14 @@ class AssignValueProcess(KratosMultiphysics.Process):
             }
             """
             )
+
+        #detect "End" as a tag and replace it by a large number
+        if(settings.Has("interval")):
+            if(settings["interval"][1].IsString() ):
+                if(settings["interval"][1].GetString() == "End"):
+                    settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
+                else:
+                    raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
         
         #here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):
@@ -73,7 +81,9 @@ class AssignValueProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.variable = getattr(KratosMultiphysics, settings["variable_name"].GetString())
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
-        self.interval = settings["interval"] #expected to be a vector of size 2
+        self.interval = KratosMultiphysics.Vector(2)
+        self.interval[0] = settings["interval"][0].GetDouble()
+        self.interval[1] = settings["interval"][1].GetDouble()
         self.is_fixed = settings["constrained"].GetBool()
         
         self.value_is_numeric = False
@@ -105,17 +115,17 @@ class AssignValueProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
-        if(current_time > self.interval[0].GetDouble() and  current_time<self.interval[1].GetDouble()):
+        if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 
             if(self.is_fixed):
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
                 
             if self.value_is_numeric:
-                self.variable_utils.SetScalarVar(self.variable, self.value, self.model_part.Nodes)
+                self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
                 if self.is_time_function:
                     self.value = self.aux_function.f(0.0,0.0,0.0,current_time)
-                    self.variable_utils.SetScalarVar(self.variable, self.value, self.model_part.Nodes)
+                    self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     if self.non_trivial_local_system == False:
                         self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
@@ -131,7 +141,10 @@ class AssignValueProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
-        if(current_time > self.interval[0].GetDouble() and  current_time<self.interval[1].GetDouble()):
+        #print("inside ExecuteFinalizeSolutionStep of AssignValueProcess"     )
+        
+        if(current_time >= self.interval[0] and  current_time<self.interval[1]):
+            #print("Freeing variable", self.variable)
             #here we free all of the nodes in the mesh
             if(self.is_fixed):
                 fixity_status  = False
