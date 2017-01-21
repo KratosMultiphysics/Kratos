@@ -80,11 +80,17 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
             #add walls in fluid domains:
+            node_flags = FlagsContainer()
+            node_flags.PushBack(KratosMultiphysics.RIGID)
+            node_flags.PushBack(KratosMultiphysics.NOT_FLUID)
+           
             for fluid_part in fluid_body_model_parts:
                 for rigid_part in rigid_body_model_parts:
-                    for node in rigid_part.Nodes:
-                        if( node.IsNot(KratosMultiphysics.FLUID) ):
-                            fluid_part.AddNode(node,0)
+                    transfer_process = TransferNodesProcess(fluid_part,rigid_part,node_flags)
+                    transfer_process.Execute()
+                    #for node in rigid_part.Nodes:
+                    #    if( node.IsNot(KratosMultiphysics.FLUID) ):
+                    #        fluid_part.AddNode(node,0)
                             
         #construct the computing model part:
         domain_parts = []
