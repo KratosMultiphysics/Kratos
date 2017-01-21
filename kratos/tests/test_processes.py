@@ -169,8 +169,7 @@ class TestProcesses(KratosUnittest.TestCase):
                                 "value"                : [10.0, null, "t"],
                                 "local_axes"           : {}
                             }   
-                    }
-                    ,
+                    },
                     {
                         "python_module"   : "experimental_assign_vector_process",
                         "kratos_module" : "KratosMultiphysics",
@@ -178,9 +177,22 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                                 "model_part_name"      : "Main",
                                 "variable_name"        : "DISPLACEMENT",
-                                "interval"             : [20.0, "End"],
+                                "interval"             : [20.0, 24.0],
                                 "constrained"          : false,
                                 "value"                : [10.0, null, "t"],
+                                "local_axes"           : {}
+                            }   
+                    },
+                    {
+                        "python_module"   : "experimental_assign_vector_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignVectorProcess",
+                        "Parameters"            : {
+                                "model_part_name"      : "Main",
+                                "variable_name"        : "DISPLACEMENT",
+                                "interval"             : [25.0, "End"],
+                                "constrained"          : [true,true,false],
+                                "value"                : [null, "x+y*t", "t"],
                                 "local_axes"           : {}
                             }   
                     }
@@ -283,11 +295,12 @@ class TestProcesses(KratosUnittest.TestCase):
         ##time >= 20 - DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed 
         model_part.CloneTimeStep(20.1)
         
-        #for process in list_of_processes:
-            #process.ExecuteInitializeSolutionStep()
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
 
         ##verify the result
         t = model_part.ProcessInfo[TIME]
+        print("Checking time = ", t)
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 10.0)
             self.assertFalse(node.IsFixed(DISPLACEMENT_X)) 
@@ -295,7 +308,30 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0) #not applied!! 
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y)) 
             
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 12.0) 
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), t) 
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+                                         
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        ############################################################
+        ##time >= 20 - DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed 
+        model_part.CloneTimeStep(26.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        t = model_part.ProcessInfo[TIME]
+        print("Checking time = ", t)
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 10.0) #previous value
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X)) #not fixed since set as null
+            
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), node.X+node.Y*t) #not applied!! 
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Y)) #set to true
+            
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), t) 
             self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
                                          
         for process in list_of_processes:
