@@ -180,10 +180,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step. It is a combination of the
     /// RHS of the Base class (weighed by a small parameter to stabilize the system) and the contribution described in
     /// the Fortin 2012 paper
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
-
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -192,82 +189,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
-    {
-
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-        unsigned int LocalIndex = 0;
-        unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_Z_GRADIENT_X);
-
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_X,pos).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_Y,pos+1).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_Z,pos+2).EquationId();
-        }
-//Z
-    }
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
-    {
-
-//        unsigned int number_of_nodes = TDim+1;
-// G
-//        if (rElementalDofList.size() != number_of_nodes)
-//            rElementalDofList.resize(number_of_nodes);
-
-//        for (unsigned int i = 0; i < number_of_nodes; i++)
-//            rElementalDofList[i] = GetGeometry()[i].pGetDof(DISTANCE);
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rElementalDofList.size() != LocalSize)
-            rElementalDofList.resize(LocalSize);
-
-        unsigned int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_X);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_Y);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_Z);
-        }
-//Z
-
-    }
-
-
-
-    /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
-    /**
-     * @param rVariable Kratos vector variable to get
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
-//    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-//            std::vector<array_1d<double, 3 > >& rValues,
-//            const ProcessInfo& rCurrentProcessInfo)
-//    {
-//
-//    }
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Elemental Data
-    ///@{
+    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -278,51 +207,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
-{
-        KRATOS_TRY
-
-        // Perform basic element checks
-        int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
-        if(ErrorCode != 0) return ErrorCode;
-
-        if(this->GetGeometry().size() != TDim+1)
-            KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-        // Check that all required variables have been registered
-//G
-//        if(DISTANCE.Key() == 0)
-
-//            //KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-
-//        // Checks on nodes
-
-//        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-//        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-//        {
-//            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-//        }
-
-        if(VELOCITY_Z_GRADIENT.Key() == 0)
-
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_Z_GRADIENT Key is 0. Check if the application was correctly registered.","");
-
-        // Checks on nodes
-
-        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-        {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_Z_GRADIENT) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_Z_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
-        }
-//Z
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Inquiry
@@ -431,116 +316,17 @@ private:
      * @param rCurrentProcessInfo the current process info instance
      */
 
-    virtual void AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo){
-        const int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
-        int edges[NEdges][2];
+    virtual void AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-        int i_edge = 0;
-        for (int i = 0; i < TNumNodes - 1; ++i){
-            for (int j = i + 1; j < TNumNodes; ++j){
-                edges[i_edge][0]   = i;
-                edges[i_edge++][1] = j;
-            }
-        }
+    void AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix);
 
-        array_1d<array_1d<double, 3>, NEdges> EdgeVectors; // stores the [lx, ly(, lz)] vectors for all edges
-        array_1d<double, NEdges> edge_lengths_inv;
-        const GeometryType& rGeom = this->GetGeometry();
+    virtual void AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
-        for (int e = 0; e < NEdges; ++e){
-            array_1d<double, 3>& le = EdgeVectors[e];
-            noalias(le) = rGeom[edges[e][1]].Coordinates() - rGeom[edges[e][0]].Coordinates();
-            const double he_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
-            edge_lengths_inv[e] = he_inv;
-            le *= he_inv;
-            AssembleEdgeLHSContribution(edges[e], le, rLeftHandSideMatrix);
-        }
-    }
+    void AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 
-    void AssembleEdgeLHSContribution(const int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
-    {
-        for (int node_e = 0; node_e < 2; ++node_e){
-            for (int i = 0; i < TDim; ++i){
-                for (int node_f = 0; node_f < 2; ++node_f){
-                    for (int j = 0; j < TDim; ++j){
-                        rLeftHandSideMatrix(TDim * edge[node_e] + i, TDim * edge[node_f] + j) += edge_normalized_vector[i] * edge_normalized_vector[j];
-                    }
-                }
-            }
-        }
-    }
+    void AssembleEdgeRHSContributionY(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 
-    virtual void AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
-    {
-        const int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
-
-        int edges[NEdges][2];
-
-        int i_edge = 0;
-        for (int i = 0; i < TNumNodes - 1; ++i){
-            for (int j = i + 1; j < TNumNodes; ++j){
-                edges[i_edge][0]   = i;
-                edges[i_edge++][1] = j;
-            }
-        }
-
-        array_1d<array_1d<double, 3>, NEdges> EdgeVectors; // stores the [lx, ly(, lz)] vectors for all edges
-        array_1d<double, NEdges> edge_lengths_inv;
-        const GeometryType& rGeom = this->GetGeometry();
-
-        for (int e = 0; e < NEdges; ++e){
-            array_1d<double, 3>& le = EdgeVectors[e];
-            noalias(le) = rGeom[edges[e][1]].Coordinates() - rGeom[edges[e][0]].Coordinates();
-            const double he_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
-            edge_lengths_inv[e] = he_inv;
-            le *= he_inv;
-
-            if (this->mCurrentComponent == 'X'){
-                AssembleEdgeRHSContributionX(edges[e], he_inv, le, F);
-            }
-
-            else if (this->mCurrentComponent == 'Y'){
-                AssembleEdgeRHSContributionY(edges[e], he_inv, le, F);
-            }
-
-            else {
-                AssembleEdgeRHSContributionZ(edges[e], he_inv, le, F);
-            }
-        }
-    }
-
-    void AssembleEdgeRHSContributionX(const int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
-    {
-        const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_X) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_X);
-
-        for (int node_e = 0; node_e < 2; ++node_e){
-            for (int i = 0; i < TDim; ++i){
-                F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
-            }
-        }
-    }
-
-    void AssembleEdgeRHSContributionY(const int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
-    {
-        const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_Y) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_Y);
-
-        for (int node_e = 0; node_e < 2; ++node_e){
-            for (int i = 0; i < TDim; ++i){
-                F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
-            }
-        }
-    }
-
-    void AssembleEdgeRHSContributionZ(const int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
-    {
-        const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_Z) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_Z);
-
-        for (int node_e = 0; node_e < 2; ++node_e){
-            for (int i = 0; i < TDim; ++i){
-                F(TDim * edge[node_e] + i) += 2.0 * h_edge_inv * edge_normalized_vector[i] * vel_component_variation_along_edge;
-            }
-        }
-    }
+    void AssembleEdgeRHSContributionZ(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 
 
     ///@}
