@@ -10,7 +10,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     const double epsilon = 1e-6;
-    const unsigned int NumNodes(TNumNodes), LocalSize(TDim * NumNodes);
+    const unsigned int LocalSize(TDim * TNumNodes);
 
     for (unsigned int i=0; i<LocalSize; ++i){
         for (unsigned int j=0; j<LocalSize; ++j){
@@ -28,15 +28,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientFortin2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                         ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
 
     unsigned int LocalIndex = 0;
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_Y);
         if (TDim == 3){
@@ -80,15 +79,14 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::EquationIdVector(EquationIdVect
                               ProcessInfo& rCurrentProcessInfo)
 {
 
-    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
     unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_Z_GRADIENT_X);
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_X,pos).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_Y,pos+1).EquationId();
         if (TDim == 3){
