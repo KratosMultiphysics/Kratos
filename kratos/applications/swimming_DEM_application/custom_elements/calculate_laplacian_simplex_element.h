@@ -27,6 +27,7 @@
 // Application includes
 #include "includes/variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "calculate_mat_deriv_simplex_element.h"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeLaplacianSimplex : public Element
+class ComputeLaplacianSimplex : public ComputeMaterialDerivativeSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -66,6 +67,8 @@ public:
 
     /// Pointer definition of ComputeLaplacianSimplex
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLaplacianSimplex);
+
+    typedef ComputeMaterialDerivativeSimplex<TDim, TNumNodes> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -81,6 +84,8 @@ public:
 
     /// Matrix type for local contributions to the linear system
     typedef Matrix MatrixType;
+
+    typedef Properties PropertiesType;
 
     typedef std::size_t IndexType;
 
@@ -114,7 +119,7 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     ComputeLaplacianSimplex(IndexType NewId = 0) :
-        Element(NewId)
+        BaseType(NewId)
     {}
 
     /// Constructor using an array of nodes.
@@ -123,7 +128,7 @@ public:
      * @param ThisNodes An array containing the nodes of the new element
      */
     ComputeLaplacianSimplex(IndexType NewId, const NodesArrayType& ThisNodes) :
-        Element(NewId, ThisNodes)
+        BaseType(NewId, ThisNodes)
     {}
 
     /// Constructor using a geometry object.
@@ -132,7 +137,7 @@ public:
      * @param pGeometry Pointer to a geometry object
      */
     ComputeLaplacianSimplex(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId, pGeometry)
+        BaseType(NewId, pGeometry)
     {}
 
     /// Constuctor using geometry and properties.
@@ -142,7 +147,7 @@ public:
      * @param pProperties Pointer to the element's properties
      */
     ComputeLaplacianSimplex(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, pProperties)
+        BaseType(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
@@ -170,40 +175,8 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const
     {
-        return Element::Pointer(new ComputeLaplacianSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new ComputeLaplacianSimplex(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
-
-    /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
-    {
-        //KRATOS_WATCH(this->Id())
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-
-        for (unsigned int i=0; i<LocalSize; ++i){
-            for (unsigned int j=0; j<LocalSize; ++j){
-                rLeftHandSideMatrix(i, j) = 0.0;
-            }
-            rRightHandSideVector(i) = 0.0;
-        }
-
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-        array_1d<double, TDim+1 > N;
-        double Area;
-
-        CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-        //getting data for the given geometry
-        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-        CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    }
-
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -213,24 +186,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
-    {
-
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-        unsigned int LocalIndex = 0;
-        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
-
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z,lappos+2).EquationId();
-        }
-//Z
-    }
+                                  ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
@@ -238,32 +194,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
-    {
-
-//        unsigned int number_of_nodes = TDim+1;
-// G
-//        if (rElementalDofList.size() != number_of_nodes)
-//            rElementalDofList.resize(number_of_nodes);
-
-//        for (unsigned int i = 0; i < number_of_nodes; i++)
-//            rElementalDofList[i] = GetGeometry()[i].pGetDof(DISTANCE);
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rElementalDofList.size() != LocalSize)
-            rElementalDofList.resize(LocalSize);
-
-        unsigned int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
-        }
-//Z
-
-    }
+                            ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -298,50 +229,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
-{
-        KRATOS_TRY
-
-        // Perform basic element checks
-        int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
-        if(ErrorCode != 0) return ErrorCode;
-
-        if(this->GetGeometry().size() != TDim+1)
-            KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-        // Check that all required variables have been registered
-//G
-//        if(DISTANCE.Key() == 0)
-
-//            //KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-
-//        // Checks on nodes
-
-//        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-//        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-//        {
-//            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-//        }
-
-        if(VELOCITY_LAPLACIAN.Key() == 0)
-
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN Key is 0. Check if the application was correctly registered.","");
-
-        // Checks on nodes
-
-        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-        {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN variable on solution step data for node ",this->GetGeometry()[i].Id());
-        }
-//Z
-        return 0;
-
-        KRATOS_CATCH("");
-    }
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -357,7 +245,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "ComputeLaplacianSimplex #" << Id();
+        buffer << "ComputeLaplacianSimplex #" << this->Id();
         return buffer.str();
     }
 
@@ -442,128 +330,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    /// Computes local contributions to the mass matrix
-    /**
-     * Provides the local contributions to the mass matrix, which is defined here
-     * as the matrix associated to velocity derivatives. Note that the mass
-     * matrix implemented here is lumped.
-     * @param rMassMatrix Will be filled with the elemental mass matrix
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = TDim * TNumNodes;
-
-        // Resize and set to zero
-        if (rMassMatrix.size1() != LocalSize)
-            rMassMatrix.resize(LocalSize, LocalSize, false);
-
-        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
-
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        // Add 'classical' mass matrix (lumped)
-        if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
-            double Coeff = Area / TNumNodes; //Optimize!
-            this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
-        }
-
-        else {
-            // Add 'consistent' mass matrix
-            MatrixType NContainer;
-            ShapeFunctionDerivativesArrayType DN_DXContainer;
-            VectorType GaussWeights;
-            this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-            const SizeType NumGauss = NContainer.size1();
-
-            for (SizeType g = 0; g < NumGauss; g++){
-                const double GaussWeight = GaussWeights[g];
-                const ShapeFunctionsType& Ng = row(NContainer, g);
-                this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
-            }
-        }
-    }
-
-    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
-                                   const double Mass)
-    {
-        unsigned int DofIndex = 0;
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rLHSMatrix(DofIndex, DofIndex) += Mass;
-                ++DofIndex;
-            }
-//G
-//            ++DofIndex; // Skip pressure Dof
-//Z
-        }
-    }
-
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
-            const array_1d<double,TNumNodes>& rShapeFunc,
-            const double Weight)
-    {
-//G
-        //const unsigned int BlockSize = TDim + 1;
-        const unsigned int BlockSize = TDim;
-
-
-//        double Coef = Density * Weight;
-        double Coef = Weight;
-//Z
-        unsigned int FirstRow(0), FirstCol(0);
-        double K; // Temporary results
-
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            // Loop over columns
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
-                K = Coef * rShapeFunc[i] * rShapeFunc[j];
-
-                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
-                }
-                // Update column index
-                FirstCol += BlockSize;
-            }
-            // Update matrix indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-    }
-
-    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
-    {
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        MatrixType NContainer;
-        ShapeFunctionDerivativesArrayType DN_DXContainer;
-        VectorType GaussWeights;
-        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-        const SizeType NumGauss = NContainer.size1();
-
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            this->AddRHSLaplacian(F, DN_DX, GaussWeight);
-        }
-
-    }
-
-   void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
-   void AddRHSLaplacian(VectorType& F,
+   void AddIntegrationPointRHSContribution(VectorType& F,
                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                          const double Weight);
     ///@}
