@@ -10,7 +10,6 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(Mat
                                   VectorType& rRightHandSideVector,
                                   ProcessInfo& rCurrentProcessInfo)
 {
-    //KRATOS_WATCH(this->Id())
     const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
 
     if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -26,13 +25,7 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateLocalSystem(Mat
         rRightHandSideVector(i) = 0.0;
     }
 
-    boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-    array_1d<double, TDim+1 > N;
-    double Area;
-
     CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-    //getting data for the given geometry
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
     CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
@@ -169,7 +162,6 @@ void ComputeMaterialDerivativeSimplex<TDim, TNumNodes>::CalculateMassMatrix(Matr
     array_1d<double, TNumNodes> N;
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
 
     // Add 'classical' mass matrix (lumped)
     if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
