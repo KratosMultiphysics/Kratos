@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
-import KratosMultiphysics 
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -80,13 +81,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
             #add walls in fluid domains:
-            node_flags = FlagsContainer()
+            node_flags = KratosSolid.FlagsContainer()
             node_flags.PushBack(KratosMultiphysics.RIGID)
             node_flags.PushBack(KratosMultiphysics.NOT_FLUID)
            
             for fluid_part in fluid_body_model_parts:
                 for rigid_part in rigid_body_model_parts:
-                    transfer_process = TransferNodesProcess(fluid_part,rigid_part,node_flags)
+                    transfer_process = KratosSolid.TransferNodesProcess(fluid_part,rigid_part,node_flags)
                     transfer_process.Execute()
                     #for node in rigid_part.Nodes:
                     #    if( node.IsNot(KratosMultiphysics.FLUID) ):
