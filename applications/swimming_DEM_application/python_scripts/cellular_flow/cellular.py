@@ -867,10 +867,11 @@ while (time <= final_time):
         laplacian_average[k] = 0.0
     norm_mat_deriv_average = 0.
     norm_laplacian_average = 0.
-    i_node = 0
+
     if step > 3:
-        for node in fluid_model_part.Nodes:
-            i_node += 1
+        module_mat_deriv = 0.
+        module_laplacian = 0.
+        for i_node, node in enumerate(fluid_model_part.Nodes):
             calc_mat_deriv = [0.] * 3
             calc_laplacian = [0.] * 3
             mat_deriv= Vector(3)
@@ -879,16 +880,16 @@ while (time <= final_time):
             coor[0]=node.X
             coor[1]=node.Y
             coor[2]=0        
-            flow_field.CalculateMaterialAcceleration(time,coor,mat_deriv, 0)
-            flow_field.CalculateLaplacian(time,coor,laplacian, 0)        
+            flow_field.CalculateMaterialAcceleration(time,coor, mat_deriv, 0)
+            flow_field.CalculateLaplacian(time,coor, laplacian, 0)        
             calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
             calc_mat_deriv[1] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
             calc_mat_deriv[2] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z) 
             calc_laplacian[0] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
             calc_laplacian[1] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)    
             calc_laplacian[2] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)  
-            #module_mat_deriv = 0.5 * max(math.sqrt((mat_deriv[0] + calc_mat_deriv_0) ** 2 + (mat_deriv[1] + calc_mat_deriv_1) ** 2 + (mat_deriv[2] + calc_mat_deriv_2) ** 2), 1e-8)       
-            #module_laplacian = 0.5 * max(math.sqrt((laplacian[0] + calc_laplacian_0) ** 2 + (laplacian[1] + calc_laplacian_1) ** 2 + (laplacian[2] + calc_laplacian_2) ** 2), 1e-8)
+            module_mat_deriv += math.sqrt(calc_mat_deriv[0] ** 2 + calc_mat_deriv[1] ** 2 + calc_mat_deriv[2] ** 2)     
+            module_laplacian += math.sqrt(calc_laplacian[0] ** 2 + calc_laplacian[1] ** 2 + calc_laplacian[2] ** 2)
             #module_mat_deriv = max(math.sqrt(mat_deriv[0] ** 2 + mat_deriv[1] ** 2 + mat_deriv[2] ** 2), 1e-8)       
             #module_laplacian = max(math.sqrt(laplacian[0] ** 2 + laplacian[1] ** 2 + laplacian[2] ** 2), 1e-8)
             
@@ -908,27 +909,30 @@ while (time <= final_time):
                 #laplacian_average[k] += laplacian[k]
             norm_mat_deriv_average += swim_proc.Norm(mat_deriv)
             norm_laplacian_average += swim_proc.Norm(laplacian)
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv[0])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv[1])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv[2])         
+
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv[0] - mat_deriv[0])
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv[1] - mat_deriv[1])
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv[2] - mat_deriv[2])         
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
             
             
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]))  
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]))  
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian[0] - laplacian[0]))
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian[1] - laplacian[1]))  
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian[2] - laplacian[2]))  
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
-    
+            
+        module_mat_deriv /= len(fluid_model_part.Nodes)
+        module_laplacian /= len(fluid_model_part.Nodes)
+        swim_proc.MultiplyNodalVariableByFactor(fluid_model_part, MATERIAL_ACCELERATION, module_mat_deriv)
+        swim_proc.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, module_laplacian)                                    
+            
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
             mat_deriv_errors.append(error_mat_deriv / norm_mat_deriv_average)
             laplacian_errors.append(error_laplacian / norm_laplacian_average)
