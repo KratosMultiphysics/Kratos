@@ -412,7 +412,7 @@ custom_functions_tool = swim_proc.FunctionsCalculator(ProjectParameters)
 
 # creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
-max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
+max_fluid_node_Id = swim_proc.FindMaxNodeId(fluid_model_part)
 creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 
 # setting up a bounding box for the DEM balls (it is used for erasing remote balls)
