@@ -3,82 +3,93 @@
 
 namespace Kratos
 {
-
-template <>
-void ComputeLaplacianSimplex<2,3>::CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX,
-        Matrix& rNContainer,
-        Vector& rGaussWeights)
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo)
 {
 
-  const GeometryType& rGeom = this->GetGeometry();
-  Vector DetJ;
-  rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-  rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-  const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+    unsigned int LocalIndex = 0;
+    unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
 
-  rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+    if (rResult.size() != LocalSize)
+        rResult.resize(LocalSize, false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
-      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-}
-
-
-template <>
-void ComputeLaplacianSimplex<3,4>::CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX,
-        Matrix& rNContainer,
-        Vector& rGaussWeights)
-{
-    const GeometryType& rGeom = this->GetGeometry();
-    Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
-    rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
-
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
-        rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-}
-
-template <>
-void ComputeLaplacianSimplex<2,3>::AddRHSLaplacian(VectorType& F,
-                             const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                             const double Weight)
-{
-    double Coef = Weight;
-    array_1d<double, 3 > Velocity;
-
-    int LocalIndex = 0;
-    int LocalNodalIndex = 0;
-
-    for (unsigned int iNode = 0; iNode < 3; ++iNode)
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        Velocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < 2; ++d)
-        {
-            F[LocalIndex++] -= Coef * rShapeDeriv(LocalNodalIndex, d) * Velocity[d] * rShapeDeriv(iNode, d);
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
+        if (TDim == 3){
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z,lappos+2).EquationId();
         }
-        LocalNodalIndex++;
     }
 }
 
-template <>
-void ComputeLaplacianSimplex<3,4>::AddRHSLaplacian(VectorType& F,
-                             const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                        ProcessInfo& rCurrentProcessInfo)
+{
+    const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
+
+    if (rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
+        if (TDim == 3){
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
+        }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Perform basic element checks
+    int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+    if(ErrorCode != 0) return ErrorCode;
+
+    if(this->GetGeometry().size() != TDim+1)
+        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element", this->Id());
+
+    if(VELOCITY_LAPLACIAN.Key() == 0)
+
+        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN Key is 0. Check if the application was correctly registered.","");
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    {
+        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN variable on solution step data for node ",this->GetGeometry()[i].Id());
+    }
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeLaplacianSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
+                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
     double Coef = Weight;
 
     int LocalIndex = 0;
-    for (unsigned int iNodeB = 0; iNodeB < 4; ++iNodeB){
+    for (unsigned int iNodeB = 0; iNodeB < TNumNodes; ++iNodeB){
 
-        for (unsigned int dj = 0; dj < 3; ++dj){
+        for (unsigned int dj = 0; dj < TDim; ++dj){
             double value = 0.0;
 
-            for (unsigned int iNodeA = 0; iNodeA < 4; ++iNodeA){
-                const array_1d<double, 3 >& Velocity = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int iNodeA = 0; iNodeA < TNumNodes; ++iNodeA){
+                const array_1d<double, TDim >& Velocity = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY);
 
-                for (unsigned int di = 0; di < 3; ++di){
+                for (unsigned int di = 0; di < TDim; ++di){
                     value -= rShapeDeriv(iNodeB, di) * Velocity[dj] * rShapeDeriv(iNodeA, di);
                 }
             }
@@ -88,4 +99,7 @@ void ComputeLaplacianSimplex<3,4>::AddRHSLaplacian(VectorType& F,
     }
 }
 
+// Explicit instantiations
+template class ComputeLaplacianSimplex<2, 3>;
+template class ComputeLaplacianSimplex<3, 4>;
 } // namespace Kratos
