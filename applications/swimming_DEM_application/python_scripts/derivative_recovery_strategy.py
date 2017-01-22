@@ -20,7 +20,10 @@ class DerivativeRecoveryStrategy:
         self.null_field = FieldUtility(SpaceTimeSet(), VectorField3D())
         self.mat_deriv_type = pp.CFD_DEM.material_acceleration_calculation_type
         self.laplacian_type = pp.CFD_DEM.laplacian_calculation_type
-        self.pre_computed_derivatives = pp.CFD_DEM.fluid_already_calculated and pp.CFD_DEM.load_derivatives
+        if pp.CFD_DEM.fluid_already_calculated:
+            self.pre_computed_derivatives = pp.CFD_DEM.load_derivatives
+        else:
+            self.pre_computed_derivatives = False
 
         if self.mat_deriv_type == 3 or self.mat_deriv_type == 4:
             self.do_recover_acceleration = True
