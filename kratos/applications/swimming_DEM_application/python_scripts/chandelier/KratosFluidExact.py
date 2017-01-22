@@ -553,7 +553,7 @@ if (DEM_parameters.dem_inlet_option):
     max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-    max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
+    max_fluid_node_Id = swim_proc.FindMaxNodeId(fluid_model_part)
     max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id, max_elem_Id)
     #max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
 
