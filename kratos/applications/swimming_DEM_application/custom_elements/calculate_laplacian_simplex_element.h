@@ -108,6 +108,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    using BaseType::AddIntegrationPointRHSContribution;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -186,15 +188,14 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -229,7 +230,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -330,9 +331,7 @@ private:
     ///@name Private Operators
     ///@{
 
-   void AddIntegrationPointRHSContribution(VectorType& F,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                         const double Weight);
+   void AddIntegrationPointRHSContribution(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
     ///@}
     ///@name Private Operations
     ///@{

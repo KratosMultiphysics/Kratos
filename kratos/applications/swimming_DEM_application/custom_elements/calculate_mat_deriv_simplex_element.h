@@ -273,7 +273,20 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
+    ///
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
+    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
+
+    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix, const array_1d<double,TNumNodes>& rShapeFunc, const double Weight);
+
+    void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
+
+    void EvaluateInPoint(array_1d< double, 3 > & rResult, const Variable< array_1d< double, 3 > >& rVariable, const array_1d< double, TNumNodes >& rShapeFunc);
+
+    virtual void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
 
     ///@}
     ///@name Protected Inquiry
@@ -323,19 +336,6 @@ private:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
-
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix, const array_1d<double,TNumNodes>& rShapeFunc, const double Weight);
-
-    void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
-
-    void EvaluateInPoint(array_1d< double, 3 > & rResult, const Variable< array_1d< double, 3 > >& rVariable, const array_1d< double, TNumNodes >& rShapeFunc);
-
-    virtual void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
     ///@}
     ///@name Private Operations
     ///@{
