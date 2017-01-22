@@ -176,35 +176,7 @@ public:
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
-    {
-        //KRATOS_WATCH(this->Id())
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-
-        for (unsigned int i=0; i<LocalSize; ++i){
-            for (unsigned int j=0; j<LocalSize; ++j){
-                rLeftHandSideMatrix(i, j) = 0.0;
-            }
-            rRightHandSideVector(i) = 0.0;
-        }
-
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-        array_1d<double, TDim+1 > N;
-        double Area;
-
-        CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-        //getting data for the given geometry
-        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-        CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    }
-
+                                      ProcessInfo& rCurrentProcessInfo);
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -214,24 +186,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
-    {
-
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-        unsigned int LocalIndex = 0;
-        unsigned int local_position = this->GetGeometry()[0].GetDofPosition(MATERIAL_ACCELERATION_X);
-
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_X, local_position).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Y, local_position + 1).EquationId();
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(MATERIAL_ACCELERATION_Z, local_position + 2).EquationId();
-        }
-//Z
-    }
+                                  ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
@@ -239,40 +194,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
-    {
-
-        const unsigned int NumNodes(TDim+1), LocalSize(TDim * NumNodes);
-
-        if (rElementalDofList.size() != LocalSize)
-            rElementalDofList.resize(LocalSize);
-
-        unsigned int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(MATERIAL_ACCELERATION_X);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(MATERIAL_ACCELERATION_Y);
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(MATERIAL_ACCELERATION_Z);
-        }
-//Z
-
-    }
-
-
-
-    /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
-    /**
-     * @param rVariable Kratos vector variable to get
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
-//    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-//            std::vector<array_1d<double, 3 > >& rValues,
-//            const ProcessInfo& rCurrentProcessInfo)
-//    {
-//
-//    }
+                            ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -292,50 +214,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
-{
-        KRATOS_TRY
-
-        // Perform basic element checks
-        int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
-        if(ErrorCode != 0) return ErrorCode;
-
-        if(this->GetGeometry().size() != TDim+1)
-            KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
-
-        // Check that all required variables have been registered
-//G
-//        if(DISTANCE.Key() == 0)
-
-//            //KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-
-//        // Checks on nodes
-
-//        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-//        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-//        {
-//            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-//                KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data for node ",this->GetGeometry()[i].Id());
-//        }
-
-        if (MATERIAL_ACCELERATION.Key() == 0){
-            KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_ACCELERATION Key is 0. Check if the application was correctly registered.","");
-        }
-
-        // Checks on nodes
-
-        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-        {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(MATERIAL_ACCELERATION) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing MATERIAL_ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
-        }
-//Z
-        return 0;
-
-        KRATOS_CATCH("");
-    }
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -444,126 +323,19 @@ private:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = TDim * TNumNodes;
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-        // Resize and set to zero
-        if (rMassMatrix.size1() != LocalSize)
-            rMassMatrix.resize(LocalSize, LocalSize, false);
+    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
-        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
+    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
 
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-
-        // Add 'classical' mass matrix (lumped)
-        if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
-            double Coeff = Area / TNumNodes; //Optimize!
-            this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
-        }
-
-        else {
-            // Add 'consistent' mass matrix
-            MatrixType NContainer;
-            ShapeFunctionDerivativesArrayType DN_DXContainer;
-            VectorType GaussWeights;
-            this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-            const SizeType NumGauss = NContainer.size1();
-
-            for (SizeType g = 0; g < NumGauss; g++){
-                const double GaussWeight = GaussWeights[g];
-                const ShapeFunctionsType& Ng = row(NContainer, g);
-                this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
-            }
-        }
-    }
-
-    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
-                                   const double Mass)
-    {
-        unsigned int DofIndex = 0;
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rLHSMatrix(DofIndex, DofIndex) += Mass;
-                ++DofIndex;
-            }
-//G
-//            ++DofIndex; // Skip pressure Dof
-//Z
-        }
-    }
-
-    virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
-    {
-        // Get the element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        MatrixType NContainer;
-        ShapeFunctionDerivativesArrayType DN_DXContainer;
-        VectorType GaussWeights;
-        this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
-        const SizeType NumGauss = NContainer.size1();
-
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddRHSMatAcceleration(F, Ng, DN_DX, GaussWeight);
-        }
-
-    }
-
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
-            const array_1d<double,TNumNodes>& rShapeFunc,
-            const double Weight)
-    {
-//G
-        const unsigned int BlockSize = TDim;
-
-        double Coef = Weight;
-//Z
-        unsigned int FirstRow(0), FirstCol(0);
-        double K; // Temporary results
-
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            // Loop over columns
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
-                K = Coef * rShapeFunc[i] * rShapeFunc[j];
-
-                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
-                }
-                // Update column index
-                FirstCol += BlockSize;
-            }
-            // Update matrix indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-    }
+    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix, const array_1d<double,TNumNodes>& rShapeFunc, const double Weight);
 
     void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
-    void EvaluateInPoint(array_1d< double, 3 > & rResult,
-                         const Variable< array_1d< double, 3 > >& rVariable,
-                         const array_1d< double, TNumNodes >& rShapeFunc);
 
-    void AddRHSMatAcceleration(VectorType& F,
-                         const array_1d<double,TNumNodes>& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                         const double Weight);
+    void EvaluateInPoint(array_1d< double, 3 > & rResult, const Variable< array_1d< double, 3 > >& rVariable, const array_1d< double, TNumNodes >& rShapeFunc);
+
+    virtual void AddIntegrationPointRHSContribution(VectorType& F, const array_1d<double,TNumNodes>& rShapeFunc, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
     ///@}
     ///@name Private Operations
     ///@{
