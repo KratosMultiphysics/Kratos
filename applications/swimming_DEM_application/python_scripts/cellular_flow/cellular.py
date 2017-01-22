@@ -113,6 +113,7 @@ laplacian_type = 2
 file_name, size_parameter, material_derivative_type, laplacian_type = sys.argv
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.fluid_already_calculated = 0
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 0
 pp.CFD_DEM.store_full_gradient = 0
