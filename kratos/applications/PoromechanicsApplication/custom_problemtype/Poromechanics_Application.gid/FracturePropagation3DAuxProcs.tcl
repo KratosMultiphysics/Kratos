@@ -366,7 +366,7 @@ proc ComputeNormal {VertexCoord Point1Coord Point2Coord} {
 #-------------------------------------------------------------------------------
 
 proc ComputeTransformMatrix {VertexCoord Point1Coord Point2Coord InitAxisCoord FinalAxisCoord} {
-    # Unitari vector at the initial position of the Rotation
+    # Unitary vector at the initial position of the Rotation
     set Ri(0) [expr {[lindex $Point1Coord 0]-[lindex $VertexCoord 0]}]
     set Ri(1) [expr {[lindex $Point1Coord 1]-[lindex $VertexCoord 1]}]
     set Ri(2) [expr {[lindex $Point1Coord 2]-[lindex $VertexCoord 2]}]
@@ -374,7 +374,7 @@ proc ComputeTransformMatrix {VertexCoord Point1Coord Point2Coord InitAxisCoord F
     set Ri(0) [expr {$Ri(0)*$InvNorm}]
     set Ri(1) [expr {$Ri(1)*$InvNorm}]
     set Ri(2) [expr {$Ri(2)*$InvNorm}]
-    # Unitari vector at the final position of the Rotation
+    # Unitary vector at the final position of the Rotation
     set Rf(0) [expr {[lindex $Point2Coord 0]-[lindex $VertexCoord 0]}]
     set Rf(1) [expr {[lindex $Point2Coord 1]-[lindex $VertexCoord 1]}]
     set Rf(2) [expr {[lindex $Point2Coord 2]-[lindex $VertexCoord 2]}]
@@ -382,7 +382,7 @@ proc ComputeTransformMatrix {VertexCoord Point1Coord Point2Coord InitAxisCoord F
     set Rf(0) [expr {$Rf(0)*$InvNorm}]
     set Rf(1) [expr {$Rf(1)*$InvNorm}]
     set Rf(2) [expr {$Rf(2)*$InvNorm}]
-    # Unitari rotation Axis
+    # Unitary rotation Axis
     set A(0) [expr {[lindex $FinalAxisCoord 0]-[lindex $InitAxisCoord 0]}]
     set A(1) [expr {[lindex $FinalAxisCoord 1]-[lindex $InitAxisCoord 1]}]
     set A(2) [expr {[lindex $FinalAxisCoord 2]-[lindex $InitAxisCoord 2]}]
