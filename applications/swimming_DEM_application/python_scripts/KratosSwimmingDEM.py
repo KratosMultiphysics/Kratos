@@ -11,7 +11,7 @@ import time as timer
 init_time = timer.time()
 import os
 import sys
-
+sys.path.append("/home/gcasas/kratos")
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
@@ -91,6 +91,7 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.fluid_already_calculated = 0
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 1
 pp.CFD_DEM.store_full_gradient = 0
@@ -100,6 +101,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.vorticity_calculation_type = 5
 pp.CFD_DEM.material_acceleration_calculation_type = 5
 pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.vorticity_calculation_type = 5
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 0
@@ -546,7 +548,7 @@ if (DEM_parameters.dem_inlet_option):
     max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-    max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
+    max_fluid_node_Id = swim_proc.FindMaxNodeId(fluid_model_part)
     max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id, max_elem_Id)
     #max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
 
