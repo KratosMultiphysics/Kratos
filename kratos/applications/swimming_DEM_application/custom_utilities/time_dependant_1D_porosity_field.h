@@ -14,6 +14,7 @@ public:
 KRATOS_CLASS_POINTER_DEFINITION(TimeDependant1DPorosityField);
 
 /// Default constructor.
+using RealField::Evaluate;
 
 TimeDependant1DPorosityField(const double& max_time): mC(max_time)
 {
