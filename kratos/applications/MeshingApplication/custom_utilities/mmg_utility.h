@@ -261,13 +261,13 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            const double scalar_value = itNode->FastGetSolutionStepValue(rVariable);
-            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient);
+            const double scalar_value = itNode->FastGetSolutionStepValue(rVariable, 0);
+            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
             const double norm = norm_2(gradient_value);
             gradient_value /= norm;
                 
-            double element_size = itNode->GetValue(NODAL_VOLUME);
+            double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
             if (element_size > elementary_length)
             {
                 element_size = elementary_length;

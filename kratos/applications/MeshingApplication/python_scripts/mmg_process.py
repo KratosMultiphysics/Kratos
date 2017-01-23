@@ -64,11 +64,13 @@ class MmgProcess(KratosMultiphysics.Process):
         #self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.scalar_variable)
         #self.Model[self.model_part_name].AddNodalSolutionStepVariable(self.gradient_variable)
         #self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
+        #self.Model[self.model_part_name].AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         
         #KratosMultiphysics.ModelPartIO(self.input_file_name).ReadModelPart(self.Model[self.model_part_name])
         
         self._CreateGradientProcess()
+        
+        self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         
         if (self.dim == 2):
             self.MmgUtility = MeshingApplication.MmgUtility2D(self.input_file_name)
@@ -109,28 +111,31 @@ class MmgProcess(KratosMultiphysics.Process):
     def _ExecuteRefinement(self):
             
         self.local_gradient.Execute()
+        
+        self.find_nodal_h.Execute()
             
-        for node in self.Model[self.model_part_name].Nodes:
-            node.SetValue(KratosMultiphysics.NODAL_VOLUME, 0.0)
+        ## LEGACY MMG
+        #for node in self.Model[self.model_part_name].Nodes:
+            #node.SetValue(KratosMultiphysics.NODAL_H, 0.0)
             
-        for elem in self.Model[self.model_part_name].Elements:
-            area = elem.GetArea()# Area or volume, depending triangle or tetraedra
-            if (len(elem.GetNodes()) == 3):
-                L = 2.0 * area**(0.5)
-            elif (len(elem.GetNodes()) == 4):
-                L = 2.0396489026555 * (area)**(1.0/3.0)
-            else:
-                L = self.elementary_length
+        #for elem in self.Model[self.model_part_name].Elements:
+            #area = elem.GetArea()# Area or volume, depending triangle or tetraedra
+            #if (len(elem.GetNodes()) == 3):
+                #L = 2.0 * area**(0.5)
+            #elif (len(elem.GetNodes()) == 4):
+                #L = 2.0396489026555 * (area)**(1.0/3.0)
+            #else:
+                #L = self.elementary_length
                 
-            for node in elem.GetNodes():
-                aux = node.GetValue(KratosMultiphysics.NODAL_VOLUME)
-                node.SetValue(KratosMultiphysics.NODAL_VOLUME, aux + L * area )
+            #for node in elem.GetNodes():
+                #aux = node.GetValue(KratosMultiphysics.NODAL_H)
+                #node.SetValue(KratosMultiphysics.NODAL_H, aux + L * area )
                 
-        for node in self.Model[self.model_part_name].Nodes:
-            aux = node.GetValue(KratosMultiphysics.NODAL_VOLUME)
-            nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA, 0)
-            if nodal_area > 0.0:
-                node.SetValue(KratosMultiphysics.NODAL_VOLUME, aux/nodal_area)
+        #for node in self.Model[self.model_part_name].Nodes:
+            #aux = node.GetValue(KratosMultiphysics.NODAL_H)
+            #nodal_area = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA, 0)
+            #if nodal_area > 0.0:
+                #node.SetValue(KratosMultiphysics.NODAL_H, aux/nodal_area)
 
         print("Preparing the solution and mesh information")
         self.MmgUtility.ComputeExistingModelPart(
