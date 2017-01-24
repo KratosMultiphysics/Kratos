@@ -60,6 +60,20 @@ AnalyticSphericParticle();
 private:
 
 friend class Serializer;
+std::vector<bool> NeighboursContactStatus;
+unsigned int mNumberOfCollidingSpheres;
+/*
+4 is taken as the maximum number of particles simultaneously coming into contact
+with this sphere. Whenever more than 4 particles happen to come into contact at
+the same time step, which should be extremely rare, the extra collisions will
+not be recorded in the present step, but will in forecomming steps (with the
+corresponding slightly increased error in measurement) unless an extraordinarily
+short contact time (of only 1 time step) takes place.
+*/
+array_1d<int, 4> mCollidingIds;
+array_1d<double, 4> mCollidingRadii;
+array_1d<double, 4> mCollidingNormalVelocities;
+array_1d<double, 4> mCollidingTangentialVelocities;
 
 void save(Serializer& rSerializer) const
 {
