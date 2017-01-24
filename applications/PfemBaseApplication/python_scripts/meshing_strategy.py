@@ -126,34 +126,31 @@ class MeshingStrategy(object):
             self.mesh_modelers.append(mesher)
   
     #
-    def SetInfo(self):
+    def SetMeshInfo(self):
         
         info_parameters = self.MeshingParameters.GetInfoParameters()
-    
-        current_number_of_nodes      = self.main_model_part.NumberOfNodes(self.mesh_id)
-        current_number_of_elements   = self.main_model_part.NumberOfElements(self.mesh_id)
-        current_number_of_conditions = self.main_model_part.NumberOfConditions(self.mesh_id)
-     
-        info_parameters.SetNumberOfNodes(current_number_of_nodes)
-        info_parameters.SetNumberOfElements(current_number_of_elements)
-        info_parameters.SetNumberOfConditions(current_number_of_conditions)
+      
+        number_of_new_nodes = self.main_model_part.NumberOfNodes(self.mesh_id) - info_parameters.GetNumberOfNodes()
+        number_of_new_elements = self.main_model_part.NumberOfElements(self.mesh_id) - info_parameters.GetNumberOfElements()
+        number_of_new_conditions = self.main_model_part.NumberOfConditions(self.mesh_id) - info_parameters.GetNumberOfConditions()
+        info_parameters.SetNumberOfNewNodes(number_of_new_nodes)
+        info_parameters.SetNumberOfNewElements(number_of_new_elements)
+        info_parameters.SetNumberOfNewConditions(number_of_new_conditions)
 
-        info_parameters.SetNumberOfNewNodes(self.number_of_nodes-current_number_of_nodes)
-        info_parameters.SetNumberOfNewElements(self.number_of_elements-current_number_of_elements)
-        info_parameters.SetNumberOfNewConditions(self.number_of_conditions-current_number_of_elements)
+
+        info_parameters.SetNumberOfNodes(self.main_model_part.NumberOfNodes(self.mesh_id))
+        info_parameters.SetNumberOfElements(self.main_model_part.NumberOfElements(self.mesh_id))
+        info_parameters.SetNumberOfConditions(self.main_model_part.NumberOfConditions(self.mesh_id))
+
         
 
     #
     def InitializeMeshGeneration(self):
-        
-        self.number_of_elements   = 0
-        self.number_of_conditions = 0
-        self.number_of_nodes      = 0
-        
+               
         info_parameters = self.MeshingParameters.GetInfoParameters()
         info_parameters.Initialize()
         
-        self.SetInfo()
+        self.SetMeshInfo()
 
         if( self.global_transfer == True ):
             print(" global transfer ")
@@ -162,7 +159,7 @@ class MeshingStrategy(object):
     #
     def FinalizeMeshGeneration(self):
 
-        self.SetInfo()
+        self.SetMeshInfo()
 
         info_parameters    = self.MeshingParameters.GetInfoParameters()
         smoothing_required = info_parameters.CheckMechanicalSmoothing()

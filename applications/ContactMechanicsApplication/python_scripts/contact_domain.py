@@ -89,13 +89,13 @@ class ContactDomain(meshing_domain.MeshingDomain):
         self.main_model_part.CreateSubModelPart(self.settings["model_part_name"].GetString())
         
         contact_model_part_names = self.settings["contact_sub_model_part_list"]
-        contact_parts = KratosContact.StringVector()
+        self.contact_parts = KratosContact.StringVector()
         for i in range(contact_model_part_names.size()):
-            contact_parts.PushBack(contact_model_part_names[i].GetString())
+            self.contact_parts.PushBack(contact_model_part_names[i].GetString())
 
-        # transforma list to a std vector
-        construct_contact_model_part = KratosContact.ConstructContactModelPart(self.main_model_part, self.MeshingParameters, contact_parts, self.echo_level)
-        construct_contact_model_part.Execute()
+        # transforms list to a std vector
+        self.construct_contact_model_part = KratosContact.ConstructContactModelPart(self.main_model_part, self.MeshingParameters, self.contact_parts, self.echo_level)
+        self.construct_contact_model_part.Execute()
 
 
         # Meshing Stratety
@@ -123,6 +123,9 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
 
     def ExecuteMeshing(self):
+
+        #if the boundaries has been changed the contact domain has to be updated
+        self.construct_contact_model_part.Execute()
         
         self.MeshingStrategy.GenerateMesh()
         

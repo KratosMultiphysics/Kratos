@@ -113,6 +113,9 @@ public:
       
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
+      unsigned int refine_on_size      = 0;
+      unsigned int refine_on_threshold = 0;
+      
       int id = 0; 
       if(mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS)
 	 && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) )
@@ -164,7 +167,7 @@ public:
 
 	  //SET THE REFINED ELEMENTS AND THE AREA (NODAL_H)
 	  //*********************************************************************
-
+	  mrRemesh.Info->CriticalElements = 0;
 	    
 	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
@@ -195,6 +198,7 @@ public:
 			count_dissipative+=1;
 
 		      if((nodes_begin + OutElementList[el*nds+pn]-1)->Is(BOUNDARY)){
+			
 			count_boundary+=1;
 
 			if((nodes_begin + OutElementList[el*nds+pn]-1)->Is(NEW_ENTITY))
@@ -206,6 +210,7 @@ public:
 			  if( norm_2(ContactForceNormal) )
 			    count_contact_boundary+=1;
 			}
+			
 		      }
 		    
 		    }
@@ -282,6 +287,7 @@ public:
 			  {
 			    InElementSizeList[id] = nodal_h_refining_factor * element_size;
 
+			    refine_on_threshold += 1;
 			    //std::cout<<" Area Factor Refine DISSIPATIVE :"<<InElementSizeList[id]<<std::endl;
 			  }
 			else if (refine_size == true)
@@ -291,11 +297,13 @@ public:
 			    InElementSizeList[id] = element_ideal_radius;
 
 			    if( count_boundary_inserted && count_contact_boundary){
+
 			      InElementSizeList[id] = nodal_h_refining_factor * element_ideal_radius;
-			      //std::cout<<" count boundary inserted-contact on "<<std::endl;
+			      
+			      std::cout<<" count boundary inserted-contact on "<<std::endl;
 			    }
 
-
+			    refine_on_size +=1;
 			    //std::cout<<" Area Factor Refine SIZE :"<<InElementSizeList[id]<<std::endl;
 
 			  }
@@ -423,7 +431,7 @@ public:
 	
       
       if( mEchoLevel > 0 ){
-	std::cout<<"   Visited Elements: "<<id<<std::endl;
+	std::cout<<"   Visited Elements: "<<id<<" [threshold:"<<refine_on_threshold<<"/size:"<<refine_on_size<<"]"<<std::endl;
 	std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;
       }
 

@@ -144,6 +144,47 @@ namespace Kratos
 
     };
 
+
+    struct BoundaryVariables
+    {
+      
+      double DoubleVariable;
+      array_1d<double, 3> Array1DVariable;
+      Vector VectorVariable;
+      Matrix MatrixVariable;
+
+      void Initialize(const unsigned int& dimension, const unsigned int& voigt_size)
+      {
+	DoubleVariable = 0;
+	Array1DVariable.clear();
+	VectorVariable.resize(voigt_size);
+	noalias(VectorVariable) = ZeroVector(voigt_size);
+	MatrixVariable.resize(dimension, dimension);
+	noalias(MatrixVariable) = IdentityMatrix(dimension);
+      }
+      
+    };
+
+
+    struct BoundaryVariableArrays
+    {
+      unsigned int array_size;
+      std::vector<double> DoubleVariableArray;
+      std::vector<array_1d<double,3> > Array1DVariableArray;
+      std::vector<Vector> VectorVariableArray;
+      std::vector<Matrix> MatrixVariableArray;
+      
+      void Initialize(const unsigned int& size)
+      {
+	array_size = size;
+	DoubleVariableArray.resize(size);
+	Array1DVariableArray.resize(size);
+	VectorVariableArray.resize(size);
+	MatrixVariableArray.resize(size);
+      }
+      
+    };
+	
     ///@}
     ///@name Life Cycle
     ///@{
@@ -187,10 +228,30 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void InitializeBoundaryData(Condition::Pointer rCondition,
-				const TransferParameters& rTransferVariables);
+    void InitializeBoundaryData(Condition::Pointer rCurrentCondition,
+				const TransferParameters& rTransferVariables,
+				const ProcessInfo& rCurrentProcessInfo);
 
 
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
+				     const TransferParameters& rTransferVariables,
+				     BoundaryVariables& rVariables);
+    
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void TransferCurrentBoundaryData(Element::Pointer rCurrentElement,
+				     Condition::Pointer rCurrentCondition,
+				     const TransferParameters& rTransferVariables,
+				     BoundaryVariables& rVariables,
+				     BoundaryVariableArrays& rVariableArrays,
+				     const ProcessInfo& rCurrentProcessInfo);
+	
+	 
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -198,6 +259,14 @@ namespace Kratos
 			      Condition::Pointer rReferenceCondition,
 			      const TransferParameters& rTransferVariables);
 
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void TransferBoundaryData(Element::Pointer rCurrentElement,
+			      Condition::Pointer rCurrentCondition,
+			      const TransferParameters& rTransferVariables,
+			      const ProcessInfo& rCurrentProcessInfo);
 
 
     //*******************************************************************************************

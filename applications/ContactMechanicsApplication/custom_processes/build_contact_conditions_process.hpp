@@ -118,14 +118,13 @@ namespace Kratos
       
       //*******************************************************************
       //selecting elements
-      
-	if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
+      if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
 	{  
 	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
 	  SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mEchoLevel);
 	  SelectElements.Execute();
 	}
-
+      
 
       //*******************************************************************
       //set consecutive ids for global conditions
@@ -212,6 +211,11 @@ namespace Kratos
 		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
 		pContactCondition->Set(CONTACT);
 
+		//set ACTIVE if it is going to be considered in computation:
+		//here one can check the geometrical gap to dismiss some contact elements here
+		//it will be done later in the contact element calculation
+		pContactCondition->Set(ACTIVE);		
+				
 		//setting new elements
 		mrModelPart.AddCondition(pContactCondition);
 

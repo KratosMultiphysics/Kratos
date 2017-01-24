@@ -81,7 +81,7 @@ public:
     //typedef bounded_vector<double, 3>                       PointType;
     typedef array_1d<double, 3>                               PointType;
 
-    typedef ModelerUtilities::InfoParameters         InfoParametersType;
+    typedef ModelerUtilities::MeshingInfoParameters  InfoParametersType;
     typedef ModelerUtilities::MeshingParameters   MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters   RefineParametersType;
 

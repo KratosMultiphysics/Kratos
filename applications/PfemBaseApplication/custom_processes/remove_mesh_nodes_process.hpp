@@ -165,7 +165,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  
 	  ////////////////////////////////////////////////////////////
-	  // REMOVE CONTACT NODES (and boundary and near the contact)
+	  // REMOVE CONTACT NODES (and boundary near the contact)
           if ( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
           {
              bool any_node_removed_on_distance_2 = RemoveNodesOnContact( mrModelPart, inside_nodes_removed, boundary_nodes_removed, any_condition_removed);
@@ -383,7 +383,7 @@ private:
        unsigned int number_of_nodes = 0;
        
        if(mrRemesh.InputInitializedFlag)
-	 number_of_nodes = mrRemesh.MaxNodeIdNumber+1;
+	 number_of_nodes = mrRemesh.NodeMaxId+1;
        else
 	 number_of_nodes = ModelerUtilities::GetMaxNodeId(rModelPart)+1;
 

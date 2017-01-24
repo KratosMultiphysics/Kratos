@@ -22,8 +22,8 @@
 ///VARIABLES used:
 //Data:     DOMAIN_LABEL(nodes)(set)
 //StepData: NODAL_H, NORMAL, CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) BOUNDARY, TO_SPLIT
-//          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set), TO_SPLIT(conditions)->locally
+//Flags:    (checked) BOUNDARY, 
+//          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set),
 //          (modified)  
 //          (reset)   TO_SPLIT
 //(set):=(set in this process)
@@ -116,7 +116,7 @@ public:
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
       
-      mrRemesh.Info->InsertedConditions    = mrModelPart.NumberOfConditions(mMeshId);
+      mrRemesh.Info->InsertedBoundaryConditions = mrModelPart.NumberOfConditions(mMeshId);
       mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId);
 
 
@@ -132,7 +132,7 @@ public:
 	list_of_nodes.reserve(conditions_size);
 	list_of_conditions.reserve(conditions_size);
 	    
-	this->SelectBoundaryToRefine(mrModelPart); //conditions (TO_REFINE)  contact_nodes (TO_SPLIT)
+	this->SelectBoundaryToRefine(mrModelPart); //conditions (TO_REFINE) 
 
 	this->GenerateNewNodes(mrModelPart, list_of_nodes, list_of_conditions); //points (NEW_ENTITY) 
 	  
@@ -148,12 +148,17 @@ public:
      } // REFINE END;
 
 
-     mrRemesh.Info->InsertedConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedConditions;
+     mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedBoundaryConditions;
      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId)-mrRemesh.Info->InsertedBoundaryNodes;
 
      if( this->mEchoLevel > 0 ){
-        std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedConditions<<" ) ]"<<std::endl;
+        std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedBoundaryConditions<<" ) ]"<<std::endl;
         std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" ) ]"<<std::endl;
+
+	if( this->mEchoLevel >=1 ){
+	  mrRemesh.Refine->Info.BoundaryConditionsRefined.EchoStats();
+	}
+	
         std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
      }
 
@@ -330,8 +335,18 @@ public:
       if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
 	refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
 
-      if( refine_condition )
-	return true;
+      if( refine_condition ){
+
+	//check a the critical distance to not refine without limits
+	double size_for_boundary_threshold = mrRemesh.Refine->CriticalSide;
+	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_threshold);
+
+	if( refine_condition ){
+	  mrRemesh.Refine->Info.BoundaryConditionsRefined.on_threshold++;
+	  return true;
+	}
+	
+      }
       
       //DISTANCE VALUE INSERT
       double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
@@ -339,9 +354,11 @@ public:
       if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
 	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_face);
 
-      if( refine_condition )
+      if( refine_condition ){
+	mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
 	return true;
-     
+      }
+      
       return false;
       
       KRATOS_CATCH( "" )
@@ -358,7 +375,7 @@ public:
       if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) ){
 
 	bool refine_condition = false;
-	
+	bool curved_contact      = false;	
 	bool contact_active      = false;
 	bool contact_semi_active = false;
 	std::vector<bool> semi_active_nodes;
@@ -369,7 +386,6 @@ public:
 	
 	if( contact_semi_active ){
 	
-	  bool curved_contact      = false;
 	  std::vector<array_1d<double,3> > contact_normals;
 	
 	  curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
@@ -398,9 +414,16 @@ public:
 	double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
 	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
 	
-	if( refine_condition )
+	if( refine_condition ){
+	  
+	  mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
+	  if(contact_active || contact_semi_active){
+	    mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
+	    if(curved_contact)
+	      mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
+	  }
 	  return true;
-	
+	}
       }
       
       return false;
@@ -687,6 +710,9 @@ public:
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       bool refine_condition = false;
 
+      
+      mrRemesh.Refine->Info.BoundaryConditionsRefined.Initialize();
+      
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
       
       bool refine_candidate = false;

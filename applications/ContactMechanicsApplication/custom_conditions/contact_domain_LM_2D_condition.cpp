@@ -203,7 +203,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
 
-    //Get previous mechanics stored in the master node
+    //Get previous mechanics stored in the master node/condition
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     Matrix StressMatrix =zero_matrix<double> (dimension);
     Matrix F =zero_matrix<double> (dimension);
@@ -708,12 +708,12 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
 	rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
 	
-	this->Set(ACTIVE);
+	//this->Set(ACTIVE); not here, if is reset is not going to enter here anymore
     }
     else
     {
 	rVariables.Contact.Options.Set(ACTIVE,false); //normal contact not active
-	this->Reset(ACTIVE);
+	//this->Reset(ACTIVE); not here, if is reset is not going to enter here anymore
     }
 
 

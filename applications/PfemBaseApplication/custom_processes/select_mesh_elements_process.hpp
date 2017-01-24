@@ -115,6 +115,10 @@ public:
 
       int number_of_slivers = 0;
 
+      unsigned int passed_alpha_shape = 0;
+      unsigned int passed_inner_outer = 0;
+
+      
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
 	{
 	  for(int el=0; el<OutNumberOfElements; el++)
@@ -150,10 +154,25 @@ public:
 
 	  int el = 0;
 	  int number = 0;
-	  // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-	  // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 
+	  //CHECK:
+	  // int max_out_id = 0;
+	  // for(el=0; el<OutNumberOfElements; el++)
+	  //   {
+	  //     for(unsigned int pn=0; pn<nds; pn++)
+	  // 	{
+	  // 	  if( max_out_id < OutElementList[el*nds+pn] )
+	  // 	    max_out_id = OutElementList[el*nds+pn];
+	  // 	}
+	  //   }
 
+	  // //std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
+	  // //std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
+	  // //std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
+	  
+	  // if( max_out_id >= mrRemesh.NodalPreIds.size() )
+	  //   std::cout<<" ERROR ID PRE IDS "<<max_out_id<<" > "<<mrRemesh.NodalPreIds.size()<<std::endl;
+	    
 	  //#pragma omp parallel for reduction(+:number) private(el)
 	  for(el=0; el<OutNumberOfElements; el++)
 	    {
@@ -192,7 +211,7 @@ public:
 		    break;
 		  }
 		  
-		  //check if is a vertex of a artificial external bounding box
+		  //check if is a vertex of an artificial external bounding box
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
 		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
@@ -263,12 +282,15 @@ public:
 	      double Alpha = mrRemesh.AlphaParameter; //*nds;
 	      if(numboundary>=nds-1)
 		Alpha*=1.2;
-	
+
+	      
 	      // std::cout<<" vertices for the contact element "<<std::endl;
-	      // for( unsigned int n=0; n<nds; n++)
-	      // 	{
-	      // 	  std::cout<<" ("<<n+1<<"): ["<<mrRemesh.NodalPreIds[vertices[n].Id()]<<"] "<<vertices[n]<<std::endl;
-	      // 	}
+	      // if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH)){
+	      // 	for( unsigned int n=0; n<nds; n++)
+	      // 	  {
+	      // 	    std::cout<<" ("<<n+1<<"): ["<<mrRemesh.NodalPreIds[vertices[n].Id()]<<"] "<<std::endl;
+	      // 	  }
+	      // }
 
 	      // std::cout<<" vertices for the subdomain element "<<std::endl;
 	      // for( unsigned int n=0; n<nds; n++)
@@ -291,7 +313,6 @@ public:
 		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension);
 		}
 
-	      	   
 	      //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
 	      // if(accepted)
 	      // {
@@ -308,6 +329,8 @@ public:
 	      //4.- to control that the element is inside of the domain boundaries
 	      if(accepted)
 		{
+		  passed_alpha_shape++;
+
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
 		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
@@ -332,6 +355,8 @@ public:
 	      int sliver = 0;
 	      if(accepted)
 		{
+		  passed_inner_outer++;
+
 		  if(nds==4){
 		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
 
@@ -366,6 +391,7 @@ public:
 	}
 
       std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+      std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 

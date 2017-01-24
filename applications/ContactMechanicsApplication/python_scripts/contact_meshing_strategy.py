@@ -163,15 +163,18 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         info_parameters = self.MeshingParameters.GetInfoParameters()
         info_parameters.Initialize()
         
-        self.SetInfo()
+        self.SetMeshInfo()
 
-        transfer_parameters = self.MeshingParameters.GetTransferParameters()
-        self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+        #Needed to compute effective gaps in the contact domain with lagrangian multipliers
+        #in fact not needed anymore, moved to FinalizeSolutionStep of the ContactDomainCondition
+
+        #transfer_parameters = self.MeshingParameters.GetTransferParameters()
+        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
 
     #
     def FinalizeMeshGeneration(self):
 
-        self.SetInfo()
+        self.SetMeshInfo()
 
     #
     def GenerateMesh(self):

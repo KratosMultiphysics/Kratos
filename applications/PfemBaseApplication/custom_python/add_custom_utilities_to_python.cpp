@@ -118,6 +118,8 @@ namespace Kratos
 	.def("SetModelPartNameToConditions",&ModelerUtilities::SetModelPartNameToConditions)
 	.def("SetModelPartNameToNodes",&ModelerUtilities::SetModelPartNameToNodes)
 	.def("CheckCriticalRadius",&ModelerUtilities::CheckCriticalRadius)
+	.def("ComputeModelPartVolume",&ModelerUtilities::ComputeModelPartVolume)
+	
 	.def_readonly("REMESH",&ModelerUtilities::REMESH)
 	.def_readonly("REFINE",&ModelerUtilities::REFINE)
 	.def_readonly("RECONNECT",&ModelerUtilities::RECONNECT)
@@ -126,7 +128,7 @@ namespace Kratos
 	.def_readonly("CONTACT_SEARCH",&ModelerUtilities::CONTACT_SEARCH)
 	.def_readonly("MESH_SMOOTHING",&ModelerUtilities::MESH_SMOOTHING)
 	.def_readonly("VARIABLES_SMOOTHING",&ModelerUtilities::VARIABLES_SMOOTHING)
-
+	
 	.def_readonly("REMOVE_NODES",&ModelerUtilities::REMOVE_NODES)
 	.def_readonly("REMOVE_NODES_ON_DISTANCE",&ModelerUtilities::REMOVE_NODES_ON_DISTANCE)
 	.def_readonly("REMOVE_NODES_ON_ERROR",&ModelerUtilities::REMOVE_NODES_ON_ERROR)
@@ -135,7 +137,7 @@ namespace Kratos
 	.def_readonly("REMOVE_BOUNDARY_NODES_ON_DISTANCE",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)
 	.def_readonly("REMOVE_BOUNDARY_NODES_ON_ERROR",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_ERROR)
 	.def_readonly("REMOVE_BOUNDARY_NODES_ON_THRESHOLD",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_THRESHOLD)
-
+	
 	.def_readonly("REFINE_ADD_NODES",&ModelerUtilities::REFINE_ADD_NODES)
 	.def_readonly("REFINE_INSERT_NODES",&ModelerUtilities::REFINE_INSERT_NODES)
 	.def_readonly("REFINE_ELEMENTS",&ModelerUtilities::REFINE_ELEMENTS)
@@ -210,17 +212,20 @@ namespace Kratos
       //***************MODELER UTILITIES**************//
 
       // Remeshing modeler information parameters
-      class_< ModelerUtilities::InfoParameters, ModelerUtilities::InfoParameters::Pointer, boost::noncopyable>
-	("InfoParameters", init<>() )    
-	.def("Initialize",&ModelerUtilities::InfoParameters::Initialize)
-	.def("CheckMechanicalSmoothing",&ModelerUtilities::InfoParameters::CheckMechanicalSmoothing)
-	.def("SetNumberOfNodes",&ModelerUtilities::InfoParameters::SetNumberOfNodes)
-	.def("SetNumberOfElements",&ModelerUtilities::InfoParameters::SetNumberOfElements)
-	.def("SetNumberOfConditions",&ModelerUtilities::InfoParameters::SetNumberOfConditions)
-	.def("SetNumberOfNewNodes",&ModelerUtilities::InfoParameters::SetNumberOfNewNodes)
-	.def("SetNumberOfNewElements",&ModelerUtilities::InfoParameters::SetNumberOfNewElements)
-	.def("SetNumberOfNewConditions",&ModelerUtilities::InfoParameters::SetNumberOfNewConditions)
-	.def("GetInsertedNodes",&ModelerUtilities::InfoParameters::GetInsertedNodes)
+      class_< ModelerUtilities::MeshingInfoParameters, ModelerUtilities::MeshingInfoParameters::Pointer, boost::noncopyable>
+	("MeshingInfoParameters", init<>() )    
+	.def("Initialize",&ModelerUtilities::MeshingInfoParameters::Initialize)
+	.def("CheckMechanicalSmoothing",&ModelerUtilities::MeshingInfoParameters::CheckMechanicalSmoothing)
+	.def("SetNumberOfNodes",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNodes)
+	.def("SetNumberOfElements",&ModelerUtilities::MeshingInfoParameters::SetNumberOfElements)
+	.def("SetNumberOfConditions",&ModelerUtilities::MeshingInfoParameters::SetNumberOfConditions)
+	.def("GetNumberOfNodes",&ModelerUtilities::MeshingInfoParameters::GetNumberOfNodes)
+	.def("GetNumberOfElements",&ModelerUtilities::MeshingInfoParameters::GetNumberOfElements)
+	.def("GetNumberOfConditions",&ModelerUtilities::MeshingInfoParameters::GetNumberOfConditions)
+	.def("SetNumberOfNewNodes",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewNodes)
+	.def("SetNumberOfNewElements",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewElements)
+	.def("SetNumberOfNewConditions",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewConditions)
+	.def("GetInsertedNodes",&ModelerUtilities::MeshingInfoParameters::GetInsertedNodes)
 	;
 
       // Remeshing modeler refining parameters
@@ -229,13 +234,9 @@ namespace Kratos
 	.def("Initialize",&ModelerUtilities::RefiningParameters::Initialize)
 	.def("SetRefiningOptions",&ModelerUtilities::RefiningParameters::SetRefiningOptions)
 	.def("SetRemovingOptions",&ModelerUtilities::RefiningParameters::SetRemovingOptions)
-	.def("SetExecutionOptions",&ModelerUtilities::RefiningParameters::SetExecutionOptions)
 	.def("SetAlphaParameter",&ModelerUtilities::RefiningParameters::SetAlphaParameter)
-	.def("ComputeAndSetMeanAndTotalVolume",&ModelerUtilities::RefiningParameters::ComputeAndSetVolume)
 	.def("SetMeanVolume",&ModelerUtilities::RefiningParameters::SetMeanVolume)
 	.def("GetMeanVolume",&ModelerUtilities::RefiningParameters::GetMeanVolume)
-	.def("SetTotalVolume",&ModelerUtilities::RefiningParameters::SetTotalVolume)
-	.def("GetTotalVolume",&ModelerUtilities::RefiningParameters::GetTotalVolume)
 	.def("SetCriticalRadius",&ModelerUtilities::RefiningParameters::SetCriticalRadius)
 	.def("SetInitialRadius",&ModelerUtilities::RefiningParameters::SetInitialRadius)
 	.def("SetCriticalSide",&ModelerUtilities::RefiningParameters::SetCriticalSide)

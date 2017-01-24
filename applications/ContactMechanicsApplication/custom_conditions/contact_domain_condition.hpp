@@ -21,6 +21,7 @@
 #include "includes/kratos_flags.h"
 
 #include "custom_utilities/contact_domain_utilities.hpp"
+#include "custom_utilities/mesh_data_transfer_utilities.hpp"
 
 namespace Kratos
 {

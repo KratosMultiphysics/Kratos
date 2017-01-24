@@ -277,27 +277,30 @@ public:
     };
 
 
-    struct InfoParameters
+    struct MeshingInfoParameters
     {
 
-     KRATOS_CLASS_POINTER_DEFINITION(InfoParameters);
+     KRATOS_CLASS_POINTER_DEFINITION(MeshingInfoParameters);
 
     public:
 
-      int   NumberOfElements;
-      int   NumberOfNodes;
-      int   NumberOfConditions;
+      //initial and total
+      unsigned int   NumberOfElements;
+      unsigned int   NumberOfNodes;
+      unsigned int   NumberOfConditions;
 
-      int   CriticalElements;
+      //added
+      unsigned int   NumberOfNewElements;
+      unsigned int   NumberOfNewNodes;
+      unsigned int   NumberOfNewConditions;     
 
-      int   InsertedNodes;
-      int   RemovedNodes;
-      int   InsertedBoundaryNodes;
-      int   InsertedConditions;
+      //total for all refining boxes
+      unsigned int   InsertedNodes;
+      unsigned int   RemovedNodes;
+      unsigned int   InsertedBoundaryNodes;
+      unsigned int   InsertedBoundaryConditions;
 
-      int   NumberOfNewElements;
-      int   NumberOfNewNodes;
-      int   NumberOfNewConditions;
+      unsigned int   CriticalElements;
 
       bool  GeometricalSmoothingRequired;
       bool  MechanicalSmoothingRequired;
@@ -308,50 +311,65 @@ public:
 	NumberOfNodes      = 0;
 	NumberOfConditions = 0;
 
-	CriticalElements = 0;
+	NumberOfNewElements = 0;
+	NumberOfNewNodes = 0;
+	NumberOfNewConditions = 0;
 
 	InsertedNodes = 0;
 	RemovedNodes  = 0;
 
 	InsertedBoundaryNodes = 0;
-	InsertedConditions = 0;
+	InsertedBoundaryConditions = 0;
 
-	NumberOfNewElements = 0;
-	NumberOfNewNodes = 0;
-	NumberOfNewConditions = 0;
-
+	CriticalElements = 0;
+	
 	GeometricalSmoothingRequired = false;
 	MechanicalSmoothingRequired  = false;
 
       };
 
 
-      void SetNumberOfNodes(int NumberNodes)
+      void SetNumberOfNodes(unsigned int NumberNodes)
       {
 	NumberOfNodes = NumberNodes;
       }
 
-      void SetNumberOfElements(int NumberElements)
+      void SetNumberOfElements(unsigned int NumberElements)
       {
 	NumberOfElements = NumberElements;
       }
 
-      void SetNumberOfConditions(int NumberConditions)
+      void SetNumberOfConditions(unsigned int NumberConditions)
       {
 	NumberOfConditions = NumberConditions;
       }
 
-      void SetNumberOfNewNodes(int NumberNodes)
+      unsigned int GetNumberOfNodes()
+      {
+	return NumberOfNodes;
+      }
+
+      unsigned int GetNumberOfElements()
+      {
+	return NumberOfElements;
+      }
+
+      unsigned int GetNumberOfConditions()
+      {
+	return NumberOfConditions;
+      }
+      
+      void SetNumberOfNewNodes(unsigned int NumberNodes)
       {
 	NumberOfNewNodes = NumberNodes;
       }
 
-      void SetNumberOfNewElements(int NumberElements)
+      void SetNumberOfNewElements(unsigned int NumberElements)
       {
 	NumberOfNewElements = NumberElements;
       }
 
-      void SetNumberOfNewConditions(int NumberConditions)
+      void SetNumberOfNewConditions(unsigned int NumberConditions)
       {
 	NumberOfNewConditions = NumberConditions;
       }
@@ -388,6 +406,64 @@ public:
 
     };
 
+    struct RefineBodyInfo
+    {
+      //number of entities refined/removed due to criterion:
+      unsigned int on_distance;
+      unsigned int on_threshold;
+      unsigned int on_error;
+
+      void Initialize(){
+	on_distance=0;
+	on_threshold=0;
+	on_error=0;
+      }
+      
+      void EchoStats(){
+	std::cout<<"   RefineBodyInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
+      }
+      
+    };
+
+    struct RefineBoundaryInfo
+    {
+      //number of entities refined/removed due to criterion:
+      unsigned int on_distance;
+      unsigned int on_threshold;
+      unsigned int on_error;
+
+      unsigned int in_contact;
+      unsigned int in_concave_boundary;
+      unsigned int in_convex_boundary;
+
+      void Initialize(){
+	on_distance=0;
+	on_threshold=0;
+	on_error=0;
+	in_contact=0;
+	in_concave_boundary=0;
+	in_convex_boundary=0;
+      }
+      
+      void EchoStats(){
+	std::cout<<"   RefineBoundaryInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
+	std::cout<<"                      [in_contact:"<<in_contact<<", in_concave_boundary:"<<in_concave_boundary<<", in_convex_boundary:"<<in_convex_boundary<<"]"<<std::endl;
+      }
+      
+    };
+
+    
+    struct RefiningInfoParameters
+    {
+      //refine/remove body
+      RefineBodyInfo BodyElementsRefined; //refined elements
+      RefineBodyInfo BodyNodesRemoved; //removed nodes
+
+      //refine/remove boundary
+      RefineBoundaryInfo BoundaryConditionsRefined; //refined boundary conditions
+      RefineBoundaryInfo BoundaryNodesRemoved; //removed boundary nodes
+    };
+
 
     struct RefiningParameters
     {
@@ -402,29 +478,30 @@ public:
 
     public:
 
-      Flags    RefiningOptions;     //configuration refining options
-      Flags    RemovingOptions;     //configuration removing options
-
-      Flags    ExecutionOptions;    //configuration meshing options
-
-
-      int      NumberOfElements;
-
+      //reference sizes
+      Flags    RefiningOptions;     //configuration refining options        
+      Flags    RemovingOptions;     //configuration removing options    
+      
       double   Alpha;               //critical alpha parameter
 
-      double   InitialRadius;       //initial mesh mean radius (mean h)
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
-
-      double   MeanVolume;          //mean area
-      double   TotalVolume;         //total area
+      
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
 
+      //computed sizes
+      double   InitialRadius;       //initial mesh radius/nodal-h
+      double   MeanVolume;          //mean element area/volume
+
+      //info parameters
+      RefiningInfoParameters Info;
+      
+      //applied in the spatial box
+      bool     RefiningBoxSetFlag;     
       SpatialBoundingBox::Pointer  RefiningBox;
-      bool     RefiningBoxSetFlag;
 
-
+      
       // setting refining variables (generally for python interface)
 
       void SetRefiningOptions(const Flags&  rOptions)
@@ -437,55 +514,9 @@ public:
 	RemovingOptions=rOptions;
       };
 
-      void SetExecutionOptions(const Flags&  rOptions)
-      {
-	ExecutionOptions=rOptions;
-      };
-
       void SetAlphaParameter( const double rAlpha)
       {
 	Alpha = rAlpha;
-      };
-
-      void ComputeAndSetVolume(ModelPart& rModelPart, const unsigned int Dimension)
-      {
-      	KRATOS_TRY
-	double rMeanVolume=0;
-	double rTotalVolume=0;
-	double countNode=0;
-	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
-	  {
-	    double volume=0;
-	    if(Dimension==2){
-	      volume=i_elem->GetGeometry().Area();
-	      }else{
-	      volume=i_elem->GetGeometry().Volume();
-	    }
-	    rTotalVolume+=volume;
-	    countNode+=1.0;
-	  }
-
-	if(countNode!=0){
-	  rMeanVolume=rTotalVolume/countNode;
-	}
-	SetTotalVolume(rTotalVolume);
-	SetMeanVolume(rMeanVolume);
-
-	std::cout<<"MeanVolume is "<<rMeanVolume<<std::endl;
-	std::cout<<"TotalVolume is "<<rTotalVolume<<std::endl;
-      	KRATOS_CATCH(" ")
-
-      	  }
-
-
-      double GetTotalVolume()
-      {
-	return TotalVolume;
-      };
-
-      void SetTotalVolume( const double rTotalVolume )
-      {
-	TotalVolume = rTotalVolume;
       };
 
       double GetMeanVolume()
@@ -566,7 +597,6 @@ public:
 	return ReferenceThreshold;
       };
 
-
       const Variable<double>& GetThresholdVariable()
       {
 	return *mpThresholdVariable;
@@ -579,16 +609,17 @@ public:
 
       void Initialize (){
 
-	NumberOfElements    = 0;
 	Alpha               = 0;
-	InitialRadius       = 0;
-	CriticalRadius      = 0;
-	MeanVolume          = 0;
-	TotalVolume         = 0;
+
+	CriticalRadius      = 0;	
 	CriticalSide        = 0;
+	
 	ReferenceThreshold  = 0;
 	ReferenceError      = 0;
 
+	InitialRadius       = 0;
+	MeanVolume          = 0;
+	
       };
 
     };
@@ -621,40 +652,51 @@ public:
       double  AlphaParameter;
       double  OffsetFactor;
 
-      //options for the mesher
+      //Options for the mesher
       std::string TessellationFlags;
       std::string TessellationInfo;
 
-      SpatialBoundingBox::Pointer  MeshingBox;
-      bool MeshingBoxSetFlag;
-
       bool TransferVariablesSetFlag;
 
-      //Local execution variables
+      //Local execution variablesg
       bool InputInitializedFlag;
-      double MaxNodeIdNumber;
+      bool MeshElementsSelectedFlag;
+      
+      unsigned int ConditionMaxId;
+      unsigned int ElementMaxId;
+      unsigned int NodeMaxId;
 
       std::vector<int> NodalPreIds;
-      std::vector<int> NodalNewIds; //deprecated in new mesher
-
-      std::vector<int> PreservedElements;
-      bool MeshElementsSelectedFlag;
-
-      std::vector<std::vector<int> > NeighbourList; //deprecated in new mesher
-
+      std::vector<int> PreservedElements;     
+      
       std::vector<bounded_vector<double, 3> > Holes;
 
-      //modeler pointers to the mesh structures
+      //Modeler pointers to the mesh structures
       MeshContainer       InMesh;
       MeshContainer      OutMesh;
       MeshContainer      MidMesh;
 
-      InfoParameters::Pointer             Info;
+      std::vector<std::vector<int> > NeighbourList;
+      
+      //Global Meshing info
+      MeshingInfoParameters::Pointer      Info;
+
+      //Global Remining parameters
       RefiningParameters::Pointer       Refine;
+
+      //some local bbx-based refining parameters
+      //can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
+      
+      //Global Tranfer parameters
       TransferParametersType::Pointer Transfer;
 
       PropertiesType::Pointer       Properties;
 
+      //Global Meshing box
+      bool MeshingBoxSetFlag;
+      SpatialBoundingBox::Pointer  MeshingBox;
+
+     
       void Set(Flags ThisFlag)
       {
 	Options.Set(ThisFlag);
@@ -706,7 +748,7 @@ public:
 	OffsetFactor=rOffsetFactor;
       };
 
-      void SetInfoParameters(InfoParameters::Pointer rInfo)
+      void SetInfoParameters(MeshingInfoParameters::Pointer rInfo)
       {
 	Info=rInfo;
       };
@@ -778,7 +820,7 @@ public:
 	return Options;
       };
 
-      InfoParameters::Pointer GetInfoParameters()
+      MeshingInfoParameters::Pointer GetInfoParameters()
       {
 	return Info;
       };
@@ -823,8 +865,10 @@ public:
 	InputInitializedFlag     = false;
 	MeshElementsSelectedFlag = false;
 
-	MaxNodeIdNumber   = 0;
-
+	ConditionMaxId = 0;
+	ElementMaxId = 0;
+	NodeMaxId = 0;
+	
 	InMesh.Initialize();
 	OutMesh.Initialize();
 	MidMesh.Initialize();
@@ -875,7 +919,8 @@ public:
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
 
-
+    double ComputeModelPartVolume (ModelPart& rModelPart);
+    
     //*******************************************************************************************
     //*******************************************************************************************
 

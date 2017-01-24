@@ -15,19 +15,27 @@ def CreateMeshingDomain(main_model_part, custom_settings):
 class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
     def ComputeAverageMeshParameters(self):
+        
+        ModelerUtils = KratosPfemBase.ModelerUtilities();
+        self.domain_volume =  ModelerUtils.ComputeModelPartVolume(self.main_model_part)
+        self.element_mean_volume = 0
+        
+        number_of_elements =  self.main_model_part.NumberOfElements()
+        nodes_for_element  =  self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] + 1
 
-        self.RefiningParameters.ComputeAndSetMeanAndTotalVolume(self.main_model_part,self.domain_size)
+        if(number_of_elements != 0):
+            self.element_mean_volume = self.domain_volume/float(number_of_elements*nodes_for_element)
+
+        self.RefiningParameters.SetMeanVolume(self.element_mean_volume)
+            
         
     def GetMeanVolume(self):
 
-        meanVolume=self.RefiningParameters.GetMeanVolume()
-        return meanVolume
-        #fileMeanVolume.flush()
+        return self.element_mean_volume
         
     def GetTotalVolume(self):
 
-        totalVolume=self.RefiningParameters.GetTotalVolume()
-        return totalVolume
+        return self.domain_volume
 
     #
     def ComputeInitialAverageMeshParameters(self):

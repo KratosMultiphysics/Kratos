@@ -151,7 +151,7 @@ public:
 	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes(mMeshId).size()<<", "<<mrModelPart.Conditions(mMeshId).size()<<std::endl;
       }
       
-      mrRemesh.Info->InsertedConditions    = mrModelPart.NumberOfConditions(mMeshId);
+      mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId);
       mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId);
 
       RefineCounters LocalRefineInfo;
@@ -204,11 +204,11 @@ public:
 
 
 
-     mrRemesh.Info->InsertedConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedConditions;
+     mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedBoundaryConditions;
      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId)-mrRemesh.Info->InsertedBoundaryNodes;
 
      if( this->mEchoLevel > 0 ){
-        std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedConditions<<" ) ]"<<std::endl;
+        std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedBoundaryConditions<<" ) ]"<<std::endl;
         std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" ) ]"<<std::endl;
         std::cout<<"   [ contact(TIP: "<<LocalRefineInfo.number_contact_tip_insertions<<", SIZE: "<<LocalRefineInfo.number_contact_size_insertions<<") -  bound(TIP: "<<LocalRefineInfo.number_of_tip_bounds<<", SIZE: "<<LocalRefineInfo.number_of_exterior_bounds<<")]"<<std::endl;
 
@@ -502,15 +502,15 @@ private:
 	  pcond2->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
 
 
-	  //std::cout<<" pcond0 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond0 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
 
 	  rModelPart.AddCondition(pcond1,mMeshId);
 	  
-	  //std::cout<<" pcond1 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond1 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
 
 	  rModelPart.AddCondition(pcond2,mMeshId);
 
-	  //std::cout<<" pcond2 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond2 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedBoundaryConditions<<std::endl;
         }
 
 
