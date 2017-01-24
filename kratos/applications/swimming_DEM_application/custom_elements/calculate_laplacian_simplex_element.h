@@ -175,7 +175,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new ComputeLaplacianSimplex(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -187,17 +187,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -230,7 +227,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -243,7 +240,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ComputeLaplacianSimplex #" << this->Id();
@@ -251,7 +248,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeLaplacianSimplex" << TDim << "D";
     }
@@ -317,21 +314,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    }
-
     ///@}
     ///@name Private Operators
     ///@{
 
-   void AddIntegrationPointRHSContribution(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
+    void AddIntegrationPointRHSContribution(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv, const double Weight);
+
     ///@}
     ///@name Private Operations
     ///@{

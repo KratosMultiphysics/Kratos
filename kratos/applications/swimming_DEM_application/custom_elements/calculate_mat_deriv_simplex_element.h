@@ -168,15 +168,15 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new ComputeMaterialDerivativeSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /// Calculate the element's local contribution to the system for the current step.
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -185,17 +185,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
-
+    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -214,7 +211,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -227,7 +224,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ComputeMaterialDerivativeSimplex #" << Id();
@@ -235,7 +232,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeMaterialDerivativeSimplex" << TDim << "D";
     }
@@ -274,7 +271,7 @@ protected:
     ///@name Protected  Access
     ///@{
     ///
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
@@ -314,12 +311,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
