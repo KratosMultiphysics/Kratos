@@ -161,6 +161,7 @@ namespace Testing {
 
     Point<3> LocalCoords;
 
+    // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
     KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
     KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
     KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
