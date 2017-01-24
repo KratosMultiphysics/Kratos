@@ -143,7 +143,7 @@ public:
 
 		// Read the original .mdpa file
 		std::ifstream FileToBeRead(RestartInputFile);
-		if(FileToBeRead==0)
+		if(!FileToBeRead.is_open())
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified restart input file does not exist: ",RestartInputFile);
 
 		// Write the given input file except the block covering X_PHYS (this is to be replaced by the current optimization results)
