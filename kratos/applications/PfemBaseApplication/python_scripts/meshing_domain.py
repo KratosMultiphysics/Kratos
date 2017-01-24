@@ -127,7 +127,7 @@ class MeshingDomain(object):
     def SetInfoParameters(self):
 
         # Create InfoParameters        
-        self.InfoParameters  = KratosPfemBase.InfoParameters()
+        self.InfoParameters  = KratosPfemBase.MeshingInfoParameters()
         self.InfoParameters.Initialize()
         
         

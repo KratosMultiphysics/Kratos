@@ -84,8 +84,8 @@ namespace Kratos
     
     if(!rMeshingVariables.InputInitializedFlag){
      
-      rMeshingVariables.MaxNodeIdNumber = 0; 
-      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
+      rMeshingVariables.NodeMaxId = 0; 
+      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints+1)
 	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
       
       std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
@@ -104,8 +104,8 @@ namespace Kratos
 	if(!rMeshingVariables.InputInitializedFlag){
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
 	  (nodes_begin + i)->SetId(direct);
-	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.MaxNodeIdNumber )
-	    rMeshingVariables.MaxNodeIdNumber = rMeshingVariables.NodalPreIds[direct];
+	  if( rMeshingVariables.NodalPreIds[direct] > (int)rMeshingVariables.NodeMaxId )
+	    rMeshingVariables.NodeMaxId = rMeshingVariables.NodalPreIds[direct];
 
 	}
 	

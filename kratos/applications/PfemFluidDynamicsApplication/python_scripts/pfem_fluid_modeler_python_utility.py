@@ -256,7 +256,7 @@ class ModelerUtility:
                 self.modeler_active = True
 
             # create info parameters
-            self.InfoParameters   = InfoParameters()
+            self.InfoParameters   = MeshingInfoParameters()
  
             # set refine parameters to mesh modeler
             self.RefiningParameters = RefiningParameters()

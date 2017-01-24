@@ -1037,7 +1037,40 @@ public:
                                          const Vector& GreenLagrangeStrainVector);
 
 
+    ///@}
+    ///@}
+    ///@name Inquiry
+    ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "ConstitutiveLaw";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "ConstitutiveLaw";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      rOStream << "ConstitutiveLaw has no data";
+    }
+
+    
+    ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+    
 protected:
 
     ///@name Protected static Member Variables
@@ -1112,13 +1145,31 @@ protected:
 				     const unsigned int& a, const unsigned int& b,
 				     const unsigned int& c, const unsigned int& d);
 
-     ///@}
+ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+    
 private:
 
     ///@name Static Member Variables
     ///@{
+
+    
     ///@}
     ///@name Member Variables
     ///@{
@@ -1156,10 +1207,46 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     }
 
+ 
     ///@}
+    ///@name Private Inquiry
+    ///@{
 
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+    
 }; /* Class ConstitutiveLaw */
 
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+inline std::istream & operator >>(std::istream& rIStream,
+                                  ConstitutiveLaw& rThis);
+
+/// output stream function
+
+inline std::ostream & operator <<(std::ostream& rOStream,
+                                  const ConstitutiveLaw& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : " << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+ 
+///@}
+///@} addtogroup block
+ 
 template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);

@@ -212,6 +212,8 @@ namespace Kratos
 	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
       }
 
+      ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+      
       //properties to be used in the generation
       int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
       Properties::Pointer properties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
@@ -500,7 +502,7 @@ namespace Kratos
 
 			  MeshDataTransferUtilities TransferUtilities;
 
-			  TransferUtilities.InitializeBoundaryData(p_cond, *(mrRemesh.Transfer)); 
+			  TransferUtilities.InitializeBoundaryData(p_cond, *(mrRemesh.Transfer), rCurrentProcessInfo); 
 
 			  WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
 			  MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );

@@ -66,49 +66,61 @@ namespace Kratos
 	//*******************************************************************************************
 	//*******************************************************************************************
 
-        void MeshDataTransferUtilities::InitializeBoundaryData(Condition::Pointer rCondition,
-							       const TransferParameters& rTransferVariables)
+        void MeshDataTransferUtilities::InitializeBoundaryData(Condition::Pointer rCurrentCondition,
+							       const TransferParameters& rTransferVariables,
+							       const ProcessInfo& rCurrentProcessInfo)
 	{
 
 	  KRATOS_TRY
 
-	  unsigned int StrainSize;
-	  const unsigned int dimension = rCondition->GetGeometry().WorkingSpaceDimension();
+	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
+
+
+	  BoundaryVariables rVariables;
+	  rVariables.Initialize(dimension,voigt_size);
+
+	  this->TransferInitialBoundaryData(rCurrentCondition, rTransferVariables, rVariables);
+
+	  KRATOS_CATCH( "" )
+
+	}
+
+
+  	//*******************************************************************************************
+	//*******************************************************************************************
+
+        void MeshDataTransferUtilities::TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
+								    const TransferParameters& rTransferVariables,
+								    BoundaryVariables& rVariables)
+	{
+
+	  KRATOS_TRY
+
 	  
-	  if ( dimension == 2 )
-	    StrainSize = 3;
-	  else
-	    StrainSize = 6;
-
-
-	  double DoubleVariable = 0;
-	  array_1d<double, 3> Array1DVariable;
-	  Vector VectorVariable = ZeroVector(StrainSize);
-	  Matrix MatrixVariable = identity_matrix<double>( dimension );
-
-
 	  //double
 	  for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
 	    {
-	      rCondition->SetValue(*(rTransferVariables.DoubleVariables[i]),DoubleVariable);
+	      rCurrentCondition->SetValue(*(rTransferVariables.DoubleVariables[i]),rVariables.DoubleVariable);
 	    }
+
 	  
 	  //array_1d
 	  for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
 	    {
-	      rCondition->SetValue(*(rTransferVariables.Array1DVariables[i]),Array1DVariable);
+	      rCurrentCondition->SetValue(*(rTransferVariables.Array1DVariables[i]),rVariables.Array1DVariable);
 	    }
 	  
 	  //Vector
 	  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
 	    {
-	      rCondition->SetValue(*(rTransferVariables.VectorVariables[i]),VectorVariable);
+	      rCurrentCondition->SetValue(*(rTransferVariables.VectorVariables[i]),rVariables.VectorVariable);
 	    }
 	  
 	  //Matrix
 	  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
 	    {
-	      rCondition->SetValue(*(rTransferVariables.MatrixVariables[i]),MatrixVariable);
+	      rCurrentCondition->SetValue(*(rTransferVariables.MatrixVariables[i]),rVariables.MatrixVariable);
 	    }
 	  
 		    
@@ -116,8 +128,85 @@ namespace Kratos
 
 	}
 
+  	//*******************************************************************************************
+	//*******************************************************************************************
 
+        void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element::Pointer rCurrentElement,
+								    Condition::Pointer rCurrentCondition,
+								    const TransferParameters& rTransferVariables,
+								    BoundaryVariables& rVariables,
+								    BoundaryVariableArrays& rVariableArrays,
+								    const ProcessInfo& rCurrentProcessInfo)
+	{
+	  KRATOS_TRY
 
+	  //double	    
+	  for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
+	    {
+	      rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),rVariableArrays.DoubleVariableArray,rCurrentProcessInfo);
+
+	      //if there is more than one integration point, an average or an interpolation is need		
+	      rVariables.DoubleVariable = rVariableArrays.DoubleVariableArray[0];
+	      for(unsigned int j=1; j<rVariableArrays.array_size; j++)
+		{
+		  rVariables.DoubleVariable  += rVariableArrays.DoubleVariableArray[j];
+		}
+	      rVariables.DoubleVariable *= (1.0/double(rVariableArrays.array_size));
+	      rCurrentCondition->SetValue(*(rTransferVariables.DoubleVariables[i]),rVariables.DoubleVariable);
+	    }
+		    
+	  //array_1d
+	  for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
+	    {
+	      rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),rVariableArrays.Array1DVariableArray,rCurrentProcessInfo);
+
+	      //if there is more than one integration point, an average or an interpolation is need		
+	      rVariables.Array1DVariable = rVariableArrays.Array1DVariableArray[0];
+	      for(unsigned int j=1; j<rVariableArrays.array_size; j++)
+		{
+		  rVariables.Array1DVariable += rVariableArrays.Array1DVariableArray[j];
+		}
+	      rVariables.Array1DVariable *= (1.0/double(rVariableArrays.array_size));
+	      rCurrentCondition->SetValue(*(rTransferVariables.Array1DVariables[i]),rVariables.Array1DVariable);
+	    }
+		      
+	  //Vector
+	  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
+	    {
+			  
+	      rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),rVariableArrays.VectorVariableArray,rCurrentProcessInfo);
+
+	      //if there is more than one integration point, an average or an interpolation is need		
+	      rVariables.VectorVariable = rVariableArrays.VectorVariableArray[0];
+	      for(unsigned int j=1; j<rVariableArrays.array_size; j++)
+		{
+		  rVariables.VectorVariable  += rVariableArrays.VectorVariableArray[j];
+		}
+	      rVariables.VectorVariable *= (1.0/double(rVariableArrays.array_size));
+	      rCurrentCondition->SetValue(*(rTransferVariables.VectorVariables[i]),rVariables.VectorVariable);
+	    }
+
+	  //Matrix
+	  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
+	    {
+	      
+	      rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),rVariableArrays.MatrixVariableArray,rCurrentProcessInfo);
+      
+	      //if there is more than one integration point, an average or an interpolation is need		
+	      rVariables.MatrixVariable = rVariableArrays.MatrixVariableArray[0];
+	      for(unsigned int j=1; j<rVariableArrays.array_size; j++)
+		{
+		  rVariables.MatrixVariable  += rVariableArrays.MatrixVariableArray[i];
+		}
+	      rVariables.MatrixVariable *= (1.0/double(rVariableArrays.array_size));
+	      rCurrentCondition->SetValue(*(rTransferVariables.MatrixVariables[i]),rVariables.MatrixVariable);
+	    }
+	  
+    
+	  KRATOS_CATCH( "" )
+
+	}
+  
 	//*******************************************************************************************
 	//*******************************************************************************************
 
@@ -159,64 +248,90 @@ namespace Kratos
 	//*******************************************************************************************
 	//*******************************************************************************************
 
+        void MeshDataTransferUtilities::TransferBoundaryData(Element::Pointer rCurrentElement, 
+							     Condition::Pointer rCurrentCondition, 
+							     const TransferParameters& rTransferVariables,
+							     const ProcessInfo& rCurrentProcessInfo)
+	{
+	  KRATOS_TRY
+
+	  const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+	  const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
+
+	  BoundaryVariables Variables;
+	  Variables.Initialize(dimension,voigt_size);
+
+
+	  //initialize to zero
+	  this->TransferInitialBoundaryData(rCurrentCondition,rTransferVariables,Variables);
+	  
+	  
+	  unsigned int integration_points_number = (rCurrentElement->pGetGeometry())->IntegrationPointsNumber(rCurrentElement->GetIntegrationMethod());
+
+	  BoundaryVariableArrays VariableArrays;
+	  VariableArrays.Initialize(integration_points_number);
+
+	  //transfer element values to condition
+	  this->TransferCurrentBoundaryData(rCurrentElement,rCurrentCondition,rTransferVariables,Variables,VariableArrays,rCurrentProcessInfo);
+	  
+
+	  KRATOS_CATCH( "" )
+
+	}
+	    
+	//*******************************************************************************************
+	//*******************************************************************************************
+
         void MeshDataTransferUtilities::TransferBoundaryData(const TransferParameters& rTransferVariables,
 							     ModelPart& rModelPart,
 							     ModelPart::IndexType MeshId)
 	{
 	    KRATOS_TRY
 
+
+	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION))		
+	      {
+		
+		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
+
+		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
+
+		BoundaryVariables Variables;
+		Variables.Initialize(dimension,voigt_size);
+		
+		//initialize to zero all skin master-conditions = (used instead of master-nodes)
+		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
+		  {
+		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);	    
+		  }
+
+		std::cout<<"  TRANSFER DONE "<<std::endl;
+	      }
+	      
+
 	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::MASTER_ELEMENT_TO_MASTER_CONDITION))
 	      {
 		
 		std::cout<<"  TRANSFER MASTER_ELEMENT_TO_MASTER_CONDITION "<<std::endl;
 
-		ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-		unsigned int StrainSize;
-		ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
-		const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-		
-		if ( dimension == 2 )
-		  StrainSize = 3;
-		else
-		  StrainSize = 6;
+		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+		const unsigned int dimension  = rCurrentProcessInfo[DOMAIN_SIZE];
+		const unsigned int voigt_size = dimension * (dimension +1) * 0.5; //axisymmetric, processinfo is needed
 
-		double DoubleVariable = 0;
-		array_1d<double, 3> Array1DVariable;
-		Vector VectorVariable = ZeroVector(StrainSize);
-		Matrix MatrixVariable = identity_matrix<double>( dimension );
+		BoundaryVariables Variables;
+		Variables.Initialize(dimension,voigt_size);
 
 		
-		//initialize to zero all skin master-nodes
+		//initialize to zero all skin master-conditions = (used instead of master-nodes)
 		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 		  {
-		    //double
-		    for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.DoubleVariables[i]),DoubleVariable);
-		      }
-		    
-		    //array_1d
-		    for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.Array1DVariables[i]),Array1DVariable);
-		      }
-		    
-		    //Vector
-		    for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.VectorVariables[i]),VectorVariable);
-		      }
-
-		    //Matrix
-		    for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.MatrixVariables[i]),MatrixVariable);
-		      }
-		    
+		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);	    
 		  }
-		
-	      
 
+		
+		BoundaryVariableArrays VariableArrays;
 
 		//store that information in all body skin if there is a Contact Condition;
 		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
@@ -226,152 +341,27 @@ namespace Kratos
 		      
 		      //std::cout<<" Transfer: Cond: "<<ic->Id()<<" is Active "<<std::endl;
 
-		      Element::ElementType& MasterElement    = ic->GetValue(MASTER_ELEMENTS)[0];
-		      Condition::Pointer MasterCondition     = ic->GetValue(MASTER_CONDITION);
+		      Element::Pointer   MasterElement   = ic->GetValue(MASTER_ELEMENTS)(0).lock();
+		      Condition::Pointer MasterCondition = ic->GetValue(MASTER_CONDITION);
 
-		      unsigned int integration_points_number = (MasterElement.pGetGeometry())->IntegrationPointsNumber(MasterElement.GetIntegrationMethod());
+		      unsigned int integration_points_number = (MasterElement->pGetGeometry())->IntegrationPointsNumber(MasterElement->GetIntegrationMethod());
 		      
-		      std::vector<double> DoubleVariableArray (integration_points_number);
-		      std::vector<array_1d<double,3> > Array1DVariableArray (integration_points_number);
-		      std::vector<Vector> VectorVariableArray (integration_points_number);
-		      std::vector<Matrix> MatrixVariableArray (integration_points_number);
+		      VariableArrays.Initialize(integration_points_number);
 		      
+		      this->TransferCurrentBoundaryData(MasterElement,MasterCondition,rTransferVariables,Variables,VariableArrays,rCurrentProcessInfo);
 		      
-		      //double
-		      for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
-			{
-			  MasterElement.GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),DoubleVariableArray,CurrentProcessInfo);
-
-			  //if there is more than one integration point, an average or an interpolation is need		
-			  DoubleVariable = DoubleVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
-			    {
-			      DoubleVariable  += DoubleVariableArray[j];
-			    }
-			  DoubleVariable *= (1.0/double(integration_points_number));
-			  MasterCondition->SetValue(*(rTransferVariables.DoubleVariables[i]),DoubleVariable);
-			}
-		    
-		      //array_1d
-		      for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
-			{
-			  MasterElement.GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),Array1DVariableArray,CurrentProcessInfo);
-
-			  //if there is more than one integration point, an average or an interpolation is need		
-			  Array1DVariable = Array1DVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
-			    {
-			      Array1DVariable += Array1DVariableArray[j];
-			    }
-			  Array1DVariable *= (1.0/double(integration_points_number));
-			  MasterCondition->SetValue(*(rTransferVariables.Array1DVariables[i]),Array1DVariable);
-			}
-		      
-		      //Vector
-		      for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
-			{
-			
-			  MasterElement.GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),VectorVariableArray,CurrentProcessInfo);
-
-			  //std::cout<<" TRANSFER EN "<<MasterElement.Id()<<" "<<*rTransferVariables.VectorVariables[i]<<" "<<VectorVariableArray[0]<<std::endl;
-
-			  //if there is more than one integration point, an average or an interpolation is need		
-			  VectorVariable = VectorVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
-			    {
-			      VectorVariable  += VectorVariableArray[j];
-			    }
-			  VectorVariable *= (1.0/double(integration_points_number));
-			  MasterCondition->SetValue(*(rTransferVariables.VectorVariables[i]),VectorVariable);
-			}
-
-		      //Matrix
-		      for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
-			{
-
-			  MasterElement.GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),MatrixVariableArray,CurrentProcessInfo);
-
-			  //std::cout<<" TRANSFER EN "<<MasterElement.Id()<<" "<<*rTransferVariables.MatrixVariables[i]<<" "<<MatrixVariableArray[0]<<std::endl;
-			  
-			  //if there is more than one integration point, an average or an interpolation is need		
-			  MatrixVariable = MatrixVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
-			    {
-			      MatrixVariable  += MatrixVariableArray[i];
-			    }
-			  MatrixVariable *= (1.0/double(integration_points_number));
-			  MasterCondition->SetValue(*(rTransferVariables.MatrixVariables[i]),MatrixVariable);
-			}
-		    
-     
 
 		      //std::cout<<" MasterCond: "<<MasterCondition->Id()<<" is Active "<<std::endl;		    
 
 		    }
-		  }
-
-
-		    
-
-	      }
-
-	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION))		
-	      {
-		
-		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
-
-		unsigned int StrainSize;
-		
-		//I don't use condition because when I create the boundary skin I must assign the 
-		//correct geometry to the boundary face, not only some PointsArray
-		//It must be done.
-		ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
-		const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-		
-		if ( dimension == 2 )
-		  StrainSize = 3;
-		else
-		  StrainSize = 6;
-
-
-		double DoubleVariable = 0;
-		array_1d<double, 3> Array1DVariable;
-		Vector VectorVariable = ZeroVector(StrainSize);
-		Matrix MatrixVariable = identity_matrix<double>( dimension );
-
-		
-		//initialize to zero all skin master-nodes
-		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
-		  {
-		    //double
-		    for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.DoubleVariables[i]),DoubleVariable);
-		      }
-		    
-		    //array_1d
-		    for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.Array1DVariables[i]),Array1DVariable);
-		      }
-		    
-		    //Vector
-		    for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.VectorVariables[i]),VectorVariable);
-			//std::cout<<" TRANSFER "<<*rTransferVariables.VectorVariables[i]<<" "<<VectorVariable<<std::endl;
-		      }
-
-		    //Matrix
-		    for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
-		      {
-			ic->SetValue(*(rTransferVariables.MatrixVariables[i]),MatrixVariable);
-			//std::cout<<" TRANSFER "<<*rTransferVariables.MatrixVariables[i]<<" "<<MatrixVariable<<std::endl;
-		      }
 		    
 		  }
 
+
+		std::cout<<"  TRANSFER DONE "<<std::endl;
+
 	      }
+
 
 	  KRATOS_CATCH( "" )
 

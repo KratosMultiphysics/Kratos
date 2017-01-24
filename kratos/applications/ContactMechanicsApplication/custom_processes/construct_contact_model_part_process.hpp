@@ -240,13 +240,11 @@ namespace Kratos
     {
 
       KRATOS_TRY
-    
-      //*******************************************************************
-      //set boundary conditions and nodes:
-          
-      rModelPart.Nodes().clear();
-      rModelPart.Elements().clear();
 
+      //check if the construction is needed
+      unsigned int count_nodes = 0;
+      unsigned int count_conditions = 0;
+     
       for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
 	{
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
@@ -254,24 +252,75 @@ namespace Kratos
 	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
 	    {
 	      if( i_node->Is(BOUNDARY) )
-		rModelPart.AddNode(*(i_node.base()), mMeshId);
+		count_nodes+=1;
 	    }
 
 	  for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin(mMeshId) ; i_cond != i_mp.ConditionsEnd(mMeshId) ; i_cond++)
 	    {
 	      if( i_cond->Is(BOUNDARY) && i_cond->IsNot(CONTACT) )
-		rModelPart.AddCondition(*(i_cond.base()), mMeshId);
+		count_conditions+=1;
 	    }
 	}
-     
-      //Sort
-      rModelPart.Nodes().Sort();
-      rModelPart.Conditions().Sort();     
+
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId); i_cond!= rModelPart.ConditionsEnd(mMeshId); i_cond++)
+	{
+	  if(i_cond->Is(CONTACT))
+	    count_conditions+=1;
+	}
       
-      //Unique
-      rModelPart.Nodes().Unique();
-      rModelPart.Conditions().Unique();
-  
+      bool build_is_needed = false;
+      if( count_nodes != rModelPart.Nodes().size() || count_conditions != rModelPart.Conditions().size() )
+	build_is_needed = true;
+
+      if( build_is_needed ){
+
+	std::cout<<"   REBUILD "<<std::endl;
+	//*******************************************************************
+	//set boundary conditions and nodes:
+          
+	rModelPart.Nodes().clear();
+	rModelPart.Elements().clear();
+      
+	ModelPart::ConditionsContainerType PreservedConditions;
+	PreservedConditions.swap(rModelPart.Conditions());
+          
+      
+	for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
+	  {
+	    ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
+
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
+	      {
+		if( i_node->Is(BOUNDARY) )
+		  rModelPart.AddNode(*(i_node.base()), mMeshId);
+	      }
+
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin(mMeshId) ; i_cond != i_mp.ConditionsEnd(mMeshId) ; i_cond++)
+	      {
+		if( i_cond->Is(BOUNDARY) && i_cond->IsNot(CONTACT) )
+		  rModelPart.AddCondition(*(i_cond.base()), mMeshId);
+	      }
+	  }
+
+	//add contact conditions
+	for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
+	  {
+	    if(i_cond->Is(CONTACT)){
+	      rModelPart.AddCondition(*(i_cond.base()), mMeshId);
+	    }
+	  }
+      
+      
+	//Sort
+	rModelPart.Nodes().Sort();
+	rModelPart.Conditions().Sort();     
+      
+	//Unique
+	rModelPart.Nodes().Unique();
+	rModelPart.Conditions().Unique();
+
+      }
+      
       if( mEchoLevel > 0 )
 	std::cout<<"   CONTACT MODEL_PART: (NODES:"<<rModelPart.NumberOfNodes()<<" CONDITIONS:"<<rModelPart.NumberOfConditions()<<") ]; "<<std::endl;
 

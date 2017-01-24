@@ -579,19 +579,20 @@ double &  HyperElastic3DLaw::CalculateDomainTemperature (const MaterialResponseV
 {
   
     //1.-Temperature from nodes
-    // const GeomteryType& DomainGeometry = rElasticVariables.GetElementGeometry();
-    // const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
-    // const unsigned int number_of_nodes = DomainGeometry.size();
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
     
-    // rTemperature=0;
-       
-    // for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    //   {
-    // 	rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
-    //   }
+    rTemperature=0;
+     
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      {
+	if( DomainGeometry[j].SolutionStepsDataHas(TEMPERATURE) )
+	  rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
+      }
 
     //2.-Temperature not included
-    rTemperature = 0;
+    //rTemperature = 0;
 
     return rTemperature;
 }

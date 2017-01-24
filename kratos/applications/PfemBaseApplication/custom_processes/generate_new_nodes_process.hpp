@@ -261,7 +261,6 @@ private:
 
       VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
-      //unsigned int id = mrRemesh.MaxNodeIdNumber + 1;
       unsigned int id = ModelerUtilities::GetMaxNodeId(rModelPart) + 1;
 
       ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
@@ -292,8 +291,8 @@ private:
 	      if(mrRemesh.InputInitializedFlag){
 		mrRemesh.NodalPreIds.push_back( id );
 		pNode->SetId(i+1);
-		if( id > mrRemesh.MaxNodeIdNumber )
-		  mrRemesh.MaxNodeIdNumber = id;		
+		if( id > mrRemesh.NodeMaxId )
+		  mrRemesh.NodeMaxId = id;		
 	      }
       
 	      //giving model part variables list to the node

@@ -473,6 +473,17 @@ void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessIn
   CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
   CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
+  MeshDataTransferUtilities::TransferParameters TransferVariables;
+  TransferVariables.SetVariable(CAUCHY_STRESS_VECTOR);
+  TransferVariables.SetVariable(DEFORMATION_GRADIENT);
+  
+  MeshDataTransferUtilities DataTransfer;
+  Element::Pointer   MasterElement   = GetValue(MASTER_ELEMENTS)(0).lock();
+  Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+  DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
+  
+
+  
   KRATOS_CATCH( "" )
 }
 

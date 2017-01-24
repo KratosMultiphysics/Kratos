@@ -65,7 +65,7 @@ public:
     /// Pointer definition of TriGenCDT
     KRATOS_CLASS_POINTER_DEFINITION( TetrahedralMesh3DModeler );
 
-    typedef ModelerUtilities::InfoParameters                     InfoParametersType;
+    typedef ModelerUtilities::MeshingInfoParameters              InfoParametersType;
     typedef ModelerUtilities::MeshingParameters               MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters               RefineParametersType;
 

@@ -185,36 +185,36 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
- 
-  // bool ModelerUtilities::CheckSubdomain(Geometry<Node<3> >& rGeometry)
-  // {
+  //*******************************************************************************************
+  //*******************************************************************************************
 
-  //   KRATOS_TRY
+  double ModelerUtilities::ComputeModelPartVolume(ModelPart& rModelPart)
+  {
+    KRATOS_TRY
+      
+    const unsigned int dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    double ModelPartVolume = 0;
+    if( dimension ==2 ){
+      
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+	{
+	  ModelPartVolume += i_elem->GetGeometry().Area();
+	}
+    }
+    else{ //dimension == 3
+      
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+	{
+	  ModelPartVolume += i_elem->GetGeometry().Volume();
+	}
+     }
 
-  //   unsigned int DomainLabel = rGeometry[0].GetValue(DOMAIN_LABEL); //DOMAIN_LABEL must be set as nodal variable
-      
-  //   int samesbd=0;
-      
-  //   const unsigned int size = rGeometry.size();
+    return ModelPartVolume;
     
-  //   for(unsigned int i=0; i<size; i++)
-  //     {
-  // 	if(DomainLabel!=rGeometry[i].GetValue(DOMAIN_LABEL))
-  // 	  {
-  // 	    samesbd++;
-  // 	  }
-  //     }
-      
-      
-  //   if(samesbd>0)
-  //     return false;
-
-  //   return true;
-
-  //   KRATOS_CATCH( "" )
-  // }
+    KRATOS_CATCH(" ")
   
-
+  }
+  
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -1379,7 +1379,7 @@ namespace Kratos
 			
       for(unsigned int i=0; i<lpofa.size2();i++)
 	{
-	  // 	  std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
+	  //std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
 	  std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 		
 	}
@@ -1602,8 +1602,8 @@ namespace Kratos
 
     if(!rMeshingVariables.InputInitializedFlag){
 
-      rMeshingVariables.MaxNodeIdNumber = 0;
-      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
+      rMeshingVariables.NodeMaxId = 0;
+      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints+1)
 	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
       
       std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
@@ -1621,8 +1621,8 @@ namespace Kratos
 	if(!rMeshingVariables.InputInitializedFlag){
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
 	  (nodes_begin + i)->SetId(direct);
-	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.MaxNodeIdNumber)
-	    rMeshingVariables.MaxNodeIdNumber = rMeshingVariables.NodalPreIds[direct];
+	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.NodeMaxId)
+	    rMeshingVariables.NodeMaxId = rMeshingVariables.NodalPreIds[direct];
 	}
 	(nodes_begin + i)->Reset(INTERFACE); 
 	(nodes_begin + i)->Reset(FREE_SURFACE);
