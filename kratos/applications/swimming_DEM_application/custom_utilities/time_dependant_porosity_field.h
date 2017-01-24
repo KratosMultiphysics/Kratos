@@ -18,6 +18,8 @@ class TimeDependantPorosityField: public RealField
 
      KRATOS_CLASS_POINTER_DEFINITION(TimeDependantPorosityField);
 
+     using RealField::Evaluate;
+
       /// Default constructor.
 
      TimeDependantPorosityField(const double& max_time): mC(2 * max_time){}
