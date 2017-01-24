@@ -172,7 +172,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
         return Element::Pointer(new ComputeGradientFortin2012(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -219,7 +219,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ComputeGradientFortin2012 #" << this->Id();
@@ -227,7 +227,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeGradientFortin2012" << TDim << "D";
     }
@@ -292,16 +292,6 @@ private:
     ///@{
 
     friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    }
 
     ///@}
     ///@name Private Operators
