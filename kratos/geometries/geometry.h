@@ -491,7 +491,7 @@ public:
      */
     virtual double Length() const {
       KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
     /** This method calculate and return area or surface area of
@@ -508,7 +508,7 @@ public:
      */
     virtual double Area() const {
       KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
     /** This method calculate and return volume of this
@@ -523,7 +523,7 @@ public:
      */
     virtual double Volume() const {
       KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
     /** This method calculate and return length, area or volume of
@@ -539,37 +539,37 @@ public:
      */
     virtual double DomainSize() const {
       KRATOS_ERROR << "Calling base class 'DomainSize' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
-    /** This method calculates and returns the minimum edge
-     * length of the geometry
+    /** This method calculates and returns the minimum edge.
+     * length of the geometry.
      *
-     * @return double value with the minimum edge length
+     * @return double value with the minimum edge length.
      *
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
       KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
-    /** This method calculates and returns the maximum edge
-     * length of the geometry
+    /** This method calculates and returns the maximum edge.
+     * length of the geometry.
      *
-     * @return double value with the maximum edge length
+     * @return double value with the maximum edge length.
      *
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
     virtual double MaxEdgeLength() const {
       KRATOS_ERROR << "Calling base class 'MaxEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
     }
 
-    /** This method calculates and returns the average edge
-     * length of the geometry
+    /** This method calculates and returns the average edge.
+     * length of the geometry.
      *
      * @return double value with the average edge length
      *
@@ -578,7 +578,31 @@ public:
      */
     virtual double AverageEdgeLength() const {
       KRATOS_ERROR << "Calling base class 'AverageEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0;
+      return 0.0;
+    }
+
+    /** Calculates the circumradius of the geometry.
+     * Calculates the circumradius of the geometry.
+     *
+     * @return Circumradius of the geometry.
+     *
+     * @see Inradius()
+     */
+    virtual double Circumradius() const {
+      KRATOS_ERROR << "Calling base class 'Circumradius' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the inradius of the geometry.
+     * Calculates the inradius of the geometry.
+     *
+     * @return Inradius of the geometry.
+     *
+     * @see Circumradius()
+     */
+    virtual double Inradius() const {
+      KRATOS_ERROR << "Calling base class 'Inradius' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
     }
 
     /** Test the intersection with another geometry
@@ -613,7 +637,12 @@ public:
     //   Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
     // }
 
-    //template<class TDimension, class TPointType>
+    /** Calculates the boundingbox of the geometry.
+     * Calculates the boundingbox of the geometry.
+     *
+     * @param rLowPoint  Lower point of the boundingbox.
+     * @param rHighPoint Higher point of the boundingbox.
+     */
     virtual void BoundingBox( TPointType& rLowPoint, TPointType& rHighPoint ) const
     {
         rHighPoint         = this->GetPoint( 0 );
@@ -1942,79 +1971,112 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
+    /** Returns geometry information as a string.
+     * Returns geometry information as a string.
+     *
+     * @return String contains information about this geometry.
+     *
+     * @see Name()
+     */
+    virtual std::string Info() const {
+      std::stringstream buffer;
+      buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << Dimension()
-               << " dimensional geometry in "
-               << WorkingSpaceDimension()
-               << "D space";
-        return buffer.str();
+      return buffer.str();
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
-    virtual void PrintInfo( std::ostream& rOStream ) const
-    {
-        rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    /** Returns the name of the geometry as a string.
+     * Returns the name of the geometry as a string.
+     *
+     * Note: compiler's RVO should optimize this code automatically.
+     *
+     * @return String with the name of the geometry.
+     *
+     * @see Info()
+     */
+    virtual std::string Name() const {
+      std::string geometryName = "BaseGeometry";
+      KRATOS_ERROR << "Base geometry does not have a name." << std::endl;
+      return geometryName;
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
+    /** Prints information about this object.
+     * Prints information about this object.
+     *
+     * @param rOStream Output Stream.
+     *
+     * @see PrintName()
+     * @see PrintData()
+     */
+    virtual void PrintInfo(std::ostream& rOStream) const {
+      rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    }
 
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
-    virtual void PrintData( std::ostream& rOStream ) const
-    {
-        if ( mpGeometryData )
-            mpGeometryData->PrintData( rOStream );
+    /** Prints the name of the geometry.
+     * Prints the name of the geometry.
+     *
+     * @param rOStream Output Stream.
+     *
+     * @see PrintInfo()
+     * @see PrintData()
+     */
+    virtual void PrintName(std::ostream& rOstream) const {
+      rOstream << Name() << std::endl;
+    }
 
+    /** Print geometry's data into given stream.
+     * Prints it's points by the order they stored in the
+     * geometry and then center point of geometry.
+     *
+     * @param rOStream Output Stream.
+     *
+     * @see PrintInfo()
+     * @see PrintName()
+     */
+    virtual void PrintData( std::ostream& rOStream ) const {
+      if(mpGeometryData) {
+        mpGeometryData->PrintData( rOStream );
+      }
+
+      rOStream << std::endl;
+      rOStream << std::endl;
+
+      for (unsigned int i = 0; i < this->size(); ++i) {
+        rOStream << "\tPoint " << i + 1 << "\t : ";
+        (*this)[i].PrintData(rOStream);
         rOStream << std::endl;
+      }
 
-        rOStream << std::endl;
+      rOStream << "\tCenter\t : ";
 
-        for ( unsigned int i = 0 ; i < this->size() ; ++i )
-        {
-            rOStream << "    Point " << i + 1 << "\t : ";
-            ( *this )[i].PrintData( rOStream );
-            rOStream << std::endl;
-        }
+      Center().PrintData( rOStream );
 
-        rOStream << "    Center\t : ";
+      rOStream << std::endl;
+      rOStream << std::endl;
+      rOStream << "\tLength\t : " << Length() << std::endl;
+      rOStream << "\tArea\t : " << Area() << std::endl;
 
-        Center().PrintData( rOStream );
-        rOStream << std::endl;
-        rOStream << std::endl;
-        rOStream << "    Length\t : " << Length() << std::endl;
-        rOStream << "    Area\t : " << Area() << std::endl;
-        rOStream << "    Volume\t : " << Volume();
-//    for(unsigned int i = 0 ; i < mPoints.size() ; ++i)
-//      {
-//        rOStream << "    Point " << i+1 << "\t            : ";
-//        mPoints[i].PrintData(rOStream);
-//        rOStream << std::endl;
-//      }
+      // Charlie: Volume is not defined by every geometry (2D geometries),
+      // which can cause this call to generate a KRATOS_ERROR while trying
+      // to call the base class Volume() method.
 
-//    rOStream << "    Center\t            : ";
-//    Center().PrintData(rOStream);
-//    rOStream << std::endl;
-//    rOStream << std::endl;
-//    rOStream << "    Length                  : " << Length() << std::endl;
-//    rOStream << "    Area                    : " << Area() << std::endl;
-//    rOStream << "    Volume                  : " << Volume();
+      // rOStream << "\tVolume\t : " << Volume() << std::endl;
+
+      // Charlie: Can this be deleted?
+
+      // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
+      //   rOStream << "    Point " << i+1 << "\t            : ";
+      //   mPoints[i].PrintData(rOStream);
+      //   rOStream << std::endl;
+      // }
+      //
+      // rOStream << "    Center\t            : ";
+      // Center().PrintData(rOStream);
+      // rOStream << std::endl;
+      // rOStream << std::endl;
+      // rOStream << "    Length                  : " << Length() << std::endl;
+      // rOStream << "    Area                    : " << Area() << std::endl;
+      // rOStream << "    Volume                  : " << Volume();
     }
 
 
@@ -2103,7 +2165,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-//    static const GeometryData msEmptyGeometryData;
+    // static const GeometryData msEmptyGeometryData;
 
     ///@}
     ///@name Member Variables
