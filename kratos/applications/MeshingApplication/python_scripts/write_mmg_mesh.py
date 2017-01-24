@@ -14,7 +14,8 @@ def ComputeTensorH(d,v,ratio,h,distance_threshold):
         
         coeff1 = 1/(h*h)
         
-        a = ratio + (d/h)*(1-ratio)
+        a = ratio + (d/distance_threshold)*(1-ratio)
+        #a = ratio + (d/h)*(1-ratio)
 
         coeff2 = coeff1/(a*a)
         mystring  = str(coeff1*(1.0-v[0]*v[0]) + coeff2*v[0]*v[0]) + " "
