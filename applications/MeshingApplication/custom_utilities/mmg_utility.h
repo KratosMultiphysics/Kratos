@@ -70,7 +70,7 @@ namespace Kratos
     
     enum elem_geometries_2d {Triangle2D = 0};
     
-    enum cond_geometries_3d {Triangle3D = 0, Quadrilateral = 1};
+    enum cond_geometries_3d {Triangle3D = 0, Quadrilateral3D = 1};
     
     enum elem_geometries_3d {Tetrahedra = 0, Prism = 1};
     
@@ -118,7 +118,10 @@ public:
      * @param Filename: The input name of the 
      */
     
-    MmgUtility(const std::string Filename)
+    MmgUtility(
+        const std::string Filename,
+        const unsigned int echo_level = 3
+        )
         :mStdStringFilename(Filename)
     {       
        mFilename = new char [Filename.length() + 1];
@@ -140,6 +143,33 @@ public:
        mmgSol = NULL;
        
        InitMesh();
+       
+       int verbosityMMG; 
+       if (echo_level == 0)
+       {
+           verbosityMMG = -10;
+       }
+       else if (echo_level == 1)
+       {
+           verbosityMMG = -5;
+       }
+       else if (echo_level == 2)
+       {
+           verbosityMMG = 0;
+       }
+       else if (echo_level == 3)
+       {
+           verbosityMMG = 5;
+       }
+       else
+       {
+           verbosityMMG = 10;
+       }
+       
+       if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) ) // From -10 to 10
+       {
+           exit(EXIT_FAILURE);
+       }
     }
     
     /// Destructor.
@@ -376,6 +406,7 @@ public:
             if (norm > tolerance)
             {
                 gradient_value /= norm;
+//                 if (scalar_value < value_threshold)
                 if (std::abs(scalar_value) < value_threshold)
                 {
                     if (interpolation.find("Constant") != std::string::npos)
@@ -648,7 +679,7 @@ public:
                     ConditionType::Pointer pCondition;
                     unsigned int prop_id;
                     
-                    const cond_geometries_3d index_geom = Quadrilateral;
+                    const cond_geometries_3d index_geom = Quadrilateral3D;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (4);
                     ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[0]);

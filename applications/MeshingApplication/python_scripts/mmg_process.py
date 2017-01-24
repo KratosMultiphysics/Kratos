@@ -28,7 +28,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "interpolation"                    : "Constant",
             "save_external_files"              : false,
             "initialize_nodal_value"           : 1,
-            "max_number_of_searchs"            : 1000
+            "max_number_of_searchs"            : 1000,
+            "echo_level"                       : 3
         }
         """)
         
@@ -53,6 +54,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["gradient_variable"].GetString() )
         self.initialize_nodal_value = self.params["initialize_nodal_value"].GetInt() 
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
+        self.echo_level = self.params["echo_level"].GetInt() 
         
     def ExecuteInitialize(self):          
         self._CreateGradientProcess()
@@ -60,9 +62,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.input_file_name)
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.input_file_name, self.echo_level)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.input_file_name)
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.input_file_name, self.echo_level)
         
         self._ExecuteRefinement()
         
