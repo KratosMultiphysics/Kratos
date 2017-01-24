@@ -352,7 +352,7 @@ public:
     ///@name Information
     ///@{
 
-    /**
+    /** Calculates and returns Length or charactereistic length of this geometry.
      * This method calculates and returns Length or charactereistic
      * length of this geometry depending on it's dimension.
      * For one dimensional geometry for example Line it returns
@@ -371,9 +371,8 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Length() const
-    {
-		return std::sqrt( 2.0 * Area() );
+    virtual double Length() const {
+		  return std::sqrt(2.0 * Area());
     }
 
     /** This method calculates and returns area or surface area of
@@ -391,17 +390,14 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Area() const
-    {
-        //heron formula
-        Vector side_a = ( this->GetPoint( 0 ) - this->GetPoint( 1 ) );
-        double a = MathUtils<double>::Norm3( side_a );
-        Vector side_b = ( this->GetPoint( 1 ) - this->GetPoint( 2 ) );
-        double b = MathUtils<double>::Norm3( side_b );
-        Vector side_c = ( this->GetPoint( 2 ) - this->GetPoint( 0 ) );
-        double c = MathUtils<double>::Norm3( side_c );
-        double s = ( a + b + c ) / 2;
-        return( sqrt( s*( s - a )*( s - b )*( s - c ) ) );
+    virtual double Area() const {
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+      double s = (a+b+c) / 2.0;
+
+      return std::sqrt(s*(s-a)*(s-b)*(s-c));
     }
 
     /** This method calculates and returns length, area or volume of
@@ -418,10 +414,11 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double DomainSize() const
-    {
-        return( Area() );
+    virtual double DomainSize() const {
+      return Area();
     }
+
+    /// Class Interface
 
     /** This method calculates and returns the minimum edge
      * length of the geometry
@@ -432,19 +429,11 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-
-      return std::min({l01, l12, l20});
+      return CalculateMinEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+      );
     }
 
     /** This method calculates and returns the maximum edge
@@ -456,19 +445,11 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MaxEdgeLength() const {
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-
-      return std::max({l01, l12, l20});
+      return CalculateMaxEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+      );
     }
 
     /** This method calculates and returns the average edge
@@ -480,26 +461,134 @@ public:
      * @see MaxEdgeLength()
      */
     virtual double AverageEdgeLength() const {
-      const double onethird = 1.0/3.0;
-
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-
-      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 * onethird );
+      return CalculateAvgEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+      );
     }
+
+    /** Calculates the circumradius of the geometry.
+     * Calculates the circumradius of the geometry.
+     *
+     * @return Circumradius of the geometry.
+     *
+     * @see Inradius()
+     */
+    virtual double Circumradius() const {
+      return CalculateCircumradius(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+      );
+    }
+
+    /** Calculates the inradius of the geometry.
+     * Calculates the inradius of the geometry.
+     *
+     * @return Inradius of the geometry.
+     *
+     * @see Circumradius()
+     */
+    virtual double Inradius() const {
+      return CalculateInradius(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+      );
+    }
+
+    /// Quality functions
+
+    /** Calculates the inradius to circumradius quality metric.
+     * Calculates the inradius to circumradius quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * @formulae $$ \frac{r_K}{\ro_K} $$
+     *
+     * @return The inradius to circumradius quality metric.
+     */
+    virtual double InradiusToCircumradiusQuality() const {
+      constexpr double normFactor = 1.0;
+
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+      return normFactor * CalculateCircumradius(a,b,c) / CalculateCircumradius(a,b,c);
+    };
+
+    /** Calculates the inradius to longest edge quality metric.
+     * Calculates the inradius to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * @formulae $$ \frac{r_K}{h_{max}} $$
+     *
+     * @return The inradius to longest edge quality metric.
+     */
+    virtual double InradiusToLongestEdgeQuality() const {
+      constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+      return normFactor * CalculateInradius(a,b,c) / CalculateMaxEdgeLength(a,b,c);
+    }
+
+    /** Calculates the minimum to maximum edge length quality metric.
+     * Calculates the minimum to maximum edge length quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
+     *
+     * @return The Inradius to Circumradius Quality metric.
+     */
+    virtual double AreaToEdgeLengthRatio() const {
+      constexpr double normFactor = 1.0;
+
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+      return normFactor * Area() / (a*a+b*b+c*c);
+    }
+
+    /** Calculates the shortest altitude to edge length quality metric.
+     * Calculates the shortest altitude to edge length quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     * -1 -> Optimal value with inverted volume.
+     *
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
+     *
+     * @return The shortest altitude to edge length quality metric.
+     */
+    virtual double ShortestAltitudeToEdgeLengthRatio() const {
+      constexpr double normFactor = 1.0;
+
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+
+      // Shortest altitude is the one intersecting the largest base.
+      double base = CalculateMaxEdgeLength(a,b,c);
+
+      return normFactor * (Area() * 2 / base ) / std::sqrt((a*a+b*b+c*c));
+    }
+
 
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
+    // Charlie: It appears to be wrong for 3D
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
     {
         PointLocalCoordinates( rResult, rPoint );
@@ -1543,6 +1632,73 @@ private:
         };
         return shape_functions_local_gradients;
     }
+
+    /** Implements the calculus of the minimum edge length
+     * Implements the calculus of the minimum edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     *
+     * @return   The minimum edge length of the geometry with edges a,b,c
+     */
+    inline double CalculateMinEdgeLength(const double a, const double b, const double c) const {
+      return std::min({a, b, c});
+    }
+
+    /** Implements the calculus of the maximum edge length
+     * Implements the calculus of the maximum edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     *
+     * @return   The maximum edge length of the geometry with edges a,b,c
+     */
+    inline double CalculateMaxEdgeLength(const double a, const double b, const double c) const {
+      return std::max({a, b, c});
+    }
+
+    /** Implements the calculus of the average edge length
+     * Implements the calculus of the average edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     *
+     * @return   The average edge length of the geometry with edges a,b,c
+     */
+    inline double CalculateAvgEdgeLength(const double a, const double b, const double c) const {
+      constexpr double onethird = 1.0 / 3.0;
+      return (a+b+c) * onethird;
+    }
+
+    /** Implements the calculus of the circumradius
+     * Implements the calculus of the circumradius given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     *
+     * @return   The circumradius of the geometry with edges a,b,c
+     */
+    inline double CalculateCircumradius(const double a, const double b, const double c) const {
+      return (a*b*c) / std::sqrt((a+b+c) * (b+c-a) * (c+a-b) * (a+b-c));
+    }
+
+    /** Implements the calculus of the inradius
+     * Implements the calculus of the inradius given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     *
+     * @return   The inradius of the geometry with edges a,b,c
+     */
+    inline double CalculateInradius(const double a, const double b, const double c) const {
+      return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
+    }
+
 
     ///@}
     ///@name Private  Access

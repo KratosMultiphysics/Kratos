@@ -159,7 +159,6 @@ public:
      */
     typedef Matrix MatrixType;
 
-
     /**
      * Life Cycle
      */
@@ -315,7 +314,6 @@ public:
         return rResult;
     }
 
-
     /**
      * Informations
      */
@@ -360,7 +358,6 @@ public:
         return this->Volume();
     }
 
-
     /**
      * This method calculate and return length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
@@ -375,8 +372,8 @@ public:
      * :TODO: might be necessary to reimplement
      */
 
-    virtual double Volume() const //closed formula for the linear triangle
-    {
+    virtual double Volume() const {
+        //closed formula for the linear triangle
         const double onesixth = 1.0/6.0;
 
         const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
@@ -400,10 +397,8 @@ public:
         return  detJ*onesixth;
     }
 
-    virtual double DomainSize() const
-    {
-
-        return Volume();
+    virtual double DomainSize() const {
+      return Volume();
     }
 
     /** This method calculates and returns the minimum edge
@@ -415,26 +410,14 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-      auto e03 = rP0 - rP3;
-      auto e13 = rP1 - rP3;
-      auto e23 = rP2 - rP3;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
-      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
-      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
-
-      return std::min({l01, l12, l20, l03, l13, l23});
+      return CalculateMinEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
+      );
     }
 
     /** This method calculates and returns the maximum edge
@@ -446,26 +429,14 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MaxEdgeLength() const {
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-      auto e03 = rP0 - rP3;
-      auto e13 = rP1 - rP3;
-      auto e23 = rP2 - rP3;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
-      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
-      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
-
-      return std::max({l01, l12, l20, l03, l13, l23});
+      return CalculateMaxEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
+      );
     }
 
     /** This method calculates and returns the average edge
@@ -477,29 +448,48 @@ public:
      * @see MaxEdgeLength()
      */
     virtual double AverageEdgeLength() const {
-      const double onesixth = 1.0/6.0;
-
-      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
-      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
-      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
-      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
-
-      auto e01 = rP0 - rP1;
-      auto e12 = rP1 - rP2;
-      auto e20 = rP2 - rP0;
-      auto e03 = rP0 - rP3;
-      auto e13 = rP1 - rP3;
-      auto e23 = rP2 - rP3;
-
-      double l01 = std::sqrt(e01[0] * e01[0] + e01[1] * e01[1] + e01[2] * e01[2]);
-      double l12 = std::sqrt(e12[0] * e12[0] + e12[1] * e12[1] + e12[2] * e12[2]);
-      double l20 = std::sqrt(e20[0] * e20[0] + e20[1] * e20[1] + e20[2] * e20[2]);
-      double l03 = std::sqrt(e03[0] * e03[0] + e03[1] * e03[1] + e03[2] * e03[2]);
-      double l13 = std::sqrt(e13[0] * e13[0] + e13[1] * e13[1] + e13[2] * e13[2]);
-      double l23 = std::sqrt(e23[0] * e23[0] + e23[1] * e23[1] + e23[2] * e23[2]);
-
-      return std::sqrt( l01 * l01 + l12 * l12 + l20 * l20 + l03 * l03 + l13 * l13 + l23 * l23 * onesixth );
+      return CalculateAvgEdgeLength(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
+      );
     }
+
+    /** This method calculates the circumradius of the
+     * geometry
+     *
+     * @return The circumradius of the geometry
+     */
+    virtual double Circumradius() const {
+      return CalculateCircumradius(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
+      );
+    }
+
+    /** This method calculates the inradius of the
+     * geometry
+     *
+     * @return The inradius of the geometry
+     */
+    virtual double Inradius() const {
+      return CalculateInradius(
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
+      );
+    }
+
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -526,6 +516,7 @@ public:
 
         return rResult;
     }
+
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
@@ -539,8 +530,6 @@ public:
                         return true;
         return false;
     }
-
-
 
     /** This method gives you number of all edges of this
     geometry.
@@ -614,7 +603,6 @@ public:
         return faces;
     }
 
-
     //Connectivities of faces required
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
@@ -626,6 +614,7 @@ public:
         NumberNodesInFaces[3]=3;
 
     }
+
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
@@ -651,8 +640,6 @@ public:
         NodesInFaces(3,3)=1;
 
     }
-
-
 
     /**
      * Shape Function
@@ -711,6 +698,7 @@ public:
 
         return rResult;
     }
+
     /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
@@ -795,6 +783,7 @@ public:
         return rResult;
     }
 
+
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
@@ -842,9 +831,9 @@ public:
         for(unsigned int i=0; i<integration_points_number; i++)
             determinants_of_jacobian[i] = detJ;
 
-//        Volume = detJ*0.1666666666666666666667;
+        // Volume = detJ*0.1666666666666666666667;
 
-        //workaround by riccardo
+        // Workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
             rResult.resize(integration_points_number,false);
@@ -855,8 +844,6 @@ public:
 
         return rResult;
     }
-
-
 
 
     /// detect if two tetrahedra are intersected
@@ -1076,8 +1063,6 @@ public:
         }
 
     }
-
-
 
     /**
      * Input and output
@@ -1337,6 +1322,88 @@ private:
             }
         };
         return shape_functions_local_gradients;
+    }
+
+    /** Implements the calculus of the minimum edge length
+     * Implements the calculus of the minimum edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     * @param  d Length of the edge d
+     * @param  e Length of the edge e
+     * @param  f Length of the edge f
+     *
+     * @return   The minimum edge length of the geometry with edges a,b,c,d,e,f
+     */
+    inline double CalculateMinEdgeLength(double a, double b, double c, double d, double e, double f) const {
+      return std::min({a, b, c, d, e, f});
+    }
+
+    /** Implements the calculus of the maximum edge length
+     * Implements the calculus of the maximum edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     * @param  d Length of the edge d
+     * @param  e Length of the edge e
+     * @param  f Length of the edge f
+     *
+     * @return   The maximum edge length of the geometry with edges a,b,c,d,e,f
+     */
+    inline double CalculateMaxEdgeLength(double a, double b, double c, double d, double e, double f) const {
+      return std::max({a, b, c, d, e, f});
+    }
+
+    /** Implements the calculus of the average edge length
+     * Implements the calculus of the average edge length given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     * @param  d Length of the edge d
+     * @param  e Length of the edge e
+     * @param  f Length of the edge f
+     *
+     * @return   The average edge length of the geometry with edges a,b,c,d,e,f
+     */
+    inline double CalculateAvgEdgeLength(double a, double b, double c, double d, double e, double f) const {
+      return std::sqrt((a + b + c + d + e + f) * 1.0/6.0);
+    }
+
+    /** Implements the calculus of the circumradius
+     * Implements the calculus of the circumradius given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     * @param  d Length of the edge d
+     * @param  e Length of the edge e
+     * @param  f Length of the edge f
+     *
+     * @return   The circumradius of the geometry with edges a,b,c
+     */
+    inline double CalculateCircumradius(double a, double b, double c, double d, double e, double f) const {
+      KRATOS_ERROR << "Inradius function hasn't been implemented yet" << std::endl;
+      return 0.0;
+    }
+
+    /** Implements the calculus of the inradius
+     * Implements the calculus of the inradius given the length of the geometry edges.
+     *
+     * @param  a Length of the edge a
+     * @param  b Length of the edge b
+     * @param  c Length of the edge c
+     * @param  d Length of the edge d
+     * @param  e Length of the edge e
+     * @param  f Length of the edge f
+     *
+     * @return   The inradius of the geometry with edges a,b,c
+     */
+    inline double CalculateInradius(double a, double b, double c, double d, double e, double f) const {
+      KRATOS_ERROR << "Inradius function hasn't been implemented yet" << std::endl;
+      return 0.0;
     }
 
 
