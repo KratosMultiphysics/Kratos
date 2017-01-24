@@ -78,11 +78,9 @@ void  AddCustomStrategiesToPython()
 	//base types
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 	typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-	typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 	typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 	//custom scheme types
-	typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticSchemeType;
 	typedef ResidualBasedIncrementalUpdateStaticSIMPScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticSIMPSchemeType;
 
 
