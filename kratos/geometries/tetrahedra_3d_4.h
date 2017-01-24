@@ -1369,7 +1369,7 @@ private:
      * @return   The average edge length of the geometry with edges a,b,c,d,e,f
      */
     inline double CalculateAvgEdgeLength(double a, double b, double c, double d, double e, double f) const {
-      return std::sqrt((a + b + c + d + e + f) * 1.0/6.0);
+      return (a + b + c + d + e + f) * 1.0/6.0;
     }
 
     /** Implements the calculus of the circumradius
