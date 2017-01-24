@@ -143,7 +143,7 @@ void AddCustomUtilitiesToPython()
     /* MMG mmg_utility */
     // 2D
     class_<MmgUtility<2>, boost::noncopyable >
-    ("MmgUtility2D", init<const std::string>())
+    ("MmgUtility2D", init<const std::string, const unsigned int>())
     .def("ComputeExistingModelPart", &MmgUtility<2>::ComputeExistingModelPart)
     .def("ReadFiles", &MmgUtility<2>::ReadFiles)
     .def("Execute", &MmgUtility<2>::Execute)
@@ -153,7 +153,7 @@ void AddCustomUtilitiesToPython()
     
     // 3D
     class_<MmgUtility<3>, boost::noncopyable >
-    ("MmgUtility3D", init<const std::string>())
+    ("MmgUtility3D", init<const std::string, const unsigned int>())
     .def("ComputeExistingModelPart", &MmgUtility<3>::ComputeExistingModelPart)
     .def("ReadFiles", &MmgUtility<3>::ReadFiles)
     .def("Execute", &MmgUtility<3>::Execute)
