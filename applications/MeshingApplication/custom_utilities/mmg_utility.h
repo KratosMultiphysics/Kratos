@@ -66,6 +66,14 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    enum cond_geometries_2d {Line = 0};
+    
+    enum elem_geometries_2d {Triangle2D = 0};
+    
+    enum cond_geometries_3d {Triangle3D = 0, Quadrilateral = 1};
+    
+    enum elem_geometries_3d {Tetrahedra = 0, Prism = 1};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -115,6 +123,18 @@ public:
     {       
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
+       
+       mpRefElement.resize(TDim - 1);
+       mpRefCondition.resize(TDim - 1);
+       mInitRefCondition.resize(TDim - 1);
+       mInitRefElement.resize(TDim - 1);
+       for (unsigned int i_dim = 0; i_dim < TDim - 1; i_dim++)
+       {
+           mpRefElement[i_dim] = nullptr;   
+           mInitRefCondition[i_dim] = false;   
+           mpRefCondition[i_dim] = nullptr;   
+           mInitRefElement[i_dim] = false; 
+       }
        
        mmgMesh = NULL;
        mmgSol = NULL;
@@ -166,7 +186,6 @@ public:
         
         KRATOS_WATCH(rThisModelPart);
         
-        
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
@@ -190,7 +209,64 @@ public:
         auto numElements = pElements.end() - pElements.begin();
         
         /* Manually set of the mesh */
-        SetMeshSize(numNodes, numElements, numConditions);
+        array_1d<int, TDim - 1> numArrayElements;
+        array_1d<int, TDim - 1> numArrayConditions;
+        if (TDim == 2)
+        {
+            numArrayConditions[0] = numConditions;
+            numArrayElements[0]   = numElements;
+        }
+        else
+        {
+            // We initialize the values
+            numArrayElements[0] = 0; // Tetrahedron
+            numArrayElements[1] = 0; // Prisms
+            
+            numArrayConditions[0] = 0; // Triangles
+            numArrayConditions[1] = 0; // Quadrilaterals
+            
+            /* Elements */
+            for(unsigned int i = 0; i < numElements; i++) 
+            {
+                auto itElem = pElements.begin() + i;
+                
+                const unsigned int size_geom = itElem->GetGeometry().size();
+                
+                if (size_geom == 4) // Tetrahedron
+                {
+                    numArrayElements[0] += 1;
+                }
+                else if (size_geom == 6) // Prisms
+                {
+                    numArrayElements[1] += 1;
+                }
+            }
+            
+            if ((numArrayElements[0] + numArrayElements[1]) < numElements)
+            {
+                std::cout << "WARNING: YOUR GEOMETRY CONTAINS HEXAEDRON THAT CAN NOT BE REMESHED" << std::endl;
+                std::cout << "Number of Elements: " << numElements << " Number of Tetrahedron: " << numArrayElements[0] << " Number of Prisms: " << numArrayElements[1] << std::endl;
+            }
+            
+            /* Conditions */
+            for(unsigned int i = 0; i < numConditions; i++) 
+            {
+                auto itCond = pConditions.begin() + i;
+                
+                const unsigned int size_geom = itCond->GetGeometry().size();
+                
+                if (size_geom == 3) // Triangles
+                {
+                    numArrayConditions[0] += 1;
+                }
+                else if (size_geom == 4)  // Quadrilaterals
+                {
+                    numArrayConditions[1] += 1;
+                }
+            }
+        }
+        
+        SetMeshSize(numNodes, numArrayElements, numArrayConditions);
         
         /* Nodes */
 //         #pragma omp parallel for 
@@ -215,20 +291,32 @@ public:
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-           
-            // We clone the first condition
-            if (i == 0)
+            
+            // We clone the first condition of each type
+            if (TDim == 2)
             {
-                mpRefCondition = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                if (i == 0)
+                {
+                    mpRefCondition[0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                }
+            }
+            else
+            {
+                const unsigned int size_geom = itCond->GetGeometry().size();
+                
+                if (size_geom == 3 && mInitRefCondition[0] == false) // Triangle
+                {
+                    mpRefCondition[0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                    mInitRefCondition[0] = true;
+                }
+                else if (size_geom == 4 && mInitRefCondition[1] == false) // Quadrilateral
+                {
+                    mpRefCondition[1] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                    mInitRefCondition[1] = true;
+                }
             }
             
-            unsigned int id3 = 0;
-            if(TDim == 3)
-            {
-                id3 = itCond->GetGeometry()[2].Id();
-            }
-            
-            SetConditions(itCond->GetGeometry()[0].Id() ,itCond->GetGeometry()[1].Id(), id3, cond_colors[itCond->Id()], i + 1);
+            SetConditions(itCond->GetGeometry(), cond_colors[itCond->Id()], i + 1);
         }
         
         /* Elements */
@@ -237,19 +325,31 @@ public:
         {
             auto itElem = pElements.begin() + i;
             
-            // We clone the first element
-            if (i == 0)
+            // We clone the first element of each type
+            if (TDim == 2)
             {
-                mpRefElement = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties()); 
+                if (i == 0)
+                {
+                    mpRefElement[0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                }
+            }
+            else
+            {
+                const unsigned int size_geom = itElem->GetGeometry().size();
+                
+                if (size_geom == 4 && mInitRefElement[0] == false) // Tetrahedra
+                {
+                    mpRefElement[0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                    mInitRefElement[0] = true;
+                }
+                else if (size_geom == 6 && mInitRefElement[1] == false) // Prism
+                {
+                    mpRefElement[1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                    mInitRefElement[1] = true;
+                }
             }
             
-            unsigned int id4 = 0;
-            if(TDim == 3)
-            {
-                id4 = itElem->GetGeometry()[3].Id();
-            }
-            
-            SetElements(itElem->GetGeometry()[0].Id() ,itElem->GetGeometry()[1].Id() ,itElem->GetGeometry()[2].Id(), id4, elem_colors[itElem->Id()], i + 1);
+            SetElements(itElem->GetGeometry(), elem_colors[itElem->Id()], i + 1);
         }
         
         ////////* SOLUTION FILE *////////
@@ -264,38 +364,41 @@ public:
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable, 0);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
-            const double norm = norm_2(gradient_value);
-            gradient_value /= norm;
-                
             double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
             if (element_size > elementary_length)
             {
                 element_size = elementary_length;
             }
-        
+            
+            const double tolerance = 1.0e-12;
+            const double norm = norm_2(gradient_value); // Consider isotropic when zero
             double ratio = 1.0; // NOTE: Isotropic mesh
-            if (scalar_value < value_threshold)
+            if (norm > tolerance)
             {
-                if (interpolation.find("Constant") != std::string::npos)
+                gradient_value /= norm;
+                if (std::abs(scalar_value) < value_threshold)
                 {
-                    ratio = initial_alpha_parameter;
-                }
-                else if (interpolation.find("Linear") != std::string::npos)
-                {
-                    ratio = initial_alpha_parameter * (1.0 - scalar_value/value_threshold);
-                }
-                else if (interpolation.find("Exponential") != std::string::npos)
-                {
-                    ratio = - std::log(scalar_value/value_threshold) * initial_alpha_parameter + 1.0e-12;
-                    if (ratio > 1.0)
+                    if (interpolation.find("Constant") != std::string::npos)
                     {
-                        ratio = 1.0;
+                        ratio = initial_alpha_parameter;
                     }
-                }
-                else
-                {
-                    std::cout << "No interpolation defined, considering constant" << std:: endl;
-                    ratio = initial_alpha_parameter;
+                    else if (interpolation.find("Linear") != std::string::npos)
+                    {
+                        ratio = initial_alpha_parameter * (1.0 - scalar_value/value_threshold);
+                    }
+                    else if (interpolation.find("Exponential") != std::string::npos)
+                    {
+                        ratio = - std::log(scalar_value/value_threshold) * initial_alpha_parameter + tolerance;
+                        if (ratio > 1.0)
+                        {
+                            ratio = 1.0;
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "No interpolation defined, considering constant" << std:: endl;
+                        ratio = initial_alpha_parameter;
+                    }
                 }
             }
             
@@ -373,28 +476,40 @@ public:
         
         MMGLibCall();
         const unsigned int nNodes = mmgMesh->np;
-        unsigned int nConditions;
+        array_1d<unsigned int, TDim - 1> nConditions;
         if (TDim == 2)
         {
-            nConditions = mmgMesh->na;
+            nConditions[0] = mmgMesh->na;
         }
         else
         {
-            nConditions = mmgMesh->nt;
+            nConditions[0] = mmgMesh->nt;
+            nConditions[1] = mmgMesh->nquad;
         }
-        unsigned int nElements;
+        array_1d<unsigned int, TDim - 1> nElements;
         if (TDim == 2)
         {
-            nElements = mmgMesh->nt;
+            nElements[0] = mmgMesh->nt;
         }
         else
         {
-            nElements = mmgMesh->ne;
+            nElements[0] = mmgMesh->ne;
+            nElements[1] = mmgMesh->nprism;
         }
         
         std::cout << "     Nodes created: " << nNodes << std::endl;
-        std::cout << "Conditions created: " << nConditions << std::endl;
-        std::cout << "  Elements created: " << nElements << std::endl;
+        if (TDim == 2) // 2D
+        {
+            std::cout << "Conditions created: " << nConditions[0] << std::endl;
+            std::cout << "Elements created: " << nElements[0] << std::endl;
+        }
+        else // 3D
+        {
+            std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
+            std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1] << std::endl;
+            std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
+            std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
+        }
         
         ////////* EMPTY AND BACKUP THE MODEL PART *////////
         
@@ -420,10 +535,6 @@ public:
             OldModelPart.AddElement(*(elem_iterator.base()));
         }
         rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
-
-        // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(OldModelPart);
-        PointLocator.UpdateSearchDatabase();
         
         // NOTE: Technically not necessary
 //         // Create iterator
@@ -475,28 +586,33 @@ public:
         }
         
         /* CONDITIONS */
-        if (mpRefCondition != nullptr)
+        unsigned int cond_id = 0;
+        if (mpRefCondition[0] != nullptr)
         {
             unsigned int cond_id = 0;
 
-            for (int unsigned i_cond = 1; i_cond <= nConditions; i_cond++)
+            for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
                 cond_id += 1;
                 ConditionType::Pointer pCondition;
                 unsigned int prop_id;
                 
-                if (TDim == 2)
+                if (TDim == 2) // Lines
                 {
+                    const cond_geometries_2d index_geom = Line;
+                    
                     std::vector<NodeType::Pointer> ConditionNodes (2);
                     ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
                     ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
                     
                     prop_id = mmgMesh->edge[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Create(cond_id, ConditionNodes, mpRefCondition->pGetProperties());
+                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
                 }
-                else
+                else // Triangles
                 {
+                    const cond_geometries_3d index_geom = Triangle3D;
+                    
                     std::vector<NodeType::Pointer> ConditionNodes (3);
                     ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
                     ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
@@ -504,7 +620,7 @@ public:
                     
                     prop_id = mmgMesh->tria[i_cond].ref;
                     
-                    pCondition = mpRefCondition->Create(cond_id, ConditionNodes, mpRefCondition->pGetProperties());
+                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
                 }
                 
                 pCondition->Initialize();
@@ -522,19 +638,59 @@ public:
                 }
             }
         }
+        if (TDim == 3)
+        {
+            if (mpRefCondition[1] != nullptr) // Quadrilateral
+            {
+                for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
+                {
+                    cond_id += 1;
+                    ConditionType::Pointer pCondition;
+                    unsigned int prop_id;
+                    
+                    const cond_geometries_3d index_geom = Quadrilateral;
+                    
+                    std::vector<NodeType::Pointer> ConditionNodes (4);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[0]);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[1]);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[2]);
+                    ConditionNodes[3] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[3]);
+                    
+                    prop_id = mmgMesh->quad[i_cond].ref;
+                    
+                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+                    
+                    pCondition->Initialize();
+                    rThisModelPart.AddCondition(pCondition);
+                                        
+                    if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                    {
+                        std::vector<std::string> ColorList = mColors[prop_id];
+                        for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                        {
+                            std::string SubModelPartName = ColorList[colors];
+                            ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                            SubModelPart.AddCondition(pCondition);
+                        }
+                    }
+                }
+            }
+        }
         
         /* ELEMENTS */
-        if (mpRefElement != nullptr)
+        unsigned int elem_id = 0;
+        if (mpRefElement[0] != nullptr)
         {
-            unsigned int elem_id = 0;
-            for (int unsigned i_elem = 1; i_elem <= nElements; i_elem++)
+            for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
             {
                 elem_id += 1;
                 ElementType::Pointer pElement;
                 unsigned int prop_id;
                 
-                if (TDim == 2)
+                if (TDim == 2) // Triangle
                 {
+                    const elem_geometries_2d index_geom = Triangle2D;
+                    
                     std::vector<NodeType::Pointer> ElementNodes (3);
                     ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
                     ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
@@ -542,10 +698,12 @@ public:
                     
                     prop_id = mmgMesh->tria[i_elem].ref;
                     
-                    pElement = mpRefElement->Create(elem_id, ElementNodes, mpRefElement->pGetProperties());
+                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
                 }
-                else
+                else // Tetrahedra
                 {
+                    const elem_geometries_3d index_geom = Tetrahedra;
+                    
                     std::vector<NodeType::Pointer> ElementNodes (4);
                     ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
                     ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
@@ -554,7 +712,7 @@ public:
                     
                     prop_id = mmgMesh->tetra[i_elem].ref;
                     
-                    pElement = mpRefElement->Create(elem_id, ElementNodes, mpRefElement->pGetProperties());
+                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
                 }
                 
                 pElement->Initialize();
@@ -568,6 +726,46 @@ public:
                         std::string SubModelPartName = ColorList[colors];
                         ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
                         SubModelPart.AddElement(pElement);
+                    }
+                }
+            }
+        }
+        if (TDim == 3)
+        {
+            if (mpRefElement[1] != nullptr) // Prism
+            {
+                for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
+                {
+                    elem_id += 1;
+                    ElementType::Pointer pElement;
+                    unsigned int prop_id;
+                    
+                    const elem_geometries_3d index_geom = Prism;
+                    
+                    std::vector<NodeType::Pointer> ElementNodes (6);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[0]);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[1]);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[2]);
+                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[3]);
+                    ElementNodes[4] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[4]);
+                    ElementNodes[5] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[5]);
+                    
+                    prop_id = mmgMesh->prism[i_elem].ref;
+                    
+                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+                    
+                    pElement->Initialize();
+                    rThisModelPart.AddElement(pElement);
+                    
+                    if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                    {
+                        std::vector<std::string> ColorList = mColors[prop_id];
+                        for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                        {
+                            std::string SubModelPartName = ColorList[colors];
+                            ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                            SubModelPart.AddElement(pElement);
+                        }
                     }
                 }
             }
@@ -610,6 +808,11 @@ public:
         }
         
         /* We interpolate all the values */
+        
+        // We create the locator
+        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(OldModelPart);
+        PointLocator.UpdateSearchDatabase();
+        
         // Iterate in the nodes
         NodesArrayType& pNode = rThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
@@ -627,7 +830,8 @@ public:
             
             if (found == false)
             {
-                std::cout << "WARNING: Node "<< itNode->Id() <<" not found (interpolation not posible :P)" << std::endl;
+                std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
+                std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
             }
             else
             {
@@ -648,7 +852,7 @@ public:
                                          + shape_functions[2] * node2_data[j];
                         }
                     }
-                    else
+                    else // NOTE: This just works with tetrahedron (you are going to have poblems with anything else)
                     {
                         double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
                         double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
@@ -770,8 +974,10 @@ protected:
     std::map<int,std::vector<std::string>> mColors;
     
     // Reference element and condition
-    Element::Pointer mpRefElement = nullptr;
-    Condition::Pointer mpRefCondition = nullptr;
+    std::vector<Element::Pointer>   mpRefElement;
+    std::vector<Condition::Pointer> mpRefCondition;
+    std::vector<bool> mInitRefElement;
+    std::vector<bool> mInitRefCondition;
     
     ///@}
     ///@name Protected Operators
@@ -818,22 +1024,22 @@ protected:
     
     void SetMeshSize(
         const int numNodes,
-        const int numElements,
-        const int numConditions
+        const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<int, TDim - 1> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         )
     {
         if (TDim == 2)
         {
             //Give the size of the mesh: numNodes vertices, numElements triangles, numConditions edges (2D) 
-            if ( MMG2D_Set_meshSize(mmgMesh, numNodes, numElements, numConditions) != 1 ) 
+            if ( MMG2D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayConditions[0]) != 1 ) 
             {
                 exit(EXIT_FAILURE);
             }
         }
         else
         {
-            //Give the size of the mesh: numNodes vertex, numElements tetra, numConditions triangles, 0 edges (3D) 
-            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numElements, 0, numConditions, 0, 0) != 1 ) 
+            //Give the size of the mesh: numNodes vertex, numElements tetra and prism, numArrayConditions triangles and quadrilaterals, 0 edges (3D) 
+            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayElements[1], numArrayConditions[0], numArrayConditions[1], 0) != 1 ) 
             {
                 exit(EXIT_FAILURE);
             }
@@ -1147,21 +1353,20 @@ protected:
     
     /**
      * This sets the conditions of the mesh
-     * @param id1: Node id of node 1
-     * @param id2: Node id of node 2
-     * @param id3: Node id of node 3
+     * @param Geom: The geometry of the condition
      * @param color: Reference of the node(submodelpart)
      * @param index: The index number of the node 
      */
     
     void SetConditions(
-        const int id1,
-        const int id2,
-        const int id3,
+        const Geometry<Node<3> > & Geom,
         const int color,
         const int index
         )
     {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+        
         // Using API
         if (TDim == 2)
         {
@@ -1172,9 +1377,29 @@ protected:
         }
         else
         {
-            if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
+            const int id3 = Geom[2].Id(); // Third node id
+            
+            const unsigned int size_geom = Geom.size();
+            
+            if (size_geom == 3) // Triangle
             {
-                exit(EXIT_FAILURE); 
+                if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
+                {
+                    exit(EXIT_FAILURE); 
+                }
+            }
+            else if (size_geom == 4) // Quadrilaterals
+            {
+                const int id4 = Geom[3].Id(); // Fourth node id
+                
+                if ( MMG3D_Set_quadrilateral(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+                {
+                    exit(EXIT_FAILURE); 
+                }
+            }
+            else
+            {
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
             }
         }
     }
@@ -1184,23 +1409,21 @@ protected:
     
     /**
      * This sets elements of the mesh
-     * @param id1: Node id of node 1
-     * @param id2: Node id of node 2
-     * @param id3: Node id of node 3
-     * @param id4: Node id of node 4
+     * @param Geom: The geometry of the element
      * @param color: Reference of the node(submodelpart)
      * @param index: The index number of the node 
      */
     
     void SetElements(
-        const int id1,
-        const int id2,
-        const int id3,
-        const int id4,
+        const Geometry<Node<3> > & Geom,
         const int color,
         const int index
         )
     {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+        const int id3 = Geom[2].Id(); // Third node id
+        
         // Using API
         if (TDim == 2)
         {
@@ -1211,9 +1434,39 @@ protected:
         }
         else
         {
-            if ( MMG3D_Set_tetrahedron(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+            const int id4 = Geom[3].Id(); // Fourth node id
+            
+            const unsigned int size_geom = Geom.size();
+            
+            if (size_geom == 4) // Tetrahedron
             {
-                exit(EXIT_FAILURE); 
+                if ( MMG3D_Set_tetrahedron(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+                {
+                    exit(EXIT_FAILURE); 
+                }
+            }
+            else if (size_geom == 6) // Prisms
+            {
+                const int id5 = Geom[4].Id(); // 5th node id
+                const int id6 = Geom[5].Id(); // 6th node id
+                
+                if ( MMG3D_Set_prism(mmgMesh, id1, id2, id3, id4, id5, id6, color, index) != 1 )  
+                {
+                    exit(EXIT_FAILURE); 
+                }
+            }
+            else if (size_geom == 8) // Hexaedron
+            {
+//                 const int id5 = Geom[4].Id(); // 5th node id
+//                 const int id6 = Geom[5].Id(); // 6th node id
+//                 const int id6 = Geom[7].Id(); // 7th node id
+//                 const int id6 = Geom[8].Id(); // 8th node id
+                
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY. Size: ", size_geom );
+            }
+            else
+            {
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
             }
         }
     }
@@ -1457,6 +1710,7 @@ protected:
         if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
         {
             if (scalar_value > threshold) 
+//             if (scalar_value > element_size) 
             {
                 // Using API
                 if ( MMG2D_Set_tensorSol(mmgSol, coeff0, 0.0, coeff0, node_id) != 1 )
@@ -1466,7 +1720,8 @@ protected:
             }
             else
             {
-                const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
+                const double aux = ratio + (scalar_value/value_threshold)*(1.0 - ratio);
+//                 const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
                 const double coeff1 = coeff0/(aux * aux);
                 
                 const double v0v0 = gradient_value[0]*gradient_value[0];
