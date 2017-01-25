@@ -108,7 +108,9 @@ public:
             direction = 2;
         else if( mgravity_direction == "Z")
             direction = 3;
-                            
+        
+		double ref_coord = mreference_coordinate + mwater_level;     
+                       
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
@@ -123,7 +125,6 @@ public:
                     it->Fix(var);
                 }
                 
-                double ref_coord = mreference_coordinate + mwater_level;
                 double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
                 
                 if(pressure>0.0)
@@ -168,6 +169,8 @@ public:
         else if( mgravity_direction == "Z")
             direction = 3;
                 
+        double ref_coord = mreference_coordinate + mwater_level;        
+        
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
@@ -182,9 +185,8 @@ public:
                     it->Fix(var);
                 }
                 
-                double ref_coord = mreference_coordinate + mwater_level;
                 double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
-                
+                               
                 if(pressure>0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
