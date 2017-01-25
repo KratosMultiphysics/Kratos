@@ -228,6 +228,157 @@ public:
             rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
         }
     }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    template< class TVectorType >
+    static inline void AssemblePBlockVector(Vector& rRightHandSideVector,const TVectorType& PBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i;
+        
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 1) + Dim;
+
+            rRightHandSideVector[Global_i] += PBlockVector[i];
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,2>& UPBlockMatrix)
+    {        
+        //Line_2d_2
+        unsigned int Global_i, Global_j, Local_i;
+
+        for(unsigned int i = 0; i < 2; i++)
+        {
+            Global_i = i * (2 + 1);
+            Local_i = i * 2;
+
+            for(unsigned int j = 0; j < 2; j++)
+            {
+                Global_j = j * (2 + 1) + 2;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
+            }
+        }
+    }
+    
+//----------------------------------------------------------------------------------------
+ 
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,9,3>& UPBlockMatrix)
+    {
+        //Triangle_3d_3  
+        unsigned int Global_i, Global_j, Local_i;
+
+        for(unsigned int i = 0; i < 3; i++)
+        {
+            Global_i = i * (3 + 1);
+            Local_i = i * 3;
+
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                Global_j = j * (3 + 1) + 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i+2,Global_j) += UPBlockMatrix(Local_i+2,j);
+            }
+        }
+    }
+    
+//----------------------------------------------------------------------------------------
+ 
+	static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,4>& UPBlockMatrix)
+    {
+        //Quadrilateral_3d_4
+        unsigned int Global_i, Global_j, Local_i;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (3 + 1);
+            Local_i = i * 3;
+
+            for(unsigned int j = 0; j < 4; j++)
+            {
+                Global_j = j * (3 + 1) + 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += UPBlockMatrix(Local_i,j);
+                rLeftHandSideMatrix(Global_i+1,Global_j) += UPBlockMatrix(Local_i+1,j);
+                rLeftHandSideMatrix(Global_i+2,Global_j) += UPBlockMatrix(Local_i+2,j);
+            }
+        }
+    }
+    
+//----------------------------------------------------------------------------------------
+
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,2,4>& PUBlockMatrix)
+    {        
+        //Line_2d_2
+        unsigned int Global_i, Global_j, Local_j;
+
+        for(unsigned int i = 0; i < 2; i++)
+        {
+            Global_i = i * (2 + 1) + 2;
+
+            for(unsigned int j = 0; j < 2; j++)
+            {
+                Global_j = j * (2 + 1);
+                Local_j = j * 2;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
+            }
+        }
+    }
+
+//----------------------------------------------------------------------------------------
+
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,3,9>& PUBlockMatrix)
+    {
+        //Triangle_3d_3 
+        unsigned int Global_i, Global_j, Local_j;
+
+        for(unsigned int i = 0; i < 3; i++)
+        {
+            Global_i = i * (3 + 1) + 3;
+
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                Global_j = j * (3 + 1);
+                Local_j = j * 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j+2) += PUBlockMatrix(i,Local_j+2);
+            }
+        }
+    }
+    
+//----------------------------------------------------------------------------------------
+
+	static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,12>& PUBlockMatrix)
+    {
+        //Quadrilateral_3d_4
+        unsigned int Global_i, Global_j, Local_j;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (3 + 1) + 3;
+
+            for(unsigned int j = 0; j < 4; j++)
+            {
+                Global_j = j * (3 + 1);
+                Local_j = j * 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)   += PUBlockMatrix(i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1) += PUBlockMatrix(i,Local_j+1);
+                rLeftHandSideMatrix(Global_i,Global_j+2) += PUBlockMatrix(i,Local_j+2);
+            }
+        }
+    }     
     
 }; /* Class ConditionUtilities*/
 } /* namespace Kratos.*/
