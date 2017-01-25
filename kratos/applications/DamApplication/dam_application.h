@@ -20,7 +20,7 @@
 #include "dam_application_variables.h"
 
 //Conditions
-#include "custom_conditions/added_mass_condition.hpp"
+//~ #include "custom_conditions/added_mass_condition.hpp"
 #include "custom_conditions/free_surface_condition.hpp"
 #include "custom_conditions/infinite_domain_condition.hpp"
 #include "custom_conditions/UP_condition.hpp"
