@@ -25,7 +25,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "minimal_size"                     : 0.1,
             "hmin_over_hmax_anisotropic_ratio" : 0.01,
             "boundary_layer_max_distance"      : 1.0,
-            "interpolation"                    : "Constant",
+            "interpolation"                    : "Linear",
             "save_external_files"              : false,
             "initialize_nodal_value"           : 1,
             "max_number_of_searchs"            : 1000,
