@@ -108,17 +108,26 @@ namespace Kratos {
 
         const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
         const double &other_real_mass = element2->GetMass();
-        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
+        //const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        //const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        //const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
         // calculation of damping gamma
 
+
+        // calculation of damping gamma
+        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
+        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
-        double viscous_damping_coeff = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el * equiv_mass);
+        const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
+        //double viscous_damping_coeff = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el * equiv_mass);
 
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
+        //double a = 1.4142-equiv_gamma*equiv_gamma;
+        //KRATOS_WATCH(a)
 
-        double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
+        //double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
+        double sqr_period = sqrt(2.0) * kn_el / equiv_mass - rescaled_damping*rescaled_damping;   //esta es la correcta en continuu suponiendo un maximo de Kt= Kn
         return sqr_period;
 
     }
