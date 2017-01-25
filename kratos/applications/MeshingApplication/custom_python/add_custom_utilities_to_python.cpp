@@ -142,23 +142,23 @@ void AddCustomUtilitiesToPython()
 #ifdef INCLUDE_MMG
     /* MMG mmg_utility */
     // 2D
-    class_<MmgUtility<2>, boost::noncopyable >
+    class_<MmgUtility<2, false>, boost::noncopyable >
     ("MmgUtility2D", init<const std::string, const unsigned int>())
-    .def("ComputeExistingModelPart", &MmgUtility<2>::ComputeExistingModelPart)
-    .def("ReadFiles", &MmgUtility<2>::ReadFiles)
-    .def("Execute", &MmgUtility<2>::Execute)
-    .def("SaveSolutionToFile", &MmgUtility<2>::SaveSolutionToFile)
-    .def("FreeMemory", &MmgUtility<2>::FreeMemory)
+    .def("ComputeExistingModelPart", &MmgUtility<2, false>::ComputeExistingModelPart)
+    .def("ReadFiles", &MmgUtility<2, false>::ReadFiles)
+    .def("Execute", &MmgUtility<2, false>::Execute)
+    .def("SaveSolutionToFile", &MmgUtility<2, false>::SaveSolutionToFile)
+    .def("FreeMemory", &MmgUtility<2, false>::FreeMemory)
     ;
     
     // 3D
-    class_<MmgUtility<3>, boost::noncopyable >
+    class_<MmgUtility<3, false>, boost::noncopyable >
     ("MmgUtility3D", init<const std::string, const unsigned int>())
-    .def("ComputeExistingModelPart", &MmgUtility<3>::ComputeExistingModelPart)
-    .def("ReadFiles", &MmgUtility<3>::ReadFiles)
-    .def("Execute", &MmgUtility<3>::Execute)
-    .def("SaveSolutionToFile", &MmgUtility<3>::SaveSolutionToFile)
-    .def("FreeMemory", &MmgUtility<3>::FreeMemory)
+    .def("ComputeExistingModelPart", &MmgUtility<3, false>::ComputeExistingModelPart)
+    .def("ReadFiles", &MmgUtility<3, false>::ReadFiles)
+    .def("Execute", &MmgUtility<3, false>::Execute)
+    .def("SaveSolutionToFile", &MmgUtility<3, false>::SaveSolutionToFile)
+    .def("FreeMemory", &MmgUtility<3, false>::FreeMemory)
     ;
 #endif  
     
