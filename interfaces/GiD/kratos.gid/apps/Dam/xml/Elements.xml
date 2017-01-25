@@ -32,10 +32,8 @@
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
-      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
-    <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
     <inputs>      
     </inputs>
 
@@ -76,10 +74,8 @@
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
-      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
-    <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
     <inputs>      
     </inputs>
 
@@ -116,10 +112,8 @@
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
-      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
-    <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
     <inputs>      
     </inputs>
 
@@ -156,10 +150,8 @@
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
-      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
-    <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
     <inputs>      
     </inputs>
 
@@ -170,5 +162,63 @@
     </outputs>
   </ElementItem>
  
- 
+   <!--Acoustic elements-->
+
+ <ElementItem n="WaveEquationElement2D" pn="Acoustic Element" ImplementedInFile="wave_equation_element.cpp"
+	       ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	       ElementType="Acoustic" help="">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="WaveEquationElement2D3N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="WaveEquationElement2D4N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="Wave"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of NodalConditions-->
+    <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
+    <NodalConditions>
+      <NodalCondition n="PRESSURE"/>
+    </NodalConditions>
+
+    <inputs>      
+    </inputs>
+
+    <outputs>
+    </outputs>
+  </ElementItem>
+  
+ <ElementItem n="WaveEquationElement3D" pn="Acoustic Element" ImplementedInFile="wave_equation_element.cpp"
+	       ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False" 
+	       ElementType="Acoustic" help="">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra"      nodes="4" KratosName="WaveEquationElement3D4N"/>
+      <item GeometryType="Hexahedra" nodes="8" KratosName="WaveEquationElement3D8N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="Wave"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of NodalConditions-->
+    <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
+    <NodalConditions>
+      <NodalCondition n="PRESSURE"/>
+    </NodalConditions>
+
+    <inputs>      
+    </inputs>
+
+    <outputs>
+    </outputs>
+  </ElementItem>
 </ElementList>
