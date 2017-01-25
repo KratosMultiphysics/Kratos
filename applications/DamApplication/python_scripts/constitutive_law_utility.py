@@ -2,12 +2,16 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.DamApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
-CheckForPreviousImport()
-
+from KratosMultiphysics.DamApplication import *
 
 def SetConstitutiveLaw(model_part):
+    '''
+    for prop in model_part.Properties:
+        ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
+        mat = globals().get(ConstitutiveLawName)()
+        prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+    '''
     for prop in model_part.Properties:
         ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
         if(ConstitutiveLawName == "LinearElastic2DPlaneStress"):

@@ -8,7 +8,7 @@ from KratosMultiphysics.DamApplication import *
 class StreamlinesOutputUtility:
 
     def __init__(self,domain_size):
-        
+                
         # Construct the utility
         self.domain_size = domain_size
         if domain_size==3:
