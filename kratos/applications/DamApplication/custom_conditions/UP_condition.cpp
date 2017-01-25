@@ -104,17 +104,12 @@ void UPCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSid
     if ( rLeftHandSideMatrix.size1() != condition_size )
         rLeftHandSideMatrix.resize( condition_size, condition_size, false );
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size );
-    
-    KRATOS_WATCH(rLeftHandSideMatrix)
-        
+       
     //Resetting the RHS
     if ( rRightHandSideVector.size() != condition_size )
         rRightHandSideVector.resize( condition_size, false );
     noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
-    KRATOS_WATCH(rRightHandSideVector)
-
-    
+      
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
         
     KRATOS_CATCH( "" )
@@ -507,29 +502,11 @@ void UPCondition<TDim,TNumNodes>::CalculateLHSContribution(MatrixType& rLeftHand
 {
 	KRATOS_TRY
     
-    KRATOS_WATCH(rVariables.Nu)
-    KRATOS_WATCH(rVariables.NormalVector)
-    KRATOS_WATCH(rVariables.Np) 
-    KRATOS_WATCH(rVariables.IntegrationCoefficient) 
-	
     noalias(rVariables.UPMatrix) = -1.0*prod(trans(rVariables.Nu),Matrix(outer_prod(rVariables.NormalVector,rVariables.Np)))*rVariables.IntegrationCoefficient;
     
-    KRATOS_WATCH(rVariables.UPMatrix)
-    
-    
     ConditionUtilities::AssembleUPMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
-    
-    KRATOS_WATCH(rVariables.AcelerationCoefficient) 
-    
-    KRATOS_WATCH(rVariables.Density) 
-
-    
+        
     noalias(rVariables.PUMatrix) = -1.0*rVariables.AcelerationCoefficient*rVariables.Density*trans(rVariables.UPMatrix);
-    
-    
-    
-    KRATOS_WATCH(rVariables.PUMatrix)
-
     
     ConditionUtilities::AssemblePUMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
     
@@ -551,9 +528,6 @@ void UPCondition<TDim,TNumNodes>::CalculateRHSContribution(VectorType& rRightHan
     ConditionUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
     
     noalias(rVariables.PUMatrix) = -1.0*rVariables.Density*trans(rVariables.UPMatrix);
-    
-    
-    KRATOS_WATCH(rVariables.AccelerationVector)
     
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PUMatrix,rVariables.AccelerationVector);
         
