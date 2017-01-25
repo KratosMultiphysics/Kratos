@@ -28,9 +28,6 @@
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 
-// NOTE: Inspired in the documentation from:
-// https://github.com/MmgTools/mmg/blob/master/libexamples/
-
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
@@ -115,11 +112,12 @@ public:
     
     /**
      * This is the default constructor, which is used to read the input files 
-     * @param Filename: The input name of the 
+     * @param Filename: The input name of the output file
+     * @param echo_level: The level of verbosity
      */
     
     MmgUtility(
-        const std::string Filename,
+        const std::string Filename = "output_remesh",
         const unsigned int echo_level = 3
         )
         :mStdStringFilename(Filename)
@@ -220,11 +218,8 @@ public:
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
         
-        ////////* MESH FILE *////////
-                
-        /** 
-         * 2) Build mesh in MMG5 format 
-         */
+        /////////* MESH FILE */////////
+        // Build mesh in MMG5 format //
         
         // Iterate in the nodes
         NodesArrayType& pNode = rThisModelPart.Nodes();
@@ -446,10 +441,7 @@ public:
             ComputeTensorH(scalar_value, gradient_value, ratio, element_size, boundary_layer_max_value, i + 1);
         }
         
-        /** 
-         * 4) Check if the number of given entities match with mesh size 
-         */
-        
+        // Check if the number of given entities match with mesh size 
         CheckMeshData();
         
         // Save to file
@@ -457,8 +449,6 @@ public:
         {
             SaveSolutionToFile(false);
         }
-       
-        //NOTE: Don't free memmory, it will be used in the Execute
     }
     
     /***********************************************************************************/
@@ -470,22 +460,20 @@ public:
     
     void ReadFiles()
     {
-       // NOTE: Step one in the constructor
-        
        /** 
-        * 2) Build mesh in MMG5 format 
+        * 1) Build mesh in MMG5 format 
         */
        
        SetInputMeshName();
        
        /** 
-        * 3) Build sol in MMG5 format 
+        * 2) Build sol in MMG5 format 
         */
        
        SetInputSolName();
        
        /** 
-        * 4) Check if the number of given entities match with mesh size
+        * 3) Check if the number of given entities match with mesh size
         */
        
        CheckMeshData();
@@ -577,39 +565,11 @@ public:
         }
         rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
         
-        // NOTE: Technically not necessary
-//         // Create iterator
-//         typedef std::map<int,std::vector<std::string>>::iterator it_type;
-//         
-//         // Adding the submodelparts
-//         for(it_type iterator = mColors.begin(); iterator != mColors.end(); iterator++) 
-//         {
-//             const int key = iterator->first;
-//             const std::vector<std::string> value = iterator->second;
-//             
-//             if (key != 0)
-//             {
-//                 for (unsigned int it_name = 0; it_name < value.size(); it_name++)
-//                 {
-//                     if ((value[it_name].find(rThisModelPart.Name()) != std::string::npos) == false) // TODO: Check this!!!
-//                     {
-//                         if (rThisModelPart.HasSubModelPart(value[it_name]) == false)
-//                         {
-//                             rThisModelPart.CreateSubModelPart(value[it_name]);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-        
         // Create a new model part
         /* NODES */
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
             NodeType::Pointer pNode;
-            
-//             // Debugging
-//             std::cout << "Node debugging: " << nNodes << " " << i_node << std::endl;
             
             if (TDim == 2)
             {
@@ -643,19 +603,10 @@ public:
                     
                     int edge0, edge1, isRidge;
                     
-                    // Using API
                     if (MMG2D_Get_edge(mmgMesh, &edge0, &edge1, &prop_id, &isRidge, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     edge0 = mmgMesh->edge[i_cond].a;
-//                     edge1 = mmgMesh->edge[i_cond].b;
-//                     prop_id = mmgMesh->edge[i_cond].ref;
-                    
-//                     // Debugging 
-//                     std::cout << "Condition debugging: "  << nNodes << " " << edge0 << " " << edge1 << std::endl;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (2);
                     ConditionNodes[0] = rThisModelPart.pGetNode(edge0);
@@ -668,18 +619,11 @@ public:
                     const cond_geometries_3d index_geom = Triangle3D;
                     
                     int vertex0, vertex1, vertex2;
-                    
-                    // Using API
+
                     if (MMG3D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     vertex0 = mmgMesh->tria[i_cond].v[0];
-//                     vertex1 = mmgMesh->tria[i_cond].v[1];
-//                     vertex2 = mmgMesh->tria[i_cond].v[2];
-//                     prop_id = mmgMesh->tria[i_cond].ref;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (3);
                     ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
@@ -717,19 +661,11 @@ public:
                     const cond_geometries_3d index_geom = Quadrilateral3D;
                     
                     int vertex0, vertex1, vertex2, vertex3;
-                    
-                    // Using API
+
                     if (MMG3D_Get_quadrilateral(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     vertex0 = mmgMesh->quad[i_cond].v[0];
-//                     vertex1 = mmgMesh->quad[i_cond].v[1];
-//                     vertex2 = mmgMesh->quad[i_cond].v[2];
-//                     vertex3 = mmgMesh->quad[i_cond].v[3];
-//                     prop_id = mmgMesh->quad[i_cond].ref;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (4);
                     ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
@@ -770,23 +706,13 @@ public:
                 {
                     const elem_geometries_2d index_geom = Triangle2D;
                     
-//                     // Debugging 
-//                     std::cout << "Element debugging: " << nNodes << " " << mmgMesh->tria[i_elem].v[0] << " " << mmgMesh->tria[i_elem].v[1] << " " << mmgMesh->tria[i_elem].v[2] << std::endl;
-                    
                     int vertex0, vertex1, vertex2;
                     
-                    // Using API
                     if (MMG2D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     vertex0 = mmgMesh->tria[i_cond].v[0];
-//                     vertex1 = mmgMesh->tria[i_cond].v[1];
-//                     vertex2 = mmgMesh->tria[i_cond].v[2];
-//                     prop_id = mmgMesh->tria[i_cond].ref;
-                    
+
                     std::vector<NodeType::Pointer> ElementNodes (3);
                     ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
                     ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
@@ -800,18 +726,10 @@ public:
                     
                     int vertex0, vertex1, vertex2, vertex3;
                     
-                    // Using API
                     if (MMG3D_Get_tetrahedron(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     vertex0 = mmgMesh->tetra[i_cond].v[0];
-//                     vertex1 = mmgMesh->tetra[i_cond].v[1];
-//                     vertex2 = mmgMesh->tetra[i_cond].v[2];
-//                     vertex3 = mmgMesh->tetra[i_cond].v[3];
-//                     prop_id = mmgMesh->tetra[i_cond].ref;
                     
                     std::vector<NodeType::Pointer> ElementNodes (4);
                     ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
@@ -851,20 +769,10 @@ public:
                     
                     int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5;
                     
-                    // Using API
                     if (MMG3D_Get_prism(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &vertex4, &vertex5, &prop_id, &isRequired) != 1 )
                     {
                         exit(EXIT_FAILURE);
                     }
-                    
-//                     // Manually
-//                     vertex0 = mmgMesh->prism[i_cond].v[0];
-//                     vertex1 = mmgMesh->prism[i_cond].v[1];
-//                     vertex2 = mmgMesh->prism[i_cond].v[2];
-//                     vertex3 = mmgMesh->prism[i_cond].v[3];
-//                     vertex4 = mmgMesh->prism[i_cond].v[4];
-//                     vertex5 = mmgMesh->prism[i_cond].v[5];
-//                     prop_id = mmgMesh->prism[i_cond].ref;
                     
                     std::vector<NodeType::Pointer> ElementNodes (6);
                     ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
@@ -1027,16 +935,10 @@ public:
     {
         /* GET RESULTS */
 
-        /** 
-         *1) Automatically save the mesh 
-         */
-        
+        // Automatically save the mesh 
         OutputMesh(post_output);
 
-        /** 
-         * 2) Automatically save the solution 
-         */
-        
+        // Automatically save the solution 
         OutputSol(post_output);
     }
     
@@ -1049,10 +951,7 @@ public:
     
     void FreeMemory()
     {
-        /** 
-         * 3) Free the MMG3D5 structures 
-         */
-        
+        // Free the MMG3D5 structures 
         FreeAll();
 
         free(mFilename);
@@ -1115,7 +1014,7 @@ protected:
     
     void InitMesh()
     {
-       /** 1) Initialisation of mesh and sol structures 
+       /** Initialisation of mesh and sol structures 
         * args of InitMesh:
         * MMG5_ARG_start: we start to give the args of a variadic func
         * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
@@ -1611,20 +1510,6 @@ protected:
         // Initialize and create the auxiliar maps
         const std::vector<std::string> SubModelPartNames = rThisModelPart.GetSubModelPartNames();
         std::map<int,std::set<int>> aux_node_colors, aux_cond_colors, aux_elem_colors;
-        
-        // TODO: Add when subsubmodelparts work correctly
-//         const unsigned int initsub = SubModelPartNames.size(); 
-//         for (unsigned int i_sub = 0; i_sub < initsub; i_sub++)
-//         {
-//             ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_sub]);
-            
-//             const std::vector<std::string> SubSubModelPartNames = rSubModelPart.GetSubModelPartNames();
-//             
-//             for (unsigned int i_sub_sub = 0; i_sub_sub < SubSubModelPartNames.size(); i_sub_sub++)
-//             {
-//                 SubModelPartNames.push_back(SubSubModelPartNames[i_sub_sub]);
-//             }
-//         }
         
         std::vector<std::string> ModelPartNames;
         ModelPartNames.push_back(rThisModelPart.Name());
