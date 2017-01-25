@@ -109,7 +109,7 @@ void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data& data)
+void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -138,7 +138,7 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
-    //~ const Matrix& C = data.C;
+    const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -160,7 +160,7 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const element_data& data)
+void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -189,7 +189,7 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
-    //~ const Matrix& C = data.C;
+    const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -211,11 +211,11 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data& data)
+void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
-    const int strain_size = 6;
+    // const int strain_size = 6;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -237,7 +237,10 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
-    const array_1d<double,strain_size>& stress = data.stress;
+    // const array_1d<double,strain_size>& stress = data.stress;
+
+    // Get constitutive matrix
+    const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -266,11 +269,11 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const element_data& data)
+void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
-    const int strain_size = 3;
+    // const int strain_size = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -292,7 +295,10 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     const array_1d<double,nnodes>& p = data.p;
     const array_1d<double,nnodes>& pn = data.pn;
     const array_1d<double,nnodes>& pnn = data.pnn;
-    const array_1d<double,strain_size>& stress = data.stress;
+    // const array_1d<double,strain_size>& stress = data.stress;
+
+    // Get constitutive matrix
+    const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -321,7 +327,7 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
 
 
 template<>
-double NavierStokes<3>::SubscaleErrorEstimate(const element_data& data)
+double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -349,8 +355,8 @@ double NavierStokes<3>::SubscaleErrorEstimate(const element_data& data)
     const array_1d<double,nnodes>& pnn = data.pnn;
     // const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get constitutive matrix
-    //~ const Matrix& C = data.C;
+    // // Get constitutive matrix
+    // const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -382,7 +388,7 @@ double NavierStokes<3>::SubscaleErrorEstimate(const element_data& data)
 
 
 template<>
-double NavierStokes<2>::SubscaleErrorEstimate(const element_data& data)
+double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;

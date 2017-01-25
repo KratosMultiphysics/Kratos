@@ -68,7 +68,9 @@ for dim in dim_vector:
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
 
     ## Stress vector definition
-    stress = DefineVector('stress',strain_size)
+    # NOTE: The 1/2 constant in the cross terms of the symmetric gradient is included in the computation of matrix C
+    grad_sym_v = grad_sym_voigtform(DN,v) # Symmetric gradient of v in Voigt notation
+    stress = C*grad_sym_v                 # Stress computation
 
     ## Other simbols definition
     c   = Symbol('c',positive= True)            # Wave length number
@@ -108,10 +110,7 @@ for dim in dim_vector:
     grad_q = DN.transpose()*q
     grad_p = DN.transpose()*p
 
-    #~ B = MatrixB(DN)
-
-    grad_sym_f = grad_sym_voigtform(DN,f)
-    grad_sym_v = grad_sym_voigtform(DN,v)
+    # grad_sym_f = grad_sym_voigtform(DN,f)
 
     div_v = div(DN,v)
     div_w = div(DN,w)
