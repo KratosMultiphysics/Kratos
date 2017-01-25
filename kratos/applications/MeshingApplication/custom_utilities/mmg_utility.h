@@ -608,6 +608,9 @@ public:
         {
             NodeType::Pointer pNode;
             
+//             // Debugging
+//             std::cout << "Node debugging: " << nNodes << " " << i_node << std::endl;
+            
             if (TDim == 2)
             {
                 pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
@@ -628,21 +631,35 @@ public:
         unsigned int cond_id = 0;
         if (mpRefCondition[0] != nullptr)
         {
+            ConditionType::Pointer pCondition;
+            int prop_id, isRequired;
             for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
                 cond_id += 1;
-                ConditionType::Pointer pCondition;
-                unsigned int prop_id;
                 
                 if (TDim == 2) // Lines
                 {
                     const cond_geometries_2d index_geom = Line;
                     
-                    std::vector<NodeType::Pointer> ConditionNodes (2);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
+                    int edge0, edge1, isRidge;
                     
-                    prop_id = mmgMesh->edge[i_cond].ref;
+                    // Using API
+                    if (MMG2D_Get_edge(mmgMesh, &edge0, &edge1, &prop_id, &isRidge, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     edge0 = mmgMesh->edge[i_cond].a;
+//                     edge1 = mmgMesh->edge[i_cond].b;
+//                     prop_id = mmgMesh->edge[i_cond].ref;
+                    
+//                     // Debugging 
+//                     std::cout << "Condition debugging: "  << nNodes << " " << edge0 << " " << edge1 << std::endl;
+                    
+                    std::vector<NodeType::Pointer> ConditionNodes (2);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(edge0);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(edge1);    
                     
                     pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
                 }
@@ -650,12 +667,24 @@ public:
                 {
                     const cond_geometries_3d index_geom = Triangle3D;
                     
-                    std::vector<NodeType::Pointer> ConditionNodes (3);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2]);
+                    int vertex0, vertex1, vertex2;
                     
-                    prop_id = mmgMesh->tria[i_cond].ref;
+                    // Using API
+                    if (MMG3D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     vertex0 = mmgMesh->tria[i_cond].v[0];
+//                     vertex1 = mmgMesh->tria[i_cond].v[1];
+//                     vertex2 = mmgMesh->tria[i_cond].v[2];
+//                     prop_id = mmgMesh->tria[i_cond].ref;
+                    
+                    std::vector<NodeType::Pointer> ConditionNodes (3);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
                     
                     pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
                 }
@@ -679,21 +708,34 @@ public:
         {
             if (mpRefCondition[1] != nullptr) // Quadrilateral
             {
+                ConditionType::Pointer pCondition;
+                int prop_id, isRequired;
                 for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
                 {
                     cond_id += 1;
-                    ConditionType::Pointer pCondition;
-                    unsigned int prop_id;
                     
                     const cond_geometries_3d index_geom = Quadrilateral3D;
                     
-                    std::vector<NodeType::Pointer> ConditionNodes (4);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[0]);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[1]);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[2]);
-                    ConditionNodes[3] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[3]);
+                    int vertex0, vertex1, vertex2, vertex3;
                     
-                    prop_id = mmgMesh->quad[i_cond].ref;
+                    // Using API
+                    if (MMG3D_Get_quadrilateral(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     vertex0 = mmgMesh->quad[i_cond].v[0];
+//                     vertex1 = mmgMesh->quad[i_cond].v[1];
+//                     vertex2 = mmgMesh->quad[i_cond].v[2];
+//                     vertex3 = mmgMesh->quad[i_cond].v[3];
+//                     prop_id = mmgMesh->quad[i_cond].ref;
+                    
+                    std::vector<NodeType::Pointer> ConditionNodes (4);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
+                    ConditionNodes[3] = rThisModelPart.pGetNode(vertex3);
                     
                     pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
                     
@@ -718,22 +760,37 @@ public:
         unsigned int elem_id = 0;
         if (mpRefElement[0] != nullptr)
         {
+            ElementType::Pointer pElement;
+            int prop_id, isRequired;
             for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
             {
                 elem_id += 1;
-                ElementType::Pointer pElement;
-                unsigned int prop_id;
                 
                 if (TDim == 2) // Triangle
                 {
                     const elem_geometries_2d index_geom = Triangle2D;
                     
-                    std::vector<NodeType::Pointer> ElementNodes (3);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2]);
+//                     // Debugging 
+//                     std::cout << "Element debugging: " << nNodes << " " << mmgMesh->tria[i_elem].v[0] << " " << mmgMesh->tria[i_elem].v[1] << " " << mmgMesh->tria[i_elem].v[2] << std::endl;
                     
-                    prop_id = mmgMesh->tria[i_elem].ref;
+                    int vertex0, vertex1, vertex2;
+                    
+                    // Using API
+                    if (MMG2D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     vertex0 = mmgMesh->tria[i_cond].v[0];
+//                     vertex1 = mmgMesh->tria[i_cond].v[1];
+//                     vertex2 = mmgMesh->tria[i_cond].v[2];
+//                     prop_id = mmgMesh->tria[i_cond].ref;
+                    
+                    std::vector<NodeType::Pointer> ElementNodes (3);
+                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
                     
                     pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
                 }
@@ -741,13 +798,26 @@ public:
                 {
                     const elem_geometries_3d index_geom = Tetrahedra;
                     
-                    std::vector<NodeType::Pointer> ElementNodes (4);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2]);
-                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3]);
+                    int vertex0, vertex1, vertex2, vertex3;
                     
-                    prop_id = mmgMesh->tetra[i_elem].ref;
+                    // Using API
+                    if (MMG3D_Get_tetrahedron(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     vertex0 = mmgMesh->tetra[i_cond].v[0];
+//                     vertex1 = mmgMesh->tetra[i_cond].v[1];
+//                     vertex2 = mmgMesh->tetra[i_cond].v[2];
+//                     vertex3 = mmgMesh->tetra[i_cond].v[3];
+//                     prop_id = mmgMesh->tetra[i_cond].ref;
+                    
+                    std::vector<NodeType::Pointer> ElementNodes (4);
+                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+                    ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
                     
                     pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
                 }
@@ -771,23 +841,38 @@ public:
         {
             if (mpRefElement[1] != nullptr) // Prism
             {
+                ElementType::Pointer pElement;
+                int prop_id, isRequired;
                 for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
                 {
                     elem_id += 1;
-                    ElementType::Pointer pElement;
-                    unsigned int prop_id;
                     
                     const elem_geometries_3d index_geom = Prism;
                     
-                    std::vector<NodeType::Pointer> ElementNodes (6);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[2]);
-                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[3]);
-                    ElementNodes[4] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[4]);
-                    ElementNodes[5] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[5]);
+                    int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5;
                     
-                    prop_id = mmgMesh->prism[i_elem].ref;
+                    // Using API
+                    if (MMG3D_Get_prism(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &vertex4, &vertex5, &prop_id, &isRequired) != 1 )
+                    {
+                        exit(EXIT_FAILURE);
+                    }
+                    
+//                     // Manually
+//                     vertex0 = mmgMesh->prism[i_cond].v[0];
+//                     vertex1 = mmgMesh->prism[i_cond].v[1];
+//                     vertex2 = mmgMesh->prism[i_cond].v[2];
+//                     vertex3 = mmgMesh->prism[i_cond].v[3];
+//                     vertex4 = mmgMesh->prism[i_cond].v[4];
+//                     vertex5 = mmgMesh->prism[i_cond].v[5];
+//                     prop_id = mmgMesh->prism[i_cond].ref;
+                    
+                    std::vector<NodeType::Pointer> ElementNodes (6);
+                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+                    ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
+                    ElementNodes[4] = rThisModelPart.pGetNode(vertex4);
+                    ElementNodes[5] = rThisModelPart.pGetNode(vertex5);
                     
                     pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
                     
