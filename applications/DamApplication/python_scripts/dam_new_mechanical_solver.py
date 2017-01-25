@@ -99,7 +99,7 @@ class DamMechanicalSolver:
             }
         }
         """)
-
+    
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -221,7 +221,7 @@ class DamMechanicalSolver:
         # Check if everything is assigned correctly
         self.solver.Check();
 
-        print ("Initialization DamSolver finished")
+        print ("Initialization Dam Mechanical Solver finished")
         
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("solid_computing_domain")
