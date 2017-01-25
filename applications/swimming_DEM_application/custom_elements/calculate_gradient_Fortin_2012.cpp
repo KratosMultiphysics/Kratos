@@ -9,7 +9,8 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType
                                   ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    const double epsilon = 1e-6;
+    const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
+    const double epsilon  = 100 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Forting 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
     const unsigned int LocalSize(TDim * TNumNodes);
 
     for (unsigned int i=0; i<LocalSize; ++i){
