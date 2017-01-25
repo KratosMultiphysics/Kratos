@@ -135,20 +135,17 @@ public:
      @param pProperties Pointer to the element's properties
      */
     ComputeLaplacianSimplexCondition(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties):
-        Condition(NewId,pGeometry,pProperties)
-    {
-    }
+                                     GeometryType::Pointer pGeometry,
+                                     PropertiesType::Pointer pProperties):
+                                     Condition(NewId,pGeometry,pProperties)
+    {}
 
     /// Copy constructor.
-    ComputeLaplacianSimplexCondition(ComputeLaplacianSimplexCondition const& rOther):
-        Condition(rOther)
-    {
-    }
+    ComputeLaplacianSimplexCondition(ComputeLaplacianSimplexCondition const& rOther): Condition(rOther)
+    {}
 
     /// Destructor.
-    virtual ~ComputeLaplacianSimplexCondition() {}
+    virtual ~ComputeLaplacianSimplexCondition(){}
 
 
     ///@}
@@ -173,13 +170,14 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new ComputeLaplacianSimplexCondition(NewId, Condition::GetGeometry().Create(ThisNodes), pProperties));
     }
+
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
         return boost::make_shared< ComputeLaplacianSimplexCondition >(NewId, pGeom, pProperties);
     }
@@ -190,7 +188,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -210,8 +208,7 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -226,8 +223,7 @@ public:
     /** The actual local contributions are computed in the Damping functions
       @see CalculateLocalVelocityContribution
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
 //        const unsigned int BlockSize = TDim;
 //        const SizeType LocalSize = BlockSize * TNumNodes;
@@ -285,8 +281,7 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Returns a list of the element's Dofs
@@ -294,8 +289,7 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -312,7 +306,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "ComputeLaplacianSimplexCondition" << TDim << "D";
@@ -320,14 +314,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeLaplacianSimplexCondition";
     }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
 
     ///@}
     ///@name Friends
@@ -355,8 +345,7 @@ protected:
     ///@name Protected Operations
     ///@{
     ///
-    void CalculateNormal(array_1d<double,3>& An );
-
+    void CalculateNormal(array_1d<double,3>& An);
 
     ///@}
     ///@name Protected  Access
@@ -391,14 +380,14 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
 
     ///@}
