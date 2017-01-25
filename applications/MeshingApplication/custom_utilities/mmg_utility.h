@@ -82,7 +82,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim>  
+template<unsigned int TDim, bool THessMetr>  
 class MmgUtility
 {
 public:
@@ -197,7 +197,7 @@ public:
     void ComputeExistingModelPart(
         ModelPart& rThisModelPart,
         const Variable<double> & rVariable,
-        const Variable<array_1d<double,3>> & rVariableGradient,
+        const Variable<array_1d<double,3 * (1 + THessMetr)>> & rVariableGradient,
         const double& minimal_size = 0.1,
         const double& hmin_over_hmax_anisotropic_ratio = 0.01,
         const double& boundary_layer_max_value = 1.0,
@@ -375,12 +375,12 @@ public:
                 const elem_geometries_3d index_geom0 = Tetrahedra;
                 const elem_geometries_3d index_geom1 = Prism;
                 
-                if (size_geom == 4 && mInitRefElement[0] == false) // Tetrahedra
+                if (size_geom == 4 && mInitRefElement[index_geom0] == false) // Tetrahedra
                 {
                     mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                     mInitRefElement[index_geom0] = true;
                 }
-                else if (size_geom == 6 && mInitRefElement[1] == false) // Prism
+                else if (size_geom == 6 && mInitRefElement[index_geom1] == false) // Prism
                 {
                     mpRefElement[index_geom1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                     mInitRefElement[index_geom1] = true;
@@ -400,7 +400,7 @@ public:
             auto itNode = pNode.begin() + i;
             
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable, 0);
-            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
+            array_1d<double, 3 * (1 + THessMetr)> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
             double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
             if (element_size > minimal_size)
@@ -538,18 +538,18 @@ public:
             nElements[1] = mmgMesh->nprism;
         }
         
-        std::cout << "     Nodes created: " << nNodes << std::endl;
+        std::cout << "     Nodes created: " << nNodes + 1 << std::endl;
         if (TDim == 2) // 2D
         {
-            std::cout << "Conditions created: " << nConditions[0] << std::endl;
-            std::cout << "Elements created: " << nElements[0] << std::endl;
+            std::cout << "Conditions created: " << nConditions[0] + 1 << std::endl;
+            std::cout << "Elements created: " << nElements[0] + 1<< std::endl;
         }
         else // 3D
         {
-            std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
-            std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1] << std::endl;
-            std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
-            std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
+            std::cout << "Conditions created: " << nConditions[0] + nConditions[1]  + 1<< std::endl;
+            std::cout << "\tTriangles: " << nConditions[0] + 1 << "\tQuadrilaterals: " << nConditions[1] + 1<< std::endl;
+            std::cout << "Elements created: " << nElements[0] + nElements[1] + 1 << std::endl;
+            std::cout << "\tTetrahedron: " << nElements[0] + 1 << "\tPrisms: " << nElements[1] + 1 << std::endl;
         }
         
         ////////* EMPTY AND BACKUP THE MODEL PART *////////
@@ -604,17 +604,17 @@ public:
         
         // Create a new model part
         /* NODES */
-        for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
+        for (int unsigned i_node = 0; i_node <= nNodes; i_node++)
         {
             NodeType::Pointer pNode;
             
             if (TDim == 2)
             {
-                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+                pNode = rThisModelPart.CreateNewNode(i_node + 1, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
             }
             else
             {
-                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+                pNode = rThisModelPart.CreateNewNode(i_node + 1, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
             }
             
             // Set the DOFs in the nodes 
@@ -628,7 +628,7 @@ public:
         unsigned int cond_id = 0;
         if (mpRefCondition[0] != nullptr)
         {
-            for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
+            for (int unsigned i_cond = 0; i_cond <= nConditions[0]; i_cond++)
             {
                 cond_id += 1;
                 ConditionType::Pointer pCondition;
@@ -639,8 +639,8 @@ public:
                     const cond_geometries_2d index_geom = Line;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (2);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].a + 1);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->edge[i_cond].b + 1);
                     
                     prop_id = mmgMesh->edge[i_cond].ref;
                     
@@ -651,9 +651,9 @@ public:
                     const cond_geometries_3d index_geom = Triangle3D;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (3);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0]);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1]);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2]);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[0] + 1);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[1] + 1);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_cond].v[2] + 1);
                     
                     prop_id = mmgMesh->tria[i_cond].ref;
                     
@@ -679,7 +679,7 @@ public:
         {
             if (mpRefCondition[1] != nullptr) // Quadrilateral
             {
-                for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
+                for (int unsigned i_cond = 0; i_cond <= nConditions[1]; i_cond++)
                 {
                     cond_id += 1;
                     ConditionType::Pointer pCondition;
@@ -688,10 +688,10 @@ public:
                     const cond_geometries_3d index_geom = Quadrilateral3D;
                     
                     std::vector<NodeType::Pointer> ConditionNodes (4);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[0]);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[1]);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[2]);
-                    ConditionNodes[3] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[3]);
+                    ConditionNodes[0] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[0] + 1);
+                    ConditionNodes[1] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[1] + 1);
+                    ConditionNodes[2] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[2] + 1);
+                    ConditionNodes[3] = rThisModelPart.pGetNode(mmgMesh->quad[i_cond].v[3] + 1);
                     
                     prop_id = mmgMesh->quad[i_cond].ref;
                     
@@ -718,7 +718,7 @@ public:
         unsigned int elem_id = 0;
         if (mpRefElement[0] != nullptr)
         {
-            for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
+            for (int unsigned i_elem = 0; i_elem <= nElements[0]; i_elem++)
             {
                 elem_id += 1;
                 ElementType::Pointer pElement;
@@ -729,9 +729,9 @@ public:
                     const elem_geometries_2d index_geom = Triangle2D;
                     
                     std::vector<NodeType::Pointer> ElementNodes (3);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2]);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[0] + 1);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[1] + 1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tria[i_elem].v[2] + 1);
                     
                     prop_id = mmgMesh->tria[i_elem].ref;
                     
@@ -742,10 +742,10 @@ public:
                     const elem_geometries_3d index_geom = Tetrahedra;
                     
                     std::vector<NodeType::Pointer> ElementNodes (4);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2]);
-                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3]);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[0] + 1);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[1] + 1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[2] + 1);
+                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->tetra[i_elem].v[3] + 1);
                     
                     prop_id = mmgMesh->tetra[i_elem].ref;
                     
@@ -771,7 +771,7 @@ public:
         {
             if (mpRefElement[1] != nullptr) // Prism
             {
-                for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
+                for (int unsigned i_elem = 0; i_elem <= nElements[1]; i_elem++)
                 {
                     elem_id += 1;
                     ElementType::Pointer pElement;
@@ -780,12 +780,12 @@ public:
                     const elem_geometries_3d index_geom = Prism;
                     
                     std::vector<NodeType::Pointer> ElementNodes (6);
-                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[0]);
-                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[1]);
-                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[2]);
-                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[3]);
-                    ElementNodes[4] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[4]);
-                    ElementNodes[5] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[5]);
+                    ElementNodes[0] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[0] + 1);
+                    ElementNodes[1] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[1] + 1);
+                    ElementNodes[2] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[2] + 1);
+                    ElementNodes[3] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[3] + 1);
+                    ElementNodes[4] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[4] + 1);
+                    ElementNodes[5] = rThisModelPart.pGetNode(mmgMesh->prism[i_elem].v[5] + 1);
                     
                     prop_id = mmgMesh->prism[i_elem].ref;
                     
@@ -1732,137 +1732,65 @@ protected:
         
     void ComputeTensorH(
         const double& scalar_value, 
-        const array_1d<double, 3>& gradient_value,
+        const array_1d<double, 3 * (1 + THessMetr)>& gradient_value,
         const double& ratio,
         const double& element_size,
         const double& boundary_layer_max_value,
         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
     )
     {
-        const double coeff0 = 1.0/(element_size * element_size);
-        
-        if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
+        if(THessMetr ==false)
         {
-            const double coeff1 = coeff0/(ratio * ratio);
+            const double coeff0 = 1.0/(element_size * element_size);
             
-            const double v0v0 = gradient_value[0]*gradient_value[0];
-            const double v0v1 = gradient_value[0]*gradient_value[1];
-            const double v1v1 = gradient_value[1]*gradient_value[1];
-            
-            // Using API
-            if ( MMG2D_Set_tensorSol(mmgSol, 
-                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                    coeff0*(    - v0v1) + coeff1*v0v1,  
-                                    coeff0*(1.0 - v1v1) + coeff1*v1v1,
-                                    node_id) != 1 )
+            if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
             {
-                exit(EXIT_FAILURE);
+                const double coeff1 = coeff0/(ratio * ratio);
+                
+                const double v0v0 = gradient_value[0]*gradient_value[0];
+                const double v0v1 = gradient_value[0]*gradient_value[1];
+                const double v1v1 = gradient_value[1]*gradient_value[1];
+                
+                // Using API
+                if ( MMG2D_Set_tensorSol(mmgSol, 
+                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                        coeff0*(    - v0v1) + coeff1*v0v1,  
+                                        coeff0*(1.0 - v1v1) + coeff1*v1v1,
+                                        node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
+            {
+                const double coeff1 = coeff0/(ratio * ratio);
+                
+                const double v0v0 = gradient_value[0]*gradient_value[0];
+                const double v0v1 = gradient_value[0]*gradient_value[1];
+                const double v0v2 = gradient_value[0]*gradient_value[2];
+                const double v1v1 = gradient_value[1]*gradient_value[1];
+                const double v1v2 = gradient_value[1]*gradient_value[2];
+                const double v2v2 = gradient_value[2]*gradient_value[2];
+                
+                // Using API
+                if ( MMG3D_Set_tensorSol(mmgSol, 
+                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                        coeff0*(    - v0v1) + coeff1*v0v1, 
+                                        coeff0*(    - v0v2) + coeff1*v0v2, 
+                                        coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+                                        coeff0*(    - v1v2) + coeff1*v1v2, 
+                                        coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+                                        node_id) != 1 )
+                {
+                    exit(EXIT_FAILURE);
+                }
             }
         }
-        else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
+        else
         {
-            const double coeff1 = coeff0/(ratio * ratio);
-            
-            const double v0v0 = gradient_value[0]*gradient_value[0];
-            const double v0v1 = gradient_value[0]*gradient_value[1];
-            const double v0v2 = gradient_value[0]*gradient_value[2];
-            const double v1v1 = gradient_value[1]*gradient_value[1];
-            const double v1v2 = gradient_value[1]*gradient_value[2];
-            const double v2v2 = gradient_value[2]*gradient_value[2];
-            
-            // Using API
-            if ( MMG3D_Set_tensorSol(mmgSol, 
-                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                    coeff0*(    - v0v1) + coeff1*v0v1, 
-                                    coeff0*(    - v0v2) + coeff1*v0v2, 
-                                    coeff0*(1.0 - v1v1) + coeff1*v1v1, 
-                                    coeff0*(    - v1v2) + coeff1*v1v2, 
-                                    coeff0*(1.0 - v2v2) + coeff1*v2v2, 
-                                    node_id) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
+            // TODO: Finish this!!!
         }
     }
-    // NOTE: LEGACY
-//     void ComputeTensorH(
-//         const double& scalar_value, 
-//         const array_1d<double, 3>& gradient_value,
-//         const double& ratio,
-//         const double& element_size,
-//         const double& boundary_layer_max_value,
-//         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
-//     )
-//     {
-//         const double coeff0 = 1.0/(element_size * element_size);
-//         
-//         if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
-//         {
-//             if (std::abs(scalar_value) > boundary_layer_max_value) 
-// //             if (std::abs(scalar_value) > element_size) 
-//             {
-//                 // Using API
-//                 if ( MMG2D_Set_tensorSol(mmgSol, coeff0, 0.0, coeff0, node_id) != 1 )
-//                 {
-//                     exit(EXIT_FAILURE);
-//                 }
-//             }
-//             else
-//             {
-//                 const double coeff1 = coeff0/(ratio * ratio);
-//                 
-//                 const double v0v0 = gradient_value[0]*gradient_value[0];
-//                 const double v0v1 = gradient_value[0]*gradient_value[1];
-//                 const double v1v1 = gradient_value[1]*gradient_value[1];
-//                 
-//                 // Using API
-//                 if ( MMG2D_Set_tensorSol(mmgSol, 
-//                                         coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-//                                         coeff0*(      v0v1) + coeff1*v0v1,  
-//                                         coeff0*(1.0 - v1v1) + coeff1*v1v1,
-//                                         node_id) != 1 )
-//                 {
-//                     exit(EXIT_FAILURE);
-//                 }
-//             }
-//         }
-//         else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
-//         {
-//             if (std::abs(scalar_value) > boundary_layer_max_value) 
-// //             if (std::abs(scalar_value) > element_size) 
-//             {
-//                 // Using API
-//                 if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
-//                 {
-//                     exit(EXIT_FAILURE);
-//                 }
-//             }
-//             else
-//             {
-//                 const double coeff1 = coeff0/(ratio * ratio);
-//                 
-//                 const double v0v0 = gradient_value[0]*gradient_value[0];
-//                 const double v0v1 = gradient_value[0]*gradient_value[1];
-//                 const double v0v2 = gradient_value[0]*gradient_value[2];
-//                 const double v1v1 = gradient_value[1]*gradient_value[1];
-//                 const double v1v2 = gradient_value[1]*gradient_value[2];
-//                 const double v2v2 = gradient_value[2]*gradient_value[2];
-//                 
-//                 // Using API
-//                 if ( MMG3D_Set_tensorSol(mmgSol, 
-//                                         coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-//                                         coeff0*(      v0v1) + coeff1*v0v1, 
-//                                         coeff0*(      v0v2) + coeff1*v0v2, 
-//                                         coeff0*(1.0 - v1v1) + coeff1*v1v1, 
-//                                         coeff0*(      v1v2) + coeff1*v1v2, 
-//                                         coeff0*(1.0 - v2v2) + coeff1*v2v2, 
-//                                         node_id) != 1 )
-//                 {
-//                     exit(EXIT_FAILURE);
-//                 }
-//             }
-//         }
-//     }
     
     ///@}
     ///@name Protected  Access
