@@ -105,10 +105,12 @@ namespace Kratos {
         // calculation of damping gamma
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+        const double friction_coeff = element1->GetProperties()[CONTACT_INTERNAL_FRICC];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
-        double sqr_period = kn / equiv_mass - rescaled_damping*rescaled_damping;
+        //double sqr_period = kn / equiv_mass - rescaled_damping*rescaled_damping;
+        double sqr_period = sqrt(1+friction_coeff*friction_coeff) * kn / equiv_mass - rescaled_damping*rescaled_damping;
         return sqr_period;
     }
 
