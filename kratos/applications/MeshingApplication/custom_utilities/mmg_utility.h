@@ -82,7 +82,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template< unsigned int TDim>  
+template<unsigned int TDim>  
 class MmgUtility
 {
 public:
@@ -198,10 +198,10 @@ public:
         ModelPart& rThisModelPart,
         const Variable<double> & rVariable,
         const Variable<array_1d<double,3>> & rVariableGradient,
-        const double& elementary_length = 0.1,
-        const double& initial_alpha_parameter = 0.01,
-        const double& value_threshold = 1.0,
-        const std::string& interpolation = "Constant",
+        const double& minimal_size = 0.1,
+        const double& hmin_over_hmax_anisotropic_ratio = 0.01,
+        const double& boundary_layer_max_value = 1.0,
+        const std::string& interpolation = "Linear",
         const bool& save_to_file = false
         )
     {
@@ -327,22 +327,26 @@ public:
             {
                 if (i == 0)
                 {
-                    mpRefCondition[0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                    const cond_geometries_2d index_geom0 = Line;
+                    mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
                 }
             }
             else
             {
                 const unsigned int size_geom = itCond->GetGeometry().size();
                 
-                if (size_geom == 3 && mInitRefCondition[0] == false) // Triangle
+                const cond_geometries_3d index_geom0 = Triangle3D;
+                const cond_geometries_3d index_geom1 = Quadrilateral3D;
+
+                if (size_geom == 3 && mInitRefCondition[index_geom0] == false) // Triangle
                 {
-                    mpRefCondition[0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
-                    mInitRefCondition[0] = true;
+                    mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                    mInitRefCondition[index_geom0] = true;
                 }
-                else if (size_geom == 4 && mInitRefCondition[1] == false) // Quadrilateral
+                else if (size_geom == 4 && mInitRefCondition[index_geom1] == false) // Quadrilateral
                 {
-                    mpRefCondition[1] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
-                    mInitRefCondition[1] = true;
+                    mpRefCondition[index_geom1] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                    mInitRefCondition[index_geom1] = true;
                 }
             }
             
@@ -360,22 +364,26 @@ public:
             {
                 if (i == 0)
                 {
-                    mpRefElement[0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                    const elem_geometries_2d index_geom0 = Triangle2D;
+                    mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                 }
             }
             else
             {
                 const unsigned int size_geom = itElem->GetGeometry().size();
                 
+                const elem_geometries_3d index_geom0 = Tetrahedra;
+                const elem_geometries_3d index_geom1 = Prism;
+                
                 if (size_geom == 4 && mInitRefElement[0] == false) // Tetrahedra
                 {
-                    mpRefElement[0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
-                    mInitRefElement[0] = true;
+                    mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                    mInitRefElement[index_geom0] = true;
                 }
                 else if (size_geom == 6 && mInitRefElement[1] == false) // Prism
                 {
-                    mpRefElement[1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
-                    mInitRefElement[1] = true;
+                    mpRefElement[index_geom1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                    mInitRefElement[index_geom1] = true;
                 }
             }
             
@@ -395,45 +403,47 @@ public:
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
             double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if (element_size > elementary_length)
+            if (element_size > minimal_size)
             {
-                element_size = elementary_length;
+                element_size = minimal_size;
             }
             
             const double tolerance = 1.0e-12;
             const double norm = norm_2(gradient_value); // Consider isotropic when zero
             double ratio = 1.0; // NOTE: Isotropic mesh
-            if (norm > tolerance)
+            if (std::abs(scalar_value) <= boundary_layer_max_value && norm > tolerance)
             {
                 gradient_value /= norm;
-//                 if (scalar_value < value_threshold)
-                if (std::abs(scalar_value) < value_threshold)
+
+                if (interpolation.find("Constant") != std::string::npos)
                 {
-                    if (interpolation.find("Constant") != std::string::npos)
+                    ratio = hmin_over_hmax_anisotropic_ratio;
+                }
+                else if (interpolation.find("Linear") != std::string::npos)
+                {
+                    ratio = hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                }
+                else if (interpolation.find("Exponential") != std::string::npos)
+                {
+                    ratio = - std::log(std::abs(scalar_value)/boundary_layer_max_value) * hmin_over_hmax_anisotropic_ratio + tolerance;
+                    if (ratio > 1.0)
                     {
-                        ratio = initial_alpha_parameter;
+                        ratio = 1.0;
                     }
-                    else if (interpolation.find("Linear") != std::string::npos)
-                    {
-                        ratio = initial_alpha_parameter * (1.0 - scalar_value/value_threshold);
-                    }
-                    else if (interpolation.find("Exponential") != std::string::npos)
-                    {
-                        ratio = - std::log(scalar_value/value_threshold) * initial_alpha_parameter + tolerance;
-                        if (ratio > 1.0)
-                        {
-                            ratio = 1.0;
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "No interpolation defined, considering constant" << std:: endl;
-                        ratio = initial_alpha_parameter;
-                    }
+                }
+                else
+                {
+                    std::cout << "No interpolation defined, considering linear" << std:: endl;
+                    ratio = 
+                    hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
                 }
             }
             
-            ComputeTensorH(scalar_value, gradient_value, ratio, element_size, value_threshold, i + 1);
+            // For postprocess pourposes
+            double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
+            anisotropic_ratio = ratio;
+            
+            ComputeTensorH(scalar_value, gradient_value, ratio, element_size, boundary_layer_max_value, i + 1);
         }
         
         /** 
@@ -594,19 +604,17 @@ public:
         
         // Create a new model part
         /* NODES */
-        unsigned int node_id = 0;
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
-            node_id += 1;
             NodeType::Pointer pNode;
             
             if (TDim == 2)
             {
-                pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
             }
             else
             {
-                pNode = rThisModelPart.CreateNewNode(node_id, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
             }
             
             // Set the DOFs in the nodes 
@@ -620,8 +628,6 @@ public:
         unsigned int cond_id = 0;
         if (mpRefCondition[0] != nullptr)
         {
-            unsigned int cond_id = 0;
-
             for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
                 cond_id += 1;
@@ -1721,7 +1727,7 @@ protected:
      * @param gradient_value: The gradient of the scalar to remesh
      * @param ratio: The alpha parameter used to remesh
      * @param element_size: The minimum size of the elements
-     * @param value_threshold: The minimum value to consider for remesh
+     * @param boundary_layer_max_value: The minimum value to consider for remesh
      */
         
     void ComputeTensorH(
@@ -1729,84 +1735,134 @@ protected:
         const array_1d<double, 3>& gradient_value,
         const double& ratio,
         const double& element_size,
-        const double& value_threshold,
+        const double& boundary_layer_max_value,
         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
     )
     {
         const double coeff0 = 1.0/(element_size * element_size);
         
-        const double threshold = value_threshold; // We don't reach the minimum
-//         const double threshold = element_size; // NOTE: In the case that the scalar value is related with a distance, better to consider an independent variable
-        
         if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
         {
-            if (scalar_value > threshold) 
-//             if (scalar_value > element_size) 
+            const double coeff1 = coeff0/(ratio * ratio);
+            
+            const double v0v0 = gradient_value[0]*gradient_value[0];
+            const double v0v1 = gradient_value[0]*gradient_value[1];
+            const double v1v1 = gradient_value[1]*gradient_value[1];
+            
+            // Using API
+            if ( MMG2D_Set_tensorSol(mmgSol, 
+                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                    coeff0*(    - v0v1) + coeff1*v0v1,  
+                                    coeff0*(1.0 - v1v1) + coeff1*v1v1,
+                                    node_id) != 1 )
             {
-                // Using API
-                if ( MMG2D_Set_tensorSol(mmgSol, coeff0, 0.0, coeff0, node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else
-            {
-                const double aux = ratio + (scalar_value/value_threshold)*(1.0 - ratio);
-//                 const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
-                const double coeff1 = coeff0/(aux * aux);
-                
-                const double v0v0 = gradient_value[0]*gradient_value[0];
-                const double v0v1 = gradient_value[0]*gradient_value[1];
-                const double v1v1 = gradient_value[1]*gradient_value[1];
-                
-                // Using API
-                if ( MMG2D_Set_tensorSol(mmgSol, 
-                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                        coeff0*(      v0v1) + coeff1*v0v1,  
-                                        coeff0*(1.0 - v1v1) + coeff1*v1v1,
-                                        node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
+                exit(EXIT_FAILURE);
             }
         }
         else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
         {
-            if (scalar_value > threshold)
+            const double coeff1 = coeff0/(ratio * ratio);
+            
+            const double v0v0 = gradient_value[0]*gradient_value[0];
+            const double v0v1 = gradient_value[0]*gradient_value[1];
+            const double v0v2 = gradient_value[0]*gradient_value[2];
+            const double v1v1 = gradient_value[1]*gradient_value[1];
+            const double v1v2 = gradient_value[1]*gradient_value[2];
+            const double v2v2 = gradient_value[2]*gradient_value[2];
+            
+            // Using API
+            if ( MMG3D_Set_tensorSol(mmgSol, 
+                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                    coeff0*(    - v0v1) + coeff1*v0v1, 
+                                    coeff0*(    - v0v2) + coeff1*v0v2, 
+                                    coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+                                    coeff0*(    - v1v2) + coeff1*v1v2, 
+                                    coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+                                    node_id) != 1 )
             {
-                // Using API
-                if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else
-            {
-                const double aux = ratio + (scalar_value/element_size)*(1.0 - ratio);
-                const double coeff1 = coeff0/(aux * aux);
-                
-                const double v0v0 = gradient_value[0]*gradient_value[0];
-                const double v0v1 = gradient_value[0]*gradient_value[1];
-                const double v0v2 = gradient_value[0]*gradient_value[2];
-                const double v1v1 = gradient_value[1]*gradient_value[1];
-                const double v1v2 = gradient_value[1]*gradient_value[2];
-                const double v2v2 = gradient_value[2]*gradient_value[2];
-                
-                // Using API
-                if ( MMG3D_Set_tensorSol(mmgSol, 
-                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                        coeff0*(      v0v1) + coeff1*v0v1, 
-                                        coeff0*(      v0v2) + coeff1*v0v2, 
-                                        coeff0*(1.0 - v1v1) + coeff1*v1v1, 
-                                        coeff0*(      v1v2) + coeff1*v1v2, 
-                                        coeff0*(1.0 - v2v2) + coeff1*v2v2, 
-                                        node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
+                exit(EXIT_FAILURE);
             }
         }
     }
+    // NOTE: LEGACY
+//     void ComputeTensorH(
+//         const double& scalar_value, 
+//         const array_1d<double, 3>& gradient_value,
+//         const double& ratio,
+//         const double& element_size,
+//         const double& boundary_layer_max_value,
+//         const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
+//     )
+//     {
+//         const double coeff0 = 1.0/(element_size * element_size);
+//         
+//         if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
+//         {
+//             if (std::abs(scalar_value) > boundary_layer_max_value) 
+// //             if (std::abs(scalar_value) > element_size) 
+//             {
+//                 // Using API
+//                 if ( MMG2D_Set_tensorSol(mmgSol, coeff0, 0.0, coeff0, node_id) != 1 )
+//                 {
+//                     exit(EXIT_FAILURE);
+//                 }
+//             }
+//             else
+//             {
+//                 const double coeff1 = coeff0/(ratio * ratio);
+//                 
+//                 const double v0v0 = gradient_value[0]*gradient_value[0];
+//                 const double v0v1 = gradient_value[0]*gradient_value[1];
+//                 const double v1v1 = gradient_value[1]*gradient_value[1];
+//                 
+//                 // Using API
+//                 if ( MMG2D_Set_tensorSol(mmgSol, 
+//                                         coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+//                                         coeff0*(      v0v1) + coeff1*v0v1,  
+//                                         coeff0*(1.0 - v1v1) + coeff1*v1v1,
+//                                         node_id) != 1 )
+//                 {
+//                     exit(EXIT_FAILURE);
+//                 }
+//             }
+//         }
+//         else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
+//         {
+//             if (std::abs(scalar_value) > boundary_layer_max_value) 
+// //             if (std::abs(scalar_value) > element_size) 
+//             {
+//                 // Using API
+//                 if ( MMG3D_Set_tensorSol(mmgSol, coeff0, 0.0, 0.0, coeff0, 0.0, coeff0, node_id) != 1 )
+//                 {
+//                     exit(EXIT_FAILURE);
+//                 }
+//             }
+//             else
+//             {
+//                 const double coeff1 = coeff0/(ratio * ratio);
+//                 
+//                 const double v0v0 = gradient_value[0]*gradient_value[0];
+//                 const double v0v1 = gradient_value[0]*gradient_value[1];
+//                 const double v0v2 = gradient_value[0]*gradient_value[2];
+//                 const double v1v1 = gradient_value[1]*gradient_value[1];
+//                 const double v1v2 = gradient_value[1]*gradient_value[2];
+//                 const double v2v2 = gradient_value[2]*gradient_value[2];
+//                 
+//                 // Using API
+//                 if ( MMG3D_Set_tensorSol(mmgSol, 
+//                                         coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+//                                         coeff0*(      v0v1) + coeff1*v0v1, 
+//                                         coeff0*(      v0v2) + coeff1*v0v2, 
+//                                         coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+//                                         coeff0*(      v1v2) + coeff1*v1v2, 
+//                                         coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+//                                         node_id) != 1 )
+//                 {
+//                     exit(EXIT_FAILURE);
+//                 }
+//             }
+//         }
+//     }
     
     ///@}
     ///@name Protected  Access
