@@ -79,7 +79,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<unsigned int TDim, bool THessMetr>  
+template<unsigned int TDim>  
 class MmgUtility
 {
 public:
@@ -107,7 +107,6 @@ public:
     ///@name Life Cycle
     ///@{
      
-    /** ------------------------------ STEP   I -------------------------- */
     // Constructor
     
     /**
@@ -182,29 +181,17 @@ public:
     ///@name Operations
     ///@{
     
-    /** ------------------------------ STEP  II -------------------------- */
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * Instead of using an files already created we read an existing model part
      * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
      */
     
-    void ComputeExistingModelPart(
+    void RemeshModelPart(
         ModelPart& rThisModelPart,
-        const Variable<double> & rVariable,
-        const Variable<array_1d<double,3 * (1 + THessMetr)>> & rVariableGradient,
-        const double& minimal_size = 0.1,
-        const double& hmin_over_hmax_anisotropic_ratio = 0.01,
-        const double& boundary_layer_max_value = 1.0,
-        const std::string& interpolation = "Linear",
-        const bool& save_to_file = false
+        const bool& save_to_file = false,
+        const unsigned int MaxNumberOfResults = 1000
         )
     {
-        // NOTE: Step one in the constructor
-        
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------------------------------------------//" << std::endl;
         std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
@@ -214,6 +201,49 @@ public:
         
         KRATOS_WATCH(rThisModelPart);
         
+        // Check if the number of given entities match with mesh size 
+        CheckMeshData();
+        
+        // Save to file
+        if (save_to_file == true)
+        {
+            SaveSolutionToFile(false);
+        }
+        
+        // We execute the remeshing
+        ExecuteRemeshing(rThisModelPart, MaxNumberOfResults);
+        
+        /* Save to file */
+        if (save_to_file == true)
+        {
+            SaveSolutionToFile(true);
+        }
+       
+        /* Free memory */
+        FreeMemory();
+        
+        /* We print the resulting model part */
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << "//---------------------------------------------------//" << std::endl;
+        std::cout << std::endl;
+        
+        KRATOS_WATCH(rThisModelPart);
+        
+    }
+  
+    /***********************************************************************************/
+    /***********************************************************************************/
+  
+        /**
+     * This function generates the mesh MMG5 structure from a Kratos Model Part
+     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
+     */
+    
+    void InitializeMeshData(ModelPart& rThisModelPart)
+    {
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
@@ -384,8 +414,37 @@ public:
             
             SetElements(itElem->GetGeometry(), elem_colors[itElem->Id()], i + 1);
         }
-        
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * We initialize the metrics of the MMG sol using a level set approach
+     * @param rThisModelPart: The original model part where we compute the metric
+     * @param minimal_size: The minimal size of the elements
+     * @param rVariable: The scalar variable to compute
+     * @param rVariableGradient: The gradient variable to compute
+     * @param hmin_over_hmax_anisotropic_ratio: The minimal anisotropic ratio
+     * @param boundary_layer_max_value: The boundary layer limit to remesh
+     * @param interpolation: The type of interpolation used
+     */
+    
+    void InitializeLevelSetSolData(
+        ModelPart& rThisModelPart,
+        const double& minimal_size = 0.1,
+        const Variable<double> & rVariable = DISTANCE,
+        const Variable<array_1d<double,3>> & rVariableGradient = DISTANCE_GRADIENT,
+        const double& hmin_over_hmax_anisotropic_ratio = 1.0,
+        const double& boundary_layer_max_value =  1.0,
+        const std::string& interpolation = "Linear"
+    )
+    {
         ////////* SOLUTION FILE *////////
+        
+        // Iterate in the nodes
+        NodesArrayType& pNode = rThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
         
         SetSolSize(numNodes);
 
@@ -395,7 +454,7 @@ public:
             auto itNode = pNode.begin() + i;
             
             const double scalar_value = itNode->FastGetSolutionStepValue(rVariable, 0);
-            array_1d<double, 3 * (1 + THessMetr)> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
+            array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
             double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
             if (element_size > minimal_size)
@@ -403,34 +462,38 @@ public:
                 element_size = minimal_size;
             }
             
-            const double tolerance = 1.0e-12;
-            const double norm = norm_2(gradient_value); // Consider isotropic when zero
             double ratio = 1.0; // NOTE: Isotropic mesh
-            if (std::abs(scalar_value) <= boundary_layer_max_value && norm > tolerance)
+            if (hmin_over_hmax_anisotropic_ratio < 1.0)
             {
-                gradient_value /= norm;
+                const double tolerance = 1.0e-12;
+                const double norm = norm_2(gradient_value); // Consider isotropic when zero
+                
+                if (std::abs(scalar_value) <= boundary_layer_max_value && norm > tolerance)
+                {
+                    gradient_value /= norm;
 
-                if (interpolation.find("Constant") != std::string::npos)
-                {
-                    ratio = hmin_over_hmax_anisotropic_ratio;
-                }
-                else if (interpolation.find("Linear") != std::string::npos)
-                {
-                    ratio = hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
-                }
-                else if (interpolation.find("Exponential") != std::string::npos)
-                {
-                    ratio = - std::log(std::abs(scalar_value)/boundary_layer_max_value) * hmin_over_hmax_anisotropic_ratio + tolerance;
-                    if (ratio > 1.0)
+                    if (interpolation.find("Constant") != std::string::npos)
                     {
-                        ratio = 1.0;
+                        ratio = hmin_over_hmax_anisotropic_ratio;
                     }
-                }
-                else
-                {
-                    std::cout << "No interpolation defined, considering linear" << std:: endl;
-                    ratio = 
-                    hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                    else if (interpolation.find("Linear") != std::string::npos)
+                    {
+                        ratio = hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                    }
+                    else if (interpolation.find("Exponential") != std::string::npos)
+                    {
+                        ratio = - std::log(std::abs(scalar_value)/boundary_layer_max_value) * hmin_over_hmax_anisotropic_ratio + tolerance;
+                        if (ratio > 1.0)
+                        {
+                            ratio = 1.0;
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "No interpolation defined, considering linear" << std:: endl;
+                        ratio = 
+                        hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                    }
                 }
             }
             
@@ -438,16 +501,7 @@ public:
             double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
             anisotropic_ratio = ratio;
             
-            ComputeTensorH(scalar_value, gradient_value, ratio, element_size, boundary_layer_max_value, i + 1);
-        }
-        
-        // Check if the number of given entities match with mesh size 
-        CheckMeshData();
-        
-        // Save to file
-        if (save_to_file == true)
-        {
-            SaveSolutionToFile(false);
+            ComputeLevelSetMetricTensor(gradient_value, ratio, element_size, boundary_layer_max_value, i + 1);
         }
     }
     
@@ -455,46 +509,94 @@ public:
     /***********************************************************************************/
     
     /**
-     * We consider as input an already existing files , so this reads the input files 
+     * We initialize the metrics of the MMG sol using the Hessian metric matrix approach
+     * @param rThisModelPart: The original model part where we compute the metric
      */
     
-    void ReadFiles()
-    {
-       /** 
-        * 1) Build mesh in MMG5 format 
-        */
-       
-       SetInputMeshName();
-       
-       /** 
-        * 2) Build sol in MMG5 format 
-        */
-       
-       SetInputSolName();
-       
-       /** 
-        * 3) Check if the number of given entities match with mesh size
-        */
-       
-       CheckMeshData();
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * The operation related with the libray is executed
-     * @param rThisModelPart: The model part to modify (first we empty, later we fill)
-     * @param mColors: The external dictionary needed to know how to assign the submodelparts
-     * @param save_to_file: Save the solution to a *.sol and *.mesh files
-     */
-
-    void Execute(
+    void InitializeHessianSolData(
         ModelPart& rThisModelPart,
-        const bool save_to_file = false,
+        const double& minimal_size
+    )
+    {
+        ////////* SOLUTION FILE *////////
+     
+        // Iterate in the nodes
+        NodesArrayType& pNode = rThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        SetSolSize(numNodes);
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+//             auto itNode = pNode.begin() + i;
+            
+            // TODO: Fill me
+//             ComputeHessianMetricTensor();
+        }
+    }
+        
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    
+    // Storage for the dof of the node
+    Node<3>::DofsContainerType  mDofs;
+    
+    // I/O information
+    char* mFilename;
+    std::string mStdStringFilename;
+    
+    // The member variables related with the MMG library
+    MMG5_pMesh mmgMesh;
+    MMG5_pSol  mmgSol;
+    
+    // Where the sub model parts IDs are stored
+    std::map<int,std::vector<std::string>> mColors;
+    
+    // Reference element and condition
+    std::vector<Element::Pointer>   mpRefElement;
+    std::vector<Condition::Pointer> mpRefCondition;
+    std::vector<bool> mInitRefElement;
+    std::vector<bool> mInitRefCondition;
+    
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    /**
+     * We execute the MMg library and build the new model part from the old model part
+     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
+     * @param MaxNumberOfResults: The maxim number of results to consider in the search
+     */
+    
+    void ExecuteRemeshing(
+        ModelPart& rThisModelPart,
         const unsigned int MaxNumberOfResults = 1000
         )
-    {   
+    {
         // We initialize some values
         unsigned int step_data_size = rThisModelPart.GetNodalSolutionStepDataSize();
         unsigned int buffer_size    = rThisModelPart.NodesBegin()->GetBufferSize();
@@ -542,13 +644,13 @@ public:
         
         ////////* EMPTY AND BACKUP THE MODEL PART *////////
         
-        ModelPart OldModelPart;
+        ModelPart rOldModelPart;
         
         // First we empty the model part
         for (NodeConstantIterator node_iterator = rThisModelPart.NodesBegin(); node_iterator != rThisModelPart.NodesEnd(); node_iterator++)
         {
             node_iterator->Set(TO_ERASE, true);
-            OldModelPart.AddNode(*(node_iterator.base()));
+            rOldModelPart.AddNode(*(node_iterator.base()));
         }
         rThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
         
@@ -561,7 +663,7 @@ public:
         for (ElementConstantIterator elem_iterator = rThisModelPart.ElementsBegin(); elem_iterator != rThisModelPart.ElementsEnd(); elem_iterator++)
         {
             elem_iterator->Set(TO_ERASE, true);
-            OldModelPart.AddElement(*(elem_iterator.base()));
+            rOldModelPart.AddElement(*(elem_iterator.base()));
         }
         rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
         
@@ -838,9 +940,31 @@ public:
         }
         
         /* We interpolate all the values */
-        
+        InterpolateValues(rThisModelPart, rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * It interpolates the values in the new model part using the old model part
+     * @param rThisModelPart: The new model part
+     * @param rOldModelPart: The old model part
+     * @param MaxNumberOfResults: The maxim number of results to consider in the search
+     * @param step_data_size: The size of the database
+     * @param buffer_size: The size of the buffer
+     */
+    
+    void InterpolateValues(
+        ModelPart& rThisModelPart,
+        ModelPart& rOldModelPart,
+        const unsigned int MaxNumberOfResults,
+        unsigned int step_data_size,
+        unsigned int buffer_size  
+        )
+    {
         // We create the locator
-        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(OldModelPart);
+        BinBasedFastPointLocator<TDim> PointLocator = BinBasedFastPointLocator<TDim>(rOldModelPart);
         PointLocator.UpdateSearchDatabase();
         
         // Iterate in the nodes
@@ -900,28 +1024,7 @@ public:
                 }
             }
         }
-        
-        /* Save to file */
-        if (save_to_file == true)
-        {
-            SaveSolutionToFile(true);
-        }
-       
-        /* Free memory */
-        FreeMemory();
-        
-        /* We print the resulting model part */
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << std::endl;
-        
-        KRATOS_WATCH(rThisModelPart);
     }
-    
-    /** ------------------------------ STEP III -------------------------- */
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -957,56 +1060,9 @@ public:
         free(mFilename);
         mFilename = NULL;
     }
-        
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
     
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    
-    // Storage for the dof of the node
-    Node<3>::DofsContainerType  mDofs;
-    
-    // I/O information
-    char* mFilename;
-    std::string mStdStringFilename;
-    
-    // The member variables related with the MMG library
-    MMG5_pMesh mmgMesh;
-    MMG5_pSol  mmgSol;
-    
-    // Where the sub model parts IDs are stored
-    std::map<int,std::vector<std::string>> mColors;
-    
-    // Reference element and condition
-    std::vector<Element::Pointer>   mpRefElement;
-    std::vector<Condition::Pointer> mpRefCondition;
-    std::vector<bool> mInitRefElement;
-    std::vector<bool> mInitRefCondition;
-    
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
+    /***********************************************************************************/
+    /***********************************************************************************/
     
     /**
      * This inits the mesh
@@ -1122,31 +1178,6 @@ protected:
     /***********************************************************************************/
     
     /**
-     * This set the input mesh name
-     */
-    
-    void SetInputMeshName()
-    {
-        if (TDim == 2)
-        {
-            if ( MMG2D_Set_inputMeshName(mmgMesh, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            if ( MMG3D_Set_inputMeshName(mmgMesh, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
      * This sets the output mesh
      */
     
@@ -1185,45 +1216,6 @@ protected:
             if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1 ) 
             {
                 std::cout << "UNABLE TO SAVE MESH" << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * This sets the input sol name
-     */
-    
-    void SetInputSolName()
-    {
-        if (TDim == 2)
-        {
-            // a) Give the sol name (by default, the "mesh.sol" file is oppened)
-            if ( MMG2D_Set_inputSolName(mmgMesh, mmgSol, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-
-            // b) Function calling 
-            if ( MMG2D_loadSol(mmgMesh, mmgSol, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            // a) Give the sol name (by default, the "mesh.sol" file is oppened)
-            if ( MMG3D_Set_inputSolName(mmgMesh, mmgSol, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-
-            // b) Function calling 
-            if ( MMG3D_loadSol(mmgMesh, mmgSol, mFilename) != 1 )
-            {
-                exit(EXIT_FAILURE);
             }
         }
     }
@@ -1693,73 +1685,78 @@ protected:
 
     /**
      * It calculates the tensor of the scalar, necessary to get the solution before remeshing
-     * @param scalar_value: The scalar used as reference to remesh
      * @param gradient_value: The gradient of the scalar to remesh
      * @param ratio: The alpha parameter used to remesh
      * @param element_size: The minimum size of the elements
      * @param boundary_layer_max_value: The minimum value to consider for remesh
+     * @param node_id: The id of the node
      */
         
-    void ComputeTensorH(
-        const double& scalar_value, 
-        const array_1d<double, 3 * (1 + THessMetr)>& gradient_value,
+    void ComputeLevelSetMetricTensor(
+        const array_1d<double, 3>& gradient_value,
         const double& ratio,
         const double& element_size,
         const double& boundary_layer_max_value,
-        const int node_id // NOTE: This can be a problem if the nodes are not correctly defined
+        const int node_id 
     )
     {
-        if(THessMetr ==false)
+        const double coeff0 = 1.0/(element_size * element_size);
+        
+        if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
         {
-            const double coeff0 = 1.0/(element_size * element_size);
+            const double coeff1 = coeff0/(ratio * ratio);
             
-            if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
+            const double v0v0 = gradient_value[0]*gradient_value[0];
+            const double v0v1 = gradient_value[0]*gradient_value[1];
+            const double v1v1 = gradient_value[1]*gradient_value[1];
+            
+            // Using API
+            if ( MMG2D_Set_tensorSol(mmgSol, 
+                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                    coeff0*(    - v0v1) + coeff1*v0v1,  
+                                    coeff0*(1.0 - v1v1) + coeff1*v1v1,
+                                    node_id) != 1 )
             {
-                const double coeff1 = coeff0/(ratio * ratio);
-                
-                const double v0v0 = gradient_value[0]*gradient_value[0];
-                const double v0v1 = gradient_value[0]*gradient_value[1];
-                const double v1v1 = gradient_value[1]*gradient_value[1];
-                
-                // Using API
-                if ( MMG2D_Set_tensorSol(mmgSol, 
-                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                        coeff0*(    - v0v1) + coeff1*v0v1,  
-                                        coeff0*(1.0 - v1v1) + coeff1*v1v1,
-                                        node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
-            }
-            else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
-            {
-                const double coeff1 = coeff0/(ratio * ratio);
-                
-                const double v0v0 = gradient_value[0]*gradient_value[0];
-                const double v0v1 = gradient_value[0]*gradient_value[1];
-                const double v0v2 = gradient_value[0]*gradient_value[2];
-                const double v1v1 = gradient_value[1]*gradient_value[1];
-                const double v1v2 = gradient_value[1]*gradient_value[2];
-                const double v2v2 = gradient_value[2]*gradient_value[2];
-                
-                // Using API
-                if ( MMG3D_Set_tensorSol(mmgSol, 
-                                        coeff0*(1.0 - v0v0) + coeff1*v0v0, 
-                                        coeff0*(    - v0v1) + coeff1*v0v1, 
-                                        coeff0*(    - v0v2) + coeff1*v0v2, 
-                                        coeff0*(1.0 - v1v1) + coeff1*v1v1, 
-                                        coeff0*(    - v1v2) + coeff1*v1v2, 
-                                        coeff0*(1.0 - v2v2) + coeff1*v2v2, 
-                                        node_id) != 1 )
-                {
-                    exit(EXIT_FAILURE);
-                }
+                exit(EXIT_FAILURE);
             }
         }
-        else
+        else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
         {
-            // TODO: Finish this!!!
+            const double coeff1 = coeff0/(ratio * ratio);
+            
+            const double v0v0 = gradient_value[0]*gradient_value[0];
+            const double v0v1 = gradient_value[0]*gradient_value[1];
+            const double v0v2 = gradient_value[0]*gradient_value[2];
+            const double v1v1 = gradient_value[1]*gradient_value[1];
+            const double v1v2 = gradient_value[1]*gradient_value[2];
+            const double v2v2 = gradient_value[2]*gradient_value[2];
+            
+            // Using API
+            if ( MMG3D_Set_tensorSol(mmgSol, 
+                                    coeff0*(1.0 - v0v0) + coeff1*v0v0, 
+                                    coeff0*(    - v0v1) + coeff1*v0v1, 
+                                    coeff0*(    - v0v2) + coeff1*v0v2, 
+                                    coeff0*(1.0 - v1v1) + coeff1*v1v1, 
+                                    coeff0*(    - v1v2) + coeff1*v1v2, 
+                                    coeff0*(1.0 - v2v2) + coeff1*v2v2, 
+                                    node_id) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
         }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * 
+     * @param 
+     */
+        
+    void ComputeHessianMetricTensor()
+    {
+        // TODO: Finish me!!!!!
     }
     
     ///@}
