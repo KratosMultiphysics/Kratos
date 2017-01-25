@@ -17,17 +17,22 @@ class MmgProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "input_file_name"                  : "",
+            "output_file_name"                  : "",
             "model_part_name"                  : "MainModelPart",
-            "scalar_variable"                  : "DISTANCE",
-            "gradient_variable"                : "DISTANCE_GRADIENT",
+            "strategy"                         : "Level Set",
+            "strategy_parameters"              :{
+                "scalar_variable"                  : "DISTANCE",
+                "gradient_variable"                : "DISTANCE_GRADIENT"
+            },
             "step_frequency"                   : 0,
             "minimal_size"                     : 0.1,
-            "hmin_over_hmax_anisotropic_ratio" : 0.01,
-            "boundary_layer_max_distance"      : 1.0,
-            "interpolation"                    : "Linear",
+            "anisotropy_remeshing"             : true,
+            "anisotropy_parameters":{
+                "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                "boundary_layer_max_distance"      : 1.0,
+                "interpolation"                    : "Linear"
+            },
             "save_external_files"              : false,
-            "initialize_nodal_value"           : 1,
             "max_number_of_searchs"            : 1000,
             "echo_level"                       : 3
         }
@@ -42,17 +47,24 @@ class MmgProcess(KratosMultiphysics.Process):
         self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.params = params
 
-        self.input_file_name = self.params["input_file_name"].GetString()
+        self.output_file_name = self.params["output_file_name"].GetString()
+        
+        self.strategy = self.params["strategy"].GetString()
+        if (self.strategy == "Level Set"):
+            self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["strategy_parameters"]["scalar_variable"].GetString() )
+            self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["strategy_parameters"]["gradient_variable"].GetString() )
+        elif (self.strategy == "Hessian"):
+            self.metric_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["metric_variable"].GetString() )
+            
         self.minimal_size = self.params["minimal_size"].GetDouble()
-        self.hmin_over_hmax_anisotropic_ratio = self.params["hmin_over_hmax_anisotropic_ratio"].GetDouble()
-        self.boundary_layer_max_distance = self.params["boundary_layer_max_distance"].GetDouble()
-        self.interpolation = self.params["interpolation"].GetString()
+        self.anisotropy_remeshing = self.params["anisotropy_remeshing"].GetBool()
+        if (self.anisotropy_remeshing == True):
+            self.hmin_over_hmax_anisotropic_ratio = self.params["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble()
+            self.boundary_layer_max_distance = self.params["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble()
+            self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
+            
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
-        
-        self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["scalar_variable"].GetString() )
-        self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["gradient_variable"].GetString() )
-        self.initialize_nodal_value = self.params["initialize_nodal_value"].GetInt() 
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
         self.echo_level = self.params["echo_level"].GetInt() 
         
@@ -62,9 +74,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.input_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.output_file_name, self.echo_level)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.input_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.output_file_name, self.echo_level)
         
         self._ExecuteRefinement()
         
@@ -103,30 +115,37 @@ class MmgProcess(KratosMultiphysics.Process):
         
         self.find_nodal_h.Execute()
 
-        print("Preparing the solution and mesh information")
-        self.MmgUtility.ComputeExistingModelPart(
-            self.Model[self.model_part_name], 
-            self.scalar_variable, 
-            self.gradient_variable, 
-            self.minimal_size, 
-            self.hmin_over_hmax_anisotropic_ratio, 
-            self.boundary_layer_max_distance, 
-            self.interpolation, 
-            self.save_external_files
-            )
+        print("Preparing the solution  and mesh information")
+        self.MmgUtility.InitializeMeshData(self.Model[self.model_part_name])
+        if (self.strategy == "Level Set"):
+            if (self.anisotropy_remeshing == True):
+                self.MmgUtility.InitializeLevelSetSolData(
+                    self.Model[self.model_part_name], 
+                    self.minimal_size, 
+                    self.scalar_variable, 
+                    self.gradient_variable, 
+                    self.hmin_over_hmax_anisotropic_ratio, 
+                    self.boundary_layer_max_distance, 
+                    self.interpolation
+                    )
+            else:
+                self.MmgUtility.InitializeLevelSetSolData( 
+                    self.Model[self.model_part_name], 
+                    self.minimal_size
+                    )
+        #elif (self.strategy == "Hessian"):
+            #if (self.anisotropy_remeshing == True):
+                #self.MmgUtility.InitializeHessianSolData(
+                    #self.Model[self.model_part_name], 
+                    #self.minimal_size
+                    #)
+            #else:
+                #self.MmgUtility.InitializeHessianSolData( 
+                    #self.Model[self.model_part_name], 
+                    #self.minimal_size
+                    #)
         
         print("Remeshing")
-        self.MmgUtility.Execute(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
-        
-        # TODO: Check this
-        #if (self.initialize_nodal_value == 1): # Density and kinematic viscosity
-            ## Read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
-            #for el in self.Model[self.model_part_name].Elements:
-                #rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-                #kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
-                #break
-
-            #KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.Model[self.model_part_name].Nodes)
-            #KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.Model[self.model_part_name].Nodes)
+        self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
         
         self.local_gradient.Execute() # Recalculate gradient after remeshing

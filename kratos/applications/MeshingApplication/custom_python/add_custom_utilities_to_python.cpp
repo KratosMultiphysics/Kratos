@@ -142,23 +142,21 @@ void AddCustomUtilitiesToPython()
 #ifdef INCLUDE_MMG
     /* MMG mmg_utility */
     // 2D
-    class_<MmgUtility<2, false>, boost::noncopyable >
+    class_<MmgUtility<2>, boost::noncopyable >
     ("MmgUtility2D", init<const std::string, const unsigned int>())
-    .def("ComputeExistingModelPart", &MmgUtility<2, false>::ComputeExistingModelPart)
-    .def("ReadFiles", &MmgUtility<2, false>::ReadFiles)
-    .def("Execute", &MmgUtility<2, false>::Execute)
-    .def("SaveSolutionToFile", &MmgUtility<2, false>::SaveSolutionToFile)
-    .def("FreeMemory", &MmgUtility<2, false>::FreeMemory)
+    .def("RemeshModelPart", &MmgUtility<2>::RemeshModelPart)
+    .def("InitializeMeshData", &MmgUtility<2>::InitializeMeshData)
+    .def("InitializeLevelSetSolData", &MmgUtility<2>::InitializeLevelSetSolData)
+    .def("InitializeHessianSolData", &MmgUtility<2>::InitializeHessianSolData)
     ;
     
     // 3D
-    class_<MmgUtility<3, false>, boost::noncopyable >
+    class_<MmgUtility<3>, boost::noncopyable >
     ("MmgUtility3D", init<const std::string, const unsigned int>())
-    .def("ComputeExistingModelPart", &MmgUtility<3, false>::ComputeExistingModelPart)
-    .def("ReadFiles", &MmgUtility<3, false>::ReadFiles)
-    .def("Execute", &MmgUtility<3, false>::Execute)
-    .def("SaveSolutionToFile", &MmgUtility<3, false>::SaveSolutionToFile)
-    .def("FreeMemory", &MmgUtility<3, false>::FreeMemory)
+    .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
+    .def("InitializeMeshData", &MmgUtility<3>::InitializeMeshData)
+    .def("InitializeLevelSetSolData", &MmgUtility<3>::InitializeLevelSetSolData)
+    .def("InitializeHessianSolData", &MmgUtility<3>::InitializeHessianSolData)
     ;
 #endif  
     
