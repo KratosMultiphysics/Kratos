@@ -8,6 +8,7 @@
     <container n="OnNodes" pn="On nodes" un="NodalResults" help="On nodes" state="[ActiveIfAnyPartState]" open_window="0">
         <value n="DISPLACEMENT" pn="Displacement" v="Yes" values="Yes,No" help=""/>
         <value n="REACTION" pn="Reaction" v="No" values="Yes,No" help=""/>
+        <value n="PRESSURE" pn="Pressure" v="No" values="Yes,No" help=""/>
         <value n="VELOCITY" pn="Velocity" v="No" values="Yes,No" help=""/>
         <value n="ACCELERATION" pn="Acceleration" v="No" values="Yes,No" help=""/>
         <value n="NEGATIVE_FACE_PRESSURE" pn="Water Loads" v="No" values="Yes,No" help=""/>

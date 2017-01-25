@@ -27,6 +27,15 @@
   </Process>
 -->
 
+   <!---  Uniform pressure -->
+  <Process n="ImposeUniformPressureProcess" pn="Impose vector value by components process" python_module="impose_uniform_temperature_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
+    <inputs>
+		<parameter n="is_fixed" pn="Imposed" type="bool" v="1"/>
+        <parameter n="value" pn="Value" type="double" v="0.0"/>
+        <parameter n="table" pn="Pressure table filename" type="tablefile" v=""/>
+    </inputs>
+  </Process>  
   
    <!---  Uniform tempereature -->
   <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" python_module="impose_uniform_temperature_process"
@@ -111,7 +120,22 @@
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
         <parameter n="Water_Table" pn="Water Level table filename" type="tablefile" v=""/>
     </inputs>
-  </Process>  
+  </Process> 
+  
+  <!--- Hydrodynamic Loads -->   
+  <Process n="HydrodynamicConditionsProcess" pn="Apply a scalar value over a condition" python_module="impose_water_loads_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+        <parameter n="Modify" pn="Modify" type="bool" v="1"/>
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z"/>
+        <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
+        <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
+        <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Water_Table" pn="Water Level table filename" type="tablefile" v=""/>
+        <parameter n="Aceleration" pn="Aceleration" type="double" v="0.0"/>
+        <parameter n="Aceleration_Table" pn="Aceleration Level table filename" type="tablefile" v=""/>
+    </inputs>
+  </Process>   
   
 <!--- Uplift Loads -->   
   <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" python_module="impose_water_loads_condition_process"
@@ -150,7 +174,35 @@
         <parameter n="Distance" pn="Distance of Drain" type="double" v="0.0"/>
         <parameter n="Effectiveness" pn="Effectivesness" type="double" v="0.0"/>
     </inputs>
-  </Process>    
+  </Process>
+  
+<!---  Added Mass Condition --> 
+  <Process n="AddedMassProcess" pn="Adding an extra mass due to reservoir effects" python_module="special_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="" > 
+    <inputs>
+        <parameter n="Density_fluid" pn="Density of fluid" type="double" v="1000"/>
+    </inputs>
+  </Process>  
+  
+<!---  ACOUSTIC CONDITION PROCESSES --> 
+<!---  Free Surface --> 
+  <Process n="FreeSurfaceProcess" pn="Apply the second derivative of pressure" python_module="special_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="" > 
+    <inputs>
+    </inputs>
+  </Process>      
+ 
+   <Process n="InfiniteDomainProcess" pn="Apply the first derivative of pressure" python_module="special_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="" > 
+    <inputs>
+    </inputs>
+  </Process> 
+  
+     <Process n="InterfaceDomainProcess"  pn="Apply the UP condition" python_module="special_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="" > 
+    <inputs>
+    </inputs>
+  </Process> 
   
   </ProcessList>
 

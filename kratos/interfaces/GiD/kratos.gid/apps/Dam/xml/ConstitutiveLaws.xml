@@ -56,6 +56,15 @@
             <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
+        <!--Acoustic laws 2D-3D-->
+	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady" help="Newtonian fluid" Type="Wave">
+        <inputs>
+            <parameter n="DENSITY_WATER" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
+            <parameter n="BULK_MODULUS_FLUID" pn="Bulk Modulus" unit_magnitude="P" units="Pa" v="2.21e9" help="Set the bulk modulus."/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
     
     <!--2D laws-->
     <CLaw n="LinearElastic2DPlaneStrain" pn="Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
