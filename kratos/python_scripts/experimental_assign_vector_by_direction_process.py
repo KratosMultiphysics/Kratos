@@ -77,28 +77,17 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         # "Automatic" direction: get the inwards direction
         if(settings["direction"].IsString()):
-            if (settings["direction"].GetString() == "Automatic"):
+            if ((settings["direction"].GetString() == "automatic_inner_normal") or (settings["direction"].GetString() == "automatic_outer_normal")):
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
                 # Compute the average conditions normal in the submodelpart of interest
-                avg_normal = [0.0, 0.0, 0.0]
+                avg_normal = KratosMultiphysics.Vector(3)
 
+                # TODO: Implement SumNonHistoricalVariable in variable_utils.h
                 for cond in self.model_part.Conditions:
                     normal = cond.GetValue(KratosMultiphysics.NORMAL)
-                    for i in range(0,3):
-                        # Note the minus sign! One wants the normal pointing towards the domain.
-                        # KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector.
-                        avg_normal[i] -= normal[i]
-
-                # Sum all the partitions conditions number and average conditions normals
-                ncond = len(self.model_part.Conditions)
-                # self.model_part.GetCommunicator().SumAll(ncond)
-                # for i in range(0,3):
-                #     self.model_part.GetCommunicator().SumAll(avg_normal[i])
-
-                for i in range(0,3):
-                    avg_normal[i] /= ncond
+                    avg_normal = avg_normal + normal
 
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) +
                                             pow(avg_normal[1],2) +
@@ -106,9 +95,12 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 if(avg_normal_norm < 1e-6):
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
 
-                unit_direction = []
-                for i in range(0,3):
-                    unit_direction.append(avg_normal[i]/avg_normal_norm)
+                unit_direction = KratosMultiphysics.Vector(3)
+                unit_direction = (1/avg_normal_norm)*avg_normal
+
+                # Note that the NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector
+                if (settings["direction"].GetString() == "automatic_inner_normal"):
+                    unit_direction = (-1)*unit_direction
 
         # Direction is given as a vector
         elif(settings["direction"].IsArray()):
@@ -125,7 +117,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
 
         # Set the remainding parameters
-        if(settings["modulus"].IsDouble()):
+        if(settings["modulus"].IsNumber()):
             x_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[0])
             y_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[1])
             z_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[2])
