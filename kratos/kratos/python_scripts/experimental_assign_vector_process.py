@@ -30,7 +30,7 @@ class AssignVectorProcess(KratosMultiphysics.Process):
         if(settings.Has("constrained")):
             if(settings["constrained"].IsBool()):
                 is_fixed = settings["constrained"].GetBool()
-                print("is_fixed = ",is_fixed)
+                #print("is_fixed = ",is_fixed)
                 settings["constrained"] = default_settings["constrained"]
                 for i in range(3):
                     settings["constrained"][i].SetBool(is_fixed)
@@ -44,7 +44,7 @@ class AssignVectorProcess(KratosMultiphysics.Process):
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
         
-        print(settings.PrettyPrintJsonString())
+        #print(settings.PrettyPrintJsonString())
         
         settings.ValidateAndAssignDefaults(default_settings)
         
