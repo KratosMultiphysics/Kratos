@@ -545,8 +545,8 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         ## Set Mesh options
         set Distance1 [ComputeDistance [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]]
         set Distance2 [ComputeDistance [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]]
-        #~ set Distance [expr {($Distance1+$Distance2)*0.5}]
-        #~ GiD_Process Mescape Meshing AssignSizes Surfaces [expr {$Distance*2.0}] [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
+        #~ set Distance [expr {$Distance1+$Distance2}]
+        #~ GiD_Process Mescape Meshing AssignSizes Surfaces $Distance [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
             #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
             #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
             #~ [GiD_Info Geometry MaxNumSurfaces] escape escape
@@ -562,6 +562,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
 
 
         ## Update dictionaries
+        # FracturesDict
         dict set FracturesDict $MotherFractureId TipPoint Id [GiD_Info Geometry MaxNumPoints]
         dict set FracturesDict $MotherFractureId TipPoint Coordinates [dict get $Propagation TipCoordinates]
         dict set FracturesDict $MotherFractureId TopPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-4}]
@@ -590,6 +591,7 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
         dict set FracturesDict $MotherFractureId BotRightSurface Lines $Lines
         dict set FracturesDict $MotherFractureId LeftInterfaceVolume Id [expr {[GiD_Info Geometry MaxNumVolumes]-1}]
         dict set FracturesDict $MotherFractureId RightInterfaceVolume Id [GiD_Info Geometry MaxNumVolumes]
+        # BodyVolumesDict
         dict set BodyVolumesDict $BodyVolumeId Surfaces $BodyVolumeSurfaces
     }
 
@@ -599,11 +601,440 @@ proc GenerateNewFractures { dir problemtypedir PropagationData } {
 
         set BodyVolumeId [lindex [dict get $FracturesDict $MotherFractureId BodyVolumes] 0]
         set BodyVolumeSurfaces [dict get $BodyVolumesDict $BodyVolumeId Surfaces]
-        
+        set OldTopLeftSurfaceLines [dict get $FracturesDict $MotherFractureId TopLeftSurface Lines]
+        set OldTopRightSurfaceLines [dict get $FracturesDict $MotherFractureId TopRightSurface Lines]
+        set OldBotLeftSurfaceLines [dict get $FracturesDict $MotherFractureId BotLeftSurface Lines]
+        set OldBotRightSurfaceLines [dict get $FracturesDict $MotherFractureId BotRightSurface Lines]
+
         ## Modify Geometry
         # Delete InterfaceVolume
-        # TODO : Bifurcation is currently under development
-        WarnWin "Bifurcation is currently under development"
+        GiD_Process Mescape Geometry Delete Volumes [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id] escape
+        # Delete old crack surfaces
+        GiD_Process Mescape Geometry Delete Surfaces [dict get $FracturesDict $MotherFractureId TopLeftSurface Id] [dict get $FracturesDict $MotherFractureId TopRightSurface Id] \
+            [dict get $FracturesDict $MotherFractureId BotLeftSurface Id] [dict get $FracturesDict $MotherFractureId BotRightSurface Id] escape
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId TopLeftSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId TopRightSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId BotLeftSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        set Index [lsearch $BodyVolumeSurfaces [dict get $FracturesDict $MotherFractureId BotRightSurface Id]]
+        set BodyVolumeSurfaces [lreplace $BodyVolumeSurfaces $Index $Index]
+        # Delete old crack lines
+        GiD_Process Mescape Geometry Delete Lines [dict get $FracturesDict $MotherFractureId TopLine Id] [dict get $FracturesDict $MotherFractureId BotLine Id] \
+            [dict get $FracturesDict $MotherFractureId LeftLine Id] [dict get $FracturesDict $MotherFractureId RightLine Id] escape
+        set Index [lsearch $OldTopLeftSurfaceLines [dict get $FracturesDict $MotherFractureId TopLine Id]]
+        set OldTopLeftSurfaceLines [lreplace $OldTopLeftSurfaceLines $Index $Index]
+        set Index [lsearch $OldTopLeftSurfaceLines [dict get $FracturesDict $MotherFractureId LeftLine Id]]
+        set OldTopLeftSurfaceLines [lreplace $OldTopLeftSurfaceLines $Index $Index]
+        set Index [lsearch $OldTopRightSurfaceLines [dict get $FracturesDict $MotherFractureId TopLine Id]]
+        set OldTopRightSurfaceLines [lreplace $OldTopRightSurfaceLines $Index $Index]
+        set Index [lsearch $OldTopRightSurfaceLines [dict get $FracturesDict $MotherFractureId RightLine Id]]
+        set OldTopRightSurfaceLines [lreplace $OldTopRightSurfaceLines $Index $Index]
+        set Index [lsearch $OldBotLeftSurfaceLines [dict get $FracturesDict $MotherFractureId BotLine Id]]
+        set OldBotLeftSurfaceLines [lreplace $OldBotLeftSurfaceLines $Index $Index]
+        set Index [lsearch $OldBotLeftSurfaceLines [dict get $FracturesDict $MotherFractureId LeftLine Id]]
+        set OldBotLeftSurfaceLines [lreplace $OldBotLeftSurfaceLines $Index $Index]
+        set Index [lsearch $OldBotRightSurfaceLines [dict get $FracturesDict $MotherFractureId BotLine Id]]
+        set OldBotRightSurfaceLines [lreplace $OldBotRightSurfaceLines $Index $Index]
+        set Index [lsearch $OldBotRightSurfaceLines [dict get $FracturesDict $MotherFractureId RightLine Id]]
+        set OldBotRightSurfaceLines [lreplace $OldBotRightSurfaceLines $Index $Index]
+
+        # Create new points
+        GiD_Process Mescape Geometry Create Point
+        # Create new point in TopInitCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopInitCoordinates] 0] [lindex [dict get $Bifurcation TopInitCoordinates] 1] [lindex [dict get $Bifurcation TopInitCoordinates] 2]
+        # Create new point in BotInitCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotInitCoordinates] 0] [lindex [dict get $Bifurcation BotInitCoordinates] 1] [lindex [dict get $Bifurcation BotInitCoordinates] 2]
+        # Create new point in LeftInitCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation LeftInitCoordinates] 0] [lindex [dict get $Bifurcation LeftInitCoordinates] 1] [lindex [dict get $Bifurcation LeftInitCoordinates] 2]
+        # Create new point in RightInitCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation RightInitCoordinates] 0] [lindex [dict get $Bifurcation RightInitCoordinates] 1] [lindex [dict get $Bifurcation RightInitCoordinates] 2]
+        # Create new point in TopTopEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopTopEndCoordinates] 0] [lindex [dict get $Bifurcation TopTopEndCoordinates] 1] [lindex [dict get $Bifurcation TopTopEndCoordinates] 2]
+        # Create new point in TopBotEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopBotEndCoordinates] 0] [lindex [dict get $Bifurcation TopBotEndCoordinates] 1] [lindex [dict get $Bifurcation TopBotEndCoordinates] 2]
+        # Create new point in TopLeftEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopLeftEndCoordinates] 0] [lindex [dict get $Bifurcation TopLeftEndCoordinates] 1] [lindex [dict get $Bifurcation TopLeftEndCoordinates] 2]
+        # Create new point in TopRightEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopRightEndCoordinates] 0] [lindex [dict get $Bifurcation TopRightEndCoordinates] 1] [lindex [dict get $Bifurcation TopRightEndCoordinates] 2]
+        # Create new point in TopTipCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation TopTipCoordinates] 0] [lindex [dict get $Bifurcation TopTipCoordinates] 1] [lindex [dict get $Bifurcation TopTipCoordinates] 2]
+        # Create new point in BotTopEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotTopEndCoordinates] 0] [lindex [dict get $Bifurcation BotTopEndCoordinates] 1] [lindex [dict get $Bifurcation BotTopEndCoordinates] 2]
+        # Create new point in BotBotEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotBotEndCoordinates] 0] [lindex [dict get $Bifurcation BotBotEndCoordinates] 1] [lindex [dict get $Bifurcation BotBotEndCoordinates] 2]
+        # Create new point in BotLeftEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotLeftEndCoordinates] 0] [lindex [dict get $Bifurcation BotLeftEndCoordinates] 1] [lindex [dict get $Bifurcation BotLeftEndCoordinates] 2]
+        # Create new point in BotRightEndCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotRightEndCoordinates] 0] [lindex [dict get $Bifurcation BotRightEndCoordinates] 1] [lindex [dict get $Bifurcation BotRightEndCoordinates] 2]
+        # Create new point in BotTipCoordinates location
+        GiD_Process [lindex [dict get $Bifurcation BotTipCoordinates] 0] [lindex [dict get $Bifurcation BotTipCoordinates] 1] [lindex [dict get $Bifurcation BotTipCoordinates] 2]
+        GiD_Process escape
+        
+        # Create new lines
+        GiD_Process Mescape Geometry Create Line Join [expr {[GiD_Info Geometry MaxNumPoints]-13}] [expr {[GiD_Info Geometry MaxNumPoints]-12}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-8}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-7}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-6}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-4}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-2}] escape \
+            [dict get $FracturesDict $MotherFractureId TipPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-11}] [dict get $FracturesDict $MotherFractureId TipPoint Id] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-11}] [expr {[GiD_Info Geometry MaxNumPoints]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-11}] [expr {[GiD_Info Geometry MaxNumPoints]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-10}] [dict get $FracturesDict $MotherFractureId TipPoint Id] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-10}] [expr {[GiD_Info Geometry MaxNumPoints]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-10}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-13}] [expr {[GiD_Info Geometry MaxNumPoints]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-13}] [expr {[GiD_Info Geometry MaxNumPoints]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-13}] [dict get $FracturesDict $MotherFractureId TipPoint Id] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-13}] [expr {[GiD_Info Geometry MaxNumPoints]-9}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-12}] [expr {[GiD_Info Geometry MaxNumPoints]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-12}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-12}] [dict get $FracturesDict $MotherFractureId TipPoint Id] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-12}] [expr {[GiD_Info Geometry MaxNumPoints]-3}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-11}] [expr {[GiD_Info Geometry MaxNumPoints]-13}] [expr {[GiD_Info Geometry MaxNumPoints]-10}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-11}] [expr {[GiD_Info Geometry MaxNumPoints]-12}] [expr {[GiD_Info Geometry MaxNumPoints]-10}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-7}] [expr {[GiD_Info Geometry MaxNumPoints]-9}] [expr {[GiD_Info Geometry MaxNumPoints]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-7}] [expr {[GiD_Info Geometry MaxNumPoints]-8}] [expr {[GiD_Info Geometry MaxNumPoints]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-2}] [expr {[GiD_Info Geometry MaxNumPoints]-4}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-2}] [expr {[GiD_Info Geometry MaxNumPoints]-3}] [expr {[GiD_Info Geometry MaxNumPoints]-1}] escape \
+            [dict get $FracturesDict $MotherFractureId RightPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-10}] escape \
+            [dict get $FracturesDict $MotherFractureId LeftPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-11}] escape \
+            [dict get $FracturesDict $MotherFractureId TopPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-13}] escape \
+            [dict get $FracturesDict $MotherFractureId BotPoint Id] [expr {[GiD_Info Geometry MaxNumPoints]-12}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-6}] [expr {[GiD_Info Geometry MaxNumPoints]-5}] [expr {[GiD_Info Geometry MaxNumPoints]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-9}] [expr {[GiD_Info Geometry MaxNumPoints]-5}] [expr {[GiD_Info Geometry MaxNumPoints]-8}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-1}] [GiD_Info Geometry MaxNumPoints] [expr {[GiD_Info Geometry MaxNumPoints]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumPoints]-4}] [GiD_Info Geometry MaxNumPoints] [expr {[GiD_Info Geometry MaxNumPoints]-3}] escape escape
+
+        # Create new surfaces
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-22}] [expr {[GiD_Info Geometry MaxNumLines]-11}] [expr {[GiD_Info Geometry MaxNumLines]-9}]
+        for {set i 0} {$i < [llength $OldTopRightSurfaceLines]} {incr i} {
+            GiD_Process [lindex $OldTopRightSurfaceLines $i]
+        }
+        GiD_Process escape escape
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-23}] [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-9}]
+        for {set i 0} {$i < [llength $OldTopLeftSurfaceLines]} {incr i} {
+            GiD_Process [lindex $OldTopLeftSurfaceLines $i]
+        }
+        GiD_Process escape escape
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-11}] [expr {[GiD_Info Geometry MaxNumLines]-8}]
+        for {set i 0} {$i < [llength $OldBotRightSurfaceLines]} {incr i} {
+            GiD_Process [lindex $OldBotRightSurfaceLines $i]
+        }
+        GiD_Process escape escape
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-8}]
+        for {set i 0} {$i < [llength $OldBotLeftSurfaceLines]} {incr i} {
+            GiD_Process [lindex $OldBotLeftSurfaceLines $i]
+        }
+        GiD_Process escape escape
+        GiD_Process Mescape Geometry Create NurbsSurface [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-22}] [expr {[GiD_Info Geometry MaxNumLines]-44}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-23}] [expr {[GiD_Info Geometry MaxNumLines]-44}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-44}] [expr {[GiD_Info Geometry MaxNumLines]-25}] [expr {[GiD_Info Geometry MaxNumLines]-29}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-25}] [expr {[GiD_Info Geometry MaxNumLines]-34}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-25}] [expr {[GiD_Info Geometry MaxNumLines]-37}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-22}] [expr {[GiD_Info Geometry MaxNumLines]-29}] [expr {[GiD_Info Geometry MaxNumLines]-34}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-23}] [expr {[GiD_Info Geometry MaxNumLines]-29}] [expr {[GiD_Info Geometry MaxNumLines]-37}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-21}] [expr {[GiD_Info Geometry MaxNumLines]-35}] [expr {[GiD_Info Geometry MaxNumLines]-27}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-20}] [expr {[GiD_Info Geometry MaxNumLines]-32}] [expr {[GiD_Info Geometry MaxNumLines]-26}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-32}] [expr {[GiD_Info Geometry MaxNumLines]-34}] [expr {[GiD_Info Geometry MaxNumLines]-38}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-37}] [expr {[GiD_Info Geometry MaxNumLines]-39}] [expr {[GiD_Info Geometry MaxNumLines]-35}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-26}] [expr {[GiD_Info Geometry MaxNumLines]-24}] [expr {[GiD_Info Geometry MaxNumLines]-12}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-27}] [expr {[GiD_Info Geometry MaxNumLines]-24}] [expr {[GiD_Info Geometry MaxNumLines]-13}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-38}] [expr {[GiD_Info Geometry MaxNumLines]-40}] [expr {[GiD_Info Geometry MaxNumLines]-14}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-39}] [expr {[GiD_Info Geometry MaxNumLines]-40}] [expr {[GiD_Info Geometry MaxNumLines]-15}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-36}] [expr {[GiD_Info Geometry MaxNumLines]-37}] [expr {[GiD_Info Geometry MaxNumLines]-42}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-33}] [expr {[GiD_Info Geometry MaxNumLines]-34}] [expr {[GiD_Info Geometry MaxNumLines]-41}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-41}] [expr {[GiD_Info Geometry MaxNumLines]-43}] [expr {[GiD_Info Geometry MaxNumLines]-16}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-42}] [expr {[GiD_Info Geometry MaxNumLines]-43}] [expr {[GiD_Info Geometry MaxNumLines]-17}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-30}] [expr {[GiD_Info Geometry MaxNumLines]-36}] [expr {[GiD_Info Geometry MaxNumLines]-23}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-31}] [expr {[GiD_Info Geometry MaxNumLines]-33}] [expr {[GiD_Info Geometry MaxNumLines]-22}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-28}] [expr {[GiD_Info Geometry MaxNumLines]-30}] [expr {[GiD_Info Geometry MaxNumLines]-19}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-28}] [expr {[GiD_Info Geometry MaxNumLines]-31}] [expr {[GiD_Info Geometry MaxNumLines]-18}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-12}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [GiD_Info Geometry MaxNumLines] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-13}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [GiD_Info Geometry MaxNumLines] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-14}] [expr {[GiD_Info Geometry MaxNumLines]-1}] [expr {[GiD_Info Geometry MaxNumLines]-3}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-15}] [expr {[GiD_Info Geometry MaxNumLines]-1}] [expr {[GiD_Info Geometry MaxNumLines]-2}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-16}] [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-17}] [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-6}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-18}] [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-7}] escape \
+            [expr {[GiD_Info Geometry MaxNumLines]-19}] [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-6}] escape escape
+        lappend BodyVolumeSurfaces [GiD_Info Geometry MaxNumSurfaces]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-1}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-2}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-3}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-4}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-5}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-6}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-7}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-8}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-9}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-10}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-11}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-12}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-13}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-14}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-15}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-16}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-17}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-18}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-19}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-20}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-21}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-22}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-23}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-31}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-32}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-33}]
+        lappend BodyVolumeSurfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-34}]
+        # Swap normals of new surfaces
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [GiD_Info Geometry MaxNumSurfaces] \
+            escape [ComputeNormal [dict get $Bifurcation TopTopEndCoordinates] [dict get $Bifurcation TopTipCoordinates] [dict get $Bifurcation TopLeftEndCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
+            escape [ComputeNormal [dict get $Bifurcation TopTopEndCoordinates] [dict get $Bifurcation TopRightEndCoordinates] [dict get $Bifurcation TopTipCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] \
+            escape [ComputeNormal [dict get $Bifurcation TopBotEndCoordinates] [dict get $Bifurcation TopLeftEndCoordinates] [dict get $Bifurcation TopTipCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] \
+            escape [ComputeNormal [dict get $Bifurcation TopBotEndCoordinates] [dict get $Bifurcation TopTipCoordinates] [dict get $Bifurcation TopRightEndCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-4}] \
+            escape [ComputeNormal [dict get $Bifurcation BotTopEndCoordinates] [dict get $Bifurcation BotTipCoordinates] [dict get $Bifurcation BotLeftEndCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-5}] \
+            escape [ComputeNormal [dict get $Bifurcation BotTopEndCoordinates] [dict get $Bifurcation BotRightEndCoordinates] [dict get $Bifurcation BotTipCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-6}] \
+            escape [ComputeNormal [dict get $Bifurcation BotBotEndCoordinates] [dict get $Bifurcation BotLeftEndCoordinates] [dict get $Bifurcation BotTipCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-7}] \
+            escape [ComputeNormal [dict get $Bifurcation BotBotEndCoordinates] [dict get $Bifurcation BotTipCoordinates] [dict get $Bifurcation BotRightEndCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-31}] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $Bifurcation BotInitCoordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-32}] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] [dict get $Bifurcation BotInitCoordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-33}] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $Bifurcation TopInitCoordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates]] Yes escape
+        GiD_Process Mescape utilities SwapNormals Surfaces SelByNormal [expr {[GiD_Info Geometry MaxNumSurfaces]-34}] \
+            escape [ComputeNormal [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $Bifurcation TopInitCoordinates]] Yes escape
+        
+        # Create new volumes
+        # Old Contact volumes
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-31}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-33}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] \
+            [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $Bifurcation LeftInitCoordinates] [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates]]
+        GiD_Geometry create volume [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-32}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-34}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates] \
+            [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates] [dict get $Bifurcation RightInitCoordinates]]
+        GiD_Geometry create volume [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id] [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        # Link volumes
+        GiD_Process Mescape Geometry Create volume [expr {[GiD_Info Geometry MaxNumSurfaces]-24}] [expr {[GiD_Info Geometry MaxNumSurfaces]-26}] [expr {[GiD_Info Geometry MaxNumSurfaces]-28}] [expr {[GiD_Info Geometry MaxNumSurfaces]-29}] escape \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-25}] [expr {[GiD_Info Geometry MaxNumSurfaces]-27}] [expr {[GiD_Info Geometry MaxNumSurfaces]-28}] [expr {[GiD_Info Geometry MaxNumSurfaces]-30}] escape escape
+        # New Contact volumes
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-6}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-4}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Bifurcation BotLeftEndCoordinates] [dict get $Bifurcation BotBotEndCoordinates] \
+            [dict get $Bifurcation BotTopEndCoordinates] [dict get $Bifurcation BotTipCoordinates] [dict get $Bifurcation BotLeftEndCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-7}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-5}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Bifurcation BotRightEndCoordinates] [dict get $Bifurcation BotBotEndCoordinates] \
+            [dict get $Bifurcation BotTopEndCoordinates] [dict get $Bifurcation BotRightEndCoordinates] [dict get $Bifurcation BotTipCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] 1]
+        set Surf2 [list [GiD_Info Geometry MaxNumSurfaces] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Bifurcation TopLeftEndCoordinates] [dict get $Bifurcation TopBotEndCoordinates] \
+            [dict get $Bifurcation TopTopEndCoordinates] [dict get $Bifurcation TopTipCoordinates] [dict get $Bifurcation TopLeftEndCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+        set Surf1 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] 1]
+        set Surf2 [list [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] 0]
+        set TransformMatrix [ComputeTransformMatrix [dict get $Bifurcation TopRightEndCoordinates] [dict get $Bifurcation TopBotEndCoordinates] \
+            [dict get $Bifurcation TopTopEndCoordinates] [dict get $Bifurcation TopRightEndCoordinates] [dict get $Bifurcation TopTipCoordinates]]
+        GiD_Geometry create volume append [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer] 2 \
+            $Surf1 $Surf2 contactvolume $TransformMatrix
+
+        # Create PropagationUnion subgroups and assign points
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-9}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-10}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-11}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-12}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [expr {[GiD_Info Geometry MaxNumPoints]-13}]
+        GiD_EntitiesGroups assign PropagationUnion_3d_6 points [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        # Bot Prism 1
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-12}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-10}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-10}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        # Bot Prism 2
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-12}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        # Bot Prism 3
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-12}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-11}]
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-11}]
+        # Bot Prism 4
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-12}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        # Top Prism 1
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-10}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-13}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-10}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        # Top Prism 2
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-13}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-9}]
+        # Top Prism 3
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-11}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-13}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-11}]
+        # Top Prism 4
+        AddPropagationUnionPoint NumPropUnionGroups [dict get $FracturesDict $MotherFractureId TipPoint Id]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-13}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-9}]
+        AddPropagationUnionPoint NumPropUnionGroups [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+
+
+        ## Set Conditions
+        for {set i 0} {$i < [llength [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups]]} {incr i} {
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Id]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [expr {[GiD_Info Geometry MaxNumVolumes]-1}]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [expr {[GiD_Info Geometry MaxNumVolumes]-3}]
+        }
+        for {set i 0} {$i < [llength [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups]]} {incr i} {
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups] $i] volumes [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Id]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups] $i] volumes [GiD_Info Geometry MaxNumVolumes]
+            GiD_EntitiesGroups assign [lindex [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups] $i] volumes [expr {[GiD_Info Geometry MaxNumVolumes]-2}]
+        }
+        GiD_EntitiesGroups assign $LinkInterfaceGroup volumes [expr {[GiD_Info Geometry MaxNumVolumes]-4}]
+        GiD_EntitiesGroups assign $LinkInterfaceGroup volumes [expr {[GiD_Info Geometry MaxNumVolumes]-5}]
+
+        ## Set Mesh options
+        set Distance1 [ComputeDistance [dict get $FracturesDict $MotherFractureId TopPoint Coordinates] [dict get $FracturesDict $MotherFractureId BotPoint Coordinates]]
+        set Distance2 [ComputeDistance [dict get $FracturesDict $MotherFractureId LeftPoint Coordinates] [dict get $FracturesDict $MotherFractureId RightPoint Coordinates]]
+        #~ set Distance [expr {$Distance1+$Distance2}]
+        #~ GiD_Process Mescape Meshing AssignSizes Surfaces $Distance [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
+            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
+            #~ [expr {[GiD_Info Geometry MaxNumSurfaces]-3}] [expr {[GiD_Info Geometry MaxNumSurfaces]-2}] [expr {[GiD_Info Geometry MaxNumSurfaces]-1}] \
+            #~ [GiD_Info Geometry MaxNumSurfaces] escape escape
+        GiD_Process Mescape Meshing AssignSizes Lines [expr {$Distance1+$Distance2}] [expr {[GiD_Info Geometry MaxNumLines]-11}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-10}] [expr {[GiD_Info Geometry MaxNumLines]-9}] [expr {[GiD_Info Geometry MaxNumLines]-8}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-5}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-2}] \
+            [expr {[GiD_Info Geometry MaxNumLines]-1}] [GiD_Info Geometry MaxNumLines] escape escape
+        GiD_Process Mescape Meshing Structured Surfaces [expr {[GiD_Info Geometry MaxNumSurfaces]-30}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-29}] [expr {[GiD_Info Geometry MaxNumSurfaces]-28}] [expr {[GiD_Info Geometry MaxNumSurfaces]-27}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-26}] [expr {[GiD_Info Geometry MaxNumSurfaces]-25}] [expr {[GiD_Info Geometry MaxNumSurfaces]-24}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-23}] [expr {[GiD_Info Geometry MaxNumSurfaces]-22}] [expr {[GiD_Info Geometry MaxNumSurfaces]-21}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-20}] [expr {[GiD_Info Geometry MaxNumSurfaces]-19}] [expr {[GiD_Info Geometry MaxNumSurfaces]-18}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-17}] [expr {[GiD_Info Geometry MaxNumSurfaces]-16}] [expr {[GiD_Info Geometry MaxNumSurfaces]-15}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-14}] [expr {[GiD_Info Geometry MaxNumSurfaces]-13}] [expr {[GiD_Info Geometry MaxNumSurfaces]-12}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-11}] [expr {[GiD_Info Geometry MaxNumSurfaces]-10}] [expr {[GiD_Info Geometry MaxNumSurfaces]-9}] \
+            [expr {[GiD_Info Geometry MaxNumSurfaces]-8}] escape 1 [expr {[GiD_Info Geometry MaxNumLines]-44}] escape escape
+        #~ GiD_Process Mescape Meshing AssignSizes Points $Distance [GiD_Info Geometry MaxNumPoints] escape escape
+        
+        
+        ## Update dictionaries
+        # MotherFractureId is the new TopTip fracture
+        dict set FracturesDict $MotherFractureId TipPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-5}]
+        dict set FracturesDict $MotherFractureId TipPoint Coordinates [dict get $Bifurcation TopTipCoordinates]
+        dict set FracturesDict $MotherFractureId TopPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-9}]
+        dict set FracturesDict $MotherFractureId TopPoint Coordinates [dict get $Bifurcation TopTopEndCoordinates]
+        dict set FracturesDict $MotherFractureId BotPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-8}]
+        dict set FracturesDict $MotherFractureId BotPoint Coordinates [dict get $Bifurcation TopBotEndCoordinates]
+        dict set FracturesDict $MotherFractureId LeftPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-7}]
+        dict set FracturesDict $MotherFractureId LeftPoint Coordinates [dict get $Bifurcation TopLeftEndCoordinates]
+        dict set FracturesDict $MotherFractureId RightPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-6}]
+        dict set FracturesDict $MotherFractureId RightPoint Coordinates [dict get $Bifurcation TopRightEndCoordinates]
+        dict set FracturesDict $MotherFractureId TopLine Id [expr {[GiD_Info Geometry MaxNumLines]-5}]
+        dict set FracturesDict $MotherFractureId BotLine Id [expr {[GiD_Info Geometry MaxNumLines]-4}]
+        dict set FracturesDict $MotherFractureId LeftLine Id [expr {[GiD_Info Geometry MaxNumLines]-6}]
+        dict set FracturesDict $MotherFractureId RightLine Id [expr {[GiD_Info Geometry MaxNumLines]-7}]
+        dict set FracturesDict $MotherFractureId TopLeftSurface Id [GiD_Info Geometry MaxNumSurfaces]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-19}]]
+        dict set FracturesDict $MotherFractureId TopLeftSurface Lines $Lines
+        dict set FracturesDict $MotherFractureId TopRightSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-1}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-5}] [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-18}]]
+        dict set FracturesDict $MotherFractureId TopRightSurface Lines $Lines
+        dict set FracturesDict $MotherFractureId BotLeftSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-2}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-6}] [expr {[GiD_Info Geometry MaxNumLines]-17}]]
+        dict set FracturesDict $MotherFractureId BotLeftSurface Lines $Lines
+        dict set FracturesDict $MotherFractureId BotRightSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-3}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-4}] [expr {[GiD_Info Geometry MaxNumLines]-7}] [expr {[GiD_Info Geometry MaxNumLines]-16}]]
+        dict set FracturesDict $MotherFractureId BotRightSurface Lines $Lines
+        dict set FracturesDict $MotherFractureId LeftInterfaceVolume Id [expr {[GiD_Info Geometry MaxNumVolumes]-1}]
+        dict set FracturesDict $MotherFractureId RightInterfaceVolume Id [GiD_Info Geometry MaxNumVolumes]
+        # New BotTip fracture
+        set NewFractureId [dict size $FracturesDict]
+        dict set FracturesDict $NewFractureId TipPoint Id [GiD_Info Geometry MaxNumPoints]
+        dict set FracturesDict $NewFractureId TipPoint Coordinates [dict get $Bifurcation BotTipCoordinates]
+        dict set FracturesDict $NewFractureId TopPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-4}]
+        dict set FracturesDict $NewFractureId TopPoint Coordinates [dict get $Bifurcation BotTopEndCoordinates]
+        dict set FracturesDict $NewFractureId BotPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-3}]
+        dict set FracturesDict $NewFractureId BotPoint Coordinates [dict get $Bifurcation BotBotEndCoordinates]
+        dict set FracturesDict $NewFractureId LeftPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-2}]
+        dict set FracturesDict $NewFractureId LeftPoint Coordinates [dict get $Bifurcation BotLeftEndCoordinates]
+        dict set FracturesDict $NewFractureId RightPoint Id [expr {[GiD_Info Geometry MaxNumPoints]-1}]
+        dict set FracturesDict $NewFractureId RightPoint Coordinates [dict get $Bifurcation BotRightEndCoordinates]
+        dict set FracturesDict $NewFractureId TopLine Id [expr {[GiD_Info Geometry MaxNumLines]-1}]
+        dict set FracturesDict $NewFractureId BotLine Id [GiD_Info Geometry MaxNumLines]
+        dict set FracturesDict $NewFractureId LeftLine Id [expr {[GiD_Info Geometry MaxNumLines]-2}]
+        dict set FracturesDict $NewFractureId RightLine Id [expr {[GiD_Info Geometry MaxNumLines]-3}]
+        dict set FracturesDict $NewFractureId TopLeftSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-4}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-1}] [expr {[GiD_Info Geometry MaxNumLines]-2}] [expr {[GiD_Info Geometry MaxNumLines]-15}]]
+        dict set FracturesDict $NewFractureId TopLeftSurface Lines $Lines
+        dict set FracturesDict $NewFractureId TopRightSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-5}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-1}] [expr {[GiD_Info Geometry MaxNumLines]-3}] [expr {[GiD_Info Geometry MaxNumLines]-14}]]
+        dict set FracturesDict $NewFractureId TopRightSurface Lines $Lines
+        dict set FracturesDict $NewFractureId BotLeftSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-6}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-2}] [GiD_Info Geometry MaxNumLines] [expr {[GiD_Info Geometry MaxNumLines]-13}]]
+        dict set FracturesDict $NewFractureId BotLeftSurface Lines $Lines
+        dict set FracturesDict $NewFractureId BotRightSurface Id [expr {[GiD_Info Geometry MaxNumSurfaces]-7}]
+        set Lines [list [expr {[GiD_Info Geometry MaxNumLines]-3}] [GiD_Info Geometry MaxNumLines] [expr {[GiD_Info Geometry MaxNumLines]-12}]]
+        dict set FracturesDict $NewFractureId BotRightSurface Lines $Lines
+        dict set FracturesDict $NewFractureId LeftInterfaceVolume Id [expr {[GiD_Info Geometry MaxNumVolumes]-3}]
+        dict set FracturesDict $NewFractureId LeftInterfaceVolume Layer [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Layer]
+        dict set FracturesDict $NewFractureId LeftInterfaceVolume Groups [dict get $FracturesDict $MotherFractureId LeftInterfaceVolume Groups]
+        dict set FracturesDict $NewFractureId RightInterfaceVolume Id [expr {[GiD_Info Geometry MaxNumVolumes]-2}]
+        dict set FracturesDict $NewFractureId RightInterfaceVolume Layer [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Layer]
+        dict set FracturesDict $NewFractureId RightInterfaceVolume Groups [dict get $FracturesDict $MotherFractureId RightInterfaceVolume Groups]
+        # BodyVolumesDict
+        dict set BodyVolumesDict $BodyVolumeId Surfaces $BodyVolumeSurfaces
     }
 
     # Create BodyVolumes again assign conditions and replace BodyVolumesDict and FracturesDict with the new values
