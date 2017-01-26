@@ -271,13 +271,13 @@ protected:
     ///@name Protected  Access
     ///@{
     ///
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateRHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
+    virtual void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
 
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix, const array_1d<double,TNumNodes>& rShapeFunc, const double Weight);
+    virtual void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix, const array_1d<double,TNumNodes>& rShapeFunc, const double Weight);
 
     void CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX, Matrix& rNContainer, Vector& rGaussWeights);
 
