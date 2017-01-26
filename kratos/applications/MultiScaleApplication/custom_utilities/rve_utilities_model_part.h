@@ -94,17 +94,18 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		clone_vlist.Add(*varlist_iter);
 	}
 
-	if(clone.NodesArray().size() > 0) clone.NodesArray().clear();
+	if(clone.Nodes().size() > 0) clone.Nodes().clear();
 	for (ModelPart::NodeConstantIterator node_iter = source.NodesBegin(); node_iter != source.NodesEnd(); ++node_iter)
 	{
 		//NodeType::Pointer p_clone_node = node_iter->Clone();
 		//KRATOS_WATCH(*p_clone_node);
-		NodeType& source_node = *node_iter;
+		//NodeType& source_node = *node_iter;
 
-		NodeType::Pointer p_clone_node = boost::make_shared<NodeType>();
-		NodeType& clone_node = *p_clone_node;
+		NodeType::Pointer p_clone_node = node_iter->Clone();
+		//		boost::make_shared<NodeType>();
+		//NodeType& clone_node = *p_clone_node;
 
-		clone_node.SetSolutionStepVariablesList(&clone.GetNodalSolutionStepVariablesList());
+		/*clone_node.SetSolutionStepVariablesList(&clone.GetNodalSolutionStepVariablesList());
 		clone_node.SetBufferSize(clone.GetBufferSize());
 		clone_node.SetId(source_node.GetId());
 		clone_node.X() = source_node.X();
@@ -124,8 +125,9 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 			clone_node.pAddDof(*dof_iter);
 			//NodeType::DofType& idof = *dof_iter;
 			//clone_dof_container.insert(clone_dof_container.begin(), boost::make_shared<NodeType::DofType>(idof));
-		}
+		}*/
 
+//		clone.AddNode(p_clone_node);
 		clone.Nodes().push_back(p_clone_node);
 	}
 
@@ -145,11 +147,20 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 			{
 				clone_nodes_array.push_back(*(found_node_iter.base()));
 			}
+			else
+			{
+				KRATOS_ERROR << "node not found when cloning the model part" << std::endl;
+			}
 		}
 
 		Element::Pointer clone_elem = source_elem->Create(source_elem->GetId(), clone_nodes_array, source_elem->pGetProperties());
 		clone.AddElement(clone_elem);
 	}
+
+KRATOS_WATCH(*source.NodesBegin().base())
+KRATOS_WATCH((source.NodesBegin()->pGetDof(DISPLACEMENT_X)))
+KRATOS_WATCH(*clone.NodesBegin().base())
+KRATOS_WATCH((clone.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 	
 	// copy conditions
 	// no conditions. they should be generated from the boundary detector!

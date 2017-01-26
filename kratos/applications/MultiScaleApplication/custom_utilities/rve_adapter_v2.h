@@ -1637,11 +1637,13 @@ protected:
 		if ((strain_size == 3 && ndim == 2) || (strain_size == 6 && ndim == 3))
 		{
 			int full_prediction_flag = rValues.GetProcessInfo().Has(RVE_PREDICTION_FLAG) ? rValues.GetProcessInfo()[RVE_PREDICTION_FLAG] : 0;
-			//std::cout << "full_prediction_flag: " << full_prediction_flag << std::endl;
+			std::cout << "full_prediction_flag: " << full_prediction_flag << std::endl;
 			if (full_prediction_flag == 1)
 			{
+                        KRATOS_WATCH("DEBUG A1");
 				if (strain_size == 3 && ndim == 2)
 				{
+                        KRATOS_WATCH("DEBUG A2");
 					mpPredictorCalculator->PredictStress2D(strain_vector, stress_vector, mMacroCharacteristicLength, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
 	
 					mRveNonLinearFlag = 0.0;
@@ -1650,6 +1652,7 @@ protected:
 				}
 				else if (strain_size == 6 && ndim == 3)
 				{
+                        KRATOS_WATCH("DEBUG A3");
 					mpPredictorCalculator->PredictStress3D(strain_vector, stress_vector, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
 					mRveNonLinearFlag = 0.0;
 					mRveGenerationRequested = false;
@@ -1664,6 +1667,7 @@ protected:
 			}
 			else
 			{
+                        KRATOS_WATCH("DEBUG A4");
 				mRveNonLinearFlag = 1.0;
 				mRveGenerationRequested = true;
 				mIntegrationErrorCode = -1;
@@ -1672,6 +1676,7 @@ protected:
 		}
 		else
 		{
+                        KRATOS_WATCH("DEBUG A5");
 			mRveNonLinearFlag = 1.0;
 			mRveGenerationRequested = true;
 			return false;
@@ -1783,6 +1788,13 @@ protected:
 			if(mMoveMesh) this->MoveMesh();
 
 			mpScheme->FinalizeNonLinIteration(model, mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B());
+
+for(auto it=model.NodesBegin(); it!=model.NodesEnd(); it++)
+{
+std::cout << it->Id() << " " << it->FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
+}
+KRATOS_WATCH(*model.NodesBegin().base())
+KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 
 			/* ----------------------------------------------------------
 			* Perfomed operations:
@@ -1980,7 +1992,7 @@ protected:
 	ConvergenceCriteriaPointerType        mpConvergenceCriteria;
 	RvePredictorCalculator::Pointer		  mpPredictorCalculator;
 
-	// RVE Generator handler (sarà un componente appena possibile...)
+	// RVE Generator handler (sar\E0 un componente appena possibile...)
 
 	bool   mRveGenerated;
 	bool   mRveGenerationRequested;
