@@ -54,7 +54,7 @@ namespace Kratos
 namespace Python
 {
 
-    
+
 class PythonGenericFunctionUtility
 {
     public:
@@ -82,7 +82,7 @@ class PythonGenericFunctionUtility
                 i->FastGetSolutionStepValue(rVariable) = value;
             }
         }
-        
+
         std::vector <double> ReturnFunction(const double t)
         {
             std::vector<double> values;
@@ -93,7 +93,7 @@ class PythonGenericFunctionUtility
                 const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
                 values.push_back(value);
             }
-            
+
             return values;
         }
 
@@ -149,12 +149,28 @@ void AddUtilitiesToPython()
     .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
-    .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
-//                     .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+    // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
+    // .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
     .def("ApplyFixity", &VariableUtils::ApplyFixity< Variable<double> >)
     .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
     .def("ApplyVector", &VariableUtils::ApplyVector< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
+
+    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< Variable<double> , double > )
+    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
+    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+
+    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< Variable<double> , double > )
+    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
+    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+
+    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< Variable<double> , double > )
+    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
+    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+
+    .def("SumElementVariable", &VariableUtils::SumElementVariable< Variable<double> , double > )
+    .def("SumElementVariable", &VariableUtils::SumElementVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
+    .def("SumElementVariable", &VariableUtils::SumElementVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
