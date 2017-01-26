@@ -604,8 +604,9 @@ protected:
         std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size << std::endl; 
         
         ////////* MMG LIBRARY CALL *////////
-        
+        std::cout << "////////* MMG LIBRARY CALL *////////" << std::endl; 
         MMGLibCall();
+        
         const unsigned int nNodes = mmgMesh->np;
         array_1d<unsigned int, TDim - 1> nConditions;
         if (TDim == 2)
@@ -628,7 +629,7 @@ protected:
             nElements[1] = mmgMesh->nprism;
         }
         
-        std::cout << "     Nodes created: " << nNodes + 1 << std::endl;
+        std::cout << "     Nodes created: " << nNodes << std::endl;
         if (TDim == 2) // 2D
         {
             std::cout << "Conditions created: " << nConditions[0] << std::endl;
@@ -1153,7 +1154,7 @@ protected:
     /***********************************************************************************/
     
     /**
-     * This checks the mesh data
+     * This checks the mesh data and prints if it is OK
      */
     
     void CheckMeshData()
@@ -1164,12 +1165,20 @@ protected:
             {
                 exit(EXIT_FAILURE);
             }
+            else
+            {
+                std::cout << "OK: The mesh and metric data are correct" << std::endl;
+            }
         }
         else
         {
             if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
             {
                 exit(EXIT_FAILURE);
+            }
+            else
+            {
+                std::cout << "OK: The mesh and metric data are correct" << std::endl;
             }
         }
     }
