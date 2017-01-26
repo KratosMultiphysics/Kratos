@@ -401,25 +401,23 @@ proc ComputeTransformMatrix {VertexCoord Point1Coord Point2Coord InitAxisCoord F
     set SinAngle [expr {sqrt($n(0)*$n(0)+$n(1)*$n(1)+$n(2)*$n(2))}]
     
     # Transformation Matrix
-    set T(00) [expr {$CosAngle+$A(0)*$A(0)*(1.0-$CosAngle)}]
-    set T(01) [expr {$A(0)*$A(1)*(1.0-$CosAngle)-$A(2)*$SinAngle}]
-    set T(02) [expr {$A(0)*$A(2)*(1.0-$CosAngle)+$A(1)*$SinAngle}]
-    set T(10) [expr {$A(0)*$A(1)*(1.0-$CosAngle)+$A(2)*$SinAngle}]
-    set T(11) [expr {$CosAngle+$A(1)*$A(1)*(1.0-$CosAngle)}]
-    set T(12) [expr {$A(1)*$A(2)*(1.0-$CosAngle)-$A(0)*$SinAngle}]
-    set T(20) [expr {$A(0)*$A(2)*(1.0-$CosAngle)-$A(1)*$SinAngle}]
-    set T(21) [expr {$A(1)*$A(2)*(1.0-$CosAngle)+$A(0)*$SinAngle}]
-    set T(22) [expr {$CosAngle+$A(2)*$A(2)*(1.0-$CosAngle)}]
-    set T(03) [expr {[lindex $InitAxisCoord 0]-($T(00)*[lindex $InitAxisCoord 0]+$T(01)*[lindex $InitAxisCoord 1]+$T(02)*[lindex $InitAxisCoord 2])}]
-    set T(13) [expr {[lindex $InitAxisCoord 1]-($T(10)*[lindex $InitAxisCoord 0]+$T(11)*[lindex $InitAxisCoord 1]+$T(12)*[lindex $InitAxisCoord 2])}]
-    set T(23) [expr {[lindex $InitAxisCoord 2]-($T(20)*[lindex $InitAxisCoord 0]+$T(21)*[lindex $InitAxisCoord 1]+$T(22)*[lindex $InitAxisCoord 2])}]
+    set Rxx [expr {$CosAngle+$A(0)*$A(0)*(1.0-$CosAngle)}]
+    set Rxy [expr {$A(0)*$A(1)*(1.0-$CosAngle)-$A(2)*$SinAngle}]
+    set Rxz [expr {$A(0)*$A(2)*(1.0-$CosAngle)+$A(1)*$SinAngle}]
+    set Ryx [expr {$A(0)*$A(1)*(1.0-$CosAngle)+$A(2)*$SinAngle}]
+    set Ryy [expr {$CosAngle+$A(1)*$A(1)*(1.0-$CosAngle)}]
+    set Ryz [expr {$A(1)*$A(2)*(1.0-$CosAngle)-$A(0)*$SinAngle}]
+    set Rzx [expr {$A(0)*$A(2)*(1.0-$CosAngle)-$A(1)*$SinAngle}]
+    set Rzy [expr {$A(1)*$A(2)*(1.0-$CosAngle)+$A(0)*$SinAngle}]
+    set Rzz [expr {$CosAngle+$A(2)*$A(2)*(1.0-$CosAngle)}]
+    set Tx [expr {[lindex $InitAxisCoord 0]-($Rxx*[lindex $InitAxisCoord 0]+$Rxy*[lindex $InitAxisCoord 1]+$Rxz*[lindex $InitAxisCoord 2])}]
+    set Ty [expr {[lindex $InitAxisCoord 1]-($Ryx*[lindex $InitAxisCoord 0]+$Ryy*[lindex $InitAxisCoord 1]+$Ryz*[lindex $InitAxisCoord 2])}]
+    set Tz [expr {[lindex $InitAxisCoord 2]-($Rzx*[lindex $InitAxisCoord 0]+$Rzy*[lindex $InitAxisCoord 1]+$Rzz*[lindex $InitAxisCoord 2])}]
     
-    set TransformMatrix [list $T(00) $T(01) $T(02) $T(03) \
-                              $T(10) $T(11) $T(12) $T(13) \
-                              $T(20) $T(21) $T(22) $T(23) \
-                              0.0 0.0 0.0 1.0]
-    
-    return $TransformMatrix
+    return [list $Rxx $Rxy $Rxz $Tx \
+                 $Ryx $Ryy $Ryz $Ty \
+                 $Rzx $Rzy $Rzz $Tz \
+                 0.0 0.0 0.0 1.0]
 }
 
 #-------------------------------------------------------------------------------

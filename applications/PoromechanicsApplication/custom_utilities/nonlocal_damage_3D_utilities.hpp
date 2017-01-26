@@ -20,9 +20,9 @@ class NonlocalDamage3DUtilities : public NonlocalDamageUtilities
 
 public:
 
-    typedef typename NonlocalDamageUtilities::GaussPoint GaussPoint;
-    typedef typename NonlocalDamageUtilities::NeighbourPoint NeighbourPoint;
-    typedef typename NonlocalDamageUtilities::NonlocalPoint NonlocalPoint;
+    typedef NonlocalDamageUtilities::GaussPoint GaussPoint;
+    typedef NonlocalDamageUtilities::NeighbourPoint NeighbourPoint;
+    typedef NonlocalDamageUtilities::NonlocalPoint NonlocalPoint;
     using NonlocalDamageUtilities::mNonlocalPointList;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

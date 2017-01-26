@@ -554,27 +554,27 @@ protected:
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].LeftInitCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].LeftInitCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].LeftInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " LeftInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " LeftInitCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].RightInitCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].RightInitCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].RightInitCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " RightInitCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " RightInitCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopTopEndCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopTopEndCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopTopEndCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " TopTopEndCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopTopEndCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopBotEndCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopBotEndCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopBotEndCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " TopBotEndCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopBotEndCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopLeftEndCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopLeftEndCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopLeftEndCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " TopLeftEndCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopLeftEndCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopRightEndCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopRightEndCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopRightEndCoordinates[2] << "\"" << std::endl;
-            PropDataFile << "dict set PropagationDict " << i << " TopRightEndCoordinates $Coordinates" << std::endl;
+            PropDataFile << "dict set BifurcationDict " << i << " TopRightEndCoordinates $Coordinates" << std::endl;
             PropDataFile << "set Coordinates \"" << PropagationData.BifurcationVector[i].TopTipCoordinates[0]
                          << " " << PropagationData.BifurcationVector[i].TopTipCoordinates[1] << " "
                          << PropagationData.BifurcationVector[i].TopTipCoordinates[2] << "\"" << std::endl;
@@ -1610,10 +1610,9 @@ private:
         double PropagationDistance = 0.1*PropagationLength;
         int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         array_1d<double,3> AuxArray1;
-        //array_1d<double,3> AuxArray2;
 
         // Bifurcation
-        if(PropagationFactor < (0.25*PropagationDamage)
+        if(PropagationFactor < (0.5*PropagationDamage)
             && TopBifurcationFactor > PropagationDamage && BotBifurcationFactor > PropagationDamage)
         {
             Bifurcation MyBifurcation;
