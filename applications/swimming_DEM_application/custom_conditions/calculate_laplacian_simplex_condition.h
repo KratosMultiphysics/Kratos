@@ -64,6 +64,7 @@ template< unsigned int TDim, unsigned int TNumNodes = TDim >
 class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeLaplacianSimplexCondition : public Condition
 {
 public:
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLaplacianSimplexCondition);
@@ -91,6 +92,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
+
     /// Pointer definition of ComputeLaplacianSimplexCondition
 
     ///@}
