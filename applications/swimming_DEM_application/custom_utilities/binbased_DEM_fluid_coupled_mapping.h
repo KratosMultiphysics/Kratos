@@ -298,7 +298,7 @@ void Project(Element::Pointer p_elem, const array_1d<double, TDim + 1> N, Node<3
 void DistributeDimensionalContributionToFluidFraction(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, ParticleType& particle);
 void Distribute(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node,const VariableData *r_destination_variable);
 void ComputeHomogenizedNodalVariable(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
-void  CalculateFluidFraction(ModelPart& r_fluid_model_part);
+void CalculateFluidFraction(ModelPart& r_fluid_model_part);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
 void Interpolate(Element::Pointer p_elem, const array_1d<double, TDim + 1>& N, Node<3>::Pointer p_node, Variable<double>& r_origin_variable, Variable<double>& r_destination_variable);
