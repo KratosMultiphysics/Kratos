@@ -31,6 +31,7 @@
 #include "custom_elements/calculate_mat_deriv_simplex_element.h"
 #include "custom_elements/calculate_component_gradient_simplex_element.h"
 #include "custom_elements/calculate_gradient_Fortin_2012.h"
+#include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
@@ -127,6 +128,9 @@ private:
 
     const ComputeGradientFortin2012<2> mComputeGradientFortin20122D;
     const ComputeGradientFortin2012<3> mComputeGradientFortin20123D;
+
+    const ComputeVelocityLaplacianComponentSimplex<2> mComputeVelocityLaplacianComponentSimplex2D;
+    const ComputeVelocityLaplacianComponentSimplex<3> mComputeVelocityLaplacianComponentSimplex3D;
 
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
