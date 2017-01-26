@@ -40,6 +40,10 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
         }
         rRightHandSideVector(i) = 0.0;
     }
+
+    this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 //template <unsigned int TDim, unsigned int TNumNodes>
@@ -65,13 +69,13 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector
 
     const unsigned int LocalSize(TNumNodes);
     unsigned int LocalIndex = 0;
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
+    unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_Z);
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X, pos).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z, pos).EquationId();
     }
 }
 
@@ -87,7 +91,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsV
     unsigned int LocalIndex = 0;
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
     }
 }
 
@@ -103,17 +107,17 @@ int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const Proce
     if(this->GetGeometry().size() != TDim+1)
         KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
 
-    if(VELOCITY_LAPLACIAN_X.Key() == 0)
+    if(VELOCITY_LAPLACIAN_Z.Key() == 0)
 
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN_X Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_LAPLACIAN_Z Key is 0. Check if the application was correctly registered.","");
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i < this->GetGeometry().size(); ++i)
     {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN_X) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN_X variable on solution step data for node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_LAPLACIAN_Z) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_LAPLACIAN_Z variable on solution step data for node ",this->GetGeometry()[i].Id());
     }
     return 0;
 
@@ -127,37 +131,34 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPo
                              const double Weight)
 {
     double Coef = Weight;
-    int LocalIndex = 0;
 
     for (unsigned int iNodeB = 0; iNodeB < TNumNodes; ++iNodeB){
         double value = 0.0;
 
         for (unsigned int iNodeA = 0; iNodeA < TNumNodes; ++iNodeA){
             if (mCurrentComponent == 'X'){
-                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
                 for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeFunc[iNodeB] * rShapeDeriv(iNodeA, di) * NodalComponent[di];
+                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
                 }
             }
 
             else if (mCurrentComponent == 'Y'){
-                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
-
+                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
                 for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeFunc[iNodeB] * rShapeDeriv(iNodeA, di) * NodalComponent[di];
+                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
                 }
             }
 
             else {
-                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
-
+                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
                 for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeFunc[iNodeB] * rShapeDeriv(iNodeA, di) * NodalComponent[di];
+                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
                 }
             }
+            value *= rShapeFunc[iNodeB];
         }
-
-        F[LocalIndex++] += Coef * value;
+        F[iNodeB] += Coef * value;
     }
 }
 
@@ -165,11 +166,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
                                const double Mass)
 {
-    unsigned int DofIndex = 0;
-
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-        rLHSMatrix(DofIndex, DofIndex) += Mass;
-        ++DofIndex;
+        rLHSMatrix(iNode, iNode) += Mass;
     }
 }
 
@@ -179,18 +177,12 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddConsistentMas
         const double Weight)
 {
     double Coef = Weight;
-    unsigned int FirstRow(0), FirstCol(0);
-    double K; // Temporary results
 
     // Note: Dof order is (vx,vy[,vz]) for each node
     for (unsigned int i = 0; i < TNumNodes; ++i){
         // Loop over columns
         for (unsigned int j = 0; j < TNumNodes; ++j){
-            K = Coef * rShapeFunc[i] * rShapeFunc[j];
-
-            rLHSMatrix(FirstRow + i, FirstCol + j) += K;
-
-            // Update column index
+            rLHSMatrix(i, j) += Coef * rShapeFunc[i] * rShapeFunc[j];
         }
     }
 }
