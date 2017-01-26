@@ -26,30 +26,20 @@ def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, clust
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
-    max_id = 1
-    renumerate = False
+    max_fluid_id = FindMaxNodeId(fluid_model_part)
+    must_renumber = True in (node.Id < max_fluid_id for node in dem_model_part.Nodes + rigid_faces_model_part.Nodes)
 
-    for node in fluid_model_part.Nodes:
+    if must_renumber:
 
-        if node.Id > max_id:
-            max_id = node.Id
-
-    for node in dem_model_part.Nodes:
-
-        if node.Id < max_id:
-            renumerate = True
-            break
-
-    if renumerate:
-
-        print("WARNING!, the DEM model part and the fluid model part have some ID values in common")
-        print("Renumerating DEM model part and fem-DEM model parts Ids")
+        print("WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
-            node.Id += max_id
+            node.Id += max_fluid_id
 
         for node in rigid_faces_model_part.Nodes:
-            node.Id += max_id
+            node.Id += max_fluid_id
+
+        print("The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
 
 def RenumberModelPartNodesFromGivenId(model_part, id):
@@ -212,28 +202,11 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
         print(('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
 
 
-def FindMaxNodeIdInFLuid(fluid_model_part):
-
-    max = 0
-
-    for node in fluid_model_part.Nodes:
-
-        if node.Id > max:
-            max = node.Id
-
-    return max
+def FindMaxNodeId(fluid_model_part):
+    return max((node.Id for node in fluid_model_part.Nodes))
     
-    
-def FindMaxElementIdInFLuid(fluid_model_part):
-
-    max = 0
-
-    for element in fluid_model_part.Elements:
-
-        if element.Id > max:
-            max = element.Id
-
-    return max    
+def FindMaxElementId(fluid_model_part):
+    return max((element.Id for element in fluid_model_part.Elements))
 
 def FunctionsCalculator(pp):
     if pp.domain_size == 2:
