@@ -530,11 +530,24 @@ public:
                       << std::endl;
         }
 
+	this->mResidualNorm = resid;
+	this->mIterationsNumber = iters;
+
         bool is_solved = true;
         if(resid > mTol)
             is_solved = false;
 
         return is_solved;
+    }
+
+    virtual unsigned int GetIterationsNumber()
+    {
+        return mIterationsNumber;
+    }
+
+    virtual double GetResidualNorm()
+    {
+        return mResidualNorm;
     }
 
     /**
@@ -663,6 +676,9 @@ private:
     amgcl::runtime::relaxation::type mrelaxation;
     amgcl::runtime::solver::type miterative_solver;
     boost::property_tree::ptree mprm;
+
+    double mResidualNorm = 0.0;
+    unsigned int mIterationsNumber = 0;
 
 
 
