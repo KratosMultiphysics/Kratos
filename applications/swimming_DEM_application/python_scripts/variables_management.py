@@ -365,6 +365,10 @@ def ConstructListsOfVariablesForCoupling(pp):
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]
+    if pp.CFD_DEM.store_full_gradient and pp.CFD_DEM.print_VELOCITY_GRADIENT_option:    
+        pp.nodal_results += ["VELOCITY_X_GRADIENT"]
+        pp.nodal_results += ["VELOCITY_Y_GRADIENT"]
+        pp.nodal_results += ["VELOCITY_Z_GRADIENT"]
 
     if pp.CFD_DEM.print_PRESSURE_GRADIENT_option:
         pp.nodal_results += ["PRESSURE_GRADIENT"]
