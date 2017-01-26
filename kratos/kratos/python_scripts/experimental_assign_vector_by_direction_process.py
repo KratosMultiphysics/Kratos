@@ -82,13 +82,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
                 # Compute the average conditions normal in the submodelpart of interest
-                avg_normal = KratosMultiphysics.Vector(3)
-
-                # TODO: Implement SumNonHistoricalVariable in variable_utils.h
-                for cond in self.model_part.Conditions:
-                    normal = cond.GetValue(KratosMultiphysics.NORMAL)
-                    avg_normal = avg_normal + normal
-
+                avg_normal = KratosMultiphysics.VariableUtils().SumConditionVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) +
                                             pow(avg_normal[1],2) +
                                             pow(avg_normal[2],2))
