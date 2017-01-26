@@ -40,11 +40,16 @@ class DerivativeRecoveryStrategy:
             self.acc_model_part = ModelPart("PostAccelerationFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeGradientFortin20123D", "ComputeLaplacianSimplexCondition3D")
             
-        if self.laplacian_type == 3 or self.laplacian_type == 4 or self.laplacian_type == 5:
+        if self.laplacian_type == 3 or self.laplacian_type == 4:
             self.do_recover_laplacian = True
             self.lapl_model_part = ModelPart("PostLaplacianFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.lapl_model_part, "ComputeLaplacianSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
+        elif self.laplacian_type == 5 or self.laplacian_type == 6:
+            self.do_recover_laplacian = True
+            self.lapl_model_part = ModelPart("PostLaplacianFluidPart")
+            model_part_cloner.GenerateModelPart(fluid_model_part, self.lapl_model_part, "ComputeVelocityLaplacianComponentSimplex3D", "ComputeLaplacianSimplexCondition3D")
+            
         self.AddDofs(fluid_model_part)
         self.CreateCPluPlusStrategies(pp.CFD_DEM.recovery_echo_level)
         
@@ -69,15 +74,13 @@ class DerivativeRecoveryStrategy:
 
         if self.do_recover_laplacian:
             for node in self.lapl_model_part.Nodes:
-                node.AddDof(VELOCITY_LAPLACIAN_X)
-                node.AddDof(VELOCITY_LAPLACIAN_Y)
                 node.AddDof(VELOCITY_LAPLACIAN_Z)
 
         print("dofs for the derivative recovery solvers added correctly")
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-        linear_solver = CGSolver()
+        #linear_solver = CGSolver()
         #linear_solver = SuperLUIterativeSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()        
         amgcl_smoother = AMGCLSmoother.ILU0
@@ -102,33 +105,42 @@ class DerivativeRecoveryStrategy:
         elif type(variable).__name__ == 'Array1DVariable3':
             self.custom_functions_tool.SetValueOfAllNotes(self.fluid_model_part, ZeroVector(3), variable)
             
-    def Solve(self, component = None):
-        if self.do_recover_acceleration or self.do_recover_gradient:
-            if self.do_recover_acceleration:
-                print("\nSolving for the fluid acceleration...")
-                sys.stdout.flush()
+    def Solve(self, component = None, solving_laplacian_or_solving_mat_deriv = 'M'):
+        if solving_laplacian_or_solving_mat_deriv == 'M':      
+            if self.do_recover_acceleration or self.do_recover_gradient:
+                if self.do_recover_acceleration:
+                    print("\nSolving for the fluid acceleration...")
+                    sys.stdout.flush()
 
-            if component == None:
-                self.SetToZero(MATERIAL_ACCELERATION)
-            else:
-                if component == 0:
-                    self.SetToZero(MATERIAL_ACCELERATION_X)
+                if component == None:
+                    self.SetToZero(MATERIAL_ACCELERATION)
+                else:
+                    if component == 0:
+                        self.SetToZero(MATERIAL_ACCELERATION_X)
 
-                    if self.pp.CFD_DEM.lift_force_type:
-                        self.SetToZero(VELOCITY_Z_GRADIENT)
+                        if self.pp.CFD_DEM.lift_force_type:
+                            self.SetToZero(VELOCITY_Z_GRADIENT)
 
-                elif component == 1:
-                    self.SetToZero(MATERIAL_ACCELERATION_Y)
-                elif component == 2:
-                    self.SetToZero(MATERIAL_ACCELERATION_Z) 
-                    
-                self.SetToZero(VELOCITY_Z_GRADIENT)
+                    elif component == 1:
+                        self.SetToZero(MATERIAL_ACCELERATION_Y)
+                    elif component == 2:
+                        self.SetToZero(MATERIAL_ACCELERATION_Z) 
+                        
+                    self.SetToZero(VELOCITY_Z_GRADIENT)
 
-            self.acc_strategy.Solve()
-            
-            if self.do_recover_acceleration:
-                print("\nFinished solving for the fluid acceleration.\n")
-                sys.stdout.flush()
+                self.acc_strategy.Solve()
+                
+                if self.do_recover_acceleration:
+                    print("\nFinished solving for the fluid acceleration.\n")
+                    sys.stdout.flush()
+        else:
+            if component == 0:
+                self.SetToZero(VELOCITY_LAPLACIAN_Z)
+            elif component == 1:
+                self.SetToZero(VELOCITY_LAPLACIAN_Z)
+            elif component == 2:
+                self.SetToZero(VELOCITY_LAPLACIAN_Z) 
+            self.lapl_strategy.Solve()
 
         if component == None:                
             if self.do_recover_laplacian:
@@ -195,8 +207,21 @@ class DerivativeRecoveryStrategy:
                         self.Solve(2)
                         self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)                
                         if self.pp.CFD_DEM.lift_force_type:
-                            self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)                       
+                            self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)                                           
                     print("\nFinished solving for the fluid acceleration.\n")
                     sys.stdout.flush()
-
-
+                
+                if self.laplacian_type == 5 or self.laplacian_type == 6:
+                    print("\nSolving for the laplacian...")
+                    if self.store_full_gradient or True: # NOT GENERALIZED YET
+                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
+                        self.Solve(0, 'L')                          
+                        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_LAPLACIAN_Z, VELOCITY_LAPLACIAN_X)
+                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
+                        self.Solve(1, 'L')
+                        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_LAPLACIAN_Z, VELOCITY_LAPLACIAN_Y)
+                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
+                        self.Solve(2, 'L') # and there is no need to copy anything
+                
+                    print("\nFinished solving for the laplacian.\n")
+                    sys.stdout.flush()
