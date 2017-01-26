@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 
 regular_mesh = True
+show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
 n_divs = [10, 20, 40, 80]
 
 if regular_mesh:
@@ -63,12 +64,14 @@ for method in recovery_types:
     FillVectors(method, mat_deriv_average_errors, mat_deriv_max_errors, laplacian_average_errors, laplacian_max_errors)
     if method == 1:
         mat_deriv_type = 'standard'
+        laplacian_type = 'standard'
         line_width = 1
         color = 'r'
         marker_type = '-*'
         marker_size = 10
     elif method == 2:
         mat_deriv_type = 'Zhang and Naga (2005)'
+        laplacian_type = 'Zhang and Naga (2005)'
         line_width = 1
         color = 'k'
         marker_type = '-o'
@@ -76,6 +79,7 @@ for method in recovery_types:
         
     elif method == 3:
         mat_deriv_type = 'L2 (lumped)'
+        laplacian_type = 'L2 (lumped)'
         line_width = 1
         color = 'b'
         marker_type = '->'
@@ -83,6 +87,7 @@ for method in recovery_types:
         
     elif method == 4:
         mat_deriv_type = 'L2'
+        laplacian_type = 'L2'
         line_width = 1
         color = 'g'
         marker_type = '->'
@@ -90,6 +95,7 @@ for method in recovery_types:
         
     elif method == 5:
         mat_deriv_type = 'L2 only gradient'
+        laplacian_type = 'L2 divergence of gradient'
         line_width = 1
         color = 'c'
         marker_type = '-v'
@@ -97,6 +103,7 @@ for method in recovery_types:
 
     elif method == 6:
         mat_deriv_type = 'Fortin et al. (2012)'
+        laplacian_type = 'Fortin et al. (2012)'
         line_width = 1
         color = 'm'
         marker_type = '-v'
@@ -107,25 +114,31 @@ for method in recovery_types:
         slope_msg = ' material derivative (m = ' + str(round(slope, 2)) + ')'        
     except:
         slope_msg = ''
-        
-    plt.plot(sizes, mat_deriv_average_errors, '-v', ms = marker_size, color=color, label= mat_deriv_type + slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
+    
+    if show_math_deriv_or_laplacian == 'M':
+        expected_order = 2
+        min_error = min(min_error, mat_deriv_average_errors[-1])
+        max_error = max(max_error, mat_deriv_average_errors[0])        
+        plt.plot(sizes, mat_deriv_average_errors, '-v', ms = marker_size, color=color, label= mat_deriv_type + slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
-    #plt.plot(sizes, laplacian_average_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (average)', linewidth = line_width, linestyle='solid', markersize = 20)
-    #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= mat_deriv_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
-    min_error = min(min_error, mat_deriv_average_errors[-1], laplacian_average_errors[-1])
-    max_error = max(max_error, mat_deriv_average_errors[0])
+    if show_math_deriv_or_laplacian == 'L':
+        expected_order = 1
+        min_error = min(min_error, laplacian_average_errors[-1])
+        max_error = max(max_error, laplacian_average_errors[0])    
+        plt.plot(sizes, laplacian_average_errors,'-^', color=color, label= laplacian_type, linewidth = line_width, linestyle='solid', markersize = 20)
+    #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     plt.semilogy()
     plt.semilogx()
     plt.axis('equal')
 min_error /= 2
 
 if regular_mesh:
-    slope = [min_error * (n_divs[-1] / n_div) ** 2 for n_div in n_divs]
+    slope = [min_error * (n_divs[-1] / n_div) ** expected_order for n_div in n_divs]
     plot_name = 'derivative_recovery_errors_regular.pdf'
 else:
-    slope = [min_error * (size / sizes[-1]) ** 2 for size in sizes]
+    slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
     plot_name = 'derivative_recovery_errors_irregular.pdf'
-plt.plot(sizes, slope, linestyle='dashed',  label='slope = 2')
+plt.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
 plt.ylim((min_error / 10, max_error * 10))
 plt.legend(loc = 'upper left')
 plt.savefig(plot_name)    
