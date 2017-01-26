@@ -116,7 +116,7 @@ pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.fluid_already_calculated = 0
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 0
-pp.CFD_DEM.store_full_gradient = 0
+pp.CFD_DEM.store_full_gradient = 1
 pp.CFD_DEM.laplacian_calculation_type = int(laplacian_type)
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.material_acceleration_calculation_type = int(material_derivative_type)
@@ -142,6 +142,7 @@ pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
 number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
 pp.CFD_DEM.print_VORTICITY_option = 1
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
 print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
@@ -918,9 +919,9 @@ while (time <= final_time):
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
             
             
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian[0] - laplacian[0]))
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian[1] - laplacian[1]))  
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian[2] - laplacian[2]))  
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian[0] - laplacian[0]))
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian[1] - laplacian[1]))  
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian[2] - laplacian[2]))  
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
             #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
