@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Project includes */
 #include "includes/constitutive_law.h"
-#include "custom_utilities\rve_material_database.h"
+#include "custom_utilities/rve_material_database.h"
 
 namespace Kratos
 {
