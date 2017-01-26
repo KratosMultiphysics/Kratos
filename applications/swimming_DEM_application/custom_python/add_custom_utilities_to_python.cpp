@@ -274,7 +274,7 @@ using namespace boost::python;
         .def("ImposeFieldOnNodes", ImposeVelocityFluidField)
         ;
 
-    typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const Variable<double>&, const Variable<double>&);
+    typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesVector)(ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&);
     typedef void (CustomFunctionsCalculator<3>::*SetValuesScalar)(ModelPart&, const double&, const Variable<double>&);
     typedef void (CustomFunctionsCalculator<3>::*SetValuesVector)(ModelPart&, const array_1d<double, 3>&, const Variable<array_1d<double, 3>>&);
