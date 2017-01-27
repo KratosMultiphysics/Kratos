@@ -150,7 +150,53 @@ namespace Kratos
     }
     
     /**
-     * Calculates the eigenvectors and eigenvalues of given symmetric matrix A.
+     * Calculates the maximum of 3 values
+     */  
+    
+    double max3(
+        const double val1,
+        const double val2,
+        const double val3
+        )
+    {
+        double max = val1;
+        if (max < val2)
+        {
+            max = val2;
+        }
+        if (max < val3)
+        {
+            max = val3;
+        }
+        
+        return max;
+    }
+    
+    /**
+     * Calculates the minimum of 3 values
+     */  
+    
+    double min3(
+        const double val1,
+        const double val2,
+        const double val3
+        )
+    {
+        double min = val1;
+        if (min > val2)
+        {
+            min = val2;
+        }
+        if (min > val3)
+        {
+            min = val3;
+        }
+        
+        return min;
+    }
+    
+    /**
+     * Calculates the eigenvectors and eigenvalues of given symmetric 3x3 matrix
      * The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
      * @param A: The given symmetric matrix the eigenvectors are to be calculated.
      * @return eigen_vector_matrix: The result matrix (will be overwritten with the eigenvectors)
@@ -164,7 +210,7 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double, 3, 3>& eigen_vector_matrix,
             boost::numeric::ublas::bounded_matrix<double, 3, 3>& eigen_values_matrix,
             const double tolerance = 1.0e-9,
-            const int max_iterations = 10
+            const unsigned int max_iterations = 10
             )
     {
         bool is_converged = false;
@@ -397,7 +443,7 @@ public:
     
     void RemeshModelPart(
         ModelPart& rThisModelPart,
-        const bool& save_to_file = false,
+        const bool save_to_file = false,
         const unsigned int MaxNumberOfResults = 1000
         )
     {
@@ -420,16 +466,7 @@ public:
         }
         
         // We execute the remeshing
-        ExecuteRemeshing(rThisModelPart, MaxNumberOfResults);
-        
-        /* Save to file */
-        if (save_to_file == true)
-        {
-            SaveSolutionToFile(true);
-        }
-       
-        /* Free memory */
-        FreeMemory();
+        ExecuteRemeshing(rThisModelPart, save_to_file, MaxNumberOfResults);
         
         /* We print the resulting model part */
         std::cout << "//---------------------------------------------------//" << std::endl;
@@ -642,11 +679,10 @@ public:
     void InitializeLevelSetSolData(
         ModelPart& rThisModelPart,
         const double& minimal_size = 0.1,
-        const Variable<double> & rVariable = DISTANCE,
-        const Variable<array_1d<double,3>> & rVariableGradient = DISTANCE_GRADIENT,
-        const double& hmin_over_hmax_anisotropic_ratio = 1.0,
-        const double& boundary_layer_max_value =  1.0,
-        const std::string& interpolation = "Linear"
+        const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
+        const double hmin_over_hmax_anisotropic_ratio = 1.0,
+        const double boundary_layer_max_value =  1.0,
+        const std::string interpolation = "Linear"
     )
     {
         ////////* SOLUTION FILE *////////
@@ -662,7 +698,7 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            const double scalar_value = itNode->FastGetSolutionStepValue(rVariable, 0);
+            const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(rVariableGradient, 0);
             
             double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
@@ -671,44 +707,18 @@ public:
                 element_size = minimal_size;
             }
             
-            double ratio = 1.0; // NOTE: Isotropic mesh
-            if (hmin_over_hmax_anisotropic_ratio < 1.0)
-            {
-                const double tolerance = 1.0e-12;
-                const double norm = norm_2(gradient_value); // Consider isotropic when zero
-                
-                if (std::abs(scalar_value) <= boundary_layer_max_value && norm > tolerance)
-                {
-                    gradient_value /= norm;
-
-                    if (interpolation.find("Constant") != std::string::npos)
-                    {
-                        ratio = hmin_over_hmax_anisotropic_ratio;
-                    }
-                    else if (interpolation.find("Linear") != std::string::npos)
-                    {
-                        ratio = hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
-                    }
-                    else if (interpolation.find("Exponential") != std::string::npos)
-                    {
-                        ratio = - std::log(std::abs(scalar_value)/boundary_layer_max_value) * hmin_over_hmax_anisotropic_ratio + tolerance;
-                        if (ratio > 1.0)
-                        {
-                            ratio = 1.0;
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "No interpolation defined, considering linear" << std:: endl;
-                        ratio = 
-                        hmin_over_hmax_anisotropic_ratio + (std::abs(scalar_value)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
-                    }
-                }
-            }
+            const double ratio = CalculateAnisotropicRatio(distance, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_value, interpolation);
             
             // For postprocess pourposes
             double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
             anisotropic_ratio = ratio;
+            
+            const double tolerance = 1.0e-12;
+            const double norm = norm_2(gradient_value);
+            if (norm > tolerance)
+            {
+                gradient_value /= norm;
+            }
             
             // We compute the metric
             const array_1d<double, 3 * (1 + TDim)> metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
@@ -729,6 +739,9 @@ public:
      * @param rVariable: The variable considered for remeshing
      * @param interpolation_error: The interpolation error assumed
      * @param mesh_dependent_constant: The constant that appears in papers an none knows where comes from, where...
+     * @param hmin_over_hmax_anisotropic_ratio: The minimal anisotropic ratio
+     * @param boundary_layer_max_value: The boundary layer limit to remesh
+     * @param interpolation: The type of interpolation used
      */
     
     void InitializeHessianSolData(
@@ -737,12 +750,10 @@ public:
         const double& maximal_size,
         Variable<double> & rVariable,
         const double interpolation_error = 1.0e-6,
-        const double mesh_dependent_constant = 0.28125 // TODO: This is for tetrahedron, look in literature for more: https://www.ljll.math.upmc.fr/frey/publications/cmame05-3.pdf
-//         https://www.wias-berlin.de/people/kamenski/pdf/phdthesis-kamenski.pdf
-//         https://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf
-//         https://www.researchgate.net/publication/229870787_Adaptive_mesh_technique_for_thermal-metallurgical_numerical_simulation_of_arc_welding_processes
-//         http://www.scs-europe.net/services/ess2003/PDF/METH07.pdf
-//         IMPORTANT: http://www.scs-europe.net/services/ess2003/PDF/METH07.pdf
+        const double mesh_dependent_constant = 0.28125, // TODO: This is for tetrahedron, look in literature for more
+        const double hmin_over_hmax_anisotropic_ratio = 1.0,
+        const double boundary_layer_max_value =  1.0,
+        const std::string interpolation = "Linear"
     )
     {
         ////////* SOLUTION FILE *////////
@@ -759,10 +770,24 @@ public:
         {
             auto itNode = pNode.begin() + i;
             
-            const array_1d<double, 6> hessian = itNode->GetValue(AUXILIAR_HESSIAN);
+            const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
+            const Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);
+            
+            double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
+            if (element_size > minimal_size)
+            {
+                element_size = minimal_size;
+            }
+            
+            const double ratio = CalculateAnisotropicRatio(distance, hmin_over_hmax_anisotropic_ratio, boundary_layer_max_value,interpolation);
+            
+            // For postprocess pourposes
+            double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
+            anisotropic_ratio = ratio;
             
             // We compute the metric
-            const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, minimal_size, maximal_size, interpolation_error, mesh_dependent_constant);
+            const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, element_size, maximal_size, interpolation_error, mesh_dependent_constant, ratio);
+//             const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, minimal_size, maximal_size, interpolation_error, mesh_dependent_constant, ratio);
             
             // We set the metric
             SetMetricTensor(metric, i + 1);          
@@ -796,146 +821,14 @@ public:
 //         {
 //             auto itNode = pNode.begin() + i;
 //             
-//             const array_1d<double, 6> hessian = itNode->GetValue(AUXILIAR_HESSIAN);
+//             const Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);
 //             
 //             // We compute the metric
-//             const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, minimal_size, maximal_size, interpolation_error, mesh_dependent_constant);
+//             const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, minimal_size, maximal_size, interpolation_error, mesh_dependent_constant, ratio);
 //             
 //             // We set the metric
 //             SetMetricTensor(metric, i + 1);          
 //         }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * This calculates the auxiliar hessian needed for the metric
-     * @param rThisModelPart: The original model part where we compute the hessian
-     * @param rVariable: The variable to calculate the hessian
-     */
-    
-    void CalculateAuxiliarHessian(
-        ModelPart& rThisModelPart,
-        Variable<double> & rVariable
-    )
-    {
-        // Iterate in the nodes
-        NodesArrayType& pNode = rThisModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
-        
-//         #pragma omp parallel for // NOTE: Be careful with the parallel (MUST BE INITIALIZED TO BE THREAD SAFE)
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-            
-            array_1d<double, 6> hessian = itNode->GetValue(AUXILIAR_HESSIAN);  
-            hessian = ZeroVector(6);
-        }
-        
-        // Compute auxiliar gradient
-        ComputeNodalGradientProcess<TDim> GradientProcess = ComputeNodalGradientProcess<TDim>(rThisModelPart, rVariable, AUXILIAR_GRADIENT, NODAL_AREA);
-        GradientProcess.Execute();
-        
-        // Iterate in the conditions
-        ElementsArrayType& pElement = rThisModelPart.Elements();
-        auto numElements = pElement.end() - pElement.begin();
-        
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < numElements; i++) 
-        {
-            auto itElem = pElement.begin() + i;
-            
-            Element::GeometryType& geom = itElem->GetGeometry();
-            const unsigned int geom_size = geom.size();
-
-            double Volume;
-            if (TDim == 2)
-            {
-                if (geom_size == 3)
-                {
-                    boost::numeric::ublas::bounded_matrix<double,3, 2> DN_DX;
-                    array_1d<double,3> N;
-       
-                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-                    
-                    boost::numeric::ublas::bounded_matrix<double,3, 2> values;
-                    for(unsigned int i_node = 0; i_node < 3; i_node++)
-                    {
-                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                        values(i_node, 0) = aux_grad[0];
-                        values(i_node, 1) = aux_grad[1];
-                    }
-                    
-                    const boost::numeric::ublas::bounded_matrix<double,2, 2> hessian = prod(trans(DN_DX), values); 
-                    
-                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
-                    {
-                        for(unsigned int k = 0; k < 3; k++)
-                        {
-                            unsigned int index0 ,index1;
-                            TensorReferenceConversor2D(k, index0, index1);
-                            
-                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
-                            
-                            #pragma omp atomic
-                            val += N[i_node] * Volume * hessian(index0, index1);
-                        }
-                    }
-                }
-                else
-                {
-                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TRIANGLES RIGHT NOW IN THE GEOMETRY UTILS: ", geom_size );
-                }
-            }
-            else
-            {
-                if (geom_size == 4)
-                {
-                    boost::numeric::ublas::bounded_matrix<double,4,  3> DN_DX;
-                    array_1d<double, 4> N;
-                    
-                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-                    
-                    boost::numeric::ublas::bounded_matrix<double,4, 3> values;
-                    for(unsigned int i_node = 0; i_node < 4; i_node++)
-                    {
-                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                        values(i_node, 0) = aux_grad[0];
-                        values(i_node, 1) = aux_grad[1];
-                        values(i_node, 2) = aux_grad[2];
-                    }
-                    
-                    const boost::numeric::ublas::bounded_matrix<double,3, 3> hessian = prod(trans(DN_DX), values); 
-                    
-                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
-                    {
-                        for(unsigned int k = 0; k < 6; k++)
-                        {
-                            unsigned int index0 ,index1;
-                            TensorReferenceConversor3D(k, index0, index1);
-
-                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
-                            
-                            #pragma omp atomic
-                            val += N[i_node] * Volume * hessian(index0, index1);
-                        }
-                    }
-                }
-                else
-                {
-                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
-                }
-            }
-        }
-            
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
-            itNode->GetValue(AUXILIAR_HESSIAN) /= itNode->FastGetSolutionStepValue(NODAL_AREA);
-            
-        }
     }
        
     ///@}
@@ -996,6 +889,7 @@ protected:
     
     void ExecuteRemeshing(
         ModelPart& rThisModelPart,
+        const bool save_to_file = false,
         const unsigned int MaxNumberOfResults = 1000
         )
     {
@@ -1341,6 +1235,15 @@ protected:
            
             rSubModelPart.AddNodes(NodesIds);
         }
+        
+        /* Save to file */
+        if (save_to_file == true)
+        {
+            SaveSolutionToFile(true);
+        }
+       
+        /* Free memory */
+        FreeMemory();
         
         /* We interpolate all the values */
         InterpolateValues(rThisModelPart, rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
@@ -2160,11 +2063,12 @@ protected:
      */
         
     array_1d<double, 3 * (1 + TDim)> ComputeHessianMetricTensor(
-        const array_1d<double, 6> hessian,
+        const Vector& hessian,
         const double& minimal_size,
         const double& maximal_size,
-        const double interpolation_error,
-        const double mesh_dependent_constant 
+        const double& interpolation_error,
+        const double& mesh_dependent_constant,
+        const double& ratio
         )
     {
         array_1d<double, 3 * (1 + TDim)> metric;
@@ -2210,6 +2114,18 @@ protected:
             eigen_vector_matrix(1, 0) = aux_array[0];
             eigen_vector_matrix(1, 1) = aux_array[1];
             
+            // Considering anisotropic
+            if (ratio < 1.0)
+            {
+                const double eigen_max = MathUtils<double>::Max(eigen_values_matrix(0, 0), eigen_values_matrix(1, 1));
+                const double eigen_min = MathUtils<double>::Min(eigen_values_matrix(0, 0), eigen_values_matrix(1, 1));
+                const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - ratio);
+                const double rel_eigen_radius = std::abs(eigen_max - eigen_radius);
+                
+                eigen_values_matrix(0, 0) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(0, 0), eigen_max), rel_eigen_radius);
+                eigen_values_matrix(1, 1) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(1, 1), eigen_max), rel_eigen_radius);
+            }
+            
             // We compute the product
             const boost::numeric::ublas::bounded_matrix<double, 2, 2> metric_matrix =  prod(trans(eigen_vector_matrix), prod<temp_type>(eigen_values_matrix,eigen_vector_matrix));
             
@@ -2242,6 +2158,19 @@ protected:
             for (unsigned int i = 0; i < 3; i++)
             {
                 eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
+            }
+            
+            // Considering anisotropic
+            if (ratio < 1.0)
+            {
+                const double eigen_max = max3(eigen_values_matrix(0, 0), eigen_values_matrix(1, 1), eigen_values_matrix(2, 2));
+                const double eigen_min = min3(eigen_values_matrix(0, 0), eigen_values_matrix(1, 1), eigen_values_matrix(2, 2));
+                const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - ratio);
+                const double rel_eigen_radius = std::abs(eigen_max - eigen_radius);
+                
+                eigen_values_matrix(0, 0) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(0, 0), eigen_max), rel_eigen_radius);
+                eigen_values_matrix(1, 1) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(1, 1), eigen_max), rel_eigen_radius);
+                eigen_values_matrix(1, 2) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(2, 2), eigen_max), rel_eigen_radius);
             }
             
             // We compute the product
@@ -2287,6 +2216,188 @@ protected:
                 exit(EXIT_FAILURE);
             }
         }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This calculates the auxiliar hessian needed for the metric
+     * @param rThisModelPart: The original model part where we compute the hessian
+     * @param rVariable: The variable to calculate the hessian
+     */
+    
+    void CalculateAuxiliarHessian(
+        ModelPart& rThisModelPart,
+        Variable<double> & rVariable
+        )
+    {
+        // Iterate in the nodes
+        NodesArrayType& pNode = rThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+//         #pragma omp parallel for // NOTE: Be careful with the parallel (MUST BE INITIALIZED TO BE THREAD SAFE)
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);  
+            hessian = ZeroVector(3 * (TDim - 1));
+        }
+        
+        // Compute auxiliar gradient
+        ComputeNodalGradientProcess<TDim> GradientProcess = ComputeNodalGradientProcess<TDim>(rThisModelPart, rVariable, AUXILIAR_GRADIENT, NODAL_AREA);
+        GradientProcess.Execute();
+        
+        // Iterate in the conditions
+        ElementsArrayType& pElement = rThisModelPart.Elements();
+        auto numElements = pElement.end() - pElement.begin();
+        
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElem = pElement.begin() + i;
+            
+            Element::GeometryType& geom = itElem->GetGeometry();
+            const unsigned int geom_size = geom.size();
+
+            double Volume;
+            if (TDim == 2)
+            {
+                if (geom_size == 3)
+                {
+                    boost::numeric::ublas::bounded_matrix<double,3, 2> DN_DX;
+                    array_1d<double,3> N;
+       
+                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+                    
+                    boost::numeric::ublas::bounded_matrix<double,3, 2> values;
+                    for(unsigned int i_node = 0; i_node < 3; i_node++)
+                    {
+                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
+                        values(i_node, 0) = aux_grad[0];
+                        values(i_node, 1) = aux_grad[1];
+                    }
+                    
+                    const boost::numeric::ublas::bounded_matrix<double,2, 2> hessian = prod(trans(DN_DX), values); 
+                    
+                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
+                    {
+                        for(unsigned int k = 0; k < 3; k++)
+                        {
+                            unsigned int index0 ,index1;
+                            TensorReferenceConversor2D(k, index0, index1);
+                            
+                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                            
+                            #pragma omp atomic
+                            val += N[i_node] * Volume * hessian(index0, index1);
+                        }
+                    }
+                }
+                else
+                {
+                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TRIANGLES RIGHT NOW IN THE GEOMETRY UTILS: ", geom_size );
+                }
+            }
+            else
+            {
+                if (geom_size == 4)
+                {
+                    boost::numeric::ublas::bounded_matrix<double,4,  3> DN_DX;
+                    array_1d<double, 4> N;
+                    
+                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+                    
+                    boost::numeric::ublas::bounded_matrix<double,4, 3> values;
+                    for(unsigned int i_node = 0; i_node < 4; i_node++)
+                    {
+                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
+                        values(i_node, 0) = aux_grad[0];
+                        values(i_node, 1) = aux_grad[1];
+                        values(i_node, 2) = aux_grad[2];
+                    }
+                    
+                    const boost::numeric::ublas::bounded_matrix<double,3, 3> hessian = prod(trans(DN_DX), values); 
+                    
+                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
+                    {
+                        for(unsigned int k = 0; k < 6; k++)
+                        {
+                            unsigned int index0 ,index1;
+                            TensorReferenceConversor3D(k, index0, index1);
+
+                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                            
+                            #pragma omp atomic
+                            val += N[i_node] * Volume * hessian(index0, index1);
+                        }
+                    }
+                }
+                else
+                {
+                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
+                }
+            }
+        }
+            
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            itNode->GetValue(AUXILIAR_HESSIAN) /= itNode->FastGetSolutionStepValue(NODAL_AREA);
+            
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * This calculates the auxiliar hessian needed for the metric
+     * @param rThisModelPart: The original model part where we compute the hessian
+     * @param rVariable: The variable to calculate the hessian
+     */
+    
+    double CalculateAnisotropicRatio(
+        const double& distance,
+        const double& hmin_over_hmax_anisotropic_ratio,
+        const double& boundary_layer_max_value,
+        const std::string& interpolation
+    )
+    {
+        const double tolerance = 1.0e-12;
+        double ratio = 1.0; // NOTE: Isotropic mesh
+        if (hmin_over_hmax_anisotropic_ratio < 1.0)
+        {                           
+            if (std::abs(distance) <= boundary_layer_max_value)
+            {
+                if (interpolation.find("Constant") != std::string::npos)
+                {
+                    ratio = hmin_over_hmax_anisotropic_ratio;
+                }
+                else if (interpolation.find("Linear") != std::string::npos)
+                {
+                    ratio = hmin_over_hmax_anisotropic_ratio + (std::abs(distance)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                }
+                else if (interpolation.find("Exponential") != std::string::npos)
+                {
+                    ratio = - std::log(std::abs(distance)/boundary_layer_max_value) * hmin_over_hmax_anisotropic_ratio + tolerance;
+                    if (ratio > 1.0)
+                    {
+                        ratio = 1.0;
+                    }
+                }
+                else
+                {
+                    std::cout << "No interpolation defined, considering linear" << std:: endl;
+                    ratio = 
+                    hmin_over_hmax_anisotropic_ratio + (std::abs(distance)/boundary_layer_max_value) * (1.0 - hmin_over_hmax_anisotropic_ratio);
+                }
+            }
+        }
+        
+        return ratio;
     }
     
     ///@}
