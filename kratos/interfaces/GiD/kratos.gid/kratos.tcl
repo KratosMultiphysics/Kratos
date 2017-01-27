@@ -146,7 +146,7 @@ proc Kratos::InitGIDProject { dir } {
     set kratos_private(UseWizard) 0
      
     Kratos::load_gid_groups_conds
-    customlib::UpdateDocument
+    #customlib::UpdateDocument
     Kratos::LoadEnvironment
     Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
@@ -371,4 +371,21 @@ proc Kratos::PrintArray {a {pattern *}} {
         set nameString [format %s(%s) $a $name]
         W "[format "%-*s = %s" $maxl $nameString $array($name)]"
     }
+}
+
+proc Kratos::Stacktrace { } {
+    set stack "Stack trace:\n"
+    for {set i 1} {$i < [info level]} {incr i} {
+        set lvl [info level -$i]
+        set pname [lindex $lvl 0]
+        append stack [string repeat " " $i]$pname
+        foreach value [lrange $lvl 1 end] arg [info args $pname] {
+            if {$value eq ""} {
+                info default $pname $arg value
+            }
+            append stack " $arg='$value'"
+        }
+        append stack \n
+    }
+    return $stack
 }

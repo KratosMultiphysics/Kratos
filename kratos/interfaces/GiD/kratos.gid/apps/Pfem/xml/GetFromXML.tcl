@@ -105,11 +105,11 @@ proc Pfem::xml::CustomTree { args } {
 proc Pfem::xml::CheckElementOutputState { domNode args } {
     set elemsactive [list ]
     foreach parts_un [Pfem::write::GetPartsUN] {
-	set parts_path [spdAux::getRoute $parts_un]
-	set xp1 "$parts_path/group/value\[@n='Element'\]"
-	foreach gNode [[customlib::GetBaseRoot] selectNodes $xp1] {
-	    lappend elemsactive [get_domnode_attribute $gNode v]
-	}
+        set parts_path [spdAux::getRoute $parts_un]
+        set xp1 "$parts_path/group/value\[@n='Element'\]"
+        foreach gNode [[customlib::GetBaseRoot] selectNodes $xp1] {
+            lappend elemsactive [get_domnode_attribute $gNode v]
+        }
     }
     set paramName [$domNode @n]
     return [::Model::CheckElementOutputState $elemsactive $paramName]
@@ -140,9 +140,9 @@ proc Pfem::xml::ProcGetElementsValues {domNode args} {
     set argums [list ElementType $BodyType]
     set elems [Pfem::xml::GetElements $domNode $args]
     foreach elem $elems {
-	if {[$elem cumple $argums]} {
-	    lappend names [$elem getName]
-	}
+        if {[$elem cumple $argums]} {
+            lappend names [$elem getName]
+        }
     }
     set values [join $names ","]
     
