@@ -342,9 +342,9 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
         dict set bodyDict "python_module" "fluid_meshing_domain"
         set nDim $::Model::SpatialDimension
         if {$nDim eq "3D"} {
-            dict set bodyDict "alpha_shape" 1.4
-        } else {
             dict set bodyDict "alpha_shape" 1.3
+        } else {
+            dict set bodyDict "alpha_shape" 1.25
         }
         dict set bodyDict "offset_factor" 0.0
         set remesh [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Remesh"]]
