@@ -56,9 +56,9 @@ class ComputeDragProcess(python_process.PythonProcess):
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
 
-            drag_x = -KratosMultiphysics.VariableUtils().SumHistoricalNodeVariable(KratosMultiphysics.REACTION_X, self.model_part, 0)
-            drag_y = -KratosMultiphysics.VariableUtils().SumHistoricalNodeVariable(KratosMultiphysics.REACTION_Y, self.model_part, 0)
-            drag_z = -KratosMultiphysics.VariableUtils().SumHistoricalNodeVariable(KratosMultiphysics.REACTION_Z, self.model_part, 0)
+            drag_x = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_X, self.model_part, 0)
+            drag_y = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Y, self.model_part, 0)
+            drag_z = -KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Z, self.model_part, 0)
 
             if (self.print_drag_to_screen):
                 print("DRAG RESULTS:")
