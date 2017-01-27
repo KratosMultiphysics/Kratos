@@ -39,6 +39,7 @@
 #ifdef INCLUDE_MMG
     #include "custom_utilities/mmg_utility.h"
 #endif
+#include "custom_utilities/metrics_utility.h"
 
 namespace Kratos
 {
@@ -140,27 +141,36 @@ void AddCustomUtilitiesToPython()
 #endif
 
 #ifdef INCLUDE_MMG
-    /* MMG mmg_utility */
+    /* MMG UTILITY */
     // 2D
     class_<MmgUtility<2>, boost::noncopyable >
     ("MmgUtility2D", init<const std::string, const unsigned int>())
     .def("RemeshModelPart", &MmgUtility<2>::RemeshModelPart)
-    .def("InitializeMeshData", &MmgUtility<2>::InitializeMeshData)
-    .def("InitializeLevelSetSolData", &MmgUtility<2>::InitializeLevelSetSolData)
-    .def("InitializeHessianSolData", &MmgUtility<2>::InitializeHessianSolData)
-    .def("InitializeHessianSolComponentsData", &MmgUtility<2>::InitializeHessianSolComponentsData)
     ;
     
     // 3D
     class_<MmgUtility<3>, boost::noncopyable >
     ("MmgUtility3D", init<const std::string, const unsigned int>())
     .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
-    .def("InitializeMeshData", &MmgUtility<3>::InitializeMeshData)
-    .def("InitializeLevelSetSolData", &MmgUtility<3>::InitializeLevelSetSolData)
-    .def("InitializeHessianSolData", &MmgUtility<3>::InitializeHessianSolData)
-    .def("InitializeHessianSolComponentsData", &MmgUtility<3>::InitializeHessianSolComponentsData)
     ;
 #endif  
+    
+    /* METRICS UTILITY */
+    // 2D
+    class_<MetricsUtility<2>, boost::noncopyable >
+    ("MetricsUtility2D", init<const double, const double, const double, const std::string>())
+    .def("ComputeLevelSetSolMetric", &MetricsUtility<2>::ComputeLevelSetSolMetric)
+    .def("ComputeHessianMetric", &MetricsUtility<2>::ComputeHessianMetric)
+    .def("ComputeHessianMetricComponents", &MetricsUtility<2>::ComputeHessianMetricComponents)
+    ;
+    
+    // 3D
+    class_<MetricsUtility<3>, boost::noncopyable >
+    ("MetricsUtility3D", init<const double, const double, const double, const std::string>())
+    .def("ComputeLevelSetSolMetric", &MetricsUtility<3>::ComputeLevelSetSolMetric)
+    .def("ComputeHessianMetric", &MetricsUtility<3>::ComputeHessianMetric)
+    .def("ComputeHessianMetricComponents", &MetricsUtility<3>::ComputeHessianMetricComponents)
+    ;
     
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
