@@ -50,6 +50,12 @@ namespace Kratos
       KRATOS_CLASS_POINTER_DEFINITION(MeshCoarseningProcess);
 
 	  ///@}
+	  ///@name Flags
+	  ///@{
+
+	  KRATOS_DEFINE_LOCAL_FLAG(COARSE_MESH_NODE);
+
+	  ///@}
       ///@name Life Cycle
       ///@{
 

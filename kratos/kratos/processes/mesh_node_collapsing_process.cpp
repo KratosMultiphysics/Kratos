@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-	KRATOS_CREATE_LOCAL_FLAG(MeshNodeCollapsingProcess, COARSE_MESH_NODE, 0);
+	KRATOS_CREATE_LOCAL_FLAG(MeshNodeCollapsingProcess, TO_COLLAPSE, 0);
 
 	MeshNodeCollapsingProcess::MeshNodeCollapsingProcess(ModelPart& rModelPart) : mrModelPart(rModelPart) {
 
@@ -58,7 +58,7 @@ namespace Kratos
 
 	void MeshNodeCollapsingProcess::CollapseNodes() {
 		for (auto i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
-			if (i_node->IsNot(COARSE_MESH_NODE))
+			if (i_node->Is(TO_COLLAPSE))
 				CollapseNode(*i_node);
 	}
 
@@ -79,9 +79,10 @@ namespace Kratos
 				current_quality = std::min(current_quality, domain_size);
 			}
 		}
+		current_quality *= .1;
 
 		for (auto i_neighbour_node = r_neighbours.begin(); i_neighbour_node != r_neighbours.end(); i_neighbour_node++) {
-			if ((i_neighbour_node->Is(COARSE_MESH_NODE))) {
+			if ((i_neighbour_node->IsNot(TO_COLLAPSE))) {
 				auto quality = CalculateQualityIfNodeCollapses(rThisNode, *i_neighbour_node);
 				if (quality > current_quality) {
 					current_quality = quality;

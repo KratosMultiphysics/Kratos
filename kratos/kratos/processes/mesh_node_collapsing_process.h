@@ -53,7 +53,7 @@ namespace Kratos
 	  ///@name Flags
 	  ///@{
 
-	  KRATOS_DEFINE_LOCAL_FLAG(COARSE_MESH_NODE);
+	  KRATOS_DEFINE_LOCAL_FLAG(TO_COLLAPSE);
 
 	  ///@}
       ///@name Life Cycle
