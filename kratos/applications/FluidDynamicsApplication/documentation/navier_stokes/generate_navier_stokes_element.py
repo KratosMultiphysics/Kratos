@@ -21,7 +21,7 @@ from sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-linearisation = "Picard"            # Linearisation type. Options: "Picard", "FullNR"
+linearisation = "FullNR"            # Linearisation type. Options: "Picard", "FullNR"
 divide_by_rho = True                # Divide by density in mass conservation equation
 artificial_compressibility = True   # Consider an artificial compressibility
 mode = "c"                          # Output mode to a c++ file
@@ -68,9 +68,7 @@ for dim in dim_vector:
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
 
     ## Stress vector definition
-    # NOTE: The 1/2 constant in the cross terms of the symmetric gradient is included in the computation of matrix C
-    grad_sym_v = grad_sym_voigtform(DN,v) # Symmetric gradient of v in Voigt notation
-    stress = C*grad_sym_v                 # Stress computation
+    stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
     c   = Symbol('c',positive= True)            # Wave length number
@@ -110,12 +108,12 @@ for dim in dim_vector:
     grad_q = DN.transpose()*q
     grad_p = DN.transpose()*p
 
-    # grad_sym_f = grad_sym_voigtform(DN,f)
-
     div_v = div(DN,v)
     div_w = div(DN,w)
 
-    grad_w_voigt = grad_sym_voigtform(DN,w)
+    grad_sym_v = grad_sym_voigtform(DN,v)       # Symmetric gradient of v in Voigt notation
+    grad_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
+    # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)
@@ -181,10 +179,19 @@ for dim in dim_vector:
         testfunc[i*(dim+1)+dim] = q[i,0]
 
     ## Compute LHS and RHS
-    rhs,lhs = Compute_RHS_and_LHS(rv.copy(), testfunc, dofs, False)
-
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
+    # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
+    rhs = Compute_RHS(rv.copy(), testfunc, False)
     rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+
+    # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
+    # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v' for the LHS differenctiation. Otherwise the velocity terms
+    # within the velocity symmetryc gradient would not be considered in the differenctiation, meaning that the stress would be considered as
+    # a velocity independent constant in the LHS.
+    SubstituteMatrixValue(rhs, stress, C*grad_sym_v)
+    lhs = Compute_LHS(rhs, testfunc, dofs, False) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
+    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+
 
     if(dim == 2):
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
