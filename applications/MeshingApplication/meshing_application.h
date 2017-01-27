@@ -41,14 +41,14 @@ namespace Kratos
 ///@{
 
 typedef array_1d<double,3> Vector3;
-typedef array_1d<double,6> Vector6;
     
 // Variables definition
 //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
 //KRATOS_DEFINE_VARIABLE(double, COUNTER) //already put on variables.h (warning was appearing on Windows)
 KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);
 KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);
-KRATOS_DEFINE_VARIABLE(Vector6, AUXILIAR_HESSIAN);
+KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);
+KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);
 ///@}
 ///@name Type Definitions
 ///@{

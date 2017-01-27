@@ -3,21 +3,54 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 import os
+from json_utilities import *
+import json
 KratosMultiphysics.CheckForPreviousImport()
 
-import math
+def linear_interpolation(x, x_list, y_list):
+    ind_inf = 0
+    ind_sup = -1
+    x_inf = x_list[ind_inf]
+    x_sup = x_list[ind_sup]
+    for i in range(len(x_list)):
+        if x_list[i] <= x:
+            ind_inf = i
+            x_inf = x_list[ind_inf]
+        if x_list[-(1 + i)] >= x:
+            ind_sup = -(1 + i)
+            x_sup = x_list[ind_sup]
+    
+    if (x_sup - x_inf == 0):
+        y = y_list[ind_inf]
+    else:
+        prop_sup = (x - x_inf)/(x_sup - x_inf)
+        prop_inf = 1.0 - prop_sup
+        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
+    
+    return y
+
 def normpdf(x, mean, sd):
-    var = float(sd)**2
-    pi = 3.1415926
-    denom = (2*pi*var)**.5
-    num = math.exp(-(float(x)-float(mean))**2/(2*var))
-    return num/denom
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data =  read_external_json(dir_path+"/normal_distribution.json")
+    z = (x-mean)/sd
+    z_list    = data["Z"]
+    prob_list = data["Prob"]
+    if (z > 0):
+        prob = linear_interpolation(z, z_list, prob_list)
+    else:
+        prob = 1.0 - linear_interpolation(-z, z_list, prob_list)
+    return prob
 
 def normvalf(prob, mean, sd):
-    var = float(sd)**2
-    pi = 3.1415926
-    factor = (2*pi*var)**.5
-    x = (- math.log(prob * factor)*(2*var))**(0.5) + float(mean)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data =  read_external_json(dir_path+"/normal_distribution.json")
+    z_list    = data["Z"]
+    prob_list = data["Prob"]
+    if (prob >= 0.5):
+        z = linear_interpolation(prob, prob_list, z_list)
+    else:
+        z = - linear_interpolation(1.0 - prob, prob_list, z_list)
+    x = z * sd + mean
     return x
 
 def Factory(settings, Model):
@@ -48,9 +81,11 @@ class MmgProcess(KratosMultiphysics.Process):
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 1.0,
+                "max_size_ratio"                   : 3.0,
                 "refer_type"                       : "Mean",
-                "size_ratio"                       : 1.0,
-                "size_current_percentage"          : 50
+                "min_size_current_percentage"      : 50.0,
+                "max_size_current_percentage"      : 98.0
             },
             "minimal_size"                     : 0.1,
             "maximal_size"                     : 10.0,
@@ -58,7 +93,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "anisotropy_parameters":{
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
                 "boundary_layer_max_distance"      : 1.0,
-                "boundary_layer_size_ratio"        : 1.0,
+                "boundary_layer_min_size_ratio"    : 2.0,
                 "interpolation"                    : "Linear"
             },
             "save_external_files"              : false,
@@ -69,7 +104,7 @@ class MmgProcess(KratosMultiphysics.Process):
         
         ## Overwrite the default settings with user-provided parameters
         self.params = params
-        self.params.ValidateAndAssignDefaults(default_parameters)
+        self.params.RecursivelyValidateAndAssignDefaults(default_parameters)
         
         self.Model= Model
         self.model_part_name = self.params["model_part_name"].GetString()
@@ -99,29 +134,37 @@ class MmgProcess(KratosMultiphysics.Process):
             for node in self.Model[self.model_part_name].Nodes:
                 nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
             
-            # NOTE: For mode: https://docs.python.org/3/library/statistics.html
-            if (self.params["automatic_remesh_parameters"]["refer_type"].GetString() == "Mean"):
-                ref = stat.mean(nodal_h_values)
-            elif (self.params["automatic_remesh_parameters"]["refer_type"].GetString() == "Median"):
-                ref = stat.median(nodal_h_values)
-            
             # Calculate the minimum size
             if (self.params["automatic_remesh_parameters"]["automatic_remesh_type"].GetString() == "Ratio"):
-                self.minimal_size = ref * self.params["automatic_remesh_parameters"]["size_ratio"].GetDouble()
+                # NOTE: For mode: https://docs.python.org/3/library/statistics.html
+                if (self.params["automatic_remesh_parameters"]["refer_type"].GetString() == "Mean"):
+                    ref = stat.mean(nodal_h_values)
+                elif (self.params["automatic_remesh_parameters"]["refer_type"].GetString() == "Median"):
+                    ref = stat.median(nodal_h_values)
+                
+                self.minimal_size = ref * (self.params["automatic_remesh_parameters"]["min_size_ratio"].GetDouble())
+                self.maximal_size = ref * (self.params["automatic_remesh_parameters"]["max_size_ratio"].GetDouble())
             elif (self.params["automatic_remesh_parameters"]["automatic_remesh_type"].GetString() == "Percentage"):
                 mean = stat.mean(nodal_h_values)
                 stdev = stat.stdev(nodal_h_values)
-                prob = self.params["automatic_remesh_parameters"]["size_current_percentage"].GetDouble()
+                prob = (self.params["automatic_remesh_parameters"]["min_size_current_percentage"].GetDouble())/100
                 self.minimal_size = normvalf(prob, mean, stdev)
+                
+                prob = (self.params["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
+                self.maximal_size = normvalf(prob, mean, stdev)
         else:
             # Manually defined
             self.minimal_size = self.params["minimal_size"].GetDouble()
+            self.maximal_size = self.params["maximal_size"].GetDouble()
             
         # Anisotropic remeshing parameters
         self.anisotropy_remeshing = self.params["anisotropy_remeshing"].GetBool()
         if (self.anisotropy_remeshing == True):
             self.hmin_over_hmax_anisotropic_ratio = self.params["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble()
-            self.boundary_layer_max_distance = self.params["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble()
+            if (self.params["automatic_remesh"].GetBool() == True):
+                self.boundary_layer_max_distance = self.minimal_size * self.params["anisotropy_parameters"]["boundary_layer_min_size_ratio"].GetDouble()
+            else:
+                self.boundary_layer_max_distance = self.params["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble()
             self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
             
         self.step_frequency = self.params["step_frequency"].GetInt()
@@ -185,7 +228,6 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.MmgUtility.InitializeLevelSetSolData(
                     self.Model[self.model_part_name], 
                     self.minimal_size, 
-                    self.scalar_variable, 
                     self.gradient_variable, 
                     self.hmin_over_hmax_anisotropic_ratio, 
                     self.boundary_layer_max_distance, 
@@ -198,24 +240,50 @@ class MmgProcess(KratosMultiphysics.Process):
                     )
         elif (self.strategy == "Hessian"):
             val = node.GetSolutionStepValue(self.metric_variable, 0)
-            if isinstance(val,float):
-                self.MmgUtility.InitializeHessianSolData(
-                    self.Model[self.model_part_name], 
-                    self.minimal_size,
-                    self.maximal_size,
-                    self.metric_variable,
-                    self.interpolation_error,
-                    self.mesh_dependent_constant
-                    )
+            if (self.anisotropy_remeshing == True):
+                if isinstance(val,float): # TODO: Add anisotropic data
+                    self.MmgUtility.InitializeHessianSolData(
+                        self.Model[self.model_part_name], 
+                        self.minimal_size,
+                        self.maximal_size,
+                        self.metric_variable,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant,
+                        self.hmin_over_hmax_anisotropic_ratio, 
+                        self.boundary_layer_max_distance, 
+                        self.interpolation
+                        )
+                else:
+                    self.MmgUtility.InitializeHessianSolComponentsData(
+                        self.Model[self.model_part_name], 
+                        self.minimal_size,
+                        self.maximal_size,
+                        self.metric_variable,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant,
+                        self.hmin_over_hmax_anisotropic_ratio, 
+                        self.boundary_layer_max_distance, 
+                        self.interpolation
+                        )
             else:
-                self.MmgUtility.InitializeHessianSolComponentsData(
-                    self.Model[self.model_part_name], 
-                    self.minimal_size,
-                    self.maximal_size,
-                    self.metric_variable,
-                    self.interpolation_error,
-                    self.mesh_dependent_constant
-                    )
+                if isinstance(val,float):
+                    self.MmgUtility.InitializeHessianSolData(
+                        self.Model[self.model_part_name], 
+                        self.minimal_size,
+                        self.maximal_size,
+                        self.metric_variable,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant
+                        )
+                else:
+                    self.MmgUtility.InitializeHessianSolComponentsData(
+                        self.Model[self.model_part_name], 
+                        self.minimal_size,
+                        self.maximal_size,
+                        self.metric_variable,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant
+                        )
         
         print("Remeshing")
         self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
