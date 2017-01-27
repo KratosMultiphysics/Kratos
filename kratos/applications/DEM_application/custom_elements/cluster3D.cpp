@@ -164,7 +164,7 @@ namespace Kratos {
         this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
     }
 
-    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){        
+    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy){        
         KRATOS_TRY 
         
         int cluster_id = (int)this->Id();
@@ -176,7 +176,7 @@ namespace Kratos {
         bool breakable = false;
         if(GetProperties()[BREAKABLE_CLUSTER]) breakable = true;
         
-        if(breakable) ElementNameString= "SphericContinuumParticle3D";
+        if(continuum_strategy) ElementNameString= "SphericContinuumParticle3D";
         else ElementNameString= "SphericParticle3D";
 
         //We now create a spheric particle and keep it as a reference to an Element

@@ -120,7 +120,7 @@ namespace Kratos {
             
             Element::Pointer dummy_element_pointer;
             std::string ElementNameString;
-            if (using_strategy_for_continuum) ElementNameString = "SphericContinuumParticle3D";
+            if (mStrategyForContinuum) ElementNameString = "SphericContinuumParticle3D";
             else ElementNameString = "SphericParticle3D";
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
@@ -140,7 +140,7 @@ namespace Kratos {
                                                              true,
                                                              smp_it->Elements());
 		max_Id++;
-                if(using_strategy_for_continuum){
+                if(mStrategyForContinuum){
                     SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
                     p_continuum_spheric_particle->mContinuumInitialNeighborsSize=0;
                     p_continuum_spheric_particle->mInitialNeighborsSize=0;    
@@ -412,7 +412,8 @@ namespace Kratos {
                                                                      mBallsModelPartHasSphericity, 
                                                                      mBallsModelPartHasRotation, 
                                                                      smp_it->Elements(),
-                                                                     number_of_added_spheres);
+                                                                     number_of_added_spheres,
+                                                                     mStrategyForContinuum);
                         inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id += number_of_added_spheres;
