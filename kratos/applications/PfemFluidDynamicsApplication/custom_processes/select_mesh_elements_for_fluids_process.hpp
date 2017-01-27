@@ -162,6 +162,8 @@ public:
 	      unsigned int  numfreesurf =0;
 	      unsigned int  numboundary =0;	      
 	      unsigned int  numrigid =0;	      
+	      unsigned int  numinternalsolid =0;	      
+	      unsigned int  numsolid =0;	      
 	      // unsigned int  numinsertednodes =0;	      
 
 
@@ -209,13 +211,21 @@ public:
 		    numboundary++;
 		    // std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
-		  if(vertices.back().Is(RIGID)){
+		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
 		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
+		  if(vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY)){
+		    numinternalsolid++;
+		    // std::cout<<" internal solid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
+		  if(vertices.back().Is(SOLID)){
+		    numsolid++;
+		    // std::cout<<"solid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
 		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
-		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		    // std::cout<<" free surface COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
 
 		  // if(vertices.back().Is(OLD_ENTITY))
@@ -279,30 +289,22 @@ public:
 	      // 	Alpha*=1.05;
 	      // }
 
-	      if(numfreesurf==0){
+	      if(numfreesurf==0 && numsolid==0){
 		if(dimension==2){
 		  if(numrigid==0){
-		    Alpha*=1.025;
+		    Alpha*=1.05;
 		  }else{
-		    Alpha*=1.1;
+		    Alpha*=1.2;
 		  }
 
 		}
 		if(dimension==3){
 		  if(numrigid==0){
-		    // if(numfirstlayer==0){
-		    //   Alpha*=1.15;
-		    // }else{
-		    //   Alpha*=1.075;
-		    // }
-		    Alpha*=1.15;
+		    // Alpha*=1.15;
+		    Alpha*=1.2;
 		  }else{
-		    // if(numfirstlayer==0){
-		    //   Alpha*=1.25;
-		    // }else{
-		    //   Alpha*=1.125;
-		    // }
-		    Alpha*=1.25;
+		    // Alpha*=1.25;
+		    Alpha*=1.5;
 		  }
 		}
 	      }

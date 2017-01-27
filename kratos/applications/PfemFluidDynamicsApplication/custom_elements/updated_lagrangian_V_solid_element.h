@@ -331,119 +331,13 @@ namespace Kratos
 					    const ShapeFunctionsType& rN);
 
 
-     /// Write the value of a variable at a point inside the element to a double
-      /**
-       * Evaluate a nodal variable in the point where the form functions take the
-       * values given by rShapeFunc and write the result to rResult.
-       * This is an auxiliary function used to compute values in integration points.
-       * @param rResult: The variable where the value will be added to
-       * @param rVariable: The nodal variable to be read
-       * @param rShapeFunc: The values of the form functions in the point
-       */
-      template< class TVariableType >
-	void EvaluateInPoint(TVariableType& rResult,
-			     const Kratos::Variable<TVariableType>& Var,
-			     const ShapeFunctionsType& rShapeFunc)
-	{
-	  GeometryType& rGeom = this->GetGeometry();
-	  const SizeType NumNodes = rGeom.PointsNumber();
+      
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo);
 
-	  rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var);
 
-	  for(SizeType i = 1; i < NumNodes; i++)
-	    {
-	      rResult += rShapeFunc[i] * rGeom[i].FastGetSolutionStepValue(Var);
-	    }
-	}
 
-      /// Write the value of a variable at a point inside the element to a double
-      /**
-       * Evaluate a nodal variable in the point where the form functions take the
-       * values given by rShapeFunc and write the result to rResult.
-       * This is an auxiliary function used to compute values in integration points.
-       * @param rResult The variable where the value will be added to
-       * @param rVariable The nodal variable to be read
-       * @param rShapeFunc The values of the form functions in the point
-       * @param Step Number of time steps back
-       */
-      template< class TVariableType >
-	void EvaluateInPoint(TVariableType& rResult,
-			     const Kratos::Variable<TVariableType>& Var,
-			     const ShapeFunctionsType& rShapeFunc,
-			     const IndexType Step)
-	{
-	  GeometryType& rGeom = this->GetGeometry();
-	  const SizeType NumNodes = rGeom.PointsNumber();
-
-	  rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var,Step);
-
-	  for(SizeType i = 1; i < NumNodes; i++)
-	    {
-	      rResult += rShapeFunc[i] * rGeom[i].FastGetSolutionStepValue(Var,Step);
-	    }
-	}
-
-      void EvaluateGradientInPoint(array_1d<double,TDim>& rResult,
-				   const Kratos::Variable<double>& Var,
-				   const ShapeFunctionDerivativesType& rDN_DX)
-      {
-	GeometryType& rGeom = this->GetGeometry();
-	const SizeType NumNodes = rGeom.PointsNumber();
-	    
-	const double& var = rGeom[0].FastGetSolutionStepValue(Var);
-	for (SizeType d = 0; d < TDim; ++d)
-	  rResult[d] = rDN_DX(0,d) * var;
-			
-	for(SizeType i = 1; i < NumNodes; i++)
-	  {
-	    const double& var = rGeom[i].FastGetSolutionStepValue(Var);
-	    for (SizeType d = 0; d < TDim; ++d)
-	      rResult[d] += rDN_DX(i,d) * var;
-				
-	  }
-      }
-
-      void EvaluateDivergenceInPoint(double& rResult,
-				     const Kratos::Variable< array_1d<double,3> >& Var,
-				     const ShapeFunctionDerivativesType& rDN_DX)
-      {
-	GeometryType& rGeom = this->GetGeometry();
-	const SizeType NumNodes = rGeom.PointsNumber();
-
-	rResult = 0.0;
-	for(SizeType i = 0; i < NumNodes; i++)
-	  {
-	    const array_1d<double,3>& var = rGeom[i].FastGetSolutionStepValue(Var);
-	    for (SizeType d = 0; d < TDim; ++d)
-	      {
-		rResult += rDN_DX(i,d) * var[d];
-	      }
-	  }
-      }
-
-      /// Helper function to print results on gauss points
-      /** Reads a variable from the element's database and returns it in a format
-       * that can be used by GetValueOnIntegrationPoints functions.
-       * @see GetValueOnIntegrationPoints
-       */
-      template<class TValueType>
-	void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
-					std::vector<TValueType>& rOutput)
-	{
-	  unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-	  rOutput.resize(NumValues);
-	  /*
-	    The cast is done to avoid modification of the element's data. Data modification
-	    would happen if rVariable is not stored now (would initialize a pointer to &rVariable
-	    with associated value of 0.0). This is catastrophic if the variable referenced
-	    goes out of scope.
-	  */
-	  const UpdatedLagrangianVSolidElement<TDim>* const_this = static_cast<const UpdatedLagrangianVSolidElement<TDim>*> (this);
-	  const TValueType& Val = const_this->GetValue(rVariable);
-
-	  for (unsigned int i = 0; i < NumValues; i++)
-	    rOutput[i] = Val;
-	}
 
       ///@}
       ///@name Protected  Access

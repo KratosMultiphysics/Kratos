@@ -131,24 +131,28 @@ public:
     //if the remove_node switch is activated, we check if the nodes got too close
     if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
       {
-	std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
+	if( mEchoLevel > 0 )
+	  std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
 	bool any_node_removed_on_error = false;
 	////////////////////////////////////////////////////////////
 	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
 	  {
-	    std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
+	    if( mEchoLevel > 0 )
+	      std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
 	  
 	    any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 	  }
 	//////////////////////////////////////////////////////////// 
-	std::cout<<"error_nodes_removed :"<<error_nodes_removed<<std::endl;
+	if( mEchoLevel > 0 )
+	  std::cout<<"error_nodes_removed :"<<error_nodes_removed<<std::endl;
 	bool any_convex_condition_removed = false;
 
 	bool any_node_removed_on_distance = false;
 	////////////////////////////////////////////////////////////
 	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE))	      
 	  {
-	    std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
+	    if( mEchoLevel > 0 )
+	      std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
 	    // double  MeanRadius=0;
 	    any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed); 
 	  }
@@ -179,7 +183,8 @@ public:
 		//RemoveConditions.back().SetId(id);
 	      }
 	      else{
-		std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+		if( mEchoLevel > 0 )
+		  std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
 	      }
 	    }
 
@@ -421,7 +426,9 @@ private:
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double initialMeanRadius=0;
     initialMeanRadius=mrRemesh.Refine->InitialRadius;
-    std::cout<<"initialMeanRadius "<<initialMeanRadius<<std::endl;
+
+    if( mEchoLevel > 0 )
+      std::cout<<"initialMeanRadius "<<initialMeanRadius<<std::endl;
     double size_for_distance_inside       = 1.25  * mrRemesh.Refine->CriticalRadius;//compared to element radius
     double size_for_distance_boundary     = 1.25  * size_for_distance_inside; //compared to element radius
     double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
@@ -498,7 +505,7 @@ private:
 		//if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
 
 		// if ( in->IsNot(BOUNDARY) && in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && in->IsNot(ISOLATED))
-		if ( in->IsNot(RIGID))
+		if ( in->IsNot(RIGID) && in->IsNot(SOLID) )
 		  {
 		    if( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) ){
 		      //look if we are already erasing any of the other nodes
@@ -568,14 +575,16 @@ private:
 
 		  if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
 		    in->Set(TO_ERASE);
-		    std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+		    if( mEchoLevel > 0 )
+		      std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
 		    any_node_removed = true;
 		    boundary_nodes_removed++;
 		    //distance_remove ++;
 		  }
 		  else if ( counter > 2 && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
 		    in->Set(TO_ERASE);
-		    std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
+		    if( mEchoLevel > 0 )
+		      std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 		    any_node_removed = true;
 		    boundary_nodes_removed++;
 		  }
@@ -598,7 +607,7 @@ private:
 	//coordinates
 	for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 	  {	
-	    if(ie->GetGeometry()[i].Is(RIGID)){
+	    if(ie->GetGeometry()[i].Is(RIGID) || ie->GetGeometry()[i].Is(SOLID)){
 	      rigidNodes++;
 	    }
 	  }
@@ -615,9 +624,10 @@ private:
 	    if(elementVolume<CriticalVolume){
 	      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 		{	
-		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
+		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(SOLID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
 		    ie->GetGeometry()[i].Set(TO_ERASE);
-		    std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
+		    if( mEchoLevel > 1 )
+		      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
 		    erased_nodes += 1;
 		    break;
 		  }
@@ -634,7 +644,7 @@ private:
 	    Edges[0]=sqrt(SquaredLength);
 	    FirstEdgeNode[0]=0;
 	    SecondEdgeNode[0]=1;
-	    if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
+	    if(ie->GetGeometry()[0].Is(RIGID)  && ie->GetGeometry()[1].Is(RIGID) ){
 	      WallCharacteristicDistance=Edges[0];
 	    }
 	    unsigned int Counter=0;
@@ -661,11 +671,11 @@ private:
 		 ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
 		 ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
 		 Edges[i]<safetyCoefficient2D*distWall){
-		if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
+		if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
 		  ie->GetGeometry()[FirstEdgeNode[i]].Set(TO_ERASE);
 		  // std::cout<<"erase node 0"<<std::endl;
 		  erased_nodes += 1;
-		}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
+		}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
 		  ie->GetGeometry()[SecondEdgeNode[i]].Set(TO_ERASE);
 		  // std::cout<<"erase node 1"<<std::endl;
 		  erased_nodes += 1;
@@ -693,9 +703,10 @@ private:
 	    if(elementVolume<CriticalVolume){
 	      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 		{
-		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
+		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(SOLID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
 		    ie->GetGeometry()[i].Set(TO_ERASE);
-		    std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
+		    if( mEchoLevel > 1)
+		      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
 		    erased_nodes += 1;
 		    break;
 		  }
@@ -746,13 +757,13 @@ private:
 	    	 ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
 	    	 Edges[i]<safetyCoefficient3D*distWall){
 	    	// if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(FREE_SURFACE)){
-	    	if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
+	    	if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
 
 	    	  ie->GetGeometry()[FirstEdgeNode[i]].Set(TO_ERASE);
 	    	  // std::cout<<"erase node 0"<<std::endl;
 	    	  erased_nodes += 1;
 	    	// }else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(FREE_SURFACE)){
-	    	}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
+	    	}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
 	    	  ie->GetGeometry()[SecondEdgeNode[i]].Set(TO_ERASE);
 	    	  // std::cout<<"erase node 1"<<std::endl;
 	    	  erased_nodes += 1;
@@ -772,13 +783,15 @@ private:
  
 
     if(erased_nodes>0){
-      std::cout<<"layer_nodes_removed "<<erased_nodes<<std::endl;
+      if( mEchoLevel > 0 ) 
+	std::cout<<"layer_nodes_removed "<<erased_nodes<<std::endl;
       any_node_removed = true;
     }
     //Build boundary after removing boundary nodes due distance criterion
-    std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
-    std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
-
+    if( mEchoLevel > 0 ){
+      std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
+      std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
+    }
     return any_node_removed;
        
     KRATOS_CATCH(" ")

@@ -27,6 +27,9 @@
 
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
+#include "pfem_fluid_dynamics_application_variables.h"
+
+
 #include <stdio.h>      
 #include <math.h>     
 
@@ -219,7 +222,6 @@ public:
       const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      /* double timeStep = rCurrentProcessInfo[STEP]; */
       unsigned int maxNonLinearIterations=mMaxPressureIter;
       if(currentTime<10*timeInterval){
 	if ( BaseType::GetEchoLevel() > 1)
@@ -235,15 +237,16 @@ public:
       bool continuityConverged = false;
       boost::timer solve_step_time;
       // Iterative solution for pressure
-      /* if(timeStep==1){ */
-      /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
-      /* 	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations); */
-      /* }else if(timeStep==2){ */
-      /* 	unsigned int iter=0; */
-      /* 	this->SetActiveLabel(); */
-      /* 	 momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations); */
-      /* }else{ */
+      double timeStep = rCurrentProcessInfo[STEP];
+      if(timeStep==1){
+      	unsigned int iter=0;
+      	this->SetActiveLabel();
+      	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations);
+      }else if(timeStep==2){
+      	unsigned int iter=0;
+      	this->SetActiveLabel();
+      	 momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations);
+      }else{
 
       for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
 	{
@@ -269,7 +272,7 @@ public:
 	    }
 	}
 
-      /* } */
+      }
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	std::cout << "Convergence tolerance not reached." << std::endl;
@@ -304,7 +307,7 @@ public:
 	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-	  if(!(i)->Is(ISOLATED)){
+	  if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){
 	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
 	  }else{
 	    (i)->FastGetSolutionStepValue(PRESSURE) = 0.0; 
@@ -379,10 +382,16 @@ public:
 
 	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 	  {
-	    /* double ElementalVolume =  (itElem)->GetGeometry().Volume(); */
 	    double ElementalVolume =  0;
-	    /* double CriticalVolume=0.001*mrRemesh.Refine->MeanVolume; */
-	    double CriticalVolume=0;
+	    const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
+	    if(dimension==2){
+	      ElementalVolume =  (itElem)->GetGeometry().Area();
+	    }else if(dimension==3){
+	      ElementalVolume =  (itElem)->GetGeometry().Volume();
+	    }else{
+	      ElementalVolume = 0;
+	    }
+	    double CriticalVolume=-0.00000000001;
 	    if(ElementalVolume<CriticalVolume){
 	      (itElem)->Reset(ACTIVE);
 	      std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
@@ -601,7 +610,7 @@ protected:
 
       // Check convergence
       if(it==maxIt-1){
-	this->FixTimeStep(DpErrorNorm);
+      	this->FixTimeStep(DpErrorNorm);
       }
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -634,10 +643,12 @@ protected:
 		  NormVelNode+=Vel[d] * Vel[d];
 		  NormV += Vel[d] * Vel[d];
 		}
-		if(NormVelNode<0.000000001 && !itNode->Is(RIGID)){
-		  itNode->FastGetSolutionStepValue(VELOCITY)*=0;
+		/* double normVelocity=sqrt(NormVelNode)/2.426107794; */
+		/* itNode->FastGetSolutionStepValue(NORMVELOCITY)=normVelocity; */
+		/* if(NormVelNode<0.000000001 && !itNode->Is(RIGID)){ */
+		/*   itNode->FastGetSolutionStepValue(VELOCITY)*=0; */
 
-		}
+		/* } */
 
             }
         }

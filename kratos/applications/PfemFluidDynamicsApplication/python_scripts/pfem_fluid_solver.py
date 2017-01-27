@@ -143,6 +143,7 @@ class PfemFluidSolver:
 
 
         # PFEM fluid variables
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INTERF)
 
@@ -190,7 +191,7 @@ class PfemFluidSolver:
             check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
             # Set Properties to nodes : Deprecated
-            self.SetProperties()
+            #self.SetProperties()
 
              # Set buffer size
             self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
@@ -314,17 +315,8 @@ class PfemFluidSolver:
         print ("bulk_modulus: ",bulk_modulus)
         print ("young_modulus: ",young_modulus)
         print ("poisson_ratio: ",poisson_ratio)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, density, self.main_model_part.Nodes)              # Set density
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, self.main_model_part.Nodes)  # Set kinematic viscosity
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.BULK_MODULUS, bulk_modulus, self.main_model_part.Nodes)  # Set Bulk modulus
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.YOUNG_MODULUS, young_modulus, self.main_model_part.Nodes)  # Set Young modulus
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.POISSON_RATIO, poisson_ratio, self.main_model_part.Nodes)  # Set Poisson ratio
 
 #
-
-    def InitializeStressStrain(self):
-
-        self.fluid_solver.InitializeStressStrain()
 
 
 #

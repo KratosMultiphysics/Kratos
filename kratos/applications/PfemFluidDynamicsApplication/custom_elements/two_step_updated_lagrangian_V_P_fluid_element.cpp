@@ -31,6 +31,22 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
   TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
 
+  if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
+    NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
+
+  for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
+    {
+      NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
+    }
+
+  if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
+    NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
+
+  for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
+    {
+      NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
+    }
+
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
@@ -84,7 +100,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     // LargeDisplacementElement::Initialize();
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+
+    if ( this->mCurrentFgrad.size() != integration_points_number )
+      this->mCurrentFgrad.resize( integration_points_number );
+
+    if ( this->mUpdatedFgrad.size() != integration_points_number )
+      this->mUpdatedFgrad.resize( integration_points_number );
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -106,6 +128,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
         // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
+        this->mCurrentFgrad[PointNumber] = identity_matrix<double> (dimension);
+        this->mUpdatedFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -118,18 +142,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
-    KRATOS_TRY;
 
-
-    const GeometryType& rGeom = this->GetGeometry();
-    SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
-      {
-        this->UpdateCauchyStress(PointNumber,rCurrentProcessInfo);
-      }
-
-    KRATOS_CATCH( "" );
   }
 
   template< unsigned int TDim >
@@ -141,19 +154,21 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 
 
    template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& DeviatoricCoeff,
+  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& Density,
+									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
 									       double timeStep,
 									       const ShapeFunctionsType& N)
    {
      double FluidBulkModulus=0;
      double FluidViscosity=0;
+     this->EvaluateInPoint(Density,DENSITY,N);
      this->EvaluateInPoint(FluidViscosity,VISCOSITY,N);
      this->EvaluateInPoint(FluidBulkModulus,BULK_MODULUS,N);
 
      if(FluidBulkModulus==0){
        // std::cout<<"FluidBulkModulus was 0 !!!!!!!!"<<std::endl;
-       FluidBulkModulus = 2150000000.0;
+       FluidBulkModulus = 1000000000.0;
      }
 
      // if(FluidViscosity==0){
@@ -353,53 +368,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     }
   }
 
-
-  template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<2>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									 MatrixType& rDampingMatrix,
-									 const ShapeFunctionDerivativesType& rDN_DX,
-									 const double secondLame,
-									 const double bulkModulus,
-									 const double theta,
-									 const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-
-  for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1);
-	    // lagDNXi=rDN_DX(i,0);
-	    // lagDNYi=rDN_DX(i,1);
-	    // lagDNXj=rDN_DX(j,0);
-	    // lagDNYj=rDN_DX(j,1);
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol) += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame )*theta;
-
-            // Update Counter
-            FirstRow += 2;
-	  }
-        FirstRow = 0;
-        FirstCol += 2;
-      }
-  }
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
@@ -1095,67 +1063,6 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
 // }
 
 
-
-  template<>
-  void TwoStepUpdatedLagrangianVPFluidElement<3>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									 MatrixType& rDampingMatrix,
-									 const ShapeFunctionDerivativesType& rDN_DX,
-									 const double secondLame,
-									 const double bulkModulus,
-									 const double theta,
-									 const double Weight){
-
-   const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-  for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0)+rDN_DX(i,2)*invGradDef(2,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1)+rDN_DX(i,2)*invGradDef(2,1);
-	    double lagDNZi=rDN_DX(i,0)*invGradDef(0,2)+rDN_DX(i,1)*invGradDef(1,2)+rDN_DX(i,2)*invGradDef(2,2);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0)+rDN_DX(j,2)*invGradDef(2,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1)+rDN_DX(j,2)*invGradDef(2,1);
-	    double lagDNZj=rDN_DX(j,0)*invGradDef(0,2)+rDN_DX(j,1)*invGradDef(1,2)+rDN_DX(j,2)*invGradDef(2,2);	  
-	    // lagDNXi=rDN_DX(i,0);
-	    // lagDNYi=rDN_DX(i,1);
-	    // lagDNZi=rDN_DX(i,2);
-	    // lagDNXj=rDN_DX(j,0);
-	    // lagDNYj=rDN_DX(j,1);
-	    // lagDNZj=rDN_DX(j,2);
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol)     += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + (lagDNYi * lagDNYj +lagDNZi * lagDNZj) * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-            rDampingMatrix(FirstRow,FirstCol+2)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNZj + lagDNZi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + (lagDNXi * lagDNXj + lagDNZi * lagDNZj) * secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNZj + lagDNZi * lagDNYj *  secondLame )*theta;
-
-            // Third Row
-            rDampingMatrix(FirstRow+2,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNZi * lagDNXj + lagDNXi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus)  * lagDNZi * lagDNYj + lagDNYi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNZi * lagDNZj + (lagDNXi * lagDNXj + lagDNYi * lagDNYj) * secondLame )*theta;
-	   
-	    // Update Counter
-            FirstRow += 3;
-	  }
-        FirstRow = 0;
-        FirstCol += 3;
-      }
-  }
-
-
-
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalculateTauFIC(double& Tau,
 								     double ElemSize,
@@ -1290,6 +1197,45 @@ bool TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(Elementa
 } 
 
 
+  template<>
+  void TwoStepUpdatedLagrangianVPFluidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	rValues[Index++] = rGeom[i].X();
+	rValues[Index++] = rGeom[i].Y();
+      }
+  }
+
+
+
+  template<>
+  void TwoStepUpdatedLagrangianVPFluidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+ 	rValues[Index++] = rGeom[i].X();
+        rValues[Index++] = rGeom[i].Y();
+        rValues[Index++] = rGeom[i].Z();
+      }
+  }
+
 
 
 template <  unsigned int TDim> 
@@ -1352,10 +1298,11 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
 
+  double Density  = 0;
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -1414,10 +1361,11 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=mCurrentDeviatoricCauchyStress[g];
 
+  double Density  = 0;
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -1498,7 +1446,6 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitte
 }
 
 
-
 template < unsigned int TDim > 
 void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo)
  {
@@ -1558,8 +1505,10 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned 
 
       const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
 
+      double Density = 0;
       double DeviatoricCoeff = 0;
       double VolumetricCoeff = 0;
+
 
       ElementalVariables rElementalVariables;
       this->InitializeElementalVariables(rElementalVariables);
@@ -1572,16 +1521,16 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned 
 	  computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
 	  if(computeElement==true){
 	    // this->UpdateCauchyStress(g);
-	    const double GaussWeight = fabs(GaussWeights[g]);
+	    // const double GaussWeight = fabs(GaussWeights[g]);
+	    const double GaussWeight = GaussWeights[g];
 	    const ShapeFunctionsType& N = row(NContainer,g);
 	    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	    this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
+	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 
 	    // Evaluate required variables at the integration point
-	    double Density;
 	    array_1d<double,3> BodyForce(3,0.0);
 
-	    this->EvaluateInPoint(Density,DENSITY,N);
+	    // this->EvaluateInPoint(Density,DENSITY,N);
 
 	    this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 
@@ -1591,14 +1540,6 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned 
 	    double Viscosity = 0;
 	    this->EvaluateInPoint(Viscosity,VISCOSITY,N);
 
-	    // if(Viscosity==0){
-	    //   // std::cout<<"viscosity was 0 ";
-	    //   Viscosity=0.001;
-	    // }
-	    // if(Density!=1000){
-	    //   // std::cout<<"density was 0 ";
-	    //   Density=1000;
-	    // }
 
 	    this->CalculateTauFIC(Tau,ElemSize,ConvVel,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
@@ -1712,9 +1653,10 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned 
 
 	  }else
 	    {
-	      const double GaussWeight = fabs(GaussWeights[g]);
+	      // const double GaussWeight = fabs(GaussWeights[g]);
+	      const double GaussWeight = GaussWeights[g];
 	      const ShapeFunctionsType& N = row(NContainer,g);
-	      this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
+	      this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 	      double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	      // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 	      this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
@@ -1750,33 +1692,6 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: UpdateCauchyStress(unsigned 
     }
   }
   
-
-// template < > 
-// void TwoStepUpdatedLagrangianVPFluidElement<3>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
-// 								      double &volumetricDefRate,
-// 								      MatrixType &invGradDef)
-// {
-//   std::cout<<"TO BE IMPLEMENTED ------- CalcVolumetricDefRate -------"<<std::endl;
-//   //you can compute the volumetric deformation rate using CalcVolDefRateFromSpatialVelGrad
-// }
-
-
-// template < > 
-// void TwoStepUpdatedLagrangianVPFluidElement<3>::CheckStrain1(double &VolumetricDefRate,
-// 							     MatrixType &SpatialVelocityGrad)
-// {
-//   std::cout<<"TO BE IMPLEMENTED ------- CheckStrain1 -------"<<std::endl;
-// }
-
-
-// template < > 
-// void TwoStepUpdatedLagrangianVPFluidElement<3>::CheckStrain2(MatrixType &SpatialVelocityGrad,
-// 							     MatrixType &Fgrad,
-// 							     MatrixType &VelDefgrad)
-// {
-//   std::cout<<"TO BE IMPLEMENTED ------- CheckStrain2 -------"<<std::endl;
-// }
-
 
 
 

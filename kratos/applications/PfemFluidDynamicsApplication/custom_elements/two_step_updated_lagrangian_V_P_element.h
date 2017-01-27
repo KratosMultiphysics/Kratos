@@ -349,7 +349,8 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      /* std::vector< Matrix > mOldFgrad; */
+      std::vector< Matrix > mCurrentFgrad;
+      std::vector< Matrix > mUpdatedFgrad;
       std::vector< Vector > mCurrentTotalCauchyStress;
       std::vector< Vector > mCurrentDeviatoricCauchyStress;
       std::vector< Vector > mUpdatedTotalCauchyStress;
@@ -372,7 +373,8 @@ namespace Kratos
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo){};
 
-      virtual void ComputeMaterialParameters (double& DeviatoricCoeff,
+      virtual void ComputeMaterialParameters (double& Density,
+					      double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
 					      double timeStep,
 					      const ShapeFunctionsType& N){};
@@ -403,9 +405,9 @@ namespace Kratos
       void GetVelocityValues(Vector& rValues,
 			     const int Step = 0);
 
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta);
+      virtual void GetPositions(Vector& rValues,
+				const ProcessInfo& rCurrentProcessInfo,
+				const double theta){};
 
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
