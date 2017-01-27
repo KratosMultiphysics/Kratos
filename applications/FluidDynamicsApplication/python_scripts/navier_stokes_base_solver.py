@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
+#import KratosMultiphysics.MeshingApplication as KratosMeshing
+
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -99,8 +101,10 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
 
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.ANISOTROPIC_RATIO)  
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.MMG_METRIC)  
 
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
