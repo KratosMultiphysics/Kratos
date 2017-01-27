@@ -44,7 +44,7 @@ namespace Kratos {
 
 			Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":20,
+                "number_of_divisions":1,
                 "element_name": "Element2D3N"
             }  )");
 
