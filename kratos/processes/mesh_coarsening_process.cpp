@@ -18,6 +18,8 @@
 namespace Kratos
 {
 
+	KRATOS_CREATE_LOCAL_FLAG(MeshCoarseningProcess, COARSE_MESH_NODE, 1);
+
 	MeshCoarseningProcess::MeshCoarseningProcess(ModelPart& rModelPart)
 	: MeshNodeCollapsingProcess(rModelPart){
 
@@ -68,6 +70,13 @@ namespace Kratos
 				if (is_seed)
 					i_node->Set(COARSE_MESH_NODE);
 			}
+		}
+
+		for (auto i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++) {
+			if (i_node->Is(COARSE_MESH_NODE)) // We want to keep all the boundary nodes 
+				i_node->Set(TO_COLLAPSE,false);
+			else
+				i_node->Set(TO_COLLAPSE, true);
 		}
 	}
 
