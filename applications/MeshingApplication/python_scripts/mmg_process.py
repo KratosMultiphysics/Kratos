@@ -40,7 +40,9 @@ class MmgProcess(KratosMultiphysics.Process):
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : "DISPLACEMENT"
+                "metric_variable"                  : "DISPLACEMENT",
+                "interpolation_error"              : 1.0e-6,
+                "mesh_dependent_constant"          : 0.28125
             },
             "step_frequency"                   : 0,
             "automatic_remesh"                 : true,
@@ -51,6 +53,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "size_current_percentage"          : 50
             },
             "minimal_size"                     : 0.1,
+            "maximal_size"                     : 10.0,
             "anisotropy_remeshing"             : true,
             "anisotropy_parameters":{
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
@@ -82,6 +85,8 @@ class MmgProcess(KratosMultiphysics.Process):
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif (self.strategy == "Hessian"):
             self.metric_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() )
+            self.interpolation_error = self.params["hessian_strategy_parameters"]["interpolation_error"].GetDouble()  
+            self.mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()  
         
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
@@ -191,17 +196,26 @@ class MmgProcess(KratosMultiphysics.Process):
                     self.Model[self.model_part_name], 
                     self.minimal_size
                     )
-        #elif (self.strategy == "Hessian"):
-            #if (self.anisotropy_remeshing == True):
-                #self.MmgUtility.InitializeHessianSolData(
-                    #self.Model[self.model_part_name], 
-                    #self.minimal_size
-                    #)
-            #else:
-                #self.MmgUtility.InitializeHessianSolData( 
-                    #self.Model[self.model_part_name], 
-                    #self.minimal_size
-                    #)
+        elif (self.strategy == "Hessian"):
+            val = node.GetSolutionStepValue(self.metric_variable, 0)
+            if isinstance(val,float):
+                self.MmgUtility.InitializeHessianSolData(
+                    self.Model[self.model_part_name], 
+                    self.minimal_size,
+                    self.maximal_size,
+                    self.metric_variable,
+                    self.interpolation_error,
+                    self.mesh_dependent_constant
+                    )
+            else:
+                self.MmgUtility.InitializeHessianSolComponentsData(
+                    self.Model[self.model_part_name], 
+                    self.minimal_size,
+                    self.maximal_size,
+                    self.metric_variable,
+                    self.interpolation_error,
+                    self.mesh_dependent_constant
+                    )
         
         print("Remeshing")
         self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)

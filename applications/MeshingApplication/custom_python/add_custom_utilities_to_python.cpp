@@ -148,6 +148,7 @@ void AddCustomUtilitiesToPython()
     .def("InitializeMeshData", &MmgUtility<2>::InitializeMeshData)
     .def("InitializeLevelSetSolData", &MmgUtility<2>::InitializeLevelSetSolData)
     .def("InitializeHessianSolData", &MmgUtility<2>::InitializeHessianSolData)
+    .def("InitializeHessianSolComponentsData", &MmgUtility<2>::InitializeHessianSolComponentsData)
     ;
     
     // 3D
@@ -157,6 +158,7 @@ void AddCustomUtilitiesToPython()
     .def("InitializeMeshData", &MmgUtility<3>::InitializeMeshData)
     .def("InitializeLevelSetSolData", &MmgUtility<3>::InitializeLevelSetSolData)
     .def("InitializeHessianSolData", &MmgUtility<3>::InitializeHessianSolData)
+    .def("InitializeHessianSolComponentsData", &MmgUtility<3>::InitializeHessianSolComponentsData)
     ;
 #endif  
     
