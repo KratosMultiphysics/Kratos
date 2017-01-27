@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -36,7 +36,7 @@ namespace Kratos
 	{
 
 	}
-  
+
 	MeshLocalSmoothingProcess::~MeshLocalSmoothingProcess()
 	{
 
@@ -54,7 +54,6 @@ namespace Kratos
 		std::size_t i = 0;
 		for (; i < mMaxIterationsNumber; i++)
 		{
-			double old_mesh_min_quality = mMeshMinQuality;
 			double old_mesh_quality_norm = mMeshQualityNorm;
 
 			PerformSmoothing();
@@ -175,7 +174,7 @@ namespace Kratos
 			}
 
 		}
-		
+
 		if (bisectioning_max > bisectioning_min) {
 			alpha = max_alpha;
 		}
@@ -218,5 +217,3 @@ namespace Kratos
 	}
 
 }  // namespace Kratos.
-
-
