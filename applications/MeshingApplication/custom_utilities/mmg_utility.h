@@ -678,7 +678,7 @@ public:
     
     void InitializeLevelSetSolData(
         ModelPart& rThisModelPart,
-        const double& minimal_size = 0.1,
+        const double minimal_size = 0.1,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
         const double hmin_over_hmax_anisotropic_ratio = 1.0,
         const double boundary_layer_max_value =  1.0,
