@@ -576,7 +576,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                                                                          bool has_sphericity,
                                                                          bool has_rotation,
                                                                          ElementsContainerType& array_of_injector_elements,
-                                                                         int& number_of_added_spheres) {
+                                                                         int& number_of_added_spheres,
+                                                                         const bool continuum_strategy) {
         KRATOS_TRY
         
         ProcessInfo& r_process_info = r_spheres_modelpart.GetProcessInfo();
@@ -629,7 +630,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         }
         
         ParticleCreatorDestructor* creator_destructor_ptr = this;
-        p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties);                        
+        p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties, continuum_strategy);                        
         
         number_of_added_spheres = p_cluster->GetNumberOfSpheres();
         

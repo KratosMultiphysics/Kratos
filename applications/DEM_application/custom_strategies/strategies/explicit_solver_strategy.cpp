@@ -196,6 +196,7 @@ namespace Kratos {
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
         const int number_of_clusters = pElements.size();
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        bool continuum_strategy = r_process_info[CONTINUUM_OPTION];
 
         //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
@@ -216,7 +217,7 @@ namespace Kratos {
                     break;
                 }
             }
-            cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part, p_fast_properties);
+            cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part, p_fast_properties, continuum_strategy);
         }
         KRATOS_CATCH("")
     }

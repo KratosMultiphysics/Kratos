@@ -101,7 +101,8 @@ public:
                                             bool has_sphericity,
                                             bool has_rotation,
                                             ElementsContainerType& array_of_injector_elements,
-                                            int& number_of_added_spheres);
+                                            int& number_of_added_spheres,
+                                            const bool mStrategyForContinuum);
     
     
     void NodeCreatorForClusters(ModelPart& r_modelpart, 
