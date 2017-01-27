@@ -46,8 +46,9 @@
 #include "add_modeler_to_python.h"
 #include "add_kernel_to_python.h"
 #include "add_kratos_application_to_python.h"
-//#include "add_equation_systems_to_python.h"
+
 #include "add_linear_solvers_to_python.h"
+#include "add_amgcl_solver_to_python.h"
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
 #include "add_serializer_to_python.h"
@@ -56,7 +57,6 @@
 #include "pointer_vector_set_python_interface.h"
 #include "solution_step_variable_indexing_python.h"
 
-#include "add_linear_solvers_to_python.h"
 #include "add_strategies_to_python.h"
 #include "add_utilities_to_python.h"
 
@@ -118,8 +118,8 @@ BOOST_PYTHON_MODULE(Kratos)
     AddModelerToPython();
     AddKernelToPython();
     AddKratosApplicationToPython();
-//	AddEquationSystemsToPython();
     AddLinearSolversToPython();
+    AddAMGCLSolverToPython();
     AddStrategiesToPython();
     AddUtilitiesToPython();
     AddProcessInfoToPython();

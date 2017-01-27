@@ -87,12 +87,11 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/vectorial_spaces_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_strategies_to_python.cpp #deliberately removed. Please contact Riccardo Rossi before adding it back
-	##${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_linear_solvers_to_python.cpp #deliberately removed. Please contact Riccardo Rossi before adding it back
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
