@@ -66,7 +66,7 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     //b.- Get Values to compute the constitutive law:
     Flags &Options = rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     Vector& S = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
     Vector& StressVector = rValues.GetStressVector();
@@ -79,7 +79,6 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     const double eps_vol = trS/3.0;
 
     //computation of stress
-    // Note that the 1/2 of the symmetric graddient is included here, since the strain S is computed using the B matrix
     StressVector[0] = 2.0*mu*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu*(S[1] - eps_vol);
     StressVector[2] = mu*S[2];
@@ -87,17 +86,17 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         Matrix& C = rValues.GetConstitutiveMatrix();
-        
+
         noalias(C) = ZeroMatrix(3,3);
 
-        C(0,0) = 4.0/3.0*mu;  
-        C(0,1) = -2.0/3.0*mu; 
-        C(1,0) = -2.0/3.0*mu; 
+        C(0,0) = 4.0/3.0*mu;
+        C(0,1) = -2.0/3.0*mu;
+        C(1,0) = -2.0/3.0*mu;
         C(1,1) = 4.0/3.0*mu;
-        C(2,2) = mu; 
-            
+        C(2,2) = mu;
+
     }
-    
+
 }
 
 
