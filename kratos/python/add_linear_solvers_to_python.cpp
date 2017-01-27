@@ -38,12 +38,9 @@
 #include "linear_solvers/diagonal_preconditioner.h"
 #include "linear_solvers/ilu0_preconditioner.h"
 #include "linear_solvers/ilu_preconditioner.h"
-//#include "linear_solvers/superlu_solver.h"
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
-#include "linear_solvers/amgcl_solver.h"
-#include "linear_solvers/amgcl_ns_solver.h"
 
 
 namespace Kratos
@@ -185,46 +182,6 @@ void  AddLinearSolversToPython()
     class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("DeflatedGMRESSolver",init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
     .def(self_ns::str(self))
     ;
-
-     enum_<AMGCLSmoother>("AMGCLSmoother")
-    .value("SPAI0", SPAI0)
-    .value("ILU0", ILU0)
-    .value("DAMPED_JACOBI",DAMPED_JACOBI)
-    .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
-    .value("CHEBYSHEV",CHEBYSHEV)
-    ;
-    
-    enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
-    .value("GMRES", GMRES)
-    .value("BICGSTAB", BICGSTAB)
-    .value("CG",CG)
-    .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
-    .value("BICGSTAB2",BICGSTAB2)
-    ;
-    
-    enum_<AMGCLCoarseningType>("AMGCLCoarseningType")
-    .value("RUGE_STUBEN", RUGE_STUBEN)
-    .value("AGGREGATION", AGGREGATION)
-    .value("SA",SA)
-    .value("SA_EMIN",SA_EMIN)
-    ;
-    
-    
-    typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
-    class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
-    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
-    .def(init<Parameters>())
-	.def( "GetResidualNorm",&AMGCLSolverType::GetResidualNorm)
-	.def( "GetIterationsNumber",&AMGCLSolverType::GetIterationsNumber)
-    ;
-
-    
-   typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
-   class_<AMGCL_NS_SolverType, bases<LinearSolverType>, boost::noncopyable >
-   ( "AMGCL_NS_Solver", init<Parameters>())
-   ;
-    
 
 }
 
