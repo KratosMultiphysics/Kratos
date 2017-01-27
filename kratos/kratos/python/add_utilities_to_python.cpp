@@ -156,21 +156,21 @@ void AddUtilitiesToPython()
     .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
     .def("ApplyVector", &VariableUtils::ApplyVector< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
 
-    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< Variable<double> , double > )
-    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
-    .def("SumHistoricalNodeVariable", &VariableUtils::SumHistoricalNodeVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+    .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< Variable<double> > )
+    .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalNodeVectorVariable)
 
-    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< Variable<double> , double > )
-    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
-    .def("SumNonHistoricalNodeVariable", &VariableUtils::SumNonHistoricalNodeVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+    .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< Variable<double> > )
+    .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def("SumNonHistoricalNodeVectorVariable", &VariableUtils::SumNonHistoricalNodeVectorVariable)
 
-    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< Variable<double> , double > )
-    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
-    .def("SumConditionVariable", &VariableUtils::SumConditionVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+    .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< Variable<double> > )
+    .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def("SumConditionVectorVariable", &VariableUtils::SumConditionVectorVariable)
 
-    .def("SumElementVariable", &VariableUtils::SumElementVariable< Variable<double> , double > )
-    .def("SumElementVariable", &VariableUtils::SumElementVariable< Variable<array_1d<double, 3> > , array_1d<double, 3> > )
-    .def("SumElementVariable", &VariableUtils::SumElementVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , double > )
+    .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< Variable<double> > )
+    .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
     ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex

@@ -424,18 +424,42 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a non-historical variable in a node container set
-    template< class TVarType, class TVarOutputType >
-    TVarOutputType SumNonHistoricalNodeVariable( const TVarType& rVar,
-                                                 ModelPart& rModelPart)
+    ///accumulate the value of a non-historical vectorial variable in a node container set
+    array_1d<double, 3> SumNonHistoricalNodeVectorVariable( const Variable<array_1d<double, 3> >& rVar,
+                                                            ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        TVarOutputType sum_value{};
+        array_1d<double, 3> sum_value(0.0);
 
         // #pragma omp parallel for
-        for (auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+        // #pragma omp parallel for reduction(+:sum_value)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
         {
+            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
+            sum_value += itNode->GetValue(rVar);
+        }
+
+        rModelPart.GetCommunicator().SumAll(sum_value);
+
+        return sum_value;
+
+        KRATOS_CATCH("")
+    }
+
+    ///accumulate the value of a non-historical nodal scalar variable in a node container set
+    template< class TVarType >
+    double SumNonHistoricalNodeScalarVariable( const TVarType& rVar,
+                                               ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        double sum_value = 0.0;
+
+        #pragma omp parallel for reduction(+:sum_value)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
             sum_value += itNode->GetValue(rVar);
         }
 
@@ -449,18 +473,44 @@ public:
     //***********************************************************************
     //***********************************************************************
     ///accumulate the value of a historical vector variable in a nodes container set for a buffer step rBuffStep
-    template< class TVarType, class TVarOutputType >
-    TVarOutputType SumHistoricalNodeVariable( const TVarType& rVar,
-                                              ModelPart& rModelPart,
-                                              const unsigned int& rBuffStep = 0)
+    array_1d<double, 3> SumHistoricalNodeVectorVariable( const Variable<array_1d<double, 3> >& rVar,
+                                                         ModelPart& rModelPart,
+                                                         const unsigned int& rBuffStep = 0)
     {
         KRATOS_TRY
 
-        TVarOutputType sum_value{};
+        array_1d<double, 3> sum_value(0.0);
 
         // #pragma omp parallel for
-        for (auto itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
         {
+            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
+            sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
+        }
+
+        rModelPart.GetCommunicator().SumAll(sum_value);
+
+        return sum_value;
+
+        KRATOS_CATCH("")
+    }
+
+    //***********************************************************************
+    //***********************************************************************
+    ///accumulate the value of a historical scalar variable in a nodes container set for a buffer step rBuffStep
+    template< class TVarType >
+    double SumHistoricalNodeScalarVariable( const TVarType& rVar,
+                                            ModelPart& rModelPart,
+                                            const unsigned int& rBuffStep = 0)
+    {
+        KRATOS_TRY
+
+        double sum_value = 0.0;
+
+        #pragma omp parallel for reduction(+:sum_value)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
             sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
         }
 
@@ -474,19 +524,45 @@ public:
     //***********************************************************************
     //***********************************************************************
     //accumulate the value of a historical vector variable in a condition container set
-    template< class TVarType, class TVarOutputType >
-    TVarOutputType SumConditionVariable( const TVarType& rVar,
-                                         ModelPart& rModelPart)
+    array_1d<double, 3> SumConditionVectorVariable( const Variable<array_1d<double, 3> >& rVar,
+                                                    ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        TVarOutputType sum_value{};
+        array_1d<double, 3> sum_value(0.0);
 
         // #pragma omp parallel for
-        for (auto itCondition = rModelPart.ConditionsBegin(); itCondition != rModelPart.ConditionsEnd(); ++itCondition)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
         {
+            ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
             sum_value += itCondition->GetValue(rVar);
         }
+
+        rModelPart.GetCommunicator().SumAll(sum_value);
+
+        return sum_value;
+
+        KRATOS_CATCH("")
+    }
+
+    //***********************************************************************
+    //***********************************************************************
+    //accumulate the value of a historical scalar variable in a condition container set
+    template< class TVarType >
+    double SumConditionScalarVariable( const TVarType& rVar,
+                                       ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        double sum_value = 0.0;
+
+        #pragma omp parallel for reduction(+:sum_value)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
+        {
+            ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
+            sum_value += itCondition->GetValue(rVar);
+        }
+
         rModelPart.GetCommunicator().SumAll(sum_value);
 
         return sum_value;
@@ -497,17 +573,42 @@ public:
     //***********************************************************************
     //***********************************************************************
     ///accumulate the value of a historical vector variable in a condition container set
-    template< class TVarType, class TVarOutputType >
-    TVarOutputType SumElementVariable( const TVarType& rVar,
-                                       ModelPart& rModelPart)
+    array_1d<double, 3> SumElementVectorVariable( const Variable<array_1d<double, 3> >& rVar,
+                                                  ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        TVarOutputType sum_value{};
+        array_1d<double, 3> sum_value(0.0);
 
         // #pragma omp parallel for
-        for (auto itElement = rModelPart.ElementsBegin(); itElement != rModelPart.ElementsEnd(); ++itElement)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
         {
+            ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
+            sum_value += itElement->GetValue(rVar);
+        }
+
+        rModelPart.GetCommunicator().SumAll(sum_value);
+
+        return sum_value;
+
+        KRATOS_CATCH("")
+    }
+
+    //***********************************************************************
+    //***********************************************************************
+    ///accumulate the value of a historical scalar variable in a condition container set
+    template< class TVarType >
+    double SumElementScalarVariable( const TVarType& rVar,
+                                     ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        double sum_value = 0.0;
+
+        #pragma omp parallel for reduction(+:sum_value)
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
+        {
+            ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
             sum_value += itElement->GetValue(rVar);
         }
 
