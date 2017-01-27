@@ -552,7 +552,7 @@ protected:
         {
             strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
             strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-            strain[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
+            strain[2] = DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1);
         }
     }
 
@@ -580,7 +580,7 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        Values.SetStrainVector(strain);            //this is the input parameter
+        Values.SetStrainVector(strain);             //this is the input parameter
         Values.SetStressVector(rData.stress);       //this is an ouput parameter
         Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
 
@@ -590,6 +590,12 @@ protected:
 
     }
 
+    // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
+    virtual double ComputeEffectiveViscosity(const Vector& rStrain, const Vector& rStress)
+    {
+        return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
