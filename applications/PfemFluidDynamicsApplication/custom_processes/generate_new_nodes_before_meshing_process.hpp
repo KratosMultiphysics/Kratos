@@ -581,7 +581,16 @@ private:
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
 
-    unsigned int initial_node_size = mrModelPart.Nodes().size()+1+ElementsToRefine; //total model part node size
+    // unsigned int initial_node_size = mrModelPart.Nodes().size()+1+ElementsToRefine; //total model part node size
+    double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    double NodeId = ModelerUtilities::GetMaxNodeId(mrModelPart);
+
+    unsigned int initial_node_size =NodeIdParent + 1 + ElementsToRefine; //total model part node size
+
+    if(NodeId>NodeIdParent){
+      initial_node_size =NodeId + 1 + ElementsToRefine;
+      std::cout<<"initial_node_size  "<<initial_node_size<<std::endl;
+    }
 
     //assign data to dofs
     VariablesList& VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
@@ -589,7 +598,7 @@ private:
     for(unsigned int nn= 0; nn< NewPositions.size(); nn++)
       {
 
-    	unsigned int id = initial_node_size + nn ;
+ 	unsigned int id = initial_node_size + nn;
 
         // std::cout<<"NEW POINT ("<<id<<") COORDINATES x,y: "<<NewPositions[nn][0]<<" "<<NewPositions[nn][1]<<std::endl;
 
@@ -608,7 +617,7 @@ private:
  	list_of_new_nodes.push_back( pnode );
  	if(mrRemesh.InputInitializedFlag){
  	  mrRemesh.NodalPreIds.push_back( pnode->Id() );
- 	  pnode->SetId(nn+1);
+ 	  pnode->SetId(id);
  	}
 
  	// //giving model part variables list to the node

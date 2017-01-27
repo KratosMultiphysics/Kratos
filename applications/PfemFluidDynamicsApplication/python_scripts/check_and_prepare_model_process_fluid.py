@@ -1,12 +1,11 @@
-#from KratosMultiphysics import *
 import KratosMultiphysics 
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+#from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemBaseApplication import *
-from KratosMultiphysics.PfemFluidDynamicsApplication import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
-#from KratosMultiphysics.PfemBaseApplication import *
+import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolidMechanics
 #from KratosMultiphysics.PfemFluidDynamicsApplication import *
+from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 import time as timer
 
@@ -85,7 +84,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         if (body_model_part_type=="Fluid"):
                             node.Set(KratosMultiphysics.FLUID)
                         if (body_model_part_type=="Solid"):
-                            node.Set(KratosMultiphysics.FLUID)
+                            #node.Set(KratosMultiphysics.FLUID)
                             node.Set(KratosMultiphysics.SOLID)
                         if (body_model_part_type=="Rigid"):
                             node.Set(KratosMultiphysics.RIGID)
@@ -114,8 +113,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
-                print(body_model_part)
-
             clock_time = StartTimeMeasuring()
 
             #for fluid_part in fluid_body_model_parts:
@@ -127,16 +124,28 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             #                print("Node Inserted Py",node.Id)
 
             #add walls in fluid domains:
-            node_flags = FlagsContainer()
+            node_flags = KratosSolidMechanics.FlagsContainer()
+            #node_flags = KratosPfemFluid.FlagsContainer()
             #node_flags.PushBack(KratosMultiphysics.RIGID)
             node_flags.PushBack(KratosMultiphysics.NOT_FLUID)
             
+            for solid_part in solid_body_model_parts:
+
+                print("SetMaterialPropertiesToSolidNodes")
+                self.SetMaterialPropertiesToSolidNodes(solid_part)
+
+
             for fluid_part in fluid_body_model_parts:
+
+                #self.SetMaterialPropertiesToNodes(fluid_part)
+                print("SetMaterialPropertiesToFluidNodes")
+                self.SetMaterialPropertiesToFluidNodes(fluid_part)
+
                 for rigid_part in rigid_body_model_parts:
-                    transfer_process = TransferNodesProcess(fluid_part,rigid_part,node_flags)
+                    #transfer_process = KratosPfemFluid.TransferModelPartNodesProcess(fluid_part,rigid_part,node_flags)
+                    transfer_process = KratosSolidMechanics.TransferNodesProcess(fluid_part,rigid_part,node_flags)
                     transfer_process.Execute()
- 
-                            
+
             StopTimeMeasuring(clock_time,"1.rigid_body_model_parts  part.Nodes", True);
 
             
@@ -163,14 +172,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         for node in self.main_model_part.Nodes:
             #fluid_computing_model_part.AddNode(node,0)
             fluid_computing_model_part.Nodes.append(node)
-
+        
         for part in domain_parts:
             #part.Set(KratosMultiphysics.FLUID)
-            for elem in part.Elements:
-                #fluid_computing_model_part.AddElement(elem,0)
-                fluid_computing_model_part.Elements.append(elem)
-            #for node in part.Nodes:
-            #    fluid_computing_model_part.Nodes.append(node)
+            transfer_process = KratosPfemFluid.TransferModelPartElementsProcess(fluid_computing_model_part,part)
+            #transfer_process = KratosSolidMechanics.TransferElementsProcess(fluid_computing_model_part,part,node_flags)
+            transfer_process.Execute()
+  
+            #for elem in part.Elements:
+                #fluid_computing_model_part.Elements.append(elem)
             
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
@@ -186,8 +196,37 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 for j in range(body_parts_name_list.size()):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
-                    
-        #for part in domain_parts:
-        #    self.main_model_part.RemoveSubModelPart(part.Name)
 
-        print(self.main_model_part)
+
+
+    def SetMaterialPropertiesToFluidNodes(self,model_part):
+        count=0
+        for elem in model_part.Elements:
+           
+            density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
+            bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
+            viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            break
+
+        for nn in model_part.Nodes:
+            count+=1
+            nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
+            nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
+            nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+
+
+    def SetMaterialPropertiesToSolidNodes(self,model_part):
+        count=0
+        for elem in model_part.Elements:
+           
+            density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
+            young_modulus = elem.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
+            poisson_ratio = elem.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
+            break
+
+        for nn in model_part.Nodes:
+            count+=1
+            nn.SetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS,young_modulus)
+            nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
+            nn.SetSolutionStepValue(KratosMultiphysics.POISSON_RATIO,poisson_ratio)
+ 

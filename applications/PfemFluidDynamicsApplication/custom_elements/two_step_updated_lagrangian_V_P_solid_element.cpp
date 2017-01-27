@@ -27,7 +27,23 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 {
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
   TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
-  
+
+
+  if ( NewElement.mCurrentFgrad.size() != this->mCurrentFgrad.size() )
+    NewElement.mCurrentFgrad.resize(this->mCurrentFgrad.size());
+
+  for(unsigned int i=0; i<this->mCurrentFgrad.size(); i++)
+    {
+      NewElement.mCurrentFgrad[i] = this->mCurrentFgrad[i];
+    }
+
+  if ( NewElement.mUpdatedFgrad.size() != this->mUpdatedFgrad.size() )
+    NewElement.mUpdatedFgrad.resize(this->mUpdatedFgrad.size());
+
+  for(unsigned int i=0; i<this->mUpdatedFgrad.size(); i++)
+    {
+      NewElement.mUpdatedFgrad[i] = this->mUpdatedFgrad[i];
+    }
 
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -79,7 +95,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     // LargeDisplacementElement::Initialize();
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    // const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+
+    if ( this->mCurrentFgrad.size() != integration_points_number )
+      this->mCurrentFgrad.resize( integration_points_number );
+
+    if ( this->mUpdatedFgrad.size() != integration_points_number )
+      this->mUpdatedFgrad.resize( integration_points_number );
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -101,6 +123,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
         // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
+	this->mCurrentFgrad[PointNumber] = identity_matrix<double> (dimension);
+        this->mUpdatedFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -133,24 +157,30 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
   }
 
-
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& DeviatoricCoeff,
+  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
+									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
 									       double timeStep,
 									       const ShapeFunctionsType& N)
   {
 
-    double YoungModulus=0;
-    double PoissonRatio=0;
-    this->EvaluateInPoint(YoungModulus,YOUNG_MODULUS,N);
-    this->EvaluateInPoint(PoissonRatio,POISSON_RATIO,N);
-    YoungModulus=10000000;
-    PoissonRatio=0.3;
-    // std::cout<<"I am setting from inside YoungModulus = 100000000.0 ... work in progress...."<<std::endl;
-    // std::cout<<"YoungModulus "<<YoungModulus <<std::endl;
-    // const double YoungModulus = 100000000.0;
-    // const double PoissonRatio = 0.495;
+    Density=this->GetProperties()[DENSITY];
+    double YoungModulus=this->GetProperties()[YOUNG_MODULUS];
+    double PoissonRatio=this->GetProperties()[POISSON_RATIO];
+
+    // this->EvaluateInPoint(YoungModulus,YOUNG_MODULUS,N);
+    // this->EvaluateInPoint(PoissonRatio,POISSON_RATIO,N);
+    // this->EvaluateInPoint(Density,DENSITY,N);
+
+
+    // YoungModulus=10000000;//falling cylinder
+    // PoissonRatio=0.35;//falling cylinder
+    // YoungModulus=1000000;//dam break fsi
+    // PoissonRatio=0;//dam break fsi
+    // YoungModulus=100000000;
+    // PoissonRatio=0;
+
  
     // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)); 
     DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
@@ -230,54 +260,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
 
-  template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<2>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									 MatrixType& rDampingMatrix,
-									 const ShapeFunctionDerivativesType& rDN_DX,
-									 const double secondLame,
-									 const double bulkModulus,
-									 const double theta,
-									 const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-  for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1);
-	    // lagDNXi=rDN_DX(i,0);
-	    // lagDNYi=rDN_DX(i,1);
-	    // lagDNXj=rDN_DX(j,0);
-	    // lagDNYj=rDN_DX(j,1);
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol) += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame )*theta;
-
-            // Update Counter
-            FirstRow += 2;
-	  }
-        FirstRow = 0;
-        FirstCol += 2;
-      }
-  }
- 
-
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
 											 const ShapeFunctionsType& rN,
@@ -294,27 +276,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
   }
 
-
- 
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureAccLump(Matrix& BulkAccMatrix,
-											 const ShapeFunctionsType& rN,
-											 const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    double coeff=1.0+TDim;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	// LHS contribution
-	double Mij  = Weight /coeff;
-	BulkAccMatrix(i,i) +=  Mij;
-      }
-  }
-
-
- 
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
@@ -334,211 +295,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
 
   }
-
-
  
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureAcc(Matrix& BulkAccMatrix,
-										     const ShapeFunctionsType& rN,
-										     const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-    	for (SizeType j = 0; j < NumNodes; ++j)
-    	  {
-    	    // LHS contribution
-    	    double Mij  = Weight*rN[i]*rN[j];
-    	    BulkAccMatrix(i,j) +=  Mij;
-    	  }
-
-      }
- 
-  }
-
-
-
- template< unsigned int TDim >
- void TwoStepUpdatedLagrangianVPSolidElement<TDim>::AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
-									      Matrix& BulkAccMatrix,
-									      const ShapeFunctionsType& rN,
-									      const double Weight)
- {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-   if( BulkAccMatrix.size1() != NumNodes )
-     BulkAccMatrix.resize(NumNodes,NumNodes);
-
-   BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	// LHS contribution
-	for (SizeType j = 0; j < NumNodes; ++j)
-	  {
-	    double Mij = 0.0;
-	    Mij = Weight * rN[i] * rN[j];
-	    BulkAccMatrix(i,j) +=  Mij;
-	  }
-      }
-    rLeftHandSideMatrix+=BulkAccMatrix;
-
-  }
-
-
- template< unsigned int TDim >
- void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
-									       const ShapeFunctionDerivativesType& rDN_DX,									   
-									       const double Weight
-)
-										
-  {
-    // LHS contribution
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	for (SizeType j = 0; j < NumNodes; ++j)
-	  {
-	    double Lij = 0.0;
-	    for (SizeType d = 0; d < TDim; ++d){
-	      Lij += rDN_DX(i,d) * rDN_DX(j,d);
-	    }
-	    StabLaplacianMatrix(i,j) += Weight * Lij;
-	  }
-      }
-  }
-
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
-										   const double Tau,
-										   const double Weight,
-										   const ShapeFunctionDerivativesType& rDN_DX,
-										   const SizeType i)
-  {
-    // LHS contribution
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        double Lij = 0.0;
-        for (SizeType d = 0; d < TDim; ++d){
-    	  Lij += rDN_DX(i,d) * rDN_DX(j,d);
-    	}
-        Lij *= Tau;
-
-        rLeftHandSideMatrix(i,j) += Weight * Lij;
-      }
-  }
-
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
-										   const double Tau,
-										   const double Density,
-										   const array_1d<double,3> BodyForce,
-										   const double Weight,
-										   const ShapeFunctionDerivativesType& rDN_DX,
-										   const SizeType i)
-  {
-    // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-    array_1d<double,TDim> OldPressureGradient(TDim,0.0);
-    this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,rDN_DX);
-    double RHSi = 0;
-    if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
-      array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-
-      for (SizeType d = 0; d < TDim; ++d)
-	{
-	  // RHSi += rDN_DX(i,d) * Tau * ( - OldPressureGradient[d]  );
-	  RHSi += - rDN_DX(i,d) * Tau * ( Density * VolumeAcceleration[d] );
-
-	}
-    }
-    rRightHandSideVector[i] += Weight * RHSi;
-
-  }
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<3>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
-									 MatrixType& rDampingMatrix,
-									 const ShapeFunctionDerivativesType& rDN_DX,
-									 const double secondLame,
-									 const double bulkModulus,
-									 const double theta,
-									 const double Weight){
-
-   const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    MatrixType invGradDef=rElementalVariables.InvFgrad;
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-  for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0)+rDN_DX(i,2)*invGradDef(2,0);
-	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1)+rDN_DX(i,2)*invGradDef(2,1);
-	    double lagDNZi=rDN_DX(i,0)*invGradDef(0,2)+rDN_DX(i,1)*invGradDef(1,2)+rDN_DX(i,2)*invGradDef(2,2);
-	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0)+rDN_DX(j,2)*invGradDef(2,0);
-	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1)+rDN_DX(j,2)*invGradDef(2,1);
-	    double lagDNZj=rDN_DX(j,0)*invGradDef(0,2)+rDN_DX(j,1)*invGradDef(1,2)+rDN_DX(j,2)*invGradDef(2,2);	  
-	    // lagDNXi=rDN_DX(i,0);
-	    // lagDNYi=rDN_DX(i,1);
-	    // lagDNZi=rDN_DX(i,2);
-	    // lagDNXj=rDN_DX(j,0);
-	    // lagDNYj=rDN_DX(j,1);
-	    // lagDNZj=rDN_DX(j,2);
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol)     += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + (lagDNYi * lagDNYj +lagDNZi * lagDNZj) * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-            rDampingMatrix(FirstRow,FirstCol+2)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNZj + lagDNZi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + (lagDNXi * lagDNXj + lagDNZi * lagDNZj) * secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNZj + lagDNZi * lagDNYj *  secondLame )*theta;
-
-            // Third Row
-            rDampingMatrix(FirstRow+2,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNZi * lagDNXj + lagDNXi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus)  * lagDNZi * lagDNYj + lagDNYi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNZi * lagDNZj + (lagDNXi * lagDNXj + lagDNYi * lagDNYj) * secondLame )*theta;
-	   
-	    // Update Counter
-            FirstRow += 3;
-	  }
-        FirstRow = 0;
-        FirstCol += 3;
-      }
-  }
-
-
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalculateTauFIC(double& Tau,
-								     double ElemSize,
-								     const array_1d< double, 3 > & rAdvVel,
-								     const double Density,
-								     const double Viscosity,
-								     const ProcessInfo& rCurrentProcessInfo)
-  {
-    double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-    double MeanVelocity=0;
-    this->CalcMeanVelocity(MeanVelocity,0);
-
-      Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) ); 
-
-    Tau=0;
-
-  }
-
-
 
 
 template< unsigned int TDim>
@@ -556,6 +313,44 @@ bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
   return computeElement;
 } 
 
+
+  template<>
+  void TwoStepUpdatedLagrangianVPSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	rValues[Index++] = rGeom[i].X0();
+	rValues[Index++] = rGeom[i].Y0();
+      }
+  }
+
+
+  template<>
+  void TwoStepUpdatedLagrangianVPSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+ 	rValues[Index++] = rGeom[i].X0();
+        rValues[Index++] = rGeom[i].Y0();
+        rValues[Index++] = rGeom[i].Z0();
+      }
+  }
 
 
 
@@ -597,10 +392,11 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
+  double Density  = 0;
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -685,6 +481,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
   this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
 
+
+
 }
 
 template < > 
@@ -694,10 +492,11 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
+  double Density  = 0;
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
+  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -835,7 +634,6 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
  }
 
 
-
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
@@ -883,8 +681,10 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 
       const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
 
+      double Density  = 0;
       double DeviatoricCoeff = 0;
       double VolumetricCoeff = 0;
+
 
       ElementalVariables rElementalVariables;
       this->InitializeElementalVariables(rElementalVariables);
@@ -900,7 +700,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
 	    const double GaussWeight = fabs(GaussWeights[g]);
 	    const ShapeFunctionsType& N = row(NContainer,g);
 	    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	    this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
+	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 
 	    double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	    if(rCurrentProcessInfo[STEP]>-1){

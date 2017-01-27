@@ -31,6 +31,7 @@
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
+#include "custom_processes/transfer_model_part_elements_process.hpp"
 
 //Processes
 
@@ -73,6 +74,16 @@ namespace Kratos
 	 "ModelMeshingForFluids", init<ModelPart&, Flags, int>()
 	 )
 	;
+
+      //**********TRANSFER ELEMENTS TO MODEL PART*********//
+
+      class_<TransferModelPartElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "TransferModelPartElementsProcess", init<ModelPart&, ModelPart&>()
+      	)
+        .def("Execute", &TransferModelPartElementsProcess::Execute)
+      	;
+      
 
     }	
  

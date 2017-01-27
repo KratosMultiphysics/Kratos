@@ -263,6 +263,7 @@ namespace Kratos {
     bool computeElement=false;
     // computeElement=CheckSliverElements();
     computeElement=true;
+
     if(computeElement==true){
 
 
@@ -282,7 +283,8 @@ namespace Kratos {
       // Loop on integration points
       for (unsigned int g = 0; g < NumGauss; g++)
 	{
-	  const double GaussWeight = fabs(GaussWeights[g]);
+	  // const double GaussWeight = fabs(GaussWeights[g]);
+	  const double GaussWeight = GaussWeights[g];
 	  const ShapeFunctionsType& N = row(NContainer,g);
 	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
@@ -311,9 +313,12 @@ namespace Kratos {
 	    double Density=0.0;
 	    array_1d<double,3> BodyForce(3,0.0);
 
-	    this->EvaluateInPoint(Density,DENSITY,N);
 	    this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 
+	    double DeviatoricCoeff = 0;
+	    double VolumetricCoeff = 0;
+
+	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 	    // if(Density==0){
 	    //   std::cout<<"\t Density=0 !!!!!!!!! ";
 	    //   Density=1000.0;
@@ -329,10 +334,6 @@ namespace Kratos {
 
 	    this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
-	    double DeviatoricCoeff = 0;
-	    double VolumetricCoeff = 0;
-
-	    this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
 
 	    double MeanValueMaterial=0.0;
 	    this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);
@@ -383,6 +384,115 @@ namespace Kratos {
      KRATOS_CATCH( "" );
  
   }
+
+
+  template<>
+  void TwoStepUpdatedLagrangianVPElement<2>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
+								    MatrixType& rDampingMatrix,
+								    const ShapeFunctionDerivativesType& rDN_DX,
+								    const double secondLame,
+								    const double bulkModulus,
+								    const double theta,
+								    const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    const double FourThirds = 4.0 / 3.0;
+    const double nTwoThirds = -2.0 / 3.0;
+
+    MatrixType invGradDef=rElementalVariables.InvFgrad;
+
+    SizeType FirstRow=0;
+    SizeType FirstCol=0;
+
+  for (SizeType j = 0; j < NumNodes; ++j)
+      {
+        for (SizeType i = 0; i < NumNodes; ++i)
+	  {
+	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0);
+	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1);
+	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0);
+	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1);
+	    // lagDNXi=rDN_DX(i,0);
+	    // lagDNYi=rDN_DX(i,1);
+	    // lagDNXj=rDN_DX(j,0);
+	    // lagDNYj=rDN_DX(j,1);
+
+
+            // First Row
+            rDampingMatrix(FirstRow,FirstCol) += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame ) *theta;
+            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
+
+            // Second Row
+            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame )*theta;
+
+            // Update Counter
+            FirstRow += 2;
+	  }
+        FirstRow = 0;
+        FirstCol += 2;
+      }
+  }
+ 
+
+  template<>
+  void TwoStepUpdatedLagrangianVPElement<3>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
+								    MatrixType& rDampingMatrix,
+								    const ShapeFunctionDerivativesType& rDN_DX,
+								    const double secondLame,
+								    const double bulkModulus,
+								    const double theta,
+								    const double Weight){
+
+   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    const double FourThirds = 4.0 / 3.0;
+    const double nTwoThirds = -2.0 / 3.0;
+
+    MatrixType invGradDef=rElementalVariables.InvFgrad;
+
+    SizeType FirstRow=0;
+    SizeType FirstCol=0;
+
+  for (SizeType j = 0; j < NumNodes; ++j)
+      {
+        for (SizeType i = 0; i < NumNodes; ++i)
+	  {
+	    double lagDNXi=rDN_DX(i,0)*invGradDef(0,0)+rDN_DX(i,1)*invGradDef(1,0)+rDN_DX(i,2)*invGradDef(2,0);
+	    double lagDNYi=rDN_DX(i,0)*invGradDef(0,1)+rDN_DX(i,1)*invGradDef(1,1)+rDN_DX(i,2)*invGradDef(2,1);
+	    double lagDNZi=rDN_DX(i,0)*invGradDef(0,2)+rDN_DX(i,1)*invGradDef(1,2)+rDN_DX(i,2)*invGradDef(2,2);
+	    double lagDNXj=rDN_DX(j,0)*invGradDef(0,0)+rDN_DX(j,1)*invGradDef(1,0)+rDN_DX(j,2)*invGradDef(2,0);
+	    double lagDNYj=rDN_DX(j,0)*invGradDef(0,1)+rDN_DX(j,1)*invGradDef(1,1)+rDN_DX(j,2)*invGradDef(2,1);
+	    double lagDNZj=rDN_DX(j,0)*invGradDef(0,2)+rDN_DX(j,1)*invGradDef(1,2)+rDN_DX(j,2)*invGradDef(2,2);	  
+	    // lagDNXi=rDN_DX(i,0);
+	    // lagDNYi=rDN_DX(i,1);
+	    // lagDNZi=rDN_DX(i,2);
+	    // lagDNXj=rDN_DX(j,0);
+	    // lagDNYj=rDN_DX(j,1);
+	    // lagDNZj=rDN_DX(j,2);
+
+            // First Row
+            rDampingMatrix(FirstRow,FirstCol)     += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + (lagDNYi * lagDNYj +lagDNZi * lagDNZj) * secondLame ) *theta;
+            rDampingMatrix(FirstRow,FirstCol+1)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
+            rDampingMatrix(FirstRow,FirstCol+2)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNZj + lagDNZi * lagDNXj * secondLame )*theta;
+
+            // Second Row
+            rDampingMatrix(FirstRow+1,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + (lagDNXi * lagDNXj + lagDNZi * lagDNZj) * secondLame )*theta;
+            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNZj + lagDNZi * lagDNYj *  secondLame )*theta;
+
+            // Third Row
+            rDampingMatrix(FirstRow+2,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNZi * lagDNXj + lagDNXi * lagDNZj *  secondLame )*theta;
+            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus)  * lagDNZi * lagDNYj + lagDNYi * lagDNZj *  secondLame )*theta;
+            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNZi * lagDNZj + (lagDNXi * lagDNXj + lagDNYi * lagDNYj) * secondLame )*theta;
+	   
+	    // Update Counter
+            FirstRow += 3;
+	  }
+        FirstRow = 0;
+        FirstCol += 3;
+      }
+  }
+
 
 
 
@@ -595,6 +705,14 @@ namespace Kratos {
      // if(rValues[i]==0 && rGeom[i].Is(RIGID))
      // 	std::cout<<"                     pressure = 0 for this rigid node               "<<std::endl;
 
+
+      if(rGeom[i].Is(BOUNDARY)){
+	rGeom[i].FastGetSolutionStepValue(INTERF) = 1;
+
+      }else{
+      	rGeom[i].FastGetSolutionStepValue(INTERF) = 0;
+      }
+
       if(rGeom[i].Is(FREE_SURFACE)){
 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
 
@@ -605,26 +723,6 @@ namespace Kratos {
     }
   }
 
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = 2*NumNodes;
-
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	rValues[Index++] = rGeom[i].X();
-	rValues[Index++] = rGeom[i].Y();
-
-      }
-  }
 
 
 
@@ -698,26 +796,6 @@ namespace Kratos {
   }
 
 
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = 3*NumNodes;
-
-    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
- 	rValues[Index++] = rGeom[i].X();
-        rValues[Index++] = rGeom[i].Y();
-        rValues[Index++] = rGeom[i].Z();
-      }
-  }
 
 
 
@@ -862,7 +940,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1),false);
 
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
-      rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
+      // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
+      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
   
     }
     
@@ -940,14 +1019,12 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
 
   bool computeElement=true;
 
-
   this->CalcFGrad(rDN_DX,
 		  rElementalVariables.Fgrad,
 		  rElementalVariables.InvFgrad,
 		  rElementalVariables.DetFgrad,
 		  rCurrentProcessInfo,
 		  theta);
-
 
   //it computes the material time derivative of the deformation gradient and its jacobian and inverse
   this->CalcVelDefGrad(rDN_DX,
@@ -956,7 +1033,7 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
 		       rElementalVariables.DetFgradVel,
 		       theta);
 
-  //it computes the spatial velocity gradient tensor --> [l]
+  //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
   this->CalcSpatialVelocityGrad(rElementalVariables.InvFgrad,
 				rElementalVariables.FgradVel,
 				rElementalVariables.SpatialVelocityGrad);
@@ -999,6 +1076,8 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRate(ElementalVariables 
 }  
 
 
+
+
   
 
 template <unsigned int TDim > 
@@ -1035,6 +1114,7 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcFGrad(const ShapeFunctionDeriv
   invFgrad=ZeroMatrix(TDim,TDim);
   FJacobian=1;
 
+
   MathUtils<double>::InvertMatrix( Fgrad, invFgrad, FJacobian );
 
   // Fgrad.resize(2,2);
@@ -1057,6 +1137,17 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalcFGrad(const ShapeFunctionDeriv
   //   invFgrad(1,0)= -(Fgrad(1,0)/FJacobian);
   //   invFgrad(1,1)=  (Fgrad(0,0)/FJacobian); 
   // }
+
+    // std::cout<<"             "<< FJacobian;
+    // std::cout<<"__ "<< invFgrad(0,0);
+    // std::cout<<"__ "<< invFgrad(1,1);
+    // std::cout<<"__ "<< invFgrad(0,1);
+    // std::cout<<"__ "<< invFgrad(1,0)<<std::endl;
+    // std::cout<<":: "<< Fgrad(0,0);
+    // std::cout<<":: "<< Fgrad(1,1);
+    // std::cout<<":: "<< Fgrad(0,1);
+    // std::cout<<":: "<< Fgrad(1,0)<<std::endl;
+
 
 }
 
@@ -1138,8 +1229,8 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcVolumetricDefRate(const ShapeFunc
 
 template < unsigned int TDim > 
 void TwoStepUpdatedLagrangianVPElement<TDim>::CalcSpatialVelocityGrad(MatrixType &invFgrad,
-									   MatrixType &VelDefgrad,
-									   MatrixType &SpatialVelocityGrad)
+								      MatrixType &VelDefgrad,
+								      MatrixType &SpatialVelocityGrad)
 {
   SpatialVelocityGrad.resize(TDim,TDim);
   
@@ -1180,16 +1271,17 @@ void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain1(double &VolumetricDefRat
 
 template < > 
 void TwoStepUpdatedLagrangianVPElement<2>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-									    MatrixType &VelDefgrad, 
-									    VectorType &MDGreenLagrangeMaterial)
+								       MatrixType &VelDefgrad, 
+								       VectorType &MDGreenLagrangeMaterial)
 {
+
   // x-component
   MDGreenLagrangeMaterial[0]=VelDefgrad(0,0)*Fgrad(0,0) + VelDefgrad(1,0)*Fgrad(1,0);
   // y-component
   MDGreenLagrangeMaterial[1]=VelDefgrad(1,1)*Fgrad(1,1) + VelDefgrad(0,1)*Fgrad(0,1);
   // xy-component
   MDGreenLagrangeMaterial[2]=(VelDefgrad(0,0)*Fgrad(0,1) + VelDefgrad(1,0)*Fgrad(1,1) +
-			      VelDefgrad(0,1)*Fgrad(0,0) + VelDefgrad(1,1)*Fgrad(1,0))*0.5;
+  			      VelDefgrad(0,1)*Fgrad(0,0) + VelDefgrad(1,1)*Fgrad(1,0))*0.5;
 }
 
 
@@ -1231,7 +1323,6 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcMDGreenLagrangeMaterial(MatrixTyp
   MDGreenLagrangeMaterial[5]= ( part1(1,2) + part2(1,2) ) * 0.5;  //yz-component
 
 }
-
 
 
 
@@ -1794,8 +1885,6 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
 
     return computeElement;
   }
-
-
 
 
   template< unsigned int TDim >
