@@ -19,7 +19,7 @@
 #include "trilinos_application.h"
 #include "Epetra_ConfigDefs.h"
 #include "Epetra_DataAccess.h"
-
+#include "mpi.h"
 // #include "Epetra_MpiComm.h"
 
 //#include "trilinos_solver.h"
@@ -32,13 +32,31 @@ void KratosTrilinosApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-//     std::cout << "Initializing KratosTrilinosApplication... " << std::endl;
-    std::cout << "     KRATOS   _____     _ _ _                 " << std::endl;
-    std::cout << "             |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
-    std::cout << "               | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
-    std::cout << "               | || |  | | | | | | | (_) \\__ \\" << std::endl;
-    std::cout << "               |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
-    // 		KRATOS_REGISTER_VARIABLE( IS_INACTIVE )
+
+    std::stringstream banner;
+    banner << "     KRATOS   _____     _ _ _                 " << std::endl;
+    banner << "             |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
+    banner << "               | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
+    banner << "               | || |  | | | | | | | (_) \\__ \\" << std::endl;
+    banner << "               |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
+
+    int mpi_is_initialized = 0;
+    int rank = -1;
+    MPI_Initialized(&mpi_is_initialized);
+    
+    if (mpi_is_initialized)
+    {
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    }
+
+    if (mpi_is_initialized)
+    {
+        if (rank == 0) std::cout << banner.str();
+    }
+    else
+    {
+        std::cout << banner.str();
+    }
 }
 
 
