@@ -13,6 +13,7 @@
 	           
 // System includes
 #include <algorithm>
+#include <cmath>
 
 // Project includes
 #include "includes/prime_numbers.h"
