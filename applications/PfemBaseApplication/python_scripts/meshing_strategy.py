@@ -133,9 +133,21 @@ class MeshingStrategy(object):
         number_of_new_nodes = self.main_model_part.NumberOfNodes(self.mesh_id) - info_parameters.GetNumberOfNodes()
         number_of_new_elements = self.main_model_part.NumberOfElements(self.mesh_id) - info_parameters.GetNumberOfElements()
         number_of_new_conditions = self.main_model_part.NumberOfConditions(self.mesh_id) - info_parameters.GetNumberOfConditions()
-        info_parameters.SetNumberOfNewNodes(number_of_new_nodes)
-        info_parameters.SetNumberOfNewElements(number_of_new_elements)
-        info_parameters.SetNumberOfNewConditions(number_of_new_conditions)
+
+        if( number_of_new_nodes > 0 ):
+            info_parameters.SetNumberOfNewNodes(number_of_new_nodes)
+        else:
+            info_parameters.SetNumberOfNewNodes(0)
+
+        if( number_of_new_elements > 0 ):
+            info_parameters.SetNumberOfNewElements(number_of_new_elements)
+        else:
+            info_parameters.SetNumberOfNewElements(0)
+
+        if( number_of_new_conditions > 0 ):
+            info_parameters.SetNumberOfNewConditions(number_of_new_conditions)
+        else:
+            info_parameters.SetNumberOfNewConditions(0)
 
 
         info_parameters.SetNumberOfNodes(self.main_model_part.NumberOfNodes(self.mesh_id))
