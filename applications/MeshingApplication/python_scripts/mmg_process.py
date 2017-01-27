@@ -181,6 +181,23 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             self.MmgUtility = MeshingApplication.MmgUtility3D(self.output_file_name, self.echo_level)
         
+        # Initialize metric
+        if (self.dim == 2):
+            ZeroVector = KratosMultiphysics.Vector(3) 
+            ZeroVector[0] = 0.0
+            ZeroVector[1] = 0.0
+            ZeroVector[2] = 0.0
+        else:
+            ZeroVector = KratosMultiphysics.Vector(6) 
+            ZeroVector[0] = 0.0
+            ZeroVector[1] = 0.0
+            ZeroVector[2] = 0.0
+            ZeroVector[3] = 0.0
+            ZeroVector[4] = 0.0
+            ZeroVector[5] = 0.0
+        for node in self.Model[self.model_part_name].Nodes:
+            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+        
         self._ExecuteRefinement()
         
     def ExecuteBeforeSolutionLoop(self):
@@ -221,64 +238,44 @@ class MmgProcess(KratosMultiphysics.Process):
         # Recalculate NODAL_H
         self.find_nodal_h.Execute()
 
-        print("Preparing the solution  and mesh information")
-        self.MmgUtility.InitializeMeshData(self.Model[self.model_part_name])
-        if (self.strategy == "LevelSet"):
+        print("Calculating the metrics")
+        if (self.dim == 2):
             if (self.anisotropy_remeshing == True):
-                self.MmgUtility.InitializeLevelSetSolData(
-                    self.Model[self.model_part_name], 
-                    self.minimal_size, 
-                    self.gradient_variable, 
+                MetricsUtility = MeshingApplication.MetricsUtility2D(
+                    self.minimal_size,
                     self.hmin_over_hmax_anisotropic_ratio, 
                     self.boundary_layer_max_distance, 
                     self.interpolation
                     )
             else:
-                self.MmgUtility.InitializeLevelSetSolData( 
-                    self.Model[self.model_part_name], 
-                    self.minimal_size
+                MetricsUtility = MeshingApplication.MetricsUtility2D(self.minimal_size)
+        else:
+            if (self.anisotropy_remeshing == True):
+                MetricsUtility = MeshingApplication.MetricsUtility3D(
+                    self.minimal_size,
+                    self.hmin_over_hmax_anisotropic_ratio, 
+                    self.boundary_layer_max_distance, 
+                    self.interpolation
                     )
+            else:
+                MetricsUtility = MeshingApplication.MetricsUtility3D(self.minimal_size)
+            
+        if (self.strategy == "LevelSet"):
+            MetricsUtility.ComputeLevelSetSolMetric(                    self.Model[self.model_part_name], self.gradient_variable)
+  
         elif (self.strategy == "Hessian"):
             val = node.GetSolutionStepValue(self.metric_variable, 0)
-            if (self.anisotropy_remeshing == True):
-                if isinstance(val,float): # TODO: Add anisotropic data
-                    self.MmgUtility.InitializeHessianSolData(
+            if isinstance(val,float): 
+                MetricsUtility.ComputeHessianMetric(
                         self.Model[self.model_part_name], 
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.metric_variable,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
-                        self.interpolation
-                        )
-                else:
-                    self.MmgUtility.InitializeHessianSolComponentsData(
-                        self.Model[self.model_part_name], 
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.metric_variable,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
-                        self.interpolation
-                        )
-            else:
-                if isinstance(val,float):
-                    self.MmgUtility.InitializeHessianSolData(
-                        self.Model[self.model_part_name], 
-                        self.minimal_size,
                         self.maximal_size,
                         self.metric_variable,
                         self.interpolation_error,
                         self.mesh_dependent_constant
                         )
-                else:
-                    self.MmgUtility.InitializeHessianSolComponentsData(
+            else:
+                MetricsUtility.ComputeHessianMetricComponents(
                         self.Model[self.model_part_name], 
-                        self.minimal_size,
                         self.maximal_size,
                         self.metric_variable,
                         self.interpolation_error,
