@@ -161,7 +161,6 @@ void AddCustomUtilitiesToPython()
     ("MetricsUtility2D", init<const double, const double, const double, const std::string>())
     .def("ComputeLevelSetSolMetric", &MetricsUtility<2>::ComputeLevelSetSolMetric)
     .def("ComputeHessianMetric", &MetricsUtility<2>::ComputeHessianMetric)
-    .def("ComputeHessianMetricComponents", &MetricsUtility<2>::ComputeHessianMetricComponents)
     ;
     
     // 3D
@@ -169,7 +168,6 @@ void AddCustomUtilitiesToPython()
     ("MetricsUtility3D", init<const double, const double, const double, const std::string>())
     .def("ComputeLevelSetSolMetric", &MetricsUtility<3>::ComputeLevelSetSolMetric)
     .def("ComputeHessianMetric", &MetricsUtility<3>::ComputeHessianMetric)
-    .def("ComputeHessianMetricComponents", &MetricsUtility<3>::ComputeHessianMetricComponents)
     ;
     
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())

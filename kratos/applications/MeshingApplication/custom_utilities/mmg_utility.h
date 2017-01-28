@@ -126,7 +126,8 @@ public:
         const std::string Filename = "output_remesh",
         const unsigned int echo_level = 3
         )
-        :mStdStringFilename(Filename)
+        :mStdStringFilename(Filename),
+        mEchoLevel(echo_level)
     {       
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
@@ -199,14 +200,17 @@ public:
         const unsigned int MaxNumberOfResults = 1000
         )
     {
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << std::endl;
-        
-        KRATOS_WATCH(rThisModelPart);
+        if (mEchoLevel > 0)
+        {
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << std::endl;
+            
+            KRATOS_WATCH(rThisModelPart);
+        }
         
         // We initialize the mesh and solution data
         InitializeMeshData(rThisModelPart);
@@ -225,14 +229,17 @@ public:
         ExecuteRemeshing(rThisModelPart, save_to_file, MaxNumberOfResults);
         
         /* We print the resulting model part */
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << std::endl;
-        
-        KRATOS_WATCH(rThisModelPart);
+        if (mEchoLevel > 0)
+        {
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << "//---------------------------------------------------//" << std::endl;
+            std::cout << std::endl;
+            
+            KRATOS_WATCH(rThisModelPart);
+        }
         
     }
        
@@ -264,6 +271,7 @@ protected:
     // I/O information
     char* mFilename;
     std::string mStdStringFilename;
+    unsigned int mEchoLevel;
     
     // The member variables related with the MMG library
     MMG5_pMesh mmgMesh;
@@ -334,21 +342,22 @@ protected:
             {
                 auto itElem = pElements.begin() + i;
                 
-                const unsigned int size_geom = itElem->GetGeometry().size();
-                
-                if (size_geom == 4) // Tetrahedron
+                if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) // Tetrahedron
                 {
                     numArrayElements[0] += 1;
                 }
-                else if (size_geom == 6) // Prisms
+                else if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) // Prisms
                 {
                     numArrayElements[1] += 1;
+                }
+                else
+                {
+                    std::cout << "WARNING: YOUR GEOMETRY CONTAINS HEXAEDRON THAT CAN NOT BE REMESHED" << std::endl;
                 }
             }
             
             if ((numArrayElements[0] + numArrayElements[1]) < numElements)
             {
-                std::cout << "WARNING: YOUR GEOMETRY CONTAINS HEXAEDRON THAT CAN NOT BE REMESHED" << std::endl;
                 std::cout << "Number of Elements: " << numElements << " Number of Tetrahedron: " << numArrayElements[0] << " Number of Prisms: " << numArrayElements[1] << std::endl;
             }
             
@@ -357,13 +366,11 @@ protected:
             {
                 auto itCond = pConditions.begin() + i;
                 
-                const unsigned int size_geom = itCond->GetGeometry().size();
-                
-                if (size_geom == 3) // Triangles
+                if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) // Triangles
                 {
                     numArrayConditions[0] += 1;
                 }
-                else if (size_geom == 4)  // Quadrilaterals
+                else if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)  // Quadrilaterals
                 {
                     numArrayConditions[1] += 1;
                 }
@@ -399,25 +406,21 @@ protected:
             // We clone the first condition of each type
             if (TDim == 2)
             {
-                if (i == 0)
-                {
-                    const cond_geometries_2d index_geom0 = Line;
-                    mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
-                }
+                const cond_geometries_2d index_geom0 = Line;
+                mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
+                break;
             }
             else
-            {
-                const unsigned int size_geom = itCond->GetGeometry().size();
-                
+            {                
                 const cond_geometries_3d index_geom0 = Triangle3D;
                 const cond_geometries_3d index_geom1 = Quadrilateral3D;
 
-                if (size_geom == 3 && mInitRefCondition[index_geom0] == false) // Triangle
+                if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 && mInitRefCondition[index_geom0] == false) // Triangle
                 {
                     mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
                     mInitRefCondition[index_geom0] = true;
                 }
-                else if (size_geom == 4 && mInitRefCondition[index_geom1] == false) // Quadrilateral
+                else if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 && mInitRefCondition[index_geom1] == false) // Quadrilateral
                 {
                     mpRefCondition[index_geom1] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
                     mInitRefCondition[index_geom1] = true;
@@ -436,25 +439,21 @@ protected:
             // We clone the first element of each type
             if (TDim == 2)
             {
-                if (i == 0)
-                {
-                    const elem_geometries_2d index_geom0 = Triangle2D;
-                    mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
-                }
+                const elem_geometries_2d index_geom0 = Triangle2D;
+                mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
+                break;
             }
             else
-            {
-                const unsigned int size_geom = itElem->GetGeometry().size();
-                
+            {                
                 const elem_geometries_3d index_geom0 = Tetrahedra;
                 const elem_geometries_3d index_geom1 = Prism;
                 
-                if (size_geom == 4 && mInitRefElement[index_geom0] == false) // Tetrahedra
+                if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 && mInitRefElement[index_geom0] == false) // Tetrahedra
                 {
                     mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                     mInitRefElement[index_geom0] = true;
                 }
-                else if (size_geom == 6 && mInitRefElement[index_geom1] == false) // Prism
+                else if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 && mInitRefElement[index_geom1] == false) // Prism
                 {
                     mpRefElement[index_geom1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                     mInitRefElement[index_geom1] = true;
@@ -488,8 +487,22 @@ protected:
         {
             auto itNode = pNode.begin() + i;
             
+            #ifdef KRATOS_DEBUG 
+            if( itNode->Has(MMG_METRIC)) 
+            {
+                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode>Id();
+            }
+            #endif     
+            
             // We get the metric
             const Vector& metric = itNode->GetValue(MMG_METRIC);
+            
+            #ifdef KRATOS_DEBUG 
+            if(metric.size() != TDim * 3 - 3) 
+            {
+                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode>Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+            }
+            #endif
             
             // We set the metric
             SetMetricTensor(metric, i + 1);
@@ -614,7 +627,7 @@ protected:
             {
                 cond_id += 1;
                 
-                if (TDim == 2) // Lines
+                if (TDim == 2) // Lines // TODO: Move this check outside the loop
                 {
                     const cond_geometries_2d index_geom = Line;
                     
@@ -1023,6 +1036,7 @@ protected:
      * @param numConditions: Number of Conditions
      */
     
+    //TODO: use explicit template instantiation to avoid the if
     void SetMeshSize(
         const int numNodes,
         const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
@@ -1213,11 +1227,11 @@ protected:
 
             if ( ier == MMG5_STRONGFAILURE ) 
             {
-                std::cout << "BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH" << std::endl;
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: ", ier );
             }
             else if ( ier == MMG5_LOWFAILURE )
             {
-                std::cout << "BAD ENDING OF MMG2DLIB" << std::endl;
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB. ier: ", ier );
             }
         }
         else
@@ -1226,11 +1240,11 @@ protected:
 
             if ( ier == MMG5_STRONGFAILURE ) 
             {
-                std::cout << "BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH" << std::endl;
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: ", ier );
             }
             else if ( ier == MMG5_LOWFAILURE )
             {
-                std::cout << "BAD ENDING OF MMG3DLIB" << std::endl;
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB. ier: ", ier );
             }
         }
 
