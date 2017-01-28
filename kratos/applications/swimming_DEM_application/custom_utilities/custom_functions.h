@@ -511,7 +511,7 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const VariableComponen
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
         Node<3>::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
-        const double& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
+        const double origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         destination_value = origin_value;
     }
 }
