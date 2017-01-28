@@ -10,6 +10,7 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
                                   ProcessInfo& rCurrentProcessInfo)
 {
     const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
+
     if (current_component == 0){
         mCurrentComponent = 'X';
     }
@@ -44,6 +45,19 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLocalSy
     this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
+
+    const double volume_inv = 1.0 / this->GetGeometry().Volume();
+    for (unsigned int i=0; i<LocalSize; ++i){
+        for (unsigned int j=0; j<LocalSize; ++j){
+            rLeftHandSideMatrix(i, j) *= volume_inv;
+        }
+        rRightHandSideVector(i) *= volume_inv;
+    }
+
+    if (this->Id() == 1000){
+        KRATOS_WATCH(rLeftHandSideMatrix)
+        KRATOS_WATCH(rRightHandSideVector)
+    }
 }
 
 //template <unsigned int TDim, unsigned int TNumNodes>
@@ -66,32 +80,27 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                               ProcessInfo& rCurrentProcessInfo)
 {
-
-    const unsigned int LocalSize(TNumNodes);
-    unsigned int LocalIndex = 0;
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_Z);
-
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
+    if (rResult.size() != TNumNodes)
+        rResult.resize(TNumNodes, false);
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z, pos).EquationId();
+        rResult[iNode] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z).EquationId();
+
+        if (this->Id()==1000)
+        KRATOS_WATCH(rResult[iNode] )
     }
+
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                         ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int LocalSize(TNumNodes);
-
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
-
-    unsigned int LocalIndex = 0;
+    if (rElementalDofList.size() != TNumNodes)
+        rElementalDofList.resize(TNumNodes);
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
+        rElementalDofList[iNode] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
     }
 }
 
@@ -105,7 +114,7 @@ int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const Proce
     if(ErrorCode != 0) return ErrorCode;
 
     if(this->GetGeometry().size() != TDim+1)
-        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
+        KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes per element",this->Id());
 
     if(VELOCITY_LAPLACIAN_Z.Key() == 0)
 
@@ -125,44 +134,6 @@ int ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::Check(const Proce
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
-                             const array_1d<double, TNumNodes>& rShapeFunc,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                             const double Weight)
-{
-    double Coef = Weight;
-
-    for (unsigned int iNodeB = 0; iNodeB < TNumNodes; ++iNodeB){
-        double value = 0.0;
-
-        for (unsigned int iNodeA = 0; iNodeA < TNumNodes; ++iNodeA){
-            if (mCurrentComponent == 'X'){
-                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
-                for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
-                }
-            }
-
-            else if (mCurrentComponent == 'Y'){
-                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
-                for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
-                }
-            }
-
-            else {
-                array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
-                for (unsigned int di = 0; di < TDim; ++di){
-                    value += rShapeDeriv(iNodeA, di) * NodalComponent[di];
-                }
-            }
-            value *= rShapeFunc[iNodeB];
-        }
-        F[iNodeB] += Coef * value;
-    }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
                                const double Mass)
 {
@@ -176,13 +147,9 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddConsistentMas
         const array_1d<double,TNumNodes>& rShapeFunc,
         const double Weight)
 {
-    double Coef = Weight;
-
-    // Note: Dof order is (vx,vy[,vz]) for each node
     for (unsigned int i = 0; i < TNumNodes; ++i){
-        // Loop over columns
         for (unsigned int j = 0; j < TNumNodes; ++j){
-            rLHSMatrix(i, j) += Coef * rShapeFunc[i] * rShapeFunc[j];
+            rLHSMatrix(i, j) += Weight * rShapeFunc[i] * rShapeFunc[j];
         }
     }
 }
@@ -204,14 +171,12 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMat
     boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
-    // Add 'classical' mass matrix (lumped)
-    if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){
-        double Coeff = Area / TNumNodes; //Optimize!
+    if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == 1){ // Add 'classical' mass matrix (lumped)
+        double Coeff = Area / TNumNodes;
         this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
     }
 
-    else {
-        // Add 'consistent' mass matrix
+    else { // Add 'consistent' mass matrix
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
         VectorType GaussWeights;
@@ -223,6 +188,42 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::CalculateMassMat
             const ShapeFunctionsType& Ng = row(NContainer, g);
             this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, GaussWeight);
         }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
+                             const array_1d<double, TNumNodes>& rShapeFunc,
+                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const double Weight)
+{
+    for (unsigned int iNodeB = 0; iNodeB < TNumNodes; ++iNodeB){
+        double div = 0.0;
+
+        for (unsigned int iNodeA = 0; iNodeA < TNumNodes; ++iNodeA){
+            if (mCurrentComponent == 'X'){
+                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                for (unsigned int di = 0; di < TDim; ++di){
+                    div += rShapeDeriv(iNodeA, di) * NodalComponent[di];
+                }
+            }
+
+            else if (mCurrentComponent == 'Y'){
+                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                for (unsigned int di = 0; di < TDim; ++di){
+                    div += rShapeDeriv(iNodeA, di) * NodalComponent[di];
+                }
+            }
+
+            else {
+                const array_1d<double, 3>& NodalComponent = this->GetGeometry()[iNodeA].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                for (unsigned int di = 0; di < TDim; ++di){
+                    div += rShapeDeriv(iNodeA, di) * NodalComponent[di];                    
+                }
+            }
+        }
+
+        F[iNodeB] += Weight * div * rShapeFunc[iNodeB];
     }
 }
 
