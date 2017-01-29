@@ -626,7 +626,7 @@ namespace Kratos
 
     //check coincident normals
     std::vector<int> FaceCoincidentNormals(rGeometry.FacesNumber());
-    std::fill(FaceCoincidentNormals.begin(),FaceCoincidentNormals.end(), 0.0 );
+    std::fill(FaceCoincidentNormals.begin(),FaceCoincidentNormals.end(), 0 );
 
     unsigned int CoincidentNormals = 0;
     for(unsigned int i=0; i<lpofa.size2(); i++)

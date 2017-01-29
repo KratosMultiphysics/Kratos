@@ -100,17 +100,18 @@ class RestartProcess(KratosMultiphysics.Process):
 
     #
     def ExecuteInitializeSolutionStep(self):
-        pass
+        
+        self.step_count += 1
 
     #
     def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    #
-    def ExecuteAfterOutputStep(self):
         if( self.save_restart ):
             if(self.IsRestartStep()):
                 self.SaveRestart()
+
+    #
+    def ExecuteAfterOutputStep(self):
+        pass
 
     ###
 
