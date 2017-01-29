@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 
 regular_mesh = True
-show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
+show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
 n_divs = [10, 20, 40, 80]
 
 if regular_mesh:
@@ -24,16 +24,16 @@ def FillVectors(recovery_type, mat_deriv_average_errors, mat_deriv_max_errors, l
         mat_deriv_max_errors[i] = float('-inf')
         laplacian_average_errors[i] = 0.0
         laplacian_max_errors[i] = float('-inf')
-        
+
     for i_size, (n_div, size) in enumerate(zip(n_divs, sizes)):
         'laplacian_errors_h_0.025_mat_deriv_type_2_lapl_type_1'
         if regular_mesh:
             mesh_tag = 'ndiv_' + str(n_div)
         else:
-            mesh_tag = 'h_' + str(size)            
-            
+            mesh_tag = 'h_' + str(size)
+
         with open('errors_recorded/mat_deriv_errors_' + mesh_tag + '_type_' + str(recovery_type) + '.txt', 'r') as errors_file:
-            for i_line, line in enumerate(errors_file):                
+            for i_line, line in enumerate(errors_file):
                 numbers_str = line.split()
                 error = float(numbers_str[0])
                 mat_deriv_average_errors[i_size] += error
@@ -42,7 +42,7 @@ def FillVectors(recovery_type, mat_deriv_average_errors, mat_deriv_max_errors, l
 
         with open('errors_recorded/laplacian_errors_' + mesh_tag + '_type_' + str(recovery_type) + '.txt', 'r') as errors_file:
             print('errors_recorded/laplacian_errors_' + mesh_tag + '_type_' + str(recovery_type) + '.txt')
-            for i_line, line in enumerate(errors_file):              
+            for i_line, line in enumerate(errors_file):
                 numbers_str = line.split()
                 error = float(numbers_str[0])
                 laplacian_average_errors[i_size] += error
@@ -50,13 +50,13 @@ def FillVectors(recovery_type, mat_deriv_average_errors, mat_deriv_max_errors, l
         laplacian_average_errors[i_size] /= i_line + 1
     print('material derivative errors: ', mat_deriv_average_errors)
     print('laplacian errors: ', laplacian_average_errors)
-        
+
     return mat_deriv_average_errors, mat_deriv_max_errors, laplacian_average_errors, laplacian_max_errors
 
 mat_deriv_average_errors = [0. for size in sizes]
 mat_deriv_max_errors = [float('-inf') for size in sizes]
 laplacian_average_errors = [0. for size in sizes]
-laplacian_max_errors = [float('-inf') for size in sizes]     
+laplacian_max_errors = [float('-inf') for size in sizes]
 min_error = float("inf")
 max_error = - float("inf")
 
@@ -76,7 +76,7 @@ for method in recovery_types:
         color = 'k'
         marker_type = '-o'
         marker_size = 10
-        
+
     elif method == 3:
         mat_deriv_type = 'L2 (lumped)'
         laplacian_type = 'L2 (lumped)'
@@ -84,7 +84,7 @@ for method in recovery_types:
         color = 'b'
         marker_type = '->'
         marker_size = 10
-        
+
     elif method == 4:
         mat_deriv_type = 'L2'
         laplacian_type = 'L2'
@@ -92,7 +92,7 @@ for method in recovery_types:
         color = 'g'
         marker_type = '->'
         marker_size = 10
-        
+
     elif method == 5:
         mat_deriv_type = 'L2 only gradient'
         laplacian_type = 'L2 divergence of gradient'
@@ -107,26 +107,26 @@ for method in recovery_types:
         line_width = 1
         color = 'm'
         marker_type = '-v'
-        marker_size = 10        
-        
-    try:    
+        marker_size = 10
+
+    try:
         mat_deriv_final_slope = CalculateLastSlopes(sizes, mat_deriv_average_errors)
-        mat_deriv_slope_msg = ' material derivative (m = ' + str(round(mat_deriv_final_slope, 2)) + ')'        
+        mat_deriv_slope_msg = ' (m = ' + str(round(mat_deriv_final_slope, 2)) + ')'
         laplacian_final_slope = CalculateLastSlopes(sizes, laplacian_average_errors)
-        laplacian_slope_msg = ' material derivative (m = ' + str(round(laplacian_final_slope, 2)) + ')'            
+        laplacian_slope_msg = ' (m = ' + str(round(laplacian_final_slope, 2)) + ')'
     except:
         mat_deriv_slope_msg = ''
-    
+
     if show_math_deriv_or_laplacian == 'M':
         expected_order = 2
         min_error = min(min_error, mat_deriv_average_errors[-1])
-        max_error = max(max_error, mat_deriv_average_errors[0])        
+        max_error = max(max_error, mat_deriv_average_errors[0])
         plt.plot(sizes, mat_deriv_average_errors, '-v', ms = marker_size, color=color, label= mat_deriv_type + mat_deriv_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     if show_math_deriv_or_laplacian == 'L':
         expected_order = 1
         min_error = min(min_error, laplacian_average_errors[-1])
-        max_error = max(max_error, laplacian_average_errors[0])    
+        max_error = max(max_error, laplacian_average_errors[0])
         plt.plot(sizes, laplacian_average_errors,'-^', color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
     plt.semilogy()
@@ -143,5 +143,5 @@ else:
 plt.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
 plt.ylim((min_error / 10, max_error * 10))
 plt.legend(loc = 'upper left')
-plt.savefig(plot_name)    
+plt.savefig(plot_name)
 plt.show()
