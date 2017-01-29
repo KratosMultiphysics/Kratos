@@ -149,7 +149,7 @@ public:
        
        InitMesh();
        
-       int verbosityMMG; 
+       int verbosityMMG;  // TODO: Discover WTF means each value of the verbosity
        if (echo_level == 0)
        {
            verbosityMMG = -10;
@@ -356,7 +356,7 @@ protected:
                 }
             }
             
-            if ((numArrayElements[0] + numArrayElements[1]) < numElements)
+            if (((numArrayElements[0] + numArrayElements[1]) < numElements) && mEchoLevel > 0)
             {
                 std::cout << "Number of Elements: " << numElements << " Number of Tetrahedron: " << numArrayElements[0] << " Number of Prisms: " << numArrayElements[1] << std::endl;
             }
@@ -527,11 +527,17 @@ protected:
         // We initialize some values
         unsigned int step_data_size = rThisModelPart.GetNodalSolutionStepDataSize();
         unsigned int buffer_size    = rThisModelPart.NodesBegin()->GetBufferSize();
-                
-        std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size << std::endl; 
+        
+        if (mEchoLevel > 0)
+        {        
+            std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size <<     std::endl; 
+        }
         
         ////////* MMG LIBRARY CALL *////////
-        std::cout << "////////* MMG LIBRARY CALL *////////" << std::endl; 
+        if (mEchoLevel > 0)
+        {
+            std::cout << "////////* MMG LIBRARY CALL *////////" << std::endl; 
+        }
         MMGLibCall();
         
         const unsigned int nNodes = mmgMesh->np;
@@ -556,18 +562,21 @@ protected:
             nElements[1] = mmgMesh->nprism;
         }
         
-        std::cout << "     Nodes created: " << nNodes << std::endl;
-        if (TDim == 2) // 2D
+        if (mEchoLevel > 0)
         {
-            std::cout << "Conditions created: " << nConditions[0] << std::endl;
-            std::cout << "Elements created: " << nElements[0] << std::endl;
-        }
-        else // 3D
-        {
-            std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
-            std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1]<< std::endl;
-            std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
-            std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
+            std::cout << "     Nodes created: " << nNodes << std::endl;
+            if (TDim == 2) // 2D
+            {
+                std::cout << "Conditions created: " << nConditions[0] << std::endl;
+                std::cout << "Elements created: " << nElements[0] << std::endl;
+            }
+            else // 3D
+            {
+                std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
+                std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1]<< std::endl;
+                std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
+                std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
+            }
         }
         
         ////////* EMPTY AND BACKUP THE MODEL PART *////////
@@ -919,7 +928,7 @@ protected:
             
             const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), shape_functions, pElement, MaxNumberOfResults);
             
-            if (found == false)
+            if ((found == false) && mEchoLevel > 0)
             {
                 std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
                 std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
@@ -1102,20 +1111,12 @@ protected:
             {
                 exit(EXIT_FAILURE);
             }
-            else
-            {
-                std::cout << "OK: The mesh and metric data are correct" << std::endl;
-            }
         }
         else
         {
             if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
             {
                 exit(EXIT_FAILURE);
-            }
-            else
-            {
-                std::cout << "OK: The mesh and metric data are correct" << std::endl;
             }
         }
     }
@@ -1148,7 +1149,7 @@ protected:
             MMG2D_Set_outputMeshName(mmgMesh,MeshFile);
 
             // b) function calling 
-            if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1 ) 
+            if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1) 
             {
                 std::cout << "UNABLE TO SAVE MESH" << std::endl;
             }
@@ -1159,7 +1160,7 @@ protected:
             MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
 
             // b) function calling 
-            if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1 ) 
+            if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1) 
             {
                 std::cout << "UNABLE TO SAVE MESH" << std::endl;
             }
@@ -1194,7 +1195,7 @@ protected:
             MMG2D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
 
             // b) Function calling 
-            if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1 ) 
+            if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1) 
             {
                 std::cout << "UNABLE TO SAVE SOL" << std::endl;
             }
@@ -1205,7 +1206,7 @@ protected:
             MMG3D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
 
             // b) Function calling 
-            if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1 ) 
+            if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1) 
             {
                 std::cout << "UNABLE TO SAVE SOL" << std::endl;
             }
