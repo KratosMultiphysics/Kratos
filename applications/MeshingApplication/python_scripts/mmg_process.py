@@ -19,7 +19,7 @@ class MmgProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "output_file_name"                  : "",
+            "output_file_name"                 : "out",
             "model_part_name"                  : "MainModelPart",
             "strategy"                         : "LevelSet",
             "level_set_strategy_parameters"              :{

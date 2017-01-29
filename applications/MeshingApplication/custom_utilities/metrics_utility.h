@@ -307,7 +307,7 @@ protected:
     )
     {
         Vector metric;
-        metric.resize(3 * (1 + TDim), false);
+        metric.resize(3 * (TDim - 1), false);
         
         const double coeff0 = 1.0/(element_size * element_size);
         

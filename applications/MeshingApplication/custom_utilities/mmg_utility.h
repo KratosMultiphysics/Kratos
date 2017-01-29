@@ -398,19 +398,19 @@ protected:
         }
         
         /* Conditions */
+        // We clone the first condition of each type
+        if (TDim == 2)
+        {
+            const cond_geometries_2d index_geom0 = Line;
+            mpRefCondition[index_geom0] = pConditions.begin()->Create(0, pConditions.begin()->GetGeometry(), pConditions.begin()->pGetProperties());
+        }
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
             
             // We clone the first condition of each type
-            if (TDim == 2)
-            {
-                const cond_geometries_2d index_geom0 = Line;
-                mpRefCondition[index_geom0] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
-                break;
-            }
-            else
+            if (TDim == 3)
             {                
                 const cond_geometries_3d index_geom0 = Triangle3D;
                 const cond_geometries_3d index_geom1 = Quadrilateral3D;
@@ -431,19 +431,19 @@ protected:
         }
         
         /* Elements */
+        // We clone the first element of each type
+        if (TDim == 2)
+        {
+            const elem_geometries_2d index_geom0 = Triangle2D;
+            mpRefElement[index_geom0] = pElements.begin()->Create(0, pElements.begin()->GetGeometry(), pElements.begin()->pGetProperties());
+        }
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numElements; i++) 
         {
             auto itElem = pElements.begin() + i;
             
             // We clone the first element of each type
-            if (TDim == 2)
-            {
-                const elem_geometries_2d index_geom0 = Triangle2D;
-                mpRefElement[index_geom0] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
-                break;
-            }
-            else
+            if (TDim == 3)
             {                
                 const elem_geometries_3d index_geom0 = Tetrahedra;
                 const elem_geometries_3d index_geom1 = Prism;
@@ -1386,7 +1386,7 @@ protected:
         
         // Using API
         if (TDim == 2)
-        {
+        { 
             if ( MMG2D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 ) 
             {
                 exit(EXIT_FAILURE);
