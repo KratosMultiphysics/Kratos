@@ -488,7 +488,7 @@ protected:
             auto itNode = pNode.begin() + i;
             
             #ifdef KRATOS_DEBUG 
-            if( itNode->Has(MMG_METRIC)) 
+            if( itNode->Has(MMG_METRIC) == false) 
             {
                 KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode>Id();
             }

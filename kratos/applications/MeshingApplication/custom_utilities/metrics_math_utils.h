@@ -61,6 +61,69 @@ public:
     ///@}
     ///@name Operations
     ///@{
+ 
+    /**
+     * Calculates the inverse of a 2x2 or 3x3 matrix 
+     * @param A: The matrix to invert
+     * @return InvA: The inverted matrix
+     */
+
+    static inline boost::numeric::ublas::bounded_matrix<double, TDim, TDim> InvMat(
+            const boost::numeric::ublas::bounded_matrix<double, TDim, TDim>& A,
+            const double tolerance = 1.0e-18
+            )
+    {
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> InvA;
+        
+        if (TDim == 2)
+        {
+            const double det = A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
+            
+            if (std::abs(det) < tolerance)
+            {
+                KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
+            }
+            
+            /* Compute inverse of the Matrix */
+            InvA(0, 0) =   A(1, 1) / det;
+            InvA(0, 1) = - A(0, 1) / det;
+            InvA(1, 0) = - A(1, 0) / det;
+            InvA(1, 1) =   A(0, 0) / det;
+        }
+        else
+        {
+            /* Compute determinant of the matrix */
+            const double det = A(0, 0) * A(1, 1) * A(2, 2) \
+                + A(1, 0) * A(2, 1) * A(0, 2)\
+                + A(0, 1) * A(1, 2) * A(2, 0)\
+                - A(2, 0) * A(1, 1) * A(0, 2)\
+                - A(2, 1) * A(1, 2) * A(0, 0)\
+                - A(1, 0) * A(0, 1) * A(2,2);
+
+            if (std::abs(det) < tolerance)
+            {
+                KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
+            }
+            
+            /* Compute inverse of the Matrix */
+            InvA(0, 0) =   (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1)) / det;
+            InvA(1, 0) = - (A(1, 0) * A(2, 2) - A(2, 0) * A(1, 2)) / det;
+            InvA(2, 0) =   (A(1, 0) * A(2, 1) - A(1, 1) * A(2, 0)) / det;
+
+            InvA(0, 1) = - (A(0, 1) * A(2, 2) - A(0, 2) * A(2, 1)) / det;
+            InvA(1, 1) =   (A(0, 0) * A(2, 2) - A(0, 2) * A(2, 0)) / det;
+            InvA(2, 1) = - (A(0, 0) * A(2, 1) - A(0, 1) * A(2, 0)) / det;
+
+            InvA(0, 2) =   (A(0, 1) * A(1, 2) - A(0, 2) * A(1, 1)) / det;
+            InvA(1, 2) = - (A(0, 0) * A(1, 2) - A(0, 2) * A(1, 0)) / det;
+            InvA(2, 2) =   (A(0, 0) * A(1, 1) - A(1, 0) * A(0, 1)) / det;
+        }
+        
+        return InvA;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
     
     /**
      * Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
@@ -293,8 +356,8 @@ public:
      */
         
     static inline Vector IntersectMetrics(
-        Vector Metric1,
-        Vector Metric2
+        const Vector Metric1,
+        const Vector Metric2
     )
     {
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Metric1Matrix = VectorToTensor(Metric1);
@@ -303,9 +366,7 @@ public:
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> auxmat;
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> emat;
         
-        double det;
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invMetric1Matrix;
-        MathUtils<double>::InvertMatrix( Metric1Matrix, invMetric1Matrix, det);
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invMetric1Matrix = InvMat(Metric1Matrix);
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> NMatrix = prod(invMetric1Matrix, Metric2Matrix);
         
         EigenSystem(NMatrix, emat, auxmat, 1e-18, 10);
@@ -319,8 +380,7 @@ public:
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
         }
         
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invemat;
-        MathUtils<double>::InvertMatrix(emat, invemat, det);
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invemat = InvMat(emat);
         
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> IntersectionMatrix =  prod(trans(invemat), prod<temp_type>(auxmat, invemat));
         
