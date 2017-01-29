@@ -144,8 +144,33 @@ public:
             }
             
             // We compute the metric
+            #ifdef KRATOS_DEBUG 
+            if( itNode->Has(MMG_METRIC) == false) 
+            {
+                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode>Id();
+            }
+            #endif     
             Vector& metric = itNode->GetValue(MMG_METRIC);
-            metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+            
+            #ifdef KRATOS_DEBUG 
+            if(metric.size() != TDim * 3 - 3) 
+            {
+                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode>Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+            }
+            #endif
+            
+            const double normmetric = norm_2(metric);
+            if (normmetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+            {
+                const Vector old_metric = itNode->GetValue(MMG_METRIC);
+                const Vector new_metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+                
+                metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
+            }
+            else
+            {
+                metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+            }
         }
     }
     
@@ -200,8 +225,35 @@ public:
             anisotropic_ratio = ratio;
             
             // We compute the metric
-            const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, element_size, rMaxSize, rInterpError, rMeshConstant, ratio);
-//             const array_1d<double, 3 * (1 + TDim)> metric = ComputeHessianMetricTensor(hessian, mMinSize, rMaxSize, rInterpError, rMeshConstant, ratio);         
+            #ifdef KRATOS_DEBUG 
+            if( itNode->Has(MMG_METRIC) == false) 
+            {
+                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode>Id();
+            }
+            #endif     
+            Vector& metric = itNode->GetValue(MMG_METRIC);
+            
+            #ifdef KRATOS_DEBUG 
+            if(metric.size() != TDim * 3 - 3) 
+            {
+                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode>Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+            }
+            #endif
+            
+            const double normmetric = norm_2(metric);
+            if (normmetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
+            {
+                const Vector old_metric = itNode->GetValue(MMG_METRIC);
+                const Vector new_metric = ComputeHessianMetricTensor(hessian, element_size, rMaxSize, rInterpError, rMeshConstant, ratio);
+//                 const Vector new_metric = ComputeHessianMetricTensor(hessian, mMinSize, rMaxSize, rInterpError, rMeshConstant, ratio);        
+                
+                metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
+            }
+            else
+            {
+                metric = ComputeHessianMetricTensor(hessian, element_size, rMaxSize, rInterpError, rMeshConstant, ratio);
+//                 metric = ComputeHessianMetricTensor(hessian, mMinSize, rMaxSize, rInterpError, rMeshConstant, ratio);        
+            }
         }
     }
        
