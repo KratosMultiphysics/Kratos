@@ -181,23 +181,6 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             self.MmgUtility = MeshingApplication.MmgUtility3D(self.output_file_name, self.echo_level)
         
-        # Initialize metric
-        if (self.dim == 2):
-            ZeroVector = KratosMultiphysics.Vector(3) 
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
-        else:
-            ZeroVector = KratosMultiphysics.Vector(6) 
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
-            ZeroVector[3] = 0.0
-            ZeroVector[4] = 0.0
-            ZeroVector[5] = 0.0
-        for node in self.Model[self.model_part_name].Nodes:
-            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
-        
         self._ExecuteRefinement()
         
     def ExecuteBeforeSolutionLoop(self):
@@ -230,6 +213,8 @@ class MmgProcess(KratosMultiphysics.Process):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
             
     def _ExecuteRefinement(self):
+        
+        self._InitializeMetric()
             
         if (self.strategy == "LevelSet"):
             # Calculate the gradient
@@ -264,7 +249,9 @@ class MmgProcess(KratosMultiphysics.Process):
             MetricsUtility.ComputeLevelSetSolMetric(                    self.Model[self.model_part_name], self.gradient_variable)
   
         elif (self.strategy == "Hessian"):
-            val = node.GetSolutionStepValue(self.metric_variable, 0)
+            for node in self.Model[self.model_part_name].Nodes:
+                val = node.GetSolutionStepValue(self.metric_variable, 0)
+                break
             if isinstance(val,float): 
                 MetricsUtility.ComputeHessianMetric(
                         self.Model[self.model_part_name], 
@@ -274,16 +261,38 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.mesh_dependent_constant
                         )
             else:
-                MetricsUtility.ComputeHessianMetricComponents(
-                        self.Model[self.model_part_name], 
-                        self.maximal_size,
-                        self.metric_variable,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant
-                        )
+                components = [KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_X" ),KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_Y" )]
+                if (self.dim == 3):
+                    components.append(KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_Z" ))
+                for comp in components:
+                    MetricsUtility.ComputeHessianMetric(
+                            self.Model[self.model_part_name], 
+                            self.maximal_size,
+                            comp,
+                            self.interpolation_error,
+                            self.mesh_dependent_constant
+                            )
         
         print("Remeshing")
         self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
         
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
+            
+    def _InitializeMetric(self):
+        # Initialize metric
+        if (self.dim == 2):
+            ZeroVector = KratosMultiphysics.Vector(3) 
+            ZeroVector[0] = 0.0
+            ZeroVector[1] = 0.0
+            ZeroVector[2] = 0.0
+        else:
+            ZeroVector = KratosMultiphysics.Vector(6) 
+            ZeroVector[0] = 0.0
+            ZeroVector[1] = 0.0
+            ZeroVector[2] = 0.0
+            ZeroVector[3] = 0.0
+            ZeroVector[4] = 0.0
+            ZeroVector[5] = 0.0
+        for node in self.Model[self.model_part_name].Nodes:
+            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
