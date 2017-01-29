@@ -81,9 +81,9 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             else:
                 self.next_meshing = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + self.meshing_frequency
         else:
-            self.meshing_output = self.meshing_frequency
-
-        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
+            #if commented in the first step meshing is applied
+            self.next_meshing = self.meshing_frequency
+            self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
         
         # initialize all meshing domains 
         if( self.remesh_domains_active ):    
@@ -108,6 +108,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def ExecuteBeforeOutputStep(self):
         
+        self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED] = False
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):
@@ -115,12 +116,13 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         
     #
     def ExecuteAfterOutputStep(self):
-        
+
+        self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED] = False
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
                 if(self.IsMeshingStep()):
-                    self.RemeshDomains()
-
+                    self.RemeshDomains()                    
+                    
     ###
 
     #
@@ -157,8 +159,9 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.model_meshing.ExecuteFinalize()
         
         self.counter += 1 
-
-
+        
+        self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED] = True
+        
         # schedule next meshing
         if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):

@@ -86,7 +86,8 @@ class ContactDomain(meshing_domain.MeshingDomain):
         self.SetMeshingParameters()
         
         # Create contact domain model_part
-        self.main_model_part.CreateSubModelPart(self.settings["model_part_name"].GetString())
+        if( not self.main_model_part.HasSubModelPart(self.settings["model_part_name"].GetString()) ):
+            self.main_model_part.CreateSubModelPart(self.settings["model_part_name"].GetString())
         
         contact_model_part_names = self.settings["contact_sub_model_part_list"]
         self.contact_parts = KratosContact.StringVector()

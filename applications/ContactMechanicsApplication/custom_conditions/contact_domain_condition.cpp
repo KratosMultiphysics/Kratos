@@ -1619,33 +1619,35 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
+    // Commented checks to the constitutive law, the one used if from the MasterElements and MasterConditions
+    
     //verify that the constitutive law exists
-    if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
-    {
-        KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
-    }
+    // if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
+    // {
+    //     KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
+    // }
 
 
     //verify that the constitutive law has the correct dimension
-    if ( dimension == 2 )
-    {
-        if ( this->GetProperties().Has( THICKNESS ) == false )
-            KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+    // if ( dimension == 2 )
+    // {
+    //     if ( this->GetProperties().Has( THICKNESS ) == false )
+    //         KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
-        if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() )
-    }
-    else
-    {
-        if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
-    }
+    //     if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
+    //         KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() )
+    // }
+    // else
+    // {
+    //     if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
+    //         KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
+    // }
 
     //check constitutive law
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-        return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }
+    // for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    // {
+    //     return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+    // }
 
     //check if it is in the XY plane for 2D case
 

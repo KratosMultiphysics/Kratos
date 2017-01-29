@@ -96,7 +96,8 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
-        if(self.IsMeshingStep()):
+        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfemBase.MESHING_STEP_PERFORMED]
+        if(self.IsMeshingStep() or meshing_step_performed):
             self.RemeshDomains()
 
     #
