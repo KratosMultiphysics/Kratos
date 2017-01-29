@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS # TODO: Add test_refine.py to the list of tests
+from SmallTests import TwoDCavityTest as TTwoDCavityTest
 from SmallTests import CoarseSphereTest as TCoarseSphereTest
 
 ## SMALL TESTS
@@ -32,6 +33,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(TTwoDCavityTest('test_execution'))
     smallSuite.addTest(TCoarseSphereTest('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
@@ -52,6 +54,7 @@ def AssambleTestSuites():
     if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
         allSuite.addTests(
             KratosUnittest.TestLoader().loadTestsFromTestCases([
+                TTwoDCavityTest,
                 TCoarseSphereTest,
                 TStanfordBunnyTest,
             ])

@@ -54,6 +54,9 @@ class MeshingTestFactory(KratosUnittest.TestCase):
 #class ThreeDBoxHessianSetTest(MeshingTestFactory):
     #file_name = "mmg_test/3D_box_hessian_test"
     
+class TwoDCavityTest(MeshingTestFactory):
+    file_name = "mmg_test/2D_cavity_test"
+    
 class CoarseSphereTest(MeshingTestFactory):
     file_name = "mmg_test/coarse_sphere_test"
     
