@@ -7,52 +7,6 @@ from json_utilities import *
 import json
 KratosMultiphysics.CheckForPreviousImport()
 
-def linear_interpolation(x, x_list, y_list):
-    ind_inf = 0
-    ind_sup = -1
-    x_inf = x_list[ind_inf]
-    x_sup = x_list[ind_sup]
-    for i in range(len(x_list)):
-        if x_list[i] <= x:
-            ind_inf = i
-            x_inf = x_list[ind_inf]
-        if x_list[-(1 + i)] >= x:
-            ind_sup = -(1 + i)
-            x_sup = x_list[ind_sup]
-    
-    if (x_sup - x_inf == 0):
-        y = y_list[ind_inf]
-    else:
-        prop_sup = (x - x_inf)/(x_sup - x_inf)
-        prop_inf = 1.0 - prop_sup
-        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
-    
-    return y
-
-def normpdf(x, mean, sd):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    data =  read_external_json(dir_path+"/normal_distribution.json")
-    z = (x-mean)/sd
-    z_list    = data["Z"]
-    prob_list = data["Prob"]
-    if (z > 0):
-        prob = linear_interpolation(z, z_list, prob_list)
-    else:
-        prob = 1.0 - linear_interpolation(-z, z_list, prob_list)
-    return prob
-
-def normvalf(prob, mean, sd):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    data =  read_external_json(dir_path+"/normal_distribution.json")
-    z_list    = data["Z"]
-    prob_list = data["Prob"]
-    if (prob >= 0.5):
-        z = linear_interpolation(prob, prob_list, z_list)
-    else:
-        z = - linear_interpolation(1.0 - prob, prob_list, z_list)
-    x = z * sd + mean
-    return x
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -296,3 +250,49 @@ class MmgProcess(KratosMultiphysics.Process):
             ZeroVector[5] = 0.0
         for node in self.Model[self.model_part_name].Nodes:
             node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+
+def linear_interpolation(x, x_list, y_list):
+    ind_inf = 0
+    ind_sup = -1
+    x_inf = x_list[ind_inf]
+    x_sup = x_list[ind_sup]
+    for i in range(len(x_list)):
+        if x_list[i] <= x:
+            ind_inf = i
+            x_inf = x_list[ind_inf]
+        if x_list[-(1 + i)] >= x:
+            ind_sup = -(1 + i)
+            x_sup = x_list[ind_sup]
+    
+    if (x_sup - x_inf == 0):
+        y = y_list[ind_inf]
+    else:
+        prop_sup = (x - x_inf)/(x_sup - x_inf)
+        prop_inf = 1.0 - prop_sup
+        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
+    
+    return y
+
+def normpdf(x, mean, sd):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data =  read_external_json(dir_path+"/normal_distribution.json")
+    z = (x-mean)/sd
+    z_list    = data["Z"]
+    prob_list = data["Prob"]
+    if (z > 0):
+        prob = linear_interpolation(z, z_list, prob_list)
+    else:
+        prob = 1.0 - linear_interpolation(-z, z_list, prob_list)
+    return prob
+
+def normvalf(prob, mean, sd):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data =  read_external_json(dir_path+"/normal_distribution.json")
+    z_list    = data["Z"]
+    prob_list = data["Prob"]
+    if (prob >= 0.5):
+        z = linear_interpolation(prob, prob_list, z_list)
+    else:
+        z = - linear_interpolation(1.0 - prob, prob_list, z_list)
+    x = z * sd + mean
+    return x
