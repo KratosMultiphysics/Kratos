@@ -128,7 +128,7 @@ void AddUtilitiesToPython()
     class_<PythonGenericFunctionUtility >("PythonGenericFunctionUtility", init<ModelPart::NodesContainerType& , PyObject*>() )
     .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToScalar)
     .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToComponent)
-     .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
+    .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
     ;
 
 
@@ -147,7 +147,6 @@ void AddUtilitiesToPython()
     .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
     .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
     .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
-    .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
     // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
     // .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)

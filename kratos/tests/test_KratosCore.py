@@ -19,6 +19,7 @@ import test_importing
 import test_connectivity_preserve_modeler
 import test_model
 import test_redistance
+import test_variable_utils
 
 
 def AssambleTestSuites():
@@ -51,7 +52,8 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
-    
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
+
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
 
@@ -77,8 +79,9 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
 
-    
+
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(
@@ -94,7 +97,8 @@ def AssambleTestSuites():
             test_connectivity_preserve_modeler.TestConnectivityPreserveModeler,
             test_importing.TestImporting,
             test_model.TestModel,
-            test_redistance.TestRedistance
+            test_redistance.TestRedistance,
+            test_variable_utils.TestVariableUtils
         ])
     )
 
