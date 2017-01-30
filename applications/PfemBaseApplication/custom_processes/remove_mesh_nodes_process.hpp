@@ -124,16 +124,14 @@ public:
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
 
+      mrRemesh.Refine->Info.BodyNodesRemoved.Initialize();
+      mrRemesh.Refine->Info.BoundaryNodesRemoved.Initialize();
+      
       double RemovedConditions = mrModelPart.NumberOfConditions(mMeshId);
       double NumberOfNodes     = mrModelPart.NumberOfNodes(mMeshId);
       
       bool any_node_removed      = false;
-      bool any_condition_removed = false;
-      
-      int error_nodes_removed    = 0;
-      int inside_nodes_removed   = 0;
-      int boundary_nodes_removed = 0;
-      
+      bool any_condition_removed = false;         
       
       //if the remove_node switch is activated, we check if the nodes got too close
       if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES) || (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES)) )
@@ -142,7 +140,8 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR) && mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES) )	      
 	    {
-	      any_node_removed_on_error = RemoveNodesOnError(mrModelPart,error_nodes_removed); //2D and 3D
+	     
+	      any_node_removed_on_error = RemoveNodesOnError(mrModelPart, mrRemesh.Refine->Info.BodyNodesRemoved.on_error); //2D and 3D
 	    }
 	  //////////////////////////////////////////////////////////// 
 
@@ -159,7 +158,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) || mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE))	      
 	    {
-	      any_node_removed_on_distance = RemoveNodesOnDistance(mrModelPart,inside_nodes_removed, boundary_nodes_removed, any_condition_removed); //2D only (RebuildBoundary is only 2D)
+	      any_node_removed_on_distance = RemoveNodesOnDistance(mrModelPart, mrRemesh.Refine->Info.BodyNodesRemoved.on_distance, mrRemesh.Refine->Info.BoundaryNodesRemoved.on_distance, any_condition_removed); //2D only (RebuildBoundary is only 2D)
 	    }
 	  // REMOVE ON DISTANCE
 	  ////////////////////////////////////////////////////////////
@@ -168,9 +167,9 @@ public:
 	  // REMOVE CONTACT NODES (and boundary near the contact)
           if ( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
           {
-             bool any_node_removed_on_distance_2 = RemoveNodesOnContact( mrModelPart, inside_nodes_removed, boundary_nodes_removed, any_condition_removed);
-             if ( any_node_removed_on_distance_2 || any_node_removed_on_distance)
-                any_node_removed_on_distance = true;
+	    bool any_node_removed_on_contact = RemoveNodesOnContact( mrModelPart, mrRemesh.Refine->Info.BodyNodesRemoved.on_distance, mrRemesh.Refine->Info.BoundaryNodesRemoved.on_distance, any_condition_removed);
+	    if ( any_node_removed_on_contact || any_node_removed_on_distance)
+	      any_node_removed_on_distance = true;
           }
           ////////////////////////////////////////////////////////////
 
@@ -211,21 +210,20 @@ public:
 
       
       // number of removed nodes:
-      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);
-      int distance_remove =  inside_nodes_removed + boundary_nodes_removed;
-      
+      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);      
       RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
       
       if( mEchoLevel > 0 ){
 	std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
 	std::cout<<"   [ NODES      ( removed : "<<mrRemesh.Info->RemovedNodes<<" ) ]"<<std::endl;
-	std::cout<<"   [ Error(removed: "<<error_nodes_removed<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
-      }
 
-
-      if( mEchoLevel > 0 ){
+	if( this->mEchoLevel >=1 ){
+	  mrRemesh.Refine->Info.BodyNodesRemoved.EchoStats();
+	  mrRemesh.Refine->Info.BoundaryNodesRemoved.EchoStats();
+	}
+	
 	//std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
-	std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
+	std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;	
       }
 
       KRATOS_CATCH(" ")
@@ -366,7 +364,7 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    bool RemoveNodesOnError(ModelPart& rModelPart, int& error_removed_nodes)
+    bool RemoveNodesOnError(ModelPart& rModelPart, unsigned int& error_removed_nodes)
     {
        KRATOS_TRY
 	 
@@ -404,7 +402,7 @@ private:
 	     }
 	   
 	   
-	   if( in->IsNot(BOUNDARY) &&  in->IsNot(STRUCTURE) && erased_nodes < 1 )
+	   if( in->IsNot(BOUNDARY) && erased_nodes < 1 )
 	     {
 	       double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
 	       MeanError = NodalError[nodes_ids[in->Id()]];
@@ -440,7 +438,7 @@ private:
          //**************************************************************************
          //**************************************************************************
 
-         bool RemoveNodesOnContact(ModelPart& rModelPart, int& inside_nodes_removed, int& boundary_nodes_removed, bool& any_condition_removed) 
+         bool RemoveNodesOnContact(ModelPart& rModelPart, unsigned int& inside_nodes_removed, unsigned int& boundary_nodes_removed, bool& any_condition_removed) 
          {
             KRATOS_TRY
 
@@ -697,7 +695,7 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    bool RemoveNodesOnDistance(ModelPart& rModelPart, int& inside_nodes_removed, int& boundary_nodes_removed, bool& any_condition_removed)
+    bool RemoveNodesOnDistance(ModelPart& rModelPart, unsigned int& inside_nodes_removed, unsigned int& boundary_nodes_removed, bool& any_condition_removed)
     {
        KRATOS_TRY
 	 

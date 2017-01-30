@@ -1591,10 +1591,7 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-
-
+    
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
@@ -1627,7 +1624,8 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     //     KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     // }
 
-
+    //unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    
     //verify that the constitutive law has the correct dimension
     // if ( dimension == 2 )
     // {

@@ -237,7 +237,7 @@ namespace Kratos
       //clearing contact conditions
       //
 	
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
 
@@ -245,18 +245,21 @@ namespace Kratos
 
       for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 	{
-
 	  if(ic->IsNot(CONTACT)){
 	    PreservedConditions.push_back(*(ic.base()));
 	  }
 	}
-      
+
       rModelPart.Conditions().swap(PreservedConditions);
-	      
+
+      if( mEchoLevel >= 1 ){
+	std::cout<<" / PRE:"<<rModelPart.NumberOfConditions();
+      }
+      
       rModelPart.Conditions().Sort();
       rModelPart.Conditions().Unique();
 
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
 

@@ -32,8 +32,8 @@ class DomainUtilities(object):
         
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-                # construct boundary of a volumetric body domain
-                self.ConstructModelPartBoundary(model_part, echo_level)
+                # build boundary of a volumetric body domain
+                self.BuildModelPartBoundary(model_part, echo_level)
 
                 # search nodal h
                 self.SearchNodalH(model_part, echo_level)
@@ -84,7 +84,7 @@ class DomainUtilities(object):
 
 
     #
-    def ConstructModelPartBoundary(self, model_part, echo_level):
+    def BuildModelPartBoundary(self, model_part, echo_level):
 
         mesh_id = 0
 
@@ -93,7 +93,7 @@ class DomainUtilities(object):
         
 
         # define building utility
-        skin_build = KratosPfemBase.ConstructModelPartBoundary(model_part, model_part.Name, echo_level)
+        skin_build = KratosPfemBase.BuildModelPartBoundary(model_part, model_part.Name, echo_level)
 
         # execute building:
         skin_build.Execute()
