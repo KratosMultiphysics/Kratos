@@ -127,12 +127,10 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         transfer_parameters = self.MeshingParameters.GetTransferParameters()
         transfer_options = transfer_parameters.GetOptions()
 
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-            
-            transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
-            transfer_parameters.SetOptions(transfer_options)
-
-            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+        transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
+        transfer_parameters.SetOptions(transfer_options)
+        
+        self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
 
         # set flags for the transfer needed for the contact domain
         transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)
@@ -169,9 +167,10 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         #Needed to compute effective gaps in the contact domain with lagrangian multipliers
         #in fact not needed anymore, moved to FinalizeSolutionStep of the ContactDomainCondition
-
-        #transfer_parameters = self.MeshingParameters.GetTransferParameters()
-        #self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+        #only recovered when restart
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            transfer_parameters = self.MeshingParameters.GetTransferParameters()
+            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
 
     #
     def FinalizeMeshGeneration(self):
