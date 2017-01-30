@@ -115,6 +115,12 @@ namespace Kratos
       this->ClearContactConditions();
 
       this->ClearContactFlags();
+
+      //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
+      if( mrMainModelPart.GetProcessInfo()[IS_RESTARTED] == true ){
+      	BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
+      	BuildBoundaryProcess.SearchConditionMasters(mrMainModelPart);
+      }
       
       //Update Boundary Normals before Contact Search   
       //(needed when meshing of the domains is not performed:
@@ -122,8 +128,8 @@ namespace Kratos
       BoundaryNormalsCalculationUtilities BoundaryComputation;
       BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
 
-      mrMainModelPart.Conditions().Sort();
-      mrMainModelPart.Conditions().Unique();
+      //mrMainModelPart.Conditions().Sort();
+      //mrMainModelPart.Conditions().Unique();
 
       
       KRATOS_CATCH(" ")
@@ -490,8 +496,8 @@ namespace Kratos
       
       rModelPart.Conditions().swap(PreservedConditions);
 	      
-      rModelPart.Conditions().Sort();
-      rModelPart.Conditions().Unique();
+      //rModelPart.Conditions().Sort();
+      //rModelPart.Conditions().Unique();
 
       if( mEchoLevel >= 1 ){
 	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;

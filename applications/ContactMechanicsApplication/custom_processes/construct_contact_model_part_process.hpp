@@ -308,12 +308,12 @@ namespace Kratos
       
       
 	//Sort
-	rModelPart.Nodes().Sort();
-	rModelPart.Conditions().Sort();     
+	//rModelPart.Nodes().Sort();
+	//rModelPart.Conditions().Sort();     
       
 	//Unique
-	rModelPart.Nodes().Unique();
-	rModelPart.Conditions().Unique();
+	//rModelPart.Nodes().Unique();
+	//rModelPart.Conditions().Unique();
 
       }
       

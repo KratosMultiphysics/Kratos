@@ -247,6 +247,9 @@ namespace Kratos
 	      WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);				    
 	      WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
 
+	      if( rE1.size() == 0 || rE2.size() == 0 )
+		std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
+	      
 	      for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ie++)
 		{
 		  for(WeakPointerVector< Element >::iterator ne = rE2.begin(); ne!=rE2.end(); ne++)

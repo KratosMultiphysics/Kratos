@@ -126,11 +126,13 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         # prepare model conditions to recieve data
         transfer_parameters = self.MeshingParameters.GetTransferParameters()
         transfer_options = transfer_parameters.GetOptions()
-        
-        transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
-        transfer_parameters.SetOptions(transfer_options)
 
-        self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+            
+            transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
+            transfer_parameters.SetOptions(transfer_options)
+
+            self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part,self.mesh_id)
 
         # set flags for the transfer needed for the contact domain
         transfer_options.Set(KratosPfemBase.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)

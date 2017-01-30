@@ -220,7 +220,7 @@ namespace Kratos
 	(ic)->SetId(consecutive_index++);
 
       mrMainModelPart.Conditions().Sort();
-      mrMainModelPart.Conditions().Unique();
+      // mrMainModelPart.Conditions().Unique();
 
 
       KRATOS_CATCH(" ")
@@ -243,7 +243,7 @@ namespace Kratos
 	ie->SetId(consecutive_index++);
 
       mrMainModelPart.Elements().Sort();
-      mrMainModelPart.Elements().Unique();
+      // mrMainModelPart.Elements().Unique();
 
       KRATOS_CATCH(" ")
 
@@ -273,7 +273,7 @@ namespace Kratos
 	}
 
       mrMainModelPart.Nodes().Sort();
-      mrMainModelPart.Nodes().Unique();
+      // mrMainModelPart.Nodes().Unique();
 
       KRATOS_CATCH(" ")
 
@@ -559,14 +559,14 @@ namespace Kratos
       rModelPart.Conditions().swap(PreservedConditions);
       
       //Sort
-      rModelPart.Nodes().Sort();
-      rModelPart.Elements().Sort();
-      rModelPart.Conditions().Sort();     
+      // rModelPart.Nodes().Sort();
+      // rModelPart.Elements().Sort();
+      // rModelPart.Conditions().Sort();     
       
       //Unique
-      rModelPart.Nodes().Unique();
-      rModelPart.Elements().Unique();
-      rModelPart.Conditions().Unique();
+      // rModelPart.Nodes().Unique();
+      // rModelPart.Elements().Unique();
+      // rModelPart.Conditions().Unique();
       
       //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
       unsigned int consecutive_index = 1;
@@ -837,14 +837,14 @@ namespace Kratos
       
       
       //Sort
-      rComputingModelPart.Nodes().Sort();
-      rComputingModelPart.Elements().Sort();
-      rComputingModelPart.Conditions().Sort();     
+      // rComputingModelPart.Nodes().Sort();
+      // rComputingModelPart.Elements().Sort();
+      // rComputingModelPart.Conditions().Sort();     
       
       //Unique
-      rComputingModelPart.Nodes().Unique();
-      rComputingModelPart.Elements().Unique();
-      rComputingModelPart.Conditions().Unique();
+      // rComputingModelPart.Nodes().Unique();
+      // rComputingModelPart.Elements().Unique();
+      // rComputingModelPart.Conditions().Unique();
       
       if( EchoLevel > 0 )
 	std::cout<<"    [ SUBMODEL PART ["<<rComputingModelPart.Name()<<"] [Elems="<<rComputingModelPart.NumberOfElements()<<"|Nodes="<<rComputingModelPart.NumberOfNodes()<<"|Conds="<<rComputingModelPart.NumberOfConditions()<<"] ] "<<std::endl;
@@ -997,14 +997,14 @@ namespace Kratos
       
       
       //Sort
-      rModelPart.Nodes().Sort();
-      rModelPart.Elements().Sort();
-      rModelPart.Conditions().Sort();     
+      // rModelPart.Nodes().Sort();
+      // rModelPart.Elements().Sort();
+      // rModelPart.Conditions().Sort();     
       
       //Unique
-      rModelPart.Nodes().Unique();
-      rModelPart.Elements().Unique();
-      rModelPart.Conditions().Unique();
+      // rModelPart.Nodes().Unique();
+      // rModelPart.Elements().Unique();
+      // rModelPart.Conditions().Unique();
       
       //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
       unsigned int consecutive_index = 1;
