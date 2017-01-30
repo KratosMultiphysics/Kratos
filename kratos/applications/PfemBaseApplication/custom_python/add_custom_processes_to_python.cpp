@@ -21,12 +21,11 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //General model processes
-#include "custom_processes/construct_model_part_boundary_process.hpp"
 
 //Processes
 #include "custom_processes/elemental_neighbours_search_process.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
-#include "custom_processes/build_mesh_boundary_process.hpp"
+#include "custom_processes/build_model_part_boundary_process.hpp"
 #include "custom_processes/model_volume_calculation_process.hpp"
 
 //MeshModeler initialization and finalization processes
@@ -44,7 +43,7 @@
 #include "custom_processes/generate_new_nodes_process.hpp"
 #include "custom_processes/select_mesh_elements_process.hpp"
 #include "custom_processes/build_mesh_elements_process.hpp"
-#include "custom_processes/reconstruct_mesh_boundary_process.hpp"
+#include "custom_processes/build_mesh_boundary_process.hpp"
 
 
 namespace Kratos
@@ -95,17 +94,12 @@ namespace Kratos
 
       //***************BOUNDARY**************//
 
-      class_<ConstructModelPartBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<BuildModelPartBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ConstructModelPartBoundary", init<ModelPart&, std::string, int>()
+	 "BuildModelPartBoundary", init<ModelPart&, std::string, int>()
 	 )
 	;
 
-      class_<BuildMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "BuildMeshBoundary", init<ModelPart&, int, int>()
-	 )
-	;
 
       //**********MESH MODELLER PROCESS*********//
 
@@ -160,9 +154,9 @@ namespace Kratos
 	;
 
 
-      class_<ReconstructMeshBoundaryProcess, bases<BuildMeshBoundaryProcess>, boost::noncopyable >
+      class_<BuildMeshBoundaryProcess, bases<BuildModelPartBoundaryProcess>, boost::noncopyable >
 	(
-	 "ReconstructMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
+	 "BuildMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 

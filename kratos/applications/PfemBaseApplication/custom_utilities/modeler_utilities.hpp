@@ -420,7 +420,7 @@ public:
       }
       
       void EchoStats(){
-	std::cout<<"   RefineBodyInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
+	std::cout<<"   BodyInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
       }
       
     };
@@ -446,8 +446,8 @@ public:
       }
       
       void EchoStats(){
-	std::cout<<"   RefineBoundaryInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
-	std::cout<<"                      [in_contact:"<<in_contact<<", in_concave_boundary:"<<in_concave_boundary<<", in_convex_boundary:"<<in_convex_boundary<<"]"<<std::endl;
+	std::cout<<"   BoundaryInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
+	std::cout<<"                [in_contact:"<<in_contact<<", in_concave_boundary:"<<in_concave_boundary<<", in_convex_boundary:"<<in_convex_boundary<<"]"<<std::endl;
       }
       
     };

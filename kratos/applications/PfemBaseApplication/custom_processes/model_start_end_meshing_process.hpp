@@ -18,7 +18,7 @@
 // Project includes
 #include "custom_utilities/modeler_utilities.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
-#include "custom_processes/construct_model_part_boundary_process.hpp"
+#include "custom_processes/build_model_part_boundary_process.hpp"
 
 #include "pfem_base_application_variables.h"
 
@@ -344,9 +344,7 @@ namespace Kratos
 	//FindNodalH.Execute();
 
 	//CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
-	//BuildMeshBoundaryProcess BuildBoundaryProcess(mrMainModelPart);
-	//BuildBoundaryProcess.SearchConditionMasters();
-	ConstructModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
+	BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
 	BuildBoundaryProcess.SearchConditionMasters(mrMainModelPart);
 
 	//BOUNDARY NORMALS SEARCH and SHRINKAGE FACTOR
@@ -506,18 +504,23 @@ namespace Kratos
 				
 		}
 	    }
-	    //i_mp->Nodes().Sort();  
+	    //i_mp->Nodes().Sort();
+	    
+	    if( i_mp->IsNot(CONTACT)  ){
 
-	    //add domain conditions
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	      {
-		if( i_cond->IsNot(TO_ERASE) ){
-		  i_cond->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
-		  PreservedConditions.push_back(*(i_cond.base()));
-		  PreservedConditions.back().SetId(condId);
-		  condId+=1;	
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+		{
+		  
+		  if( i_cond->IsNot(TO_ERASE) ){
+		    i_cond->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		    PreservedConditions.push_back(*(i_cond.base()));
+		    PreservedConditions.back().SetId(condId);
+		    condId+=1;	
+		  }
+
 		}
-	      }
+	    }
+
 
 	  }
 	}
@@ -552,7 +555,7 @@ namespace Kratos
 	    condId+=1;
 	  }
 	}
-      
+     
       rModelPart.Conditions().swap(PreservedConditions);
       
       //Sort
@@ -746,8 +749,8 @@ namespace Kratos
 
     void CleanModelPartConditions(ModelPart& rModelPart)
     {
+      
       KRATOS_TRY
-
 	
       //clean old conditions (TO_ERASE) and add new conditions (NEW_ENTITY)
       // ModelPart::ConditionsContainerType PreservedConditions;
@@ -794,23 +797,45 @@ namespace Kratos
 	{
 	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ 
 
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
-	      {
-		(rComputingModelPart.Nodes()).push_back(*(i_node.base()));
-	      }
+	    if( i_mp->IsNot(CONTACT)  ){
+	      
+	      for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+		{
+		  (rComputingModelPart.Nodes()).push_back(*(i_node.base()));
+		}
 
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	      {
-		(rComputingModelPart.Conditions()).push_back(*(i_cond.base()));
-	      }
 
-	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
-	      {
-		(rComputingModelPart.Elements()).push_back(*(i_elem.base()));	
-	      }
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+		{
+		  (rComputingModelPart.Conditions()).push_back(*(i_cond.base()));
+		}
+
+	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+		{
+		  (rComputingModelPart.Elements()).push_back(*(i_elem.base()));	
+		}
+	      
+	    }
+	   
 	  }
 	}
 
+
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( i_mp->Is(CONTACT)  ){
+	      
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+		if( i_cond->Is(CONTACT) )
+		  (rComputingModelPart.Conditions()).push_back(*(i_cond.base()));
+	      }
+	      
+	  }
+	   
+	}
+      
+      
       //Sort
       rComputingModelPart.Nodes().Sort();
       rComputingModelPart.Elements().Sort();

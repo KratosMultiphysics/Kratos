@@ -388,10 +388,13 @@ namespace Kratos
 	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
 	    ModelPartName = i_mp->Name();
 	}
+
+
+      std::cout<<" MAIN Conditions "<<mrMainModelPart.NumberOfConditions()<<std::endl;
       
       AddContactConditions(ContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
 
-      //Add contact conditions to  main domain
+      //Add contact conditions to  main domain (if added in computing domaing with AddCondition, are automatically added to the main domain, else use push_back)
       AddContactConditions(ContactModelPart, mrMainModelPart);
 
       KRATOS_CATCH( "" )
@@ -410,7 +413,7 @@ namespace Kratos
       //adding contact conditions
       //
 	
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
       }
 
@@ -422,7 +425,7 @@ namespace Kratos
 	  
 	}
       
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" / NEW:"<<rDestinationModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
             
@@ -471,7 +474,7 @@ namespace Kratos
       //clearing contact conditions
       //
 	
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
 
@@ -490,7 +493,7 @@ namespace Kratos
       rModelPart.Conditions().Sort();
       rModelPart.Conditions().Unique();
 
-      if( mEchoLevel > 1 ){
+      if( mEchoLevel >= 1 ){
 	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
 

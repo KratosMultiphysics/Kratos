@@ -83,7 +83,6 @@ namespace Kratos
 	mrRemesh(rRemeshingParameters),
 	mrContactModelParts(rContactModelParts)
     { 
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
       mMasterConditionsInitialized = false;
     }
@@ -225,7 +224,6 @@ namespace Kratos
 
     std::vector<std::string>& mrContactModelParts;
 
-    int mMeshId;
     int mEchoLevel;
 
     bool mMasterConditionsInitialized;
@@ -249,27 +247,25 @@ namespace Kratos
 	{
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
 
-	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
+	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	    {
 	      if( i_node->Is(BOUNDARY) )
 		count_nodes+=1;
 	    }
 
-	  for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin(mMeshId) ; i_cond != i_mp.ConditionsEnd(mMeshId) ; i_cond++)
+	  for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin() ; i_cond != i_mp.ConditionsEnd() ; i_cond++)
 	    {
 	      if( i_cond->Is(BOUNDARY) && i_cond->IsNot(CONTACT) )
 		count_conditions+=1;
 	    }
 	}
 
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId); i_cond!= rModelPart.ConditionsEnd(mMeshId); i_cond++)
-	{
-	  if(i_cond->Is(CONTACT))
-	    count_conditions+=1;
-	}
       
       bool build_is_needed = false;
       if( count_nodes != rModelPart.Nodes().size() || count_conditions != rModelPart.Conditions().size() )
+	build_is_needed = true;
+
+      if( rModelPart.GetProcessInfo()[MESHING_STEP_PERFORMED] )
 	build_is_needed = true;
 
       if( build_is_needed ){
@@ -289,16 +285,16 @@ namespace Kratos
 	  {
 	    ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
 
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	      {
 		if( i_node->Is(BOUNDARY) )
-		  rModelPart.AddNode(*(i_node.base()), mMeshId);
+		  rModelPart.AddNode(*(i_node.base()));
 	      }
 
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin(mMeshId) ; i_cond != i_mp.ConditionsEnd(mMeshId) ; i_cond++)
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin() ; i_cond != i_mp.ConditionsEnd() ; i_cond++)
 	      {
 		if( i_cond->Is(BOUNDARY) && i_cond->IsNot(CONTACT) )
-		  rModelPart.AddCondition(*(i_cond.base()), mMeshId);
+		  rModelPart.AddCondition(*(i_cond.base()));
 	      }
 	  }
 
@@ -306,7 +302,7 @@ namespace Kratos
 	for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
 	  {
 	    if(i_cond->Is(CONTACT)){
-	      rModelPart.AddCondition(*(i_cond.base()), mMeshId);
+	      rModelPart.Conditions().push_back(*(i_cond.base()));
 	    }
 	  }
       
@@ -323,7 +319,7 @@ namespace Kratos
       
       if( mEchoLevel > 0 )
 	std::cout<<"   CONTACT MODEL_PART: (NODES:"<<rModelPart.NumberOfNodes()<<" CONDITIONS:"<<rModelPart.NumberOfConditions()<<") ]; "<<std::endl;
-
+      
       KRATOS_CATCH(" ")
 
     }
@@ -382,7 +378,7 @@ namespace Kratos
 	  }
 
 	  bool hole_found = false;
-	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
+	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	    {
 	      if( i_node->IsNot(BOUNDARY) ){
 		Point[0] = i_node->X();	
@@ -399,7 +395,7 @@ namespace Kratos
 	    }
 
 	  if( !hole_found ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	    {
 	      if( i_node->Is(BOUNDARY) ){
 

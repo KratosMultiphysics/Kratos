@@ -433,26 +433,29 @@ namespace Kratos
 
       int facecounter=0;
       int Id = 0;
-      for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(mMeshId);
-	  iii != rModelPart.ElementsEnd(mMeshId); iii++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(mMeshId);
+	  ie != rModelPart.ElementsEnd(mMeshId); ie++)
 	{
 	  
-	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
-	    {
-	      if( mrRemesh.PreservedElements[Id] == -1)
-		Id++;
-	      else
-		break;
-	    }
+	  // for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
+	  //   {
+	  //     if( mrRemesh.PreservedElements[Id] == -1)
+	  // 	Id++;
+	  //     else
+	  // 	break;
+	  //   }
+
+	  Id = ie->Id()-1;
 	  
-	  int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	  (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
-	  WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+	  unsigned int number_of_faces = ie->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
+	  WeakPointerVector< Element >& neighb = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 	  int index = 0;
-	  for(int i = 0; i<number_of_faces; i++)
+	  for(unsigned int iface = 0; iface<number_of_faces; iface++)
 	    {
-	      index = OutElementNeighbourList[Id*nds+i];  //mrRemesh.NeighbourList[Id][i];
+
+	      index = OutElementNeighbourList[Id*nds+iface];
 			
 	      if(index > 0)
 		{
@@ -464,17 +467,18 @@ namespace Kratos
 
 	      if(index > 0)
 		{
-		  neighb(i) = *((element_begin + index -1 ).base());
+		  //neighb(iface) = (mrModelPart.Elements()).find( elements_begin->Id() + index -1 ); 
+		  neighb(iface) = *((element_begin + index -1 ).base());
 		}
 	      else
 		{
-		  //neighb(i) = Element::WeakPointer();
-		  neighb(i) = *(iii.base());
+		  //neighb(iface) = Element::WeakPointer();
+		  neighb(iface) = *(ie.base());
 		  facecounter++;
 		}
 	    }
 
-	  Id++;
+	  //Id++;
 	}
 	
       if( mEchoLevel > 0 ){
