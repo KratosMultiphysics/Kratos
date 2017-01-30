@@ -26,10 +26,11 @@ class DerivativeRecoveryStrategy:
         self.gradient_type = pp.CFD_DEM.gradient_calculation_type
         self.mat_deriv_type = pp.CFD_DEM.material_acceleration_calculation_type
         self.laplacian_type = pp.CFD_DEM.laplacian_calculation_type
-
+        self.vorticity_type = pp.CFD_DEM.vorticity_calculation_type
         self.gradient_tool = self.GetGradientTool()
         self.mat_deriv_tool = self.GetMatDerivTool()
         self.laplacian_tool = self.GetLaplacianTool()
+        self.vorticity_tool = self.GetVorticityTool()
 
         if pp.CFD_DEM.fluid_already_calculated:
             self.pre_computed_derivatives = pp.CFD_DEM.load_derivatives
@@ -38,17 +39,17 @@ class DerivativeRecoveryStrategy:
 
         if self.mat_deriv_type == 3 or self.mat_deriv_type == 4:
             self.do_recover_acceleration = True
-            self.acc_model_part = ModelPart("PostAccelerationFluidPart")
+            self.acc_model_part = ModelPart("PostGradientFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeMaterialDerivativeSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
         elif self.mat_deriv_type == 5:
             self.do_recover_gradient = True
-            self.acc_model_part = ModelPart("PostAccelerationFluidPart")
+            self.acc_model_part = ModelPart("PostGradientFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeComponentGradientSimplex3D", "ComputeLaplacianSimplexCondition3D")
 
         elif self.mat_deriv_type == 6:
             self.do_recover_gradient = True
-            self.acc_model_part = ModelPart("PostAccelerationFluidPart")
+            self.acc_model_part = ModelPart("PostGradientFluidPart")
             model_part_cloner.GenerateModelPart(fluid_model_part, self.acc_model_part, "ComputeGradientFortin20123D", "ComputeLaplacianSimplexCondition3D")
 
         if self.laplacian_type == 3 or self.laplacian_type == 4:
@@ -73,52 +74,79 @@ class DerivativeRecoveryStrategy:
         self.CreateCPluPlusStrategies(pp.CFD_DEM.recovery_echo_level)
 
     def GetGradientTool(self):
-        if self.gradient_type == 1:
+        if self.gradient_type == 1: # NOT WORKING YET WITH VECTORS
             if 'standard_recoverer' not in sys.modules:
                 from . import standard_recoverer
-                return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.gradient_type == 5:
+            if 'L2_projection_recoverer' not in sys.modules:
+                from . import L2_projection_recoverer
+            return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:
             if 'recoverer' not in sys.modules:
                 from . import recoverer
-                return recoverer.GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
 
     def GetMatDerivTool(self):
         if self.mat_deriv_type == 1:
             if 'standard_recoverer' not in sys.modules:
                 from . import standard_recoverer
-                return standard_recoverer.StandardMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-        if self.mat_deriv_type == 2:
+            return standard_recoverer.StandardMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.mat_deriv_type == 2:
             if 'zhang_guo_recoverer' not in sys.modules:
                 from . import zhang_guo_recoverer
-                if self.laplacian_type == 2:
-                    return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-                else:
-                    return zhang_guo_recoverer.ZhangGuoMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            if self.laplacian_type == 2:
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            else:
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.mat_deriv_type == 4:
+            if 'L2_projection_recoverer' not in sys.modules:
+                from . import L2_projection_recoverer
+            return L2_projection_recoverer.L2ProjectionDirectMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.mat_deriv_type == 5:
+            if 'L2_projection_recoverer' not in sys.modules:
+                from . import L2_projection_recoverer
+            return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:
             if 'recoverer' not in sys.modules:
                 from . import recoverer
-                return recoverer.GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
 
     def GetLaplacianTool(self):
         if self.laplacian_type == 1:
             if 'standard_recoverer' not in sys.modules:
                 from . import standard_recoverer
-                return standard_recoverer.StandardLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-        if self.laplacian_type == 2:
+            return standard_recoverer.StandardLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.laplacian_type == 2 or self.laplacian_type == 5:
             if 'zhang_guo_recoverer' not in sys.modules:
                 from . import zhang_guo_recoverer
-                if self.mat_deriv_type == 2:
-                    return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-                else:
-                    return zhang_guo_recoverer.ZhangGuoLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            if self.mat_deriv_type == 2:
+                return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            else:
+                return zhang_guo_recoverer.ZhangGuoLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
 
             if 'zhang_guo_recoverer' not in sys.modules:
                 from . import zhang_guo_recoverer
-                return zhang_guo_recoverer.ZhangGuoLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return zhang_guo_recoverer.ZhangGuoLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        elif self.laplacian_type == 4:
+            if 'L2_projection_recoverer' not in sys.modules:
+                from . import L2_projection_recoverer
+            return L2_projection_recoverer.L2ProjectionLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:
             if 'recoverer' not in sys.modules:
                 from . import recoverer
-                return recoverer.LaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return recoverer.LaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+
+    def GetVorticityTool(self):
+        if self.vorticity_type == 0 or self.vorticity_type == 5: # NOT WORKING YET WITH VECTORS
+            if 'recoverer' not in sys.modules:
+                from . import recoverer
+            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        else:
+            if 'recoverer' not in sys.modules:
+                from . import recoverer
+            return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+
 
     def AddDofs(self, model_part, config = None):
         if self.do_recover_acceleration:
@@ -232,50 +260,52 @@ class DerivativeRecoveryStrategy:
                 self.custom_functions_tool.CalculatePressureGradient(self.fluid_model_part)
             if self.pp.CFD_DEM.gradient_calculation_type == 2:
                 self.derivative_recovery_tool.RecoverSuperconvergentGradient(self.fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
-            if self.mat_deriv_type == 2 and self.laplacian_type == 2:
-                self.derivative_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)
-            else:
-                self.laplacian_tool.RecoverVectorLaplacian(VELOCITY, VELOCITY_LAPLACIAN)
-                if self.laplacian_type == 2:
-                    self.derivative_recovery_tool.RecoverSuperconvergentLaplacian(self.fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
-                self.mat_deriv_tool.RecoverMaterialAcceleration()
-                if self.mat_deriv_type == 2:
-                    self.derivative_recovery_tool.RecoverSuperconvergentMatDeriv(self.fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
-                elif self.mat_deriv_type == 3 or self.mat_deriv_type == 4 or self.laplacian_type == 4:
-                    self.Solve()
+            if self.store_full_gradient:
+                self.gradient_tool.RecoverGradientOfVelocity()
+                if self.pp.CFD_DEM.lift_force_type:
+                    self.derivative_recovery_tool.CalculateVorticityFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
+                self.vorticity_tool.RecoverVorticityFromGradient()
+
+            if not self.mat_deriv_type == 2 or not self.laplacian_type == 2:
+                if self.mat_deriv_type == 3 or self.mat_deriv_type == 4 or self.laplacian_type == 4:
+                    pass
+                    # self.Solve()
                 if self.mat_deriv_type == 5 or self.mat_deriv_type == 6:
                     print("\nSolving for the fluid acceleration...")
                     sys.stdout.flush()
                     if self.store_full_gradient:
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
-                        self.Solve(0)
-                        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_Z_GRADIENT, VELOCITY_X_GRADIENT)
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
-                        self.Solve(1)
-                        self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_Z_GRADIENT, VELOCITY_Y_GRADIENT)
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
-                        self.Solve(2) # and there is no need to copy anything
-                        self.derivative_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
-                        if self.pp.CFD_DEM.lift_force_type:
-                            self.derivative_recovery_tool.CalculateVorticityFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
+                        pass
+                    #     self.gradient_tool.RecoverGradientOfVelocity()
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
+                        # self.Solve(0)
+                        # self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_Z_GRADIENT, VELOCITY_X_GRADIENT)
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
+                        # self.Solve(1)
+                        # self.custom_functions_tool.CopyValuesFromFirstToSecond(self.fluid_model_part, VELOCITY_Z_GRADIENT, VELOCITY_Y_GRADIENT)
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
+                        # self.Solve(2) # and there is no need to copy anything
+                        # self.derivative_recovery_tool.CalculateVectorMaterialDerivativeFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+                        # if self.pp.CFD_DEM.lift_force_type:
+                        #     self.derivative_recovery_tool.CalculateVorticityFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
                     else:
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
-                        self.Solve(0)
-                        self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
-                        if self.pp.CFD_DEM.lift_force_type:
-                            self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
-
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
-                        self.Solve(1)
-                        self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
-                        if self.pp.CFD_DEM.lift_force_type:
-                            self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
-
-                        self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
-                        self.Solve(2)
-                        self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
-                        if self.pp.CFD_DEM.lift_force_type:
-                            self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
+                        pass
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 0
+                        # self.Solve(0)
+                        # self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+                        # if self.pp.CFD_DEM.lift_force_type:
+                        #     self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
+                        #
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 1
+                        # self.Solve(1)
+                        # self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+                        # if self.pp.CFD_DEM.lift_force_type:
+                        #     self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
+                        #
+                        # self.fluid_model_part.ProcessInfo[CURRENT_COMPONENT] = 2
+                        # self.Solve(2)
+                        # self.derivative_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
+                        # if self.pp.CFD_DEM.lift_force_type:
+                        #     self.derivative_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.fluid_model_part, VELOCITY_Z_GRADIENT, VORTICITY)
                     print("\nFinished solving for the fluid acceleration.\n")
                     sys.stdout.flush()
 
