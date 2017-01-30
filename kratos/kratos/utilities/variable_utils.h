@@ -431,33 +431,24 @@ public:
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value;
-        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            sum_value[j] = 0.0;
-        // OpenMPUtils::PartitionVector partition;
-        // int number_of_threads = OpenMPUtils::GetNumThreads();
-        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfNodes()), number_of_threads, partition);
+        array_1d<double, 3> sum_value = ZeroVector(3);
 
         #pragma omp parallel
         {
-            // int thread_id = OpenMPUtils::ThisThread();
-            array_1d<double, 3> private_sum_value;
-            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
-                private_sum_value[j] = 0.0;
-            #pragma omp barrier
+            array_1d<double, 3> private_sum_value = ZeroVector(3);
 
             #pragma omp for
             for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
-            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
             {
                 ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
                 private_sum_value += itNode->GetValue(rVar);
             }
 
-            #pragma omp critical
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            {
+                #pragma omp atomic
                 sum_value[j] += private_sum_value[j];
-
+            }
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -501,22 +492,12 @@ public:
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value;
-        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            sum_value[j] = 0.0;
-        // OpenMPUtils::PartitionVector partition;
-        // int number_of_threads = OpenMPUtils::GetNumThreads();
-        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfNodes()), number_of_threads, partition);
+        array_1d<double, 3> sum_value = ZeroVector(3);
 
         #pragma omp parallel
         {
-            // int thread_id = OpenMPUtils::ThisThread();
-            array_1d<double, 3> private_sum_value;
-            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
-                private_sum_value[j] = 0.0;
-            #pragma omp barrier
-
-            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
+            array_1d<double, 3> private_sum_value = ZeroVector(3);
+            
             #pragma omp for
             for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
             {
@@ -524,9 +505,11 @@ public:
                 private_sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
             }
 
-            #pragma omp critical
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            {
+                #pragma omp atomic
                 sum_value[j] += private_sum_value[j];
+            }
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -570,16 +553,29 @@ public:
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value;
-        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            sum_value[j] = 0.0;
+        array_1d<double, 3> sum_value = ZeroVector(3);
+
+        // OpenMPUtils::PartitionVector partition;
+        // const int number_of_threads = OpenMPUtils::GetNumThreads();
+        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.Conditions().size()), number_of_threads, partition);
+        // std::vector<array_1d<double,3> > aux(number_of_threads,ZeroVector(3));
+        //
+        // #pragma omp parallel for
+        // for(int i = 0; i < number_of_threads; ++i)
+        // {
+        //     for (int k = partition[i]; k < partition[i+1]; ++k)
+        //     {
+        //         ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
+        //         noalias(aux[i]) += itCondition->GetValue(rVar);
+        //     }
+        // }
+        //
+        // for(int i = 0; i < number_of_threads; ++i)
+        //     noalias(sum_value) += aux[i];
 
         #pragma omp parallel
         {
-            array_1d<double, 3> private_sum_value;
-            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
-                private_sum_value[j] = 0.0;
-            #pragma omp barrier
+            array_1d<double, 3> private_sum_value = ZeroVector(3);
 
             #pragma omp for
             for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
@@ -588,9 +584,11 @@ public:
                 private_sum_value += itCondition->GetValue(rVar);
             }
 
-            #pragma omp critical
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            {
+                #pragma omp atomic
                 sum_value[j] += private_sum_value[j];
+            }
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -633,33 +631,24 @@ public:
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value;
-        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
-            sum_value[j] = 0.0;
-
-        // OpenMPUtils::PartitionVector partition;
-        // int number_of_threads = OpenMPUtils::GetNumThreads();
-        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfElements()), number_of_threads, partition);
+        array_1d<double, 3> sum_value = ZeroVector(3);
 
         #pragma omp parallel
         {
-            // int thread_id = OpenMPUtils::ThisThread();
-            array_1d<double, 3> private_sum_value;
-            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
-                private_sum_value[j] = 0.0;
-            #pragma omp barrier
+            array_1d<double, 3> private_sum_value = ZeroVector(3);
 
             #pragma omp for
-            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
             for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
             {
                 ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
                 private_sum_value += itElement->GetValue(rVar);
             }
 
-            #pragma omp critical
             for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            {
+                #pragma omp atomic
                 sum_value[j] += private_sum_value[j];
+            }
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
