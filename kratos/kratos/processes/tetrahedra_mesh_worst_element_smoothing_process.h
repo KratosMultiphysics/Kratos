@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 #if !defined(KRATOS_TETRAHEDRA_MESH_WORST_ELEMENT_SMOOTHING_PROCESS_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_MESH_WORST_ELEMENT_SMOOTHING_PROCESS_H_INCLUDED
 
@@ -18,10 +18,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -38,7 +38,7 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
@@ -47,7 +47,7 @@ namespace Kratos
     public:
       ///@name Type Definitions
       ///@{
-      
+
       /// Pointer definition of TetrahedraMeshWorstElementSmoothingProcess
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraMeshWorstElementSmoothingProcess);
 
@@ -56,158 +56,158 @@ namespace Kratos
 	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
 
 	  typedef std::vector<Point<3> > PointsVectorType;
-  
-	  ///@}
-	  ///@name Flags 
-	  ///@{ 
 
 	  ///@}
-	  ///@name Life Cycle 
-	  ///@{ 
+	  ///@name Flags
+	  ///@{
+
+	  ///@}
+	  ///@name Life Cycle
+	  ///@{
 
 	  /// Constructor takes the modelpart to apply smoothing to its mesh 0.
       TetrahedraMeshWorstElementSmoothingProcess(ModelPart& rModelPart, double AptQuality = 0.5, std::size_t IterationsNumber=10);
 
       /// Destructor.
       virtual ~TetrahedraMeshWorstElementSmoothingProcess();
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
-      
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
-      
-            
-      ///@}      
+      virtual std::string Info() const override;
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Protected static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
       ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Protected Operations
-      ///@{ 
+      ///@{
 
 		void FindOptimumPositionsAndWeights(NodeType& rNode, PointsVectorType& rOptimumPoints, Vector& rWeights) override;
-        
+
 		void CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point<3>& rOptimumPoint);
 
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
       ///@}
-      
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
       ///@{
 
 
-  	  ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+  	  ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       TetrahedraMeshWorstElementSmoothingProcess& operator=(TetrahedraMeshWorstElementSmoothingProcess const& rOther);
 
       /// Copy constructor.
       TetrahedraMeshWorstElementSmoothingProcess(TetrahedraMeshWorstElementSmoothingProcess const& rOther);
 
-        
-      ///@}    
-        
-    }; // Class TetrahedraMeshWorstElementSmoothingProcess 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+      ///@}
+
+    }; // Class TetrahedraMeshWorstElementSmoothingProcess
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
+  inline std::istream& operator >> (std::istream& rIStream,
 				    TetrahedraMeshWorstElementSmoothingProcess& rThis);
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+  inline std::ostream& operator << (std::ostream& rOStream,
 				    const TetrahedraMeshWorstElementSmoothingProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -222,6 +222,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRA_MESH_WORST_ELEMENT_SMOOTHING_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_TETRAHEDRA_MESH_WORST_ELEMENT_SMOOTHING_PROCESS_H_INCLUDED  defined
