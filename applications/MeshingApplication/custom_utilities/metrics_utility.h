@@ -29,9 +29,82 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    typedef ModelPart::NodesContainerType                        NodesArrayType;
+    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+    typedef Node <3>                                                   NodeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
+    
+    enum Interpolation {Constant = 0, Linear = 1, Exponential = 2};
+    
+    /**
+     * This converts the interpolation string to an enum
+     * @param str: The string
+     * @param Interpolation: The equivalent enum
+     */
+        
+    Interpolation ConvertInter(const std::string& str)
+    {
+        if(str == "Constant") 
+        {
+            return Constant;
+        }
+        else if(str == "Linear") 
+        {
+            return Linear;
+        }
+        else if(str == "Exponential") 
+        {
+            return Exponential;
+        }
+        else
+        {
+            return Linear;
+        }
+    }
+        
+    /**
+     * This calculates the anisotropic ratio
+     * @param distance: Distance parameter
+     */
+    
+    double CalculateAnisotropicRatio(
+        const double& distance,
+        const double& rAnisRatio,
+        const double& rBoundLayer,
+        const Interpolation& rInterpolation
+        )
+    {
+        const double tolerance = 1.0e-12;
+        double ratio = 1.0; // NOTE: Isotropic mesh
+        if (rAnisRatio < 1.0)
+        {                           
+            if (std::abs(distance) <= rBoundLayer)
+            {
+                if (rInterpolation == Constant)
+                {
+                    ratio = rAnisRatio;
+                }
+                else if (rInterpolation == Linear)
+                {
+                    ratio = rAnisRatio + (std::abs(distance)/rBoundLayer) * (1.0 - rAnisRatio);
+                }
+                else if (rInterpolation == Exponential)
+                {
+                    ratio = - std::log(std::abs(distance)/rBoundLayer) * rAnisRatio + tolerance;
+                    if (ratio > 1.0)
+                    {
+                        ratio = 1.0;
+                    }
+                }
+            }
+        }
+        
+        return ratio;
+    }
     
 ///@}
 ///@name  Functions
@@ -80,7 +153,7 @@ public:
         :mMinSize(rMinSize),
         mAnisRatio(rAnisRatio),
         mBoundLayer(rBoundLayer),
-        mInterpolation(rInterpolation)
+        mInterpolation(ConvertInter(rInterpolation))
     {       
         std::cout << "Initializing metric utility" << std::endl;
     }
@@ -130,7 +203,7 @@ public:
                 element_size = mMinSize;
             }
             
-            const double ratio = CalculateAnisotropicRatio(distance);
+            const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
             double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
@@ -173,10 +246,7 @@ public:
             }
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
+
     /**
      * We initialize the metrics of the MMG sol using the Hessian metric matrix approach
      * @param rMaxSize: The maximal size of the elements
@@ -218,7 +288,7 @@ public:
                 element_size = mMinSize;
             }
             
-            const double ratio = CalculateAnisotropicRatio(distance);
+            const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
             double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
@@ -279,10 +349,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mMinSize;            // The minimal size of the elements
-    double mAnisRatio;          // The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;         // The boundary layer limit distance
-    std::string mInterpolation; // The interpolation type
+    double mMinSize;              // The minimal size of the elements
+    double mAnisRatio;            // The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;           // The boundary layer limit distance
+    Interpolation mInterpolation; // The interpolation type
     
     ///@}
     ///@name Protected Operators
@@ -304,51 +374,8 @@ protected:
         const array_1d<double, 3>& gradient_value,
         const double& ratio,
         const double& element_size
-    )
-    {
-        Vector metric;
-        metric.resize(3 * (TDim - 1), false);
-        
-        const double coeff0 = 1.0/(element_size * element_size);
-        
-        if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
-        {
-            const double coeff1 = coeff0/(ratio * ratio);
-            
-            const double v0v0 = gradient_value[0]*gradient_value[0];
-            const double v0v1 = gradient_value[0]*gradient_value[1];
-            const double v1v1 = gradient_value[1]*gradient_value[1];
-            
-            metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
-            metric[1] = coeff0*(    - v0v1) + coeff1*v0v1;  
-            metric[2] = coeff0*(1.0 - v1v1) + coeff1*v1v1;
-
-        }
-        else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
-        {
-            const double coeff1 = coeff0/(ratio * ratio);
-            
-            const double v0v0 = gradient_value[0]*gradient_value[0];
-            const double v0v1 = gradient_value[0]*gradient_value[1];
-            const double v0v2 = gradient_value[0]*gradient_value[2];
-            const double v1v1 = gradient_value[1]*gradient_value[1];
-            const double v1v2 = gradient_value[1]*gradient_value[2];
-            const double v2v2 = gradient_value[2]*gradient_value[2];
-            
-            metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
-            metric[1] = coeff0*(    - v0v1) + coeff1*v0v1; 
-            metric[2] = coeff0*(    - v0v2) + coeff1*v0v2; 
-            metric[3] = coeff0*(1.0 - v1v1) + coeff1*v1v1; 
-            metric[4] = coeff0*(    - v1v2) + coeff1*v1v2; 
-            metric[5] = coeff0*(1.0 - v2v2) + coeff1*v2v2;
-        }
-        
-        return metric;
-    }
+    );
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-
     /**
      * This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param hessian: The hessian tensor condensed already computed
@@ -417,9 +444,6 @@ protected:
         return metric;
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * This calculates the auxiliar hessian needed for the metric
      * @param rThisModelPart: The original model part where we compute the hessian
@@ -458,81 +482,70 @@ protected:
             auto itElem = pElement.begin() + i;
             
             Element::GeometryType& geom = itElem->GetGeometry();
-            const unsigned int geom_size = geom.size();
 
             double Volume;
-            if (TDim == 2)
+            if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
             {
-                if (geom_size == 3)
+                boost::numeric::ublas::bounded_matrix<double,3, 2> DN_DX;
+                array_1d<double, 3> N;
+    
+                GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+                
+                boost::numeric::ublas::bounded_matrix<double,3, 2> values;
+                for(unsigned int i_node = 0; i_node < 3; i_node++)
                 {
-                    boost::numeric::ublas::bounded_matrix<double,3, 2> DN_DX;
-                    array_1d<double, 3> N;
-       
-                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-                    
-                    boost::numeric::ublas::bounded_matrix<double,3, 2> values;
-                    for(unsigned int i_node = 0; i_node < 3; i_node++)
+                    const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
+                    values(i_node, 0) = aux_grad[0];
+                    values(i_node, 1) = aux_grad[1];
+                }
+                
+                const boost::numeric::ublas::bounded_matrix<double,2, 2> Hessian = prod(trans(DN_DX), values); 
+                const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
+                
+                for(unsigned int i_node = 0; i_node < geom.size(); i_node++)
+                {
+                    for(unsigned int k = 0; k < 3; k++)
                     {
-                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                        values(i_node, 0) = aux_grad[0];
-                        values(i_node, 1) = aux_grad[1];
-                    }
-                    
-                    const boost::numeric::ublas::bounded_matrix<double,2, 2> Hessian = prod(trans(DN_DX), values); 
-                    const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
-                    
-                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
-                    {
-                        for(unsigned int k = 0; k < 3; k++)
-                        {
-                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
-                            
-                            #pragma omp atomic
-                            val += N[i_node] * Volume * HessianCond[k];
-                        }
+                        double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                        
+                        #pragma omp atomic
+                        val += N[i_node] * Volume * HessianCond[k];
                     }
                 }
-                else
+            }
+            else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+            {
+                boost::numeric::ublas::bounded_matrix<double,4,  3> DN_DX;
+                array_1d<double, 4> N;
+                
+                GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+                
+                boost::numeric::ublas::bounded_matrix<double,4, 3> values;
+                for(unsigned int i_node = 0; i_node < 4; i_node++)
                 {
-                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TRIANGLES RIGHT NOW IN THE GEOMETRY UTILS: ", geom_size );
+                    const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
+                    values(i_node, 0) = aux_grad[0];
+                    values(i_node, 1) = aux_grad[1];
+                    values(i_node, 2) = aux_grad[2];
+                }
+                
+                const boost::numeric::ublas::bounded_matrix<double, 3, 3> Hessian = prod(trans(DN_DX), values); 
+                const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
+                
+                for(unsigned int i_node = 0; i_node < geom.size(); i_node++)
+                {
+                    for(unsigned int k = 0; k < 6; k++)
+                    {
+                        double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                        
+                        #pragma omp atomic
+                        val += N[i_node] * Volume * HessianCond[k];
+                    }
                 }
             }
             else
             {
-                if (geom_size == 4)
-                {
-                    boost::numeric::ublas::bounded_matrix<double,4,  3> DN_DX;
-                    array_1d<double, 4> N;
-                    
-                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-                    
-                    boost::numeric::ublas::bounded_matrix<double,4, 3> values;
-                    for(unsigned int i_node = 0; i_node < 4; i_node++)
-                    {
-                        const array_1d<double, 3> aux_grad = geom[i_node].FastGetSolutionStepValue(AUXILIAR_GRADIENT);
-                        values(i_node, 0) = aux_grad[0];
-                        values(i_node, 1) = aux_grad[1];
-                        values(i_node, 2) = aux_grad[2];
-                    }
-                    
-                    const boost::numeric::ublas::bounded_matrix<double, 3, 3> Hessian = prod(trans(DN_DX), values); 
-                    const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
-                    
-                    for(unsigned int i_node = 0; i_node < geom_size; i_node++)
-                    {
-                        for(unsigned int k = 0; k < 6; k++)
-                        {
-                            double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
-                            
-                            #pragma omp atomic
-                            val += N[i_node] * Volume * HessianCond[k];
-                        }
-                    }
-                }
-                else
-                {
-                    KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
-                }
+                KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST 2D TRIANGLES OR 3D TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
             }
         }
             
@@ -543,50 +556,6 @@ protected:
             itNode->GetValue(AUXILIAR_HESSIAN) /= itNode->FastGetSolutionStepValue(NODAL_AREA);
             
         }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * This calculates the anisotropic ratio
-     * @param distance: Distance parameter
-     */
-    
-    double CalculateAnisotropicRatio(const double& distance)
-    {
-        const double tolerance = 1.0e-12;
-        double ratio = 1.0; // NOTE: Isotropic mesh
-        if (mAnisRatio < 1.0)
-        {                           
-            if (std::abs(distance) <= mBoundLayer)
-            {
-                if (mInterpolation.find("Constant") != std::string::npos)
-                {
-                    ratio = mAnisRatio;
-                }
-                else if (mInterpolation.find("Linear") != std::string::npos)
-                {
-                    ratio = mAnisRatio + (std::abs(distance)/mBoundLayer) * (1.0 - mAnisRatio);
-                }
-                else if (mInterpolation.find("Exponential") != std::string::npos)
-                {
-                    ratio = - std::log(std::abs(distance)/mBoundLayer) * mAnisRatio + tolerance;
-                    if (ratio > 1.0)
-                    {
-                        ratio = 1.0;
-                    }
-                }
-                else
-                {
-                    std::cout << "No interpolation defined, considering linear" << std:: endl;
-                    ratio = 
-                    mAnisRatio + (std::abs(distance)/mBoundLayer) * (1.0 - mAnisRatio);
-                }
-            }
-        }
-        
-        return ratio;
     }
     
     ///@}
@@ -605,6 +574,67 @@ protected:
 };// class MetricsUtility
 ///@}
 
+
+///@name Explicit Specializations
+///@{
+
+    template<>  
+    Vector MetricsUtility<2>::ComputeLevelSetMetricTensor(
+        const array_1d<double, 3>& gradient_value,
+        const double& ratio,
+        const double& element_size
+    )
+    {
+        Vector metric;
+        metric.resize(3, false);
+        
+        const double coeff0 = 1.0/(element_size * element_size);
+        const double coeff1 = coeff0/(ratio * ratio);
+        
+        const double v0v0 = gradient_value[0]*gradient_value[0];
+        const double v0v1 = gradient_value[0]*gradient_value[1];
+        const double v1v1 = gradient_value[1]*gradient_value[1];
+        
+        metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
+        metric[1] = coeff0*(    - v0v1) + coeff1*v0v1;  
+        metric[2] = coeff0*(1.0 - v1v1) + coeff1*v1v1;
+        
+        return metric;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    Vector MetricsUtility<3>::ComputeLevelSetMetricTensor(
+        const array_1d<double, 3>& gradient_value,
+        const double& ratio,
+        const double& element_size
+    )
+    {
+        Vector metric;
+        metric.resize(6, false);
+        
+        const double coeff0 = 1.0/(element_size * element_size);
+        const double coeff1 = coeff0/(ratio * ratio);
+        
+        const double v0v0 = gradient_value[0]*gradient_value[0];
+        const double v0v1 = gradient_value[0]*gradient_value[1];
+        const double v0v2 = gradient_value[0]*gradient_value[2];
+        const double v1v1 = gradient_value[1]*gradient_value[1];
+        const double v1v2 = gradient_value[1]*gradient_value[2];
+        const double v2v2 = gradient_value[2]*gradient_value[2];
+        
+        metric[0] = coeff0*(1.0 - v0v0) + coeff1*v0v0;
+        metric[1] = coeff0*(    - v0v1) + coeff1*v0v1; 
+        metric[2] = coeff0*(    - v0v2) + coeff1*v0v2; 
+        metric[3] = coeff0*(1.0 - v1v1) + coeff1*v1v1; 
+        metric[4] = coeff0*(    - v1v2) + coeff1*v1v2; 
+        metric[5] = coeff0*(1.0 - v2v2) + coeff1*v2v2;
+
+        return metric;
+    }
+    
 ///@name Type Definitions
 ///@{
 

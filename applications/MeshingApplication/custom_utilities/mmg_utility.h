@@ -972,9 +972,6 @@ protected:
         }
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param post_output: If the file to save is after or before remeshing
@@ -991,9 +988,6 @@ protected:
         OutputSol(post_output);
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * It frees the memory used during all the process
      */
@@ -1007,36 +1001,16 @@ protected:
         mFilename = NULL;
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /** Initialisation of mesh and sol structures 
+    * args of InitMesh:
+    * MMG5_ARG_start: we start to give the args of a variadic func
+    * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
+    * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
+    * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
+    * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
+    */
     
-    /**
-     * This inits the mesh
-     */
-    
-    void InitMesh()
-    {
-       /** Initialisation of mesh and sol structures 
-        * args of InitMesh:
-        * MMG5_ARG_start: we start to give the args of a variadic func
-        * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
-        * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
-        * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
-        * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
-        */
-       
-        if (TDim == 2)
-        {
-            MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
-        }
-        else
-        {
-            MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void InitMesh();
     
     /**
      * This sets the size of the mesh
@@ -1045,234 +1019,48 @@ protected:
      * @param numConditions: Number of Conditions
      */
     
-    //TODO: use explicit template instantiation to avoid the if
     void SetMeshSize(
         const int numNodes,
         const array_1d<int, TDim - 1> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
         const array_1d<int, TDim - 1> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
-        )
-    {
-        if (TDim == 2)
-        {
-            //Give the size of the mesh: numNodes vertices, numElements triangles, numConditions edges (2D) 
-            if ( MMG2D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayConditions[0]) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            //Give the size of the mesh: numNodes vertex, numElements tetra and prism, numArrayConditions triangles and quadrilaterals, 0 edges (3D) 
-            if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayElements[1], numArrayConditions[0], numArrayConditions[1], 0) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+        );
     
     /**
      * This sets the size of the solution
      * @param numNodes: Number of nodes
      */
     
-    void SetSolSize(const int numNodes)
-    {
-        if (TDim == 2)
-        {
-            if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void SetSolSize(const int numNodes);
     
     /**
      * This checks the mesh data and prints if it is OK
      */
     
-    void CheckMeshData()
-    {
-        if (TDim == 2)
-        {
-            if ( MMG2D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void CheckMeshData();
     
     /**
      * This sets the output mesh
      */
     
-    void OutputMesh(const bool post_output)
-    {
-        std::string MeshName;
-        if (post_output == true)
-        {
-            MeshName = mStdStringFilename+".o.mesh";
-        }
-        else
-        {
-            MeshName = mStdStringFilename+".mesh";
-        }
-        
-        char* MeshFile = new char [MeshName.length() + 1];
-        std::strcpy (MeshFile, MeshName.c_str());
-        
-        if (TDim == 2)
-        { 
-            // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file  
-            MMG2D_Set_outputMeshName(mmgMesh,MeshFile);
-
-            // b) function calling 
-            if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1) 
-            {
-                std::cout << "UNABLE TO SAVE MESH" << std::endl;
-            }
-        }
-        else
-        {
-            // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file 
-            MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
-
-            // b) function calling 
-            if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1) 
-            {
-                std::cout << "UNABLE TO SAVE MESH" << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void OutputMesh(const bool post_output);
     
     /**
      * This sets the output sol
      */
     
-    void OutputSol(const bool post_output)
-    {
-        std::string SolName;
-        if (post_output == true)
-        {
-            SolName = mStdStringFilename+".o.sol";
-        }
-        else
-        {
-            SolName = mStdStringFilename+".sol";
-        }
-        
-        char* SolFile = new char [SolName.length() + 1];
-        std::strcpy (SolFile, SolName.c_str());
-        
-        if (TDim == 2)
-        { 
-            // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
-            MMG2D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
-
-            // b) Function calling 
-            if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1) 
-            {
-                std::cout << "UNABLE TO SAVE SOL" << std::endl;
-            }
-        }
-        else
-        {
-            // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
-            MMG3D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
-
-            // b) Function calling 
-            if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1) 
-            {
-                std::cout << "UNABLE TO SAVE SOL" << std::endl;
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void OutputSol(const bool post_output);
     
     /**
      * This loads the solution
      */
     
-    void MMGLibCall()
-    {
-        if (TDim == 2)
-        {
-            const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
-
-            if ( ier == MMG5_STRONGFAILURE ) 
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: ", ier );
-            }
-            else if ( ier == MMG5_LOWFAILURE )
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB. ier: ", ier );
-            }
-        }
-        else
-        {
-            const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
-
-            if ( ier == MMG5_STRONGFAILURE ) 
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: ", ier );
-            }
-            else if ( ier == MMG5_LOWFAILURE )
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB. ier: ", ier );
-            }
-        }
-
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void MMGLibCall();
     
     /**
      * This frees the MMG structures
      */
     
-    void FreeAll()
-    {
-        if (TDim == 2)
-        {
-            MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
-        }
-        else
-        {
-            MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
-        }
-
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+    void FreeAll();
     
     /**
      * This sets the nodes of the mesh
@@ -1289,27 +1077,7 @@ protected:
         const double Z,
         const int color,
         const int index
-        )
-    {
-        // Using API
-        if (TDim == 2)
-        {
-            if ( MMG2D_Set_vertex(mmgMesh, X, Y, color, index) != 1 )  
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            if ( MMG3D_Set_vertex(mmgMesh, X, Y, Z, color, index) != 1 )  
-            {
-                exit(EXIT_FAILURE); 
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
+        );
     
     /**
      * This sets the conditions of the mesh
@@ -1319,53 +1087,10 @@ protected:
      */
     
     void SetConditions(
-        const Geometry<Node<3> > & Geom,
+        Geometry<Node<3> > & Geom,
         const int color,
         const int index
-        )
-    {
-        const int id1 = Geom[0].Id(); // First node id
-        const int id2 = Geom[1].Id(); // Second node id
-        
-        // Using API
-        if (TDim == 2)
-        {
-            if ( MMG2D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            const int id3 = Geom[2].Id(); // Third node id
-            
-            const unsigned int size_geom = Geom.size();
-            
-            if (size_geom == 3) // Triangle
-            {
-                if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
-                {
-                    exit(EXIT_FAILURE); 
-                }
-            }
-            else if (size_geom == 4) // Quadrilaterals
-            {
-                const int id4 = Geom[3].Id(); // Fourth node id
-                
-                if ( MMG3D_Set_quadrilateral(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
-                {
-                    exit(EXIT_FAILURE); 
-                }
-            }
-            else
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
+        );
     
     /**
      * This sets elements of the mesh
@@ -1375,64 +1100,10 @@ protected:
      */
     
     void SetElements(
-        const Geometry<Node<3> > & Geom,
+        Geometry<Node<3> > & Geom,
         const int color,
         const int index
-        )
-    {
-        const int id1 = Geom[0].Id(); // First node id
-        const int id2 = Geom[1].Id(); // Second node id
-        const int id3 = Geom[2].Id(); // Third node id
-        
-        // Using API
-        if (TDim == 2)
-        { 
-            if ( MMG2D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 ) 
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            const int id4 = Geom[3].Id(); // Fourth node id
-            
-            const unsigned int size_geom = Geom.size();
-            
-            if (size_geom == 4) // Tetrahedron
-            {
-                if ( MMG3D_Set_tetrahedron(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
-                {
-                    exit(EXIT_FAILURE); 
-                }
-            }
-            else if (size_geom == 6) // Prisms
-            {
-                const int id5 = Geom[4].Id(); // 5th node id
-                const int id6 = Geom[5].Id(); // 6th node id
-                
-                if ( MMG3D_Set_prism(mmgMesh, id1, id2, id3, id4, id5, id6, color, index) != 1 )  
-                {
-                    exit(EXIT_FAILURE); 
-                }
-            }
-            else if (size_geom == 8) // Hexaedron
-            {
-//                 const int id5 = Geom[4].Id(); // 5th node id
-//                 const int id6 = Geom[5].Id(); // 6th node id
-//                 const int id6 = Geom[7].Id(); // 7th node id
-//                 const int id6 = Geom[8].Id(); // 8th node id
-                
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY. Size: ", size_geom );
-            }
-            else
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
+        );
     
     /**
      * This functions gets the "colors", parts of a model part to process
@@ -1626,36 +1297,16 @@ protected:
             }
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param metric: This array contains the components of the metric tensor in the MMG defined order
      */
-    
+
     void SetMetricTensor(
         const Vector& metric,
         const int node_id 
-        )
-    {
-        if (TDim == 2) // 2D: The order of the metric is m11,m12,m22
-        {
-            if ( MMG2D_Set_tensorSol(mmgSol, metric[0],  metric[1], metric[2], node_id) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-        else // 3D: The order of the metric is m11,m12,m13,m22,m23,m33
-        {
-            
-            if ( MMG3D_Set_tensorSol(mmgSol, metric[0], metric[1], metric[2], metric[3], metric[4], metric[5], node_id) != 1 )
-            {
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
+        );
     
     ///@}
     ///@name Protected  Access
@@ -1673,6 +1324,470 @@ protected:
 };// class MmgUtility
 ///@}
 
+///@name Explicit Specializations
+///@{
+
+    template<>  
+    void MmgUtility<2>::InitMesh()
+    {       
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::InitMesh()
+    {       
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::SetMeshSize(
+        const int numNodes,
+        const array_1d<int, 1> numArrayElements, 
+        const array_1d<int, 1> numArrayConditions
+        )
+    {
+        //Give the size of the mesh: numNodes vertices, numElements triangles, numConditions edges (2D) 
+        if ( MMG2D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayConditions[0]) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetMeshSize(
+        const int numNodes,
+        const array_1d<int, 2> numArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<int, 2> numArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+        )
+    {
+        //Give the size of the mesh: numNodes vertex, numElements tetra and prism, numArrayConditions triangles and quadrilaterals, 0 edges (3D) 
+        if ( MMG3D_Set_meshSize(mmgMesh, numNodes, numArrayElements[0], numArrayElements[1], numArrayConditions[0], numArrayConditions[1], 0) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::SetSolSize(const int numNodes)
+    {
+        if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::SetSolSize(const int numNodes)
+    {
+        if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,numNodes,MMG5_Tensor) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::CheckMeshData()
+    {
+        if ( MMG2D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::CheckMeshData()
+    {
+        if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::OutputMesh(const bool post_output)
+    {
+        std::string MeshName;
+        if (post_output == true)
+        {
+            MeshName = mStdStringFilename+".o.mesh";
+        }
+        else
+        {
+            MeshName = mStdStringFilename+".mesh";
+        }
+        
+        char* MeshFile = new char [MeshName.length() + 1];
+        std::strcpy (MeshFile, MeshName.c_str());
+        
+        // a)  Give the ouptut mesh name using MMG2D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file  
+        MMG2D_Set_outputMeshName(mmgMesh,MeshFile);
+
+        // b) function calling 
+        if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1) 
+        {
+            std::cout << "UNABLE TO SAVE MESH" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::OutputMesh(const bool post_output)
+    {
+        std::string MeshName;
+        if (post_output == true)
+        {
+            MeshName = mStdStringFilename+".o.mesh";
+        }
+        else
+        {
+            MeshName = mStdStringFilename+".mesh";
+        }
+        
+        char* MeshFile = new char [MeshName.length() + 1];
+        std::strcpy (MeshFile, MeshName.c_str());
+        
+        // a)  Give the ouptut mesh name using MMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file 
+        MMG3D_Set_outputMeshName(mmgMesh,MeshFile);
+
+        // b) function calling 
+        if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1) 
+        {
+            std::cout << "UNABLE TO SAVE MESH" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::OutputSol(const bool post_output)
+    {
+        std::string SolName;
+        if (post_output == true)
+        {
+            SolName = mStdStringFilename+".o.sol";
+        }
+        else
+        {
+            SolName = mStdStringFilename+".sol";
+        }
+        
+        char* SolFile = new char [SolName.length() + 1];
+        std::strcpy (SolFile, SolName.c_str());
+        
+        // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
+        MMG2D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
+
+        // b) Function calling 
+        if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1) 
+        {
+            std::cout << "UNABLE TO SAVE SOL" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::OutputSol(const bool post_output)
+    {
+        std::string SolName;
+        if (post_output == true)
+        {
+            SolName = mStdStringFilename+".o.sol";
+        }
+        else
+        {
+            SolName = mStdStringFilename+".sol";
+        }
+        
+        char* SolFile = new char [SolName.length() + 1];
+        std::strcpy (SolFile, SolName.c_str());
+        
+        // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file 
+        MMG3D_Set_outputSolName(mmgMesh, mmgSol, SolFile);
+
+        // b) Function calling 
+        if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1) 
+        {
+            std::cout << "UNABLE TO SAVE SOL" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::MMGLibCall()
+    {
+        const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
+
+        if ( ier == MMG5_STRONGFAILURE ) 
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+        }
+        else if ( ier == MMG5_LOWFAILURE )
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB. ier: ", ier );
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::MMGLibCall()
+    {
+        const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+
+        if ( ier == MMG5_STRONGFAILURE ) 
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+        }
+        else if ( ier == MMG5_LOWFAILURE )
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB. ier: ", ier );
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::FreeAll()
+    {
+        MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::FreeAll()
+    {
+        MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<2>::SetNodes(
+        const double X,
+        const double Y,
+        const double Z,
+        const int color,
+        const int index
+        )
+    {
+        if ( MMG2D_Set_vertex(mmgMesh, X, Y, color, index) != 1 )  
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    void MmgUtility<3>::SetNodes(
+        const double X,
+        const double Y,
+        const double Z,
+        const int color,
+        const int index
+        )
+    {
+        if ( MMG3D_Set_vertex(mmgMesh, X, Y, Z, color, index) != 1 )  
+        {
+            exit(EXIT_FAILURE); 
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::SetConditions(
+        Geometry<Node<3> > & Geom,
+        const int color,
+        const int index
+        )
+    {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+
+        if ( MMG2D_Set_edge(mmgMesh, id1, id2, color, index) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetConditions(
+        Geometry<Node<3> > & Geom,
+        const int color,
+        const int index
+        )
+    {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+        const int id3 = Geom[2].Id(); // Third node id
+        
+        if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) // Triangle
+        {
+            if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+        else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) // Quadrilaterals
+        {
+            const int id4 = Geom[3].Id(); // Fourth node id
+            
+            if ( MMG3D_Set_quadrilateral(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+        else
+        {
+            const unsigned int size_geom = Geom.size();
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::SetElements(
+        Geometry<Node<3> > & Geom,
+        const int color,
+        const int index
+        )
+    {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+        const int id3 = Geom[2].Id(); // Third node id
+        
+        if ( MMG2D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 ) 
+        {
+            exit(EXIT_FAILURE);
+        }
+
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetElements(
+        Geometry<Node<3> > & Geom,
+        const int color,
+        const int index
+        )
+    {
+        const int id1 = Geom[0].Id(); // First node id
+        const int id2 = Geom[1].Id(); // Second node id
+        const int id3 = Geom[2].Id(); // Third node id
+        const int id4 = Geom[3].Id(); // Fourth node id
+        
+        if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) // Tetrahedron
+        {
+            if ( MMG3D_Set_tetrahedron(mmgMesh, id1, id2, id3, id4, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+        else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) // Prisms
+        {
+            const int id5 = Geom[4].Id(); // 5th node id
+            const int id6 = Geom[5].Id(); // 6th node id
+            
+            if ( MMG3D_Set_prism(mmgMesh, id1, id2, id3, id4, id5, id6, color, index) != 1 )  
+            {
+                exit(EXIT_FAILURE); 
+            }
+        }
+        else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) // Hexaedron
+        {
+//                 const int id5 = Geom[4].Id(); // 5th node id
+//                 const int id6 = Geom[5].Id(); // 6th node id
+//                 const int id6 = Geom[7].Id(); // 7th node id
+//                 const int id6 = Geom[8].Id(); // 8th node id
+            
+            const unsigned int size_geom = Geom.size();
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY", size_geom);
+        }
+        else
+        {
+            const unsigned int size_geom = Geom.size();
+            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::SetMetricTensor(
+        const Vector& metric,
+        const int node_id 
+        )
+    {
+        if ( MMG2D_Set_tensorSol(mmgSol, metric[0],  metric[1], metric[2], node_id) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::SetMetricTensor(
+        const Vector& metric,
+        const int node_id 
+        )
+    {
+        if ( MMG3D_Set_tensorSol(mmgSol, metric[0], metric[1], metric[2], metric[3], metric[4], metric[5], node_id) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
+    
 ///@name Type Definitions
 ///@{
 
