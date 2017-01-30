@@ -6,7 +6,7 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import filecmp # TODO: Try to use difflib to compute the percentage of difference
+import filecmp 
 import os
 
 def Factory(settings, Model):
@@ -21,14 +21,22 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "file_name_1"      : "",
-            "file_name_2"      : ""
+            "file_name_1"            : "",
+            "file_name_2"            : "",
+            "deterministic"          : true,
+            "non_deterministic_comp" : "mesh_file",
+            "error_assumed"          : 1.0e-6,
+            "dimension"              : 3
         }
         """)
         
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
+        self.dimension = self.params["dimension"].GetInt()
+        self.non_deterministic_comp = self.params["non_deterministic_comp"].GetString()
+        self.deterministic = self.params["deterministic"].GetBool()
+        self.error_assumed = self.params["error_assumed"].GetDouble()
         
     def ExecuteInitialize(self):
         self.file_name_1 = os.getcwd() + "/" + self.params["file_name_1"].GetString()
@@ -50,6 +58,54 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         pass
 
     def ExecuteFinalize(self):
-        value = filecmp.cmp(self.file_name_1, self.file_name_2)
-        self.assertTrue(value)
+        if (self.deterministic == True):
+            value = filecmp.cmp(self.file_name_1, self.file_name_2)
+            self.assertTrue(value)
+        else:
+            if (self.non_deterministic_comp == "mesh_file"):
+                error = _ReadVertices(self.file_name_1, self.file_name_2, self.dimension)
+                self.assertTrue(error < self.error_assumed)
+            else: 
+                raise NameError('Non-deterministic comparision not implemented yet')
 
+def _ConvertStringToListFloat(line):
+    list_values = []
+    value = ""
+    for i in line:
+        if (i == " "):
+            list_values.append(float(value))
+            value = ""
+        else:
+            value += i
+    return list_values
+
+def _ReadVertices(input_file1, input_file2, dimension):
+    f1 = open(input_file1,'r')
+    f2 = open(input_file2,'r')
+    
+    lines1 = f1.readlines()
+    lines2 = f2.readlines()
+    
+    numline = 0
+    for line1 in lines1:
+        numline += 1
+        
+        if("Vertices" in line1):
+            line = lines1[numline]
+            nvertices = int(line)
+            numline += 1
+            break
+        
+    error = 0.0
+    for i in range(numline, nvertices + numline):
+        tmp1 = _ConvertStringToListFloat(lines1[i])
+        tmp2 = _ConvertStringToListFloat(lines2[i])
+        if (dimension == 2): 
+            error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0)**(0.5)
+        else:
+            error += ((tmp1[0] - tmp2[0])**2.0 + (tmp1[1] - tmp2[1])**2.0 + (tmp1[2] - tmp2[2])**2.0)**(0.5)    
+            
+    f1.close()
+    f2.close()
+    
+    return (error/nvertices)
