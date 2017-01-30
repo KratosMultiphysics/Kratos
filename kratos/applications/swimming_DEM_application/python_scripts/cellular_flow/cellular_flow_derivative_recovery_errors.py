@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 
 regular_mesh = True
-show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
+show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
 n_divs = [10, 20, 40, 80]
 
 if regular_mesh:
