@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
+// #include "custom_processes/metrics_levelset_process.h"
+// #include "custom_processes/metrics_hessian_process.h"
 // #include "custom_processes/set_h_map_process.h"
 //#include "custom_processes/find_nodal_h_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
@@ -84,6 +86,51 @@ void  AddProcessesToPython()
 //	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
 //		   .def("Execute",&FindNodalHProcess::Execute)
 //		 ;
+    
+//         /* METRICS PROCESSES */
+//         // LEVEL SET
+// 	class_<ComputeLevelSetSolMetricProcess<2>, bases<Process> >("ComputeLevelSetSolMetricProcess2D",init<ModelPart&, 
+//                                    const Variable<array_1d<double,3>>, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const std::string>())
+//         .def("Execute",&ComputeLevelSetSolMetricProcess<2>::Execute)
+//         ;
+//         
+// 	class_<ComputeLevelSetSolMetricProcess<3>, bases<Process> >("ComputeLevelSetSolMetricProcess3D",init<ModelPart&, 
+//                                    const Variable<array_1d<double,3>>, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const std::string>())
+//         .def("Execute",&ComputeLevelSetSolMetricProcess<3>::Execute)
+//         ;
+//         
+//         // HESSIAN
+// 	class_<ComputeHessianSolMetricProcess<2>, bases<Process> >("ComputeHessianSolMetricProcess2D",init<ModelPart&, 
+//                                    Variable<double>&, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const std::string,
+//                                    const double,
+//                                    const double>())
+//         .def("Execute",&ComputeHessianSolMetricProcess<2>::Execute)
+//         ;
+//         
+// 	class_<ComputeHessianSolMetricProcess<3>, bases<Process> >("ComputeHessianSolMetricProcess3D",init<ModelPart&, 
+//                                    Variable<double>&, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const double, 
+//                                    const std::string,
+//                                    const double,
+//                                    const double>())
+//         .def("Execute",&ComputeHessianSolMetricProcess<3>::Execute)
+//         ;
 }
 
 }  // namespace Python.
