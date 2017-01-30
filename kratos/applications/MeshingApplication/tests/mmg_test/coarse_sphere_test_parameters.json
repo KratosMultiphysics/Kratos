@@ -121,7 +121,8 @@
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
             "file_name_1"       : "mmg_test/coarse_sphere_test.o.mesh",
-            "file_name_2"       : "mmg_test/coarse_sphere_test_result.mesh"
+            "file_name_2"       : "mmg_test/coarse_sphere_test_result.mesh",
+            "deterministic"     : false
         }
     }
     ]
