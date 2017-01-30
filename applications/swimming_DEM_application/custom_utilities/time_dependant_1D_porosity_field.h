@@ -179,6 +179,9 @@ TimeDependant1DPorosityField & operator=(TimeDependant1DPorosityField const& rOt
 class TimeDependantForceField:RealField
 {
 
+using RealField::Evaluate;
+
+
 public:
 
 TimeDependantForceField(const double max_time): mAlpha(TimeDependant1DPorosityField(max_time)){}
