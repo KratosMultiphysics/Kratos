@@ -33,13 +33,19 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TTwoDCavityTest('test_execution'))
-    smallSuite.addTest(TCoarseSphereTest('test_execution'))
+    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
+        smallSuite.addTest(TTwoDCavityTest('test_execution'))
+        smallSuite.addTest(TCoarseSphereTest('test_execution'))
+    else:
+        print("MMG utility is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(TStanfordBunnyTest('test_execution'))
+    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
+        nightSuite.addTest(TStanfordBunnyTest('test_execution'))
+    else:
+        print("MMG utility is not compiled and the corresponding tests will not be executed")
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
@@ -56,7 +62,7 @@ def AssambleTestSuites():
             KratosUnittest.TestLoader().loadTestsFromTestCases([
                 TTwoDCavityTest,
                 TCoarseSphereTest,
-                TStanfordBunnyTest,
+                #TStanfordBunnyTest,
             ])
         )
     else:
