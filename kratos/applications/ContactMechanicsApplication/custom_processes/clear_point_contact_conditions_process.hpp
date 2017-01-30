@@ -334,8 +334,8 @@ namespace Kratos
       
       rModelPart.Conditions().swap(PreservedConditions);
 	      
-      rModelPart.Conditions().Sort();
-      rModelPart.Conditions().Unique();
+      //rModelPart.Conditions().Sort();
+      //rModelPart.Conditions().Unique();
 
       if( mEchoLevel > 1 ){
 	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;
