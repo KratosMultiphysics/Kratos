@@ -19,6 +19,7 @@
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 
 /* External includes */
 
@@ -424,20 +425,39 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a non-historical vectorial variable in a node container set
+    ///returns the nodal value summation of a non-historical vector variable
     array_1d<double, 3> SumNonHistoricalNodeVectorVariable( const Variable<array_1d<double, 3> >& rVar,
                                                             ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value(0.0);
+        array_1d<double, 3> sum_value;
+        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            sum_value[j] = 0.0;
+        // OpenMPUtils::PartitionVector partition;
+        // int number_of_threads = OpenMPUtils::GetNumThreads();
+        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfNodes()), number_of_threads, partition);
 
-        // #pragma omp parallel for
-        // #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+        #pragma omp parallel
         {
-            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
-            sum_value += itNode->GetValue(rVar);
+            // int thread_id = OpenMPUtils::ThisThread();
+            array_1d<double, 3> private_sum_value;
+            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
+                private_sum_value[j] = 0.0;
+            #pragma omp barrier
+
+            #pragma omp for
+            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
+            {
+                ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
+                private_sum_value += itNode->GetValue(rVar);
+            }
+
+            #pragma omp critical
+            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+                sum_value[j] += private_sum_value[j];
+
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -447,7 +467,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///accumulate the value of a non-historical nodal scalar variable in a node container set
+    //***********************************************************************
+    //***********************************************************************
+    ///returns the nodal value summation of a non-historical scalar variable
     template< class TVarType >
     double SumNonHistoricalNodeScalarVariable( const TVarType& rVar,
                                                ModelPart& rModelPart)
@@ -472,20 +494,39 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a historical vector variable in a nodes container set for a buffer step rBuffStep
+    ///returns the nodal value summation of a historical vector variable
     array_1d<double, 3> SumHistoricalNodeVectorVariable( const Variable<array_1d<double, 3> >& rVar,
                                                          ModelPart& rModelPart,
                                                          const unsigned int& rBuffStep = 0)
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value(0.0);
+        array_1d<double, 3> sum_value;
+        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            sum_value[j] = 0.0;
+        // OpenMPUtils::PartitionVector partition;
+        // int number_of_threads = OpenMPUtils::GetNumThreads();
+        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfNodes()), number_of_threads, partition);
 
-        // #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+        #pragma omp parallel
         {
-            ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
-            sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
+            // int thread_id = OpenMPUtils::ThisThread();
+            array_1d<double, 3> private_sum_value;
+            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
+                private_sum_value[j] = 0.0;
+            #pragma omp barrier
+
+            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
+            #pragma omp for
+            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); k++)
+            {
+                ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin() + k;
+                private_sum_value += itNode->GetSolutionStepValue(rVar, rBuffStep);
+            }
+
+            #pragma omp critical
+            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+                sum_value[j] += private_sum_value[j];
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -497,7 +538,7 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a historical scalar variable in a nodes container set for a buffer step rBuffStep
+    ///returns the nodal value summation of a historical scalar variable
     template< class TVarType >
     double SumHistoricalNodeScalarVariable( const TVarType& rVar,
                                             ModelPart& rModelPart,
@@ -523,19 +564,33 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    //accumulate the value of a historical vector variable in a condition container set
+    //returns the condition value summation of a historical vector variable
     array_1d<double, 3> SumConditionVectorVariable( const Variable<array_1d<double, 3> >& rVar,
                                                     ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value(0.0);
+        array_1d<double, 3> sum_value;
+        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            sum_value[j] = 0.0;
 
-        // #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
+        #pragma omp parallel
         {
-            ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
-            sum_value += itCondition->GetValue(rVar);
+            array_1d<double, 3> private_sum_value;
+            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
+                private_sum_value[j] = 0.0;
+            #pragma omp barrier
+
+            #pragma omp for
+            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); k++)
+            {
+                ModelPart::ConditionsContainerType::iterator itCondition = rModelPart.ConditionsBegin() + k;
+                private_sum_value += itCondition->GetValue(rVar);
+            }
+
+            #pragma omp critical
+            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+                sum_value[j] += private_sum_value[j];
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -547,7 +602,7 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    //accumulate the value of a historical scalar variable in a condition container set
+    //returns the condition value summation of a historical scalar variable
     template< class TVarType >
     double SumConditionScalarVariable( const TVarType& rVar,
                                        ModelPart& rModelPart)
@@ -572,19 +627,39 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a historical vector variable in a condition container set
+    ///returns the element value summation of a historical vector variable
     array_1d<double, 3> SumElementVectorVariable( const Variable<array_1d<double, 3> >& rVar,
                                                   ModelPart& rModelPart)
     {
         KRATOS_TRY
 
-        array_1d<double, 3> sum_value(0.0);
+        array_1d<double, 3> sum_value;
+        for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+            sum_value[j] = 0.0;
 
-        // #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
+        // OpenMPUtils::PartitionVector partition;
+        // int number_of_threads = OpenMPUtils::GetNumThreads();
+        // OpenMPUtils::DivideInPartitions(static_cast<int>(rModelPart.NumberOfElements()), number_of_threads, partition);
+
+        #pragma omp parallel
         {
-            ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
-            sum_value += itElement->GetValue(rVar);
+            // int thread_id = OpenMPUtils::ThisThread();
+            array_1d<double, 3> private_sum_value;
+            for (int j = 0; j < static_cast<int>(private_sum_value.size()); j++)
+                private_sum_value[j] = 0.0;
+            #pragma omp barrier
+
+            #pragma omp for
+            // for (int k = partition[thread_id]; k < partition[thread_id+1]; k++)
+            for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); k++)
+            {
+                ModelPart::ElementsContainerType::iterator itElement = rModelPart.ElementsBegin() + k;
+                private_sum_value += itElement->GetValue(rVar);
+            }
+
+            #pragma omp critical
+            for (int j = 0; j < static_cast<int>(sum_value.size()); j++)
+                sum_value[j] += private_sum_value[j];
         }
 
         rModelPart.GetCommunicator().SumAll(sum_value);
@@ -596,7 +671,7 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    ///accumulate the value of a historical scalar variable in a condition container set
+    ///returns the element value summation of a historical scalar variable in a condition container se
     template< class TVarType >
     double SumElementScalarVariable( const TVarType& rVar,
                                      ModelPart& rModelPart)
