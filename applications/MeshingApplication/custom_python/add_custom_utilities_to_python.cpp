@@ -39,7 +39,6 @@
 #ifdef INCLUDE_MMG
     #include "custom_utilities/mmg_utility.h"
 #endif
-#include "custom_utilities/metrics_utility.h"
 
 namespace Kratos
 {
@@ -154,21 +153,6 @@ void AddCustomUtilitiesToPython()
     .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
     ;
 #endif  
-    
-    /* METRICS UTILITY */
-    // 2D
-    class_<MetricsUtility<2>, boost::noncopyable >
-    ("MetricsUtility2D", init<const double, const double, const double, const std::string>())
-    .def("ComputeLevelSetSolMetric", &MetricsUtility<2>::ComputeLevelSetSolMetric)
-    .def("ComputeHessianMetric", &MetricsUtility<2>::ComputeHessianMetric)
-    ;
-    
-    // 3D
-    class_<MetricsUtility<3>, boost::noncopyable >
-    ("MetricsUtility3D", init<const double, const double, const double, const std::string>())
-    .def("ComputeLevelSetSolMetric", &MetricsUtility<3>::ComputeLevelSetSolMetric)
-    .def("ComputeHessianMetric", &MetricsUtility<3>::ComputeHessianMetric)
-    ;
     
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
