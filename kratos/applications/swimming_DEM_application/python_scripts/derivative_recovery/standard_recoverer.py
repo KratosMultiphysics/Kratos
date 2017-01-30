@@ -9,10 +9,13 @@ class StandardGradientRecoverer(recoverer.GradientRecoverer):
         recoverer.GradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
 
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
-        self.CalculateGradient(scalar_variable, gradient_variable)
+        self.cplusplus_recovery_tool.CalculateGradient(scalar_variable, gradient_variable)
 
-    def RecoverGradientOfVector(self, scalar_variable, gradient_variable):
-        self.CalculateGradient(vector_variable, gradient_variable_x, gradient_variable_y, gradient_variable_z)
+    def RecoverGradientOfVector(self, vector_variable, gradient_variable_x, gradient_variable_y, gradient_variable_z):
+        self.cplusplus_recovery_tool.CalculateGradient(vector_variable, gradient_variable_x, gradient_variable_y, gradient_variable_z)
+
+    def RecoverGradientOfVelocity(self):
+        self.cplusplus_recovery_tool.CalculateGradient(VELOCITY, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT)
 
 class StandardMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
