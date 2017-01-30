@@ -490,7 +490,7 @@ protected:
             #ifdef KRATOS_DEBUG 
             if( itNode->Has(MMG_METRIC) == false) 
             {
-                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode>Id();
+                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode->Id();
             }
             #endif     
             
@@ -500,7 +500,7 @@ protected:
             #ifdef KRATOS_DEBUG 
             if(metric.size() != TDim * 3 - 3) 
             {
-                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode>Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
             }
             #endif
             
