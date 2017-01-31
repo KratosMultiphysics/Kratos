@@ -141,7 +141,7 @@
                 "interpolation"                     : "Linear"
             },
             "save_external_files"               : true,
-            "echo_level"                        : 3
+            "echo_level"                        : 0
         }
     }
     ],

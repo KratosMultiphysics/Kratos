@@ -59,6 +59,22 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    typedef ModelPart::NodesContainerType                        NodesArrayType;
+    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+    typedef Node <3>                                                   NodeType;
+    typedef Properties                                           PropertiesType;
+    typedef Element                                                 ElementType;
+    typedef Condition                                             ConditionType;
+    typedef std::size_t                                               IndexType;
+    typedef std::size_t                                                SizeType;
+    typedef Dof<double>                                                 DofType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
+    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
+    typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
+    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -93,22 +109,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-    typedef Node <3>                                                   NodeType;
-    typedef Properties                                           PropertiesType;
-    typedef Element                                                 ElementType;
-    typedef Condition                                             ConditionType;
-    typedef std::size_t                                               IndexType;
-    typedef std::size_t                                                SizeType;
-    typedef Dof<double>                                                 DofType;
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
-    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
-    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
-    typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
-    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
     ///@}
     ///@name Life Cycle
@@ -149,18 +149,18 @@ public:
        
        InitMesh();
        
-       int verbosityMMG;  // TODO: Discover WTF means each value of the verbosity
+       int verbosityMMG;
        if (echo_level == 0)
        {
-           verbosityMMG = -10;
+           verbosityMMG = 0;
        }
        else if (echo_level == 1)
        {
-           verbosityMMG = -5;
+           verbosityMMG = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
        }
        else if (echo_level == 2)
        {
-           verbosityMMG = 0;
+           verbosityMMG = 3;
        }
        else if (echo_level == 3)
        {
@@ -171,7 +171,7 @@ public:
            verbosityMMG = 10;
        }
        
-       if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) ) // From -10 to 10
+       if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) )
        {
            exit(EXIT_FAILURE);
        }
@@ -240,7 +240,6 @@ public:
             
             KRATOS_WATCH(rThisModelPart);
         }
-        
     }
        
     ///@}
@@ -380,16 +379,13 @@ protected:
         SetMeshSize(numNodes, numArrayElements, numArrayConditions);
         
         /* Nodes */
+        // We copy the DOF from the fisrt node
+        mDofs = pNode.begin()->GetDofs();
+        
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-            
-            // We copy the DOF from the fisrt node
-            if (i == 0)
-            {
-                mDofs = itNode->GetDofs();
-            }
             
             SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i + 1);
             
@@ -404,16 +400,14 @@ protected:
             const cond_geometries_2d index_geom0 = Line;
             mpRefCondition[index_geom0] = pConditions.begin()->Create(0, pConditions.begin()->GetGeometry(), pConditions.begin()->pGetProperties());
         }
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        else
         {
-            auto itCond = pConditions.begin() + i;
+            const cond_geometries_3d index_geom0 = Triangle3D;
+            const cond_geometries_3d index_geom1 = Quadrilateral3D;
             
-            // We clone the first condition of each type
-            if (TDim == 3)
-            {                
-                const cond_geometries_3d index_geom0 = Triangle3D;
-                const cond_geometries_3d index_geom1 = Quadrilateral3D;
+            for(unsigned int i = 0; i < numConditions; i++) 
+            {
+                auto itCond = pConditions.begin() + i;
 
                 if ((itCond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 && mInitRefCondition[index_geom0] == false) // Triangle
                 {
@@ -425,7 +419,18 @@ protected:
                     mpRefCondition[index_geom1] = itCond->Create(0, itCond->GetGeometry(), itCond->pGetProperties());
                     mInitRefCondition[index_geom1] = true;
                 }
+                
+                if (mInitRefCondition[index_geom0] == true && mInitRefCondition[index_geom1] == true)
+                {
+                    break;
+                }
             }
+            
+        }
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
             
             SetConditions(itCond->GetGeometry(), cond_colors[itCond->Id()], i + 1);
         }
@@ -437,16 +442,14 @@ protected:
             const elem_geometries_2d index_geom0 = Triangle2D;
             mpRefElement[index_geom0] = pElements.begin()->Create(0, pElements.begin()->GetGeometry(), pElements.begin()->pGetProperties());
         }
-//         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numElements; i++) 
+        else
         {
-            auto itElem = pElements.begin() + i;
+            const elem_geometries_3d index_geom0 = Tetrahedra;
+            const elem_geometries_3d index_geom1 = Prism;
             
-            // We clone the first element of each type
-            if (TDim == 3)
-            {                
-                const elem_geometries_3d index_geom0 = Tetrahedra;
-                const elem_geometries_3d index_geom1 = Prism;
+            for(unsigned int i = 0; i < numElements; i++) 
+            {
+                auto itElem = pElements.begin() + i;
                 
                 if ((itElem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 && mInitRefElement[index_geom0] == false) // Tetrahedra
                 {
@@ -458,7 +461,18 @@ protected:
                     mpRefElement[index_geom1] = itElem->Create(0, itElem->GetGeometry(), itElem->pGetProperties());
                     mInitRefElement[index_geom1] = true;
                 }
+                
+                if (mInitRefElement[index_geom0] == true && mInitRefElement[index_geom1] == true)
+                {
+                    break;
+                }
             }
+            
+        }
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElem = pElements.begin() + i;
             
             SetElements(itElem->GetGeometry(), elem_colors[itElem->Id()], i + 1);
         }
@@ -608,16 +622,7 @@ protected:
         /* NODES */
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
-            NodeType::Pointer pNode;
-            
-            if (TDim == 2)
-            {
-                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
-            }
-            else
-            {
-                pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
-            }
+            NodeType::Pointer pNode = CreateNode(rThisModelPart, i_node);
             
             // Set the DOFs in the nodes 
             for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
@@ -636,7 +641,7 @@ protected:
             {
                 cond_id += 1;
                 
-                if (TDim == 2) // Lines // TODO: Move this check outside the loop
+                if (TDim == 2) // Lines
                 {
                     const cond_geometries_2d index_geom = Line;
                     
@@ -889,8 +894,17 @@ protected:
         InterpolateValues(rThisModelPart, rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
+    /**
+     * It interpolates the values in the new model part using the old model part
+     * @param i_node: The index of the new noode
+     * @param meshpoint: The MMG point
+     * @return pNode: The pointer to the new node created
+     */
+    
+    NodeType::Pointer CreateNode(
+        ModelPart& rThisModelPart,
+        unsigned int i_node
+        );
     
     /**
      * It interpolates the values in the new model part using the old model part
@@ -928,10 +942,13 @@ protected:
             
             const bool found = PointLocator.FindPointOnMeshSimplified(itNode->Coordinates(), shape_functions, pElement, MaxNumberOfResults);
             
-            if ((found == false) && mEchoLevel > 0)
+            if (found == false)
             {
-                std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                if (mEchoLevel > 0)
+                {
+                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
+                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                }
             }
             else
             {
@@ -1327,6 +1344,34 @@ protected:
 ///@name Explicit Specializations
 ///@{
 
+    template<>  
+    NodeType::Pointer MmgUtility<2>::CreateNode(        
+        ModelPart& rThisModelPart,
+        unsigned int i_node
+        )
+    {
+        NodeType::Pointer pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+        
+        return pNode;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    NodeType::Pointer MmgUtility<3>::CreateNode(        
+        ModelPart& rThisModelPart,
+        unsigned int i_node
+        )
+    {
+        NodeType::Pointer pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+        
+        return pNode;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
     template<>  
     void MmgUtility<2>::InitMesh()
     {       

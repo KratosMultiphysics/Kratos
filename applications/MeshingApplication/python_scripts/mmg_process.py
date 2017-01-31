@@ -41,6 +41,11 @@ class MmgProcess(KratosMultiphysics.Process):
                 "min_size_current_percentage"      : 50.0,
                 "max_size_current_percentage"      : 98.0
             },
+            "fix_contour_model_parts"          :{
+                "model_part_1"                     : "", 
+                "model_part_2"                     : "",
+                "model_part_3"                     : "" 
+            },
             "minimal_size"                     : 0.1,
             "maximal_size"                     : 10.0,
             "anisotropy_remeshing"             : true,
