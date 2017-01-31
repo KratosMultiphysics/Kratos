@@ -7,33 +7,30 @@ from . import recoverer
 class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.GradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.fluid_model_part, scalar_variable, gradient_variable)
+    def RecoverGradientOfVelocity(self):
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_X, VELOCITY_X_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Y, VELOCITY_Y_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Z, VELOCITY_Z_GRADIENT)
 
-    def RecoverGradientOfVector(self, scalar_variable, gradient_variable):
-        self.CalculateGradient(vector_variable, gradient_variable_x, gradient_variable_y, gradient_variable_z)
-
-class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer):
+class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.MaterialAccelerationRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-
     def RecoverMaterialAcceleration(self):
         self.cplusplus_recovery_tool.CalculateVectorMaterialDerivative(self.model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
 
-class ZhangGuoLaplacianRecoverer(recoverer.LaplacianRecoverer):
+class ZhangGuoDirectLaplacianRecoverer(recoverer.LaplacianRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.LaplacianRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-
     def RecoverVectorLaplacian(self, vector_variable, laplacian_variable):
-        self.cplusplus_recovery_tool.CalculateVectorLaplacian(self.model_part, vector_variable, laplacian_variable)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentLaplacian(self.model_part, vector_variable, laplacian_variable)
 
-class ZhangGuoMaterialAccelerationAndLaplacianRecoverer(recoverer.MaterialAccelerationRecoverer):
+class ZhangGuoMaterialAccelerationAndLaplacianRecoverer(recoverer.LaplacianRecoverer, ZhangGuoMaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        recoverer.MaterialAccelerationRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-
+        recoverer.LaplacianRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
     def RecoverMaterialAcceleration(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentMatDerivAndLaplacian(self.model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION, VELOCITY_LAPLACIAN)
-
-    def RecoverVectorLaplacian(self, vector_variable, laplacian_variable):
-        pass
+        self.RecoverGradientOfVelocity()
+        self.RecoverMaterialAccelerationFromGradient()
+    def RecoverVelocityLaplacian(self):
+        self.cplusplus_recovery_tool.RecoverSuperconvergentVelocityLaplacianFromGradient(self.model_part, VELOCITY, VELOCITY_LAPLACIAN)

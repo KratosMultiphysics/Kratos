@@ -11,8 +11,10 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.use_lumped_mass_matrix = pp.CFD_DEM.material_acceleration_calculation_type == 3
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
+        self.calculate_vorticity = pp.CFD_DEM.vorticity_calculation_type > 0
+        self.must_reconstruct_gradient = pp.CFD_DEM.must_reconstruct_gradient
 
-        if self.use_lumped_mass_matrix == 3:
+        if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
         else:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 0
@@ -45,6 +47,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         for node in self.recovery_model_part.Nodes:
             for var in DOF_variables:
                 node.AddDof(var)
+        print("DOFs for the derivative recovery solvers added correctly")
 
     def Solve(self):
         pass
@@ -107,7 +110,7 @@ class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, r
             self.RecoverGradientOfVelocityComponent(2)
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
 
-class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
+class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         L2ProjectionDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         self.element_type = "ComputeMaterialDerivativeSimplex3D"
@@ -119,16 +122,19 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionGradientRecove
     def RecoverMaterialAcceleration(self):
         self.SetToZero(MATERIAL_ACCELERATION)
         self.recovery_strategy.Solve()
+        if self.must_reconstruct_gradient:
+            self.RecoverGradientOfVelocity()
 
-class L2ProjectionLaplacianRecoverer(L2ProjectionDerivativesRecoverer, recoverer.LaplacianRecoverer):
+class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        recoverer.LaplacianRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
         L2ProjectionDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
-        self.element_type = "ComputeLaplacianSimplex3D"
+        self.element_type = "ComputeVelocityLaplacianSimplex3D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
         self.DOFs = (VELOCITY_LAPLACIAN_X, VELOCITY_LAPLACIAN_Y, VELOCITY_LAPLACIAN_Z)
         self.AddDofs(self.DOFs)
-    def RecoverVectorLaplacian(self, vector_variable, laplacian_variable):
+
+    def RecoverVelocityLaplacian(self):
+        print("\nSolving for the laplacian...")
         self.SetToZero(VELOCITY_LAPLACIAN)
         self.recovery_strategy.Solve()
