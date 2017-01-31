@@ -640,6 +640,23 @@ namespace Kratos
 	    }
 	}
 
+      template< class TVariableType >
+	void EvaluatePropertyFromANotRigidNode(TVariableType& rResult,
+					       const Kratos::Variable<TVariableType>& Var)
+	{
+	  GeometryType& rGeom = this->GetGeometry();
+	  const SizeType NumNodes = rGeom.PointsNumber();
+
+	  for(SizeType i = 0; i < NumNodes; i++)
+	    {
+	      if(rGeom[i].IsNot(RIGID)){
+		rResult = rGeom[i].FastGetSolutionStepValue(Var);
+		break;
+	      }
+	    }
+	}
+
+
       /// Write the value of a variable at a point inside the element to a double
       /**
        * Evaluate a nodal variable in the point where the form functions take the
