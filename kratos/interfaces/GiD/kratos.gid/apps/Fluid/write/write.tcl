@@ -1,11 +1,11 @@
 namespace eval Fluid::write {
     # Namespace variables declaration
     variable FluidConditions
-    
+
     variable PartsUN
     variable BCUN
     variable writeCoordinatesByGroups
-    
+
     variable validApps
 }
 
@@ -14,15 +14,15 @@ proc Fluid::write::Init { } {
     variable FluidConditions
     set FluidConditions(temp) 0
     unset FluidConditions(temp)
-    
+
     variable PartsUN
-    set PartsUN "FLParts" 
+    set PartsUN "FLParts"
     variable BCUN
     set BCUN "FLBC"
-    
+
     variable writeCoordinatesByGroups
     set writeCoordinatesByGroups 0
-    
+
     variable validApps
     set validApps [list "Fluid"]
 }
@@ -63,16 +63,16 @@ proc Fluid::write::Validate {} {
     set err ""
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+
     # Check only 1 part in Parts
     set xp1 "[spdAux::getRoute $PartsUN]/group"
     if {[llength [$root selectNodes $xp1]] ne 1} {
         set err "You must set one part.\n"
     }
     # Check closed volume
-    if {[CheckClosedVolume] ne 1} {
-        append err "Check boundary conditions."
-    }
+    #if {[CheckClosedVolume] ne 1} {
+    #    append err "Check boundary conditions."
+    #}
     return $err
 }
 
@@ -92,10 +92,10 @@ proc Fluid::write::writeConditions { } {
 proc Fluid::write::writeBoundaryConditions { } {
     variable FluidConditions
     variable BCUN
-    
+
     # Write the conditions
     set dict_group_intervals [write::writeConditions $BCUN]
-    
+
     # Vamos a construir el array que nos permite escribir submodel parts y la malla de condiciones de contorno
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -120,7 +120,7 @@ proc Fluid::write::writeBoundaryConditions { } {
 }
 
 proc Fluid::write::writeDrags { } {
-    
+
 }
 
 proc Fluid::write::writeMeshes { } {
@@ -144,7 +144,7 @@ proc Fluid::write::writeConditionsMesh { } {
         set end $FluidConditions($groupid,final)
         #W "$groupid $ini $end"
         if {$ini == -1} {
-            ::write::writeGroupMesh $condid $groupid "Nodes"           
+            ::write::writeGroupMesh $condid $groupid "Nodes"
         } else {
             ::write::writeGroupMesh $condid $groupid "Conditions" [list $ini $end]
         }
@@ -180,7 +180,7 @@ proc Fluid::write::writeSkinMesh { } {
 proc Fluid::write::CheckClosedVolume {} {
     variable BCUN
     set isclosed 1
-    
+
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set xp1 "[spdAux::getRoute $BCUN]/condition/group"

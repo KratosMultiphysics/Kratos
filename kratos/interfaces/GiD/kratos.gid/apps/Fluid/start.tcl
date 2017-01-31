@@ -10,26 +10,25 @@ proc ::Fluid::Init { } {
     variable dir
     variable prefix
     variable attributes
-    
+
     set dir [apps::getMyDir "Fluid"]
     set attributes [dict create]
-    
+
     set prefix FL
     set ::Model::ValidSpatialDimensions [list 2D 3D]
-    
+
     # Allow to open the tree
     set ::spdAux::TreeVisibility 1
-    
-    dict set attributes UseIntervals 0
-    if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
-    
+
+    dict set attributes UseIntervals 1
+
     LoadMyFiles
     if {[apps::getActiveAppId] eq "Fluid"} {::Fluid::FluidAppSelectorWindow}
 }
 
 proc ::Fluid::LoadMyFiles { } {
     variable dir
-    
+
     uplevel #0 [list source [file join $dir xml GetFromXML.tcl]]
     uplevel #0 [list source [file join $dir write write.tcl]]
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
@@ -47,7 +46,7 @@ proc ::Fluid::FluidAppSelectorWindow { } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set nd ""
-    catch {set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]} 
+    catch {set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]}
     if {$nd eq ""} {catch {set nd [ [$root selectNodes "hiddenfield\[@n='nDim'\]"] getAttribute v]}}
     if { $nd ne "undefined" } {
         if {[apps::getActiveAppId] eq "Fluid"} {
@@ -56,27 +55,27 @@ proc ::Fluid::FluidAppSelectorWindow { } {
     } {
         [$root selectNodes "value\[@n='nDim'\]"] setAttribute v wait
         set dir $::Kratos::kratos_private(Path)
-        
+
         set initwind .gid.win_example
         if { [ winfo exist $initwind]} {
             destroy $initwind
         }
         toplevel $initwind
         wm withdraw $initwind
-        
+
         set w $initwind
-        
+
         set x [expr [winfo rootx .gid]+[winfo width .gid]/2-[winfo width $w]/2]
         set y [expr [winfo rooty .gid]+[winfo height .gid]/2-[winfo height $w]/2]
-        
+
         wm geom $initwind +$x+$y
-        wm transient $initwind .gid    
-        
+        wm transient $initwind .gid
+
         InitWindow $w [_ "Fluid applications"] Kratos "" "" 1
         set initwind $w
         ttk::frame $w.top
         ttk::label $w.top.title_text -text [_ "Select a fluid application"]
-        
+
         ttk::frame $w.information  -relief ridge
         set i 0
         set apps [list Fluid EmbeddedFluid]
@@ -91,7 +90,7 @@ proc ::Fluid::FluidAppSelectorWindow { } {
         }
         grid $w.top
         grid $w.top.title_text
-        
+
         grid $w.information
     }
 }
@@ -106,13 +105,13 @@ proc ::Fluid::ChangeAppTo {appid} {
         }
         "EmbeddedFluid" {
             spdAux::deactiveApp Fluid
-            apps::setActiveApp $appid       
+            apps::setActiveApp $appid
         }
         default {
             ::spdAux::CreateDimensionWindow
         }
     }
-    
+
 }
 
 ::Fluid::Init

@@ -132,6 +132,7 @@ while(time <= end_time):
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("")
         print("STEP = ", step)
         print("TIME = ", time)
 
