@@ -136,10 +136,10 @@ class TrilinosMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                                                                                    self.linear_solver
                                                                                    )
         else:
-            builder_and_solver = TrilinosApplication.TrilinosResidualBasedBuilderAndSolver(self.EpetraCommunicator,
-                                                                                           guess_row_size,
-                                                                                           self.linear_solver
-                                                                                           )
+            builder_and_solver = TrilinosApplication.TrilinosEliminationBuilderAndSolver(self.EpetraCommunicator,
+                                                                                         guess_row_size,
+                                                                                         self.linear_solver
+                                                                                         )
         return builder_and_solver
 
 
