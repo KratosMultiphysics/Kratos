@@ -103,11 +103,7 @@ for dim in dim_vector:
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
 
-    ## Gradients computation
-    # grad_v = DN.transpose()*v
-    # grad_w = DN.transpose()*w
-    # grad_q = DN.transpose()*q
-    # grad_p = DN.transpose()*p
+    ## Gradients computation -> NOTE: grad(DN,x) gives back the transpose gradient!!
     grad_v = grad(DN,v)
     grad_w = grad(DN,w)
     grad_q = grad(DN,q)
@@ -122,7 +118,6 @@ for dim in dim_vector:
 
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)
-    # convective_term = (vconv_gauss.transpose()*grad_v.transpose()) ## TODO: CHECK WHICH ONE IS THE CORRECT
 
     ## Compute galerkin functional
     # Navier-Stokes functional
@@ -161,7 +156,7 @@ for dim in dim_vector:
         rv_stab = tau1*grad_q.transpose()*vel_residual
     else:
         rv_stab = tau1*rho*grad_q.transpose()*vel_residual
-    rv_stab += tau1*rho*(grad_w*vconv_gauss).transpose()*vel_residual
+    rv_stab += tau1*rho*(grad_w.transpose()*vconv_gauss).transpose()*vel_residual
     rv_stab += tau2*div_w*mas_residual
     if (artificial_compressibility == True):
         rv_stab -= tau1*(1/(c*c))*pder_gauss*w_gauss.transpose()*vel_residual
