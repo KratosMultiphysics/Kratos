@@ -28,8 +28,8 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : "DISPLACEMENT",
-                "interpolation_error"              : 1.0e-6,
-                "mesh_dependent_constant"          : 0.28125
+                "interpolation_error"              : 1.0e-12,
+                "mesh_dependent_constant"          : 0.0
             },
             "step_frequency"                   : 0,
             "automatic_remesh"                 : true,
@@ -77,6 +77,8 @@ class MmgProcess(KratosMultiphysics.Process):
             self.metric_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() )
             self.interpolation_error = self.params["hessian_strategy_parameters"]["interpolation_error"].GetDouble()  
             self.mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()  
+            if (self.mesh_dependent_constant == 0.0):
+                self.mesh_dependent_constant = 0.5 * (self.dim/(self.dim + 1))**2.0
         
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
@@ -225,11 +227,11 @@ class MmgProcess(KratosMultiphysics.Process):
                         comp,
                         self.minimal_size,
                         self.maximal_size,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant,
                         self.hmin_over_hmax_anisotropic_ratio, 
                         self.boundary_layer_max_distance, 
-                        self.interpolation,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant
+                        self.interpolation
                         ))
                     else:
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
@@ -245,18 +247,21 @@ class MmgProcess(KratosMultiphysics.Process):
                         comp,
                         self.minimal_size,
                         self.maximal_size,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant,
                         self.hmin_over_hmax_anisotropic_ratio, 
                         self.boundary_layer_max_distance, 
-                        self.interpolation,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant
+                        self.interpolation
+ 
                         ))
                     else:
                         self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
                         self.Model[self.model_part_name],
                         comp,
                         self.minimal_size,
-                        self.maximal_size
+                        self.maximal_size,
+                        self.interpolation_error,
+                        self.mesh_dependent_constant
                         ))
     
     def _CreateGradientProcess(self):

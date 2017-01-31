@@ -77,12 +77,12 @@ public:
      * @param rThisModelPart: The model part to be computed
      * @param rMinSize: The min size of element
      * @param rMaxSize: The maximal size of the elements
+     * @param rInterpError: The interpolation error assumed
+     * @param rMeshConstant: The constant that appears in papers an none knows where comes from, where...
      * @param rAnisRatio: The anisotropic ratio
      * @param rBoundLayer: The boundary layer limit
      * @param rInterpolation: The interpolation type
      * @param rVariable: The variable considered for remeshing
-     * @param rInterpError: The interpolation error assumed
-     * @param rMeshConstant: The constant that appears in papers an none knows where comes from, where...
      */
     
     ComputeHessianSolMetricProcess(
@@ -90,20 +90,20 @@ public:
         Variable<double>& rVariable,
         const double rMinSize,
         const double rMaxSize,
+        const double rInterpError = 1.0e-6,
+        const double rMeshConstant = 0.28125, // TODO: This is for tetrahedron, look in literature for more
         const double rAnisRatio = 1.0,
         const double rBoundLayer =  1.0,
-        const std::string rInterpolation = "Linear",
-        const double rInterpError = 1.0e-6,
-        const double rMeshConstant = 0.28125 // TODO: This is for tetrahedron, look in literature for more
+        const std::string rInterpolation = "Linear"
         )
         :mThisModelPart(rThisModelPart),
         mVariable(rVariable),
         mMinSize(rMinSize),
         mMaxSize(rMaxSize),
-        mAnisRatio(rAnisRatio),
-        mBoundLayer(rBoundLayer),
         mInterpError(rInterpError),
-        mMeshConstant(rMeshConstant)
+        mMeshConstant(rMeshConstant),
+        mAnisRatio(rAnisRatio),
+        mBoundLayer(rBoundLayer)
     {       
         mInterpolation = ConvertInter(rInterpolation);
     }
@@ -272,11 +272,11 @@ private:
     Variable<double> mVariable;   // The variable to calculate the hessian
     double mMinSize;              // The minimal size of the elements
     double mMaxSize;              // The maximal size of the elements
+    double mInterpError;          // The error of interpolation allowed
+    double mMeshConstant;         // The mesh constant to remesh (depends of the element type)
     double mAnisRatio;            // The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;           // The boundary layer limit distance
     Interpolation mInterpolation; // The interpolation type
-    double mInterpError;          // The error of interpolation allowed
-    double mMeshConstant;         // The mesh constant to remesh (depends of the element type)
     
     ///@}
     ///@name Private Operators

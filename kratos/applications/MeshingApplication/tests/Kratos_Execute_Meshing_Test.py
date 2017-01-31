@@ -71,17 +71,17 @@ class Kratos_Execute_Test:
         ## Remeshing processes construction
         if (self.ProjectParameters.Has("initial_remeshing_process") == True):
             remeshing_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["initial_remeshing_process"])
+            if (ProjectParameters.Has("list_other_processes") == True):
+                remeshing_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
             
             ## Remeshing processes initialization
-            for process in remeshing_processes:
+            for process in reversed(remeshing_processes):
                 process.ExecuteInitialize()
 
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
-        if (ProjectParameters.Has("list_other_processes") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
         if (self.ProjectParameters.Has("json_check_process") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
         if (self.ProjectParameters.Has("json_output_process") == True):

@@ -1,0 +1,154 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "2D_hessian_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 0.029,
+        "time_step"       : 0.01
+    },
+    "_output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","ANISOTROPIC_RATIO"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "FractionalStep",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "mmg_test/2D_hessian_test"
+        },
+        "echo_level"                   : 0,
+        "compute_reactions"            : false,
+        "consider_periodic_conditions" : false,
+        "reform_dofs_at_each_step"     : false,
+        "time_order"                   : 2,
+        "divergence_clearance_steps"   : 0,
+        "dynamic_tau"                  : 0.001,
+        "predictor_corrector"          : false,
+        "maximum_velocity_iterations"  : 4,
+        "maximum_pressure_iterations"  : 4,
+        "velocity_tolerance"           : 0.001,
+        "pressure_tolerance"           : 0.001,
+        "volume_model_part_name"       : "Parts_Parts_Auto1",
+        "skin_parts"                   : ["Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
+        "no_skin_parts"                : []
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "impose_vector_value_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes all the components of a given vector variable",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "ImposeVectorValueByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Inlet2D_Inlet_velocity_Auto1",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 1.0,
+            "direction"       : [1,0.0,0.0]
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_No_Slip_Auto1"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ApplyConstantVectorValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Parts_Auto1",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "list_other_processes" :[
+    {
+        "python_module"   : "hessian2D_test_local_process",
+        "kratos_module" : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "",
+        "process_name"          : "ApplyLocalProcess",
+        "Parameters"            : {
+            "model_part_name"  : "Parts_Parts_Auto1"
+        }
+    }
+    ],
+    "initial_remeshing_process" :[
+    {
+        "python_module"   : "mmg_process",
+        "kratos_module"   : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "This process automatically remesh using MMG library",
+        "process_name"          : "MmgProcess",
+        "Parameters"            : {
+            "step_frequency"                    : 0,
+            "output_file_name"                 : "mmg_test/2D_hessian_test",
+            "strategy"                         : "Hessian",
+            "hessian_strategy_parameters"              :{
+                "metric_variable"                  : "DISTANCE",
+                "interpolation_error"              : 1.0e-12
+            },
+            "automatic_remesh"                 : true,
+            "automatic_remesh_parameters"      :{
+                "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 0.65,
+                "max_size_ratio"                   : 3.0,
+                "refer_type"                       : "Mean"
+            },
+            "save_external_files"               : true,
+            "anisotropy_remeshing"              : false,
+            "anisotropy_parameters":{
+                "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                "boundary_layer_max_distance"      : 1.0,
+                "boundary_layer_min_size_ratio"    : 2.0,
+                "interpolation"                    : "Linear"
+            },
+            "echo_level"                        : 0
+        }
+    }
+    ],
+    "compare_two_files_check_process" :[
+    {
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"                  : "This process compares two files and executes an Unittest Assert",
+        "process_name"          : "CompareTwoFilesCheckProcess",
+        "Parameters"            : {
+            "file_name_1"       : "mmg_test/2D_hessian_test.o.mesh",
+            "file_name_2"       : "mmg_test/2D_hessian_test_result.mesh",
+            "deterministic"     : false,
+            "error_assumed"     : 1.0e-6,
+            "dimension"         : 2
+        }
+    }
+    ]
+}
