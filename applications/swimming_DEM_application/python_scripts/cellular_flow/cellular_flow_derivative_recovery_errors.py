@@ -2,15 +2,16 @@ import math
 import matplotlib.pyplot as plt
 
 regular_mesh = True
+
 show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
-n_divs = [10, 20, 40, 80]
+n_divs = [10, 20]
 
 if regular_mesh:
     sizes = [1.0 / n_div for n_div in n_divs]
 else:
-    sizes = sizes = [0.05, 0.025, 0.0125]
+    sizes = sizes = [0.05, 0.025]
 
-recovery_types = [1, 2, 4, 5, 6]
+recovery_types = [1, 2, 3, 4, 5, 6, 7]
 
 def CalculateLastSlopes(sizes, results):
     Delta_result = math.log(results[-1]/results[-2])
@@ -69,6 +70,7 @@ for method in recovery_types:
         color = 'r'
         marker_type = '-*'
         marker_size = 10
+
     elif method == 2:
         mat_deriv_type = 'Zhang and Naga (2005)'
         laplacian_type = 'Zhang and Naga (2005)'
@@ -103,12 +105,19 @@ for method in recovery_types:
 
     elif method == 6:
         mat_deriv_type = 'Fortin et al. (2012)'
-        laplacian_type = 'Fortin et al. (2012)'
+        laplacian_type = 'L2 divergence of gradient'
+        line_width = 1
+        color = 'brown'
+        marker_type = '-v'
+        marker_size = 10
+
+    elif method == 7:
+        mat_deriv_type = 'Zhang and Naga (2005)'
+        laplacian_type = 'Guo (2016)'
         line_width = 1
         color = 'm'
         marker_type = '-v'
         marker_size = 10
-
     try:
         mat_deriv_final_slope = CalculateLastSlopes(sizes, mat_deriv_average_errors)
         mat_deriv_slope_msg = ' (m = ' + str(round(mat_deriv_final_slope, 2)) + ')'
@@ -142,6 +151,13 @@ else:
     plot_name = 'derivative_recovery_errors_irregular.pdf'
 plt.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
 plt.ylim((min_error / 10, max_error * 10))
+plt.xlabel('$h$', fontsize=20)
+
+if show_math_deriv_or_laplacian == 'M':
+    plt.ylabel('$E_1$', fontsize=20)
+else:
+    plt.ylabel('$E_2$', fontsize=20)
+
 plt.legend(loc = 'upper left')
 plt.savefig(plot_name)
 plt.show()
