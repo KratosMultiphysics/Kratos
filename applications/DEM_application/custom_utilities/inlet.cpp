@@ -140,11 +140,11 @@ namespace Kratos {
                                                              true,
                                                              smp_it->Elements());
 		max_Id++;
-                if(mStrategyForContinuum){
+                /*if(mStrategyForContinuum){
                     SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
                     p_continuum_spheric_particle->mContinuumInitialNeighborsSize=0;
                     p_continuum_spheric_particle->mInitialNeighborsSize=0;    
-                }
+                }*/
             } 
             smp_number++;
         } //for smp_it                                               
@@ -386,10 +386,10 @@ namespace Kratos {
                                                                                         mBallsModelPartHasRotation, 
                                                                                         false, 
                                                                                         smp_it->Elements());
-                        if(mStrategyForContinuum) {
+                        /*if(mStrategyForContinuum) {
                             SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
                             spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
-                        }
+                        }*/
                         inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id++;
