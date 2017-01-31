@@ -162,9 +162,9 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
    {
      double FluidBulkModulus=0;
      double FluidViscosity=0;
-     this->EvaluateInPoint(Density,DENSITY,N);
-     this->EvaluateInPoint(FluidViscosity,VISCOSITY,N);
-     this->EvaluateInPoint(FluidBulkModulus,BULK_MODULUS,N);
+     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
+     this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
+     this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus,BULK_MODULUS);
 
      if(FluidBulkModulus==0){
        // std::cout<<"FluidBulkModulus was 0 !!!!!!!!"<<std::endl;
