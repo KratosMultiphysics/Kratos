@@ -635,47 +635,12 @@ protected:
         unsigned int cond_id = 0;
         if (mpRefCondition[0] != nullptr)
         {
-            ConditionType::Pointer pCondition;
             int prop_id, isRequired;
             for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
                 cond_id += 1;
                 
-                if (TDim == 2) // Lines
-                {
-                    const cond_geometries_2d index_geom = Line;
-                    
-                    int edge0, edge1, isRidge;
-                    
-                    if (MMG2D_Get_edge(mmgMesh, &edge0, &edge1, &prop_id, &isRidge, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-                    
-                    std::vector<NodeType::Pointer> ConditionNodes (2);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(edge0);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(edge1);    
-                    
-                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
-                }
-                else // Triangles
-                {
-                    const cond_geometries_3d index_geom = Triangle3D;
-                    
-                    int vertex0, vertex1, vertex2;
-
-                    if (MMG3D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-                    
-                    std::vector<NodeType::Pointer> ConditionNodes (3);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
-                    
-                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
-                }
+                ConditionType::Pointer pCondition = CreateCondition0(rThisModelPart, cond_id, prop_id, isRequired);
                 
                 pCondition->Initialize();
                 rThisModelPart.AddCondition(pCondition);
@@ -702,22 +667,7 @@ protected:
                 {
                     cond_id += 1;
                     
-                    const cond_geometries_3d index_geom = Quadrilateral3D;
-                    
-                    int vertex0, vertex1, vertex2, vertex3;
-
-                    if (MMG3D_Get_quadrilateral(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-                    
-                    std::vector<NodeType::Pointer> ConditionNodes (4);
-                    ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
-                    ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
-                    ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
-                    ConditionNodes[3] = rThisModelPart.pGetNode(vertex3);
-                    
-                    pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+                    ConditionType::Pointer pCondition = CreateCondition1(rThisModelPart, cond_id, prop_id, isRequired);
                     
                     pCondition->Initialize();
                     rThisModelPart.AddCondition(pCondition);
@@ -740,49 +690,12 @@ protected:
         unsigned int elem_id = 0;
         if (mpRefElement[0] != nullptr)
         {
-            ElementType::Pointer pElement;
             int prop_id, isRequired;
             for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
             {
                 elem_id += 1;
                 
-                if (TDim == 2) // Triangle
-                {
-                    const elem_geometries_2d index_geom = Triangle2D;
-                    
-                    int vertex0, vertex1, vertex2;
-                    
-                    if (MMG2D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-
-                    std::vector<NodeType::Pointer> ElementNodes (3);
-                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
-                    
-                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
-                }
-                else // Tetrahedra
-                {
-                    const elem_geometries_3d index_geom = Tetrahedra;
-                    
-                    int vertex0, vertex1, vertex2, vertex3;
-                    
-                    if (MMG3D_Get_tetrahedron(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-                    
-                    std::vector<NodeType::Pointer> ElementNodes (4);
-                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
-                    ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
-                    
-                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
-                }
+                ElementType::Pointer pElement = CreateElement0(rThisModelPart, elem_id, prop_id, isRequired);
                 
                 pElement->Initialize();
                 rThisModelPart.AddElement(pElement);
@@ -803,30 +716,12 @@ protected:
         {
             if (mpRefElement[1] != nullptr) // Prism
             {
-                ElementType::Pointer pElement;
                 int prop_id, isRequired;
                 for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
                 {
                     elem_id += 1;
                     
-                    const elem_geometries_3d index_geom = Prism;
-                    
-                    int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5;
-                    
-                    if (MMG3D_Get_prism(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &vertex4, &vertex5, &prop_id, &isRequired) != 1 )
-                    {
-                        exit(EXIT_FAILURE);
-                    }
-                    
-                    std::vector<NodeType::Pointer> ElementNodes (6);
-                    ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-                    ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-                    ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
-                    ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
-                    ElementNodes[4] = rThisModelPart.pGetNode(vertex4);
-                    ElementNodes[5] = rThisModelPart.pGetNode(vertex5);
-                    
-                    pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+                    ElementType::Pointer pElement = CreateElement1(rThisModelPart, elem_id, prop_id, isRequired);
                     
                     pElement->Initialize();
                     rThisModelPart.AddElement(pElement);
@@ -895,15 +790,61 @@ protected:
     }
     
     /**
-     * It interpolates the values in the new model part using the old model part
+     * It creates the new node
+     * @param rThisModelPart: The model part
      * @param i_node: The index of the new noode
-     * @param meshpoint: The MMG point
      * @return pNode: The pointer to the new node created
      */
     
     NodeType::Pointer CreateNode(
         ModelPart& rThisModelPart,
         unsigned int i_node
+        );
+    
+    /**
+     * It creates the new condition
+     * @param rThisModelPart: The model part
+     * @param cond_id: The id of the condition
+     * @param prop_id: The submodelpart id
+     * @param isRequired: MMG value (I don't know that it does)
+     * @return pCondition: The pointer to the new condition created
+     */
+    
+    ConditionType::Pointer CreateCondition0(
+        ModelPart& rThisModelPart,
+        const unsigned int cond_id,
+        int& prop_id, 
+        int& isRequired
+        );
+    
+    ConditionType::Pointer CreateCondition1(
+        ModelPart& rThisModelPart,
+        const unsigned int cond_id,
+        int& prop_id, 
+        int& isRequired
+        );
+    
+    /**
+     * It creates the new element
+     * @param rThisModelPart: The model part
+     * @param cond_id: The id of the element
+     * @param prop_id: The submodelpart id
+     * @param isRequired: MMG value (I don't know that it does)
+     * @return pElement: The pointer to the new condition created
+     */
+    
+    ElementType::Pointer CreateElement0(
+        ModelPart& rThisModelPart,
+        const unsigned int elem_id,
+        int& prop_id, 
+        int& isRequired
+        );
+    
+    ElementType::Pointer CreateElement1(
+        ModelPart& rThisModelPart,
+        const unsigned int elem_id,
+        int& prop_id, 
+        int& isRequired
         );
     
     /**
@@ -954,40 +895,28 @@ protected:
             {
                 for(unsigned int step = 0; step < buffer_size; step++)
                 {
-                    double* step_data = (itNode)->SolutionStepData().Data(step);
-                    
-                    if (TDim == 2)
-                    {
-                        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
-                        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
-                        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
-                        
-                        for (unsigned int j = 0; j < step_data_size; j++)
-                        {
-                            step_data[j] = shape_functions[0] * node0_data[j]
-                                         + shape_functions[1] * node1_data[j]
-                                         + shape_functions[2] * node2_data[j];
-                        }
-                    }
-                    else // NOTE: This just works with tetrahedron (you are going to have poblems with anything else)
-                    {
-                        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
-                        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
-                        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
-                        double* node3_data = pElement->GetGeometry()[3].SolutionStepData().Data(step);
-                        
-                        for (unsigned int j = 0; j < step_data_size; j++)
-                        {
-                            step_data[j] = shape_functions[0] * node0_data[j]
-                                         + shape_functions[1] * node1_data[j]
-                                         + shape_functions[2] * node2_data[j]
-                                         + shape_functions[3] * node3_data[j];
-                        }
-                    }
+                    CalculateStepData(*(itNode.base()), pElement, shape_functions, step, step_data_size);
                 }
             }
         }
     }
+    
+    /**
+     * It calculates the step data interpolated to the node
+     * @return itNode: The node pointer
+     * @param pElement: The element pointer
+     * @param shape_functions: The shape functions in the node
+     * @param step: The time step
+     * @param step_data_size: The size of the database
+     */
+    
+    void CalculateStepData(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions,
+        unsigned int step,
+        unsigned int step_data_size
+        );
     
     /**
      * It saves the solution and mesh to files (for debugging pourpose g.e)
@@ -1369,6 +1298,245 @@ protected:
         return pNode;
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ConditionType::Pointer MmgUtility<2>::CreateCondition0(        
+        ModelPart& rThisModelPart,
+        const unsigned int cond_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const cond_geometries_2d index_geom = Line;
+        
+        int edge0, edge1, isRidge;
+        
+        if (MMG2D_Get_edge(mmgMesh, &edge0, &edge1, &prop_id, &isRidge, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        std::vector<NodeType::Pointer> ConditionNodes (2);
+        ConditionNodes[0] = rThisModelPart.pGetNode(edge0);
+        ConditionNodes[1] = rThisModelPart.pGetNode(edge1);    
+        
+        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        
+        return pCondition;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ConditionType::Pointer MmgUtility<3>::CreateCondition0(
+        ModelPart& rThisModelPart,
+        const unsigned int cond_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const cond_geometries_3d index_geom = Triangle3D;
+        
+        int vertex0, vertex1, vertex2;
+
+        if (MMG3D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        std::vector<NodeType::Pointer> ConditionNodes (3);
+        ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
+        ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
+        ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
+        
+        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        
+        return pCondition;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ConditionType::Pointer MmgUtility<3>::CreateCondition1(
+        ModelPart& rThisModelPart,
+        const unsigned int cond_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const cond_geometries_3d index_geom = Quadrilateral3D;
+        
+        int vertex0, vertex1, vertex2, vertex3;
+
+        if (MMG3D_Get_quadrilateral(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        std::vector<NodeType::Pointer> ConditionNodes (4);
+        ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
+        ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
+        ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
+        ConditionNodes[3] = rThisModelPart.pGetNode(vertex3);
+        
+        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        
+        return pCondition;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ElementType::Pointer MmgUtility<2>::CreateElement0(        
+        ModelPart& rThisModelPart,
+        const unsigned int elem_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const elem_geometries_2d index_geom = Triangle2D;
+        
+        int vertex0, vertex1, vertex2;
+        
+        if (MMG2D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+
+        std::vector<NodeType::Pointer> ElementNodes (3);
+        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+        
+        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        
+        return pElement;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ElementType::Pointer MmgUtility<3>::CreateElement0(
+        ModelPart& rThisModelPart,
+        const unsigned int elem_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const elem_geometries_3d index_geom = Tetrahedra;
+        
+        int vertex0, vertex1, vertex2, vertex3;
+        
+        if (MMG3D_Get_tetrahedron(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        std::vector<NodeType::Pointer> ElementNodes (4);
+        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+        ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
+        
+        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        
+        return pElement;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    ElementType::Pointer MmgUtility<3>::CreateElement1(
+        ModelPart& rThisModelPart,
+        const unsigned int elem_id,
+        int& prop_id, 
+        int& isRequired
+        )
+    {
+        const elem_geometries_3d index_geom = Prism;
+                    
+        int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5;
+        
+        if (MMG3D_Get_prism(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &vertex4, &vertex5, &prop_id, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        std::vector<NodeType::Pointer> ElementNodes (6);
+        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+        ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
+        ElementNodes[4] = rThisModelPart.pGetNode(vertex4);
+        ElementNodes[5] = rThisModelPart.pGetNode(vertex5);
+        
+        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        
+        return pElement;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::CalculateStepData(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions,
+        unsigned int step,
+        unsigned int step_data_size
+        )
+    {
+        double* step_data = pNode->SolutionStepData().Data(step);
+        
+        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
+        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
+        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
+        
+        for (unsigned int j = 0; j < step_data_size; j++)
+        {
+            step_data[j] = shape_functions[0] * node0_data[j]
+                         + shape_functions[1] * node1_data[j]
+                         + shape_functions[2] * node2_data[j];
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::CalculateStepData(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions,
+        unsigned int step,
+        unsigned int step_data_size
+        )
+    {
+        double* step_data = pNode->SolutionStepData().Data(step);
+        
+        // NOTE: This just works with tetrahedron (you are going to have poblems with anything else)
+        double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
+        double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
+        double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
+        double* node3_data = pElement->GetGeometry()[3].SolutionStepData().Data(step);
+        
+        for (unsigned int j = 0; j < step_data_size; j++)
+        {
+            step_data[j] = shape_functions[0] * node0_data[j]
+                         + shape_functions[1] * node1_data[j]
+                         + shape_functions[2] * node2_data[j]
+                         + shape_functions[3] * node3_data[j];
+        }
+    }
+    
     /***********************************************************************************/
     /***********************************************************************************/
     
