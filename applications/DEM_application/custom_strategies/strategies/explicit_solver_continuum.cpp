@@ -427,10 +427,10 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            typename ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
-            for (typename ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
                 (it_contact)->Initialize();
             } //loop over CONTACT ELEMENTS
         }// loop threads OpenMP
@@ -447,10 +447,10 @@ namespace Kratos {
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            typename ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
-            for (typename ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
                 (it_contact)->InitializeSolutionStep(r_process_info);
             } //loop over CONTACT ELEMENTS
 
@@ -468,10 +468,10 @@ namespace Kratos {
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            typename ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
-            for (typename ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
                 Element* raw_p_contact_element = &(*it_contact);
                 ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (raw_p_contact_element);
                 p_bond->PrepareForPrinting();
@@ -789,10 +789,10 @@ namespace Kratos {
 
         #pragma omp parallel for private (rhs_cond)
         for (int k = 0; k < mNumberOfThreads; k++) {
-            typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
-            typename ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
+            ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
+            ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
 
-            for (typename ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
+            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
                 it->FinalizeSolutionStep(r_process_info);
             }
         }
