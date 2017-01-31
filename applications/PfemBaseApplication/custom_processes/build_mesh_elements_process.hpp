@@ -437,15 +437,15 @@ namespace Kratos
 	  ie != rModelPart.ElementsEnd(mMeshId); ie++)
 	{
 	  
-	  // for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
-	  //   {
-	  //     if( mrRemesh.PreservedElements[Id] == -1)
-	  // 	Id++;
-	  //     else
-	  // 	break;
-	  //   }
+	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
+	    {
+	      if( mrRemesh.PreservedElements[Id] == -1)
+	  	Id++;
+	      else
+	  	break;
+	    }
 
-	  Id = ie->Id()-1;
+	  //Id = ie->Id()-1;
 	  
 	  unsigned int number_of_faces = ie->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
 	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
@@ -478,7 +478,7 @@ namespace Kratos
 		}
 	    }
 
-	  //Id++;
+	  Id++;
 	}
 	
       if( mEchoLevel > 0 ){
