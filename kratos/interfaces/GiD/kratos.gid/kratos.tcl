@@ -182,8 +182,10 @@ proc Kratos::RestoreVariables { } {
 }
 proc Kratos::AddRestoreVar {varName} {
     variable kratos_private
-    set val [set $varName]
-    lappend kratos_private(RestoreVars) $varName $val
+    if {[info exists $varName]} {
+        set val [set $varName]   
+        lappend kratos_private(RestoreVars) $varName $val
+    }
 }
 
 proc Kratos::DestroyWindows {} {
