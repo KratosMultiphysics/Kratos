@@ -400,13 +400,13 @@ private:
                 }
                 
                 const boost::numeric::ublas::bounded_matrix<double,2, 2> Hessian = prod(trans(DN_DX), values); 
-                const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
+                const Vector HessianCond = MetricsMathUtils<2>::TensorToVector(Hessian);
                 
                 for(unsigned int i_node = 0; i_node < geom.size(); i_node++)
                 {
                     for(unsigned int k = 0; k < 3; k++)
                     {
-                        double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                        double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
                         
                         #pragma omp atomic
                         val += N[i_node] * Volume * HessianCond[k];
@@ -430,13 +430,13 @@ private:
                 }
                 
                 const boost::numeric::ublas::bounded_matrix<double, 3, 3> Hessian = prod(trans(DN_DX), values); 
-                const Vector HessianCond = MetricsMathUtils<TDim>::TensorToVector(Hessian);
+                const Vector HessianCond = MetricsMathUtils<3>::TensorToVector(Hessian);
                 
                 for(unsigned int i_node = 0; i_node < geom.size(); i_node++)
                 {
                     for(unsigned int k = 0; k < 6; k++)
                     {
-                        double& val = geom[i_node].FastGetSolutionStepValue(AUXILIAR_HESSIAN)[k];
+                        double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
                         
                         #pragma omp atomic
                         val += N[i_node] * Volume * HessianCond[k];
