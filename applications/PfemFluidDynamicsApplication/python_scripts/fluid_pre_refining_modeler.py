@@ -133,7 +133,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.BuildMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
 

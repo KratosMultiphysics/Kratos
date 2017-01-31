@@ -315,7 +315,7 @@ namespace Kratos
 	}
 
 
-      this->BuildBoundaryModelParts(rModelPart,PreservedConditions);
+      this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{

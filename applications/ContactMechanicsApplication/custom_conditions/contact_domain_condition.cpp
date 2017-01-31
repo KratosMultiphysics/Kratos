@@ -481,9 +481,7 @@ void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessIn
   Element::Pointer   MasterElement   = GetValue(MASTER_ELEMENTS)(0).lock();
   Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
   DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
-  
-
-  
+    
   KRATOS_CATCH( "" )
 }
 
@@ -1659,6 +1657,13 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void ContactDomainCondition::save( Serializer& rSerializer ) const
 {
+    // to check serialization
+    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
+    // std::cout<<" MASTER CONDITION "<<this->GetValue(MASTER_CONDITION)<<std::endl;
+    // std::cout<<" MASTER NODES    "<<this->GetValue(MASTER_NODES)<<std::endl;
+    // std::cout<<" MASTER ELEMENTS "<<this->GetValue(MASTER_ELEMENTS)<<std::endl;
+
+  
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     // int IntMethod = (int)mThisIntegrationMethod;
     // rSerializer.save("IntegrationMethod",IntMethod);
@@ -1669,6 +1674,16 @@ void ContactDomainCondition::save( Serializer& rSerializer ) const
 void ContactDomainCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+
+    // to check serialization
+    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
+    // std::cout<<" MASTER CONDITION "<<this->GetValue(MASTER_CONDITION)<<std::endl;
+    // Vector StressVector;
+    // StressVector = this->GetValue(MASTER_CONDITION)->GetValue(CAUCHY_STRESS_VECTOR);
+    // std::cout<<" StressVector "<<StressVector<<std::endl;
+    // std::cout<<" MASTER NODES    "<<this->GetValue(MASTER_NODES)<<std::endl;
+    // std::cout<<" MASTER ELEMENTS "<<this->GetValue(MASTER_ELEMENTS)<<std::endl;
+    
     // int IntMethod;
     // rSerializer.load("IntegrationMethod",IntMethod);
     // mThisIntegrationMethod = IntegrationMethod(IntMethod);
