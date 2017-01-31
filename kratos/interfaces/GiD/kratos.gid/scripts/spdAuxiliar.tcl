@@ -599,10 +599,11 @@ proc spdAux::injectSolStratParams {basenode args} {
                 
                 set pv ""
                 for {set i 0} {$i < [llength $values]} {incr i} {
-                    append pv [lindex $values $i] "," [lindex $pvalues $i] ","
+                    lappend pv [lindex $values $i]
+                    lappend pv [lindex $pvalues $i] 
                 }
-                if {[llength $pv]} {set pv [string range $pv 0 end-1]}
-                #set pv [join $values $pvalues ,]
+                set pv [join $pvalues ,]
+                #W " values='$vs' dict='$pv' "
                 append node " values='$vs' dict='$pv' "
             } 
             append node "/>"
@@ -766,8 +767,20 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                 }
                 
             } elseif { $type eq "combo" } {
+                set values [$in getValues]
+                set pvalues [$in getPValues]
+                set pv ""
+                for {set i 0} {$i < [llength $values]} {incr i} {
+                    lappend pv [lindex $values $i]
+                    lappend pv [lindex $pvalues $i] 
+                }
                 set values [join [$in getValues] ","]
-                append node "<value n='$inName' pn='$pn' v='$v' values='$values' state='$state' help='$help'/>"
+                set pvalues [join $pv ","]
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values'"
+                if {[llength $pv]} {
+                    append node " dict='$pvalues' "
+                }
+                append node " state='$state' help='$help'/>"
             } elseif { $type eq "bool" } {
                 set values "1,0"
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
