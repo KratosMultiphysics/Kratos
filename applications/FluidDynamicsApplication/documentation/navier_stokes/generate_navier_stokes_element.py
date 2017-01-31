@@ -23,7 +23,7 @@ do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "FullNR"            # Linearisation type. Options: "Picard", "FullNR"
 divide_by_rho = True                # Divide by density in mass conservation equation
-artificial_compressibility = True   # Consider an artificial compressibility
+artificial_compressibility = False   # Consider an artificial compressibility
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -92,8 +92,9 @@ for dim in dim_vector:
         vconv_gauss = vconv.transpose()*N
     elif (linearisation == "FullNR"):
         vmesh = DefineMatrix('vmesh',nnodes,dim)    # Mesh velocity
-        vmesh_gauss = vmesh.transpose()*N
-        vconv_gauss = v_gauss - vmesh_gauss
+        # vmesh_gauss = vmesh.transpose()*N
+        # vconv_gauss = v_gauss - vmesh_gauss
+        vconv_gauss = (v.transpose() - vmesh.transpose())*N
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
 
     p_gauss = p.transpose()*N
@@ -103,10 +104,14 @@ for dim in dim_vector:
     q_gauss = q.transpose()*N
 
     ## Gradients computation
-    grad_v = DN.transpose()*v
-    grad_w = DN.transpose()*w
-    grad_q = DN.transpose()*q
-    grad_p = DN.transpose()*p
+    # grad_v = DN.transpose()*v
+    # grad_w = DN.transpose()*w
+    # grad_q = DN.transpose()*q
+    # grad_p = DN.transpose()*p
+    grad_v = grad(DN,v)
+    grad_w = grad(DN,w)
+    grad_q = grad(DN,q)
+    grad_p = grad(DN,p)
 
     div_v = div(DN,v)
     div_w = div(DN,w)
@@ -117,6 +122,7 @@ for dim in dim_vector:
 
     # Convective term definition
     convective_term = (vconv_gauss.transpose()*grad_v)
+    # convective_term = (vconv_gauss.transpose()*grad_v.transpose()) ## TODO: CHECK WHICH ONE IS THE CORRECT
 
     ## Compute galerkin functional
     # Navier-Stokes functional
