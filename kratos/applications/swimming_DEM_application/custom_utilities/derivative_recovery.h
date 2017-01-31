@@ -122,7 +122,7 @@ void RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<d
 
 void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
-void RecoverSuperconvergentLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
+void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
