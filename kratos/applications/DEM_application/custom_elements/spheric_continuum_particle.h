@@ -115,10 +115,6 @@ namespace Kratos
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
-        
-        //std::vector<array_1d<double, 3> > mArrayOfOldDeltaDisplacements;
-        //std::vector<array_1d<double, 3> > mArrayOfDeltaDisplacements;
-        //Matrix* mOldSymmStressTensor;
 
     protected:
 
@@ -152,9 +148,6 @@ namespace Kratos
             //rSerializer.save("mIniNeighbourIds",mIniNeighbourIds);
             //rSerializer.save("mSymmStressTensor",mSymmStressTensor);
             rSerializer.save("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);
-            /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-                rSerializer.save("mOldSymmStressTensor", mOldSymmStressTensor);
-            }*/
         }
 
         virtual void load(Serializer& rSerializer) override
@@ -166,11 +159,6 @@ namespace Kratos
             rSerializer.load("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);
             mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
             mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
-            /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-                mOldSymmStressTensor  = new Matrix(3,3);
-                *mOldSymmStressTensor = ZeroMatrix(3,3);
-                rSerializer.load("mOldSymmStressTensor", mOldSymmStressTensor);
-            }*/
         }
 
         /* Assignment operator

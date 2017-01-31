@@ -441,11 +441,11 @@ namespace Kratos {
     
     void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
         if(!mListOfSphericParticles.size() ) return;
-        for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+        /*for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
             SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
-            p_continuum_particle_i->mContinuumInitialNeighborsSize = 0;
-            p_continuum_particle_i->mInitialNeighborsSize = 0;
-        }
+            //p_continuum_particle_i->mContinuumInitialNeighborsSize = 0;
+            //p_continuum_particle_i->mInitialNeighborsSize = 0;
+        }*/
         
         for (unsigned int i=0; i<mListOfSphericParticles.size()-1; i++) {
             SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);            

@@ -9,21 +9,25 @@
 namespace Kratos {
 
     SphericContinuumParticle::SphericContinuumParticle():SphericParticle() {
-      //mOldSymmStressTensor = NULL;
+        mContinuumInitialNeighborsSize = 0;
+        mInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericParticle(NewId, pGeometry){
-      //mOldSymmStressTensor = NULL;
+        mContinuumInitialNeighborsSize = 0;
+        mInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : SphericParticle(NewId, pGeometry, pProperties){
-      //mOldSymmStressTensor = NULL;
+        mContinuumInitialNeighborsSize = 0;
+        mInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
     : SphericParticle(NewId, ThisNodes){
-      //mOldSymmStressTensor = NULL;
+        mContinuumInitialNeighborsSize = 0;
+        mInitialNeighborsSize = 0;
     }
 
     Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -33,10 +37,6 @@ namespace Kratos {
     /// Destructor
 
     SphericContinuumParticle::~SphericContinuumParticle() {
-        /*if (mOldSymmStressTensor!=NULL) {
-            delete mOldSymmStressTensor;
-            mOldSymmStressTensor = NULL;
-        }*/
     }
 
     void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
@@ -773,13 +773,6 @@ namespace Kratos {
 
         SphericParticle::Initialize(r_process_info);
 
-        /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            mOldSymmStressTensor  = new Matrix(3,3);
-            *mOldSymmStressTensor = ZeroMatrix(3,3);
-        }
-        else {
-            mOldSymmStressTensor = NULL;
-        }*/
         SetValue(NEIGHBOURS_CONTACT_AREAS, Vector());
 
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
