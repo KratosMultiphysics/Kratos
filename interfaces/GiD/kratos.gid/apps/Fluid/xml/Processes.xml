@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ProcessList>
-    
-    <Process n="ApplyInletProcess" pn="Vector value" python_module="apply_constant_inlet_process"
+
+    <!-- <Process n="ApplyInletProcess" pn="Vector value" python_module="apply_constant_inlet_process"
 		kratos_module="KratosMultiphysics.FluidDynamicsApplication" check="DirectorVectorNonZero direction"
         help="This process fixes the velocity values introduced in the interface. All the components are fixed.
               The values introduced by the user are directly imposed (no normalization of the vector)." >
 		<inputs>
 			<parameter n="direction" pn="Value" type="vector" v="1.0,0.0,0.0" />
+		</inputs>
+    </Process> -->
+
+    <Process n="AutomaticInletProcess" pn="Automatic inlet process" python_module="experimental_assign_vector_by_direction_process"
+		kratos_module="KratosMultiphysics" help="" >
+		<inputs>
+            <parameter n="modulus" pn="Value" type="double" v="1.0" function="1" has_units="1"/>
+			<parameter n="direction" pn="Normal direction" type="combo" values="automatic_inner_normal,automatic_outer_normal" pvalues="Inwards,Outwards" v="automatic_inner_normal" help=""/>
 		</inputs>
     </Process>
 
@@ -38,34 +46,34 @@
 		<inputs>
 		</inputs>
     </Process>
-  
+
     <Process n="ApplyNoSlipProcess" pn="Scalar value" python_module="apply_noslip_process"
         kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
 		</inputs>
     </Process>
-  
+
     <Process n="ApplyConstantVectorValueProcess" pn="Vector value" python_module="process_factory"
         kratos_module="KratosMultiphysics" help="This process ">
     <inputs>
         <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
     </Process>
-  
+
     <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" python_module="process_factory"
         kratos_module="KratosMultiphysics" help="This process ">
     <inputs>
         <parameter n="value" pn="Value" type="double" unit_magnitude="0" units="0"/>
     </inputs>
     </Process>
-    
+
     <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" python_module="impose_scalar_value_process"
 		kratos_module="KratosMultiphysics" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" unit_magnitude="P" units="Pa" />
     </inputs>
     </Process>
-  
+
     <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
 		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
@@ -75,5 +83,5 @@
         <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
     </Process>
-    
+
 </ProcessList>
