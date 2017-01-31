@@ -389,6 +389,16 @@ protected:
             
             SetNodes(itNode->X(), itNode->Y(), itNode->Z(), node_colors[itNode->Id()], i + 1);
             
+            bool blocked = false;
+            if (itNode->IsDefined(BLOCKED) == true)
+            {
+                blocked = itNode->Is(BLOCKED);
+            }
+            if (TDim == 3 && blocked == true)
+            {
+                BlockNode(i + 1);
+            }
+            
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
             itNode->SetId(i + 1);
         }
@@ -788,6 +798,13 @@ protected:
         /* We interpolate all the values */
         InterpolateValues(rThisModelPart, rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
+    
+    /**
+     * It blocks certain nodes before remesh the model
+     * @param i_node: The index of the noode
+     */
+    
+    void BlockNode(unsigned int i_node);
     
     /**
      * It creates the new node
@@ -1273,6 +1290,31 @@ protected:
 ///@name Explicit Specializations
 ///@{
 
+//     template<>  // NOTE: Not yet avalaible in the official API
+//     void MmgUtility<2>::BlockNode(unsigned int i_node)
+//     {
+//         if (MMG2D_Set_requiredVertex(mmgMesh, i_node) != 1 )
+//         {
+//             exit(EXIT_FAILURE);
+//         }
+//     }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+
+    template<>  
+    void MmgUtility<3>::BlockNode(unsigned int i_node)
+    {
+        if (MMG3D_Set_requiredVertex(mmgMesh, i_node) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
     template<>  
     NodeType::Pointer MmgUtility<2>::CreateNode(        
         ModelPart& rThisModelPart,
@@ -1860,6 +1902,26 @@ protected:
         {
             exit(EXIT_FAILURE);
         }
+        
+        // Set fixed boundary
+        bool blocked1 = false;
+        if (Geom[0].IsDefined(BLOCKED) == true)
+        {
+            blocked1 = Geom[0].Is(BLOCKED);
+        }
+        bool blocked2 = false;
+        if (Geom[1].IsDefined(BLOCKED) == true)
+        {
+            blocked2 = Geom[1].Is(BLOCKED);
+        }
+
+        if ((blocked1 && blocked2) == true)
+        {
+            if ( MMG2D_Set_requiredEdge(mmgMesh, index) != 1 ) 
+            {
+                exit(EXIT_FAILURE); 
+            }   
+        }
     }
 
     /***********************************************************************************/
@@ -1881,6 +1943,31 @@ protected:
             if ( MMG3D_Set_triangle(mmgMesh, id1, id2, id3, color, index) != 1 )  
             {
                 exit(EXIT_FAILURE); 
+            }
+            
+            // Set fixed boundary
+            bool blocked1 = false;
+            if (Geom[0].IsDefined(BLOCKED) == true)
+            {
+                blocked1 = Geom[0].Is(BLOCKED);
+            }
+            bool blocked2 = false;
+            if (Geom[1].IsDefined(BLOCKED) == true)
+            {
+                blocked2 = Geom[1].Is(BLOCKED);
+            }
+            bool blocked3 = false;
+            if (Geom[2].IsDefined(BLOCKED) == true)
+            {
+                blocked3 = Geom[2].Is(BLOCKED);
+            }
+            
+            if ((blocked1 && blocked2 && blocked3) == true)
+            {
+                if ( MMG3D_Set_requiredTriangle(mmgMesh, index) != 1 ) 
+                {
+                    exit(EXIT_FAILURE); 
+                }   
             }
         }
         else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) // Quadrilaterals

@@ -41,11 +41,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "min_size_current_percentage"      : 50.0,
                 "max_size_current_percentage"      : 98.0
             },
-            "fix_contour_model_parts"          :{
-                "model_part_1"                     : "", 
-                "model_part_2"                     : "",
-                "model_part_3"                     : "" 
-            },
+            "fix_contour_model_parts"          : [],
             "minimal_size"                     : 0.1,
             "maximal_size"                     : 10.0,
             "anisotropy_remeshing"             : true,
@@ -132,6 +128,14 @@ class MmgProcess(KratosMultiphysics.Process):
         self.echo_level = self.params["echo_level"].GetInt() 
         
     def ExecuteInitialize(self): 
+        
+        # NOTE: Add more model part if interested
+        submodelpartslist = self.__generate_submodelparts_list_from_input(self.params["fix_contour_model_parts"])
+            
+        for submodelpart in submodelpartslist:
+            for node in submodelpart.Nodes:
+                node.Set(KratosMultiphysics.BLOCKED, True) 
+
         if (self.strategy == "LevelSet"):
             self._CreateGradientProcess()
             
@@ -301,7 +305,16 @@ class MmgProcess(KratosMultiphysics.Process):
             ZeroVector[5] = 0.0
         for node in self.Model[self.model_part_name].Nodes:
             node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+            
+    def __generate_submodelparts_list_from_input(self,param):
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
+        # Retrieve submodelparts name from input (a string) and request the corresponding C++ object to the kernel
+        return [ self.Model[self.model_part_name].GetSubModelPart( param[i].GetString() ) for i in range( 0,param.size() ) ]
+    
 def linear_interpolation(x, x_list, y_list):
     ind_inf = 0
     ind_sup = -1
