@@ -25,8 +25,7 @@ proc ::EmbeddedFluid::Init { } {
     # Allow to open the tree
     set ::spdAux::TreeVisibility 1
 
-    dict set attributes UseIntervals 0
-    if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
+    dict set attributes UseIntervals 1
 
     LoadMyFiles
     Kratos::AddRestoreVar "::GidPriv(DuplicateEntities)"
