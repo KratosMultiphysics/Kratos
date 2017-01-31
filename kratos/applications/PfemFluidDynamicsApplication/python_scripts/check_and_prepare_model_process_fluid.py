@@ -198,6 +198,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
 
 
+        print(" Main Model Part", self.main_model_part )
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
         count=0

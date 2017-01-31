@@ -201,7 +201,6 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
 
-    // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
 
     //Get previous mechanics stored in the master node/condition
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -212,6 +211,8 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
 
+    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
+    // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
     // std::cout<<" MC StressVector "<<StressVector<<std::endl;
     // std::cout<<" MC F "<<F<<std::endl;
 

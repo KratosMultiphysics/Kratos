@@ -404,75 +404,129 @@ namespace Kratos
       unsigned int nodeId=1;
       unsigned int elemId=1;
       unsigned int condId=1;
+
+      this->BuildBodyModelParts(rModelPart, PreservedConditions, nodeId, elemId, condId);
+
+      this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
+           
+      this->BuildContactModelParts(rModelPart, PreservedConditions, nodeId, elemId, condId);
+          
+      //now set new conditions
+      rModelPart.Conditions().swap(PreservedConditions);
       
-     
+      //Sort
+      rModelPart.Nodes().Sort();
+      rModelPart.Elements().Sort();
+      rModelPart.Conditions().Sort();     
+      
+      //Unique
+      rModelPart.Nodes().Unique();
+      rModelPart.Elements().Unique();
+      rModelPart.Conditions().Unique();
+      
+      //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
+      unsigned int consecutive_index = 1;
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
+	in->SetId(consecutive_index++);
+           
+      this->BuildComputingDomain(rModelPart, EchoLevel);
+
+      if( EchoLevel > 0 )
+	std::cout<<"   [ END MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+      
+
+      KRATOS_CATCH(" ")
+
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+ 
+    void BuildBodyModelParts(ModelPart& rModelPart, ModelPart::ConditionsContainerType& rPreservedConditions, unsigned int& rNodeId, unsigned int& rElemId, unsigned int& rCondId)
+    {
+      KRATOS_TRY
+	     
+      //Add Fluid Bodies modelparts to main modelpart  flags: ( FLUID / NOT_ACTIVE / NOT_BOUNDARY )
+      //Add Solid Bodies modelparts to main modelpart  flags: ( SOLID / NOT_ACTIVE / NOT_BOUNDARY )
+      //Add Rigid Bodies modelparts to main modelpart  flags: ( RIGID / NOT_ACTIVE / NOT_BOUNDARY )
+
+      const array_1d<double,3> ZeroNormal(3,0.0);
+	
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 
-	    if( EchoLevel > 0 )
-	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
+	  bool add_to_main_model_part = false;
+	  
+	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){ //only the domains (no computing, no boundary)
 
+	    if( i_mp->Is(SOLID) || i_mp->Is(FLUID) || i_mp->Is(RIGID) || i_mp->IsNot(CONTACT) )
+	      add_to_main_model_part = true;
+	  }
+	  
+	  
+	  if( add_to_main_model_part  ){ 
 
-	    //Clean Nodes when redefining the main model part:
-	    const array_1d<double,3> ZeroNormal(3,0.0);
+    
+	    if( mEchoLevel > 0 )
+	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ";//Clean Nodes when redefining the main model part:
 	    ModelPart::NodesContainerType temporal_nodes;
 	    temporal_nodes.reserve(i_mp->Nodes().size());
 	    temporal_nodes.swap(i_mp->Nodes());
 
-	    if( !i_mp->NumberOfElements() ){	  
+	    
+	    if( !i_mp->NumberOfElements() ){ // usually rigid domains
+	      
 	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
 		{
 		  if( i_node->IsNot(TO_ERASE) ){
 		    (i_mp->Nodes()).push_back(*(i_node.base()));
 		    (rModelPart.Nodes()).push_back(*(i_node.base()));	
-		    rModelPart.Nodes().back().SetId(nodeId);
-		    nodeId+=1;
+		    rModelPart.Nodes().back().SetId(rNodeId);
+		    rNodeId+=1;
 		  }
 		}
 	    }
 	    else{
-
+	    
 	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
 		{
-		  if( i_elem->IsNot(TO_ERASE) ){					
+		  if( i_elem->IsNot(TO_ERASE) ){ //at this point any element must be TO_ERASE		
 		  
 		    PointsArrayType& vertices=i_elem->GetGeometry().Points();
 		    for(unsigned int i=0; i<vertices.size(); i++)
 		      {
 			vertices[i].Set(BLOCKED);
 		      }
-		
+		  
 		    (rModelPart.Elements()).push_back(*(i_elem.base()));	
-		    rModelPart.Elements().back().SetId(elemId);
-		    elemId+=1;
-
+		    rModelPart.Elements().back().SetId(rElemId);
+		    rElemId+=1;
+		  
+		  }
+		  else{
+		    std::cout<<" ELEMENT TO_ERASE must be RELEASED in a previous stage "<<std::endl;
 		  }
 		}
-	    
-	    
+
 	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
 		{
-		  //i_node->PrintInfo(std::cout);
-		  //std::cout<<std::endl;
-
-		  if(i_node->Is(BLOCKED) || i_node->Is(RIGID))
-		    {
+		  if(i_node->Is(BLOCKED) || i_node->Is(RIGID)){ //all nodes belonging to an element had been blocked previously
 		      
-		      i_node->Reset(ISOLATED);   //reset isolated
-		      i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
-		      i_node->Reset(BLOCKED); 
+		    i_node->Reset(ISOLATED);   //reset isolated
+		    i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		    i_node->Reset(BLOCKED); 
 		      
-		      if( i_node->IsNot(TO_ERASE) ){
+		    if( i_node->IsNot(TO_ERASE) ){
 
-			(i_mp->Nodes()).push_back(*(i_node.base()));
-			(rModelPart.Nodes()).push_back(*(i_node.base()));	
-			rModelPart.Nodes().back().SetId(nodeId);
-			nodeId+=1;
+		      (i_mp->Nodes()).push_back(*(i_node.base()));
+		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
+		      rModelPart.Nodes().back().SetId(rNodeId);
+		      rNodeId+=1;
 			
-		      }
-
 		    }
+
+		  }
 		  else{
 
 		    i_node->Set(ISOLATED);
@@ -483,8 +537,8 @@ namespace Kratos
 
 		      (i_mp->Nodes()).push_back(*(i_node.base()));
 		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
-		      rModelPart.Nodes().back().SetId(nodeId);
-		      nodeId+=1;
+		      rModelPart.Nodes().back().SetId(rNodeId);
+		      rNodeId+=1;
 
 		    }
 		    
@@ -503,226 +557,180 @@ namespace Kratos
 		  }
 				
 		}
+
 	    }
-	    //i_mp->Nodes().Sort();
-	    
-	    if( i_mp->IsNot(CONTACT)  ){
-
-	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-		{
-		  
-		  if( i_cond->IsNot(TO_ERASE) ){
-		    i_cond->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
-		    PreservedConditions.push_back(*(i_cond.base()));
-		    PreservedConditions.back().SetId(condId);
-		    condId+=1;	
-		  }
-
-		}
-	    }
-
-
-	  }
-	}
-
-      
-      this->BuildBoundaryModelParts(rModelPart,PreservedConditions);
-
-      //add boundary domain conditions
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-	{
-	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
 
 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 	      {
+		
 		if( i_cond->IsNot(TO_ERASE) ){
-		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-		  PreservedConditions.push_back(*(i_cond.base()));
-		  PreservedConditions.back().SetId(condId);
-		  condId+=1;	
+		  i_cond->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		  rPreservedConditions.push_back(*(i_cond.base()));
+		  rPreservedConditions.back().SetId(rCondId);
+		  rCondId+=1;	
 		}
+		
 	      }
+	    
+	    if( mEchoLevel > 0 )
+	      std::cout<<" / [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
+
 	  }
 	  
 	}
-
-      //add contact conditions
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
-	{
-	  if(i_cond->Is(CONTACT)){
-	    PreservedConditions.push_back(*(i_cond.base()));
-	    PreservedConditions.back().SetId(condId);
-	    condId+=1;
-	  }
-	}
-     
-      rModelPart.Conditions().swap(PreservedConditions);
-      
-      //Sort
-      // rModelPart.Nodes().Sort();
-      // rModelPart.Elements().Sort();
-      // rModelPart.Conditions().Sort();     
-      
-      //Unique
-      // rModelPart.Nodes().Unique();
-      // rModelPart.Elements().Unique();
-      // rModelPart.Conditions().Unique();
-      
-      //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
-      unsigned int consecutive_index = 1;
-      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
-	in->SetId(consecutive_index++);
-      
-      
-      this->BuildComputingDomain(rModelPart, EchoLevel);
-
-
-      if( EchoLevel > 0 )
-	std::cout<<"   [ END MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
-      
-
+	
       KRATOS_CATCH(" ")
-
     }
 
+    
     //*******************************************************************************************
     //*******************************************************************************************
  
-    void BuildBoundaryModelParts(ModelPart& rModelPart, ModelPart::ConditionsContainerType& rPreservedConditions)
+    void BuildBoundaryModelParts(ModelPart& rModelPart, ModelPart::ConditionsContainerType& rPreservedConditions, unsigned int& rNodeId, unsigned int& rElemId, unsigned int& rCondId)
     {
       
       KRATOS_TRY
 
+      unsigned int body_model_part_conditions = rPreservedConditions.size();
       
-    	if(rPreservedConditions.size()){
+      if(body_model_part_conditions > 0){
 
-    	  //add new conditions: ( BOUNDARY model parts )
-    	  for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
-    	    {
-    	      if( i_mp->Is(BOUNDARY) ){ //boundary model part
+	//add new conditions: ( BOUNDARY model parts )
+	for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(BOUNDARY) ){ //boundary model part
 
-		if( mEchoLevel > 0 )
-		  std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
+	      if( mEchoLevel > 0 )
+		std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"]  initial [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ]"<<std::endl;
 
-    		this->CleanModelPartConditions(*i_mp);
+	      this->CleanModelPartConditions(*i_mp);
 		
-    		for(ModelPart::ConditionsContainerType::iterator i_cond = rPreservedConditions.begin(); i_cond!= rPreservedConditions.end(); i_cond++)
-    		  {   
-    		    ConditionsContainerType& ChildrenConditions = i_cond->GetValue(CHILDREN_CONDITIONS);
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = rPreservedConditions.begin(); i_cond!= rPreservedConditions.end(); i_cond++)
+		{   
+		  ConditionsContainerType& ChildrenConditions = i_cond->GetValue(CHILDREN_CONDITIONS);
 
-    		    //this conditions are cloned, then the id has no coherence, must be renumbered at the end of the assignation
-    		    for (ConditionConstantIterator cn = ChildrenConditions.begin() ; cn != ChildrenConditions.end(); ++cn)
-    		      {
-    			if( cn->GetValue(MODEL_PART_NAME) == i_mp->Name() ){
-    			  i_mp->Conditions().push_back(*(cn.base()));
+		  //this conditions are cloned, then the id has no coherence, must be renumbered at the end of the assignation
+		  for (ConditionConstantIterator cn = ChildrenConditions.begin() ; cn != ChildrenConditions.end(); ++cn)
+		    {
+		      if( cn->GetValue(MODEL_PART_NAME) == i_mp->Name() ){
+			i_mp->Conditions().push_back(*(cn.base()));
 
-			  if( i_cond->Is(NEW_ENTITY) ){
-			    for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
-			      {
-				if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
-				  (i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
-				  //i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
-				}
+			if( i_cond->Is(NEW_ENTITY) ){
+			  for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
+			    {
+			      if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
+				(i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
+				//i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
 			      }
-			    //i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-			  }
+			    }
+			  //i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+			}
 			  
-    			}
+		      }
 
-    		      }
+		    }
 		  
-    		  }
-    	      }	      
+		}
+	    }	      
 
-    	    } 
+	  } 
 	  
-    	}
+      }
 
-            // Set new nodes to the dirichlet sub model parts (works in 2D. not shure in 3D).
-            for (ModelPart::SubModelPartIterator i_model_part = mrMainModelPart.SubModelPartsBegin() ; i_model_part != mrMainModelPart.SubModelPartsEnd();  i_model_part++)
-            {
-               if ( i_model_part->IsNot(BOUNDARY) &&  i_model_part->IsNot(ACTIVE) && i_model_part->IsNot(BOUNDARY) && i_model_part->IsNot(RIGID) ) {
-                  for (ModelPart::NodesContainerType::iterator i_node = i_model_part->NodesBegin() ; i_node != i_model_part->NodesEnd(); i_node++ )
-                  {
-                     if ( i_node->Is(BOUNDARY) && i_node->Is(NEW_ENTITY) ) {
+      // Set new nodes to the dirichlet sub model parts (works in 2D. not shure in 3D).  Must be reviewed
+      for(ModelPart::SubModelPartIterator i_model_part = mrMainModelPart.SubModelPartsBegin() ; i_model_part != mrMainModelPart.SubModelPartsEnd();  i_model_part++)
+	{
+	  if( i_model_part->IsNot(BOUNDARY) &&  i_model_part->IsNot(ACTIVE) && i_model_part->IsNot(RIGID) ){
+	    
+	    for(ModelPart::NodesContainerType::iterator i_node = i_model_part->NodesBegin() ; i_node != i_model_part->NodesEnd(); i_node++ )
+	      {
 
+		if( i_node->Is(BOUNDARY) && i_node->Is(NEW_ENTITY) ){
 
-                        // Generate a list of neighbour nodes
-                        unsigned int NodeId = i_node->Id();
-                        std::vector<int> list_of_neigh; 
+		  // Generate a list of neighbour nodes
+		  unsigned int NodeId = i_node->Id();
+		  
+		  std::vector<int> list_of_neighbour_nodes; 
 
-                        for ( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++) {
+		  for( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++)
+		    {
 
-                           bool node_belongs_to_condition = false; 
-                           Geometry< Node<3 > > & rjGeom = j_cond->GetGeometry();
+		      bool node_belongs_to_condition = false; 
+		      Geometry< Node<3 > > & rjGeom = j_cond->GetGeometry();
 
-                           if ( j_cond->Is(NEW_ENTITY) ) {
-                              for ( unsigned int j = 0; j < rjGeom.size() ; j++) {
-                                 if ( rjGeom[j].Id() == NodeId) {
-                                    node_belongs_to_condition = true; 
-                                    break;
-                                 }
-                              }
+		      if ( j_cond->Is(NEW_ENTITY) ){
+			for ( unsigned int j = 0; j < rjGeom.size() ; j++) {
+			  if ( rjGeom[j].Id() == NodeId) {
+			    node_belongs_to_condition = true; 
+			    break;
+			  }
+			}
 
-                              if (node_belongs_to_condition) {
-                                 for (unsigned int j = 0; j < rjGeom.size() ; j++)  {
-                                    list_of_neigh.push_back( rjGeom[j].Id() );
-                                 }
-                              }
+			if (node_belongs_to_condition){
+			  for (unsigned int j = 0; j < rjGeom.size() ; j++)  {
+			    list_of_neighbour_nodes.push_back( rjGeom[j].Id() );
+			  }
+			}
 
-                           }
-                        }
-                        if ( list_of_neigh.size() == 0) {
-                           std::cout << " something wierd, this new node does not have any new neighbour: " << NodeId << std::endl;
-                           // aqui falta un continue o algu ( no un break) 
-                        }
+		      }
+		    }
+		  
+		  if(list_of_neighbour_nodes.size() == 0){
+		    std::cout << " something wierd, this new node does not have any new neighbour: " << NodeId << std::endl;
+		    // aqui falta un continue o algu ( no un break)
+		    continue;
+		  }
 
-                        // unique and sort
-                        std::sort(list_of_neigh.begin(), list_of_neigh.end() );
-                        std::vector<int>::iterator new_end = std::unique( list_of_neigh.begin(), list_of_neigh.end() );
-                        list_of_neigh.resize( std::distance( list_of_neigh.begin(), new_end)); 
+		  
+		  // unique and sort
+		  std::sort(list_of_neighbour_nodes.begin(), list_of_neighbour_nodes.end() );
+		  std::vector<int>::iterator new_end = std::unique( list_of_neighbour_nodes.begin(), list_of_neighbour_nodes.end() );
+		  list_of_neighbour_nodes.resize( std::distance( list_of_neighbour_nodes.begin(), new_end) ); 
 
+		  for (ModelPart::SubModelPartIterator i_mp = mrMainModelPart.SubModelPartsBegin(); i_mp != mrMainModelPart.SubModelPartsEnd(); i_mp++)
+		    {
+		      if ( i_mp->Is(BOUNDARY) && i_mp->IsNot(CONTACT) && (i_mp->NumberOfConditions() == 0) )
+			{
+			  unsigned int counter = 0;
 
-                        for (ModelPart::SubModelPartIterator i_mp = mrMainModelPart.SubModelPartsBegin(); i_mp != mrMainModelPart.SubModelPartsEnd(); i_mp++)
-                        {
-                           if ( i_mp->Is(BOUNDARY) && i_mp->IsNot(CONTACT) && (i_mp->NumberOfConditions() == 0) )
-                           {
-                              unsigned int counter = 0;
+			  for (unsigned int ii = 0; ii < list_of_neighbour_nodes.size(); ii++)
+			    {
+			      unsigned int target = list_of_neighbour_nodes[ii];
 
-                              for (unsigned int ii = 0; ii < list_of_neigh.size(); ii++)
-                              {
-                                 unsigned int target = list_of_neigh[ii];
+			      for (ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node != i_mp->NodesEnd(); i_node++)
+				{
+				  if ( i_node->Id() == target) {
+				    counter++;
+				  }
+				}
+			    }
 
-                                 for (ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node != i_mp->NodesEnd(); i_node++)
-                                 {
-                                    if ( i_node->Id() == target) {
-                                       counter++;
-                                    }
-                                 }
-                              }
-                              if ( counter == list_of_neigh.size()-1)
-                                 i_mp->Nodes().push_back( *(i_node.base() ) );
-                           }
-                        }
+			  if ( counter == list_of_neighbour_nodes.size()-1)
+			    i_mp->Nodes().push_back( *(i_node.base() ) );
+			}
+		    }
 
-                     }
-                  }
+		}
+	      }
+	    
 
+	  }
 
-               }
+	}
 
-            }
+      //reset NEW_ENTITIES in conditions
+      for( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++)
+	{
+	  j_cond->Reset(NEW_ENTITY);
+	  for(unsigned int j=0; j<j_cond->GetGeometry().size(); j++)
+	    {
+	      if( j_cond->GetGeometry()[j].Is(NEW_ENTITY) ){
+		j_cond->GetGeometry()[j].Reset(NEW_ENTITY); //reset if was new
+	      }
+	    }
+	}
 
-            for ( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++) {
-               j_cond->Reset(NEW_ENTITY);
-               for(unsigned int j=0; j<j_cond->GetGeometry().size(); j++)
-               {
-                  if( j_cond->GetGeometry()[j].Is(NEW_ENTITY) ){
-                     j_cond->GetGeometry()[j].Reset(NEW_ENTITY); //reset if was new
-                  }
-               }
-            }
-
+      
       //add new nodes: ( BOUNDARY model parts ) and remove erased nodes
       for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
@@ -737,13 +745,103 @@ namespace Kratos
 		if( i_node->IsNot(TO_ERASE) )
 		  (i_mp->Nodes()).push_back(*(i_node.base()));
 	      }
+
+	    if( mEchoLevel > 0 )
+	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"]  final [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
 	  }
 	}
+
+
+      //add boundary domain conditions to preserved conditions
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
+
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+		if( i_cond->IsNot(TO_ERASE) ){
+		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+		  rPreservedConditions.push_back(*(i_cond.base()));
+		  rPreservedConditions.back().SetId(rCondId);
+		  rCondId+=1;	
+		}
+	      }
+	  }
+	  
+	}      
 	
       KRATOS_CATCH( "" )
     }
 
 
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+ 
+    void BuildContactModelParts(ModelPart& rModelPart, ModelPart::ConditionsContainerType& rPreservedConditions, unsigned int& rNodeId, unsigned int& rElemId, unsigned int& rCondId)
+    {
+      KRATOS_TRY
+
+      //Add Contact modelparts to main modelpart  flags: ( CONTACT ) in contact model parts keep only nodes and contact conditions // after that a contact search will be needed 
+
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+  
+	  if( i_mp->Is(CONTACT) ){ //keep only contact conditions
+	    
+	    if( mEchoLevel > 0 )
+	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ";
+
+	    i_mp->Elements().clear();
+	    	    
+	    //Clean Nodes when redefining the main model part:
+	    ModelPart::NodesContainerType temporal_nodes;
+	    temporal_nodes.reserve(i_mp->Nodes().size());
+	    temporal_nodes.swap(i_mp->Nodes());
+	  
+	    
+	    for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+	      {
+		if( i_node->IsNot(TO_ERASE) ){
+		  (i_mp->Nodes()).push_back(*(i_node.base()));
+		}
+	      }
+	    
+	    ModelPart::ConditionsContainerType temporal_conditions;
+	    temporal_conditions.reserve(i_mp->Conditions().size());
+	    temporal_conditions.swap(i_mp->Conditions());
+	    	    
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = temporal_conditions.begin() ; i_cond != temporal_conditions.end() ; i_cond++)
+	      {
+		
+		if( i_cond->Is(CONTACT) ){ //keep only contact conditions
+
+		  if( i_cond->IsNot(TO_ERASE) ){ //it can not be to erase
+		    
+		    (i_mp->Conditions()).push_back(*(i_cond.base()));
+		    rPreservedConditions.push_back(*(i_cond.base()));
+		    rPreservedConditions.back().SetId(rCondId);
+		    rCondId+=1;
+		    
+		  }
+		  
+		}
+		
+	      }	  
+
+	    if( mEchoLevel > 0 )
+	      std::cout<<" / [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
+
+
+	  }
+	  
+	}
+	
+
+      KRATOS_CATCH(" ")
+    }
+
+    
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -751,7 +849,10 @@ namespace Kratos
     {
       
       KRATOS_TRY
-	
+
+      if( rModelPart.Is(BOUNDARY) )
+	rModelPart.Conditions().clear();
+      
       //clean old conditions (TO_ERASE) and add new conditions (NEW_ENTITY)
       // ModelPart::ConditionsContainerType PreservedConditions;
       // PreservedConditions.reserve(rModelPart.Conditions().size());
@@ -763,8 +864,6 @@ namespace Kratos
       // 	    rModelPart.Conditions().push_back(*(i_cond.base()));
       // 	}
 
-      if( rModelPart.Is(BOUNDARY) )
-	rModelPart.Conditions().clear();
 
 	
       KRATOS_CATCH( "" )
@@ -793,6 +892,8 @@ namespace Kratos
       rComputingModelPart.Elements().clear();
       rComputingModelPart.Conditions().clear();
 
+      //add all needed computing entities (elements, nodes, conditions)
+
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ 
@@ -820,7 +921,8 @@ namespace Kratos
 	  }
 	}
 
-
+      //add all contact conditions 
+      
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(CONTACT)  ){

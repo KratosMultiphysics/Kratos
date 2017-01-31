@@ -298,7 +298,7 @@ namespace Kratos
 	      }
 	  }
 
-	//add contact conditions
+	//add previous contact conditions
 	for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
 	  {
 	    if(i_cond->Is(CONTACT)){

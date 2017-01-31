@@ -395,8 +395,6 @@ namespace Kratos
 	    ModelPartName = i_mp->Name();
 	}
 
-
-      std::cout<<" MAIN Conditions "<<mrMainModelPart.NumberOfConditions()<<std::endl;
       
       AddContactConditions(ContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
 
