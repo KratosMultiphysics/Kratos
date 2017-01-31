@@ -34,8 +34,8 @@ Add the following to the main Kratos configure.sh:
 -DMMG2D_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmg2d/"\
 -DMMG3D_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmg3d/"\
 -DMMGS_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmgs/"\
--DMMG_LIBRARY="/usr/local/lib/libmmg.a"     \
--DMMG2D_LIBRARY="/usr/local/lib/libmmg2d.a" \
--DMMG3D_LIBRARY="/usr/local/lib/libmmg3d.a" \
--DMMGS_LIBRARY="/usr/local/lib/libmmgs.a"   \
+-DMMG_LIBRARY="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/lib/libmmg.a"     \
+-DMMG2D_LIBRARY="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/lib/libmmg2d.a" \
+-DMMG3D_LIBRARY="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/lib/libmmg3d.a" \
+-DMMGS_LIBRARY="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/lib/libmmgs.a"   \
 

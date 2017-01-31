@@ -10,4 +10,4 @@ cmake .. \
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
 make -j4
-sudo make install
+# sudo make install
