@@ -95,7 +95,7 @@ namespace Kratos {
         typedef SpatialSearch::ResultConditionsContainerType ResultConditionsContainerType;
         typedef SpatialSearch::VectorResultConditionsContainerType VectorResultConditionsContainerType;
         typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
-        typedef typename PropertiesContainerType::iterator PropertiesIterator;
+        typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
@@ -111,10 +111,10 @@ namespace Kratos {
                 const int n_step_search,
                 const double safety_factor,
                 const int delta_option,
-                typename ParticleCreatorDestructor::Pointer p_creator_destructor,
-                typename DEM_FEM_Search::Pointer p_dem_fem_search,
-                typename DEMIntegrationScheme::Pointer pScheme,
-                typename SpatialSearch::Pointer pSpSearch,
+                ParticleCreatorDestructor::Pointer p_creator_destructor,
+                DEM_FEM_Search::Pointer p_dem_fem_search,
+                DEMIntegrationScheme::Pointer pScheme,
+                SpatialSearch::Pointer pSpSearch,
                 const bool do_search_balls = true)
         /*:
         BaseType(*(settings.r_model_part), true)*/ {
@@ -189,7 +189,7 @@ namespace Kratos {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++){
-              typename ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
+              ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
               T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
               rCustomListOfParticles[k] = spheric_particle;
             }
@@ -264,13 +264,13 @@ namespace Kratos {
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
         vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
-        typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
-        typename DEMIntegrationScheme::Pointer& GetScheme() { return (mpScheme);}
-        typename SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
+        ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
+        DEMIntegrationScheme::Pointer& GetScheme() { return (mpScheme);}
+        SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
         vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
-        typename DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
+        DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         std::vector<PropertiesProxy> mFastProperties;
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
 
@@ -286,10 +286,10 @@ namespace Kratos {
         double mSafetyFactor;
         int mDeltaOption;
         vector<unsigned int> mElementPartition;
-        typename ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
-        typename DEM_FEM_Search::Pointer mpDemFemSearch;
-        typename DEMIntegrationScheme::Pointer mpScheme;
-        typename SpatialSearch::Pointer mpSpSearch;
+        ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
+        DEM_FEM_Search::Pointer mpDemFemSearch;
+        DEMIntegrationScheme::Pointer mpScheme;
+        SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;

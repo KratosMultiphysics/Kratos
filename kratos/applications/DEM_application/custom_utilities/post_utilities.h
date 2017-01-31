@@ -181,7 +181,7 @@ namespace Kratos {
             // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
                 
-                typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
                 Element* raw_p_element = &(*it);
                 SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
                 double& particle_poisson_value = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(POISSON_VALUE);
@@ -239,7 +239,7 @@ namespace Kratos {
             // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
                 
-                typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
                 Element* raw_p_element = &(*it);
                 SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
                 double& particle_poisson_value = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(POISSON_VALUE);

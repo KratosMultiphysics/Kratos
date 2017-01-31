@@ -14,10 +14,10 @@ namespace Kratos {
     public:
 
         typedef ExplicitSolverStrategy BaseType;
-        typedef typename BaseType::NodesArrayType NodesArrayType;
-        typedef typename BaseType::ElementsArrayType ElementsArrayType;
-        typedef typename BaseType::ElementsIterator ElementsIterator;
-        typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+        typedef BaseType::NodesArrayType NodesArrayType;
+        typedef BaseType::ElementsArrayType ElementsArrayType;
+        typedef BaseType::ElementsIterator ElementsIterator;
+        typedef BaseType::ConditionsArrayType ConditionsArrayType;
         typedef WeakPointerVector<Element> ParticleWeakVectorType;
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
@@ -47,10 +47,10 @@ namespace Kratos {
                 const int n_step_search,
                 const double safety_factor,
                 const int delta_option,
-                typename ParticleCreatorDestructor::Pointer p_creator_destructor,
-                typename DEM_FEM_Search::Pointer p_dem_fem_search,
-                typename DEMIntegrationScheme::Pointer pScheme,
-                typename SpatialSearch::Pointer pSpSearch)
+                ParticleCreatorDestructor::Pointer p_creator_destructor,
+                DEM_FEM_Search::Pointer p_dem_fem_search,
+                DEMIntegrationScheme::Pointer pScheme,
+                SpatialSearch::Pointer pSpSearch)
         : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch) {
             BaseType::GetParticleCreatorDestructor() = p_creator_destructor;
         }
