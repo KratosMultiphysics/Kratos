@@ -176,10 +176,14 @@ public:
         }
         else
         {
-            is_converged = false;
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> auxA;
-            const boost::numeric::ublas::bounded_matrix<double, 3, 3> Identity = IdentityMatrix(3, 3);
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> V = Identity;
+            bool is_converged = false;
+            eigen_values_matrix = ZeroMatrix(3);
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> TempMat = A;
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> AuxA;
+
+            const boost::numeric::ublas::bounded_matrix<double, 3, 3> Indentity = IdentityMatrix(3, 3);
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> V = Indentity;
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> Vaux;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> Rotation;
 
             for(unsigned int iterations = 0; iterations < max_iterations; iterations++)
@@ -188,15 +192,15 @@ public:
 
                 double a = 0.0;
                 unsigned int index1 = 0;
-                unsigned int index2 = 0;
+                unsigned int index2 = 1;
 
                 for(unsigned int i = 0; i < 3; i++)
                 {
                     for(unsigned int j = (i + 1); j < 3; j++)
                     {
-                        if((std::abs(A(i, j)) > a ) && (std::abs(A(i, j)) > tolerance))
+                        if((std::abs(TempMat(i, j)) > a ) && (std::abs(TempMat(i, j)) > tolerance))
                         {
-                            a = std::abs(A(i,j));
+                            a = std::abs(TempMat(i,j));
                             index1 = i;
                             index2 = j;
                             is_converged = false;
@@ -204,16 +208,16 @@ public:
                     }
                 }
 
-                if(is_converged == true)
+                if(is_converged)
                 {
                     break;
                 }
 
                 // Calculation of Rotation angle
-                const double gamma = (A(index2, index2)-A(index1, index1)) / (2.0 * A(index1, index2));
+                double gamma = (TempMat(index2, index2)-TempMat(index1, index1)) / (2 * TempMat(index1, index2));
                 double u = 1.0;
 
-                if(std::abs(gamma) > tolerance && std::abs(gamma)< (1.0/tolerance))
+                if(std::abs(gamma) > tolerance && std::abs(gamma)< (1/tolerance))
                 {
                     u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
                 }
@@ -225,46 +229,50 @@ public:
                     }
                 }
 
-                const double c = 1.0 / (sqrt(1.0 + u * u));
-                const double s = c * u;
-                const double teta = s / (1.0 + c);
+                double c = 1.0 / (std::sqrt(1.0 + u * u));
+                double s = c * u;
+                double teta = s / (1.0 + c);
 
                 // Rotation of the Matrix
-                auxA = A;
-                auxA(index2, index2) = A(index2,index2) + u * A(index1, index2);
-                auxA(index1, index1) = A(index1,index1) - u * A(index1, index2);
-                auxA(index1, index2) = 0.0;
-                auxA(index2, index1) = 0.0;
+                AuxA = TempMat;
+                AuxA(index2, index2) = TempMat(index2,index2) + u * TempMat(index1, index2);
+                AuxA(index1, index1) = TempMat(index1,index1) - u * TempMat(index1, index2);
+                AuxA(index1, index2) = 0.0;
+                AuxA(index2, index1) = 0.0;
 
                 for(unsigned int i = 0; i < 3; i++)
                 {
                     if((i!= index1) && (i!= index2))
                     {
-                        auxA(index2, i) = A(index2, i) + s * (A(index1, i) - teta * A(index2, i));
-                        auxA(i, index2) = A(index2, i) + s * (A(index1, i) - teta * A(index2, i));
-                        auxA(index1, i) = A(index1, i) - s * (A(index2, i) + teta * A(index1, i));
-                        auxA(i, index1) = A(index1, i) - s * (A(index2, i) + teta * A(index1, i));
+                        AuxA(index2, i) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
+                        AuxA(i, index2) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
+                        AuxA(index1, i) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
+                        AuxA(i, index1) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
                     }
                 }
 
-                // Calculation of the eigenvectors V
-                Rotation = Identity;
+                TempMat = AuxA;
+
+                // Calculation of the eigeneigen_vector_matrix V
+                Rotation = Indentity;
                 Rotation(index2, index1) = -s;
                 Rotation(index1, index2) =  s;
                 Rotation(index1, index1) =  c;
                 Rotation(index2, index2) =  c;
 
-                eigen_vector_matrix = ZeroMatrix(3, 3);
+                Vaux = ZeroMatrix(3, 3);
+
                 for(unsigned int i = 0; i < 3; i++)
                 {
                     for(unsigned int j = 0; j < 3; j++)
                     {
                         for(unsigned int k = 0; k < 3; k++)
                         {
-                            eigen_vector_matrix(j, i) += V(i, k) * Rotation(k, j);
+                            Vaux(i, j) += V(i, k) * Rotation(k, j);
                         }
                     }
                 }
+                V = Vaux;
             }
 
             if(!(is_converged))
@@ -274,16 +282,10 @@ public:
 
             for(unsigned int i = 0; i < 3; i++)
             {
+                eigen_values_matrix(i, i) = TempMat(i, i);
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    if (i == j)
-                    {
-                        eigen_values_matrix(i, i) = auxA(i, i);
-                    }
-                    else
-                    {
-                        eigen_values_matrix(i, j) = 0.0;
-                    }
+                    eigen_vector_matrix(i, j) = V(j, i);
                 }
             }
         }
