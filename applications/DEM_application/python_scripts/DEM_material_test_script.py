@@ -4,6 +4,13 @@ import math
 import datetime
 import shutil
 
+#import string
+#import matplotlib
+#import matplotlib.pyplot as plt
+#from numpy import *
+#from pylab import *
+#import plot_settings
+
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
@@ -75,12 +82,16 @@ class MaterialTest(object):
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
       
       self.aux = AuxiliaryUtilities()
+      self.PreUtilities = PreUtilities()
 
   def Initialize(self):
       
       self.PrepareTests()
       self.PrepareTestTriaxialHydro()
       self.PrepareTestOedometric()
+
+  def BreakBondUtility(self, spheres_model_part):
+      self.PreUtilities.BreakBondUtility(self.spheres_model_part)
       
   def Flush(self,a):
       a.flush()
@@ -127,6 +138,12 @@ class MaterialTest(object):
         self.bts_export = open(self.parameters.problem_name + ".grf", 'w');
         ##self.BtsSkinDetermination()
 
+      elif (self.parameters.TestType == "Shear"):
+          self.BreakBondUtility(self.spheres_model_part)
+          self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
+          self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
+          self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
+
       else:
 
         self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
@@ -171,6 +188,7 @@ class MaterialTest(object):
         extended_length = specimen_length + (specimen_length - inner_initial_height)
           
         self.length_correction_factor = specimen_length/extended_length
+
       
   def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
@@ -367,7 +385,7 @@ class MaterialTest(object):
 
       total_force_top = 0.0
       total_force_bot = 0.0
-      
+
       for node in self.top_mesh_nodes:
 
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
@@ -385,6 +403,11 @@ class MaterialTest(object):
       self.total_stress_bot = total_force_bot/(self.parameters.MeasuringSurface*1000000)
 
       self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
+
+      if (self.parameters.TestType =="Shear"):
+          self.strain += dt
+          self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
+          self.total_stress_mean = self.total_stress_top
 
       
       if ( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
@@ -799,4 +822,95 @@ class MaterialTest(object):
   #-------------------------------------------------------------------------------------#  
     
    
- 
+  def GenerateGraphics(self):
+
+        ##os.chdir(self.graphs_path)
+        os.chdir("/media/farrufat/Data/Simulations/debugger_december2016/debugger_specimen_v1-0.gid/test")
+
+        ## PROBLEM DATA
+        area = 0.000001 ### 1mm2
+        grad_p = 1 ## Pa/m
+
+        ## Read Data
+        ##data_file_name0 = self.parameters.problem_name + "_graph.grf"
+        data_file_name0 = "test.grf"
+        data0 = loadtxt(data_file_name0)
+        strain = array(data0[:,0])
+        stress = array(data0[:,1])
+
+        data_file_name1 = "test.grf"
+        data1 = loadtxt(data_file_name1)
+        strain1 = array(data1[:,0])
+        stress1 = array(data1[:,1])
+
+        data_file_name2 = "test.grf"
+        data2 = loadtxt(data_file_name2)
+        strain2 = array(data2[:,0])
+        stress2 = array(data2[:,1])
+
+
+        # setting to be changed#############################3
+        set_mode = 'extralarge'  # large; publishable; medium
+        legend_position = 'lower left'
+
+        ##graph_name = ""
+        x_name = 'Axial Strain (%)'
+        y_name = 'Stress (MPa) - Load-axis'
+        ####################################################################
+        ####################################################################
+
+
+        clf()
+        plot_settings.set_mode(set_mode)
+        #plt.semilogx()
+        plot(strain, stress, 'k:s', strain1, stress1, 'r--v', strain2, stress2, 'b-.o',linewidth=1 )
+        legend(('test', 'test'), legend_position, numpoints=1,)
+        ##       bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+        grid(True)
+        #insert name ######################################################
+        savedname = "stress_graph"
+        ####################################################################
+        ##graphtitle = graph_name
+        ##title(graphtitle)
+        xlabel(x_name)
+        ylabel(y_name)
+        ##xlim(0.0, 1.0)
+        ##ylim(0.0, 1.0)
+        ##savefig(savedname + '.eps')
+        savefig(savedname + '.png')
+
+        ####################################################################
+        ####################################################################
+
+
+        clf()
+        plot_settings.set_mode(set_mode)
+        #plt.semilogx()
+        plot(strain, stress, 'k:s', strain1, stress1, 'r--v',linewidth=2 )
+        legend(( 'IFT variation', 'Viscosity variation'), legend_position, numpoints=1,)
+        ##       bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+        grid(True)
+        #insert name ######################################################
+        savedname = "stress_graph2"
+        ####################################################################
+        ##graphtitle = graph_name
+        ##title(graphtitle)
+        xlabel(x_name)
+        ylabel(y_name)
+        ##xlim(0.0, 1.0)
+        ##ylim(0.0, 1.0)
+        ##savefig(savedname + '.eps')
+        savefig(savedname + '.png')
+
+class PreUtils(object):
+
+    def __init__(self, spheres_model_part):
+
+        self.spheres_model_part = spheres_model_part
+        self.PreUtilities = PreUtilities()
+
+    def BreakBondUtility(self, spheres_model_part):
+        self.PreUtilities.BreakBondUtility(self.spheres_model_part)
+
+
+
