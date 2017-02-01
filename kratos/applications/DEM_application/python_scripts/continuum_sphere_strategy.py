@@ -105,7 +105,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def SetContinuumType(self):
         self.continuum_type = True
     
-    def Initial_Critical_Time(self):
+    def Initial_Critical_Time(self):        # Calls deprecated function
         (self.cplusplus_strategy).InitialTimeStepCalculation()
 
     def PrepareContactElementsForPrinting(self):
