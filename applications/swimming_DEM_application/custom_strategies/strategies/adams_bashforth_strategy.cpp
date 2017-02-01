@@ -14,7 +14,7 @@ void AdamsBashforthStrategy::ReconstructForces(ModelPart& r_model_part)
     ElementsArrayType& pElements = GetElements(r_model_part);
 
     if (pElements.size()){
-        typename ElementsArrayType::iterator it_0 = pElements.ptr_begin(); //first element (any element will do)
+        ElementsArrayType::iterator it_0 = pElements.ptr_begin(); //first element (any element will do)
         ModelPart::NodeType& p_any_node   = it_0->GetGeometry()[0];
         const bool has_virtual_mass_force = p_any_node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
         const bool has_basset_force       = p_any_node.SolutionStepsDataHas(BASSET_FORCE);
@@ -23,7 +23,7 @@ void AdamsBashforthStrategy::ReconstructForces(ModelPart& r_model_part)
 
             #pragma omp parallel for
             for (int k = 0; k < (int) pElements.size(); k++){
-                typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
                 ModelPart::NodeType& p_node = it->GetGeometry()[0];
 
                 if (has_virtual_mass_force){
