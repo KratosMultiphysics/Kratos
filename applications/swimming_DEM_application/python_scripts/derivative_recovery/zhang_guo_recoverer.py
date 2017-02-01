@@ -8,7 +8,7 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.GradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.fluid_model_part, scalar_variable, gradient_variable)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, scalar_variable, gradient_variable)
     def RecoverGradientOfVelocity(self):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_X, VELOCITY_X_GRADIENT)
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, VELOCITY_Y, VELOCITY_Y_GRADIENT)
