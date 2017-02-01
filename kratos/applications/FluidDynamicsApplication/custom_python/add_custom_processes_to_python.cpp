@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/distance_modification_process.h"
+#include "custom_processes/move_rotor_process.h"
 #include "spaces/ublas_space.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -103,6 +104,12 @@ void AddCustomProcessesToPython()
     class_< DistanceModificationProcess, bases<Process>, boost::noncopyable >
     ("DistanceModificationProcess",init < ModelPart&, const bool >())
     ;
+    
+    class_< MoveRotorProcess, bases<Process>, boost::noncopyable >
+    ("MoveRotorProcess",init < ModelPart&, const double, const double, const double, const double, const double, const double >())
+    .def(init< ModelPart&, Parameters& >())
+    ;
+    
 }
 
 } // namespace Python.
