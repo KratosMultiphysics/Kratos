@@ -12,7 +12,6 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
         self.calculate_vorticity = pp.CFD_DEM.vorticity_calculation_type > 0
-        self.must_reconstruct_gradient = pp.CFD_DEM.must_reconstruct_gradient
 
         if self.use_lumped_mass_matrix:
             self.model_part.ProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = 1
@@ -92,7 +91,6 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_Z_GRADIENT, VORTICITY)
 
-
 class L2ProjectionMaterialAccelerationRecoverer(L2ProjectionGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         L2ProjectionGradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
@@ -122,8 +120,6 @@ class L2ProjectionDirectMaterialAccelerationRecoverer(L2ProjectionMaterialAccele
     def RecoverMaterialAcceleration(self):
         self.SetToZero(MATERIAL_ACCELERATION)
         self.recovery_strategy.Solve()
-        if self.must_reconstruct_gradient:
-            self.RecoverGradientOfVelocity()
 
 class L2ProjectionLaplacianRecoverer(L2ProjectionMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
