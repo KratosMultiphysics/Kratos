@@ -134,12 +134,12 @@ public:
     {
         // Iterate in the nodes
         NodesArrayType& pNode = mThisModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        int numNodes = pNode.end() - pNode.begin();
         
         CalculateAuxiliarHessian();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
@@ -394,10 +394,10 @@ private:
         
         // Iterate in the conditions
         ElementsArrayType& pElement = mThisModelPart.Elements();
-        auto numElements = pElement.end() - pElement.begin();
+        int numElements = pElement.end() - pElement.begin();
         
         #pragma omp parallel for
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < numElements; i++) 
         {
             auto itElem = pElement.begin() + i;
             
@@ -470,7 +470,7 @@ private:
         }
             
         #pragma omp parallel for
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             itNode->GetValue(AUXILIAR_HESSIAN) /= itNode->FastGetSolutionStepValue(NODAL_AREA);

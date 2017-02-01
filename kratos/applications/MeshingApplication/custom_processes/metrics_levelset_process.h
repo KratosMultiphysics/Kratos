@@ -124,10 +124,10 @@ public:
     {
         // Iterate in the nodes
         NodesArrayType& pNode = mThisModelPart.Nodes();
-        auto numNodes = pNode.end() - pNode.begin();
+        int numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
-        for(unsigned int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
             
