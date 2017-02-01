@@ -169,7 +169,7 @@ public:
         const bool save_to_file = false,
         const unsigned int MaxNumberOfResults = 1000
         )
-    {
+    {               
         /* We restart the MMG mesh and solution */       
         InitMesh();
         
@@ -275,7 +275,7 @@ protected:
      */
     
     void InitializeMeshData()
-    {
+    {                
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
         ComputeColors(node_colors, cond_colors, elem_colors);
@@ -919,11 +919,25 @@ protected:
     
     void FreeMemory()
     {
-        // Free the MMG3D5 structures 
+        // Free the MMG structures 
         FreeAll();
 
-        free(mFilename);
-        mFilename = NULL;
+        // Free Filename (NOTE: Problems with more that one iteration)
+//         free(mFilename);
+//         mFilename = NULL;
+       
+        // Free reference std::vectors
+        mpRefElement.resize(TDim - 1);
+        mpRefCondition.resize(TDim - 1);
+        mInitRefCondition.resize(TDim - 1);
+        mInitRefElement.resize(TDim - 1);
+        for (unsigned int i_dim = 0; i_dim < TDim - 1; i_dim++)
+        {
+            mpRefElement[i_dim] = nullptr;   
+            mInitRefCondition[i_dim] = false;   
+            mpRefCondition[i_dim] = nullptr;   
+            mInitRefElement[i_dim] = false; 
+        }
     }
     
     /** 
@@ -1356,6 +1370,10 @@ protected:
             exit(EXIT_FAILURE);
         }
         
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (edge0 == 0) edge0 = mmgMesh->np;
+        if (edge1 == 0) edge1 = mmgMesh->np;
+        
         std::vector<NodeType::Pointer> ConditionNodes (2);
         ConditionNodes[0] = mThisModelPart.pGetNode(edge0);
         ConditionNodes[1] = mThisModelPart.pGetNode(edge1);    
@@ -1383,6 +1401,11 @@ protected:
         {
             exit(EXIT_FAILURE);
         }
+        
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex0 == 0) vertex0 = mmgMesh->np;
+        if (vertex1 == 0) vertex1 = mmgMesh->np;
+        if (vertex2 == 0) vertex2 = mmgMesh->np;
         
         std::vector<NodeType::Pointer> ConditionNodes (3);
         ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
@@ -1412,6 +1435,12 @@ protected:
         {
             exit(EXIT_FAILURE);
         }
+        
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex0 == 0) vertex0 = mmgMesh->np;
+        if (vertex1 == 0) vertex1 = mmgMesh->np;
+        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        if (vertex3 == 0) vertex3 = mmgMesh->np;
         
         std::vector<NodeType::Pointer> ConditionNodes (4);
         ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
@@ -1443,6 +1472,11 @@ protected:
             exit(EXIT_FAILURE);
         }
 
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex0 == 0) vertex0 = mmgMesh->np;
+        if (vertex1 == 0) vertex1 = mmgMesh->np;
+        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        
         std::vector<NodeType::Pointer> ElementNodes (3);
         ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
         ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
@@ -1471,6 +1505,12 @@ protected:
         {
             exit(EXIT_FAILURE);
         }
+        
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex0 == 0) vertex0 = mmgMesh->np;
+        if (vertex1 == 0) vertex1 = mmgMesh->np;
+        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        if (vertex3 == 0) vertex3 = mmgMesh->np;
         
         std::vector<NodeType::Pointer> ElementNodes (4);
         ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
@@ -1501,6 +1541,14 @@ protected:
         {
             exit(EXIT_FAILURE);
         }
+        
+        // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+        if (vertex0 == 0) vertex0 = mmgMesh->np;
+        if (vertex1 == 0) vertex1 = mmgMesh->np;
+        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        if (vertex3 == 0) vertex3 = mmgMesh->np;
+        if (vertex4 == 0) vertex4 = mmgMesh->np;
+        if (vertex5 == 0) vertex5 = mmgMesh->np;
         
         std::vector<NodeType::Pointer> ElementNodes (6);
         ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
