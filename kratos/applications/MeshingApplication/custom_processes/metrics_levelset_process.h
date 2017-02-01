@@ -84,6 +84,7 @@ public:
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
         const double rMinSize,
+        const bool rEnforceCurrent = true,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
         const double rAnisRatio = 1.0,
         const double rBoundLayer =  1.0,
@@ -92,6 +93,7 @@ public:
         :mThisModelPart(rThisModelPart),
         mVariableGradient(rVariableGradient),
         mMinSize(rMinSize),
+        mEnforceCurrent(rEnforceCurrent),
         mAnisRatio(rAnisRatio),
         mBoundLayer(rBoundLayer)
     {   
@@ -137,10 +139,11 @@ public:
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(mVariableGradient, 0);
             
-            double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if (element_size > mMinSize)
+            double element_size = mMinSize;
+            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
+            if ((element_size > nodal_h) && (mEnforceCurrent == true))
             {
-                element_size = mMinSize;
+                element_size = nodal_h;
             }
             
             const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
@@ -263,9 +266,10 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                       // The model part to compute
+    ModelPart& mThisModelPart;                      // The model part to compute
     Variable<array_1d<double,3>> mVariableGradient; // The gradient variable
     double mMinSize;                                // The minimal size of the elements
+    bool mEnforceCurrent;                           // With this we choose if we inforce the current nodal size (NODAL_H)
     double mAnisRatio;                              // The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                             // The boundary layer limit distance
     Interpolation mInterpolation;                   // The interpolation type

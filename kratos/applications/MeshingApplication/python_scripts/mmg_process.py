@@ -26,11 +26,13 @@ class MmgProcess(KratosMultiphysics.Process):
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
+            "adaptative_loop"                  : 1,
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : "DISPLACEMENT",
-                "interpolation_error"              : 1.0e-12,
+                "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.0
             },
+            "enforce_current"                  : true,
             "step_frequency"                   : 0,
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
@@ -67,6 +69,8 @@ class MmgProcess(KratosMultiphysics.Process):
         self.params = params
 
         self.output_file_name = self.params["output_file_name"].GetString()
+        
+        self.enforce_current = self.params["enforce_current"].GetBool()
         
         # Select the remeshing strategy
         self.strategy = self.params["strategy"].GetString()
@@ -127,6 +131,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
+        self.adaptative_loop = self.params["adaptative_loop"].GetInt() 
         self.echo_level = self.params["echo_level"].GetInt() 
         
     def ExecuteInitialize(self): 
@@ -180,6 +185,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
                     self.Model[self.model_part_name],
                     self.minimal_size,
+                    self.enforce_current,
                     self.gradient_variable,
                     self.hmin_over_hmax_anisotropic_ratio, 
                     self.boundary_layer_max_distance, 
@@ -189,6 +195,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
                     self.Model[self.model_part_name],
                     self.minimal_size,
+                    self.enforce_current,
                     self.gradient_variable
                     ))
             else:
@@ -196,6 +203,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
                     self.Model[self.model_part_name],
                     self.minimal_size,
+                    self.enforce_current,
                     self.gradient_variable,
                     self.hmin_over_hmax_anisotropic_ratio, 
                     self.boundary_layer_max_distance, 
@@ -205,6 +213,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
                     self.Model[self.model_part_name],
                     self.minimal_size,
+                    self.enforce_current,
                     self.gradient_variable
                     ))
             
@@ -227,6 +236,7 @@ class MmgProcess(KratosMultiphysics.Process):
                         comp,
                         self.minimal_size,
                         self.maximal_size,
+                        self.enforce_current,
                         self.interpolation_error,
                         self.mesh_dependent_constant,
                         self.hmin_over_hmax_anisotropic_ratio, 
@@ -238,7 +248,8 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.Model[self.model_part_name],
                         comp,
                         self.minimal_size,
-                        self.maximal_size
+                        self.maximal_size,
+                        self.enforce_current
                         ))
                 else:
                     if (self.anisotropy_remeshing == True):
@@ -247,6 +258,7 @@ class MmgProcess(KratosMultiphysics.Process):
                         comp,
                         self.minimal_size,
                         self.maximal_size,
+                        self.enforce_current,
                         self.interpolation_error,
                         self.mesh_dependent_constant,
                         self.hmin_over_hmax_anisotropic_ratio, 
@@ -260,6 +272,7 @@ class MmgProcess(KratosMultiphysics.Process):
                         comp,
                         self.minimal_size,
                         self.maximal_size,
+                        self.enforce_current,
                         self.interpolation_error,
                         self.mesh_dependent_constant
                         ))
@@ -272,8 +285,6 @@ class MmgProcess(KratosMultiphysics.Process):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
             
     def _ExecuteRefinement(self):
-        
-        self._InitializeMetric()
             
         if (self.strategy == "LevelSet"):
             # Calculate the gradient
@@ -282,16 +293,20 @@ class MmgProcess(KratosMultiphysics.Process):
         # Recalculate NODAL_H
         self.find_nodal_h.Execute()
 
-        print("Calculating the metrics")
-        # Execute metric computation
-        for metric_process in self.MetricsProcess:
-            metric_process.Execute()
-        
-        print("Remeshing")
-        self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
-        
-        if (self.strategy == "LevelSet"):
-            self.local_gradient.Execute() # Recalculate gradient after remeshing
+        print("STARTING ADAPTATIVE LOOP")
+        for n in range(self.adaptative_loop):
+            print("ADAPTATIVE INTERATION: ",n)
+            self._InitializeMetric()
+            print("\tCalculating the metrics")
+            # Execute metric computation
+            for metric_process in self.MetricsProcess:
+                metric_process.Execute()
+            
+            print("\tRemeshing")
+            self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
+            
+            if (self.strategy == "LevelSet"):
+                self.local_gradient.Execute() # Recalculate gradient after remeshing
             
     def _InitializeMetric(self):
         # Initialize metric
