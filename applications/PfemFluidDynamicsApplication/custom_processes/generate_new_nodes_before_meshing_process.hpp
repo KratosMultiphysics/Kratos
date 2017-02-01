@@ -463,7 +463,7 @@ private:
  	      }
  	      //Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 
- 	      double safetyCoefficient3D=1.8;
+ 	      double safetyCoefficient3D=1.6;
  	      bool dangerousElement=false;
  	      if(rigidNodes>1){
  		for (unsigned int i = 0; i < 6; i++){
@@ -643,7 +643,12 @@ private:
  	Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
  	Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);	
  	InterpolateFromTwoNodes(pnode,SlaveNode1,SlaveNode2,VariablesList);
-      
+	if(SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID)){
+	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
+	}
+	if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
+	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
+	}      
       }
 
 
@@ -792,6 +797,24 @@ private:
 
       }
 
+
+  void TakeMaterialPropertiesFromNotRigidNode( Node<3>::Pointer MasterNode,Node<3>::Pointer SlaveNode)
+  { 
+	  
+    KRATOS_TRY
+
+    double bulkModulus=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
+    double density=SlaveNode->FastGetSolutionStepValue(DENSITY);
+    double viscosity=SlaveNode->FastGetSolutionStepValue(VISCOSITY);
+
+
+    MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
+    MasterNode->FastGetSolutionStepValue(DENSITY)=density;
+    MasterNode->FastGetSolutionStepValue(VISCOSITY)=viscosity;
+
+    KRATOS_CATCH( "" )
+
+      }
 
 
 
