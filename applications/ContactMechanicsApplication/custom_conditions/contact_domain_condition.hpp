@@ -76,8 +76,8 @@ public:
     typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
     ///For 3D contact surfaces definition
-    typedef ContactDomainUtilities::TangentSurfaceScalar  TangentSurfaceScalar;
-    typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
+    // typedef ContactDomainUtilities::TangentSurfaceScalar  TangentSurfaceScalar;
+    // typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
 
@@ -125,38 +125,38 @@ protected:
 
 
 
-    typedef struct
-    {
-      //Geometrical surface tangent gaps:
-      TangentSurfaceScalar   CurrentGap;     //tangential gap
-      TangentSurfaceScalar   PreviousGap;    //tangential gap
+    // typedef struct
+    // {
+    //   //Geometrical surface tangent gaps:
+    //   TangentSurfaceScalar   CurrentGap;     //tangential gap
+    //   TangentSurfaceScalar   PreviousGap;    //tangential gap
      
-      //Contact constraint parameters
-      double   Multiplier;            //Lagrange Multipliyer tangent     
-      double   Penalty;               //Penalty Parameter tangent
+    //   //Contact constraint parameters
+    //   double   Multiplier;            //Lagrange Multipliyer tangent     
+    //   double   Penalty;               //Penalty Parameter tangent
       
-      //Variables of the contact domain elements
-      Vector          dN_dt;      //Discrete variacion of the shape function  in the current tangent direction
-      std::vector<Vector >       Tsigma;          
+    //   //Variables of the contact domain elements
+    //   Vector          dN_dt;      //Discrete variacion of the shape function  in the current tangent direction
+    //   std::vector<Vector >       Tsigma;          
 
-    } ContactSurfaceParameters;
+    // } ContactSurfaceParameters;
 
 
-    typedef struct
-    {      
-      Flags           Options;               //calculation options
+    // typedef struct
+    // {      
+    //   Flags           Options;               //calculation options
       
-      ContactSurfaceParameters TangentA;
-      ContactSurfaceParameters TangentB;
+    //   ContactSurfaceParameters TangentA;
+    //   ContactSurfaceParameters TangentB;
       
-      SurfaceBase    CovariantBase;
-      SurfaceBase    ContravariantBase;
+    //   SurfaceBase    CovariantBase;
+    //   SurfaceBase    ContravariantBase;
 
-      double EquivalentArea;
-      double EquivalentHeigh;
-      double ElementSize;
+    //   double EquivalentArea;
+    //   double EquivalentHeigh;
+    //   double ElementSize;
                   
-    } ContactTangentParameters;
+    // } ContactTangentParameters;
 
   
     typedef struct
