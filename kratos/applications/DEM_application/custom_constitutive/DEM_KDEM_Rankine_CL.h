@@ -55,7 +55,9 @@ namespace Kratos {
                 bool& sliding,
                 int search_control,
                 vector<int>& search_control_vector,
-                const ProcessInfo& r_process_info) override;                
+                const ProcessInfo& r_process_info) override;
+        
+        virtual bool CheckRequirementsOfStressTensor();
 
     private:
 

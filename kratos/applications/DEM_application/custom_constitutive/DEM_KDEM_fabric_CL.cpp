@@ -10,12 +10,10 @@ namespace Kratos {
         return p_clone;
     }
 
-
     void DEM_KDEMFabric::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
         std::cout << "\nAssigning DEM_KDEMFabric to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }    
-                                  
+    }                                  
     
     void DEM_KDEMFabric::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                           SphericContinuumParticle* neighbor,
@@ -39,7 +37,6 @@ namespace Kratos {
         
         KRATOS_CATCH("")
     }
-    
     
     void DEM_KDEMFabric::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,

@@ -132,6 +132,10 @@ namespace Kratos {
 
     }
 
-
+    bool DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor() {
+    
+        return false;
+    
+    }
 
 } //kratos

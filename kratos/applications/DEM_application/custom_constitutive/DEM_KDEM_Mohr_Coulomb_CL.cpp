@@ -81,5 +81,10 @@ namespace Kratos {
         
     }
      
-
+    bool DEM_KDEM_Mohr_Coulomb::CheckRequirementsOfStressTensor() {
+    
+        return true;
+    
+    }
+    
 } // namespace Kratos
