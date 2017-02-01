@@ -90,6 +90,7 @@ public:
         Variable<double>& rVariable,
         const double rMinSize,
         const double rMaxSize,
+        const bool rEnforceCurrent = true,
         const double rInterpError = 1.0e-6,
         const double rMeshConstant = 0.28125, // TODO: This is for tetrahedron, look in literature for more
         const double rAnisRatio = 1.0,
@@ -100,6 +101,7 @@ public:
         mVariable(rVariable),
         mMinSize(rMinSize),
         mMaxSize(rMaxSize),
+        mEnforceCurrent(rEnforceCurrent),
         mInterpError(rInterpError),
         mMeshConstant(rMeshConstant),
         mAnisRatio(rAnisRatio),
@@ -149,10 +151,11 @@ public:
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
             const Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);
             
-            double element_size = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if (element_size > mMinSize)
+            double element_size = mMinSize;
+            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
+            if ((element_size > nodal_h) && (mEnforceCurrent == true))
             {
-                element_size = mMinSize;
+                element_size = nodal_h;
             }
             
             const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
@@ -181,13 +184,13 @@ public:
             if (normmetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             {
                 const Vector old_metric = itNode->GetValue(MMG_METRIC);
-                const Vector new_metric = ComputeHessianMetricTensor(hessian, ratio);    
+                const Vector new_metric = ComputeHessianMetricTensor(hessian, ratio, element_size);    
                 
                 metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
             }
             else
             {
-                metric = ComputeHessianMetricTensor(hessian, ratio);    
+                metric = ComputeHessianMetricTensor(hessian, ratio, element_size);    
             }
         }
     }
@@ -272,6 +275,7 @@ private:
     Variable<double> mVariable;   // The variable to calculate the hessian
     double mMinSize;              // The minimal size of the elements
     double mMaxSize;              // The maximal size of the elements
+    bool mEnforceCurrent;         // With this we choose if we inforce the current nodal size (NODAL_H)
     double mInterpError;          // The error of interpolation allowed
     double mMeshConstant;         // The mesh constant to remesh (depends of the element type)
     double mAnisRatio;            // The minimal anisotropic ratio (0 < ratio < 1)
@@ -294,12 +298,14 @@ private:
         
     Vector ComputeHessianMetricTensor(
         const Vector& hessian,
-        const double& ratio
+        const double& ratio,
+        const double& element_size // This way we can impose as minimum the previous size if we desire
         )
     {        
         // Calculating metric parameters
         const double c_epsilon = mMeshConstant/mInterpError;
-        const double min_ratio = 1.0/(mMinSize * mMinSize);
+        const double min_ratio = 1.0/(element_size * element_size);
+//         const double min_ratio = 1.0/(mMinSize * mMinSize);
         const double max_ratio = 1.0/(mMaxSize * mMaxSize);
         
         typedef boost::numeric::ublas::bounded_matrix<double, TDim, TDim> temp_type;
@@ -312,13 +318,13 @@ private:
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(hessian);
         
         MetricsMathUtils<TDim>::EigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 10);
-            
+        
         // Recalculate the metric eigen values
         for (unsigned int i = 0; i < TDim; i++)
         {
             eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
         }
-            
+        
         // Considering anisotropic
         if (ratio < 1.0)
         {
@@ -337,6 +343,20 @@ private:
                 eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), rel_eigen_radius);
             }
         }
+//         // TODO: Technically for isotropic we should consider the maximum of the eigenvalues
+//         else
+//         {
+//             double eigen_max = eigen_values_matrix(0, 0);
+//             for (unsigned int i = 1; i < TDim - 1; i++)
+//             {
+//                 eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
+//             }
+//             for (unsigned int i = 0; i < TDim; i++)
+//             {
+//                 eigen_values_matrix(i, i) = eigen_max;
+//             }
+//             eigen_vector_matrix = IdentityMatrix(TDim, TDim);
+//         }
             
         // We compute the product
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> metric_matrix =  prod(trans(eigen_vector_matrix), prod<temp_type>(eigen_values_matrix, eigen_vector_matrix));
