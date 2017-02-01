@@ -1,0 +1,124 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "3D_hessian_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 3,
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 0.03,
+        "time_step"       : 0.011
+    },
+    "_output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISTANCE","ANISOTROPIC_RATIO"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "Embedded",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "mmg_test/3D_hessian_test"
+        },
+        "maximum_iterations"           : 10,
+        "oss_switch"                   : 0,
+        "echo_level"                   : 0,
+        "consider_periodic_conditions" : false,
+        "time_order"                   : 2,
+        "dynamic_tau"                  : 0.01,
+        "compute_reactions"            : false,
+        "divergence_clearance_steps"   : 0,
+        "reform_dofs_at_each_step"     : false,
+        "relative_velocity_tolerance"  : 0.001,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 0.001,
+        "absolute_pressure_tolerance"  : 1e-5,
+        "volume_model_part_name"          : "Parts_Parts_Auto1",
+        "skin_parts"                      : [],
+        "no_skin_parts"                   : []
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [],
+    "gravity"                          : [],
+    "list_other_processes" :[
+    {
+        "python_module"   : "test_local_process",
+        "kratos_module" : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "",
+        "process_name"          : "ApplyLocalProcess",
+        "Parameters"            : {
+            "model_part_name"  : "MainModelPart",
+            "test_name"        : "3D_hessian_test"
+        }
+    }
+    ],
+    "adaptative_loop"           : 5,
+    "initial_remeshing_process" :[
+    {
+        "python_module"   : "mmg_process",
+        "kratos_module"   : "KratosMultiphysics.MeshingApplication",
+        "help"                  : "This process automatically remesh using MMG library",
+        "process_name"          : "MmgProcess",
+        "Parameters"            : {
+            "step_frequency"                    : 0,
+            "output_file_name"                 : "mmg_test/3D_hessian_test",
+            "strategy"                         : "Hessian",
+            "hessian_strategy_parameters"              :{
+                "metric_variable"                  : "DISTANCE",
+                "interpolation_error"              : 0.004
+            },
+            "automatic_remesh"                 : true,
+            "automatic_remesh_parameters"      :{
+                "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 0.05,
+                "max_size_ratio"                   : 100.0,
+                "refer_type"                       : "Mean"
+            },
+            "enforce_current"                   : false,
+            "save_external_files"               : true,
+            "anisotropy_remeshing"              : true,
+            "anisotropy_parameters":{
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
+                "boundary_layer_max_distance"      : 1.0,
+                "boundary_layer_min_size_ratio"    : 1.0,
+                "interpolation"                    : "Linear"
+            },
+            "echo_level"                        : 0
+        }
+    }
+    ],
+    "compare_two_files_check_process" :[
+    {
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"                  : "This process compares two files and executes an Unittest Assert",
+        "process_name"          : "CompareTwoFilesCheckProcess",
+        "Parameters"            : {
+            "file_name_1"       : "mmg_test/3D_hessian_test.o.mesh",
+            "file_name_2"       : "mmg_test/3D_hessian_test_result.mesh",
+            "deterministic"     : false
+        }
+    }
+    ]
+}

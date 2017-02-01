@@ -36,7 +36,7 @@ class MeshingTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         pass
-        # Within this location context:
+        ## Within this location context:
         #with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #self.test.Solve()
 
@@ -52,8 +52,8 @@ class MeshingTestFactory(KratosUnittest.TestCase):
 class TwoDHessianTest(MeshingTestFactory):
     file_name = "mmg_test/2D_hessian_test"
     
-#class ThreeDHessianSetTest(MeshingTestFactory):
-    #file_name = "mmg_test/3D_hessian_test"
+class ThreeDHessianTest(MeshingTestFactory):
+    file_name = "mmg_test/3D_hessian_test"
     
 class TwoDCavityTest(MeshingTestFactory):
     file_name = "mmg_test/2D_cavity_test"
