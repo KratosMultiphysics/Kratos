@@ -145,38 +145,6 @@ public:
            mpRefCondition[i_dim] = nullptr;   
            mInitRefElement[i_dim] = false; 
        }
-       
-       mmgMesh = NULL;
-       mmgSol = NULL;
-       
-       InitMesh();
-       
-       int verbosityMMG;
-       if (echo_level == 0)
-       {
-           verbosityMMG = 0;
-       }
-       else if (echo_level == 1)
-       {
-           verbosityMMG = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
-       }
-       else if (echo_level == 2)
-       {
-           verbosityMMG = 3;
-       }
-       else if (echo_level == 3)
-       {
-           verbosityMMG = 5;
-       }
-       else
-       {
-           verbosityMMG = 10;
-       }
-       
-       if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) )
-       {
-           exit(EXIT_FAILURE);
-       }
     }
     
     /// Destructor.
@@ -202,6 +170,10 @@ public:
         const unsigned int MaxNumberOfResults = 1000
         )
     {
+        /* We restart the MMG mesh and solution */       
+        InitMesh();
+        
+        /* We print the original model part */
         if (mEchoLevel > 0)
         {
             std::cout << "//---------------------------------------------------//" << std::endl;
@@ -954,16 +926,56 @@ protected:
         mFilename = NULL;
     }
     
-    /** Initialisation of mesh and sol structures 
-    * args of InitMesh:
-    * MMG5_ARG_start: we start to give the args of a variadic func
-    * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
-    * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
-    * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
-    * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
-    */
+    /** 
+     * Initialisation of mesh and sol structures 
+     * args of InitMesh:
+     * MMG5_ARG_start: we start to give the args of a variadic func
+     * MMG5_ARG_ppMesh: next arg will be a pointer over a MMG5_pMesh
+     * &mmgMesh: pointer toward your MMG5_pMesh (that store your mesh)
+     * MMG5_ARG_ppMet: next arg will be a pointer over a MMG5_pSol storing a metric
+     * &mmgSol: pointer toward your MMG5_pSol (that store your metric) 
+     */
     
     void InitMesh();
+    
+    /** 
+     * Here the verbosity is set 
+     */
+    
+    void InitVerbosity()
+    {
+       /* We set the MMG verbosity */
+       int verbosityMMG;
+       if (mEchoLevel == 0)
+       {
+           verbosityMMG = 0;
+       }
+       else if (mEchoLevel == 1)
+       {
+           verbosityMMG = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
+       }
+       else if (mEchoLevel == 2)
+       {
+           verbosityMMG = 3;
+       }
+       else if (mEchoLevel == 3)
+       {
+           verbosityMMG = 5;
+       }
+       else
+       {
+           verbosityMMG = 10;
+       }
+       
+       InitVerbosityParameter(verbosityMMG);
+    }
+    
+    /** 
+     * Here the verbosity is set using the API
+     * @param verbosityMMG: The equivalent verbosity level in the MMG API
+     */
+        
+    void InitVerbosityParameter(int verbosityMMG);
     
     /**
      * This sets the size of the mesh
@@ -1563,8 +1575,14 @@ protected:
     
     template<>  
     void MmgUtility<2>::InitMesh()
-    {       
+    {  
+        mmgMesh = NULL;
+        mmgSol = NULL;
+       
+        // We init the MMG mesh and sol
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+        
+        InitVerbosity();
     }
     
     /***********************************************************************************/
@@ -1572,8 +1590,37 @@ protected:
     
     template<>  
     void MmgUtility<3>::InitMesh()
-    {       
+    {   
+        mmgMesh = NULL;
+        mmgSol = NULL;
+        
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end); 
+        
+        InitVerbosity();
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::InitVerbosityParameter(int verbosityMMG)
+    {  
+       if ( !MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_verbose, verbosityMMG) )
+       {
+           exit(EXIT_FAILURE);
+       }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::InitVerbosityParameter(int verbosityMMG)
+    {       
+       if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, verbosityMMG) )
+       {
+           exit(EXIT_FAILURE);
+       }
     }
     
     /***********************************************************************************/
