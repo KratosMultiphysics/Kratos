@@ -882,8 +882,8 @@ while (time <= final_time):
             coor[0]=node.X
             coor[1]=node.Y
             coor[2]=0
-            flow_field.CalculateMaterialAcceleration(time,coor, mat_deriv, 0)
-            flow_field.CalculateLaplacian(time,coor, laplacian, 0)
+            flow_field.CalculateMaterialAcceleration(time, coor, mat_deriv, 0)
+            flow_field.CalculateLaplacian(time, coor, laplacian, 0)
             calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
             calc_mat_deriv[1] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y)
             calc_mat_deriv[2] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z)
@@ -911,23 +911,23 @@ while (time <= final_time):
             norm_mat_deriv_average += swim_proc.Norm(mat_deriv)
             norm_laplacian_average += swim_proc.Norm(laplacian)
 
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv[0] - mat_deriv[0])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv[1] - mat_deriv[1])
-            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv[2] - mat_deriv[2])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, calc_mat_deriv[0] - mat_deriv[0])
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, calc_mat_deriv[1] - mat_deriv[1])
+            node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, calc_mat_deriv[2] - mat_deriv[2])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
+            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, mat_deriv[2])
 
 
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian[0] - laplacian[0]))
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian[1] - laplacian[1]))
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian[2] - laplacian[2]))
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, calc_laplacian[0] - laplacian[0])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, calc_laplacian[1] - laplacian[1])
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, calc_laplacian[2] - laplacian[2])
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, calc_laplacian_0)
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, calc_laplacian_1)
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, calc_laplacian_2)
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, laplacian[0])
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, laplacian[1])
+            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, laplacian[2])
 
         module_mat_deriv /= len(fluid_model_part.Nodes)
         module_laplacian /= len(fluid_model_part.Nodes)
@@ -1047,14 +1047,21 @@ while (time <= final_time):
     out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
-
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
 simulation_elapsed_time = timer.clock() - simulation_start_time
 print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
 print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
+
 if not os.path.exists('../errors_recorded'):
     os.makedirs('../errors_recorded')
+
+import h5py
+import numpy as np
+
+file_name = main_path + '/errors_recorded/recovery_errors.hdf5'
+with h5py.File(self.file_name, 'r+') as f:
+    f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
 
 if num_type(size_parameter) == 'int':
     size_parameter_name = '_ndiv_'
