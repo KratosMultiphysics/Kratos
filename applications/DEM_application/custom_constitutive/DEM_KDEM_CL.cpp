@@ -58,11 +58,6 @@ namespace Kratos {
         kn_el = equiv_young * calculation_area / current_distance;
         kt_el = equiv_shear * calculation_area / current_distance;
 
-        if (element1->GetProperties().Has(KT_FACTOR)) {
-            const double kt_factor = element1->GetProperties()[KT_FACTOR];
-            kt_el *= kt_factor;
-        }
-        
         KRATOS_CATCH("")  
     }
                         
@@ -462,7 +457,7 @@ namespace Kratos {
  
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
+                average_stress_tensor[i][j] = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
             }
         }
         
@@ -471,22 +466,19 @@ namespace Kratos {
         
         array_1d<double, 3> OldLocalElasticExtraContactForce;
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldElasticExtraContactForce, OldLocalElasticExtraContactForce);
-        
-        
-        
+ 
         double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
         double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
                                                 
         LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] - force_due_to_stress0;                       
         LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] - force_due_to_stress1;
         
-        if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
+        if (fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0)) {
             LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
         }
-        if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
+        if (fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1)) {
             LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
         }
-
     }
 
-} // namespace Krat                                                                             os
+} // namespace Kratos

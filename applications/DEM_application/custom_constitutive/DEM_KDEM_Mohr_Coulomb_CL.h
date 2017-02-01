@@ -26,7 +26,7 @@ namespace Kratos {
         
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
         void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
-                       
+        bool CheckRequirementsOfStressTensor();            
 
     private:
 

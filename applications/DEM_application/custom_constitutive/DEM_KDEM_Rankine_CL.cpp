@@ -128,6 +128,12 @@ namespace Kratos {
         }
 
         KRATOS_CATCH("")      
-    }    
+    }
+    
+    bool DEM_KDEM_Rankine::CheckRequirementsOfStressTensor() {
+    
+        return true;
+    
+    }
 
-} // namespace Krat                                                                             os
+} // namespace Kratos

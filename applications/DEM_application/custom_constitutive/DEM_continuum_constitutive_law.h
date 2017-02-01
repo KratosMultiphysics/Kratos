@@ -183,6 +183,8 @@ namespace Kratos {
         virtual double LocalPeriod(const int i,
                                    SphericContinuumParticle* element1,
                                    SphericContinuumParticle* element2);
+        
+        virtual bool CheckRequirementsOfStressTensor();
 
     private:
 
