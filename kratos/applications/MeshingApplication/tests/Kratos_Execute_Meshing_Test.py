@@ -75,8 +75,15 @@ class Kratos_Execute_Test:
                 remeshing_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
             
             ## Remeshing processes initialization
-            for process in reversed(remeshing_processes):
-                process.ExecuteInitialize()
+            print("STARTING ADAPTATIVE LOOP")
+            if (self.ProjectParameters.Has("adaptative_loop") == True):
+                adaptative_loop = ProjectParameters["adaptative_loop"].GetInt()
+            else:
+                adaptative_loop = 1
+            for n in range(adaptative_loop):
+                print("ADAPTATIVE INTERATION: ", n + 1)
+                for process in reversed(remeshing_processes):
+                    process.ExecuteInitialize()
 
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )

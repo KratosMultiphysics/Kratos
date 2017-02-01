@@ -19,18 +19,13 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
     def __init__(self,model_part,params):
 
         self.model_part = model_part[params["model_part_name"].GetString()]
+        self.test_name = params["test_name"].GetString()
         self.params = params
        
-        self.forcing_nodes_list = []
-        
-        for node in self.model_part.Nodes:
-            self.forcing_nodes_list.append(node)
-            
-        del node
-        
     def ExecuteInitialize(self):
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(DISTANCE, 0, math.tanh(-100.0 * (node.Y - 0.5 - 0.25 * math.sin(2.0 * node.X * math.pi))) + math.tanh(100.0*(node.Y - node.X)))
+        if self.test_name == "2D_hessian_test":
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(DISTANCE, 0, math.tanh(-100.0 * (node.Y - 0.5 - 0.25 * math.sin(2.0 * node.X * math.pi))) + math.tanh(100.0*(node.Y - node.X)))
         
     def ExecuteBeforeSolutionLoop(self): 
         pass

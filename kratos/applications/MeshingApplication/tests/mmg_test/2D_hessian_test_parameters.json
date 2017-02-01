@@ -94,15 +94,17 @@
     }],
     "list_other_processes" :[
     {
-        "python_module"   : "hessian2D_test_local_process",
+        "python_module"   : "test_local_process",
         "kratos_module" : "KratosMultiphysics.MeshingApplication",
         "help"                  : "",
         "process_name"          : "ApplyLocalProcess",
         "Parameters"            : {
-            "model_part_name"  : "Parts_Parts_Auto1"
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "test_name"        : "2D_hessian_test"
         }
     }
     ],
+    "adaptative_loop"           : 6,
     "initial_remeshing_process" :[
     {
         "python_module"   : "mmg_process",
@@ -115,21 +117,22 @@
             "strategy"                         : "Hessian",
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : "DISTANCE",
-                "interpolation_error"              : 1.0e-12
+                "interpolation_error"              : 0.004
             },
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
-                "min_size_ratio"                   : 0.65,
-                "max_size_ratio"                   : 3.0,
+                "min_size_ratio"                   : 0.05,
+                "max_size_ratio"                   : 100.0,
                 "refer_type"                       : "Mean"
             },
+            "enforce_current"                   : false,
             "save_external_files"               : true,
-            "anisotropy_remeshing"              : false,
+            "anisotropy_remeshing"              : true,
             "anisotropy_parameters":{
-                "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
                 "boundary_layer_max_distance"      : 1.0,
-                "boundary_layer_min_size_ratio"    : 2.0,
+                "boundary_layer_min_size_ratio"    : 1.0,
                 "interpolation"                    : "Linear"
             },
             "echo_level"                        : 0
