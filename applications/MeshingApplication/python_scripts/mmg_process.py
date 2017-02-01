@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 import os
+import math
 from json_utilities import *
 import json
 KratosMultiphysics.CheckForPreviousImport()
@@ -295,7 +296,7 @@ class MmgProcess(KratosMultiphysics.Process):
 
         print("STARTING ADAPTATIVE LOOP")
         for n in range(self.adaptative_loop):
-            print("ADAPTATIVE INTERATION: ",n)
+            print("ADAPTATIVE INTERATION: ", n + 1)
             self._InitializeMetric()
             print("\tCalculating the metrics")
             # Execute metric computation
