@@ -23,11 +23,12 @@ class DerivativeRecoveryStrategy:
         self.laplacian_type = pp.CFD_DEM.laplacian_calculation_type
         self.vorticity_type = pp.CFD_DEM.vorticity_calculation_type
         self.pressure_grad_type = pp.CFD_DEM.pressure_grad_recovery_type
-        self.pp.CFD_DEM.must_reconstruct_gradient = self.laplacian_type in {3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
+        self.must_reconstruct_gradient = self.laplacian_type in {3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
 
         self.mat_deriv_tool = self.GetMatDerivTool()
         self.laplacian_tool = self.GetLaplacianTool()
         self.vorticity_tool = self.GetVorticityTool()
+        self.velocity_grad_tool = self.GetVelocityGradTool()
         self.pressure_grad_tool = self.GetPressureGradTool()
 
         if pp.CFD_DEM.fluid_already_calculated:
@@ -69,13 +70,11 @@ class DerivativeRecoveryStrategy:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 return zhang_guo_recoverer.ZhangGuoDirectLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-
         elif self.laplacian_type in {3, 4, 5, 6}:
             if self.store_full_gradient:
                 return L2_projection_recoverer.L2ProjectionLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 raise Exception('The value of laplacian_calculation_type is ' + str(self.laplacian_type) + ' , which is only compatible with store_full_gradient = 1. Instead it is store_full_gradient = ' + str(self.store_full_gradient) + '.')
-
         elif self.laplacian_type == 7:
             if self.store_full_gradient:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
@@ -87,14 +86,22 @@ class DerivativeRecoveryStrategy:
     def GetVorticityTool(self):
         if self.vorticity_type == 0:
             return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
-
         elif self.vorticity_type == 5: # NOT WORKING YET WITH VECTORS
             return recoverer.EmptyVorticityRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:
             raise Exception('The value of vorticity_calculation_type is ' + str(self.vorticity_type) + ' , which does not correspond to any valid option.')
 
+    def GetVelocityGradTool(self):
+        if self.must_reconstruct_gradient:
+            if self.mat_deriv_tool == 6:
+                return fortin_2012_recoverer.Fortin2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            else:
+                return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+        else:
+            return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+
     def GetPressureGradTool(self):
-        if self.pressure_grad_type == 0: # NOT WORKING YET WITH VECTORS
+        if self.pressure_grad_type == 0:
             return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.pressure_grad_type == 1:
             return standard_recoverer.StandardGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
@@ -110,6 +117,7 @@ class DerivativeRecoveryStrategy:
                 self.derivative_recovery_tool.CalculateVorticityFromGradient(self.fluid_model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, ACCELERATION, VORTICITY)
         else:
             self.mat_deriv_tool.RecoverMaterialAcceleration()
+            self.velocity_grad_tool.RecoverGradientOfVelocity()
             if self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option:
                 self.custom_functions_tool.CalculatePressureGradient(self.fluid_model_part)
             if self.pp.CFD_DEM.gradient_calculation_type == 2:
