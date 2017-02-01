@@ -127,7 +127,7 @@ namespace Kratos {
             Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
             
             for (int i = 0; i < mesh_size; i++) {                
-                Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
+                /*Element* p_element = */creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                              max_Id+1,
                                                              all_nodes[i],
                                                              dummy_element_pointer,
@@ -374,7 +374,7 @@ namespace Kratos {
                 if (mp[CONTAINS_CLUSTERS] == false) {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
-                        Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
+                        /*Element* p_element = */creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
                                                                                         max_Id+1, 
                                                                                         inserting_elements[i]->GetGeometry()(0), 
                                                                                         inserting_elements[i],
