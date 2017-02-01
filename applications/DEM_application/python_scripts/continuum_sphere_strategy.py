@@ -63,8 +63,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
-
+            
+        
     def CreateCPlusPlusStrategy(self):
+        
         self.SetVariablesAndOptions()
 
         # ADDITIONAL VARIABLES AND OPTIONS
@@ -84,7 +86,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.spheres_model_part.ProcessInfo.SetValue(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
 
-        ##################################
+        for properties in self.spheres_model_part.Properties:
+            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
+            if ContinuumConstitutiveLaw.CheckRequirementsOfStressTensor():
+                self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
+                break
 
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
             self.cplusplus_strategy = ContinuumVerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -92,6 +99,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                   self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+    
     def Initialize(self):        
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
