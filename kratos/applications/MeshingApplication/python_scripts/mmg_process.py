@@ -149,9 +149,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self._CreateMetricsProcess()
         
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.output_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.output_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
         
         self._ExecuteRefinement()
         
@@ -303,7 +303,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 metric_process.Execute()
             
             print("\tRemeshing")
-            self.MmgUtility.RemeshModelPart(self.Model[self.model_part_name], self.save_external_files, self.max_number_of_searchs)
+            self.MmgUtility.RemeshModelPart(self.save_external_files, self.max_number_of_searchs)
             
             if (self.strategy == "LevelSet"):
                 self.local_gradient.Execute() # Recalculate gradient after remeshing
