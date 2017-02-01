@@ -77,15 +77,13 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         # "Automatic" direction: get the inwards direction
         if(settings["direction"].IsString()):
-            if ((settings["direction"].GetString() == "automatic_inner_normal") or (settings["direction"].GetString() == "automatic_outer_normal")):
+            if ((settings["direction"].GetString() == "automatic_inwards_normal") or (settings["direction"].GetString() == "automatic_outwards_normal")):
                 # Compute the condition normals
                 KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
                 # Compute the average conditions normal in the submodelpart of interest
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
-                avg_normal_norm = math.sqrt(pow(avg_normal[0],2) +
-                                            pow(avg_normal[1],2) +
-                                            pow(avg_normal[2],2))
+                avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
                 if(avg_normal_norm < 1e-6):
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
 
@@ -93,7 +91,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 unit_direction = (1/avg_normal_norm)*avg_normal
 
                 # Note that the NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector
-                if (settings["direction"].GetString() == "automatic_inner_normal"):
+                if (settings["direction"].GetString() == "automatic_inwards_normal"):
                     unit_direction = (-1)*unit_direction
 
         # Direction is given as a vector
@@ -112,14 +110,16 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         # Set the remainding parameters
         if(settings["modulus"].IsNumber()):
-            x_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[0])
-            y_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[1])
-            z_params.AddEmptyValue("value").SetDouble(settings["modulus"].GetDouble()*unit_direction[2])
+            modulus = settings["modulus"].GetDouble()
+            x_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[0])
+            y_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[1])
+            z_params.AddEmptyValue("value").SetDouble(modulus*unit_direction[2])
         elif(settings["modulus"].IsString()):
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
-            x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+settings["modulus"].GetString()+")")
-            y_params.AddEmptyValue("value").SetString("("+str(unit_direction[1])+")*("+settings["modulus"].GetString()+")")
-            z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+settings["modulus"].GetString()+")")
+            modulus = settings["modulus"].GetString()
+            x_params.AddEmptyValue("value").SetString("("+str(unit_direction[0])+")*("+modulus+")")
+            y_params.AddEmptyValue("value").SetString("("+str(unit_direction[1])+")*("+modulus+")")
+            z_params.AddEmptyValue("value").SetString("("+str(unit_direction[2])+")*("+modulus+")")
 
         # Construct a AssignValueProcess for each component
         import experimental_assign_value_process
