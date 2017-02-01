@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -26,6 +26,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "geometries/geometry.h"
 
 
 namespace Kratos
@@ -67,6 +68,7 @@ namespace Kratos
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraEdgeShell);
 
 	  using PointType = Node<3>;
+    using GeomertyType = Geometry<PointType>;
 
       ///@}
       ///@name Life Cycle
@@ -77,6 +79,11 @@ namespace Kratos
 
 	  /// This constructor assumes that the neibour elements of the node are cacluclated
 	  TetrahedraEdgeShell(PointType& EdgePoint1, PointType& EdgePoint2);
+
+    TetrahedraEdgeShell(TetrahedraEdgeShell&& rOther) noexcept
+		  :  mrPoint1(rOther.mrPoint1) , mrPoint2(rOther.mrPoint2), mShellPoints(rOther.mShellPoints)
+	  {
+	  }
 
       /// Destructor.
       virtual ~TetrahedraEdgeShell();
@@ -91,10 +98,18 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      void AddTetrahedron(GeomertyType& TheTetrahedron);
+
+      void AddShellPoints(PointType* pPoint1, PointType* pPoint2);
+
 
       ///@}
       ///@name Access
       ///@{
+
+      std::size_t GetNumberOfShellPoints() const{
+        return mShellPoints.size();
+      }
 
 
       ///@}
@@ -135,7 +150,7 @@ namespace Kratos
 		 PointType const& mrPoint1;
 		 PointType const& mrPoint2;
 
-		 std::vector<PointType*> mRingPoints;
+		 std::vector<std::pair<PointType*,PointType*> > mShellPoints;
 
 
       ///@}
