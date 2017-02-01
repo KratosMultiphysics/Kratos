@@ -140,6 +140,7 @@ void AddCustomUtilitiesToPython() {
         .def("MeasureBotHeigh", Aux_MeasureBotHeight)
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
+        .def("BreakBondUtility", &PreUtilities::BreakBondUtility)
         ;
          
     class_<PostUtilities, boost::noncopyable >
