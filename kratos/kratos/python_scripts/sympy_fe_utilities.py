@@ -92,7 +92,34 @@ def grad_sym_voigtform(DN, x):
     return simplify( B*xvec )
 
 def grad(DN,x):
-    return simplify(DN.transpose()*x)
+    error_msg = """
+                    The function grad(DN,x) was removed to avoid misunderstandings.
+                    You should use either DfjDxi(DN,f) or DfiDxj(DN,f).
+
+                    DfjDxi(DN,f): returns a matrix D such that D(i,j) = D(fj)/D(xi) - the standard one in fluid dynamics
+                    that is:
+                        D(f1)/D(x1) D(f2)/D(x1) D(f3)/D(x1)
+                        D(f1)/D(x2) D(f2)/D(x2) D(f3)/D(x2)
+                        D(f1)/D(x3) D(f2)/D(x3) D(f3)/D(x3)
+
+
+                    DfiDxj(DN,f): returns a matrix D such that D(i,j) = D(fi)/D(xj) - the standard one in structural mechanics
+                    that is:
+                        D(f1)/D(x1) D(f1)/D(x2) D(f1)/D(x3)
+                        D(f2)/D(x1) D(f2)/D(x2) D(f2)/D(x3)
+                        D(f3)/D(x1) D(f3)/D(x2) D(f3)/D(x3)
+
+                    Note that the two gradients are one the transpose of the other.
+    """
+    raise Exception (error_msg)
+
+#this returns a matrix D such that D(i,j) = D(fj)/D(xi)
+def DfjDxi(DN,f):
+    return simplify(DN.transpose()*f)
+
+#this returns a matrix D such that D(i,j) = D(fi)/D(xj)
+def DfiDxj(DN,f):
+    return (DfjDxi(DN,f)).transpose()
 
 def div(DN,x):
     if(DN.shape != x.shape):
