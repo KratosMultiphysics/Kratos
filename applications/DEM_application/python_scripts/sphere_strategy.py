@@ -126,7 +126,7 @@ class ExplicitStrategy:
 
         # RESOLUTION METHODS AND PARAMETERS
         self.n_step_search = int(Param.NeighbourSearchFrequency)
-        self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
+        self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step @53214
 
         # CREATOR-DESTRUCTOR
         self.creator_destructor = creator_destructor
@@ -244,7 +244,7 @@ class ExplicitStrategy:
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.do_search_neighbours) 
-                                                              #TODO: remove time_integration_scheme. no longer necessary
+                                                              #TODO: remove time_integration_scheme. no longer necessary and maybe safety_factor
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
@@ -393,7 +393,7 @@ class ExplicitStrategy:
         elif name == 'Symplectic_Euler':
             class_name = 'SymplecticEulerScheme'
         elif name == 'Taylor_Scheme':
-            class_name = 'TaylorScheme'
+            class_name = 'TaylorScheme'        
         elif name == 'Newmark_Beta_Method':
             class_name = 'NewmarkBetaScheme'
         elif name == 'Verlet_Velocity':
@@ -470,7 +470,7 @@ class ExplicitStrategy:
             scheme_name = properties[DEM_INTEGRATION_SCHEME_NAME]
         else:
             scheme_name = self.Parameters.IntegrationScheme
-
+            
         scheme, error_status, summary_mssg = self.GetScheme(scheme_name)
         scheme.SetIntegrationSchemeInProperties(properties)
         
