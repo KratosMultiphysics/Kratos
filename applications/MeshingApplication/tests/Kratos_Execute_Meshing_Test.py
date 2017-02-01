@@ -26,7 +26,12 @@ class Kratos_Execute_Test:
         # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddVariables()
-
+        
+        self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_GRADIENT) 
+        self.main_model_part.AddNodalSolutionStepVariable(AUXILIAR_HESSIAN) 
+        self.main_model_part.AddNodalSolutionStepVariable(ANISOTROPIC_RATIO) 
+        self.main_model_part.AddNodalSolutionStepVariable(MMG_METRIC) 
+        
         # Read model_part (note: the buffer_size is set here) (restart can be read here)
         self.solver.ImportModelPart()
 
