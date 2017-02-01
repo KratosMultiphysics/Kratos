@@ -123,10 +123,12 @@ public:
      */
     
     MmgUtility(
+        ModelPart& rThisModelPart,
         const std::string Filename = "output_remesh",
         const unsigned int echo_level = 3
         )
-        :mStdStringFilename(Filename),
+        :mThisModelPart(rThisModelPart),
+        mStdStringFilename(Filename),
         mEchoLevel(echo_level)
     {       
        mFilename = new char [Filename.length() + 1];
@@ -191,11 +193,11 @@ public:
     
     /**
      * Instead of using an files already created we read an existing model part
-     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
+     * @param save_to_file: To define if the resulting mesh is saved or not
+     * @param MaxNumberOfResults: Max number of nodes tested to check to interpolate old values
      */
     
     void RemeshModelPart(
-        ModelPart& rThisModelPart,
         const bool save_to_file = false,
         const unsigned int MaxNumberOfResults = 1000
         )
@@ -209,12 +211,12 @@ public:
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
             
-            KRATOS_WATCH(rThisModelPart);
+            KRATOS_WATCH(mThisModelPart);
         }
         
         // We initialize the mesh and solution data
-        InitializeMeshData(rThisModelPart);
-        InitializeSolData(rThisModelPart);
+        InitializeMeshData();
+        InitializeSolData();
         
         // Check if the number of given entities match with mesh size 
         CheckMeshData();
@@ -226,7 +228,7 @@ public:
         }
         
         // We execute the remeshing
-        ExecuteRemeshing(rThisModelPart, save_to_file, MaxNumberOfResults);
+        ExecuteRemeshing(save_to_file, MaxNumberOfResults);
         
         /* We print the resulting model part */
         if (mEchoLevel > 0)
@@ -238,7 +240,7 @@ public:
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
             
-            KRATOS_WATCH(rThisModelPart);
+            KRATOS_WATCH(mThisModelPart);
         }
     }
        
@@ -263,6 +265,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+    
+    // The model part to compute
+    ModelPart& mThisModelPart;                      
     
     // Storage for the dof of the node
     Node<3>::DofsContainerType  mDofs;
@@ -295,28 +300,27 @@ protected:
     
     /**
      * This function generates the mesh MMG5 structure from a Kratos Model Part
-     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
      */
     
-    void InitializeMeshData(ModelPart& rThisModelPart)
+    void InitializeMeshData()
     {
         // First we compute the colors
         std::map<int,int> node_colors, cond_colors, elem_colors;
-        ComputeColors(rThisModelPart, node_colors, cond_colors, elem_colors);
+        ComputeColors(node_colors, cond_colors, elem_colors);
         
         /////////* MESH FILE */////////
         // Build mesh in MMG5 format //
         
         // Iterate in the nodes
-        NodesArrayType& pNode = rThisModelPart.Nodes();
+        NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = rThisModelPart.Conditions();
+        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
         auto numConditions = pConditions.end() - pConditions.begin();
         
         // Iterate in the elements
-        ElementsArrayType& pElements = rThisModelPart.Elements();
+        ElementsArrayType& pElements = mThisModelPart.Elements();
         auto numElements = pElements.end() - pElements.begin();
         
         /* Manually set of the mesh */
@@ -493,15 +497,14 @@ protected:
     
     /**
      * We initialize the metrics of the MMG sol using a level set approach
-     * @param rThisModelPart: The original model part where we compute the metric
      */
     
-    void InitializeSolData(ModelPart& rThisModelPart)
+    void InitializeSolData()
     {
         ////////* SOLUTION FILE *////////
         
         // Iterate in the nodes
-        NodesArrayType& pNode = rThisModelPart.Nodes();
+        NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         SetSolSize(numNodes);
@@ -538,19 +541,18 @@ protected:
     
     /**
      * We execute the MMg library and build the new model part from the old model part
-     * @param rThisModelPart: The original model part, an auxiliary model part will be created an the input model part will be modified
+     * @param save_to_file: If the resulting mesh and solution are saved to a plain text file
      * @param MaxNumberOfResults: The maxim number of results to consider in the search
      */
     
     void ExecuteRemeshing(
-        ModelPart& rThisModelPart,
         const bool save_to_file = false,
         const unsigned int MaxNumberOfResults = 1000
         )
     {
         // We initialize some values
-        unsigned int step_data_size = rThisModelPart.GetNodalSolutionStepDataSize();
-        unsigned int buffer_size    = rThisModelPart.NodesBegin()->GetBufferSize();
+        unsigned int step_data_size = mThisModelPart.GetNodalSolutionStepDataSize();
+        unsigned int buffer_size    = mThisModelPart.NodesBegin()->GetBufferSize();
         
         if (mEchoLevel > 0)
         {        
@@ -608,31 +610,31 @@ protected:
         ModelPart rOldModelPart;
         
         // First we empty the model part
-        for (NodeConstantIterator node_iterator = rThisModelPart.NodesBegin(); node_iterator != rThisModelPart.NodesEnd(); node_iterator++)
+        for (NodeConstantIterator node_iterator = mThisModelPart.NodesBegin(); node_iterator != mThisModelPart.NodesEnd(); node_iterator++)
         {
             node_iterator->Set(TO_ERASE, true);
             rOldModelPart.AddNode(*(node_iterator.base()));
         }
-        rThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
+        mThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);  
         
-        for (ConditionConstantIterator condition_iterator = rThisModelPart.ConditionsBegin(); condition_iterator != rThisModelPart.ConditionsEnd(); condition_iterator++)
+        for (ConditionConstantIterator condition_iterator = mThisModelPart.ConditionsBegin(); condition_iterator != mThisModelPart.ConditionsEnd(); condition_iterator++)
         {
             condition_iterator->Set(TO_ERASE, true);
         }
-        rThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
+        mThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); 
         
-        for (ElementConstantIterator elem_iterator = rThisModelPart.ElementsBegin(); elem_iterator != rThisModelPart.ElementsEnd(); elem_iterator++)
+        for (ElementConstantIterator elem_iterator = mThisModelPart.ElementsBegin(); elem_iterator != mThisModelPart.ElementsEnd(); elem_iterator++)
         {
             elem_iterator->Set(TO_ERASE, true);
             rOldModelPart.AddElement(*(elem_iterator.base()));
         }
-        rThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
+        mThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
         
         // Create a new model part
         /* NODES */
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
-            NodeType::Pointer pNode = CreateNode(rThisModelPart, i_node);
+            NodeType::Pointer pNode = CreateNode(i_node);
             
             // Set the DOFs in the nodes 
             for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
@@ -650,10 +652,10 @@ protected:
             {
                 cond_id += 1;
                 
-                ConditionType::Pointer pCondition = CreateCondition0(rThisModelPart, cond_id, prop_id, isRequired);
+                ConditionType::Pointer pCondition = CreateCondition0(cond_id, prop_id, isRequired);
                 
                 pCondition->Initialize();
-                rThisModelPart.AddCondition(pCondition);
+                mThisModelPart.AddCondition(pCondition);
                                     
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
@@ -661,7 +663,7 @@ protected:
                     for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                     {
                         std::string SubModelPartName = ColorList[colors];
-                        ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                        ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
                         SubModelPart.AddCondition(pCondition);
                     }
                 }
@@ -677,10 +679,10 @@ protected:
                 {
                     cond_id += 1;
                     
-                    ConditionType::Pointer pCondition = CreateCondition1(rThisModelPart, cond_id, prop_id, isRequired);
+                    ConditionType::Pointer pCondition = CreateCondition1(cond_id, prop_id, isRequired);
                     
                     pCondition->Initialize();
-                    rThisModelPart.AddCondition(pCondition);
+                    mThisModelPart.AddCondition(pCondition);
                                         
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
@@ -688,7 +690,7 @@ protected:
                         for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                         {
                             std::string SubModelPartName = ColorList[colors];
-                            ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                            ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
                             SubModelPart.AddCondition(pCondition);
                         }
                     }
@@ -705,10 +707,10 @@ protected:
             {
                 elem_id += 1;
                 
-                ElementType::Pointer pElement = CreateElement0(rThisModelPart, elem_id, prop_id, isRequired);
+                ElementType::Pointer pElement = CreateElement0(elem_id, prop_id, isRequired);
                 
                 pElement->Initialize();
-                rThisModelPart.AddElement(pElement);
+                mThisModelPart.AddElement(pElement);
                 
                 if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                 {
@@ -716,7 +718,7 @@ protected:
                     for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                     {
                         std::string SubModelPartName = ColorList[colors];
-                        ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                        ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
                         SubModelPart.AddElement(pElement);
                     }
                 }
@@ -731,10 +733,10 @@ protected:
                 {
                     elem_id += 1;
                     
-                    ElementType::Pointer pElement = CreateElement1(rThisModelPart, elem_id, prop_id, isRequired);
+                    ElementType::Pointer pElement = CreateElement1(elem_id, prop_id, isRequired);
                     
                     pElement->Initialize();
-                    rThisModelPart.AddElement(pElement);
+                    mThisModelPart.AddElement(pElement);
                     
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
                     {
@@ -742,7 +744,7 @@ protected:
                         for (unsigned int colors = 0; colors < ColorList.size(); colors++)
                         {
                             std::string SubModelPartName = ColorList[colors];
-                            ModelPart& SubModelPart = rThisModelPart.GetSubModelPart(SubModelPartName);
+                            ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
                             SubModelPart.AddElement(pElement);
                         }
                     }
@@ -751,12 +753,12 @@ protected:
         }
         
         //  Get the list of submodelparts names
-        const std::vector<std::string> SubModelPartNames = rThisModelPart.GetSubModelPartNames();
+        const std::vector<std::string> SubModelPartNames = mThisModelPart.GetSubModelPartNames();
        
         // Add the nodes to the differents submodelparts
-        for (unsigned int i_model_part = 0; i_model_part < rThisModelPart.NumberOfSubModelParts(); i_model_part++)
+        for (unsigned int i_model_part = 0; i_model_part < mThisModelPart.NumberOfSubModelParts(); i_model_part++)
         {
-            ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(SubModelPartNames[i_model_part]);
+            ModelPart& rSubModelPart = mThisModelPart.GetSubModelPart(SubModelPartNames[i_model_part]);
            
             std::set<int> aux_set;
            
@@ -796,7 +798,7 @@ protected:
         FreeMemory();
         
         /* We interpolate all the values */
-        InterpolateValues(rThisModelPart, rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
+        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
     
     /**
@@ -808,19 +810,14 @@ protected:
     
     /**
      * It creates the new node
-     * @param rThisModelPart: The model part
      * @param i_node: The index of the new noode
      * @return pNode: The pointer to the new node created
      */
     
-    NodeType::Pointer CreateNode(
-        ModelPart& rThisModelPart,
-        unsigned int i_node
-        );
+    NodeType::Pointer CreateNode(unsigned int i_node);
     
     /**
      * It creates the new condition
-     * @param rThisModelPart: The model part
      * @param cond_id: The id of the condition
      * @param prop_id: The submodelpart id
      * @param isRequired: MMG value (I don't know that it does)
@@ -828,14 +825,12 @@ protected:
      */
     
     ConditionType::Pointer CreateCondition0(
-        ModelPart& rThisModelPart,
         const unsigned int cond_id,
         int& prop_id, 
         int& isRequired
         );
     
     ConditionType::Pointer CreateCondition1(
-        ModelPart& rThisModelPart,
         const unsigned int cond_id,
         int& prop_id, 
         int& isRequired
@@ -843,7 +838,6 @@ protected:
     
     /**
      * It creates the new element
-     * @param rThisModelPart: The model part
      * @param cond_id: The id of the element
      * @param prop_id: The submodelpart id
      * @param isRequired: MMG value (I don't know that it does)
@@ -851,14 +845,12 @@ protected:
      */
     
     ElementType::Pointer CreateElement0(
-        ModelPart& rThisModelPart,
         const unsigned int elem_id,
         int& prop_id, 
         int& isRequired
         );
     
     ElementType::Pointer CreateElement1(
-        ModelPart& rThisModelPart,
         const unsigned int elem_id,
         int& prop_id, 
         int& isRequired
@@ -866,7 +858,6 @@ protected:
     
     /**
      * It interpolates the values in the new model part using the old model part
-     * @param rThisModelPart: The new model part
      * @param rOldModelPart: The old model part
      * @param MaxNumberOfResults: The maxim number of results to consider in the search
      * @param step_data_size: The size of the database
@@ -874,7 +865,6 @@ protected:
      */
     
     void InterpolateValues(
-        ModelPart& rThisModelPart,
         ModelPart& rOldModelPart,
         const unsigned int MaxNumberOfResults,
         unsigned int step_data_size,
@@ -886,7 +876,7 @@ protected:
         PointLocator.UpdateSearchDatabase();
         
         // Iterate in the nodes
-        NodesArrayType& pNode = rThisModelPart.Nodes();
+        NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
         /* Nodes */
@@ -1070,22 +1060,23 @@ protected:
     
     /**
      * This functions gets the "colors", parts of a model part to process
-     * @param rThisModelPart: The model part to get the colors
+     * @param node_colors: Map where the submodelparts and nodes are stored
+     * @param cond_colors: Map where the submodelparts and conditions are stored
+     * @param elem_colors: Map where the submodelparts and elements are stored
      */
     
     void ComputeColors(
-        ModelPart& rThisModelPart,
         std::map<int,int>& node_colors,
         std::map<int,int>& cond_colors,
         std::map<int,int>& elem_colors
         )
     {        
         // Initialize and create the auxiliar maps
-        const std::vector<std::string> SubModelPartNames = rThisModelPart.GetSubModelPartNames();
+        const std::vector<std::string> SubModelPartNames = mThisModelPart.GetSubModelPartNames();
         std::map<int,std::set<int>> aux_node_colors, aux_cond_colors, aux_elem_colors;
         
         std::vector<std::string> ModelPartNames;
-        ModelPartNames.push_back(rThisModelPart.Name());
+        ModelPartNames.push_back(mThisModelPart.Name());
         for (unsigned int i_sub = 0; i_sub < SubModelPartNames.size(); i_sub++)
         {
             ModelPartNames.push_back(SubModelPartNames[i_sub]);
@@ -1099,7 +1090,7 @@ protected:
             
             if (color > 0)
             {
-                ModelPart& rSubModelPart = rThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
+                ModelPart& rSubModelPart = mThisModelPart.GetSubModelPart(ModelPartNames[i_sub]);
                 
                 // Iterate in the nodes
                 NodesArrayType& pNode = rSubModelPart.Nodes();
@@ -1316,12 +1307,9 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<2>::CreateNode(        
-        ModelPart& rThisModelPart,
-        unsigned int i_node
-        )
+    NodeType::Pointer MmgUtility<2>::CreateNode(unsigned int i_node)
     {
-        NodeType::Pointer pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
         
         return pNode;
     }
@@ -1330,12 +1318,9 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<3>::CreateNode(        
-        ModelPart& rThisModelPart,
-        unsigned int i_node
-        )
+    NodeType::Pointer MmgUtility<3>::CreateNode(unsigned int i_node)
     {
-        NodeType::Pointer pNode = rThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
         
         return pNode;
     }
@@ -1345,7 +1330,6 @@ protected:
     
     template<>  
     ConditionType::Pointer MmgUtility<2>::CreateCondition0(        
-        ModelPart& rThisModelPart,
         const unsigned int cond_id,
         int& prop_id, 
         int& isRequired
@@ -1361,8 +1345,8 @@ protected:
         }
         
         std::vector<NodeType::Pointer> ConditionNodes (2);
-        ConditionNodes[0] = rThisModelPart.pGetNode(edge0);
-        ConditionNodes[1] = rThisModelPart.pGetNode(edge1);    
+        ConditionNodes[0] = mThisModelPart.pGetNode(edge0);
+        ConditionNodes[1] = mThisModelPart.pGetNode(edge1);    
         
         ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
         
@@ -1374,7 +1358,6 @@ protected:
     
     template<>  
     ConditionType::Pointer MmgUtility<3>::CreateCondition0(
-        ModelPart& rThisModelPart,
         const unsigned int cond_id,
         int& prop_id, 
         int& isRequired
@@ -1390,9 +1373,9 @@ protected:
         }
         
         std::vector<NodeType::Pointer> ConditionNodes (3);
-        ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
-        ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
-        ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
+        ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
+        ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
+        ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
         
         ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
         
@@ -1404,7 +1387,6 @@ protected:
     
     template<>  
     ConditionType::Pointer MmgUtility<3>::CreateCondition1(
-        ModelPart& rThisModelPart,
         const unsigned int cond_id,
         int& prop_id, 
         int& isRequired
@@ -1420,10 +1402,10 @@ protected:
         }
         
         std::vector<NodeType::Pointer> ConditionNodes (4);
-        ConditionNodes[0] = rThisModelPart.pGetNode(vertex0);
-        ConditionNodes[1] = rThisModelPart.pGetNode(vertex1);
-        ConditionNodes[2] = rThisModelPart.pGetNode(vertex2);
-        ConditionNodes[3] = rThisModelPart.pGetNode(vertex3);
+        ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
+        ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
+        ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
+        ConditionNodes[3] = mThisModelPart.pGetNode(vertex3);
         
         ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
         
@@ -1435,7 +1417,6 @@ protected:
     
     template<>  
     ElementType::Pointer MmgUtility<2>::CreateElement0(        
-        ModelPart& rThisModelPart,
         const unsigned int elem_id,
         int& prop_id, 
         int& isRequired
@@ -1451,9 +1432,9 @@ protected:
         }
 
         std::vector<NodeType::Pointer> ElementNodes (3);
-        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
+        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
         
         ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
         
@@ -1465,7 +1446,6 @@ protected:
     
     template<>  
     ElementType::Pointer MmgUtility<3>::CreateElement0(
-        ModelPart& rThisModelPart,
         const unsigned int elem_id,
         int& prop_id, 
         int& isRequired
@@ -1481,10 +1461,10 @@ protected:
         }
         
         std::vector<NodeType::Pointer> ElementNodes (4);
-        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
-        ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
+        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
+        ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
         
         ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
         
@@ -1496,7 +1476,6 @@ protected:
     
     template<>  
     ElementType::Pointer MmgUtility<3>::CreateElement1(
-        ModelPart& rThisModelPart,
         const unsigned int elem_id,
         int& prop_id, 
         int& isRequired
@@ -1512,12 +1491,12 @@ protected:
         }
         
         std::vector<NodeType::Pointer> ElementNodes (6);
-        ElementNodes[0] = rThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = rThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = rThisModelPart.pGetNode(vertex2);
-        ElementNodes[3] = rThisModelPart.pGetNode(vertex3);
-        ElementNodes[4] = rThisModelPart.pGetNode(vertex4);
-        ElementNodes[5] = rThisModelPart.pGetNode(vertex5);
+        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
+        ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
+        ElementNodes[4] = mThisModelPart.pGetNode(vertex4);
+        ElementNodes[5] = mThisModelPart.pGetNode(vertex5);
         
         ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
         
