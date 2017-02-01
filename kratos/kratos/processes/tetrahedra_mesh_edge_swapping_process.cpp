@@ -49,7 +49,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 					i_edge = edges.emplace(std::make_pair(Edge(&(element_geometry[i]), &(element_geometry[j])), TetrahedraEdgeShell(element_geometry[i],element_geometry[j]))).first;
 
 				// std::cout << "Before: edge " << i_edge->first.GetPoint1()->Id() << " -> " << i_edge->first.GetPoint2()->Id() << " has " << i_edge->second.GetNumberOfShellPoints() << " points" << std::endl;
-				i_edge->second.AddTetrahedron(element_geometry);
+				i_edge->second.AddTetrahedron(&element_geometry);
 				// std::cout << "After : edge " << i_edge->first.GetPoint1()->Id() << " -> " << i_edge->first.GetPoint2()->Id() << " has " << i_edge->second.GetNumberOfShellPoints() << " points" << std::endl;
 			}
 	}
@@ -58,7 +58,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 		i = 0;
 
 	for(auto& edge : edges){
-		auto size = edge.second.GetNumberOfShellPoints();
+		auto size = edge.second.GetNumberOfTetrahedra();
 		if(size < 100)
 			edge_counter[size]++;
 		// if(size == 0)
@@ -66,7 +66,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	}
 	for(std::size_t i = 0 ; i < edge_counter.size() ; i++)
 		if(edge_counter[i] > 0)
-			std::cout << edge_counter[i] << " edges with " << i << " points" << std::endl;
+			std::cout << edge_counter[i] << " edges with " << i << " tetrahedra" << std::endl;
 	KRATOS_WATCH(edges.size());
 }
 
