@@ -2,18 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//          
 //
-	           
+//
+
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "modeler/tetrahedra_edge_shell.h"
@@ -35,6 +35,28 @@ namespace Kratos
 
 	}
 
+	void TetrahedraEdgeShell::AddTetrahedron(GeomertyType& TheTetrahedron){
+		constexpr int number_of_tetrahedron_points = 4;
+		constexpr int tetrahedra_connectivity[number_of_tetrahedron_points][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
+		for(int i = 0 ; i < number_of_tetrahedron_points ; i++){
+			if(&(TheTetrahedron[i]) == &mrPoint1){
+				auto face = tetrahedra_connectivity[i];
+				if (&(TheTetrahedron[face[0]]) == &mrPoint2){
+					AddShellPoints(&(TheTetrahedron[face[1]]), &(TheTetrahedron[face[2]]));
+				} else if (&(TheTetrahedron[face[1]]) == &mrPoint2){
+					AddShellPoints(&(TheTetrahedron[face[2]]), &(TheTetrahedron[face[0]]));
+				} else {
+					AddShellPoints(&(TheTetrahedron[face[0]]), &(TheTetrahedron[face[1]]));
+				}
+				break;
+			}
+		}
+	}
+
+	void TetrahedraEdgeShell::AddShellPoints(PointType* pPoint1, PointType* pPoint2){
+		mShellPoints.push_back(std::make_pair(pPoint1, pPoint2));
+	}
+
 	std::string TetrahedraEdgeShell::Info() const {
 		return "TetrahedraEdgeShell";
 	}
@@ -51,5 +73,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-
