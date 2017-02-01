@@ -36,23 +36,24 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "FractionalStep",
+        "solver_type"                  : "Embedded",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "mmg_test/2D_cavity_test"
         },
+        "maximum_iterations"           : 10,
+        "oss_switch"                   : 0,
         "echo_level"                   : 0,
-        "compute_reactions"            : false,
         "consider_periodic_conditions" : false,
-        "reform_dofs_at_each_step"     : false,
         "time_order"                   : 2,
+        "dynamic_tau"                  : 0.01,
+        "compute_reactions"            : false,
         "divergence_clearance_steps"   : 0,
-        "dynamic_tau"                  : 0.001,
-        "predictor_corrector"          : false,
-        "maximum_velocity_iterations"  : 4,
-        "maximum_pressure_iterations"  : 4,
-        "velocity_tolerance"           : 0.001,
-        "pressure_tolerance"           : 0.001,
+        "reform_dofs_at_each_step"     : false,
+        "relative_velocity_tolerance"  : 0.001,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 0.001,
+        "absolute_pressure_tolerance"  : 1e-5,
         "volume_model_part_name"       : "Parts_Parts_Auto1",
         "skin_parts"                   : ["Inlet2D_Inlet_velocity_Auto1","NoSlip2D_No_Slip_Auto1"],
         "no_skin_parts"                : []
