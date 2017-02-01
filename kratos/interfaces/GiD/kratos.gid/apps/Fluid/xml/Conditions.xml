@@ -63,7 +63,7 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Line" ProcessName="AssignScalarProcess" help="Fixes the pressure"  units="Pa" unit_magnitude="P">
+	ElementType="Line" ProcessName="AssignValueProcess" help="Fixes the pressure"  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
@@ -71,7 +71,7 @@
 	</DegreesOfFreedom>
     <inputs>
     </inputs>
-		<DefaultValues>
+	<DefaultValues>
 			<value n="constrained" v="1" state="hidden" />
     </DefaultValues>
     <outputs>
@@ -96,17 +96,17 @@
   <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Surface" ProcessName="AssignScalarProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
+	ElementType="Surface" ProcessName="AssignValueProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-		<DefaultValues>
-			<value n="constrained" v="1" state="hidden" />
-    </DefaultValues>
     <inputs>
     </inputs>
+	<DefaultValues>
+			<value n="constrained" v="1" state="hidden" />
+    </DefaultValues>
     <outputs>
     </outputs>
   </ConditionItem>
