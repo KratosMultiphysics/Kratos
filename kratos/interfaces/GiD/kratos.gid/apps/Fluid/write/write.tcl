@@ -120,7 +120,7 @@ proc Fluid::write::writeBoundaryConditions { } {
 }
 
 proc Fluid::write::writeDrags { } {
-
+    write::writeNodalConditions "FLDrags"
 }
 
 proc Fluid::write::writeMeshes { } {
