@@ -357,6 +357,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
         model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
+        model_part.AddNodalSolutionStepVariable(NEIGHBOUR_RATIO)
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(self.DEM_parameters.RotationOption)):
@@ -762,7 +763,7 @@ class Procedures(object):
         if hasattr(self.DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
             self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, int, "")
         self.CheckVariableType(DEM_parameters.VirtualMassCoefficient, float, "")
-        self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")
+        self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")   #@53214
         self.CheckVariableType(DEM_parameters.MaxTimeStep, float, "")
         self.CheckVariableType(DEM_parameters.FinalTime, float, "")
         self.CheckVariableType(DEM_parameters.ControlTime, float, "")
@@ -1137,6 +1138,12 @@ class Report(object):
         return report
 
 
+class PreUtils(object):
+
+    def __init__(self):
+        pass
+
+
 class MaterialTest(object):
 
     def __init__(self):
@@ -1152,6 +1159,9 @@ class MaterialTest(object):
         if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
+
+                #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
+                #self.PreUtils.BreakBondUtility(spheres_model_part)
 
     def PrepareDataForGraph(self):
         if (self.TestType != "None"):
@@ -1169,10 +1179,13 @@ class MaterialTest(object):
         if (self.TestType != "None"):
             self.script.FinalizeGraphs()
 
-
     def PrintChart(self):
         if (self.TestType != "None"):
             self.script.PrintChart()
+
+    def GenerateGraphics(self):
+        if (self.TestType != "None"):
+            self.script.GenerateGraphics()
 
 
 class MultifileList(object):
@@ -1239,6 +1252,7 @@ class DEMIo(object):
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
         self.PostNeighbourSize            = getattr(self.DEM_parameters, "PostNeighbourSize", 0)
+        self.PostBrokenRatio              = getattr(self.DEM_parameters, "PostBrokenRatio", 0)
 
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
@@ -1348,6 +1362,10 @@ class DEMIo(object):
             if (Var_Translator(self.DEM_parameters.PostNeighbourSize)):
                 self.PushPrintVar(self.PostNeighbourSize,       NEIGHBOUR_SIZE,              self.spheres_variables)
 
+        if (hasattr(self.DEM_parameters, "PostBrokenRatio")):
+            if (Var_Translator(self.DEM_parameters.PostBrokenRatio)):
+                self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
+
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
@@ -1443,7 +1461,7 @@ class DEMIo(object):
                 if mfilelist.step == 1:                
                     shutil.copyfile(os.path.join(post_path,mfilelist.file.name), os.path.join(post_path,"..",mfilelist.name+".post.lst"))
                 
-            mfilelist.index += 1            
+            mfilelist.index += 1
             
             
     def GetMultiFileListName(self, name):
