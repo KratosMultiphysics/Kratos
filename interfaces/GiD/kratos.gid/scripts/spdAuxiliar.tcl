@@ -677,11 +677,13 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             } else {
                 set etype "point,line,surface"
             }
-            
         }
         set units [$cnd getAttribute "units"]
         set um [$cnd getAttribute "unit_magnitude"]
-        set process [::Model::GetProcess [$cnd getProcessName]]
+        set processName [$cnd getProcessName]
+
+        set process [::Model::GetProcess $processName]
+        if {$process eq ""} {error [= "Condition %s can't find its process: %s" $n $processName]}
         set check [$process getAttribute "check"]
         if {$check eq ""} {set check "UpdateTree"}
         set state "ConditionState"
@@ -696,8 +698,13 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             set pn [$in getPublicName]
             set type [$in getType]
             set v [$in getDv]
+            set cnd_v [$cnd getDefault $inName v]
+            if {$cnd_v ne ""} {set v $cnd_v}
             set help [$in getHelp]
             set state [$in getAttribute "state"]
+            set cnd_state [$cnd getDefault $inName state]
+            if {$cnd_state ne ""} {set state $cnd_state}
+
             if {$state eq ""} {set state "normal"}
             foreach key [$cnd getDefaults $inName] {
                 set $key [$cnd getDefault $inName $key]
@@ -709,13 +716,17 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                 set vector_type [$in getAttribute "vectorType"]
                 lassign [split $v ","] v1 v2 v3
                 if {$vector_type eq "bool"} {
+                    set zstate "\[CheckDimension 3D\]"
+                    if {$state eq "hidden"} {set zstate hidden}
                     append node "
-                        <value n='${inName}X' wn='[concat $n "_X"]' pn='X ${pn}' v='$v1' values='1,0' help=''/>
-                        <value n='${inName}Y' wn='[concat $n "_Y"]' pn='Y ${pn}' v='$v2' values='1,0' help=''/>
-                        <value n='${inName}Z' wn='[concat $n "_Z"]' pn='Z ${pn}' v='$v3' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
+                        <value n='${inName}X' wn='[concat $n "_X"]' pn='X ${pn}' v='$v1' values='1,0' help='' state='$state'/>
+                        <value n='${inName}Y' wn='[concat $n "_Y"]' pn='Y ${pn}' v='$v2' values='1,0' help='' state='$state'/>
+                        <value n='${inName}Z' wn='[concat $n "_Z"]' pn='Z ${pn}' v='$v3' values='1,0' help='' state='$zstate'/>"
                 } {
                     foreach i [list "X" "Y" "Z"] {
+                        set fname "function_$inName"
                         set nodev "../value\[@n='${inName}$i'\]"
+                        set nodef "../value\[@n='$i$fname'\]"
                         set zstate ""
                         if {$i eq "Z"} { set zstate "state='\[CheckDimension 3D\]'"}
                         if {[$in getAttribute "enabled"] in [list "1" "0"]} {
