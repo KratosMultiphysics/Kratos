@@ -18,7 +18,7 @@
 // Project includes
 #include "modeler/tetrahedra_edge_shell.h"
 #include "includes/element.h"
-
+ 
 namespace Kratos
 {
 	TetrahedraEdgeShell::TetrahedraEdgeShell(PointType& EdgePoint1, PointType& EdgePoint2)
@@ -35,22 +35,23 @@ namespace Kratos
 
 	}
 
-	void TetrahedraEdgeShell::AddTetrahedron(GeomertyType& TheTetrahedron){
-		constexpr int number_of_tetrahedron_points = 4;
-		constexpr int tetrahedra_connectivity[number_of_tetrahedron_points][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
-		for(int i = 0 ; i < number_of_tetrahedron_points ; i++){
-			if(&(TheTetrahedron[i]) == &mrPoint1){
-				auto face = tetrahedra_connectivity[i];
-				if (&(TheTetrahedron[face[0]]) == &mrPoint2){
-					AddShellPoints(&(TheTetrahedron[face[1]]), &(TheTetrahedron[face[2]]));
-				} else if (&(TheTetrahedron[face[1]]) == &mrPoint2){
-					AddShellPoints(&(TheTetrahedron[face[2]]), &(TheTetrahedron[face[0]]));
-				} else {
-					AddShellPoints(&(TheTetrahedron[face[0]]), &(TheTetrahedron[face[1]]));
-				}
-				break;
-			}
-		}
+	void TetrahedraEdgeShell::AddTetrahedron(GeomertyType* pTheTetrahedron){
+		mTetrahedra.push_back(pTheTetrahedron);
+		//constexpr int number_of_tetrahedron_points = 4;
+		//constexpr int tetrahedra_connectivity[number_of_tetrahedron_points][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
+		//for(int i = 0 ; i < number_of_tetrahedron_points ; i++){
+		//	if(&(TheTetrahedron[i]) == &mrPoint1){
+		//		auto face = tetrahedra_connectivity[i];
+		//		if (&(TheTetrahedron[face[0]]) == &mrPoint2){
+		//			AddShellPoints(&(TheTetrahedron[face[1]]), &(TheTetrahedron[face[2]]));
+		//		} else if (&(TheTetrahedron[face[1]]) == &mrPoint2){
+		//			AddShellPoints(&(TheTetrahedron[face[2]]), &(TheTetrahedron[face[0]]));
+		//		} else {
+		//			AddShellPoints(&(TheTetrahedron[face[0]]), &(TheTetrahedron[face[1]]));
+		//		}
+		//		break;
+		//	}
+		//}
 	}
 
 	void TetrahedraEdgeShell::AddShellPoints(PointType* pPoint1, PointType* pPoint2){

@@ -81,7 +81,7 @@ namespace Kratos
 	  TetrahedraEdgeShell(PointType& EdgePoint1, PointType& EdgePoint2);
 
     TetrahedraEdgeShell(TetrahedraEdgeShell&& rOther) noexcept
-		  :  mrPoint1(rOther.mrPoint1) , mrPoint2(rOther.mrPoint2), mShellPoints(rOther.mShellPoints)
+		  :  mrPoint1(rOther.mrPoint1) , mrPoint2(rOther.mrPoint2), mShellPoints(rOther.mShellPoints), mTetrahedra(rOther.mTetrahedra)
 	  {
 	  }
 
@@ -98,7 +98,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void AddTetrahedron(GeomertyType& TheTetrahedron);
+      void AddTetrahedron(GeomertyType* TheTetrahedron);
 
       void AddShellPoints(PointType* pPoint1, PointType* pPoint2);
 
@@ -107,9 +107,13 @@ namespace Kratos
       ///@name Access
       ///@{
 
-      std::size_t GetNumberOfShellPoints() const{
-        return mShellPoints.size();
-      }
+	  std::size_t GetNumberOfShellPoints() const {
+		  return mShellPoints.size();
+	  }
+
+	  std::size_t GetNumberOfTetrahedra() const {
+		  return mTetrahedra.size();
+	  }
 
 
       ///@}
@@ -151,6 +155,7 @@ namespace Kratos
 		 PointType const& mrPoint2;
 
 		 std::vector<std::pair<PointType*,PointType*> > mShellPoints;
+		 std::vector<GeomertyType*> mTetrahedra;
 
 
       ///@}
