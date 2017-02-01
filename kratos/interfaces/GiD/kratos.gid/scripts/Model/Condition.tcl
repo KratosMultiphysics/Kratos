@@ -55,7 +55,11 @@ oo::class create Condition {
     }
     method getDefault {itemName itemField } {
         variable defaults
-        return [dict get $defaults $itemName $itemField]
+        set ret ""
+        catch {
+            set ret [dict get $defaults $itemName $itemField]
+        }
+        return $ret
     }
     method getDefaults {itemName} {
         variable defaults

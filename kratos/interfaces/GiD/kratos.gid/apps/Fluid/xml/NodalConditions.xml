@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
-  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" VariableName="VELOCITY" Interval="False"
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="AssignVectorProcess" VariableName="VELOCITY" Interval="False"
 					  unit_magnitude="Velocity" units="m/s" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
     <DefaultValues>
-	  <value n="factor" pn="Modulus" v="1.0" />
-	  <value n="direction" v="0.0,0.0,0.0" />
+			<value n="constrained" v="0,0,0" state="hidden" />
     </DefaultValues>
   </NodalConditionItem>
   <NodalConditionItem n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE" Interval="False"
