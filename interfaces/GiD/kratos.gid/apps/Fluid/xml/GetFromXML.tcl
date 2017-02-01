@@ -27,6 +27,13 @@ proc Fluid::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
+    set root [customlib::GetBaseRoot]
+    if {[$root selectNodes "[spdAux::getRoute Results]/condition\[@n='Drag'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute Results] include [list n Drag active 1 path {apps/Fluid/xml/Drag.spd}]
+    }
+    
+    customlib::ProcessIncludes $::Kratos::kratos_private(Path)
+    spdAux::parseRoutes
 }
 
 Fluid::xml::Init
