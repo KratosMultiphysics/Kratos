@@ -27,7 +27,6 @@ class MmgProcess(KratosMultiphysics.Process):
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
-            "adaptative_loop"                  : 1,
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : "DISPLACEMENT",
                 "interpolation_error"              : 0.04,
@@ -132,7 +131,6 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
-        self.adaptative_loop = self.params["adaptative_loop"].GetInt() 
         self.echo_level = self.params["echo_level"].GetInt() 
         
     def ExecuteInitialize(self): 
@@ -294,20 +292,18 @@ class MmgProcess(KratosMultiphysics.Process):
         # Recalculate NODAL_H
         self.find_nodal_h.Execute()
 
-        print("STARTING ADAPTATIVE LOOP")
-        for n in range(self.adaptative_loop):
-            print("ADAPTATIVE INTERATION: ", n + 1)
-            self._InitializeMetric()
-            print("\tCalculating the metrics")
-            # Execute metric computation
-            for metric_process in self.MetricsProcess:
-                metric_process.Execute()
-            
-            print("\tRemeshing")
-            self.MmgUtility.RemeshModelPart(self.save_external_files, self.max_number_of_searchs)
-            
-            if (self.strategy == "LevelSet"):
-                self.local_gradient.Execute() # Recalculate gradient after remeshing
+        self._InitializeMetric()
+        
+        print("Calculating the metrics")
+        # Execute metric computation
+        for metric_process in self.MetricsProcess:
+            metric_process.Execute()
+        
+        print("Remeshing")
+        self.MmgUtility.RemeshModelPart(self.save_external_files, self.max_number_of_searchs)
+        
+        if (self.strategy == "LevelSet"):
+            self.local_gradient.Execute() # Recalculate gradient after remeshing
             
     def _InitializeMetric(self):
         # Initialize metric

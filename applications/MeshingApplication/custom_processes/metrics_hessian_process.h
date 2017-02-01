@@ -335,6 +335,7 @@ private:
                 eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
                 eigen_min = MathUtils<double>::Min(eigen_max, eigen_values_matrix(i, i));
             }
+            
             const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - ratio);
             const double rel_eigen_radius = std::abs(eigen_max - eigen_radius);
             
@@ -343,20 +344,19 @@ private:
                 eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), rel_eigen_radius);
             }
         }
-//         // TODO: Technically for isotropic we should consider the maximum of the eigenvalues
-//         else
-//         {
-//             double eigen_max = eigen_values_matrix(0, 0);
-//             for (unsigned int i = 1; i < TDim - 1; i++)
-//             {
-//                 eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-//             }
-//             for (unsigned int i = 0; i < TDim; i++)
-//             {
-//                 eigen_values_matrix(i, i) = eigen_max;
-//             }
-//             eigen_vector_matrix = IdentityMatrix(TDim, TDim);
-//         }
+        else // NOTE: For isotropic we should consider the maximum of the eigenvalues
+        {
+            double eigen_max = eigen_values_matrix(0, 0);
+            for (unsigned int i = 1; i < TDim - 1; i++)
+            {
+                eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
+            }
+            for (unsigned int i = 0; i < TDim; i++)
+            {
+                eigen_values_matrix(i, i) = eigen_max;
+            }
+            eigen_vector_matrix = IdentityMatrix(TDim, TDim);
+        }
             
         // We compute the product
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> metric_matrix =  prod(trans(eigen_vector_matrix), prod<temp_type>(eigen_values_matrix, eigen_vector_matrix));
