@@ -10,10 +10,10 @@ import continuum_sphere_strategy as SolverStrategy
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
-   
-    def __init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
-        BaseExplicitStrategy.__init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures):
+
+        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, Param, procedures)
 
         # SIMULATION FLAGS  
 
