@@ -150,7 +150,7 @@ namespace Kratos {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
             double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, cont_ini_neigh_area); //This call fills the vector of areas only if the Constitutive Law wants.
-            total_equiv_area += area;
+            total_equiv_area += area;           
 
         }
         if (print_debug_files) {
@@ -161,7 +161,7 @@ namespace Kratos {
         if (cont_ini_neighbours_size >= 6) { 
             if (!IsSkin()) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
-                if (print_debug_files) {
+                if (print_debug_files) {                                       
                     std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
                     outputfile << alpha << "\n";
                     outputfile.close();
@@ -238,7 +238,7 @@ namespace Kratos {
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        Vector& cont_ini_neigh_area              = this->GetValue(NEIGHBOURS_CONTACT_AREAS);
+        Vector& cont_ini_neigh_area            = this->GetValue(NEIGHBOURS_CONTACT_AREAS);
         int NeighbourSize = mNeighbourElements.size();
         GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
 
@@ -414,14 +414,40 @@ namespace Kratos {
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
-            
+
             /*if (i < mContinuumInitialNeighborsSize) {
                 DEM_COPY_SECOND_TO_FIRST_3(mArrayOfDeltaDisplacements[i], DeltDisp);
             }*/
         } // for each neighbor
+
+        ComputeBrokenBondsRatio();
                        
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
+
+
+    void SphericContinuumParticle::ComputeBrokenBondsRatio(){
+        int BrokenBondsCounter = 0.0;
+
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+
+            if (mNeighbourElements[i] == NULL) continue;
+            //if (this->Is(NEW_ENTITY) && mNeighbourElements[i]->Is(NEW_ENTITY)) continue;
+
+            //SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            //unsigned int neighbour_id = neighbour_iterator->Id();
+            if ((i < mContinuumInitialNeighborsSize) && mIniNeighbourFailureId[i] > 0) {
+            //if ((i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_id && mIniNeighbourFailureId[i] > 0) {
+            BrokenBondsCounter += 1;
+            }
+
+//        int NeighbourSize = mNeighbourElements.size();
+//        GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
+        double NeighbourRatio = 0.0;
+        NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
+        GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
+        }
+    }
 
     void SphericContinuumParticle::FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
                                                                      double RelVel[3], //IN GLOBAL AXES

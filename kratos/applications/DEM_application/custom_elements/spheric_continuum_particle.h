@@ -129,6 +129,7 @@ namespace Kratos
                                                    const double dt,
                                                    const bool multi_stage_RHS) final;
 
+        virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,
                                                     const double contact_area);
