@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<condition n="Drag" pn="Drag" ov="[CheckGeometry 2]" icon="drag">
+    <value n="write_drag_output_file" pn="Write drag output file" v="1" values="0,1"/>
+    <value n="print_drag_to_screen" pn="Print drag to screen"  v="1" values="0,1"/>
+    <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help=""/>
+</condition>
+    
