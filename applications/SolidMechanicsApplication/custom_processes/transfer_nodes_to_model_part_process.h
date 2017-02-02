@@ -45,13 +45,25 @@ public:
     TransferNodesToModelPartProcess(ModelPart& rHostModelPart,
 				    ModelPart& rGuestModelPart,
 				    const std::vector<Flags>& rTransferNodeFlags
-				    ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mrTransferNodeFlags(rTransferNodeFlags)
+				    ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mrTransferNodeFlags(rTransferNodeFlags), mrAssignNodeFlags(std::vector<Flags>() )
+    {
+        KRATOS_TRY
+	  
+	  
+        KRATOS_CATCH("");
+    }
+
+
+    TransferNodesToModelPartProcess(ModelPart& rHostModelPart,
+				    ModelPart& rGuestModelPart,
+				    const std::vector<Flags>& rTransferNodeFlags,
+				    const std::vector<Flags>& rAssignNodeFlags
+				    ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mrTransferNodeFlags(rTransferNodeFlags), mrAssignNodeFlags(rAssignNodeFlags)
     {
         KRATOS_TRY
 			 	
         KRATOS_CATCH("");
     }
-
 
 
     /// Destructor.
@@ -93,8 +105,10 @@ public:
 
 		if( this->MatchTransferFlags(*(it.base())) ){
 		  //mrHostModelPart.AddNode(*(it.base()));
+		  this->AssignFlags(*(it.base()));
 		  mrHostModelPart.Nodes().push_back(*(it.base()));
 		  //std::cout<<" Node Inserted "<<it->Id()<<std::endl;
+		  
 		}
             }
         }
@@ -224,7 +238,8 @@ private:
     ModelPart& mrGuestModelPart;
 
     const std::vector<Flags> mrTransferNodeFlags;
-
+    const std::vector<Flags> mrAssignNodeFlags;
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -239,6 +254,14 @@ private:
 	}
 
       return true;
+	  
+    }
+
+    void AssignFlags(const Node<3>::Pointer& pNode)
+    {
+
+      for(unsigned int i = 0; i<mrAssignNodeFlags.size(); i++)
+	pNode->Set(mrAssignNodeFlags[i]);
 	  
     }
     
