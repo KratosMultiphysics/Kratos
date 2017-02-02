@@ -23,7 +23,7 @@ do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "FullNR"            # Linearisation type. Options: "Picard", "FullNR"
 divide_by_rho = True                # Divide by density in mass conservation equation
-artificial_compressibility = False   # Consider an artificial compressibility
+artificial_compressibility = True   # Consider an artificial compressibility
 mode = "c"                          # Output mode to a c++ file
 
 if (dim_to_compute == "2D"):
@@ -87,14 +87,14 @@ for dim in dim_vector:
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
     v_gauss = v.transpose()*N
+
     if (linearisation == "Picard"):
         vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity
         vconv_gauss = vconv.transpose()*N
     elif (linearisation == "FullNR"):
         vmesh = DefineMatrix('vmesh',nnodes,dim)    # Mesh velocity
-        # vmesh_gauss = vmesh.transpose()*N
-        # vconv_gauss = v_gauss - vmesh_gauss
-        vconv_gauss = (v.transpose() - vmesh.transpose())*N
+        vconv_gauss = (v - vmesh).transpose()*N
+
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
 
     p_gauss = p.transpose()*N
@@ -103,17 +103,17 @@ for dim in dim_vector:
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
 
-    ## Gradients computation -> NOTE: grad(DN,x) gives back the transpose gradient!!
-    grad_v = grad(DN,v)
-    grad_w = grad(DN,w)
-    grad_q = grad(DN,q)
-    grad_p = grad(DN,p)
+    ## Gradients computation (fluid dynamics gradient)
+    grad_v = DfjDxi(DN,v)
+    grad_w = DfjDxi(DN,w)
+    grad_q = DfjDxi(DN,q)
+    grad_p = DfjDxi(DN,p)
 
     div_v = div(DN,v)
     div_w = div(DN,w)
 
     grad_sym_v = grad_sym_voigtform(DN,v)       # Symmetric gradient of v in Voigt notation
-    grad_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
+    grad_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation -> TODO: CHECK THE *2 IN THE CROSS TERM
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
     # Convective term definition
@@ -122,22 +122,24 @@ for dim in dim_vector:
     ## Compute galerkin functional
     # Navier-Stokes functional
     if (divide_by_rho == True):
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*convective_term*w_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
     else:
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*convective_term*w_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
     # Navier-Stokes functional artificial compressibility terms addition
     if (artificial_compressibility == True):
         if (divide_by_rho == True):
-            rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(rho*c*c))*q_gauss*pder_gauss - q_gauss*div_v
+            # rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(rho*c*c))*q_gauss*pder_gauss - q_gauss*div_v
+            rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
         else:
-            rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(c*c))*q_gauss*pder_gauss - rho*q_gauss*div_v
+            # rv_galerkin += -(1/(c*c))*pder_gauss*w_gauss.transpose()*v_gauss - rho*div_w*div_v - (1/(c*c))*q_gauss*pder_gauss - rho*q_gauss*div_v
+            rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
 
     ##  Stabilization functional terms
     # Momentum conservation residual
     vel_residual = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p
     # Momentum conservation artificial compressibility residual
-    if (artificial_compressibility == True):
-        vel_residual -= ((1/(c*c))*pder_gauss*v_gauss.transpose()).transpose()
+    # if (artificial_compressibility == True):
+        # vel_residual -= ((1/(c*c))*pder_gauss*v_gauss.transpose()).transpose()
 
     # Mass conservation residual
     if (divide_by_rho == True):
@@ -156,10 +158,11 @@ for dim in dim_vector:
         rv_stab = tau1*grad_q.transpose()*vel_residual
     else:
         rv_stab = tau1*rho*grad_q.transpose()*vel_residual
-    rv_stab += tau1*rho*(grad_w.transpose()*vconv_gauss).transpose()*vel_residual
+    # rv_stab += tau1*rho*(grad_w.transpose()*vconv_gauss).transpose()*vel_residual
+    rv_stab += tau1*rho*(vconv_gauss.transpose()*grad_w)*vel_residual
     rv_stab += tau2*div_w*mas_residual
-    if (artificial_compressibility == True):
-        rv_stab -= tau1*(1/(c*c))*pder_gauss*w_gauss.transpose()*vel_residual
+    # if (artificial_compressibility == True):
+    #     rv_stab -= tau1*(1/(c*c))*pder_gauss*w_gauss.transpose()*vel_residual
 
     ## Add the stabilization terms to the original residual terms
     rv = rv_galerkin + rv_stab
@@ -203,8 +206,8 @@ for dim in dim_vector:
 
     ## Compute velocity subscale Gauss point value
     v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
-    if (artificial_compressibility == True):
-        v_s_gauss -= (tau1/(c*c))*(pder_gauss*v_gauss.transpose()).transpose()
+    # if (artificial_compressibility == True):
+    #     v_s_gauss -= (tau1/(c*c))*(pder_gauss*v_gauss.transpose()).transpose()
 
     v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
 
