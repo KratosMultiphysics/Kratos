@@ -45,17 +45,7 @@ proc EndGIDPostProcess {} {
  
 # Load GiD project files (initialise XML Tdom structure)
 proc LoadGIDProject { filespd } {
-    gid_groups_conds::close_all_windows
-    if { ![file exists $filespd] } { return }
-    set versionPT [gid_groups_conds::give_data_version]
-    gid_groups_conds::open_spd_file $filespd
-    set versionData [gid_groups_conds::give_data_version]
-    if { [package vcompare $versionPT $versionData] == 1 } {
-        after idle Kratos::upgrade_problemtype
-    }
-    #spdAux::reactiveApp
-    update
-    spdAux::LoadModelFiles
+    Kratos::LoadGiDProject $filespd
 }
 
 # Save GiD project files (save XML Tdom structure to spd file)
@@ -144,7 +134,7 @@ proc Kratos::InitGIDProject { dir } {
     }
     
     set kratos_private(UseWizard) 0
-     
+    set spdAux::ProjectIsNew 0
     Kratos::load_gid_groups_conds
     #customlib::UpdateDocument
     Kratos::LoadEnvironment
@@ -170,6 +160,27 @@ proc Kratos::InitGIDProject { dir } {
     
     after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
+}
+
+proc Kratos::LoadGiDProject { filespd } {
+    variable kratos_private
+    set filedir [file dirname $filespd]
+    if {[file nativename $kratos_private(Path)] eq [file nativename $filedir]} {
+        set spdAux::ProjectIsNew 0
+    } else {
+        set spdAux::ProjectIsNew 1
+    }
+    gid_groups_conds::close_all_windows
+    if { ![file exists $filespd] } { return }
+    set versionPT [gid_groups_conds::give_data_version]
+    gid_groups_conds::open_spd_file $filespd
+    set versionData [gid_groups_conds::give_data_version]
+    if { [package vcompare $versionPT $versionData] == 1 } {
+        after idle Kratos::upgrade_problemtype
+    }
+    #spdAux::reactiveApp
+    update
+    spdAux::LoadModelFiles
 }
 
 proc Kratos::RestoreVariables { } {
@@ -373,21 +384,4 @@ proc Kratos::PrintArray {a {pattern *}} {
         set nameString [format %s(%s) $a $name]
         W "[format "%-*s = %s" $maxl $nameString $array($name)]"
     }
-}
-
-proc Kratos::Stacktrace { } {
-    set stack "Stack trace:\n"
-    for {set i 1} {$i < [info level]} {incr i} {
-        set lvl [info level -$i]
-        set pname [lindex $lvl 0]
-        append stack [string repeat " " $i]$pname
-        foreach value [lrange $lvl 1 end] arg [info args $pname] {
-            if {$value eq ""} {
-                info default $pname $arg value
-            }
-            append stack " $arg='$value'"
-        }
-        append stack \n
-    }
-    return $stack
 }
