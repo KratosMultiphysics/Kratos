@@ -58,7 +58,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-template< int TDim > // TODO: Consider the number of nodes, this way will be possible to compute for any geometry, not just triangles and tetrahedra
+template< int TDim, class TVarType > 
 class ComputeNodalGradientProcess
     : public Process
 {
@@ -75,7 +75,7 @@ public:
 
     /// Default constructor.
     ComputeNodalGradientProcess(ModelPart& model_part
-        , Variable<double>& r_origin_variable
+        , TVarType& r_origin_variable
         , Variable<array_1d<double,3> >& r_gradient_variable
         , Variable<double>& r_area_variable)
         : mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
@@ -267,7 +267,7 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    Variable<double>& mr_origin_variable;
+    TVarType& mr_origin_variable;
     Variable<array_1d<double,3> >& mr_gradient_variable;
     Variable<double>& mr_area_variable;
 
