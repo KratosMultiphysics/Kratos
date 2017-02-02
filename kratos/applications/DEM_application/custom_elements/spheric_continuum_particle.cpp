@@ -426,7 +426,8 @@ namespace Kratos {
     } //  ComputeBallToBallContactForce
 
 
-    void SphericContinuumParticle::ComputeBrokenBondsRatio(){
+    void SphericContinuumParticle::ComputeBrokenBondsRatio() {
+        
         int BrokenBondsCounter = 0.0;
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -438,14 +439,16 @@ namespace Kratos {
             //unsigned int neighbour_id = neighbour_iterator->Id();
             if ((i < mContinuumInitialNeighborsSize) && mIniNeighbourFailureId[i] > 0) {
             //if ((i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_id && mIniNeighbourFailureId[i] > 0) {
-            BrokenBondsCounter += 1;
+                ++BrokenBondsCounter;
             }
 
-//        int NeighbourSize = mNeighbourElements.size();
-//        GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
-        double NeighbourRatio = 0.0;
-        NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
-        GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
+            //int NeighbourSize = mNeighbourElements.size();
+            //GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
+            double NeighbourRatio = 0.0;
+        
+            if (mContinuumInitialNeighborsSize) NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
+        
+            GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
         }
     }
 
