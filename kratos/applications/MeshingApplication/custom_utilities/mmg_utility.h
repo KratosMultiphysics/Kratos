@@ -176,11 +176,11 @@ public:
         /* We print the original model part */
         if (mEchoLevel > 0)
         {
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
             
             KRATOS_WATCH(mThisModelPart);
@@ -205,11 +205,11 @@ public:
         /* We print the resulting model part */
         if (mEchoLevel > 0)
         {
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
             
             KRATOS_WATCH(mThisModelPart);
@@ -327,13 +327,13 @@ protected:
                 }
                 else
                 {
-                    std::cout << "WARNING: YOUR GEOMETRY CONTAINS HEXAEDRON THAT CAN NOT BE REMESHED" << std::endl;
+                   std::cout << "WARNING: YOUR GEOMETRY CONTAINS HEXAEDRON THAT CAN NOT BE REMESHED" << std::endl;
                 }
             }
             
             if (((numArrayElements[0] + numArrayElements[1]) < numElements) && mEchoLevel > 0)
             {
-                std::cout << "Number of Elements: " << numElements << " Number of Tetrahedron: " << numArrayElements[0] << " Number of Prisms: " << numArrayElements[1] << std::endl;
+               std::cout << "Number of Elements: " << numElements << " Number of Tetrahedron: " << numArrayElements[0] << " Number of Prisms: " << numArrayElements[1] << std::endl;
             }
             
             /* Conditions */
@@ -528,13 +528,13 @@ protected:
         
         if (mEchoLevel > 0)
         {        
-            std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size <<     std::endl; 
+           std::cout << "Step data size: " << step_data_size << " Buffer size: " << buffer_size <<     std::endl; 
         }
         
         ////////* MMG LIBRARY CALL *////////
         if (mEchoLevel > 0)
         {
-            std::cout << "////////* MMG LIBRARY CALL *////////" << std::endl; 
+           std::cout << "////////* MMG LIBRARY CALL *////////" << std::endl; 
         }
         MMGLibCall();
         
@@ -562,18 +562,18 @@ protected:
         
         if (mEchoLevel > 0)
         {
-            std::cout << "     Nodes created: " << nNodes << std::endl;
+           std::cout << "     Nodes created: " << nNodes << std::endl;
             if (TDim == 2) // 2D
             {
-                std::cout << "Conditions created: " << nConditions[0] << std::endl;
-                std::cout << "Elements created: " << nElements[0] << std::endl;
+               std::cout << "Conditions created: " << nConditions[0] << std::endl;
+               std::cout << "Elements created: " << nElements[0] << std::endl;
             }
             else // 3D
             {
-                std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
-                std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1]<< std::endl;
-                std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
-                std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
+               std::cout << "Conditions created: " << nConditions[0] + nConditions[1] << std::endl;
+               std::cout << "\tTriangles: " << nConditions[0] << "\tQuadrilaterals: " << nConditions[1]<< std::endl;
+               std::cout << "Elements created: " << nElements[0] + nElements[1] << std::endl;
+               std::cout << "\tTetrahedron: " << nElements[0] << "\tPrisms: " << nElements[1] << std::endl;
             }
         }
         
@@ -866,8 +866,8 @@ protected:
             {
                 if (mEchoLevel > 0)
                 {
-                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
-                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                   std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
+                   std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
                 }
             }
             else
@@ -974,6 +974,191 @@ protected:
        }
        else if (mEchoLevel == 3)
        {
+           verbosityMMG = 5;
+       }
+       else if (mEchoLevel == 4)
+       {
+           std::cout << "       `@@@@'  .@@@@+     :@`    @'  `@@@@@  :@@@@@+     @@@@@@@@ @,    @:  @@@@@@      `@@    @@,  @@@@@@   @@@@@   @     @       '@    `@:        "<< std::endl;
+           std::cout << "       `@   @' .@   @'    @;@    @'  @,   ,  :@             @:    @,    @:  @`          `@@    @@,  @       @+   `   @     @       '@    @;@        "<< std::endl;
+           std::cout << "       `@   '@ .@   +@    @ @    @'  @       :@             @:    @,    @:  @`          `@+;  ,#@,  @       @        @     @       '@    @ @        "<< std::endl;
+           std::cout << "       `@   #@ .@   @@   ## @;   @'  @:      :@             @:    @,    @:  @`          `@ @  @ @,  @       @#       @     @       '@   ;@ ##       "<< std::endl;
+           std::cout << "       `@``:@, .@::#@    @  `@   @'  .@@@#   :@@@@@.        @:    @@@@@@@:  @@@@@@      `@ @  @ @,  @@@@@@   @@@@`   @@@@@@@       '@   @`  @       "<< std::endl;
+           std::cout << "       `@###.  .@'+@#   `@   @   @'     ,@@  :@             @:    @,    @:  @`          `@ :#+' @,  @          .#@`  @     @  ;;;. '@   @   @.      "<< std::endl;
+           std::cout << "       `@      .@   @:  @@@@@@#  @'       @, :@             @:    @,    @:  @`          `@  @@  @,  @            @@  @     @  ''', '@  #@@@@@@      "<< std::endl;
+           std::cout << "       `@      .@   `@  @     @  @'       @, :@             @:    @,    @:  @`          `@  ##  @,  @            @@  @     @       '@  @     @      "<< std::endl;
+           std::cout << "       `@      .@    @;;@     @, @'  @,``#@  :@,,,,,        @:    @,    @:  @:,,,,      `@      @,  @,,,,,  @:``;@`  @     @       '@ .@     @'     "<< std::endl;
+           std::cout << "       `#      .#    `##,     ;# #;  ,###+   ,######        #,    #,    #,  ######      `#      #.  ######  .####    #     #       ;# #'     ,#     "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                      ,.                                                                            "<< std::endl;
+           std::cout << "                                                                     ;;;,                                                                           "<< std::endl;
+           std::cout << "                                                                     ;;;:                                                                           "<< std::endl;
+           std::cout << "                                                                      ::                                                                            "<< std::endl;
+           std::cout << "                                                                     ;  ;                                                                           "<< std::endl;
+           std::cout << "                                                                         .                                                                          "<< std::endl;
+           std::cout << "                                                                    ;                                                                               "<< std::endl;
+           std::cout << "                                                                   `      :                                                                         "<< std::endl;
+           std::cout << "                                                                   .       :                                                                        "<< std::endl;
+           std::cout << "                                                                  :                                                                                 "<< std::endl;
+           std::cout << "                                                                            .                                                                       "<< std::endl;
+           std::cout << "                                                                 ;           ;                                                                      "<< std::endl;
+           std::cout << "                                                                              `                                                                     "<< std::endl;
+           std::cout << "                                                                :             `                                                                     "<< std::endl;
+           std::cout << "                                                               .               ;                                                                    "<< std::endl;
+           std::cout << "                                                              :;;               ;;`                                                                 "<< std::endl;
+           std::cout << "                                                              ;;;,..,,,,,,,,,,,;;;;                                                                 "<< std::endl;
+           std::cout << "                                                              :;;              .;;,                                                                 "<< std::endl;
+           std::cout << "                                                             ; :`              '`;.                                                                 "<< std::endl;
+           std::cout << "                                                            `    '            ;  '                                                                  "<< std::endl;
+           std::cout << "                                                            :     `          .   . ;                                                                "<< std::endl;
+           std::cout << "                                                           ,      ,         `       .                                                               "<< std::endl;
+           std::cout << "                                                           .  :    ;        .                                                                       "<< std::endl;
+           std::cout << "                                                          ;   ;            :      :  ;                                                              "<< std::endl;
+           std::cout << "                                                              .     ;     ;       '   .                                                             "<< std::endl;
+           std::cout << "                                                         ;           ,   ;        :   `                                                             "<< std::endl;
+           std::cout << "                                                        `            ` `:              ;                                                            "<< std::endl;
+           std::cout << "                                                        :    .       `;;,               .                                                           "<< std::endl;
+           std::cout << "                                                      ;;`    ;       ;;;;          .    :;;                                                         "<< std::endl;
+           std::cout << "                                                     :;;;    ,      ,.;;.,,`       '    ;;;`                                                        "<< std::endl;
+           std::cout << "                                                     .;;:        `:         ,,     ;   `;;;                                                         "<< std::endl;
+           std::cout << "             `;+                                      `.  ,`;, .,       ';     :.  :: ;  .,                                      ##:                "<< std::endl;
+           std::cout << "             `@@@                                    '`    ;;;.        '''        ;;;;     ,                                    @@@;                "<< std::endl;
+           std::cout << "              @@@@                                  . :    ;;;`       .''';       :;;:     `                                   +@@@                 "<< std::endl;
+           std::cout << "              #@@@                                  : '    ::.        '':''        ,,:    ` ;                                  @@@@                 "<< std::endl;
+           std::cout << "               @@@:                                ;  '   :          `'` ''           .   :                                    @@@.                 "<< std::endl;
+           std::cout << "               @@@+                                `  ;  ,           ''  ,':           `  ;  :                                .@@@                  "<< std::endl;
+           std::cout << "               #@@+                               '   , .            ''   ''           `  '   .                               .@@@                  "<< std::endl;
+           std::cout << "               ,@@:                              `     `             ''   ''            . ;   `                                @@#                  "<< std::endl;
+           std::cout << "               #@@                               ;   ;:`             ';   ''             :;:   :                               @@@                  "<< std::endl;
+           std::cout << "              ,@@@                              ,   ;;;,             ';   ''             ;;;,                                  @@@#                 "<< std::endl;
+           std::cout << " ;           '@@@@                              .   ;;;,             ';  `':             ;;;:   :                              @@@@@`          ',   "<< std::endl;
+           std::cout << "+@@'`      :@@@@@@'                           `' `;` ,,,             ''  :'`             :,, ,,  `                            :@@@@@@#.     .+@@@   "<< std::endl;
+           std::cout << "+@@@@@@#@@@@@@@@@@@.                         ;;;;       .            ''  ''             :      .:;;;`                        `@@@@@@@@@@@@@@@@@@@   "<< std::endl;
+           std::cout << " #@@@@@@@@@@@@@@@@@@.                      ;@;;;`        `           ,' `''            ,        .;;;@@`                     .@@@@@@@@@@@@@@@@@@#    "<< std::endl;
+           std::cout << "  ,@@@@@@@@; @@@@@@@@+`                  :@@@;;; .:;,.   `.:`         ''''          `:.    .,;:. ;;;@@@#                  `@@@@@@@@@;`+@@@@@@@,     "<< std::endl;
+           std::cout << "    `..`    '@@@@ :@@@@+.              `@@@@@;`,      `,;,;;;         ''''          ;;;,;,`       `:@@@@@:              ,+@@@@: @@@@@               "<< std::endl;
+           std::cout << "            @@@@@   +@@@@@@',.      `:@@@@@@.   '        `;;;.        `''          .;;;         :  ` +@@@@@+,`   `.,;+@@@@@@'   @@@@@`              "<< std::endl;
+           std::cout << "           #@@@@@     '@@@@@@@@@@@@@@@@@@#, :    .        ,:`  ,.      '.       .,` ,:.        ;    :  '#@@@@@@@@@@@@@@@@@;     :@@@@@`             "<< std::endl;
+           std::cout << "     ++:;#@@@;@@,        :+@@@@@@@@@#',          .        :       ,,    ``   .,`   ,          `     `     `:+#@@@@@@@#'.         @@`@@@@+;#@        "<< std::endl;
+           std::cout << "    `@@@@@@@; @@              ```          :      '       '          ,,:;;.,`     ,   :       ,      ,                           @@ `@@@@@@@'       "<< std::endl;
+           std::cout << "    ,@@@@@#` .@@                                   ,      `            ;;;:      :    '      ;       `                           '@+  '@@@@@+       "<< std::endl;
+           std::cout << "     :'':    @@,                          ;        `                 `;,;;      :     `     .         ,                           @@:   `::,        "<< std::endl;
+           std::cout << "            @@@                                     ;    :         .:          ;            .         `                           @@@.              "<< std::endl;
+           std::cout << "           '@@#                          ;           :   '       ,,      :    ;        :   '           ,                          ,@@@              "<< std::endl;
+           std::cout << "           '@@                                           `     ,,        '   ;         '  .            `                           '@@              "<< std::endl;
+           std::cout << "            ;                           ;             :      ;.          ;  ;          `  `             ,                           .               "<< std::endl;
+           std::cout << "                                      ,:               :;.`;`            :.;           ,;;              ,:.                                         "<< std::endl;
+           std::cout << "                                     .;;;``````````````;;;```           :;;:          `;;;```````       ;;;                                         "<< std::endl;
+           std::cout << "                                     .;;;              ;;;        ```...:;;;..````     ;;;              ;;;                                         "<< std::endl;
+           std::cout << "                                      ::               ;,.               ;;            ;:,              ,:;                                         "<< std::endl;
+           std::cout << "                                        ;                ;              . .            . ,              ; `                                         "<< std::endl;
+           std::cout << "                                     :  `             '   `             :  `          :   ,                :                                        "<< std::endl;
+           std::cout << "                                    `    :                ;            ,   '          .   .            '                                            "<< std::endl;
+           std::cout << "                                    ,    .           '                 ,   .         :     :                :                                       "<< std::endl;
+           std::cout << "                                   `      ,                '          ,              .     .          '                                             "<< std::endl;
+           std::cout << "                                   ,      :         ;                 .     '       ,       ;                ;                                      "<< std::endl;
+           std::cout << "                                  .        .       `        '        :      .       ,       `        ;                                              "<< std::endl;
+           std::cout << "                                  .        ;       ;                 .             ,         ;       `        ;                                     "<< std::endl;
+           std::cout << "                                 .          `     `          '      ;        '     ,         `      :                                               "<< std::endl;
+           std::cout << "                                 .          ;     :                 `        .    ,           ;     .          ;                                    "<< std::endl;
+           std::cout << "                                ,                .            '    ;              ,                ,                                                "<< std::endl;
+           std::cout << "                                `            '   :                 `          '  .             '   ,            :                                   "<< std::endl;
+           std::cout << "                               ,                ,              '  ;           .  :                .                                                 "<< std::endl;
+           std::cout << "                              ``              '.,                               .               '.:              :`                                 "<< std::endl;
+           std::cout << "                            `;;:              ;;;              .;;`           ,;;               ;;;              ;;;                                "<< std::endl;
+           std::cout << "                            :;;;:::,,,,,,,,,,,;;;,:::::::::;:;:;;;;:::::::::::;;;::::;:;::::::::;;;,,::::::::::::;;;                                "<< std::endl;
+           std::cout << "                             ;;.              ;;,              .;;.           :;;               ;;:              :;;                                "<< std::endl;
+           std::cout << "                               ;                ;              .``            ```               . ,              ; `                                "<< std::endl;
+           std::cout << "                            ,  `             '   .             ,  '           ;  '             ;   :            .   :                               "<< std::endl;
+           std::cout << "                           .    '           .    .            :              `    `                `            :                                   "<< std::endl;
+           std::cout << "                           `     `          ,     ;           `    '         ;    :           ;     '          :     :                              "<< std::endl;
+           std::cout << "                          ;      ;         :                 '              `      ,         .       `         `      `                             "<< std::endl;
+           std::cout << "                                  ,        `       '        `       '       ;      .         ,       :        ;       .                             "<< std::endl;
+           std::cout << "                         :        .       '         .       :              `        ;       ;         ,                :                            "<< std::endl;
+           std::cout << "                        .          ;     `          ,      :         '     ;                          .      ;                                      "<< std::endl;
+           std::cout << "                        .          `     :           ;     `                         ;     '           ;    `           ;                           "<< std::endl;
+           std::cout << "                       :            '   ,            `    '           '   '           .   .                 :            `                          "<< std::endl;
+           std::cout << "                                     `  `             '                               .   ,             ;  :             ,                          "<< std::endl;
+           std::cout << "                    `,:              ;,;               .`;             '`'             ;`;               ,,`              ,,                        "<< std::endl;
+           std::cout << "                    ;;;              ;;;               ;;:             ;;;             ;;;              `;;;              ;;;                       "<< std::endl;
+           std::cout << "                    ;;;..............;;;..........,,,::;;;:::::::::::::;;;:::::::::::::;;;::::,,,.......,;;;.............,;;;                       "<< std::endl;
+           std::cout << "                    :;;              ,;;               ;;,             :;;             ;;;               ;;`              ;;,                       "<< std::endl;
+           std::cout << "                    ,                ;  :              . ;             ' '             . '              '  ;             ,  ;                       "<< std::endl;
+           std::cout << "                   `   :                `             :   ,                           ;                .   `             `                          "<< std::endl;
+           std::cout << "                   ,    ;           '    :            .   .           '   '               '            `    :           ;    ;                      "<< std::endl;
+           std::cout << "                  `      `                ;          :     '                         :                ;     .          :                            "<< std::endl;
+           std::cout << "                  ,      ,         '       `         .      `        '     '        :      '         :       :         `      ;                     "<< std::endl;
+           std::cout << "                 `        '                .        ,       :              `        `                        .        :                             "<< std::endl;
+           std::cout << "                 ,         .      '         '       .        ;      '       ;      '        '       ,         :      ;         ;                    "<< std::endl;
+           std::cout << "                `          .                 ,     ,                        `     .                ;          .     `                               "<< std::endl;
+           std::cout << "                ,           '    '           `     ,          ;    '         ;    .          '    .            :    ,           ;                   "<< std::endl;
+           std::cout << "               `             ,                :   ,            ,             .   ;                `            .   ;                                "<< std::endl;
+           std::cout << "               ,             `  '              ;  ,            `  '           :               '  ;              : .              ;                  "<< std::endl;
+           std::cout << "             ;;,              ;;:              ,::              ;;.           ;:;             .::               ;;;              :;:                "<< std::endl;
+           std::cout << "            .;;;::::::::::::::;;;:::::::,,,,,..;;;;.............;;;.....``````;;;`````````````;;;,....,,,,,:::::;;;::::::::::::::;;;                "<< std::endl;
+           std::cout << "             ;;;              ;;;              ,;;:             ;;;           ;;;             ;;;               ;;;              ;;;                "<< std::endl;
+           std::cout << "             ``                `                +'              `,            `,`             :'+                `                .                 "<< std::endl;
+           std::cout << "                                                @@                                            ,@@                                                   "<< std::endl;
+           std::cout << "                                                @@                                            `@@                                                   "<< std::endl;
+           std::cout << "                                               .@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               :@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               '@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               #@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               @@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               @@@                                             @@                                                   "<< std::endl;
+           std::cout << "                                               @@#                                             @@                                                   "<< std::endl;
+           std::cout << "                                               @@+                                             @@`                                                  "<< std::endl;
+           std::cout << "                                               @@+                                             @@,                                                  "<< std::endl;
+           std::cout << "                                               @@'                                             @@'                                                  "<< std::endl;
+           std::cout << "                                               @@;                                             @@#                                                  "<< std::endl;
+           std::cout << "                                               @@:                                             @@@                                                  "<< std::endl;
+           std::cout << "                                               @@:                                             @@@                                                  "<< std::endl;
+           std::cout << "                                              `@@,                                             @@@                                                  "<< std::endl;
+           std::cout << "                                              `@@,                                             @@@                                                  "<< std::endl;
+           std::cout << "                                              .@@,                                             @@@                                                  "<< std::endl;
+           std::cout << "                                              `@@,                                             @@@                                                  "<< std::endl;
+           std::cout << "                                               @@,                                             @@@                                                  "<< std::endl;
+           std::cout << "                                               @@:                                             @@@                                                  "<< std::endl;
+           std::cout << "                                               @@:                                             @@@                                                  "<< std::endl;
+           std::cout << "                                               @@'                                             @@#                                                  "<< std::endl;
+           std::cout << "                                               @@#                                             @@'                                                  "<< std::endl;
+           std::cout << "                                               @@@                                             @@:                                                  "<< std::endl;
+           std::cout << "                                               @@@                                            `@@`                                                  "<< std::endl;
+           std::cout << "                                               @@@                                            #@@                                                   "<< std::endl;
+           std::cout << "                                               :@@@                                           @@@                                                   "<< std::endl;
+           std::cout << "                                                @@@,                                         '@@@                                                   "<< std::endl;
+           std::cout << "                                                 @@@                                        `@@@                                                    "<< std::endl;
+           std::cout << "                                                 `@@@                                       @@@                                                     "<< std::endl;
+           std::cout << "                                                  '@@@                                     @@@'                                                     "<< std::endl;
+           std::cout << "                                                   #@@@                                   @@@#                                                      "<< std::endl;
+           std::cout << "                                                    #@@@:                                @@@@                                                       "<< std::endl;
+           std::cout << "                                                     #@@@@`                            +@@@@                                                        "<< std::endl;
+           std::cout << "                                                      '@@@@@                         :@@@@#                                                         "<< std::endl;
+           std::cout << "                                                       ,@@@@@#                     ,@@@@@'                                                          "<< std::endl;
+           std::cout << "                                                         @@@@@@#                 ,@@@@@@.                                                           "<< std::endl;
+           std::cout << "                                                          `@@@@@@#             ,@@@@@@+                                                             "<< std::endl;
+           std::cout << "                                                             +@@@@            #@@@@@:                                                               "<< std::endl;
+           std::cout << "                                                              @@@@            @@@@'                                                                 "<< std::endl;
+           std::cout << "                                                              @@@@            +@@@                                                                  "<< std::endl;
+           std::cout << "                                                              @@@@            .@@@                                                                  "<< std::endl;
+           std::cout << "                                                              @@@;             @@@                                                                  "<< std::endl;
+           std::cout << "                                                              @@@              @@@                                                                  "<< std::endl;
+           std::cout << "                                                              @@@              @@@                                                                  "<< std::endl;
+           std::cout << "                                                              @@@              ,@@.                                                                 "<< std::endl;
+           std::cout << "                                                              @@+               @@,                                                                 "<< std::endl;
+           std::cout << "                                                              @@.               @@:                                                                 "<< std::endl;
+           std::cout << "                                                              @@                @@:                                                                 "<< std::endl;
+           std::cout << "                                                              @@                @@:                                                                 "<< std::endl;
+           std::cout << "                                                              @@                '@:                                                                 "<< std::endl;
+           std::cout << "                                                              @@                `@,                                                                 "<< std::endl;
+           std::cout << "                                                              @,                 @.                                                                 "<< std::endl;
+           std::cout << "                                                              @                  @                                                                  "<< std::endl;
+           std::cout << "                                                                                 .                                                                  "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
+           std::cout << "                                                                                                                                                    "<< std::endl;
            verbosityMMG = 5;
        }
        else
@@ -1778,7 +1963,7 @@ protected:
         // b) function calling 
         if ( MMG2D_saveMesh(mmgMesh,MeshFile) != 1) 
         {
-            std::cout << "UNABLE TO SAVE MESH" << std::endl;
+           std::cout << "UNABLE TO SAVE MESH" << std::endl;
         }
     }
     
@@ -1807,7 +1992,7 @@ protected:
         // b) function calling 
         if ( MMG3D_saveMesh(mmgMesh,MeshFile) != 1) 
         {
-            std::cout << "UNABLE TO SAVE MESH" << std::endl;
+           std::cout << "UNABLE TO SAVE MESH" << std::endl;
         }
     }
     
@@ -1836,7 +2021,7 @@ protected:
         // b) Function calling 
         if ( MMG2D_saveSol(mmgMesh, mmgSol, SolFile) != 1) 
         {
-            std::cout << "UNABLE TO SAVE SOL" << std::endl;
+           std::cout << "UNABLE TO SAVE SOL" << std::endl;
         }
     }
     
@@ -1865,7 +2050,7 @@ protected:
         // b) Function calling 
         if ( MMG3D_saveSol(mmgMesh,mmgSol, SolFile) != 1) 
         {
-            std::cout << "UNABLE TO SAVE SOL" << std::endl;
+           std::cout << "UNABLE TO SAVE SOL" << std::endl;
         }
     }
     
