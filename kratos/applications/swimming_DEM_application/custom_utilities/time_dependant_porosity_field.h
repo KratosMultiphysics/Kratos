@@ -188,20 +188,19 @@ public:
 
 TimeDependantForceField(const double max_time): mAlpha(max_time){}
 
-
 virtual ~TimeDependantForceField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-double Evaluate(const double time, const array_1d<double, 3>& coor, const int i_thread = 0)
+void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0) override
 {
     array_1d<double, 3> porosity_grad;
-    return mAlpha.Evaluate(time, coor);
+    const double porosity = mAlpha.Evaluate(time, coor);
 
-//    mAlpha.CalculateGradient(time, coor, porosity_grad);
-//    vector[0] = 0.0;
-//    vector[1] = - porosity * porosity_grad[1];
-//    vector[2] = 0.0;
+    mAlpha.CalculateGradient(time, coor, porosity_grad);
+    vector[0] = 0.0;
+    vector[1] = - porosity * porosity_grad[1];
+    vector[2] = 0.0;
 }
 
 //***************************************************************************************************************
