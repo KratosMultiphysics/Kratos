@@ -751,7 +751,8 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                                 append node "\" att1='state' v1='hidden'/>"
                                 append node "<dependencies value='Yes' node=\""
                                 append node $nodeb
-                                append node "\" att1='state' v1='normal' att2='v' v2='No'/>"
+                                #append node "\" att1='state' v1='normal' att2='v' v2='No'/>"
+                                append node "\" att1='state' v1='normal'/>"
                             }
                             append node "</value>"
                         }
