@@ -12,6 +12,7 @@ from SmallTests import EmbeddedArtificialCompressibilityTest as TEmbeddedArtific
 from SmallTests import EmbeddedCouetteTest as TEmbeddedCouetteTest
 from SmallTests import EmbeddedCouetteImposedTest as TEmbeddedCouetteImposedTest
 from SmallTests import EmbeddedReservoirTest as TEmbeddedReservoirTest
+from SmallTests import ManufacturedSolutionTest as TManufacturedSolutionTest
 
 ## NIGTHLY TESTS
 #~ from NightlyTests import MokBenchmarkTest as TMokBenchmarkTest
@@ -39,6 +40,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TEmbeddedCouetteTest('test_execution'))
     smallSuite.addTest(TEmbeddedCouetteImposedTest('test_execution'))
     smallSuite.addTest(TEmbeddedReservoirTest('test_execution'))
+    smallSuite.addTest(TManufacturedSolutionTest('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -56,7 +58,8 @@ def AssambleTestSuites():
             TEmbeddedArtificialCompressibilityTest,
             TEmbeddedCouetteTest,
             TEmbeddedCouetteImposedTest,
-            TEmbeddedReservoirTest
+            TEmbeddedReservoirTest,
+            TManufacturedSolutionTest
             #~ TNonConformantOneSideMap3D_test2,
             #~ TMokBenchmarkTest
             #####TTurekBenchmarkTest
