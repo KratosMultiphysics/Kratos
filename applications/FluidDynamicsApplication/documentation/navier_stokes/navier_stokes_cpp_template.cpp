@@ -133,8 +133,8 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    const array_1d<double,nnodes>& pn = data.pn;
-    const array_1d<double,nnodes>& pnn = data.pnn;
+    // const array_1d<double,nnodes>& pn = data.pn;
+    // const array_1d<double,nnodes>& pnn = data.pnn;
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
@@ -184,8 +184,8 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    const array_1d<double,nnodes>& pn = data.pn;
-    const array_1d<double,nnodes>& pnn = data.pnn;
+    // const array_1d<double,nnodes>& pn = data.pn;
+    // const array_1d<double,nnodes>& pnn = data.pnn;
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
@@ -336,7 +336,7 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    // const double c = data.c;                                // Wave velocity
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -351,8 +351,8 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    const array_1d<double,nnodes>& pn = data.pn;
-    const array_1d<double,nnodes>& pnn = data.pnn;
+    // const array_1d<double,nnodes>& pn = data.pn;
+    // const array_1d<double,nnodes>& pnn = data.pnn;
     // const array_1d<double,strain_size>& stress = data.stress;
 
     // // Get constitutive matrix
@@ -396,7 +396,7 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    // const double c = data.c;                                // Wave velocity
 
     const double& bdf0 = data.bdf0;
     const double& bdf1 = data.bdf1;
@@ -411,8 +411,8 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    const array_1d<double,nnodes>& pn = data.pn;
-    const array_1d<double,nnodes>& pnn = data.pnn;
+    // const array_1d<double,nnodes>& pn = data.pn;
+    // const array_1d<double,nnodes>& pnn = data.pnn;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
