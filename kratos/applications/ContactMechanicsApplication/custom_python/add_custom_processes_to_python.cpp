@@ -24,7 +24,7 @@
 //Processes
 #include "custom_processes/contact_model_start_end_meshing_process.hpp"
 #include "custom_processes/parametric_wall_contact_search_process.hpp"
-#include "custom_processes/construct_contact_model_part_process.hpp"
+#include "custom_processes/build_contact_model_part_process.hpp"
 #include "custom_processes/clear_contact_conditions_process.hpp"
 #include "custom_processes/clear_point_contact_conditions_process.hpp"
 #include "custom_processes/build_contact_conditions_process.hpp"
@@ -64,9 +64,9 @@ namespace Kratos
 	("ParametricWallContactSearch", init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
 	;
 
-      class_<ConstructContactModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<BuildContactModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ConstructContactModelPart", init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>()
+	 "BuildContactModelPart", init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>()
 	 )
 	;
 
