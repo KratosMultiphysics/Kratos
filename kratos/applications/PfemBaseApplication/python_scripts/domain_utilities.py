@@ -38,9 +38,10 @@ class DomainUtilities(object):
                 # search nodal h
                 self.SearchNodalH(model_part, echo_level)
                                        
-            # set the domain labels to nodes
-            modeler_utils.SetModelPartNameToNodes(model_part)
+                # set the domain labels to nodes
+                modeler_utils.SetModelPartNameToNodes(model_part)
 
+                
             model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
 
             print("::[Domain_Utilities]:: Resultant ModelPart")

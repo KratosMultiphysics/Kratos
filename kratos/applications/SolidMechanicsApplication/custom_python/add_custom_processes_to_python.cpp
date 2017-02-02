@@ -22,6 +22,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
+#include "custom_processes/transfer_entities_between_model_parts_process.h"
 #include "custom_processes/transfer_nodes_to_model_part_process.h"
 #include "custom_processes/assign_scalar_field_to_nodes_process.h"
 #include "custom_processes/assign_scalar_field_to_conditions_process.h"
@@ -66,7 +67,19 @@ namespace Kratos
       	(
       	 "TransferNodesProcess", init<ModelPart&, ModelPart&, const FlagsContainer&>()
       	)
+	.def(init<ModelPart&, ModelPart&, const FlagsContainer&, const FlagsContainer& >())
         .def("Execute", &TransferNodesToModelPartProcess::Execute)
+      	;
+      
+      //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//
+
+      class_<TransferEntitiesBetweenModelPartsProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "TransferEntitiesProcess", init<ModelPart&, ModelPart&, const std::string>()
+      	)	
+	.def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
+	.def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+        .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
       	;
       
       

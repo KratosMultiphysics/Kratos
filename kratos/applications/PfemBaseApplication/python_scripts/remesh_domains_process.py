@@ -84,7 +84,8 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             #if commented in the first step meshing is applied
             self.next_meshing = self.meshing_frequency
             # it must be initialized if restart is called//no
-            self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
+
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
         
         # initialize all meshing domains 
         if( self.remesh_domains_active ):    

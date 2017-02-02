@@ -128,7 +128,10 @@ public:
 
       //line-search secant
       alpha = LineSearchC(pBuilderAndSolver,pScheme,r_model_part,A,Dx,b,rCurrentAlpha,rPreviousAlpha);
-
+      
+      //line-search error based
+      //alpha = LineSearchD(pBuilderAndSolver,pScheme,r_model_part,A,Dx,b,rCurrentAlpha,rPreviousAlpha);
+      
       return alpha;
       
     };
@@ -577,6 +580,132 @@ public:
 	return rCurrentAlpha;
     };
 
+  
+  //**************************************************************************
+  //**************************************************************************
+
+
+   double LineSearchD( TBuilderAndSolverPointerType pBuilderAndSolver,
+		       TSchemePointerType pScheme,
+		       ModelPart& r_model_part, 
+		       TSystemMatrixType& A,
+		       TSystemVectorType& Dx,
+		       TSystemVectorType& b,
+		       double rCurrentAlpha,
+		       double rPreviousAlpha)
+    {
+        KRATOS_TRY
+
+   	//bool linesearch_success=false;
+
+
+   	//Save Current Displacement, Velocity, Acceleration) as history
+   	DofsArrayType HistoricDofSet = pBuilderAndSolver->GetDofSet();
+
+   	DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+
+   	TSystemVectorType  ReferenceDx = Dx;
+
+   	//Timer::Start("LineSearch");
+	     
+   	//s0  (alpha=0)
+   	double R0= inner_prod(Dx,b);
+
+   	//s1  (alpha=1)
+   	Dx = ReferenceDx *1;
+	
+	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+
+	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+
+   	double R1= inner_prod(ReferenceDx,b);
+   	// ** Restore Current Displacement, Velocity, Acceleration
+   	Dx *= (-1);
+   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	b.clear();
+
+	std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
+
+   	if(R0*R1<0){
+
+   	  //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
+
+	  double R2 = R1;
+
+	  double alpha = 1;
+	  double nabla = R0/R1;
+
+  	  double CurrentAlpha  = 1.0; 
+
+	  int iterations=0;
+	  int max_iterations = 3;
+	  std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
+
+	  while(fabs(R2/R0)>0.5 && iterations<max_iterations && fabs(R2)>1e-4) {
+	  
+	    if( nabla < 0 )
+	      alpha = 0.5*(nabla+sqrt(nabla*(nabla-4)));
+	    //alpha = nabla/(0.5*(nabla-sqrt(nabla*(nabla-4))));
+	    else if( nabla>0 && nabla<=2 )
+	      alpha = nabla*0.5;
+	    else
+	      break;
+	    
+
+	    CurrentAlpha  = alpha;
+
+  
+	    //compute s(alpha_k+1)
+	    Dx = ReferenceDx * CurrentAlpha;
+	
+	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+
+	    //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	     
+	    //slope_k = slope_k+1
+	    R2 = inner_prod(ReferenceDx,b);
+	    // ** Restore Current Displacement, Velocity, Acceleration
+	    Dx *= (-1);
+	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    b.clear();
+    
+	       
+	    //slope_k-1 = slope_k
+	    nabla = R0/R2;
+	       
+	    iterations++;
+	  }
+	  
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	  //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
+	   
+	   
+	  rPreviousAlpha = rCurrentAlpha;
+	  rCurrentAlpha  = CurrentAlpha;
+    
+	}
+   	// else{
+   	//    Step.CurrentAlpha  = Step.PreviousAlpha;
+   	// }
+  
+
+   	if(rCurrentAlpha>1 || rCurrentAlpha<=0)
+   	  rCurrentAlpha=1;
+
+   	//Restore Current Displacement, Velocity, Acceleration
+   	Dx      = ReferenceDx;
+   	//rDofSet = HistoricDofSet;
+	
+
+   	//Timer::Stop("LineSearch");
+
+   	KRATOS_CATCH( "" )
+
+	return rCurrentAlpha;
+    };
 
     /*@} */
     /**@name Operations */
