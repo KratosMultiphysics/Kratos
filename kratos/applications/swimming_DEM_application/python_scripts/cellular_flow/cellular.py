@@ -13,6 +13,7 @@ import os
 os.system('cls' if os.name == 'nt' else 'clear')
 import sys
 sys.path.append("/home/gcasas/kratos")
+import numpy as np
 
 class Logger(object):
     def __init__(self):
@@ -775,6 +776,8 @@ post_utils.Writeresults(time)
 
 mat_deriv_errors = []
 laplacian_errors = []
+current_mat_deriv_errors = np.zeros(2)
+current_laplacian_errors = np.zeros(2)
 #fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
 
 while (time <= final_time):
@@ -935,8 +938,10 @@ while (time <= final_time):
         swim_proc.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
-            mat_deriv_errors.append(error_mat_deriv / norm_mat_deriv_average)
-            laplacian_errors.append(error_laplacian / norm_laplacian_average)
+            current_mat_deriv_errors = error_mat_deriv / norm_mat_deriv_average
+            current_laplacian_errors = error_laplacian / norm_laplacian_average
+            mat_deriv_errors.append(current_mat_deriv_errors)
+            laplacian_errors.append(current_laplacian_errors)
             #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
             #print('laplacian: min, max, avg, ', laplacian_averager.GetCurrentData())
             print('rel_error_mat_deriv', error_mat_deriv / norm_mat_deriv_average)
@@ -1057,11 +1062,30 @@ if not os.path.exists('../errors_recorded'):
     os.makedirs('../errors_recorded')
 
 import h5py
-import numpy as np
 
 file_name = main_path + '/errors_recorded/recovery_errors.hdf5'
-with h5py.File(self.file_name, 'r+') as f:
-    f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
+# with h5py.File(self.file_name, 'r+') as f:
+#     f.create_dataset('material_derivative', shape = self.shape, dtype = np.float32)
+
+with h5py.File(file_name) as f:
+    mat_deriv_grp = f.require_group('material derivative')
+    mat_deriv_mthd_group = mat_deriv_grp.require_group('method = ' + str(pp.CFD_DEM.material_acceleration_calculation_type))
+    laplacian_grp = f.require_group('laplacian')
+    laplacian_mthd_group = laplacian_grp.require_group('method = ' + str(pp.CFD_DEM.laplacian_calculation_type))
+
+    if num_type(size_parameter) == 'int':
+        mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('regular mesh')
+        mesh_grp_laplacian = laplacian_mthd_group.require_group('regular mesh')
+        dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('n_div = ' + str(size_parameter), (2,), dtype = np.float64)
+        dset_laplacian = mesh_grp_laplacian.require_dataset('n_div = ' + str(size_parameter), (2,), dtype = np.float64)
+    elif num_type(size_parameter) == 'float':
+        mesh_grp_mat_deriv = mat_deriv_mthd_group.require_group('irregular mesh')
+        mesh_grp_laplacian = laplacian_mthd_group.require_group('irregular mesh')
+        dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
+        dset_laplacian = mesh_grp_laplacian.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
+    dset_mat_deriv[:] = mat_deriv_errors[- 1]
+    dset_laplacian[:] = laplacian_errors[- 1]
+
 
 if num_type(size_parameter) == 'int':
     size_parameter_name = '_ndiv_'
