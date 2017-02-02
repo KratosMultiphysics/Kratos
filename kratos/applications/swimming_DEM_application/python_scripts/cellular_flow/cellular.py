@@ -862,8 +862,11 @@ while (time <= final_time):
         recovery.Recover()
 
 #G
-    error_laplacian = 0.
     error_mat_deriv = 0.
+    max_error_mat_deriv = - float('inf')
+    error_laplacian = 0.
+    max_error_laplacian = - float('inf')
+
     total_volume = 0.
     mat_deriv_average = Vector(3)
     laplacian_average = Vector(3)
@@ -902,8 +905,12 @@ while (time <= final_time):
             #laplacian[2] = 0
             #nodal_volume = node.GetSolutionStepValue(NODAL_AREA)
             #total_volume += nodal_volume
-            error_mat_deriv += swim_proc.NormOfDifference(calc_mat_deriv, mat_deriv)
-            error_laplacian += swim_proc.NormOfDifference(calc_laplacian, laplacian)
+            current_error = swim_proc.NormOfDifference(calc_mat_deriv, mat_deriv)
+            error_mat_deriv += current_error
+            max_error_mat_deriv = max(max_error_mat_deriv, current_error)
+            current_error = swim_proc.NormOfDifference(calc_laplacian, laplacian)
+            error_laplacian += current_error
+            max_error_laplacian = max(max_error_laplacian, current_error)
             diff_mat_deriv = [calc_mat_deriv[i] - mat_deriv[i] for i in range(len(calc_mat_deriv))]
             diff_laplacian = [calc_laplacian[i] - laplacian[i] for i in range(len(calc_laplacian))]
             #mat_deriv_averager.swim_proc.Norm(diff_mat_deriv)
@@ -938,8 +945,10 @@ while (time <= final_time):
         swim_proc.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
-            current_mat_deriv_errors = error_mat_deriv / norm_mat_deriv_average
-            current_laplacian_errors = error_laplacian / norm_laplacian_average
+            current_mat_deriv_errors[0] = error_mat_deriv / norm_mat_deriv_average
+            current_mat_deriv_errors[1] = max_error_mat_deriv / norm_mat_deriv_average * len(fluid_model_part.Nodes)
+            current_laplacian_errors[0] = error_laplacian / norm_laplacian_average
+            current_laplacian_errors[1] = max_error_laplacian / norm_laplacian_average * len(fluid_model_part.Nodes)
             mat_deriv_errors.append(current_mat_deriv_errors)
             laplacian_errors.append(current_laplacian_errors)
             #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
@@ -1083,8 +1092,11 @@ with h5py.File(file_name) as f:
         mesh_grp_laplacian = laplacian_mthd_group.require_group('irregular mesh')
         dset_mat_deriv = mesh_grp_mat_deriv.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
         dset_laplacian = mesh_grp_laplacian.require_dataset('h = '   + str(size_parameter), (2,), dtype = np.float64)
-    dset_mat_deriv[:] = mat_deriv_errors[- 1]
-    dset_laplacian[:] = laplacian_errors[- 1]
+    dset_mat_deriv.attrs['mesh size'] =  min(float(size_parameter), 1.0 / float(size_parameter))
+    dset_mat_deriv[0] = current_mat_deriv_errors[0]
+    dset_mat_deriv[1] = current_mat_deriv_errors[1]
+    dset_laplacian[0] = current_laplacian_errors[0]
+    dset_laplacian[1] = current_laplacian_errors[1]
 
 
 if num_type(size_parameter) == 'int':
