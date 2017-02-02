@@ -97,6 +97,10 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        # Set initialize flag
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.mechanical_solver.SetInitializePerformedFlag(True)
+
         # Check if everything is assigned correctly
         self.Check();
 

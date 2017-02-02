@@ -114,6 +114,10 @@ class PfemFluidSolver:
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        # Set initialize flag
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.mechanical_solver.SetInitializePerformedFlag(True)
+        
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
