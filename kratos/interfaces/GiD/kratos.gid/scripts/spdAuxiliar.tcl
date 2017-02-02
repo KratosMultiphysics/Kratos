@@ -13,6 +13,8 @@ namespace eval spdAux {
     variable refreshTreeTurn
     
     variable TreeVisibility
+    
+    variable ProjectIsNew
 }
 
 proc spdAux::Init { } {
@@ -22,6 +24,7 @@ proc spdAux::Init { } {
     variable currentexternalfile
     variable refreshTreeTurn
     variable TreeVisibility
+    variable ProjectIsNew
     
     set uniqueNames ""
     dict set uniqueNames "dummy" 0
@@ -29,6 +32,8 @@ proc spdAux::Init { } {
     set  currentexternalfile ""
     set refreshTreeTurn 0
     set TreeVisibility 0
+    set ProjectIsNew 0
+
 }
 
 proc spdAux::RequestRefresh {} {
@@ -291,6 +296,8 @@ proc spdAux::SetSpatialDimmension {ndim} {
 
 proc spdAux::SwitchDimAndCreateWindow { ndim } {
     variable TreeVisibility
+    variable ProjectIsNew
+
     SetSpatialDimmension $ndim
     spdAux::DestroyWindow
     
@@ -298,8 +305,11 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     parseRoutes
     
     catch {apps::ExecuteOnCurrentXML MultiAppEvent init }
-    catch {apps::ExecuteOnCurrentXML CustomTree "" }
     
+    if { $ProjectIsNew eq 0} {
+        catch {apps::ExecuteOnCurrentXML CustomTree "" }
+    }
+
     if {$TreeVisibility} {
         customlib::UpdateDocument
         spdAux::PreChargeTree
