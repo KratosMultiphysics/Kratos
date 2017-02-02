@@ -61,10 +61,10 @@ for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
     skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
     Model.update({skin_part_name: main_model_part.GetSubModelPart(skin_part_name)})
 
-#~ ## Get the list of the no-skin submodel parts in the object Model
-#~ for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-    #~ no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-    #~ Model.update({no_skin_part_name: main_model_part.GetSubModelPart(no_skin_part_name)})
+## Get the list of the no-skin submodel parts in the object Model (results processes and no-skin conditions)
+for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
+    no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
+    Model.update({no_skin_part_name: main_model_part.GetSubModelPart(no_skin_part_name)})
 
 ## Get the list of the initial conditions submodel parts in the object Model
 for i in range(ProjectParameters["initial_conditions_process_list"].size()):
@@ -91,6 +91,7 @@ import process_factory
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["auxiliar_process_list"] )
 
 if(verbosity > 1):
     for process in list_of_processes:
@@ -132,6 +133,7 @@ while(time <= end_time):
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        print("")
         print("STEP = ", step)
         print("TIME = ", time)
 
