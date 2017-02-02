@@ -57,7 +57,7 @@ namespace Kratos {
                 vector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
         
-        virtual bool CheckRequirementsOfStressTensor();
+        virtual bool CheckRequirementsOfStressTensor() override;
 
     private:
 
