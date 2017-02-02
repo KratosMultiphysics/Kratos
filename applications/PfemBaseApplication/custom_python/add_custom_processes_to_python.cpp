@@ -45,6 +45,9 @@
 #include "custom_processes/build_mesh_elements_process.hpp"
 #include "custom_processes/build_mesh_boundary_process.hpp"
 
+//Kinematics
+#include "custom_processes/constant_rotation_process.h"
+
 
 namespace Kratos
 {
@@ -171,6 +174,17 @@ namespace Kratos
 	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
 	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
 	;
+      
+      //********MODEL VOLUME CALCULATION*********//
+
+      class_<ConstantRotationProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "ConstantRotationProcess", init<ModelPart&, const double, const double, const double, const double, const double, const double>()
+	 )	 
+         .def(init< ModelPart&, Parameters& >())
+	;
+      
+      
     }
  
   }  // namespace Python.
