@@ -157,8 +157,8 @@ proc Kratos::InitGIDProject { dir } {
     spdAux::parseRoutes
     update
     spdAux::LoadModelFiles
-    
-    after 100 [list gid_groups_conds::close_all_windows]
+    gid_groups_conds::close_all_windows
+    #after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
 }
 
@@ -200,6 +200,7 @@ proc Kratos::AddRestoreVar {varName} {
 }
 
 proc Kratos::DestroyWindows {} {
+    gid_groups_conds::close_all_windows
     spdAux::DestroyWindow
     if {$::Kratos::kratos_private(UseWizard)} {
         Wizard::DestroyWindow
