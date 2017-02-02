@@ -845,20 +845,25 @@ class DEMFEMProcedures(object):
             elastic_forces            = Var_Translator(self.DEM_parameters.PostElasticForces)
             tangential_elastic_forces = Var_Translator(self.DEM_parameters.PostTangentialElasticForces)
             dem_pressure              = Var_Translator(self.DEM_parameters.PostPressure)
+            
             if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 contact_forces = 0
             else:
-                contact_forces = Var_Translator(self.DEM_parameters.PostShearStress)
+                contact_forces = Var_Translator(self.DEM_parameters.PostContactForces)
+            
             if not (hasattr(self.DEM_parameters, "PostShearStress")):
                 shear_stress = 0
             else:
-                shear_stress = Var_Translator(self.DEM_parameters.PostNodalArea)
+                shear_stress = Var_Translator(self.DEM_parameters.PostShearStress)
+            
             if not (hasattr(self.DEM_parameters, "PostNodalArea")):
                 dem_nodal_area = 0
             else:
                 dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
-            integration_groups        = False
-            if self.RigidFace_model_part.NumberOfSubModelParts() > 1:
+            
+            integration_groups = False
+            
+            if self.RigidFace_model_part.NumberOfSubModelParts() > 0:
                 for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
                     if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                         integration_groups = True
@@ -929,20 +934,18 @@ class DEMFEMProcedures(object):
         if not hasattr(self.DEM_parameters, "TestType"):
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
-                if self.RigidFace_model_part.NumberOfSubModelParts() > 1:
+                if self.RigidFace_model_part.NumberOfSubModelParts() > 0:
 
                     for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
                         if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                             mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
 
                             total_force = Array3()
-
                             total_force[0] = 0.0
                             total_force[1] = 0.0
                             total_force[2] = 0.0
-
+                            
                             total_moment = Array3()
-
                             total_moment[0] = 0.0
                             total_moment[1] = 0.0
                             total_moment[2] = 0.0
@@ -968,7 +971,7 @@ class DEMFEMProcedures(object):
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
 
-                if self.spheres_model_part.NumberOfSubModelParts() > 1:
+                if self.spheres_model_part.NumberOfSubModelParts() > 0:
                     for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
 
                         if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
