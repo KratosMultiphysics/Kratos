@@ -30,10 +30,10 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-    typedef Node <3>                                                   NodeType;
+    typedef ModelPart::NodesContainerType                                     NodesArrayType;
+    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+    typedef Node <3>                                                                NodeType;
     
 ///@}
 ///@name  Enum's
@@ -54,7 +54,7 @@ namespace Kratos
 
 //// This class is can be used to compute the metrics of the model part with an Hessian approach
 
-template<unsigned int TDim>  
+template<unsigned int TDim, class TVarType>  
 class ComputeHessianSolMetricProcess
     : public Process
 {
@@ -87,7 +87,7 @@ public:
     
     ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
-        Variable<double>& rVariable,
+        TVarType& rVariable,
         const double rMinSize,
         const double rMaxSize,
         const bool rEnforceCurrent = true,
@@ -194,7 +194,7 @@ public:
             }
         }
     }
-       
+    
     ///@}
     ///@name Access
     ///@{
@@ -271,16 +271,16 @@ private:
     ///@name Private member Variables
     ///@{
     
-    ModelPart& mThisModelPart;     // The model part to compute
-    Variable<double> mVariable;   // The variable to calculate the hessian
-    double mMinSize;              // The minimal size of the elements
-    double mMaxSize;              // The maximal size of the elements
-    bool mEnforceCurrent;         // With this we choose if we inforce the current nodal size (NODAL_H)
-    double mInterpError;          // The error of interpolation allowed
-    double mMeshConstant;         // The mesh constant to remesh (depends of the element type)
-    double mAnisRatio;            // The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;           // The boundary layer limit distance
-    Interpolation mInterpolation; // The interpolation type
+    ModelPart& mThisModelPart;               // The model part to compute
+    TVarType mVariable;            // The variable to calculate the hessian
+    double mMinSize;                         // The minimal size of the elements
+    double mMaxSize;                         // The maximal size of the elements
+    bool mEnforceCurrent;                    // With this we choose if we inforce the current nodal size (NODAL_H)
+    double mInterpError;                     // The error of interpolation allowed
+    double mMeshConstant;                    // The mesh constant to remesh (depends of the element type)
+    double mAnisRatio;                       // The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                      // The boundary layer limit distance
+    Interpolation mInterpolation;            // The interpolation type
     
     ///@}
     ///@name Private Operators
@@ -389,7 +389,7 @@ private:
         }
         
         // Compute auxiliar gradient
-        ComputeNodalGradientProcess<TDim> GradientProcess = ComputeNodalGradientProcess<TDim>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
+        ComputeNodalGradientProcess<TDim, TVarType> GradientProcess = ComputeNodalGradientProcess<TDim, TVarType>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
         GradientProcess.Execute();
         
         // Iterate in the conditions
@@ -579,14 +579,14 @@ private:
 ///@{
 
 /// input stream function
-template<unsigned int TDim> 
+template<unsigned int TDim, class TVarType> 
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ComputeHessianSolMetricProcess<TDim>& rThis);
+                                  ComputeHessianSolMetricProcess<TDim, TVarType>& rThis);
 
 /// output stream function
-template<unsigned int TDim> 
+template<unsigned int TDim, class TVarType> 
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ComputeHessianSolMetricProcess<TDim>& rThis)
+                                  const ComputeHessianSolMetricProcess<TDim, TVarType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
