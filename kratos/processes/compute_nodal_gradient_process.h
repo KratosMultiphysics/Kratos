@@ -40,6 +40,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 ///@}
 ///@name  Enum's
@@ -77,29 +78,7 @@ public:
     ComputeNodalGradientProcess(ModelPart& model_part
         , TVarType& r_origin_variable
         , Variable<array_1d<double,3> >& r_gradient_variable
-        , Variable<double>& r_area_variable)
-        : mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
-    {
-        KRATOS_TRY
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_origin_variable;
-        }
-        
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_gradient_variable;
-        }
-        
-        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
-        {
-            KRATOS_ERROR << "missing variable " << r_area_variable;
-        }
-        
-        KRATOS_CATCH("")
-    }
+        , Variable<double>& r_area_variable);
 
     /// Destructor.
     virtual ~ComputeNodalGradientProcess()
@@ -316,7 +295,6 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ComputeNodalGradientProcess& rThis);
@@ -333,6 +311,106 @@ private:
 // }
 ///@}
 
+///@name Explicit Specializations
+///@{
+
+    template<>
+    ComputeNodalGradientProcess<2, Variable<double>>::ComputeNodalGradientProcess(ModelPart& model_part
+        , Variable<double>& r_origin_variable
+        , Variable<array_1d<double,3> >& r_gradient_variable
+        , Variable<double>& r_area_variable)
+        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
+    {
+        KRATOS_TRY
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_origin_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_gradient_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_area_variable;
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    template<>
+    ComputeNodalGradientProcess<3, Variable<double>>::ComputeNodalGradientProcess(ModelPart& model_part
+        , Variable<double>& r_origin_variable
+        , Variable<array_1d<double,3> >& r_gradient_variable
+        , Variable<double>& r_area_variable)
+        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
+    {
+        KRATOS_TRY
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_origin_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_gradient_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_area_variable;
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    template<>
+    ComputeNodalGradientProcess<2, component_type>::ComputeNodalGradientProcess(ModelPart& model_part
+        , component_type& r_origin_variable
+        , Variable<array_1d<double,3> >& r_gradient_variable
+        , Variable<double>& r_area_variable)
+        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
+    {
+        KRATOS_TRY
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_gradient_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_area_variable;
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    template<>
+    ComputeNodalGradientProcess<3, component_type>::ComputeNodalGradientProcess(ModelPart& model_part
+        , component_type& r_origin_variable
+        , Variable<array_1d<double,3> >& r_gradient_variable
+        , Variable<double>& r_area_variable)
+        :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
+    {
+        KRATOS_TRY
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_gradient_variable;
+        }
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_area_variable ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_area_variable;
+        }
+        
+        KRATOS_CATCH("")
+    }
 
 }  // namespace Kratos.
 
