@@ -22,7 +22,7 @@ proc ::Fluid::write::getParametersDict { } {
         #set nthreads [write::getValue Parallelization MPINumberOfProcessors]
         #dict set problemDataDict NumberofProcessors $nthreads
     }
-    
+
     # Write the echo level in the problem data section
     set echo_level [write::getValue Results EchoLevel]
     dict set problemDataDict echo_level $echo_level
@@ -73,7 +73,7 @@ proc ::Fluid::write::getParametersDict { } {
     dict set projectParametersDict initial_conditions_process_list [write::getConditionsParametersDict "FLNodalConditions" "Nodal"]
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
     dict set projectParametersDict gravity [list [getGravityProcessDict] ]
-    dict set projectParametersDict auxiliar_process_list [getAuxiliarProcessList] 
+    dict set projectParametersDict auxiliar_process_list [getAuxiliarProcessList]
 
     return $projectParametersDict
 }
@@ -86,7 +86,7 @@ proc Fluid::write::writeParametersEvent { } {
 
 proc Fluid::write::getAuxiliarProcessList {} {
     set process_list [list ]
-    
+
     foreach process [getDragProcessList] {lappend process_list $process}
 
     return $process_list
@@ -102,14 +102,14 @@ proc Fluid::write::getDragProcessList {} {
         set groupName [$group @n]
         set cid [[$group parent] @n]
         set submodelpart [::write::getMeshId $cid $groupName]
-        
+
         set write_output [write::getStringBinaryFromValue [write::getValueByNode [$group selectNodes "./value\[@n='write_drag_output_file'\]"]]]
         set print_screen [write::getStringBinaryFromValue [write::getValueByNode [$group selectNodes "./value\[@n='print_drag_to_screen'\]"]]]
         set interval_name [write::getValueByNode [$group selectNodes "./value\[@n='Interval'\]"]]
-        
+
         set pdict [dict create]
         dict set pdict "python_module" "compute_drag_process"
-        dict set pdict "kratos_module" "FluidDynamics"
+        dict set pdict "kratos_module" "KratosMultiphysics.FluidDynamicsApplication"
         dict set pdict "process_name" "ComputeDragProcess"
         set params [dict create]
         dict set params "mesh_id" 0
@@ -118,7 +118,7 @@ proc Fluid::write::getDragProcessList {} {
         dict set params "print_drag_to_screen" $print_screen
         dict set params "interval" [write::getInterval $interval_name]
         dict set pdict "Parameters" $params
-        
+
         lappend process_list $pdict
     }
 
@@ -179,6 +179,18 @@ proc Fluid::write::getNoSkinConditionMeshId {} {
     set root [$doc documentElement]
 
     set listOfNoSkinGroups [list ]
+    
+    # Append drag processes model parts names
+    set xp1 "[spdAux::getRoute FLDrags]/group"
+    set dragGroups [$root selectNodes $xp1]
+    foreach dragGroup $dragGroups {
+        set groupName [$dragGroup @n]
+        set cid [[$dragGroup parent] @n]
+        set submodelpart [::write::getMeshId $cid $groupName]
+        if {$submodelpart ni $listOfNoSkinGroups} {lappend listOfNoSkinGroups $submodelpart}
+    }
+
+    # Append no skin conditions model parts names
     set xp1 "[spdAux::getRoute $BCUN]/condition/group"
     set groups [$root selectNodes $xp1]
     foreach group $groups {
