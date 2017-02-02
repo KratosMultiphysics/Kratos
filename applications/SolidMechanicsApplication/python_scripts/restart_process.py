@@ -121,6 +121,7 @@ class RestartProcess(KratosMultiphysics.Process):
         
         # Print the output
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP] = self.printed_step_count
         if self.output_label_is_time:
@@ -129,7 +130,7 @@ class RestartProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
 
         if( self.echo_level > 0 ):
-            print("::[Restart]:: Save [ step:", self.counter,"] [ label:", label,"]")
+            print("::[Restart]:: Save [ step:", step,"] [ label:", label,"]")
 
         current_restart_path = self.restart_path + "__" + str(label)
 
