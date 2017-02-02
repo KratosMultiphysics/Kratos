@@ -93,6 +93,23 @@ public:
     } SurfaceScalar;
 
 
+    typedef struct
+    {
+      double Covariant;       //covariant component 
+      double Contravariant;   //contravariant component
+        	   
+    } TangentSurfaceScalar;
+
+
+    typedef struct
+    {
+      Matrix    Metric;      //metric of the base
+      PointType DirectionA;  //reference base direction a
+      PointType DirectionB;  //reference base direction b
+              	   
+    } SurfaceBase;
+
+  
     ///@}
     ///@name Life Cycle
     ///@{
