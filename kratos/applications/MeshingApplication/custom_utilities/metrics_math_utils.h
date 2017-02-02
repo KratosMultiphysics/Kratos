@@ -63,6 +63,33 @@ public:
     ///@{
  
     /**
+     * Calculates the determinant of a 2x2 or 3x3 matrix 
+     * @param A: The matrix to calculate
+     * @return DetA: The determinant of the matrix
+     */
+
+    static inline double DetMat(const boost::numeric::ublas::bounded_matrix<double, TDim, TDim>& A)
+    {
+        double det;
+        
+        if (TDim == 2)
+        {
+            det = A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
+        }
+        else
+        {
+            det = A(0, 0) * A(1, 1) * A(2, 2)
+                + A(1, 0) * A(2, 1) * A(0, 2)
+                + A(0, 1) * A(1, 2) * A(2, 0)
+                - A(2, 0) * A(1, 1) * A(0, 2)
+                - A(2, 1) * A(1, 2) * A(0, 0)
+                - A(1, 0) * A(0, 1) * A(2,2);
+        }
+        
+        return det;
+    }
+    
+    /**
      * Calculates the inverse of a 2x2 or 3x3 matrix 
      * @param A: The matrix to invert
      * @return InvA: The inverted matrix
@@ -75,15 +102,17 @@ public:
     {
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> InvA;
         
-        if (TDim == 2)
+        /* Compute determinant of the matrix */
+        const double det = DetMat(A);
+        
+        if (std::abs(det) < tolerance)
         {
-            const double det = A(0, 0) * A(1, 1) - A(0, 1) * A(1, 0);
-            
-            if (std::abs(det) < tolerance)
-            {
-                KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
-            }
-            
+            KRATOS_WATCH(A);
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
+        }
+        
+        if (TDim == 2)
+        {            
             /* Compute inverse of the Matrix */
             InvA(0, 0) =   A(1, 1) / det;
             InvA(0, 1) = - A(0, 1) / det;
@@ -92,19 +121,6 @@ public:
         }
         else
         {
-            /* Compute determinant of the matrix */
-            const double det = A(0, 0) * A(1, 1) * A(2, 2) \
-                + A(1, 0) * A(2, 1) * A(0, 2)\
-                + A(0, 1) * A(1, 2) * A(2, 0)\
-                - A(2, 0) * A(1, 1) * A(0, 2)\
-                - A(2, 1) * A(1, 2) * A(0, 0)\
-                - A(1, 0) * A(0, 1) * A(2,2);
-
-            if (std::abs(det) < tolerance)
-            {
-                KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is zero or almost zero!!!, det = ", det);
-            }
-            
             /* Compute inverse of the Matrix */
             InvA(0, 0) =   (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1)) / det;
             InvA(1, 0) = - (A(1, 0) * A(2, 2) - A(2, 0) * A(1, 2)) / det;
@@ -139,159 +155,126 @@ public:
             const boost::numeric::ublas::bounded_matrix<double, TDim, TDim>& A,
             boost::numeric::ublas::bounded_matrix<double, TDim, TDim>& eigen_vector_matrix,
             boost::numeric::ublas::bounded_matrix<double, TDim, TDim>& eigen_values_matrix,
-            const double tolerance = 1.0e-16,
-            const unsigned int max_iterations = 10
+            const double tolerance = 1.0e-18,
+            const unsigned int max_iterations = 20
             )
     {
-        bool is_converged = true;
-        if (TDim == 2)
-        {        
-            // Taking the coefficients of the matrix
-            const double a11 = A(0, 0);
-            const double a12 = A(0, 1) + tolerance; // NOTE: To avoid problems with diagonal or almost diagonal matrices
-            const double a22 = A(1, 1);
-            
-            // The eigen values matrix 
-            eigen_values_matrix(0, 0) = 0.5 * (a11 + a22 - std::sqrt(a11 * a11 + 4.0 * a12 * a12 - 2.0 * a11 * a22 + a22 * a22));
-            eigen_values_matrix(0, 1) = 0.0; 
-            eigen_values_matrix(1, 0) = 0.0; 
-            eigen_values_matrix(1, 1) = 0.5 * (a11 + a22 + std::sqrt(a11 * a11 + 4.0 * a12 * a12 - 2.0 * a11 * a22 + a22 * a22));
-            
-            // The eigen vector matrix
-            array_1d<double, 2> aux_array;
-            
-            // First eigen vector
-            aux_array[0] = -(-a11 + a22 + std::sqrt(a11 * a11 + 4.0 * a12 * a12 - 2.0 * a11 * a22 + a22 * a22))/(2.0 * a12);
-            aux_array[1] = 1.0;
-            aux_array /= norm_2(aux_array);
-            eigen_vector_matrix(0, 0) = aux_array[0];
-            eigen_vector_matrix(0, 1) = aux_array[1];
-            
-            // Second eigen vector
-            aux_array[0] = -(-a11 + a22 - std::sqrt(a11 * a11 + 4.0 * a12 * a12 - 2.0 * a11 * a22 + a22 * a22))/(2.0 * a12);
-            aux_array[1] = 1.0;
-            aux_array /= norm_2(aux_array);
-            eigen_vector_matrix(1, 0) = aux_array[0];
-            eigen_vector_matrix(1, 1) = aux_array[1];
-        }
-        else
+        bool is_converged = false;
+        eigen_values_matrix = ZeroMatrix(TDim);
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> TempMat = A;
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> AuxA;
+
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> V = Indentity;
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Vaux;
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Rotation;
+
+        for(unsigned int iterations = 0; iterations < max_iterations; iterations++)
         {
-            bool is_converged = false;
-            eigen_values_matrix = ZeroMatrix(3);
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> TempMat = A;
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> AuxA;
+            is_converged = true;
 
-            const boost::numeric::ublas::bounded_matrix<double, 3, 3> Indentity = IdentityMatrix(3, 3);
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> V = Indentity;
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> Vaux;
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> Rotation;
+            double a = 0.0;
+            unsigned int index1 = 0;
+            unsigned int index2 = 1;
 
-            for(unsigned int iterations = 0; iterations < max_iterations; iterations++)
+            for(unsigned int i = 0; i < TDim; i++)
             {
-                is_converged = true;
-
-                double a = 0.0;
-                unsigned int index1 = 0;
-                unsigned int index2 = 1;
-
-                for(unsigned int i = 0; i < 3; i++)
+                for(unsigned int j = (i + 1); j < TDim; j++)
                 {
-                    for(unsigned int j = (i + 1); j < 3; j++)
+                    if((std::abs(TempMat(i, j)) > a ) && (std::abs(TempMat(i, j)) > tolerance))
                     {
-                        if((std::abs(TempMat(i, j)) > a ) && (std::abs(TempMat(i, j)) > tolerance))
-                        {
-                            a = std::abs(TempMat(i,j));
-                            index1 = i;
-                            index2 = j;
-                            is_converged = false;
-                        }
+                        a = std::abs(TempMat(i,j));
+                        index1 = i;
+                        index2 = j;
+                        is_converged = false;
                     }
                 }
-
-                if(is_converged)
-                {
-                    break;
-                }
-
-                // Calculation of Rotation angle
-                double gamma = (TempMat(index2, index2)-TempMat(index1, index1)) / (2 * TempMat(index1, index2));
-                double u = 1.0;
-
-                if(std::abs(gamma) > tolerance && std::abs(gamma)< (1/tolerance))
-                {
-                    u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
-                }
-                else
-                {
-                    if  (std::abs(gamma) >= (1.0/tolerance))
-                    {
-                        u = 0.5 / gamma;
-                    }
-                }
-
-                double c = 1.0 / (std::sqrt(1.0 + u * u));
-                double s = c * u;
-                double teta = s / (1.0 + c);
-
-                // Rotation of the Matrix
-                AuxA = TempMat;
-                AuxA(index2, index2) = TempMat(index2,index2) + u * TempMat(index1, index2);
-                AuxA(index1, index1) = TempMat(index1,index1) - u * TempMat(index1, index2);
-                AuxA(index1, index2) = 0.0;
-                AuxA(index2, index1) = 0.0;
-
-                for(unsigned int i = 0; i < 3; i++)
-                {
-                    if((i!= index1) && (i!= index2))
-                    {
-                        AuxA(index2, i) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
-                        AuxA(i, index2) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
-                        AuxA(index1, i) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
-                        AuxA(i, index1) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
-                    }
-                }
-
-                TempMat = AuxA;
-
-                // Calculation of the eigeneigen_vector_matrix V
-                Rotation = Indentity;
-                Rotation(index2, index1) = -s;
-                Rotation(index1, index2) =  s;
-                Rotation(index1, index1) =  c;
-                Rotation(index2, index2) =  c;
-
-                Vaux = ZeroMatrix(3, 3);
-
-                for(unsigned int i = 0; i < 3; i++)
-                {
-                    for(unsigned int j = 0; j < 3; j++)
-                    {
-                        for(unsigned int k = 0; k < 3; k++)
-                        {
-                            Vaux(i, j) += V(i, k) * Rotation(k, j);
-                        }
-                    }
-                }
-                V = Vaux;
             }
 
-            if(!(is_converged))
+            if(is_converged)
             {
-                std::cout<<" WARNING: Spectral decomposition not converged "<<std::endl;
+                break;
             }
 
-            for(unsigned int i = 0; i < 3; i++)
+            // Calculation of Rotation angle
+            double gamma = (TempMat(index2, index2)-TempMat(index1, index1)) / (2 * TempMat(index1, index2));
+            double u = 1.0;
+
+            if(std::abs(gamma) > tolerance && std::abs(gamma)< (1/tolerance))
             {
-                eigen_values_matrix(i, i) = TempMat(i, i);
-                for(unsigned int j = 0; j < 3; j++)
+                u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
+            }
+            else
+            {
+                if  (std::abs(gamma) >= (1.0/tolerance))
                 {
-                    eigen_vector_matrix(i, j) = V(j, i);
+                    u = 0.5 / gamma;
                 }
+            }
+
+            double c = 1.0 / (std::sqrt(1.0 + u * u));
+            double s = c * u;
+            double teta = s / (1.0 + c);
+
+            // Rotation of the Matrix
+            AuxA = TempMat;
+            AuxA(index2, index2) = TempMat(index2,index2) + u * TempMat(index1, index2);
+            AuxA(index1, index1) = TempMat(index1,index1) - u * TempMat(index1, index2);
+            AuxA(index1, index2) = 0.0;
+            AuxA(index2, index1) = 0.0;
+
+            for(unsigned int i = 0; i < TDim; i++)
+            {
+                if((i!= index1) && (i!= index2))
+                {
+                    AuxA(index2, i) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
+                    AuxA(i, index2) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
+                    AuxA(index1, i) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
+                    AuxA(i, index1) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
+                }
+            }
+
+            TempMat = AuxA;
+
+            // Calculation of the eigeneigen_vector_matrix V
+            Rotation = Indentity;
+            Rotation(index2, index1) = -s;
+            Rotation(index1, index2) =  s;
+            Rotation(index1, index1) =  c;
+            Rotation(index2, index2) =  c;
+
+            Vaux = ZeroMatrix(TDim, TDim);
+
+            for(unsigned int i = 0; i < TDim; i++)
+            {
+                for(unsigned int j = 0; j < TDim; j++)
+                {
+                    for(unsigned int k = 0; k < TDim; k++)
+                    {
+                        Vaux(i, j) += V(i, k) * Rotation(k, j);
+                    }
+                }
+            }
+            V = Vaux;
+        }
+
+        if(!(is_converged))
+        {
+            std::cout<<" WARNING: Spectral decomposition not converged "<<std::endl;
+        }
+
+        for(unsigned int i = 0; i < TDim; i++)
+        {
+            eigen_values_matrix(i, i) = TempMat(i, i);
+            for(unsigned int j = 0; j < TDim; j++)
+            {
+                eigen_vector_matrix(i, j) = V(j, i);
             }
         }
-        
+    
         return is_converged;
     }
+    
     /***********************************************************************************/
     /***********************************************************************************/
        
@@ -371,11 +354,11 @@ public:
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invMetric1Matrix = InvMat(Metric1Matrix);
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> NMatrix = prod(invMetric1Matrix, Metric2Matrix);
         
-        EigenSystem(NMatrix, emat, auxmat, 1e-18, 10);
+        EigenSystem(NMatrix, emat, auxmat, 1e-18, 20);
         
         typedef boost::numeric::ublas::bounded_matrix<double, TDim, TDim> temp_type;
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> lambdamat =  prod(trans(emat), prod<temp_type>(Metric1Matrix,emat));
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> mumat =  prod(trans(emat), prod<temp_type>(Metric2Matrix,emat));
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> lambdamat =  prod(trans(emat), prod<temp_type>(Metric1Matrix, emat));
+        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> mumat =  prod(trans(emat), prod<temp_type>(Metric2Matrix, emat));
         
         for (unsigned int i = 0; i < TDim; i++)
         {

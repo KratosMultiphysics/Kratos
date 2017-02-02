@@ -59,7 +59,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "echo_level"                       : 3
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.RecursivelyValidateAndAssignDefaults(default_parameters)
@@ -354,6 +354,8 @@ class MmgProcess(KratosMultiphysics.Process):
         
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
+            
+        print("Remesh finished")
             
     def _InitializeMetric(self):
         # Initialize metric
