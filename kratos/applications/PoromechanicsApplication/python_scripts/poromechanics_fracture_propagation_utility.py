@@ -181,33 +181,18 @@ class FracturePropagationUtility:
         # Save old .time file
         original_filename = str(self.problem_name)+".time"
         original_filepath = os.path.join(str(self.problem_path),str(original_filename))
-        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+".log.time"
+        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+"info.time"
         new_filepath = os.path.join(str(self.problem_path),str(new_filename))
         shutil.copy(str(original_filepath), str(new_filepath))
-        
-        ### Generate New Model ---------------------------------------------------------------------------------------
-        
+
         # Save previous model_part
         main_model_part_old = main_model_part
         
-        ## Importing modules -----------------------------------------------------------------------------------------
+        ### Generate New Model ---------------------------------------------------------------------------------------
         
         # Parsing the parameters
         parameter_file = open("ProjectParameters.json",'r')
         ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
-
-        #Import solver module
-        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-
-        # Import process modules
-        import process_factory
-        from gid_output_process import GiDOutputProcess
-        
-        ## Defining variables ----------------------------------------------------------------------------------------
-
-        # Problem variables
-        echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
-        output_settings = ProjectParameters["output_configuration"]
 
         ## Model part ------------------------------------------------------------------------------------------------
 
@@ -219,6 +204,7 @@ class FracturePropagationUtility:
         Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
         # Construct the solver (main setting methods are located in the solver_module)
+        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
         solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
         # Add problem variables
@@ -236,12 +222,14 @@ class FracturePropagationUtility:
             Model.update({part_name : main_model_part.GetSubModelPart(part_name)})
 
         # Print model_part
+        echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
         if(echo_level > 1):
             print(main_model_part)
 
         ## Initialize ------------------------------------------------------------------------------------------------
 
         # Construct processes to be applied
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
         list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
@@ -254,6 +242,8 @@ class FracturePropagationUtility:
         
         # Initialize GiD I/O
         computing_model_part = solver.GetComputingModelPart()
+        output_settings = ProjectParameters["output_configuration"]
+        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(computing_model_part,self.problem_name,output_settings)
         gid_output.ExecuteInitialize()
         
@@ -261,7 +251,7 @@ class FracturePropagationUtility:
         solver.Initialize()
         
         # Initialize the strategy before the mapping
-        solver._InitializeStrategy()
+        solver.InitializeStrategy()
         
         # ExecuteBeforeSolutionLoop
         for process in list_of_processes:

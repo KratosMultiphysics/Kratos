@@ -450,9 +450,9 @@ protected:
         if(ierr != 0) return ierr;
         
         if(ARC_LENGTH_LAMBDA.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_LAMBDA has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_LAMBDA Key is 0. Check if all applications were correctly registered.", "" )
         if(ARC_LENGTH_RADIUS_FACTOR.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_RADIUS_FACTOR has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_RADIUS_FACTOR Key is 0. Check if all applications were correctly registered.", "" )
         return ierr;
 
         KRATOS_CATCH( "" )
@@ -488,7 +488,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void Update(DofsArrayType& rDofSet, TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
+    virtual void Update(DofsArrayType& rDofSet, TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
     {
         KRATOS_TRY
         
@@ -526,8 +526,6 @@ protected:
 
         KRATOS_CATCH("");
     }
-
-private:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

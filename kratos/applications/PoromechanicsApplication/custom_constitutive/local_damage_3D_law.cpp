@@ -38,9 +38,9 @@ int LocalDamage3DLaw::Check(const Properties& rMaterialProperties,const Geometry
     if(ierr != 0) return ierr;
 
     if ( IS_CONVERGED.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
     if ( STATE_VARIABLE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"STATE_VARIABLE has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"STATE_VARIABLE Key is 0. Check if all applications were correctly registered.", "" )
 
     return ierr;
 }

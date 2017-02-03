@@ -27001,7 +27001,7 @@ Begin Conditions UPwNormalFluxFICCondition2D2N
 End Conditions
 
 Begin Conditions UPwNormalFluxInterfaceCondition2D2N
-  133  3  9090 9092
+  133  2  9090 9092
 End Conditions
 
 
