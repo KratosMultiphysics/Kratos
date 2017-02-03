@@ -20,7 +20,7 @@ class Logger(object):
 
     def write(self, message):
         self.terminal.write(message)
-        self.log.write(message)  
+        self.log.write(message)
 
     def flush(self):
         #this flush method is needed for python 3 compatibility.
@@ -94,6 +94,7 @@ pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.fluid_already_calculated = 0
 pp.CFD_DEM.recovery_echo_level = 1
 pp.CFD_DEM.gradient_calculation_type = 1
+pp.CFD_DEM.pressure_grad_recovery_type = 1
 pp.CFD_DEM.store_full_gradient = 0
 pp.CFD_DEM.laplacian_calculation_type = 0
 pp.CFD_DEM.do_search_neighbours = False
