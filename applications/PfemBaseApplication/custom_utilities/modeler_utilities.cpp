@@ -1331,60 +1331,139 @@ namespace Kratos
     //std::cout<<" lpofa "<<lpofa<<std::endl;
     //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
-    condition_found=false;
-    for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
-      {
-	//2D edges:
-	if(ic->IsNot(CONTACT)){
+    if( rGeometry.size() == 3 ){ //triangles of 3 nodes
+     
+      condition_found=false;
+      for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
+	{
+	
+	  //2D edges:
+	  if(ic->IsNot(CONTACT)){
 
-	  Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-			
-	  //std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
+	    Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+	  	      
+	    for(unsigned int iface=0; iface<lpofa.size2(); iface++)
+	      {
+		if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() ) || 
+		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+		  {
+		    pMasterCondition= *(ic.base());
+		    condition_found=true;
+		    break;
+		  }
+	      }
+	  }
 
-	  for(unsigned int i=0; i<lpofa.size2();i++)
+	  if(condition_found)
 	    {
-	      
-	      //std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
+	      break;
+	    }
+	  
+	}
+    }else if( rGeometry.size() == 4 ){ //tetraheda of 4 nodes
 
-	      if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) || 
-		  (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() )  )
+
+      condition_found=false;
+      for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
+	{
+	
+	  //3D faces:
+	  if(ic->IsNot(CONTACT)){
+
+	    Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+	  	      
+	    for(unsigned int iface=0; iface<lpofa.size2(); iface++)
+	      {
+		if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+			&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
+			&& rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
+		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() 
+			&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
+			&& rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+		    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+			&& rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
+			&& rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+		  {
+		    pMasterCondition= *(ic.base());
+		    condition_found=true;
+		    break;
+		  }
+		
+	      }
+	    
+	  }
+
+	  if(condition_found)
+	    {
+	      break;
+	    }
+			
+	}
+
+      if(!condition_found) {
+
+	//check if it is SELECTED element sharing only edges with the conditions
+	
+	condition_found=false;
+	for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
+	  {
+	
+	    //3D edges: there are 4 possibilities, it takes the first one that matches
+	    if(ic->IsNot(CONTACT)){
+
+	      Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+	  	      
+	      for(unsigned int iface=0; iface<lpofa.size2()-1; iface++)
 		{
-		  pMasterCondition= *(ic.base());
-		  condition_found=true;
-		  break;
+		  if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+			  && rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() )||
+		      (   rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id() 
+			  && rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() )||
+		      (   rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() 
+			  && rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() )||
+		    
+		      (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+			  && rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id() )||
+		      (   rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() 
+			  && rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() )||
+		      (   rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() 
+			  && rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() ) )
+		    {
+		      pMasterCondition= *(ic.base());
+		      condition_found=true;
+		      break;
+		    }
+		
 		}
-			       
+	    
 	    }
 
-	}
-	if(condition_found)
-	  {
-	    break;
-	  }
+	    if(condition_found)
+	      {
+		pCondition->Set(SELECTED); //meaning that is a element that shares edges instead of faces
+		break;
+	      }
 			
+	  }
+      
       }
 
+    }
+
+    
     if(!condition_found) {
-      //   //KRATOS_THROW_ERROR(std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
-      std::cout<<" Boundary Condition NOT FOUND after CONTACT MESHING SEARCH "<<std::endl;
-      //   std::cout<<" rGeometry "<<rGeometry<<std::endl;
+      
+      std::cout<<" WARNING:: Boundary Condition NOT FOUND after CONTACT MESHING SEARCH "<<std::endl;
 
-      //   for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
-      //     {
-      //       //2D edges:
-			
-      //       Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-			
-      for(unsigned int i=0; i<lpofa.size2();i++)
+      std::cout<<" Condition Nodes[ ";
+      for(unsigned int i=0; i<rGeometry.size();i++)
 	{
-	  //std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	  std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
-		
+	  std::cout<<" "<<rGeometry[i].Id();	
 	}
-
-      //     }
+      std::cout<<" ]"<<std::endl;
+      
     }
 
     return pMasterCondition;

@@ -68,6 +68,9 @@ public:
     ///BaseLengths
     typedef ContactDomainUtilities::BaseLengths          BaseLengths;
 
+    ///For 3D contact surfaces definition
+    typedef ContactDomainUtilities::TangentSurfaceScalar  TangentSurfaceScalar;
+    typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
     /// Counted pointer of ContactDomainLM3DCondition
     KRATOS_CLASS_POINTER_DEFINITION( ContactDomainLM3DCondition );

@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -204,6 +205,12 @@ public:
  
 
 
+    void  CalculateBaseDistances (std::vector<BaseLengths>& BaseVector, 
+				  PointType& P1, 
+				  PointType& P2, 
+				  PointType& P3,
+				  PointType& PS, 
+				  PointType& Normal);
 
 
     void  CalculateBaseDistances (BaseLengths& Base, 
@@ -212,19 +219,23 @@ public:
 				  PointType& PS, 
 				  PointType& Normal);
 
+    PointType & CalculateSurfaceNormal(PointType& Normal,
+				       PointType& P1, 
+				       PointType& P2);
 
-    PointType & CalculateFaceNormal(PointType &Normal,
+
+    PointType & CalculateFaceNormal(PointType& Normal,
 				    PointType& P1, 
-				    PointType &P2);
+				    PointType& P2);
 
 	
-    PointType & CalculateFaceTangent(PointType &Tangent,
+    PointType & CalculateFaceTangent(PointType& Tangent,
 				     PointType& P1, 
-				     PointType &P2);
+				     PointType& P2);
 
    
 
-    PointType & CalculateFaceTangent(PointType &Tangent, 
+    PointType & CalculateFaceTangent(PointType& Tangent, 
 				     PointType& Normal);
 
 
