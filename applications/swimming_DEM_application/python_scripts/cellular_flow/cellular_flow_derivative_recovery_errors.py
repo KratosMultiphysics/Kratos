@@ -2,9 +2,9 @@ import math
 import matplotlib.pyplot as plt
 import h5py
 
-regular_mesh = False
+regular_mesh = True
 
-show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
+show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
 n_divs = [10, 20, 40, 80]
 marker_size = 10
 line_width = 1
@@ -43,12 +43,14 @@ def FillVectors(recovery_type, sizes, average_errors, max_errors, laplacian_or_m
 
 min_error = float("inf")
 max_error = - float("inf")
+average_errors = []
+max_errors = []
+sizes = []
 
 if show_math_deriv_or_laplacian == 'M':
     marker_type = 'v'
     for method in mat_deriv_recovery_types:
-        FillVectors(method, sizes, mat_deriv_average_errors, mat_deriv_max_errors, 'M')
-        print(sizes)
+        FillVectors(method, sizes, average_errors, max_errors, 'M')
         if method == 1:
             mat_deriv_type = 'standard'
             color = 'r'
@@ -71,24 +73,21 @@ if show_math_deriv_or_laplacian == 'M':
             mat_deriv_type = 'Zhang and Naga 2005'
             color = 'm'
         try:
-            mat_deriv_final_slope = CalculateLastSlopes(sizes, mat_deriv_average_errors)
+            mat_deriv_final_slope = CalculateLastSlopes(sizes, average_errors)
             mat_deriv_slope_msg = ' (m = ' + str(round(mat_deriv_final_slope, 2)) + ')'
         except:
             mat_deriv_slope_msg = ''
 
         expected_order = 2
-        min_error = min(min_error, mat_deriv_average_errors[-1])
-        max_error = max(max_error, mat_deriv_average_errors[0])
-        plt.plot(sizes, mat_deriv_average_errors, marker = marker_type, ms = marker_size, color=color, label= mat_deriv_type + mat_deriv_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
+        min_error = min(min_error, average_errors[-1])
+        max_error = max(max_error, average_errors[0])
+        plt.plot(sizes, average_errors, marker = marker_type, ms = marker_size, color=color, label= mat_deriv_type + mat_deriv_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
         #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
 
 elif show_math_deriv_or_laplacian == 'L':
     marker_type = '^'
-    laplacian_average_errors = []
-    laplacian_max_errors = []
-    sizes = []
     for method in laplacian_recovery_types:
-        FillVectors(method, sizes, laplacian_average_errors, laplacian_max_errors, 'L')
+        FillVectors(method, sizes, average_errors, max_errors, 'L')
         if method == 1:
             laplacian_type = 'standard'
             color = 'r'
@@ -108,15 +107,15 @@ elif show_math_deriv_or_laplacian == 'L':
             laplacian_type = 'Guo et al. 2016'
             color = 'm'
         try:
-            laplacian_final_slope = CalculateLastSlopes(sizes, laplacian_average_errors)
+            laplacian_final_slope = CalculateLastSlopes(sizes, average_errors)
             laplacian_slope_msg = ' (m = ' + str(round(laplacian_final_slope, 2)) + ')'
         except:
             laplacian_slope_msg = ''
 
         expected_order = 1
-        min_error = min(min_error, laplacian_average_errors[-1])
-        max_error = max(max_error, laplacian_average_errors[0])
-        plt.plot(sizes, laplacian_average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
+        min_error = min(min_error, average_errors[-1])
+        max_error = max(max_error, average_errors[0])
+        plt.plot(sizes, average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
     #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
 plt.semilogy()
 plt.semilogx()
