@@ -546,8 +546,11 @@ if DEM_parameters.coupling_level_type:
     d = math.pi / 2
 
     flow_field = EthierFlowField(a, d)
+
     space_time_set = SpaceTimeSet()
     field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+
+
     #Z
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
@@ -885,7 +888,7 @@ while (time <= final_time):
             coor= Vector(3)
             coor[0]=node.X
             coor[1]=node.Y
-            coor[2]=0
+            coor[2]=node.Z
             flow_field.CalculateMaterialAcceleration(time, coor, mat_deriv, 0)
             flow_field.CalculateLaplacian(time, coor, laplacian, 0)
             calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
