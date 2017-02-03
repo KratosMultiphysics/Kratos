@@ -150,12 +150,18 @@ public:
             
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
             const Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);
+
+            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
             
-            double element_size = mMinSize;
-            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if ((element_size > nodal_h) && (mEnforceCurrent == true))
+            double element_min_size = mMinSize;
+            if ((element_min_size > nodal_h) && (mEnforceCurrent == true))
             {
-                element_size = nodal_h;
+                element_min_size = nodal_h;
+            }
+            double element_max_size = mMaxSize;
+            if ((element_max_size > nodal_h) && (mEnforceCurrent == true))
+            {
+                element_max_size = nodal_h;
             }
             
             const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
@@ -184,13 +190,13 @@ public:
             if (normmetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             {
                 const Vector old_metric = itNode->GetValue(MMG_METRIC);
-                const Vector new_metric = ComputeHessianMetricTensor(hessian, ratio, element_size);    
+                const Vector new_metric = ComputeHessianMetricTensor(hessian, ratio, element_min_size, element_max_size);    
                 
                 metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
             }
             else
             {
-                metric = ComputeHessianMetricTensor(hessian, ratio, element_size);    
+                metric = ComputeHessianMetricTensor(hessian, ratio, element_min_size, element_max_size);    
             }
         }
     }
@@ -299,14 +305,16 @@ private:
     Vector ComputeHessianMetricTensor(
         const Vector& hessian,
         const double& ratio,
-        const double& element_size // This way we can impose as minimum the previous size if we desire
+        const double& element_min_size, // This way we can impose as minimum as the previous size if we desire
+        const double& element_max_size // This way we can impose as maximum as the previous size if we desire
         )
     {        
         // Calculating metric parameters
         const double c_epsilon = mMeshConstant/mInterpError;
-        const double min_ratio = 1.0/(element_size * element_size);
+        const double min_ratio = 1.0/(element_min_size * element_min_size);
 //         const double min_ratio = 1.0/(mMinSize * mMinSize);
-        const double max_ratio = 1.0/(mMaxSize * mMaxSize);
+        const double max_ratio = 1.0/(element_max_size * element_max_size);
+//         const double max_ratio = 1.0/(mMaxSize * mMaxSize);
         
         typedef boost::numeric::ublas::bounded_matrix<double, TDim, TDim> temp_type;
         
