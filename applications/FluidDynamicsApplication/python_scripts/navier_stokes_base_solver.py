@@ -103,6 +103,8 @@ class NavierStokesBaseSolver:
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.AUXILIAR_GRADIENT)  
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.AUXILIAR_HESSIAN)  
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.ANISOTROPIC_RATIO)  
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.MMG_METRIC)  
 
@@ -125,6 +127,10 @@ class NavierStokesBaseSolver:
         ## Set buffer size
         self._SetBufferSize()
 
+        # Adding C_SMAGORINSKY
+        for elem in self.main_model_part.Elements:
+            elem.SetValue(KratosMultiphysics.C_SMAGORINSKY, 0.0)
+    
         print ("Base class model reading finished.")
 
     def AddDofs(self):
