@@ -355,8 +355,12 @@ protected:
         SetMeshSize(numNodes, numArrayElements, numArrayConditions);
         
         /* Nodes */
-        // We copy the DOF from the fisrt node
+        // We copy the DOF from the fisrt node (after we release, to avoid problem with previous conditions)
         mDofs = pNode.begin()->GetDofs();
+        for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
+        {
+            i_dof->FreeDof();
+        }
         
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
