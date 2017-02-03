@@ -26,8 +26,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
-#include "custom_utilities/discrete_particle_configure.h"
-#include "discrete_particle_configure.h"
+#include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
 #include "../../DEM_application/custom_elements/discrete_element.h"
 #include "custom_elements/spheric_swimming_particle.h"
