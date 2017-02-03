@@ -58,26 +58,26 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 
     //Solid variables
     if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT Key is 0. Check if all applications were correctly registered.", "" )
 
     if ( VELOCITY.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY Key is 0. Check if all applications were correctly registered.", "" )
 
     if ( ACCELERATION.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION Key is 0. Check if all applications were correctly registered.", "" )
 
     if ( DENSITY_SOLID.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_SOLID has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_SOLID Key is 0. Check if all applications were correctly registered.", "" )
 
     //Fluid variables
     if ( WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
 
     if ( DT_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
 
     if ( DENSITY_WATER.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER Key is 0. Check if all applications were correctly registered.", "" )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < rGeom.size(); i++ )
@@ -121,7 +121,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
             KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
         if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered)", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS Key is 0. Check if all applications were correctly registered.)", "" )
     }
 
 	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );

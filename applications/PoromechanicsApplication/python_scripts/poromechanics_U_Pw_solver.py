@@ -32,11 +32,13 @@ class UPwSolver(object):
             "solver_type": "poromechanics_U_Pw_solver",
             "model_import_settings":{
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "input_file_label": 0
             },
             "buffer_size": 2,
             "echo_level": 0,
             "reform_dofs_at_each_step": false,
+            "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": true,
             "solution_type": "Quasi-Static",
@@ -47,7 +49,6 @@ class UPwSolver(object):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "Newton-Raphson",
-            "fracture_propagation": false,
             "convergence_criterion": "Displacement_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -57,25 +58,20 @@ class UPwSolver(object):
             "desired_iterations": 4,
             "max_radius_factor": 20.0,
             "min_radius_factor": 0.5,
-            "builder": "Elimination",
+            "block_builder": true,
             "nonlocal_damage": false,
             "characteristic_length": 0.05,
             "search_neighbours_step": false,
             "linear_solver_settings":{
-                "solver_type": "BICGSTABSolver",
+                "solver_type": "AMGCL",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
-                "scaling": true,
+                "scaling": false,
                 "verbosity": 0,
                 "preconditioner_type": "ILU0Preconditioner",
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
-                "coarsening_type": "aggregation",
-                "provide_coordinates": false,
-                "gmres_krylov_space_dimension": 50,
-                "block_size": 1,
-                "use_block_matrices_if_possible" : true,
-                "coarse_enough" : 5000
+                "coarsening_type": "aggregation"
             },
             "problem_domain_sub_model_part_list": [""],
             "body_domain_sub_model_part_list": [""],
@@ -93,11 +89,8 @@ class UPwSolver(object):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
-        print("Construction of UPWSolver finished")
+        print("Construction of UPwSolver finished")
     
-    def GetMinimumBufferSize(self):
-        return 2;
-
     def AddVariables(self):
         
         ## Solid Variables
@@ -127,37 +120,8 @@ class UPwSolver(object):
         
         print("Variables correctly added")
 
-    def ImportModelPart(self):
-        
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            
-            self.computing_model_part_name = "porous_computing_domain"
-            # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-            aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
-            aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-            aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-            
-            # CheckAndPrepareModelProcess creates the solid_computational_model_part
-            import check_and_prepare_model_process_poro
-            check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
-            
-            # Constitutive law import
-            import poromechanics_constitutivelaw_utility
-            poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
-            
-        else:
-            raise Exception("Other input options are not yet implemented.")
-        
-        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
-        
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-                
-        print ("Model reading finished")
+    def GetMinimumBufferSize(self):
+        return 2;
 
     def AddDofs(self):
         
@@ -181,11 +145,26 @@ class UPwSolver(object):
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z);        
                 
         print("DOFs correctly added")
+
+    def ImportModelPart(self):
+        
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            
+            # Read ModelPart
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            
+            # Create computing_model_part, set constitutive law and buffer size
+            self._ExecuteAfterReading()
+            
+        else:
+            raise Exception("Other input options are not yet implemented.")
+                
+        print ("Model reading finished")
     
     def Initialize(self):
                 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["builder"].GetString())
+        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
         
         # Solution scheme creation
         scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -221,8 +200,32 @@ class UPwSolver(object):
         pass #one should write the restart file here
         
     def Solve(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
         
         self.Solver.Solve()
+
+    # solve :: sequencial calls
+    
+    def InitializeStrategy(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+        
+        self.Solver.Initialize()
+
+    def InitializeSolutionStep(self):
+        self.Solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.Solver.Predict()
+
+    def SolveSolutionStep(self):
+        self.Solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.Solver.FinalizeSolutionStep()
+
+    # solve :: sequencial calls
 
     def SetEchoLevel(self, level):
         
@@ -238,13 +241,37 @@ class UPwSolver(object):
 
     #### Specific internal functions ####
 
-    def _ConstructBuilderAndSolver(self, builder):
+    def _ExecuteAfterReading(self):
+        
+        self.computing_model_part_name = "porous_computing_domain"
+        
+        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
+        aux_params = KratosMultiphysics.Parameters("{}")
+        aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+        aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+
+        # CheckAndPrepareModelProcess creates the solid_computational_model_part
+        import check_and_prepare_model_process_poro
+        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+
+        # Constitutive law import
+        import poromechanics_constitutivelaw_utility
+        poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
+
+        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
+        
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        if(self.GetMinimumBufferSize() > current_buffer_size):
+            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
+
+    def _ConstructBuilderAndSolver(self, block_builder):
         
         # Creating the builder and solver
-        if(builder == "Elimination"):
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-        else:
+        if(block_builder):
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         
         return builder_and_solver
         
@@ -263,6 +290,8 @@ class UPwSolver(object):
                     scheme = KratosPoro.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
             else:
                 scheme = KratosPoro.NewmarkDynamicUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
+        else:
+            raise Exception("Apart from Newmark, other scheme_type are not available.")
         
         return scheme
     
@@ -302,7 +331,7 @@ class UPwSolver(object):
         compute_reactions = self.settings["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
-        
+                
         if strategy_type == "Newton-Raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
@@ -367,11 +396,7 @@ class UPwSolver(object):
                                                                        move_mesh_flag)
         
         return solver
-    
-    def _InitializeStrategy(self):
-        
-        self.Solver.Initialize()
-        
+
     def _CheckConvergence(self):
         
         IsConverged = self.Solver.IsConverged()

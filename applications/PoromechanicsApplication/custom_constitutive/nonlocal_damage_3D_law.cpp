@@ -38,9 +38,9 @@ int NonlocalDamage3DLaw::Check(const Properties& rMaterialProperties,const Geome
     if(ierr != 0) return ierr;
 
     if ( LOCAL_EQUIVALENT_STRAIN.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_EQUIVALENT_STRAIN has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_EQUIVALENT_STRAIN Key is 0. Check if all applications were correctly registered.", "" )
     if ( NONLOCAL_EQUIVALENT_STRAIN.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"NONLOCAL_EQUIVALENT_STRAIN has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"NONLOCAL_EQUIVALENT_STRAIN Key is 0. Check if all applications were correctly registered.", "" )
 
     return ierr;
 }

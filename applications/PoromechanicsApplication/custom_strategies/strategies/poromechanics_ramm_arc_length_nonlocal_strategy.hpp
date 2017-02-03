@@ -40,7 +40,6 @@ public:
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
     using Grandx2MotherType::mpScheme;
     using Grandx2MotherType::mpBuilderAndSolver;
     using Grandx2MotherType::mpConvergenceCriteria;

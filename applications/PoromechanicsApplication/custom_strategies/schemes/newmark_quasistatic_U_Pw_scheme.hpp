@@ -57,20 +57,22 @@ public:
         KRATOS_TRY
         
         //check for variables keys (verify that the variables are correctly initialized)
+        if(DELTA_TIME.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"DELTA_TIME Key is 0. Check if all applications were correctly registered.", "")
         if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.", "" )
         if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.", "" )
         if(ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.", "" )
         if(WATER_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
         if(DT_WATER_PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE Key is 0. Check if all applications were correctly registered.", "" )
         if ( VELOCITY_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
         if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DT_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_PRESSURE_COEFFICIENT Key is 0. Check if all applications were correctly registered.", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
@@ -395,7 +397,7 @@ public:
 
         KRATOS_CATCH( "" )
     }
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:

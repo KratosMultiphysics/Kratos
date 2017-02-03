@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Time monitoring
 import time as timer
-print (timer.ctime())
+print(timer.ctime())
 initial_time = timer.perf_counter()
 
 ## Importing modules -----------------------------------------------------------------------------------------
@@ -14,30 +14,25 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+#~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-
+    
 # Parsing the parameters
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
-#Import solver module
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-
-# Import process modules
-import process_factory
-from gid_output_process import GiDOutputProcess
-
-# Import utilities
-import poromechanics_fracture_propagation_utility
-import poromechanics_cleaning_utility
+# Parallel Configuration
+parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
+parallel=KratosMultiphysics.OpenMPUtils()
+parallel.SetNumThreads(ProjectParameters["problem_data"]["number_of_threads"].GetInt())
+if parallel_type == "MPI":
+    import KratosMultiphysics.mpi as KratosMPI
+    print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+else:
+    print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
 ## Defining variables ----------------------------------------------------------------------------------------
 
-# Number of threads
-parallel=KratosMultiphysics.OpenMPUtils()
-parallel.SetNumThreads(ProjectParameters["problem_data"]["OMP_threads"].GetInt())
-
-# Problem variables
 domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 problem_path = os.getcwd()
@@ -47,8 +42,6 @@ delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 tol = delta_time*1.0e-10
-output_settings = ProjectParameters["output_configuration"]
-FracturePropagation = ProjectParameters["solver_settings"]["fracture_propagation"].GetBool()
 
 ## Model part ------------------------------------------------------------------------------------------------
 
@@ -61,6 +54,7 @@ main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 # Construct the solver (main setting methods are located in the solver_module)
+solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
 # Add problem variables
@@ -87,6 +81,7 @@ if(echo_level > 1):
 ## Initialize ------------------------------------------------------------------------------------------------
 
 # Construct processes to be applied
+import process_factory
 list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
@@ -106,12 +101,21 @@ for step in range(buffer_size-1):
     time = time + delta_time
     main_model_part.CloneTimeStep(time)
 
-# Clean previous post files
-poromechanics_cleaning_utility.CleanPreviousFiles(problem_path)
-
 # Initialize GiD I/O
 computing_model_part = solver.GetComputingModelPart()
-gid_output = GiDOutputProcess(computing_model_part,problem_name,output_settings)
+output_settings = ProjectParameters["output_configuration"]
+if parallel_type == "OpenMP":
+    import poromechanics_cleaning_utility
+    poromechanics_cleaning_utility.CleanPreviousFiles(problem_path) # Clean previous post files
+    from gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(computing_model_part,
+                                  problem_name,
+                                  output_settings)
+else:
+    from gid_output_process_mpi import GiDOutputProcessMPI
+    gid_output = GiDOutputProcessMPI(computing_model_part,
+                                     problem_name,
+                                     output_settings)
 gid_output.ExecuteInitialize()
 
 # Initialize the solver
@@ -125,7 +129,9 @@ for process in list_of_processes:
 gid_output.ExecuteBeforeSolutionLoop()
 
 # Initialize Fracture Propagation Utility
+FracturePropagation = ProjectParameters["problem_data"]["fracture_propagation"].GetBool()
 if FracturePropagation:
+    import poromechanics_fracture_propagation_utility
     fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
                                                                                              problem_name,
                                                                                              ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
@@ -188,8 +194,9 @@ for process in list_of_processes:
     process.ExecuteFinalize()
     
 # Finalizing strategy
-solver.Clear()
+if parallel_type == "OpenMP":
+    solver.Clear()
 
 # Time control
 print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - initial_time)," seconds.")
-print (timer.ctime())
+print(timer.ctime())

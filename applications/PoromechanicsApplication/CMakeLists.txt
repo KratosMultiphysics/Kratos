@@ -6,6 +6,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
+#~ include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
+#~ include_directories(${TRILINOS_INCLUDE_DIR})
 
 ## generate variables with the sources
 set( KRATOS_POROMECHANICS_APPLICATION_SOURCES
@@ -67,6 +69,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPoromechanicsApplication SHARED ${KRATOS_POROMECHANICS_APPLICATION_SOURCES})
 target_link_libraries(KratosPoromechanicsApplication KratosCore KratosSolidMechanicsApplication)
+#~ target_link_libraries(KratosPoromechanicsApplication KratosCore KratosSolidMechanicsApplication KratosTrilinosApplication)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPoromechanicsApplication PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )

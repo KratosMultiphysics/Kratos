@@ -61,9 +61,9 @@ public:
         if(ierr != 0) return ierr;
 
         if ( RAYLEIGH_ALPHA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA Key is 0. Check if all applications were correctly registered.", "" )
         if ( RAYLEIGH_BETA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA Key is 0. Check if all applications were correctly registered.", "" )
             
         // Check rayleigh coefficients
         if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )

@@ -13,7 +13,11 @@ VALUE: 1.0
 HELP: Units in IS: s
 QUESTION: Echo_Level
 VALUE: 1
-QUESTION: OMP_Threads
+QUESTION: Parallel_Configuration#CB#(OpenMP,MPI)
+VALUE: OpenMP
+HELP: For the moment, MPI only works in Linux and requires compiling METIS_APPLICATION and TRILINOS_APPLICATION. Non-local_Damage and Fracture_Propagation do not work in MPI.
+DEPENDENCIES: (OpenMP,RESTORE,Number_of_threads,#CURRENT#)(MPI,HIDE,Number_of_threads,1)
+QUESTION: Number_of_threads
 VALUE: 1
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
@@ -26,6 +30,7 @@ VALUE: 0.01
 HELP: Length defining the domain of interaction between non-local damaged points.
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
+HELP: Only for pre-defined crack-tips defined with interface elements.
 DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
@@ -86,11 +91,11 @@ HELP: Times the initial radius. In order to use a constant radius, choose the sa
 QUESTION: Min_Radius_Factor
 VALUE: 1.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
-QUESTION: Builder#CB#(Elimination,Block)
-VALUE: Elimination
-QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL)
+QUESTION: Block_Builder#CB#(true,false)
+VALUE: false
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
 VALUE: BICGSTABSolver
-HELP: SkylineLUFactorizationSolver and SuperLUSolver are direct solvers. BICGSTABSolver and AMGCL are iterative solvers.
+HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false
 QUESTION: Verbosity

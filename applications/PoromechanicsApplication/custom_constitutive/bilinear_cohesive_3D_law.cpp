@@ -50,7 +50,7 @@ int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const Geo
 {
     // Verify ProcessInfo variables
     if ( IS_CONVERGED.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
     
     // Verify Properties variables
     if(CRITICAL_DISPLACEMENT.Key() == 0 || rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)

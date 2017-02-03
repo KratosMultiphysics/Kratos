@@ -56,6 +56,8 @@ public:
     
     void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
     {
+        std::cout << "Starting non-local search of neighbours ..." << std::endl;
+        
         // Define necessary variables
         Utility2DVariables AuxVariables;
 
@@ -63,6 +65,8 @@ public:
         this->InitializeNonlocalSearch(AuxVariables,pParameters,rModelPart);
                 
         this->SearchNeighbours(AuxVariables,pParameters,rModelPart);
+        
+        std::cout << "... search of neighbours completed." << std::endl;
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

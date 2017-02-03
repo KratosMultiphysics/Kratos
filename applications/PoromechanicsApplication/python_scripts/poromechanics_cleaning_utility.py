@@ -15,7 +15,7 @@ def CleanPreviousFiles(problem_path):
 	file_ending_type = ".post.lst"
 	CleanPreviousFileType(file_ending_type,problem_path)
 
-	file_ending_type = "log.time"
+	file_ending_type = "info.time"
 	CleanPreviousFileType(file_ending_type,problem_path)
 
 

@@ -6,17 +6,21 @@
         "start_time":           0.0,
         "end_time":             2.0,
         "time_step":            0.02,
-        "OMP_threads":          1
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1,
+        "fracture_propagation": false
     },
     "solver_settings": {
         "solver_type":                        "poromechanics_U_Pw_solver",
         "model_import_settings":              {
-            "input_type":     "mdpa",
-            "input_filename": "undrained_soil_column_2D"
+            "input_type":       "mdpa",
+            "input_filename":   "undrained_soil_column_2D",
+            "input_file_label": 0
         },
         "buffer_size":                        2,
         "echo_level":                         1,
         "reform_dofs_at_each_step":           false,
+        "clear_storage":                      false,
         "compute_reactions":                  false,
         "move_mesh_flag":                     true,
         "solution_type":                      "Quasi-Static",
@@ -27,7 +31,6 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "Newton-Raphson",
-        "fracture_propagation":               false,
         "convergence_criterion":              "And_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
@@ -37,16 +40,14 @@
         "desired_iterations":                 4,
         "max_radius_factor":                  20.0,
         "min_radius_factor":                  0.5,
-        "builder":                            "Elimination",
+        "block_builder":                      false,
         "nonlocal_damage":                    false,
         "characteristic_length":              0.05,
         "linear_solver_settings":             {
-            "solver_type":                    "SuperLUSolver",
-            "tolerance":                      1.0e-6,
-            "max_iteration":                  100
+            "solver_type":   "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
-        "body_domain_sub_model_part_list":      ["Body_Part-auto-1"],
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "loads_variable_list":                ["FACE_LOAD","NORMAL_FLUID_FLUX"]

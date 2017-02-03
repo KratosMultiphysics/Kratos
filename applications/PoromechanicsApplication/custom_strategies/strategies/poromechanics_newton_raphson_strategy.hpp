@@ -69,7 +69,7 @@ public:
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
                     "characteristic_length": 0.05,
-                    "search_neighbours_step": true,
+                    "search_neighbours_step": false,
                     "body_domain_sub_model_part_list": [""],
                     "loads_sub_model_part_list": [""],
                     "loads_variable_list" : [""]
@@ -168,7 +168,7 @@ protected:
         if(ierr != 0) return ierr;
         
         if(IS_CONVERGED.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
         
         return ierr;
 

@@ -1,6 +1,6 @@
-BeginZE /Users/ignasi/Downloads/test_examples/consolidation_interface_3D.gid/consolidation_interface_3D.vv
+BeginZE /home/ipouplana/Descargas/Tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
    x -0.366025388240814209 1.36602544784545898
-   y 1.7716139554977417 -0.771613955497741699
+   y 1.78246688842773438 -0.782466888427734375
    z -1.36602544784545898 0.366025388240814209
    e 0.866025388240814209
    v -0.606473028659820557 -0.0477602444589138031 -0.0698096975684165955
@@ -29,7 +29,7 @@ BeginZE /Users/ignasi/Downloads/test_examples/consolidation_interface_3D.gid/con
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /Users/ignasi/Downloads/test_examples/consolidation_interface_3D.gid/consolidation_interface_3D.vv
+EndZE /home/ipouplana/Descargas/Tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
