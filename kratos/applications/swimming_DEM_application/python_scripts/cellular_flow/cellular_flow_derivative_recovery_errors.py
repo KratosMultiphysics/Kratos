@@ -3,14 +3,12 @@ import matplotlib.pyplot as plt
 import h5py
 
 regular_mesh = True
-
-show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
-n_divs = [10, 20, 40, 80]
-marker_size = 10
-line_width = 1
-
+show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
 mat_deriv_recovery_types = [1, 2, 3, 4, 5, 6, 7]
 laplacian_recovery_types = [1, 3, 4, 6, 7]
+
+marker_size = 10
+line_width = 1
 
 def CalculateLastSlopes(sizes, results):
     Delta_result = math.log(results[-1]/results[-2])
@@ -123,7 +121,7 @@ plt.axis('equal')
 
 min_error /= 2
 if regular_mesh:
-    slope = [min_error * (n_divs[-1] / n_div) ** expected_order for n_div in n_divs]
+    slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
     plot_name = 'derivative_recovery_errors_regular.pdf'
 else:
     slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
