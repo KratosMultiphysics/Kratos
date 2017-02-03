@@ -15,10 +15,12 @@ from SmallTests import ThreeDHessianTest as TThreeDHessianTest
 from SmallTests import TwoDCavityTest as TTwoDCavityTest
 from SmallTests import CoarseSphereTest as TCoarseSphereTest
 
-## SMALL TESTS
+## NIGHTLY TESTS
 from NightlyTests import StanfordBunnyTest as TStanfordBunnyTest
 
 ## VALIDATION TESTS 
+from ValidationTests import TwoDSphereRemeshedChannelTest as TTwoDSphereRemeshedChannelTest
+from ValidationTests import ThreeDSphereRemeshedChannelTest as TThreeDSphereRemeshedChannelTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -57,6 +59,11 @@ def AssambleTestSuites():
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
+    if( hasattr(KratosMultiphysics.MeshingApplication,  "MmgUtility2D") ):
+        validationSuite.addTest(TTwoDSphereRemeshedChannelTest('test_execution'))
+        validationSuite.addTest(TThreeDSphereRemeshedChannelTest('test_execution'))
+    else:
+        print("MMG utility is not compiled and the corresponding tests will not be executed")
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -74,6 +81,8 @@ def AssambleTestSuites():
                 TTwoDCavityTest,
                 TCoarseSphereTest,
                 #TStanfordBunnyTest,
+                #TTwoDSphereRemeshedChannelTest,
+                #TThreeDSphereRemeshedChannelTest,
             ])
         )
     else:

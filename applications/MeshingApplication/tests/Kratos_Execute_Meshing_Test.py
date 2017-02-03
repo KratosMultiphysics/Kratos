@@ -141,6 +141,20 @@ class Kratos_Execute_Test:
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
                     
+                if (self.main_model_part.Is(MODIFIED) == True):
+                    # WE INITIALIZE THE SOLVER
+                    self.solver.Initialize()
+                    # WE RECOMPUTE THE PROCESSES AGAIN
+                    ## Processes initialization
+                    for process in self.list_of_processes:
+                        process.ExecuteInitialize()
+                    ## Processes before the loop
+                    for process in self.list_of_processes:
+                        process.ExecuteBeforeSolutionLoop()
+                    ## Processes of initialize the solution step
+                    for process in self.list_of_processes:
+                        process.ExecuteInitializeSolutionStep()
+                    
                 if (self.output_post == True):
                     self.gid_output.ExecuteInitializeSolutionStep()
                             

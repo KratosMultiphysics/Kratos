@@ -36,10 +36,16 @@ class MeshingTestFactory(KratosUnittest.TestCase):
             self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
 
     def test_execution(self):
-        pass
-        # Within this location context:
-        #with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            #self.test.Solve()
+        #pass # NOTE: The validation problems are actually solved
+        #Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.test.Solve()
 
     def tearDown(self):
         pass
+
+class TwoDSphereRemeshedChannelTest(MeshingTestFactory):
+    file_name = "mmg_test/2D_sphere_remeshed_channel_test"
+    
+class ThreeDSphereRemeshedChannelTest(MeshingTestFactory):
+    file_name = "mmg_test/3D_sphere_remeshed_channel_test"

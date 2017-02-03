@@ -29,6 +29,14 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
         elif self.test_name == "3D_hessian_test":
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(DISTANCE, 0, (node.Z - 0.05) * (math.tanh(-100.0 * (node.Y - 0.5 - 0.25 * math.sin(2.0 * node.X * math.pi))) + math.tanh(100.0*(node.Y - node.X))))
+        elif self.test_name == "2D_sphere_remeshed_channel_test":
+            for node in self.main_model_part.Nodes:
+                dist = ((node.X - 0.5)**2+(node.Y - 0.5)**2)**0.5 - 0.25
+                node.SetSolutionStepValue(DISTANCE, 0, dist)
+        elif self.test_name == "3D_sphere_remeshed_channel_test":
+            for node in self.main_model_part.Nodes:
+                dist = ((node.X - 0.5)**2+(node.Y - 0.5)**2+(node.Z - 0.5)**2)**0.5 - 0.25
+                node.SetSolutionStepValue(DISTANCE, 0, dist)
         
     def ExecuteBeforeSolutionLoop(self): 
         pass
