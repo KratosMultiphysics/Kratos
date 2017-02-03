@@ -95,7 +95,7 @@ public:
         
         array_1d<double,3> initial_local_axis_1; initial_local_axis_1[0] = 1.0; initial_local_axis_1[1] = 0.0; initial_local_axis_1[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
         array_1d<double,3> initial_local_axis_2; initial_local_axis_2[0] = 0.0; initial_local_axis_2[1] = 1.0; initial_local_axis_2[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
-        array_1d<double,3> initial_local_axis_3; initial_local_axis_2[0] = 0.0; initial_local_axis_3[1] = 1.0; initial_local_axis_3[2] = 1.0; //(local axes are assumed oriented as global axes at the beginning)
+        array_1d<double,3> initial_local_axis_3; initial_local_axis_2[0] = 0.0; initial_local_axis_3[1] = 0.0; initial_local_axis_3[2] = 1.0; //(local axes are assumed oriented as global axes at the beginning)
         
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, unitary_omega, rotated_angle, current_local_axis_1);
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_omega, rotated_angle, current_local_axis_2);        
