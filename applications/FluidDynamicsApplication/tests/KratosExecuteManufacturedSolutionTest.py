@@ -90,15 +90,8 @@ class KratosExecuteManufacturedSolutionTest(KratosUnittest.TestCase):
             plt.savefig('l2_norm_convergence.png')
 
         # Check obtained solution
-        # expected_average_slope_velocity = 1.9463345465758586 # If refined up to ref3
-        # expected_average_slope_pressure = 2.3506678986091716 # If refined up to ref3
-        expected_average_slope_velocity = 1.9275151777783122 # If refined up to ref4
-        expected_average_slope_pressure = 2.5589604144859090 # If refined up to ref4
-        expected_velocity_errors = [0.017743022313166188, 0.005427685443556517, 0.001317737854487936, 0.00032233535399018106, 8.042800166431399e-05]
-        expected_pressure_errors = [45.22306034483307, 4.921585848626446, 0.9007298592935127, 0.22099803957702194, 0.06681496717331087]
-
-        self.assertAlmostEqual(average_slope_velocity, expected_average_slope_velocity)
-        self.assertAlmostEqual(average_slope_pressure, expected_average_slope_pressure)
+        expected_velocity_errors = [0.01706550571356133, 0.005364433691261979, 0.0013141419421569228, 0.00032206099110687196, 8.037669382387794e-05]
+        expected_pressure_errors = [44.01578250153334, 4.878614822383654, 0.8951491517247935, 0.22004911463579638, 0.06668136422074873]
 
         for i in range(len(self.meshes_list)):
             self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
