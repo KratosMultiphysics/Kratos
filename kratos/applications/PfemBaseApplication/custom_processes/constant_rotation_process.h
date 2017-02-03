@@ -98,8 +98,6 @@ public:
         array_1d<double,3> initial_local_axis_3; initial_local_axis_2[0] = 0.0; initial_local_axis_3[1] = 1.0; initial_local_axis_3[2] = 1.0; //(local axes are assumed oriented as global axes at the beginning)
         
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, unitary_omega, rotated_angle, current_local_axis_1);
-        KRATOS_WATCH("___________________________________________________________________________________")
-        KRATOS_WATCH(current_local_axis_1)
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_omega, rotated_angle, current_local_axis_2);        
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_3, unitary_omega, rotated_angle, current_local_axis_3);        
         
@@ -120,10 +118,6 @@ public:
             
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
             noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);
-            KRATOS_WATCH("___________________________________________________________________________________")
-            KRATOS_WATCH(mW)
-            KRATOS_WATCH(new_from_center_to_node)
-            KRATOS_WATCH(current_node_velocity)
             
         }//end of loop over nodes
         KRATOS_CATCH("");                  
