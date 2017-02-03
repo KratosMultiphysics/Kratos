@@ -162,11 +162,16 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step = 0
         
     def ExecuteInitializeSolutionStep(self):
-        self.step += 1
-        if self.step_frequency > 0:
-            if self.step == self.step_frequency:
-                self._ExecuteRefinement()
-                self.step = 0 # Reset
+        # We need to check if the model part has been modified recently
+        if (self.Model[self.model_part_name].Is(KratosMultiphysics.MODIFIED) == True):
+            self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, False)
+            self.step = 0 # Reset (just to be sure)
+        else:
+            self.step += 1
+            if self.step_frequency > 0:
+                if self.step == self.step_frequency:
+                    self._ExecuteRefinement()
+                    self.step = 0 # Reset
             
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -354,6 +359,9 @@ class MmgProcess(KratosMultiphysics.Process):
         
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
+            
+        # We need to set that the model part has been modified (later on we will act in consequence)
+        self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, True)
             
         print("Remesh finished")
             
