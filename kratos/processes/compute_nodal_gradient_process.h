@@ -377,6 +377,11 @@ private:
     {
         KRATOS_TRY
         
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable.GetSourceVariable() ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_origin_variable.GetSourceVariable();
+        }
+        
         if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
         {
             KRATOS_ERROR << "missing variable " << r_gradient_variable;
@@ -398,6 +403,11 @@ private:
         :mr_model_part(model_part), mr_origin_variable(r_origin_variable), mr_gradient_variable(r_gradient_variable), mr_area_variable(r_area_variable)
     {
         KRATOS_TRY
+        
+        if (model_part.GetNodalSolutionStepVariablesList().Has( r_origin_variable.GetSourceVariable() ) == false )
+        {
+            KRATOS_ERROR << "missing variable " << r_origin_variable.GetSourceVariable();
+        }
         
         if (model_part.GetNodalSolutionStepVariablesList().Has( r_gradient_variable ) == false )
         {
