@@ -116,6 +116,9 @@ public:
             array_1d<double,3>& current_node_position = node_i->Coordinates();     
             noalias(current_node_position) = mCenter + new_from_center_to_node;
             
+            node_i->pGetDof(VELOCITY_X)->FixDof();
+            node_i->pGetDof(VELOCITY_Y)->FixDof();
+            node_i->pGetDof(VELOCITY_Z)->FixDof();
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
             noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);
             
