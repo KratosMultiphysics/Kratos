@@ -17,32 +17,33 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## generate variables with the sources
-set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES    
+set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/swimming_DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled_weak.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_laplacian_simplex_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_mat_deriv_simplex_element.cpp    
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_component_gradient_simplex_element.cpp       
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_gradient_Fortin_2012.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian_component.cpp     
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp         
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_mat_deriv_simplex_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_component_gradient_simplex_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_gradient_Fortin_2012.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian_component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/calculate_laplacian_simplex_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_rigid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/swimming_DEM_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/hybrid_bashforth_scheme.cpp    
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/terminal_velocity_scheme.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_old_velocity_scheme.cpp      
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/hybrid_bashforth_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/terminal_velocity_scheme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_old_velocity_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/adams_bashforth_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/binbased_DEM_fluid_coupled_mapping.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/basset_force_tools.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/velocity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/cellular_flow_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/ethier_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/sets/space_time_set.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery.cpp
@@ -58,13 +59,13 @@ target_link_libraries(KratosSwimmingDEMApplication KratosDEMApplication KratosFl
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .pyd)
     set_target_properties(KratosSwimmingDEMApplication PROPERTIES COMPILE_DEFINITIONS "SWIMMING_DEM_APPLICATION=EXPORT,API")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
