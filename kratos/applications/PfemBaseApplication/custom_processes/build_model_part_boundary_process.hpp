@@ -603,13 +603,13 @@ namespace Kratos
 		    // Search for existing conditions: end
 
 		    if( !point_condition ){
-		      // usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to other 3D geometries
-		      //p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+		      // usually one MasterElement and one MasterNode for 2D and 3D simplex
+		      // can be more than one in other geometries -> it has to be extended to that cases
+		      
 		      WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
 		      MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
 		      p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
-		      //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,i)) ) );	
 		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
 		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);

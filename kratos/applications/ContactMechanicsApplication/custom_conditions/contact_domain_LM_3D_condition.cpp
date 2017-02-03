@@ -90,11 +90,10 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
     Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    Element::NodeType&    MasterNode  = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
-    int  slave_a =-1;
-    int  slave_b =-1;
+    int  slave = -1;
     
     for(unsigned int i=0; i<MasterElement.GetGeometry().PointsNumber(); i++)
     {
@@ -145,7 +144,7 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
         }
 
 
-	if( counter != 3 )
+	if( counter != 6 )
 	  KRATOS_THROW_ERROR( std::invalid_argument, "Something is Wrong with MASTERNODE and contact order", "" )
 
 	//Permute
@@ -158,18 +157,56 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
 	permute[4]=0;
 	permute[5]=1;
 	permute[6]=2;
-	
-	//reorder counter-clock-wise
-	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
 
+	//reorder counter-clock-wise
+	if(mContactVariables.slaves.size() == 1){
+
+	  for( unsigned int i=1; i<=3; i++ )
+	    {
+	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+i]);
+	    }
+	  
+	}
+	else if(mContactVariables.slaves.size() == 2){
+
+	  if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
+	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
+	  }
+	  else{
+
+	    if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+2] ){
+	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
+	    }
+	    else{
+
+	      std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
+		  
+	      if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
+	      }
+	      else{
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
+	      } 
+		  
+	    }
+	  }
+	  
+	}
+	else{
+
+	  std::cout<<" Problem in the SLAVES DETECTION "<<std::endl;
+	}
+    
 	mContactVariables.SetMasterGeometry( MasterElement.GetGeometry() );
        
     }
     else
     {
         KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
-
     }
 
     
@@ -178,12 +215,220 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
 //************************************************************************************
 //************************************************************************************
 
+
+ 
 void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagrange multiplier
+{
+
+  if( this->Is(SELECTED) )
+    CalculatePreviousGapEdgeType(); 
+  else
+    CalculatePrefiousGapFaceType();
+
+}
+  
+
+//************************************************************************************
+//************************************************************************************
+
+  
+void ContactDomainLM3DCondition::TransformCovariantToContravariantBase(SurfaceBase& Covariant,SurfaceBase& Contravariant) //prediction of the lagrange multiplier face type element
+{
+
+  Covariant.Metric.resize(2,2);
+
+  Covariant.Metric(0,0) = Covariant.DirectionA * Covariant.DirectionA;
+  Covariant.Metric(0,1) = Covariant.DirectionA * Covariant.DirectionB;
+  Covariant.Metric(1,0) = Covariant.DirectionB * Covariant.DirectionA;
+  Covariant.Metric(1,1) = Covariant.DirectionB * Covariant.DirectionB;
+
+
+  double MetricDet;
+  MathUtils<double>::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
+
+  //transform DirectionA to the contravariant base
+  Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(0,1);
+
+  //transform DirectionB to the contravariant base
+  Contravariant.DirectionB = Covariant.DirectionA * Contravariant.Metric(1,0) + Covariant.DirectionB * Contravariant.Metric(1,1);
+
+}
+  
+//************************************************************************************
+//************************************************************************************
+
+  
+void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of the lagrange multiplier face type element
 {
  
     //Contact face segment node1-node2
     unsigned int node1=mContactVariables.nodes[0];
     unsigned int node2=mContactVariables.nodes[1];
+    unsigned int node3=mContactVariables.nodes[2];
+    unsigned int slave=mContactVariables.slaves.back();
+
+    //Get Reference Normal
+    mContactVariables.ReferenceSurface.Normal=GetValue(NORMAL);
+
+   
+    //std::cout<<" Reference Normal ["<<this->Id()<<"] "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
+    
+    //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
+
+    //a.- Recover tensils from previous step: (it must be done once for each time step)
+
+    //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
+    //from the previous configuration
+
+    // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+
+    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+
+
+    //Get previous mechanics stored in the master node/condition
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Matrix StressMatrix(3,3);
+    noalias(StressMatrix) = ZeroMatrix(3,3);
+    Matrix F(3,3);
+    noalias(F) = ZeroMatrix(3,3);
+
+    Vector StressVector;
+    StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
+    F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
+
+    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
+    // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
+    // std::cout<<" MC StressVector "<<StressVector<<std::endl;
+    // std::cout<<" MC F "<<F<<std::endl;
+
+    StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
+
+    //we are going to need F here from Cn-1 to Cn
+    // F0 from C0 to Cn is need for the stress recovery on domain elements
+
+    double detF =MathUtils<double>::Det(F);
+
+    //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
+    mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
+
+    //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
+
+    //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
+
+    //Previous normal and tangent:  n_n-1,t_n-1
+
+    //Previous Position    
+    PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType P3  =  GetGeometry()[node3].Coordinates() - (GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,2) );
+
+    PointType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
+
+    //Set Previous Tangent    
+    mContactTangentVariables.CovariantBase.DirectionA = P2 - P1;
+    mContactTangentVariables.CovariantBase.DirectionB = P3 - P1;
+
+    TransformCovariantToContravariantBase(mContactTangentVariables.CovariantBase, mContactVariables.ContravariantBase);
+
+    //Compute Previous Normal
+    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.PreStepSurface.Normal,mContactTangentVariables.CovariantBase.DirectionA,mContactTangentVariables.CovariantBase.DirectionB);
+
+    //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
+
+    if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
+        mContactVariables.PreStepSurface.Normal*=-1;
+
+    if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
+    {
+        mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
+    }
+
+    //Set Previous Tangent
+    //mContactVariables.PreStepSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
+  
+    //Traction vector
+    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.PreStepSurface.Normal);
+
+
+
+    //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / mContactVariables.ReferenceSurface.Tangent
+
+    //d.- Compute A_n-1,B_n-1,L_n-1
+
+    //A_n-1, B_n-1, L_n-1:
+    std::vector<BaseLengths> PreviousBase(3);
+    mContactUtilities.CalculateBaseDistances(PreviousBase,P1,P2,P3,PS,mContactVariables.PreStepSurface.Normal);
+
+    //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
+
+    //complete the computation of the stabilization gap
+    double ContactFactor = mContactVariables.StabilizationFactor * PreviousBase.L;
+
+    //std::cout<<" Tau "<<ContactFactor<<std::endl;
+
+    //e.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
+
+    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
+
+
+    mContactVariables.PreStepGap.Normal  = 0;
+    mContactVariables.PreStepGap.Tangent = 0;
+
+
+    mContactVariables.PreStepGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
+    mContactVariables.PreStepGap.Tangent = mContactVariables.PreStepGap.Normal;
+
+    mContactVariables.PreStepGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
+
+    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase.A/PreviousBase.L)));
+    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
+    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
+
+
+    mContactVariables.PreStepGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
+
+    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
+    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D2*(-PreviousBase.B/PreviousBase.L)));
+    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,DS);
+
+
+    //d_n-1=X_n - X_n-1
+
+    //f.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
+
+    //gap_n-1 (in function of the n-1 position of hte other node) gap_n-1=(g_N)3_n-1+2*Tau*tn_n-1
+
+    double NormalTensil=0,TangentTensil=0;
+    
+    
+    //g.- Compute normal component of the tension vector:   (tn=n·P·N)
+    NormalTensil=inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.TractionVector);
+
+    //h.- Compute tangent component of the tension vector:  (tt=t·P·N)
+    TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
+
+
+    mContactVariables.PreStepGap.Normal  += 2 * ContactFactor * NormalTensil;
+    mContactVariables.PreStepGap.Tangent += 2 * ContactFactor * TangentTensil;
+   
+
+    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
+    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
+}
+
+  
+//************************************************************************************
+//************************************************************************************
+
+  
+void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagrange multiplier
+{
+ 
+    //Contact face segment node1-node2
+    unsigned int node1=mContactVariables.nodes[0];
+    unsigned int node2=mContactVariables.nodes[1];   
     unsigned int slave=mContactVariables.slaves.back();
 
     //Get Reference Normal
@@ -232,22 +477,11 @@ void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
 
-    //c.- Transform to 3 components
-    Matrix StressMatrix3D= zero_matrix<double> ( 3 );
-    for(unsigned int i=0; i<2; i++)
-    {
-	for(unsigned int j=0; j<2; j++)
-	{
-	    StressMatrix3D(i,j)=StressMatrix(i,j);
-	}
-    }
-
-
-
     //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
 
     //Previous normal and tangent:  n_n-1,t_n-1
-    //Previous Position
+
+    //Previous Position    
     PointType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
     PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) -GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
     PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
