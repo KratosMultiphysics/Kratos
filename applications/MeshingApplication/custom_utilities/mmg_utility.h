@@ -620,43 +620,16 @@ protected:
         }
         
         /* CONDITIONS */
-        unsigned int cond_id = 0;
+        unsigned int cond_id = 1;
         if (mpRefCondition[0] != nullptr)
         {
             int prop_id, isRequired;
             for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
-                cond_id += 1;
-                
                 ConditionType::Pointer pCondition = CreateCondition0(cond_id, prop_id, isRequired);
                 
-                pCondition->Initialize();
-                mThisModelPart.AddCondition(pCondition);
-                                    
-                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                if (pCondition != nullptr)
                 {
-                    std::vector<std::string> ColorList = mColors[prop_id];
-                    for (unsigned int colors = 0; colors < ColorList.size(); colors++)
-                    {
-                        std::string SubModelPartName = ColorList[colors];
-                        ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
-                        SubModelPart.AddCondition(pCondition);
-                    }
-                }
-            }
-        }
-        if (TDim == 3)
-        {
-            if (mpRefCondition[1] != nullptr) // Quadrilateral
-            {
-                ConditionType::Pointer pCondition;
-                int prop_id, isRequired;
-                for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
-                {
-                    cond_id += 1;
-                    
-                    ConditionType::Pointer pCondition = CreateCondition1(cond_id, prop_id, isRequired);
-                    
                     pCondition->Initialize();
                     mThisModelPart.AddCondition(pCondition);
                                         
@@ -670,47 +643,54 @@ protected:
                             SubModelPart.AddCondition(pCondition);
                         }
                     }
-                }
-            }
-        }
-        
-        /* ELEMENTS */
-        unsigned int elem_id = 0;
-        if (mpRefElement[0] != nullptr)
-        {
-            int prop_id, isRequired;
-            for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
-            {
-                elem_id += 1;
-                
-                ElementType::Pointer pElement = CreateElement0(elem_id, prop_id, isRequired);
-                
-                pElement->Initialize();
-                mThisModelPart.AddElement(pElement);
-                
-                if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
-                {
-                    std::vector<std::string> ColorList = mColors[prop_id];
-                    for (unsigned int colors = 0; colors < ColorList.size(); colors++)
-                    {
-                        std::string SubModelPartName = ColorList[colors];
-                        ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
-                        SubModelPart.AddElement(pElement);
-                    }
+                    
+                    cond_id += 1;
                 }
             }
         }
         if (TDim == 3)
         {
-            if (mpRefElement[1] != nullptr) // Prism
+            if (mpRefCondition[1] != nullptr) // Quadrilateral
             {
+                ConditionType::Pointer pCondition;
                 int prop_id, isRequired;
-                for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
+                for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
+                {                    
+                    ConditionType::Pointer pCondition = CreateCondition1(cond_id, prop_id, isRequired);
+                    
+                    if (pCondition != nullptr)
+                    {
+                        pCondition->Initialize();
+                        mThisModelPart.AddCondition(pCondition);
+                                            
+                        if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                        {
+                            std::vector<std::string> ColorList = mColors[prop_id];
+                            for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                            {
+                                std::string SubModelPartName = ColorList[colors];
+                                ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                                SubModelPart.AddCondition(pCondition);
+                            }
+                        }
+                        
+                        cond_id += 1;
+                    }
+                }
+            }
+        }
+        
+        /* ELEMENTS */
+        unsigned int elem_id = 1;
+        if (mpRefElement[0] != nullptr)
+        {
+            int prop_id, isRequired;
+            for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
+            {                
+                ElementType::Pointer pElement = CreateElement0(elem_id, prop_id, isRequired);
+                
+                if (pElement != nullptr)
                 {
-                    elem_id += 1;
-                    
-                    ElementType::Pointer pElement = CreateElement1(elem_id, prop_id, isRequired);
-                    
                     pElement->Initialize();
                     mThisModelPart.AddElement(pElement);
                     
@@ -723,6 +703,38 @@ protected:
                             ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
                             SubModelPart.AddElement(pElement);
                         }
+                    }
+                    
+                    elem_id += 1;
+                }
+            }
+        }
+        if (TDim == 3)
+        {
+            if (mpRefElement[1] != nullptr) // Prism
+            {
+                int prop_id, isRequired;
+                for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
+                {                    
+                    ElementType::Pointer pElement = CreateElement1(elem_id, prop_id, isRequired);
+                    
+                    if (pElement != nullptr)
+                    {
+                        pElement->Initialize();
+                        mThisModelPart.AddElement(pElement);
+                        
+                        if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
+                        {
+                            std::vector<std::string> ColorList = mColors[prop_id];
+                            for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                            {
+                                std::string SubModelPartName = ColorList[colors];
+                                ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                                SubModelPart.AddElement(pElement);
+                            }
+                        }
+                        
+                        elem_id += 1;
                     }
                 }
             }
@@ -1550,6 +1562,8 @@ protected:
         int& isRequired
         )
     {
+        ConditionType::Pointer pCondition = nullptr;
+        
         const cond_geometries_2d index_geom = Line;
         
         int edge0, edge1, isRidge;
@@ -1560,14 +1574,18 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (edge0 == 0) edge0 = mmgMesh->np;
-        if (edge1 == 0) edge1 = mmgMesh->np;
+        bool skip_creation = false;
+        if (edge0 == 0) skip_creation = true;
+        if (edge1 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ConditionNodes (2);
-        ConditionNodes[0] = mThisModelPart.pGetNode(edge0);
-        ConditionNodes[1] = mThisModelPart.pGetNode(edge1);    
-        
-        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ConditionNodes (2);
+            ConditionNodes[0] = mThisModelPart.pGetNode(edge0);
+            ConditionNodes[1] = mThisModelPart.pGetNode(edge1);    
+            
+            pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        }
         
         return pCondition;
     }
@@ -1582,6 +1600,8 @@ protected:
         int& isRequired
         )
     {
+        ConditionType::Pointer pCondition = nullptr;
+        
         const cond_geometries_3d index_geom = Triangle3D;
         
         int vertex0, vertex1, vertex2;
@@ -1592,16 +1612,20 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (vertex0 == 0) vertex0 = mmgMesh->np;
-        if (vertex1 == 0) vertex1 = mmgMesh->np;
-        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        bool skip_creation = false;
+        if (vertex0 == 0) skip_creation = true;
+        if (vertex1 == 0) skip_creation = true;
+        if (vertex2 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ConditionNodes (3);
-        ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
-        ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
-        ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ConditionNodes (3);
+            ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
+            ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
+            ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
         
-        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+            pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        }
         
         return pCondition;
     }
@@ -1616,6 +1640,8 @@ protected:
         int& isRequired
         )
     {
+        ConditionType::Pointer pCondition = nullptr;
+        
         const cond_geometries_3d index_geom = Quadrilateral3D;
         
         int vertex0, vertex1, vertex2, vertex3;
@@ -1626,18 +1652,22 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (vertex0 == 0) vertex0 = mmgMesh->np;
-        if (vertex1 == 0) vertex1 = mmgMesh->np;
-        if (vertex2 == 0) vertex2 = mmgMesh->np;
-        if (vertex3 == 0) vertex3 = mmgMesh->np;
+        bool skip_creation = false;
+        if (vertex0 == 0) skip_creation = true;
+        if (vertex1 == 0) skip_creation = true;
+        if (vertex2 == 0) skip_creation = true;
+        if (vertex3 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ConditionNodes (4);
-        ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
-        ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
-        ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
-        ConditionNodes[3] = mThisModelPart.pGetNode(vertex3);
-        
-        ConditionType::Pointer pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ConditionNodes (4);
+            ConditionNodes[0] = mThisModelPart.pGetNode(vertex0);
+            ConditionNodes[1] = mThisModelPart.pGetNode(vertex1);
+            ConditionNodes[2] = mThisModelPart.pGetNode(vertex2);
+            ConditionNodes[3] = mThisModelPart.pGetNode(vertex3);
+            
+            pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        }
         
         return pCondition;
     }
@@ -1652,6 +1682,8 @@ protected:
         int& isRequired
         )
     {
+        ElementType::Pointer pElement = nullptr;
+        
         const elem_geometries_2d index_geom = Triangle2D;
         
         int vertex0, vertex1, vertex2;
@@ -1662,16 +1694,20 @@ protected:
         }
 
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (vertex0 == 0) vertex0 = mmgMesh->np;
-        if (vertex1 == 0) vertex1 = mmgMesh->np;
-        if (vertex2 == 0) vertex2 = mmgMesh->np;
+        bool skip_creation = false;
+        if (vertex0 == 0) skip_creation = true;
+        if (vertex1 == 0) skip_creation = true;
+        if (vertex2 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ElementNodes (3);
-        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
-        
-        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ElementNodes (3);
+            ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+            ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+            ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
+            
+            pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        }
         
         return pElement;
     }
@@ -1686,6 +1722,8 @@ protected:
         int& isRequired
         )
     {
+        ElementType::Pointer pElement = nullptr;
+        
         const elem_geometries_3d index_geom = Tetrahedra;
         
         int vertex0, vertex1, vertex2, vertex3;
@@ -1696,18 +1734,22 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (vertex0 == 0) vertex0 = mmgMesh->np;
-        if (vertex1 == 0) vertex1 = mmgMesh->np;
-        if (vertex2 == 0) vertex2 = mmgMesh->np;
-        if (vertex3 == 0) vertex3 = mmgMesh->np;
+        bool skip_creation = false;
+        if (vertex0 == 0) skip_creation = true;
+        if (vertex1 == 0) skip_creation = true;
+        if (vertex2 == 0) skip_creation = true;
+        if (vertex3 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ElementNodes (4);
-        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
-        ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
-        
-        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ElementNodes (4);
+            ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+            ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+            ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
+            ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
+            
+            pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        }
         
         return pElement;
     }
@@ -1722,6 +1764,8 @@ protected:
         int& isRequired
         )
     {
+        ElementType::Pointer pElement = nullptr;
+        
         const elem_geometries_3d index_geom = Prism;
                     
         int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5;
@@ -1732,22 +1776,26 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        if (vertex0 == 0) vertex0 = mmgMesh->np;
-        if (vertex1 == 0) vertex1 = mmgMesh->np;
-        if (vertex2 == 0) vertex2 = mmgMesh->np;
-        if (vertex3 == 0) vertex3 = mmgMesh->np;
-        if (vertex4 == 0) vertex4 = mmgMesh->np;
-        if (vertex5 == 0) vertex5 = mmgMesh->np;
+        bool skip_creation = false;
+        if (vertex0 == 0) skip_creation = true;
+        if (vertex1 == 0) skip_creation = true;
+        if (vertex2 == 0) skip_creation = true;
+        if (vertex3 == 0) skip_creation = true;
+        if (vertex4 == 0) skip_creation = true;
+        if (vertex5 == 0) skip_creation = true;
         
-        std::vector<NodeType::Pointer> ElementNodes (6);
-        ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
-        ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
-        ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
-        ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
-        ElementNodes[4] = mThisModelPart.pGetNode(vertex4);
-        ElementNodes[5] = mThisModelPart.pGetNode(vertex5);
+        if (skip_creation == false)
+        {
+            std::vector<NodeType::Pointer> ElementNodes (6);
+            ElementNodes[0] = mThisModelPart.pGetNode(vertex0);
+            ElementNodes[1] = mThisModelPart.pGetNode(vertex1);
+            ElementNodes[2] = mThisModelPart.pGetNode(vertex2);
+            ElementNodes[3] = mThisModelPart.pGetNode(vertex3);
+            ElementNodes[4] = mThisModelPart.pGetNode(vertex4);
+            ElementNodes[5] = mThisModelPart.pGetNode(vertex5);
         
-        ElementType::Pointer pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+            pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        }
         
         return pElement;
     }

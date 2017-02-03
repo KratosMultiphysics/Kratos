@@ -33,6 +33,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "mesh_dependent_constant"          : 0.0
             },
             "enforce_current"                  : true,
+            "initial_step"                     : 1,
             "step_frequency"                   : 0,
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
@@ -131,6 +132,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.boundary_layer_max_distance = self.params["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble()
             self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
             
+        self.initial_step = self.params["initial_step"].GetInt()
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
@@ -169,9 +171,10 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             self.step += 1
             if self.step_frequency > 0:
-                if self.step == self.step_frequency:
-                    self._ExecuteRefinement()
-                    self.step = 0 # Reset
+                if self.step >= self.step_frequency:
+                    if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
+                        self._ExecuteRefinement()
+                        self.step = 0 # Reset
             
     def ExecuteFinalizeSolutionStep(self):
         pass
