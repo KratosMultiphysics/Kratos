@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/vector_field.h"
 #include "custom_utilities/fields/velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
+#include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/basset_force_tools.h"
 #include "custom_utilities/statistics/sampling_tool.h"
 
@@ -170,6 +171,9 @@ using namespace boost::python;
         ;
 
     class_<CellularFlowField, bases<VelocityField> > ("CellularFlowField",  init<const double, const double, const double, const double>())
+        ;
+
+    class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
