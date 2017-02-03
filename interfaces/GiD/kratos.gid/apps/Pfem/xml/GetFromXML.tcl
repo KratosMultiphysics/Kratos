@@ -61,6 +61,8 @@ proc Pfem::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem icon select Results GiDOptions 
     spdAux::SetValueOnTreeItem v time Results OutputControlType
     spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
+    spdAux::SetValueOnTreeItem v Yes Results NodeOutput
+    spdAux::SetValueOnTreeItem v MultipleFiles GiDOptions GiDMultiFileFlag
                 
     #problem settings
     foreach node [[customlib::GetBaseRoot] getElementsByTagName container ] { if {[$node hasAttribute solstratname]} {$node setAttribute icon folder } }
