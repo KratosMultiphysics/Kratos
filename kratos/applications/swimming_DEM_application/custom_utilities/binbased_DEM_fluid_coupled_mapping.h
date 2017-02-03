@@ -21,14 +21,14 @@
 #include "geometries/triangle_2d_3.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "density_function_polynomial.h"
+#include "mollification/density_function_polynomial.h"
 #include "custom_functions.h"
-#include "velocity_field.h"
-#include "fluid_field_utility.h"
+#include "fields/velocity_field.h"
+#include "fields/fluid_field_utility.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
-#include "custom_utilities/point_point_search.h"
+#include "custom_utilities/search/point_point_search.h"
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
