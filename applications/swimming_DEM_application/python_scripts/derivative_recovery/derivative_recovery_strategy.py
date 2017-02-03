@@ -24,7 +24,8 @@ class DerivativeRecoveryStrategy:
         self.vorticity_type = pp.CFD_DEM.vorticity_calculation_type
         self.pressure_grad_type = pp.CFD_DEM.pressure_grad_recovery_type
         self.must_reconstruct_gradient = self.laplacian_type in {3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
-        if pp.CFD_DEM.fluid_already_calculated:
+
+        if pp.CFD_DEM.fluid_already_calculated: # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
             self.pre_computed_derivatives = pp.CFD_DEM.load_derivatives
         else:
             self.pre_computed_derivatives = False
