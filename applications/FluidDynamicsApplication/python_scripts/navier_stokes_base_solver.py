@@ -132,6 +132,13 @@ class NavierStokesBaseSolver:
             elem.SetValue(KratosMultiphysics.C_SMAGORINSKY, 0.0)
     
         print ("Base class model reading finished.")
+        
+    def ExportModelPart(self):
+        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        file = open(name_out_file + ".mdpa","w")
+        file.close()
+        # Model part writing
+        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AddDofs(self):
 
