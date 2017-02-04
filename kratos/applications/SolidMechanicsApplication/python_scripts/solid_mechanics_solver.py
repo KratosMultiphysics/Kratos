@@ -218,7 +218,7 @@ class MechanicalSolver(object):
         file = open(name_out_file + ".mdpa","w")
         file.close()
         # Model part writing
-        KratosMultiphysics.ModelPartIO(name_out_file).WriteModelPart(self.main_model_part)
+        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
     
     def Initialize(self):
         raise Exception("please implement the Custom Initialization of your solver")
