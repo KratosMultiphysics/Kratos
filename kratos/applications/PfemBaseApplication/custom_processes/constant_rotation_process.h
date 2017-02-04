@@ -60,7 +60,8 @@ public:
                 "angular_velocity_z":1.0,
                 "center_x":0.0,
                 "center_y":0.0,
-                "center_z":0.0
+                "center_z":0.0,
+                "interval": [0,"End"]
             }  )" );
         
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -70,7 +71,16 @@ public:
         mW[2] = rParameters["angular_velocity_z"].GetDouble();
         mCenter[0] = rParameters["center_x"].GetDouble();
         mCenter[1] = rParameters["center_y"].GetDouble();
-        mCenter[2] = rParameters["center_z"].GetDouble();             
+        mCenter[2] = rParameters["center_z"].GetDouble();  
+        
+        if(rParameters.Has("interval")) {
+            if(rParameters["interval"][1].IsString()) {
+                if(rParameters["interval"][1].GetString() == "End") rParameters["interval"][1].SetDouble(1e30);
+                else KRATOS_THROW_ERROR(std::runtime_error, "The second value of interval can be \"End\" or a number", 0);
+            }
+            mInitialTime = rParameters["interval"][0].GetDouble();
+            mFinalTime   = rParameters["interval"][1].GetDouble();
+        }
     }
 
     /// Destructor.
@@ -82,6 +92,11 @@ public:
         KRATOS_TRY;
         ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
+        
+        if(rCurrentTime < mInitialTime || rCurrentTime > mFinalTime) {
+            SetAllNodesVelocityToZero();
+            return;
+        }
                    
         array_1d<double,3> current_local_axis_1;
         array_1d<double,3> current_local_axis_2;
@@ -120,8 +135,7 @@ public:
             node_i->pGetDof(VELOCITY_Y)->FixDof();
             node_i->pGetDof(VELOCITY_Z)->FixDof();
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);
-            
+            noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);            
         }//end of loop over nodes
         KRATOS_CATCH("");                  
     }
@@ -150,8 +164,10 @@ protected:
     ///@{
 
     ModelPart&                                 mrModelPart;
-    array_1d<double,3>                                 mW;
+    array_1d<double,3>                                  mW;
     array_1d<double,3>                             mCenter;
+    double                                    mInitialTime;
+    double                                      mFinalTime;
     
     void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                 const double ang, array_1d<double, 3>& new_vec) {
@@ -169,6 +185,21 @@ private:
 
     /// Assignment operator.
     ConstantRotationProcess& operator=(ConstantRotationProcess const& rOther){return *this;}
+    
+    void SetAllNodesVelocityToZero(){
+        KRATOS_TRY;
+        for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
+            node_i->pGetDof(VELOCITY_X)->FixDof();
+            node_i->pGetDof(VELOCITY_Y)->FixDof();
+            node_i->pGetDof(VELOCITY_Z)->FixDof();
+            array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
+            current_node_velocity[0] = 0.0;
+            current_node_velocity[1] = 0.0;
+            current_node_velocity[2] = 0.0;
+        }//end of loop over nodes
+        KRATOS_CATCH("");          
+        
+    }
 
 }; // Class ConstantRotationProcess
 
