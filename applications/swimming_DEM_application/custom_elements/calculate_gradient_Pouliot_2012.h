@@ -4,8 +4,8 @@
 //   Date:                $Date: 2016-03-12
 //
 
-#if !defined(KRATOS_COMPUTE_GRADIENT_FORTIN_2012_H_INCLUDED )
-#define  KRATOS_COMPUTE_GRADIENT_FORTIN_2012_H_INCLUDED
+#if !defined(KRATOS_COMPUTE_GRADIENT_POULIOT_2012_H_INCLUDED )
+#define  KRATOS_COMPUTE_GRADIENT_POULIOT_2012_H_INCLUDED
 
 // System includes
 #include <string>
@@ -59,14 +59,14 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeGradientFortin2012 : public ComputeComponentGradientSimplex<TDim, TNumNodes>
+class ComputeGradientPouliot2012 : public ComputeComponentGradientSimplex<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ComputeGradientFortin2012
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeGradientFortin2012);
+    /// Pointer definition of ComputeGradientPouliot2012
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeGradientPouliot2012);
 
     typedef ComputeComponentGradientSimplex<TDim, TNumNodes> BaseType;
     /// Node type (default is: Node<3>)
@@ -117,7 +117,7 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    ComputeGradientFortin2012(IndexType NewId = 0) :
+    ComputeGradientPouliot2012(IndexType NewId = 0) :
         BaseType(NewId)
     {}
 
@@ -126,7 +126,7 @@ public:
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    ComputeGradientFortin2012(IndexType NewId, const NodesArrayType& ThisNodes) :
+    ComputeGradientPouliot2012(IndexType NewId, const NodesArrayType& ThisNodes) :
         BaseType(NewId, ThisNodes)
     {}	
 
@@ -135,7 +135,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    ComputeGradientFortin2012(IndexType NewId, GeometryType::Pointer pGeometry) :
+    ComputeGradientPouliot2012(IndexType NewId, GeometryType::Pointer pGeometry) :
         BaseType(NewId, pGeometry)
     {}
 
@@ -145,12 +145,12 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    ComputeGradientFortin2012(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+    ComputeGradientPouliot2012(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
        BaseType(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~ComputeGradientFortin2012()
+    virtual ~ComputeGradientPouliot2012()
     {}
 
 
@@ -165,7 +165,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new ComputeGradientFortin2012 element, created using given input
+     * Returns a pointer to a new ComputeGradientPouliot2012 element, created using given input
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
@@ -174,12 +174,12 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new ComputeGradientFortin2012(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new ComputeGradientPouliot2012(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /// Calculate the element's local contribution to the system for the current step. It is a combination of the
     /// RHS of the Base class (weighed by a small parameter to stabilize the system) and the contribution described in
-    /// the Fortin 2012 paper
+    /// the Pouliot 2012 paper
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
@@ -222,14 +222,14 @@ public:
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ComputeGradientFortin2012 #" << this->Id();
+        buffer << "ComputeGradientPouliot2012 #" << this->Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ComputeGradientFortin2012" << TDim << "D";
+        rOStream << "ComputeGradientPouliot2012" << TDim << "D";
     }
 
 //        /// Print object's data.
@@ -306,13 +306,13 @@ private:
      * @param rCurrentProcessInfo the current process info instance
      */
 
-    virtual void AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    virtual void AddFortin2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix);
 
-    virtual void AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
+    virtual void AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
     void AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 
@@ -341,14 +341,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeGradientFortin2012 & operator=(ComputeGradientFortin2012 const& rOther);
+    ComputeGradientPouliot2012 & operator=(ComputeGradientPouliot2012 const& rOther);
 
     /// Copy constructor.
-    ComputeGradientFortin2012(ComputeGradientFortin2012 const& rOther);
+    ComputeGradientPouliot2012(ComputeGradientPouliot2012 const& rOther);
 
     ///@}
 
-}; // Class ComputeGradientFortin2012
+}; // Class ComputeGradientPouliot2012
 
 ///@}
 
@@ -364,7 +364,7 @@ private:
 /// input stream function
 template< unsigned int TDim >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 ComputeGradientFortin2012<TDim>& rThis)
+                                 ComputeGradientPouliot2012<TDim>& rThis)
 {
     return rIStream;
 }
@@ -372,7 +372,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< unsigned int TDim >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const ComputeGradientFortin2012<TDim>& rThis)
+                                 const ComputeGradientPouliot2012<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -386,4 +386,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_GRADIENT_FORTIN_2012_H_INCLUDED  defined
+#endif // KRATOS_COMPUTE_GRADIENT_POULIOT_2012_H_INCLUDED  defined

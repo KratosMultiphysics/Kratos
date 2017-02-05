@@ -1,16 +1,16 @@
 #include "swimming_DEM_application.h"
-#include "calculate_gradient_Fortin_2012.h"
+#include "calculate_gradient_Pouliot_2012.h"
 
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
                                   ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     //const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
-    //const double epsilon = 1e-6 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Forting 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
+    //const double epsilon = 1e-6 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
     const double epsilon = 1e-6 * this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
 
@@ -21,15 +21,15 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixType
         rRightHandSideVector(i) *= 0;
     }
 
-    AddFortin2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    AddPouliot2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    AddFortin2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
+    AddPouliot2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    AddFortin2012RHS(rRightHandSideVector, rCurrentProcessInfo);
+    AddPouliot2012RHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                         ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int LocalSize(TDim * TNumNodes);
@@ -49,7 +49,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rEle
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-int ComputeGradientFortin2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int ComputeGradientPouliot2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -79,7 +79,7 @@ int ComputeGradientFortin2012<TDim, TNumNodes>::Check(const ProcessInfo& rCurren
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
                               ProcessInfo& rCurrentProcessInfo)
 {
 
@@ -100,7 +100,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::EquationIdVector(EquationIdVect
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
     unsigned int edges[NEdges][2];
@@ -128,7 +128,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012LHS(MatrixType& rL
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
 
@@ -183,7 +183,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012StabilizationLHS(c
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
 {
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
@@ -197,7 +197,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(con
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NEdges = 3 * TNumNodes - 6; // works in 2D and 3D
 
@@ -237,7 +237,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AddFortin2012RHS(VectorType& F,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
 {
     const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_X) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_X);
 
@@ -249,7 +249,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionX(co
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionY(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionY(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
 {
     const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_Y) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_Y);
 
@@ -261,7 +261,7 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionY(co
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionZ(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeRHSContributionZ(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F)
 {
     const double vel_component_variation_along_edge = this->GetGeometry()[edge[1]].FastGetSolutionStepValue(VELOCITY_Z) - this->GetGeometry()[edge[0]].FastGetSolutionStepValue(VELOCITY_Z);
 
@@ -273,6 +273,6 @@ void ComputeGradientFortin2012<TDim, TNumNodes>::AssembleEdgeRHSContributionZ(co
 }
 
 // Explicit instantiations
-template class ComputeGradientFortin2012<2, 3>;
-template class ComputeGradientFortin2012<3, 4>;
+template class ComputeGradientPouliot2012<2, 3>;
+template class ComputeGradientPouliot2012<3, 4>;
 } // namespace Kratos
