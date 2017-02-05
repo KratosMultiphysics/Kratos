@@ -30,7 +30,7 @@
 #include "custom_elements/calculate_laplacian_simplex_element.h"
 #include "custom_elements/calculate_mat_deriv_simplex_element.h"
 #include "custom_elements/calculate_component_gradient_simplex_element.h"
-#include "custom_elements/calculate_gradient_Fortin_2012.h"
+#include "custom_elements/calculate_gradient_Pouliot_2012.h"
 #include "custom_elements/calculate_velocity_laplacian_component.h"
 #include "custom_elements/calculate_velocity_laplacian.h"
 #include "custom_elements/shell_rigid.h"
@@ -127,8 +127,8 @@ private:
     const ComputeComponentGradientSimplex<2> mComputeComponentGradientSimplex2D;
     const ComputeComponentGradientSimplex<3> mComputeComponentGradientSimplex3D;
 
-    const ComputeGradientFortin2012<2> mComputeGradientFortin20122D;
-    const ComputeGradientFortin2012<3> mComputeGradientFortin20123D;
+    const ComputeGradientPouliot2012<2> mComputeGradientPouliot20122D;
+    const ComputeGradientPouliot2012<3> mComputeGradientPouliot20123D;
 
     const ComputeVelocityLaplacianComponentSimplex<2> mComputeVelocityLaplacianComponentSimplex2D;
     const ComputeVelocityLaplacianComponentSimplex<3> mComputeVelocityLaplacianComponentSimplex3D;
