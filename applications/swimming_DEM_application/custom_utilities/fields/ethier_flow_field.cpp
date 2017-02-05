@@ -25,8 +25,8 @@ void EthierFlowField::UpdateCoordinates(const double time, const array_1d<double
     if (!mCoordinatesAreUpToDate[i_thread]){
         mExpD2T[i_thread]  = std::exp(- mD * mD * time);
         mExpAX[i_thread]   = std::exp(mA * coor[0]);
-        mExpAZ[i_thread]   = std::exp(mA * coor[1]);
-        mExpAY[i_thread]   = std::exp(mA * coor[2]);
+        mExpAY[i_thread]   = std::exp(mA * coor[1]);
+        mExpAZ[i_thread]   = std::exp(mA * coor[2]);
         mSinAXDY[i_thread] = std::sin(mA * coor[0] + mD * coor[1]);
         mCosAXDY[i_thread] = std::cos(mA * coor[0] + mD * coor[1]);
         mSinAYDZ[i_thread] = std::sin(mA * coor[1] + mD * coor[2]);
@@ -41,8 +41,8 @@ void EthierFlowField::UpdateCoordinates(const double time, const vector<double>&
     if (!mCoordinatesAreUpToDate[i_thread]){
         mExpD2T[i_thread]  = std::exp(- mD * mD * time);
         mExpAX[i_thread]   = std::exp(mA * coor[0]);
-        mExpAZ[i_thread]   = std::exp(mA * coor[1]);
-        mExpAY[i_thread]   = std::exp(mA * coor[2]);
+        mExpAY[i_thread]   = std::exp(mA * coor[1]);
+        mExpAZ[i_thread]   = std::exp(mA * coor[2]);
         mSinAXDY[i_thread] = std::sin(mA * coor[0] + mD * coor[1]);
         mCosAXDY[i_thread] = std::cos(mA * coor[0] + mD * coor[1]);
         mSinAYDZ[i_thread] = std::sin(mA * coor[1] + mD * coor[2]);
@@ -95,7 +95,6 @@ double EthierFlowField::U0D2(const int i)
 {
     return - mA * (mD * mExpAX[i] * mCosAYDZ[i] + mA * mExpAZ[i] * mCosAXDY[i]) * mExpD2T[i];
 }
-
 double EthierFlowField::U1DT(const int i)
 {
     return - mD * mD * U1(i);
@@ -161,15 +160,15 @@ double EthierFlowField::U0D0D2(const int i)
 }
 double EthierFlowField::U0D1D1(const int i)
 {
-    return - mA * (mA * mA * mExpAX[i] * mSinAYDZ[i] - mD * mD * mExpAZ[i] * mCosAXDY[i]) * mExpD2T[i];
+    return - mA * (- mA * mA * mExpAX[i] * mSinAYDZ[i] - mD * mD * mExpAZ[i] * mCosAXDY[i]) * mExpD2T[i];
 }
 double EthierFlowField::U0D1D2(const int i)
 {
-    return - mA * (mA * mD * mExpAX[i] * mSinAYDZ[i] - mA * mD * mExpAZ[i] * mSinAXDY[i]) * mExpD2T[i];
+    return - mA * (- mA * mD * mExpAX[i] * mSinAYDZ[i] - mA * mD * mExpAZ[i] * mSinAXDY[i]) * mExpD2T[i];
 }
 double EthierFlowField::U0D2D2(const int i)
 {
-    return - mA * (mD * mD * mExpAX[i] * mSinAYDZ[i] + mA * mA * mExpAZ[i] * mCosAXDY[i]) * mExpD2T[i];
+    return - mA * (- mD * mD * mExpAX[i] * mSinAYDZ[i] + mA * mA * mExpAZ[i] * mCosAXDY[i]) * mExpD2T[i];
 }
 double EthierFlowField::U1DTDT(const int i)
 {
@@ -189,7 +188,7 @@ double EthierFlowField::U1DTD2(const int i)
 }
 double EthierFlowField::U1D0D0(const int i)
 {
-    return - mA * (mD * mD * mExpAY[i] * mSinAZDX[i] + mA * mA * mExpAX[i] * mCosAYDZ[i]) * mExpD2T[i];
+    return - mA * (- mD * mD * mExpAY[i] * mSinAZDX[i] + mA * mA * mExpAX[i] * mCosAYDZ[i]) * mExpD2T[i];
 }
 double EthierFlowField::U1D0D1(const int i)
 {
@@ -209,7 +208,7 @@ double EthierFlowField::U1D1D2(const int i)
 }
 double EthierFlowField::U1D2D2(const int i)
 {
-    return - mA * (mA * mA * mExpAY[i] * mSinAZDX[i] - mD * mD * mExpAX[i] * mCosAYDZ[i]) * mExpD2T[i];
+    return - mA * (- mA * mA * mExpAY[i] * mSinAZDX[i] - mD * mD * mExpAX[i] * mCosAYDZ[i]) * mExpD2T[i];
 }
 double EthierFlowField::U2DTDT(const int i)
 {
@@ -229,7 +228,7 @@ double EthierFlowField::U2DTD2(const int i)
 }
 double EthierFlowField::U2D0D0(const int i)
 {
-    return - mA * (mA * mA * mExpAZ[i] * mSinAXDY[i] - mD * mD * mExpAY[i] * mCosAZDX[i]) * mExpD2T[i];
+    return - mA * (- mA * mA * mExpAZ[i] * mSinAXDY[i] - mD * mD * mExpAY[i] * mCosAZDX[i]) * mExpD2T[i];
 }
 double EthierFlowField::U2D0D1(const int i)
 {
@@ -241,7 +240,7 @@ double EthierFlowField::U2D0D2(const int i)
 }
 double EthierFlowField::U2D1D1(const int i)
 {
-    return - mA * (mD * mD * mExpAZ[i] * mSinAXDY[i] + mA * mA * mExpAY[i] * mCosAZDX[i]) * mExpD2T[i];
+    return - mA * (- mD * mD * mExpAZ[i] * mSinAXDY[i] + mA * mA * mExpAY[i] * mCosAZDX[i]) * mExpD2T[i];
 }
 double EthierFlowField::U2D1D2(const int i)
 {
@@ -249,7 +248,7 @@ double EthierFlowField::U2D1D2(const int i)
 }
 double EthierFlowField::U2D2D2(const int i)
 {
-    return - mA * (mA * mA * mExpAZ[i] * mSinAXDY[i] - mA * mA * mExpAY[i] * mSinAZDX[i]) * mExpD2T[i];
+    return - mA * (mA * mA * mExpAZ[i] * mSinAXDY[i] - mA * mA * mExpAY[i] * mCosAZDX[i]) * mExpD2T[i];
 }
 
 } // namespace Kratos.
