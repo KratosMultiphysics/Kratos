@@ -244,9 +244,9 @@ input_file_name = pp.problem_name
 
 # reading the fluid part
 if num_type(size_parameter) == 'int':
-    model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_ndiv_' + str(size_parameter)))
+    model_part_io_fluid = ModelPartIO(input_file_name.replace('ethier', 'ethier_ndiv_' + str(size_parameter)))
 elif num_type(size_parameter) == 'float':
-    model_part_io_fluid = ModelPartIO(input_file_name.replace('error', 'error_h_' + str(size_parameter)))
+    model_part_io_fluid = ModelPartIO(input_file_name.replace('ethier', 'ethier_h_' + str(size_parameter)))
 
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
@@ -543,7 +543,7 @@ if DEM_parameters.coupling_level_type:
 
     #G
     a = math.pi / 4
-    d = math.pi / 2
+    d = math.pi / 2*0
 
     flow_field = EthierFlowField(a, d)
 
@@ -660,7 +660,7 @@ DEM_to_fluid_counter         = swim_proc.Counter(1,
                                                  1,
                                                  DEM_parameters.coupling_level_type > 1)
 derivative_recovery_counter    = swim_proc.Counter(1,
-                                                 1,
+                                                 4,
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step,
                                                  1,
@@ -1098,7 +1098,6 @@ with h5py.File(file_name) as f:
     dset_mat_deriv[1] = current_mat_deriv_errors[1]
     dset_laplacian[0] = current_laplacian_errors[0]
     dset_laplacian[1] = current_laplacian_errors[1]
-
 
 if num_type(size_parameter) == 'int':
     size_parameter_name = '_ndiv_'
