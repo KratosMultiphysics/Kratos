@@ -308,6 +308,8 @@ private:
 
     virtual void AddFortin2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
+    virtual void AddFortin2012StabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
     void AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix);
 
     virtual void AddFortin2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
