@@ -9,21 +9,21 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
                                   ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    //const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
-    //const double epsilon = 1e-6 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
-    const double epsilon = 1e-6 * this->GetGeometry().MinEdgeLength();
+    const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
+    const double epsilon = 1e-6 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
+    //const double epsilon = 1e-6 * this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
 
     for (unsigned int i=0; i<LocalSize; ++i){
         for (unsigned int j=0; j<LocalSize; ++j){
-            rLeftHandSideMatrix(i, j) *= 0;
+            rLeftHandSideMatrix(i, j) *= epsilon;
         }
-        rRightHandSideVector(i) *= 0;
+        rRightHandSideVector(i) *= epsilon;
     }
 
     AddPouliot2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    AddPouliot2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
+    //AddPouliot2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
 
     AddPouliot2012RHS(rRightHandSideVector, rCurrentProcessInfo);
 }
@@ -164,21 +164,24 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS
         const double b_plus_c_i = (b + c) > epsilon ? 1.0 / (b + c): 1.0;
         const double c_plus_d_i = (c + d) > epsilon ? 1.0 / (c + d): 1.0;
         const double d_plus_a_i = (d + a) > epsilon ? 1.0 / (d + a): 1.0;
-        rLeftHandSideMatrix(d, d)         += epsilon * b_i * a_plus_b_i;
-        rLeftHandSideMatrix(d, d + 1)     -= epsilon * a_i * b_i;
-        rLeftHandSideMatrix(d, d + 2)     += epsilon * a_i * a_plus_b_i;
 
-        rLeftHandSideMatrix(d + 1, d)     += epsilon * c_i * b_plus_c_i;
-        rLeftHandSideMatrix(d + 1, d + 1) -= epsilon * b_i * c_i;
-        rLeftHandSideMatrix(d + 1, d + 2) += epsilon * b_i * b_plus_c_i;
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+            rLeftHandSideMatrix(iNode + d, iNode + d)         += epsilon * b_i * a_plus_b_i;
+            rLeftHandSideMatrix(iNode + d, iNode + d + 1)     -= epsilon * a_i * b_i;
+            rLeftHandSideMatrix(iNode + d, iNode + d + 2)     += epsilon * a_i * a_plus_b_i;
 
-        rLeftHandSideMatrix(d + 2, d + 1) += epsilon * c_i * c_plus_d_i;
-        rLeftHandSideMatrix(d + 2, d + 2) += epsilon * d_i * c_plus_d_i;
-        rLeftHandSideMatrix(d + 2, d + 3) -= epsilon * c_i * d_i;
+            rLeftHandSideMatrix(iNode + d + 1, iNode + d)     += epsilon * c_i * b_plus_c_i;
+            rLeftHandSideMatrix(iNode + d + 1, iNode + d + 1) -= epsilon * b_i * c_i;
+            rLeftHandSideMatrix(iNode + d + 1, iNode + d + 2) += epsilon * b_i * b_plus_c_i;
 
-        rLeftHandSideMatrix(d + 3, d)     -= epsilon * d_i * a_i;
-        rLeftHandSideMatrix(d + 3, d + 1) += epsilon * d_i * d_plus_a_i;
-        rLeftHandSideMatrix(d + 3, d + 3) += epsilon * a_i * d_plus_a_i;
+            rLeftHandSideMatrix(iNode + d + 2, iNode + d + 1) += epsilon * c_i * c_plus_d_i;
+            rLeftHandSideMatrix(iNode + d + 2, iNode + d + 2) += epsilon * d_i * c_plus_d_i;
+            rLeftHandSideMatrix(iNode + d + 2, iNode + d + 3) -= epsilon * c_i * d_i;
+
+            rLeftHandSideMatrix(iNode + d + 3, iNode + d)     -= epsilon * d_i * a_i;
+            rLeftHandSideMatrix(iNode + d + 3, iNode + d + 1) += epsilon * d_i * d_plus_a_i;
+            rLeftHandSideMatrix(iNode + d + 3, iNode + d + 3) += epsilon * a_i * d_plus_a_i;
+        }
     }
 }
 
