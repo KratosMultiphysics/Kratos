@@ -31,6 +31,87 @@ namespace Kratos
 	//*******************************************************************************************
 	//*******************************************************************************************
 
+        //GEOMETRICAL THEORY
+        // Heron's Formula for the area of a triangle(Hero's Formula)
+        // A method for calculating the area of a triangle when you know the lengths of all three sides.
+        // Let a,b,c be the lengths of the sides of a triangle. The area is given by:
+
+        // area = sqrt( p*(p−a)*(p−b)*(p−c) )   
+
+        // where p is half the perimeter, or
+  
+        // p = 0.5 *(a+b+c)
+
+
+        void ContactDomainUtilities::CalculateBaseArea (double& area,
+							double& a,
+							double& b,
+							double& c)
+	{
+
+	  double p = 0.5*(a+b+c);
+	  area = sqrt( p*(p-a)*(p-b)*(p-c) );
+	    
+	}
+
+  	//*******************************************************************************************
+	//*******************************************************************************************
+
+        void ContactDomainUtilities::CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector,
+							     PointType& P1,
+							     PointType& P2,
+							     PointType& PS1,
+							     PointType& PS2,
+							     PointType& Normal)
+	{
+
+	  BaseVector[0].L=norm_2(P2-P1);
+	  BaseVector[1].L=norm_2(PS2-PS1);
+
+	  //the normal points from the side to the slave node:  
+	  PointType V1; 
+	  PointType V2;
+	  
+	  //projection of the slave on the master plane:  
+	  PointType M1 = 0.5*(P2-P1);
+	  PointType M2 = 0.5*(PS2-PS1);
+   
+	  //Comtutacion of the line bases:
+
+	  //BaseVector[0]:
+	  
+	  V1 = P2-P1;
+	  V2 = Normal;
+
+	  V1 /= norm_2(V1);
+	  V2 /= norm_2(V2);
+	  
+	  CalculateLineIntersection(BaseVector[0].B, P1, M2, V1, V2 );
+
+	  BaseVector[0].A = BaseVector[0].L-BaseVector[0].B;
+
+	  //BaseVector[1]:
+	  
+	  V1 = PS2-PS1;
+	  V2 = -Normal;
+
+	  V1 /= norm_2(V1);
+	  V2 /= norm_2(V2);
+	  
+	  CalculateLineIntersection(BaseVector[1].B, PS1, M1 , V1, V2 );
+
+	  BaseVector[1].A = BaseVector[1].L-BaseVector[1].B;
+
+
+	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	
+
+	}
+  
+  	//*******************************************************************************************
+	//*******************************************************************************************
+
         void ContactDomainUtilities::CalculateBaseDistances (std::vector<BaseLengths>& BaseVector,
 							     PointType& P1,
 							     PointType& P2,
@@ -38,133 +119,113 @@ namespace Kratos
 							     PointType& PS,
 							     PointType& Normal)
 	{
-	  // uint_mat lpofa(4,4);
-	  // Getlpofa(lpofa);
-  
-	  // //std::cout<<" lpofa "<<lpofa(0,slave)<<" "<<lpofa(1,slave)<<" "<<lpofa(2,slave)<<" "<<slave<<std::endl;
 
-	  // Base[0].L=VertexPosition[lpofa(0,slave)].DistancePoint(VertexPosition[lpofa(1,slave)]); 
-	  // Base[1].L=VertexPosition[lpofa(1,slave)].DistancePoint(VertexPosition[lpofa(2,slave)]);  
-	  // Base[2].L=VertexPosition[lpofa(2,slave)].DistancePoint(VertexPosition[lpofa(0,slave)]);  
+	  BaseVector[0].L=norm_2(P2-P1);
+	  BaseVector[1].L=norm_2(P3-P2);
+	  BaseVector[2].L=norm_2(P1-P3);
+	  
+	  //the normal points from the side to the slave node:  
+	  PointType V1; 
+	  PointType V2;
+	  
+	  // V1 = P2-P1;
+	  // V2 = P3-P1;	  
+	  // MathUtils<double>::CrossProduct(Normal,V1,V2);	  
+	  // if( norm_2(Normal) != 0 )
+	  //   Normal/=norm_2(Normal);	  
 
-	  // //because the normal points from the side to the slave node:
-	  // Pt Projection=VertexPosition[slave].ProjectionPlane(VertexPosition[lpofa(0,slave)],VertexPosition[lpofa(1,slave)],VertexPosition[lpofa(2,slave)]);
-
-	  // Pt BaseLine  = (VertexPosition[lpofa(1,slave)]-VertexPosition[lpofa(0,slave)]).direction(); //V1
-	  // Pt PlaneLine = (VertexPosition[lpofa(1,slave)]-VertexPosition[lpofa(2,slave)]).direction(); //V2
-  
-	  // Pt Projected = Projection-VertexPosition[lpofa(0,slave)]; //P2-P1
-
-	  // //intersection of lines:
-	  // Pt PPlane=(Projected%PlaneLine); //(P2-P1)xV2
-	  // Pt BPlane=(BaseLine%PlaneLine); //V1xV2
-  
-	  // double sign=PPlane.direction()*BPlane.direction();
+	  //projection of the slave on the master plane:  
+	  PointType PPS = PS-P1;
+	  PPS-=Normal*(inner_prod(PPS,Normal));
+	  PPS+=P1;
     
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[0].B =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[0].B =0;
-	  // }
+	  //Comtutacion of the line bases:
 
+	  //BaseVector[0]:
+	  
+	  V1 = P2-P1;
+	  V2 = P3-P2;
 
-	  // BaseLine*= (-1); //V1
-	  // Projected=Projection-VertexPosition[lpofa(1,slave)]; //P2-P1
+	  V1 /= norm_2(V1);
+	  V2 /= norm_2(V2);
+	  
+	  CalculateLineIntersection(BaseVector[0].B, P1, PPS, V1, V2 );
 
+	  BaseVector[0].A = BaseVector[0].L-BaseVector[0].B;
 
-	  // PPlane=(Projected%PlaneLine);
-	  // BPlane=(BaseLine%PlaneLine);
-  
-	  // sign=PPlane.direction()*BPlane.direction();
-    
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[0].A =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[0].A =0;
-	  // }
+	  //BaseVector[1]:
+	  
+	  V1 = P3-P2;
+	  V2 = P1-P3;
 
+	  V1 /= norm_2(V1);
+	  V2 /= norm_2(V2);
+	  
+	  CalculateLineIntersection(BaseVector[1].B, P2, PPS, V1, V2 );
 
-	  // BaseLine  = (VertexPosition[lpofa(2,slave)]-VertexPosition[lpofa(1,slave)]).direction();
-	  // PlaneLine = (VertexPosition[lpofa(2,slave)]-VertexPosition[lpofa(0,slave)]).direction();
-	  // Projected = Projection-VertexPosition[lpofa(1,slave)];
+	  BaseVector[1].A = BaseVector[1].L-BaseVector[1].B;
 
-	  // PPlane=(Projected%PlaneLine);
-	  // BPlane=(BaseLine%PlaneLine);
-  
-	  // sign=PPlane.direction()*BPlane.direction();
-    
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[1].B =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[1].B =0;
-	  // }
+	  //BaseVector[2]:
+	  
+	  V1 = P1-P3;
+	  V2 = P2-P1;
 
+	  V1 /= norm_2(V1);
+	  V2 /= norm_2(V2);
+	  
+	  CalculateLineIntersection(BaseVector[1].B, P3, PPS, V1, V2 );
 
-	  // BaseLine *= (-1);
-	  // Projected = Projection-VertexPosition[lpofa(2,slave)];
+	  BaseVector[2].A = BaseVector[2].L-BaseVector[2].B;
 
-	  // PPlane=(Projected%PlaneLine);
-	  // BPlane=(BaseLine%PlaneLine);
-  
-	  // sign=PPlane.direction()*BPlane.direction();
-    
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[1].A =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[1].A =0;
-	  // }
-
-
-	  // BaseLine  = (VertexPosition[lpofa(0,slave)]-VertexPosition[lpofa(2,slave)]).direction();
-	  // PlaneLine = (VertexPosition[lpofa(0,slave)]-VertexPosition[lpofa(1,slave)]).direction();
-	  // Projected = Projection-VertexPosition[lpofa(2,slave)];
-
-	  // PPlane=(Projected%PlaneLine);
-	  // BPlane=(BaseLine%PlaneLine);
-  
-	  // sign=PPlane.direction()*BPlane.direction();
-    
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[2].B =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[2].B =0;
-	  // }
-
-
-	  // BaseLine *= (-1);
-	  // Projected = Projection-VertexPosition[lpofa(0,slave)];
-
-	  // PPlane=(Projected%PlaneLine);
-	  // BPlane=(BaseLine%PlaneLine);
-  
-	  // sign=PPlane.direction()*BPlane.direction();
-    
-  
-	  // if(BPlane.modulus()>0){
-	  //   Base[2].A =(PPlane.modulus()/BPlane.modulus())*sign;
-	  // }
-	  // else{
-	  //   Base[2].A =0;
-	  // }
-
-	  //   std::cout<<" Base 0-> L: "<<Base[0].L<<" A: "<<Base[0].A<<" B: "<<Base[0].B<<std::endl;
-	  //   std::cout<<" Base 1-> L: "<<Base[1].L<<" A: "<<Base[1].A<<" B: "<<Base[1].B<<std::endl;
-	  //   std::cout<<" Base 2-> L: "<<Base[2].L<<" A: "<<Base[2].A<<" B: "<<Base[2].B<<std::endl;
+	  std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  std::cout<<" BaseVector 2-> L: "<<BaseVector[2].L<<" A: "<<BaseVector[2].A<<" B: "<<BaseVector[2].B<<std::endl;
 
 	}
 
-
+	//*******************************************************************************************
+	//*******************************************************************************************
   
+        //GEOMETRICAL THEORY
+        // The method was to
+        // use the two equations that represent the lines:
+
+        //   L1 = P1 + aV1
+        //   L2 = P2 + bV2
+
+        // Where V1 and V2 are the director vectors
+        // P1 point which belongs to L1
+        // P2 point which belongs to L2
+        
+        // => P1 + aV1 = P2 + bV2 
+        // => aV1 = (P2-P1) + bV2
+
+        // applying the vectorial (x V2) in the two sides of the equation:
+
+        // a(V1 x V2) = (P2-P1) x V2
+
+        // once we have "a" we can replace it in the 1st equation to get the 
+        // point of intersection
+
+        void ContactDomainUtilities::CalculateLineIntersection (double& a,
+								const PointType& P1,
+								const PointType& P2,
+								const PointType& V1,
+								const PointType& V2)
+	{
+	  PointType P2_P1 = P2-P1;
+	  PointType V1xV2;
+	  MathUtils<double>::CrossProduct(V1xV2,V1,V2);
+
+	  PointType P2_P1xV2;
+	  MathUtils<double>::CrossProduct(P2_P1xV2,P2_P1,V2);
+
+	  if( norm_2(V1xV2) != 0 )   
+	    a = norm_2(P2_P1xV2)/norm_2(V1xV2);
+	  else
+	    a = 0;	  
+	}
+
 	//*******************************************************************************************
 	//*******************************************************************************************
 
@@ -177,8 +238,9 @@ namespace Kratos
 
 		Base.L=norm_2(P2-P1);
 
+		//the normal points from the side to the slave node:
 
-		//if the normal points from the side to the slave node:
+		//projection of the slave on the master plane:  
 		PointType Projection= PS-P1;
 		Projection-=Normal*(inner_prod(Projection,Normal));
 		Projection+=P1;

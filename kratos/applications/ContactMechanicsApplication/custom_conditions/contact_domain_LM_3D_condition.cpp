@@ -161,7 +161,7 @@ void ContactDomainLM3DCondition::SetMasterGeometry()
 	//reorder counter-clock-wise
 	if(mContactVariables.slaves.size() == 1){
 
-	  for( unsigned int i=1; i<=3; i++ )
+	  for( unsigned int i=1; i<3; i++ )
 	    {
 	      mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+i]);
 	    }
@@ -261,7 +261,7 @@ void ContactDomainLM3DCondition::TransformCovariantToContravariantBase(SurfaceBa
 void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of the lagrange multiplier face type element
 {
  
-    //Contact face segment node1-node2
+    //Contact face node1-node2-node3
     unsigned int node1=mContactVariables.nodes[0];
     unsigned int node2=mContactVariables.nodes[1];
     unsigned int node3=mContactVariables.nodes[2];
@@ -270,28 +270,17 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
     //Get Reference Normal
     mContactVariables.ReferenceSurface.Normal=GetValue(NORMAL);
 
-   
-    //std::cout<<" Reference Normal ["<<this->Id()<<"] "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-    
-    //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
-
-    //a.- Recover tensils from previous step: (it must be done once for each time step)
-
-    //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
-    //from the previous configuration
-
-    // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
-
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
-
-
-    //Get previous mechanics stored in the master node/condition
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix(3,3);
     noalias(StressMatrix) = ZeroMatrix(3,3);
     Matrix F(3,3);
     noalias(F) = ZeroMatrix(3,3);
+    
+    //a.- Assign initial 2nd Piola Kirchhoff stress:
 
+    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+
+    //Get previous mechanics stored in the master node/condition
     Vector StressVector;
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
@@ -311,9 +300,10 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
     mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
 
-    //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
+    //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)   
+    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.PreStepSurface.Normal);
 
-    //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
+    //d.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
 
     //Previous normal and tangent:  n_n-1,t_n-1
 
@@ -321,19 +311,17 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
     PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
     PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
     PointType P3  =  GetGeometry()[node3].Coordinates() - (GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,2) );
-
     PointType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
 
     //Set Previous Tangent    
-    mContactTangentVariables.CovariantBase.DirectionA = P2 - P1;
-    mContactTangentVariables.CovariantBase.DirectionB = P3 - P1;
+    mContactVariables.Tangent.CovariantBase.DirectionA = P2 - P1;
+    mContactVariables.Tangent.CovariantBase.DirectionB = P3 - P1;
 
-    TransformCovariantToContravariantBase(mContactTangentVariables.CovariantBase, mContactVariables.ContravariantBase);
+    TransformCovariantToContravariantBase(mContactVariables.Tangent.CovariantBase, mContactVariables.ContravariantBase);
 
     //Compute Previous Normal
-    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.PreStepSurface.Normal,mContactTangentVariables.CovariantBase.DirectionA,mContactTangentVariables.CovariantBase.DirectionB);
+    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.PreStepSurface.Normal,mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
 
-    //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
 
     if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
         mContactVariables.PreStepSurface.Normal*=-1;
@@ -343,119 +331,135 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
         mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
     }
 
-    //Set Previous Tangent
-    //mContactVariables.PreStepSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
   
-    //Traction vector
-    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.PreStepSurface.Normal);
-
-
-
-    //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / mContactVariables.ReferenceSurface.Tangent
-
-    //d.- Compute A_n-1,B_n-1,L_n-1
+    //e.- Compute A_n-1,B_n-1,L_n-1
 
     //A_n-1, B_n-1, L_n-1:
     std::vector<BaseLengths> PreviousBase(3);
+    double EquivalentArea = 1;
     mContactUtilities.CalculateBaseDistances(PreviousBase,P1,P2,P3,PS,mContactVariables.PreStepSurface.Normal);
+    mContactUtilities.CalculateBaseArea(EquivalentArea,PreviousBase[0].L,PreviousBase[1].L,PreviousBase[2].L);
 
     //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
 
     //complete the computation of the stabilization gap
-    double ContactFactor = mContactVariables.StabilizationFactor * PreviousBase.L;
+    double ContactFactor = mContactVariables.StabilizationFactor * EquivalentArea;
 
     //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
-    //e.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
+    //f.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
-    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
+    mContactVariables.PreviousGap.Normal  = 0;
+    mContactVariables.PreviousGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
+
+    
+    mContactVariables.Tangent.PreviousGapA.Covariant = mContactVariables.PreviousGap.Normal * inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.PreviousGap.Normal);
+    mContactVariables.Tangent.PreviousGapB.Covariant = mContactVariables.PreviousGap.Normal * inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,mContactVariables.PreviousGap.Normal);
+    
+    mContactVariables.Tangent.PreviousGapA.Contravariant = mContactVariables.PreviousGap.Normal * inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,mContactVariables.PreviousGap.Normal);
+    mContactVariables.Tangent.PreviousGapB.Contravariant = mContactVariables.PreviousGap.Normal * inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,mContactVariables.PreviousGap.Normal);
+
+
     PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
     PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType D3  =  GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
+
+       
+    //(g_N)3
+    mContactVariables.PreviousGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
+
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
+    
+    //(g_T)3
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,DS);
+
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,DS);
 
 
-    mContactVariables.PreStepGap.Normal  = 0;
-    mContactVariables.PreStepGap.Tangent = 0;
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,DS);
 
-
-    mContactVariables.PreStepGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
-    mContactVariables.PreStepGap.Tangent = mContactVariables.PreStepGap.Normal;
-
-    mContactVariables.PreStepGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
-
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
-
-
-    mContactVariables.PreStepGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
-
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,DS);
+    
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,DS);
 
 
     //d_n-1=X_n - X_n-1
 
-    //f.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
+    //g.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
 
     //gap_n-1 (in function of the n-1 position of hte other node) gap_n-1=(g_N)3_n-1+2*Tau*tn_n-1
 
-    double NormalTensil=0,TangentTensil=0;
+    double NormalTensil=0,TangentTensilcvA=0,TangentTensilcvB=0,TangentTensilcnA=0,TangentTensilcnB=0;    
     
-    
-    //g.- Compute normal component of the tension vector:   (tn=n·P·N)
+    //h.- Compute normal component of the tension vector:   (tn=n·P·N)
     NormalTensil=inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.TractionVector);
 
-    //h.- Compute tangent component of the tension vector:  (tt=t·P·N)
-    TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
+    
+    //i.- Compute tangent component of the tension vector:  (tt=cvt·P·N)
+    TangentTensilcvA=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.TractionVector);
+    TangentTensilcvB=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,mContactVariables.TractionVector);
+      
+      
+    //j.- Compute tangent component of the tension vector:  (tt=cnt·P·N)
+    TangentTensilcnA=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,mContactVariables.TractionVector);
+    TangentTensilcnB=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
 
-    mContactVariables.PreStepGap.Normal  += 2 * ContactFactor * NormalTensil;
-    mContactVariables.PreStepGap.Tangent += 2 * ContactFactor * TangentTensil;
-   
+    mContactVariables.PreviousGap.Normal  += 3 * ContactFactor * NormalTensil;
 
-    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
-    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
+    mContactVariables.Tangent.PreviousGapA.Covariant += 3 * ContactFactor * TangentTensilcvA;
+    mContactVariables.Tangent.PreviousGapB.Covariant += 3 * ContactFactor * TangentTensilcvB;
+
+    mContactVariables.Tangent.PreviousGapA.Contravariant += 3 * ContactFactor * TangentTensilcnA;
+    mContactVariables.Tangent.PreviousGapB.Contravariant += 3 * ContactFactor * TangentTensilcnB;
+
+
+    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<"] "<<std::endl; 
+    //std::cout<<" Previous Normal Gap [gN:"<<mContactVariables.PreviousGap.Normal<<"] "<<std::endl; 
 }
 
   
 //************************************************************************************
 //************************************************************************************
 
-  
-void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagrange multiplier
+void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of the lagrange multiplier face type element
 {
  
     //Contact face segment node1-node2
     unsigned int node1=mContactVariables.nodes[0];
-    unsigned int node2=mContactVariables.nodes[1];   
-    unsigned int slave=mContactVariables.slaves.back();
+    unsigned int node2=mContactVariables.nodes[1];
+    unsigned int slave1=mContactVariables.slaves[0];
+    unsigned int slave2=mContactVariables.slaves[1];
 
     //Get Reference Normal
     mContactVariables.ReferenceSurface.Normal=GetValue(NORMAL);
 
-    //std::cout<<" Got Normal ["<<this->Id()<<"] "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-
-    //Set Reference Tangent
-    mContactVariables.ReferenceSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.ReferenceSurface.Tangent,mContactVariables.ReferenceSurface.Normal);
-
-    //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
-
-    //a.- Recover tensils from previous step: (it must be done once for each time step)
-
-    //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
-    //from the previous configuration
-
-    // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    //1.- Compute tension vector:  (must be updated each iteration)
+    Matrix StressMatrix(3,3);
+    noalias(StressMatrix) = ZeroMatrix(3,3);
+    Matrix F(3,3);
+    noalias(F) = ZeroMatrix(3,3);
+    
+    //a.- Assign initial 2nd Piola Kirchhoff stress:
 
     Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
 
-
     //Get previous mechanics stored in the master node/condition
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix StressMatrix =zero_matrix<double> (dimension);
-    Matrix F =zero_matrix<double> (dimension);
-
     Vector StressVector;
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
@@ -475,105 +479,151 @@ void ContactDomainLM3DCondition::CalculatePreviousGap() //prediction of the lagr
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
     mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
 
-    //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
+    //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)   
+    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.PreStepSurface.Normal);
 
-    //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
+    //d.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
 
     //Previous normal and tangent:  n_n-1,t_n-1
 
     //Previous Position    
-    PointType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
-    PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) -GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
     PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType PS1  =  GetGeometry()[node3].Coordinates() - (GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,2) );
 
+    PointType PS2  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,2) );
+
+    //Set Previous Tangent    
+    mContactVariables.Tangent.CovariantBase.DirectionA = P2 - P1;
+    mContactVariables.Tangent.CovariantBase.DirectionB = PS2 - PS1;
+
+    TransformCovariantToContravariantBase(mContactVariables.Tangent.CovariantBase, mContactVariables.ContravariantBase);
+
+    //Take MasterCondition for computing reference normal:    
+    PointType M1  =  MasterCondition.GetGeometry()[0].Coordinates() - (MasterCondition.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1) - MasterCondition.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType M2  =  MasterCondition.GetGeometry()[1].Coordinates() - (MasterCondition.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,1) - MasterCondition.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    PointType M3  =  MasterCondition.GetGeometry()[2].Coordinates() - (MasterCondition.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,1) - MasterCondition.GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,2) );
+
+    PointType V1 = M2-M1;
+    PointType V2 = M3-M1;
     //Compute Previous Normal
-    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateFaceNormal(mContactVariables.PreStepSurface.Normal,P1,P2);
+    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateSurfaceNormal(mContactVariables.PreStepSurface.Normal,V1,V2);
 
     //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
 
     if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
         mContactVariables.PreStepSurface.Normal*=-1;
 
-    mContactVariables.PreStepSurface.Normal /= norm_2(mContactVariables.PreStepSurface.Normal);       //to be unitary
-
     if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
     {
         mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
     }
 
-    //Set Previous Tangent
-    mContactVariables.PreStepSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
-  
-    //Traction vector
-    mContactVariables.TractionVector=prod(StressMatrix3D,mContactVariables.PreStepSurface.Normal);
-
-
 
     //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / mContactVariables.ReferenceSurface.Tangent
 
-    //d.- Compute A_n-1,B_n-1,L_n-1
+    //e.- Compute A_n-1,B_n-1,L_n-1
 
     //A_n-1, B_n-1, L_n-1:
-    BaseLengths PreviousBase;
-    mContactUtilities.CalculateBaseDistances(PreviousBase,P1,P2,PS,mContactVariables.PreStepSurface.Normal);
+    std::vector<BaseLengths> PreviousBase(3);
+    mContactUtilities.CalculateEdgeDistances(PreviousBase,P1,P2,PS1,PS2,mContactVariables.PreStepSurface.Normal);
+    double EquivalentArea = 0.25 * (PreviousBase[0].L * PreviousBase[1].L) * (PreviousBase[0].L * PreviousBase[1].L);
 
     //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
 
     //complete the computation of the stabilization gap
-    double ContactFactor = mContactVariables.StabilizationFactor * PreviousBase.L;
+    double ContactFactor = mContactVariables.StabilizationFactor * EquivalentArea;
 
     //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
-    //e.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
+    //f.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
-    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
+    mContactVariables.PreviousGap.Normal  = 0;
+    M1 = 0.5 * (P1+P2);
+    M2 = 0.5 * (PS1+PS2);
+    mContactVariables.PreviousGap.Normal = inner_prod((M2-M1),mContactVariables.PreStepSurface.Normal);
+
+    
+    mContactVariables.Tangent.PreviousGapA.Covariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.CovariantBase.DirectionA*mContactVariables.PreviousGap.Normal);
+    mContactVariables.Tangent.PreviousGapB.Covariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.CovariantBase.DirectionB*mContactVariables.PreviousGap.Normal);
+    
+    mContactVariables.Tangent.PreviousGapA.Contravariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.ContravariantBase.DirectionA*mContactVariables.PreviousGap.Normal);
+    mContactVariables.Tangent.PreviousGapB.Contravariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.ContravariantBase.DirectionB*mContactVariables.PreviousGap.Normal);
+
+    mContactVariables.PreviousGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
+
+
     PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
     PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType DS1  =  GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,2);
+    PointType DS2  =  GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,2);
+    
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(DS1*(PreviousBase[1].B/PreviousBase[1].L))));
+  
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
+
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
+  mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+  mContactVariables.Tangent.PreviousGapB.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
 
 
-    mContactVariables.PreStepGap.Normal  = 0;
-    mContactVariables.PreStepGap.Tangent = 0;
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapA.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
+
+    
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
+    mContactVariables.Tangent.PreviousGapB.Contravariant+=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,(DS2*(PreviousBase[1].B/PreviousBase[1].L)));
 
 
-    mContactVariables.PreStepGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
-    mContactVariables.PreStepGap.Tangent = mContactVariables.PreStepGap.Normal;
+    double EquivalentHeigh = norm_2(MathUtils<double>::CrossProduct(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB) );
 
-    mContactVariables.PreStepGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
-
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
-
-
-    mContactVariables.PreStepGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
-
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,DS);
-
+    EquivalentHeigh *= (0.5/PreviousBase[0].L);
+  
 
     //d_n-1=X_n - X_n-1
 
-    //f.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
+    //g.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
 
     //gap_n-1 (in function of the n-1 position of hte other node) gap_n-1=(g_N)3_n-1+2*Tau*tn_n-1
 
-    double NormalTensil=0,TangentTensil=0;
+    double NormalTensil=0,TangentTensilcvA=0,TangentTensilcvB=0,TangentTensilcnA=0,TangentTensilcnB=0;    
     
-    
-    //g.- Compute normal component of the tension vector:   (tn=n·P·N)
+    //h.- Compute normal component of the tension vector:   (tn=n·P·N)
     NormalTensil=inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.TractionVector);
 
-    //h.- Compute tangent component of the tension vector:  (tt=t·P·N)
-    TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
+    
+    //i.- Compute tangent component of the tension vector:  (tt=cvt·P·N)
+    TangentTensilcvA=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.TractionVector);
+    TangentTensilcvB=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionB,mContactVariables.TractionVector);
+      
+      
+    //j.- Compute tangent component of the tension vector:  (tt=cnt·P·N)
+    TangentTensilcnA=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionA,mContactVariables.TractionVector);
+    TangentTensilcnB=inner_prod(mContactVariables.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
 
-    mContactVariables.PreStepGap.Normal  += 2 * ContactFactor * NormalTensil;
-    mContactVariables.PreStepGap.Tangent += 2 * ContactFactor * TangentTensil;
-   
+    mContactVariables.PreviousGap.Normal  += 3 * ContactFactor * NormalTensil / EquivalentHeigh;
 
-    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
-    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
+    mContactVariables.Tangent.PreviousGapA.Covariant += 3 * ContactFactor * TangentTensilcvA / EquivalentHeigh;
+    mContactVariables.Tangent.PreviousGapB.Covariant += 3 * ContactFactor * TangentTensilcvB / EquivalentHeigh;
+
+    mContactVariables.Tangent.PreviousGapA.Contravariant += 3 * ContactFactor * TangentTensilcnA / EquivalentHeigh;
+    mContactVariables.Tangent.PreviousGapB.Contravariant += 3 * ContactFactor * TangentTensilcnB / EquivalentHeigh;
+
+
+    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<"] "<<std::endl; 
+    //std::cout<<" Previous Normal Gap [gN:"<<mContactVariables.PreviousGap.Normal<<"] "<<std::endl; 
 }
 
 
@@ -647,66 +697,59 @@ void ContactDomainLM3DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
 void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  if( this->Is(SELECTED) )
+    CalculateExplicitFactorsEdgeType(); 
+  else
+    CalculateExplicitFactorsFaceType();
 
-    //Contact face segment node1-node2
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+{
+
+    //Contact face node1-node2-node3
     unsigned int node1=mContactVariables.nodes[0];
-    unsigned int node2=mContactVariables.nodes[1];    
+    unsigned int node2=mContactVariables.nodes[1];
+    unsigned int node3=mContactVariables.nodes[2];
     unsigned int slave=mContactVariables.slaves.back();
 
-    // std::cout<<" ************ CONTACT ELEMENT "<<this->Id()<<" ************* "<<std::endl;
-    // std::cout<<std::endl;
-    
-    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
-    
-    // std::cout<<" master element "<<MasterElement.Id()<<std::endl;
-    // std::cout<<" Elastic Modulus "<<MasterElement.GetProperties()[YOUNG_MODULUS]<<std::endl;
-
-    // std::cout<<" Nodes 1,2,S "<<node1<<" "<<node2<<" "<<slave<<std::endl;
-
-    // std::cout<<" Nodes ID  "<<GetGeometry()[0].Id()<<" "<<GetGeometry()[1].Id()<<" "<<GetGeometry()[2].Id()<<std::endl;
-
-    // std::cout<<" Master Nodes ID  "<<(*mpMasterGeometry)[0].Id()<<" "<<(*mpMasterGeometry)[1].Id()<<" "<<(*mpMasterGeometry)[2].Id()<<std::endl;
 
     //1.- Compute tension vector:  (must be updated each iteration)
-    Matrix StressMatrix ( dimension, dimension );
+    Matrix StressMatrix(3,3);
+    noalias(StressMatrix) = ZeroMatrix(3,3);
     
     //a.- Assign initial 2nd Piola Kirchhoff stress:
     StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
 
-    // SL
+    // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
     StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
-    // UL  
-    //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=F·S)
-    //StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
-    //StressMatrix=prod(rVariables.F,StressMatrix);
-
-    //b.- Transform to 3 components
-    Matrix StressMatrix3D= zero_matrix<double> ( 3 );
-    for(unsigned int i=0; i<2; i++)
-      {
-	for(unsigned int j=0; j<2; j++)
-	  {
-	    StressMatrix3D(i,j)=StressMatrix(i,j);
-	  }
-      }
-   
     //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
-    mContactVariables.TractionVector=prod(StressMatrix3D,mContactVariables.ReferenceSurface.Normal);
+    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);
 
 
     //d.- Compute the Current Normal and Tangent
 
-    PointType PS  =  GetGeometry()[slave].Coordinates();
+    //Current Position    
     PointType P1  =  GetGeometry()[node1].Coordinates();
     PointType P2  =  GetGeometry()[node2].Coordinates();
+    PointType P3  =  GetGeometry()[node3].Coordinates();
+    PointType PS  =  GetGeometry()[slave].Coordinates();
 
-    //compute the current normal vector
-    rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
+    //Set Current Tangent    
+    rVariables.Contact.Tangent.CovariantBase.DirectionA = P2 - P1;
+    rVariables.Contact.Tangent.CovariantBase.DirectionB = P3 - P1;
 
-    //std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
+    TransformCovariantToContravariantBase(rVariables.Contact.Tangent.CovariantBase, rVariables.Contact.Tangent.ContravariantBase);
+
+    //Compute Current Normal
+    rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateSurfaceNormal(rVariables.Contact.CurrentSurface.Normal,rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB);
+
 
     if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
         rVariables.Contact.CurrentSurface.Normal*=-1;
@@ -717,18 +760,6 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
         rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
 
 
-    //compute the current tangent vector
-    //rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
-    rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,rVariables.Contact.CurrentSurface.Normal);
-
-
-    //Current normal:   mContactVariables.ReferenceSurface.Normal
-
-    //2.- Compute normal component of the tension vector:   (tn=n·P·N)
-    rVariables.Contact.CurrentTensil.Normal=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.TractionVector);
-
-    //3.- Compute tangent component of the tension vector:  (tt=t·P·N)
-    rVariables.Contact.CurrentTensil.Tangent=inner_prod(rVariables.Contact.CurrentSurface.Tangent,mContactVariables.TractionVector);
 
     //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
 
@@ -736,171 +767,164 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     //Current normal:   n,t      -> rVariables.Contact.CurrentSurface.Normal /  rVariables.Contact.CurrentSurface.Tangent
 
 
-    // std::cout<<" 2nd PK stress "<<rVariables.StressVector<<std::endl;
-    // std::cout<<" 1st PK stress "<<StressMatrix3D<<std::endl;
-    // std::cout<<" DeformationGradientF "<<rVariables.F<<std::endl;
-    // std::cout<<" Traction  Vector "<<mContactVariables.TractionVector<<std::endl;
-
-
-    // std::cout<<" reference face  normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-    // std::cout<<" reference face  tangent  "<<mContactVariables.ReferenceSurface.Tangent<<std::endl;
-
-    // std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
-    // std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
-
-
-
-    //d.- Compute A_n,B_n,L_n
-    rVariables.Contact.ReferenceBase.resize(1);
-    rVariables.Contact.CurrentBase.resize(1);
+    //e.- Compute A_n,B_n,L_n
+    rVariables.Contact.ReferenceBase.resize(3);
+    rVariables.Contact.CurrentBase.resize(3);
 
     //a, b, l:
-    mContactUtilities.CalculateBaseDistances (rVariables.Contact.CurrentBase[0],P1,P2,PS,rVariables.Contact.CurrentSurface.Normal);
-
-    //Write Current Positions:
-    // std::cout<<" Current position node 1 "<<P1<<std::endl;
-    // std::cout<<" Current position node 2 "<<P2<<std::endl;
-    // std::cout<<" Current position node s "<<PS<<std::endl;
-
+    mContactUtilities.CalculateBaseDistances(rVariables.Contact.CurrentBase,P1,P2,P3,PS,rVariables.Contact.CurrentSurface.Normal);
+    mContactUtilities.CalculateBaseArea(rVariables.Contact.Tangent.EquivalentArea,rVariables.Contact.CurrentBase[0].L,rVariables.Contact.CurrentBase[1].L,rVariables.Contact.CurrentBase[2].L);
 
     //A, B, L:
 
-    PS =  GetGeometry()[slave].Coordinates() - ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    P1 =  GetGeometry()[node1].Coordinates() - ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    P2 =  GetGeometry()[node2].Coordinates() - ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    //Reference Position
+    PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType P3  =  GetGeometry()[node3].Coordinates() - (GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
-    mContactUtilities.CalculateBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
+    mContactUtilities.CalculateBaseDistances(rVariables.Contact.ReferenceBase,P1,P2,P3,PS,mContactVariables.ReferenceSurface.Normal);
 
 
     //complete the computation of the stabilization gap
-    rVariables.Contact.ContactFactor.Normal  =  mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
+    rVariables.Contact.ContactFactor.Normal  =  mContactVariables.StabilizationFactor * rVariables.Contact.Tangent.EquivalentArea;
     rVariables.Contact.ContactFactor.Tangent =  rVariables.Contact.ContactFactor.Normal;
     
-    //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
+    //f.-obtain the (g_N)3 and (g_T)3 for the n configuration
 
-    //Write Reference Positions:
-    // std::cout<<" Reference position node 1 "<<P1<<std::endl;
-    // std::cout<<" Reference position node 2 "<<P2<<std::endl;
-    // std::cout<<" Reference position node s "<<PS<<std::endl;
+ 
+    double ReferenceGapN = inner_prod((PS-P1), mContactVariables.ReferenceSurface.Normal);
 
-    double ReferenceGapN = inner_prod((PS - P1), mContactVariables.ReferenceSurface.Normal);
+    //covariant gap
+    double ReferenceGapcvTA = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,mContactVariables.ReferenceSurface.Normal);
+    double ReferenceGapcvTB = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,mContactVariables.ReferenceSurface.Normal);
+      
+    //contravariant gap
+    double ReferenceGapcnTA = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,mContactVariables.ReferenceSurface.Normal);
+    double ReferenceGapcnTB = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.ReferenceSurface.Normal);
 
-    // std::cout<<" Reference GAP "<<ReferenceGapN<<std::endl;
-    
-    double ReferenceGapT = ReferenceGapN;
-
-    double H = ReferenceGapN;
-
-    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
     PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
     PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-    //Write Displacements:
-    // std::cout<<" displacement node 1 "<<D1<<std::endl;
-    // std::cout<<" displacement node 2 "<<D2<<std::endl;
-    // std::cout<<" displacement node s "<<DS<<std::endl;
-
+    PointType D3  =  GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node3].FastGetSolutionStepValue(DISPLACEMENT,1);
+    PointType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
+    
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
 
-    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
-    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,DS);
 
+      
     //(g_T)3
-    ReferenceGapT*=inner_prod(rVariables.Contact.CurrentSurface.Tangent,mContactVariables.ReferenceSurface.Normal);
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,DS);
 
-    ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
-    ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
-    ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,DS);
-
- 
-
-    //std::cout<<" L :"<<rVariables.Contact.ReferenceBase[0].L<<" A :"<<rVariables.Contact.ReferenceBase[0].A<<" B :"<<rVariables.Contact.ReferenceBase[0].B<<std::endl;
-    // std::cout<<" gN3 ref "<<ReferenceGapN<<std::endl;
+    
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,DS);
 
 
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,DS);
+
+    
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,DS);
+
+    rVariables.Contact.Tangent.EquivalentHeigh = 1;
+    
+    //...
+    
     rVariables.Contact.CurrentGap.Normal=ReferenceGapN; //(g_N)3 -- needed in the Kcont1 computation
-    rVariables.Contact.CurrentGap.Tangent=ReferenceGapT; //(g_T)3 -- needed in the Kcont1 computation
 
-    //f.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
+    rVariables.Contact.Tangent.A.CurrentGap.Covariant=ReferenceGapcvTA; //(g_T)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.A.CurrentGap.Contravariant=ReferenceGapcnTA; //(g_T)3 -- needed in the Kcont1 computation
+    
+    rVariables.Contact.Tangent.B.CurrentGap.Covariant=ReferenceGapcvTB; //(g_T)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.B.CurrentGap.Contravariant=ReferenceGapcnTB; //(g_T)3 -- needed in the Kcont1 computation
+
+    //g.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
 
     //gap_n   (in function of the n position of the other node) gap_n=(g_N)3+2*Tau*tn_n
 
-    ReferenceGapN+= 2 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
-    ReferenceGapT+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.CurrentTensil.Tangent;
-
-    //std::cout<<" ReferenceGapN "<<ReferenceGapN<<" ContactFactor "<<rVariables.Contact.ContactFactor.Normal<<" TensilNormal "<<rVariables.Contact.CurrentTensil.Normal<<std::endl;
-
-    rVariables.Contact.TangentialGapSign=1;
-
-    if((rVariables.Contact.CurrentGap.Tangent)<0)
-    {
-        rVariables.Contact.TangentialGapSign*=(-1);
-    }
-
-
-    if(H==0) rVariables.Contact.TangentialGapSign=0;
     
-    //CORRECTION: to skip change on diagonals problems //convergence problems !!! take care;
-    if(rVariables.Contact.CurrentGap.Normal>0 && ReferenceGapN<0)
-      {
-	//look at the magnitud
-	if(fabs(rVariables.Contact.CurrentGap.Normal) > 2*fabs(ReferenceGapN)){
-	  ReferenceGapN = 0; //rVariables.Contact.CurrentGap.Normal +  rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
-	}
+    //h.- Compute normal component of the tension vector:   (tn=n·P·N)
+    rVariables.Contact.CurrentTensil.Normal=inner_prod(mContactVariables.CurrentSurface.Normal,mContactVariables.TractionVector);
 
-      }
+    
+    //i.- Compute tangent component of the tension vector:  (tt=cvt·P·N)
+    rVariables.Contact.Tangent.A.CurrentTensil.Covariant=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,mContactVariables.TractionVector);
+    rVariables.Contact.Tangent.B.CurrentTensil.Covariant=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,mContactVariables.TractionVector);
+      
+      
+    //j.- Compute tangent component of the tension vector:  (tt=cnt·P·N)
+    rVariables.Contact.Tangent.A.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,mContactVariables.TractionVector);
+    rVariables.Contact.Tangent.B.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
-    //std::cout<<" Tensil "<<rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" product "<<2*rVariables.Contact.ContactFactor*rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<std::endl;
-    //std::cout<<" gN3 ref total "<<ReferenceGapN<<std::endl;
+    
+    ReferenceGapN+= 2 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+
+    ReferenceGapcvTA+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    ReferenceGapcvTB+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    
+    ReferenceGapcnTA+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
+    ReferenceGapcnTB+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
+
+
+    //.... falta anar completant
+
 
     //5.- Compute (Lagrange) Multipliers
 
     //From effective gaps set active contact domain:
 
     double EffectiveGapN = ReferenceGapN;
-    double EffectiveGapT = ReferenceGapT;
+
+    double EffectiveGapcvTA = ReferenceGapcvTA;
+    double EffectiveGapcvTB = ReferenceGapcvTB;
+    
+    double EffectiveGapcnTA = ReferenceGapcnTA;
+    double EffectiveGapcnTB = ReferenceGapcnTB;
+
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
     ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
     
     
-    if(mContactVariables.PreStepGap.Normal!=0 && mContactVariables.IterationCounter<1){    
-      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal)<<" PreStepGap.Normal "<<mContactVariables.PreStepGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<std::endl;
-
-      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal);
-    }
-
-    //std::cout<<" EffectiveGapN "<<EffectiveGapN<<" PreviousEffectiveGapN "<<ReferenceGapN<<std::endl;
-    //only in the first iteration:
-    //mContactVariables.PreStepGap.Normal=ReferenceGapN;
-      
+    if(mContactVariables.PreviousGap.Normal!=0 && mContactVariables.IterationCounter<1){    
+       EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
+    }     
  
-    if(mContactVariables.PreStepGap.Tangent!=0 && mContactVariables.IterationCounter<1){
-      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent)<<" PreStepGap.Tangent "<<mContactVariables.PreStepGap.Tangent<<" ReferenceGapT "<<ReferenceGapT<<std::endl;
-
-      EffectiveGapT+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent);
+    if(mContactVariables.Tangent.PreviousGapA.Covariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcvTA+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcvTA-mContactVariables.Tangent.PreviousGapA.Covariant);
+    }
+    
+    if(mContactVariables.Tangent.PreviousGapB.Covariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcvTB+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcvTB-mContactVariables.Tangent.PreviousGapB.Covariant);
     }
 
-    //std::cout<<" EffectiveGapT "<<EffectiveGapT<<" PreviousEffectiveGapT "<<ReferenceGapT<<std::endl;
-    //only in the first iteration:
-    //mContactVariables.PreStepGap.Tangent=ReferenceGapT;
+    if(mContactVariables.Tangent.PreviousGapA.Contravariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcnTA+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcnTA-mContactVariables.Tangent.PreviousGapA.Contravariant);
+    }
+
+    if(mContactVariables.Tangent.PreviousGapB.Contravariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcnTB+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcnTB-mContactVariables.Tangent.PreviousGapB.Contravariant);
+    }
     
-
-    // std::cout<<" ConditionID:  "<<this->Id()<<" -> Previous Gap [gN:"<<ReferenceGapN<<", gT:"<<ReferenceGapT<<"] "<<std::endl; 
-    // std::cout<<" -> Effective Gap [gN:"<<EffectiveGapN<<", gT:"<<EffectiveGapT<<"] "<<std::endl; 
-
-    //std::cout<<" PreTimeStep "<<Time.PreStep<<" TimeStep "<<Time.Step<<std::endl;
-
     //CHECK IF THE ELEMENT IS ACTIVE:
 
     rVariables.Contact.Options.Set(SLIP,false);
-
-    // if( rVariables.Contact.CurrentGap.Normal>0 && EffectiveGapN<0 && rVariables.Contact.CurrentGap.Normal>rVariables.Contact.ReferenceBase[0].L*0.001){
-    //   EffectiveGapN =  rVariables.Contact.CurrentGap.Normal;
-    // }
 
     //CORRECTION: to skip tip contact elements problems:
     
@@ -928,6 +952,10 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
       EffectiveGapN = 0;
     //decimal correction from tension vector calculation
 
+    double EffectiveGapT = EffectiveGapcvTA;
+    if( EffectiveGapT < EffectiveGapcvTB )
+      EffectiveGapT = EffectiveGapcvTB;
+
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
     {
 
@@ -946,40 +974,42 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
         }
 
 	rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
-	
-	//this->Set(ACTIVE); not here, if is reset is not going to enter here anymore
     }
     else
     {
 	rVariables.Contact.Options.Set(ACTIVE,false); //normal contact not active
-	//this->Reset(ACTIVE); not here, if is reset is not going to enter here anymore
     }
-
-
-    //rVariables.Contact.Options.Set(SLIP,false); //impose stick
 
     //From total current gap compute multipliers:
 
     //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
-    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(2.0*rVariables.Contact.ContactFactor.Normal));
+    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(3.0*rVariables.Contact.ContactFactor.Normal));
 
-    rVariables.Contact.Multiplier.Tangent =rVariables.Contact.CurrentTensil.Tangent;
-    rVariables.Contact.Multiplier.Tangent+=rVariables.Contact.CurrentGap.Tangent*(1./(2.0*rVariables.Contact.ContactFactor.Tangent));
+    rVariables.Contact.Tangent.A.Multiplier=rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(1./(3.0*rVariables.Contact.ContactFactor.Tangent));
 
+    rVariables.Contact.Tangent.B.Multiplier=rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(1./(3.0*rVariables.Contact.ContactFactor.Tangent));
 
-    if(rVariables.Contact.Multiplier.Tangent<0)  //add the sign of the Lagrange Multiplier
+    
+    if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
     {
-        rVariables.Contact.TangentialGapSign*=(-1);
+        rVariables.Contact.Tangent.A.GapSign*=(-1);
     }
 
+    if(rVariables.Contact.Tangent.B.Multiplier<0)  //add the sign of the Lagrange Multiplier
+    {
+        rVariables.Contact.Tangent.B.GapSign*=(-1);
+    }
+    
 
-    if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0){
+    //if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0){
       // int active = 0;
       // if(this->Is(ACTIVE))
       // 	active = 1;
       // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
-    }
+    //}
 
     //set contact normal
     array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
@@ -1001,11 +1031,30 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariables)
 {
 
-    unsigned int ndi=mContactVariables.nodes[0];
-    unsigned int ndj=mContactVariables.nodes[1];
-    unsigned int ndk=mContactVariables.slaves[0];
-    unsigned int ndr=3;
+    unsigned int ndi,ndj,ndk,ndl,ndm,ndn;
 
+    if( this->Is(SELECTED) ){
+      
+      ndi=mContactVariables.nodes[0];
+      ndj=mContactVariables.nodes[1];
+      ndk=mContactVariables.slaves[0];
+      ndl=mContactVariables.slaves[1];
+      ndm=4;
+      ndn=5;
+      
+    }
+    else{
+
+      ndi=mContactVariables.nodes[0];
+      ndj=mContactVariables.nodes[1];
+      ndk=mContactVariables.nodes[2];
+      ndl=mContactVariables.slaves.back();
+      ndm=4;
+      
+    }
+
+    //falta anar continuant....
+    
     //Set discrete variations of the shape function on the normal and tangent directions:
 
 
