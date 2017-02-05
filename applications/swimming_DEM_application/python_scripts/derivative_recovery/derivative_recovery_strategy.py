@@ -10,7 +10,7 @@ from . import recoverer
 from . import standard_recoverer
 from . import zhang_guo_recoverer
 from . import L2_projection_recoverer
-from . import fortin_2012_recoverer
+from . import pouliot_2012_recoverer
 
 class DerivativeRecoveryStrategy:
     def __init__(self, pp, fluid_model_part, derivative_recovery_tool = None, custom_functions_tool = None):
@@ -53,7 +53,7 @@ class DerivativeRecoveryStrategy:
         elif self.mat_deriv_type == 5:
             return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 6:
-            return fortin_2012_recoverer.Fortin2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 7:
             if self.store_full_gradient:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
@@ -100,7 +100,7 @@ class DerivativeRecoveryStrategy:
             return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         if self.must_reconstruct_gradient:
             if self.mat_deriv_tool == 6:
-                return fortin_2012_recoverer.Fortin2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:
