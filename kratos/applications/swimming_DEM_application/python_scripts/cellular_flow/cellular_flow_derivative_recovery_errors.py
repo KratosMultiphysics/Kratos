@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import h5py
 
 regular_mesh = True
-show_math_deriv_or_laplacian = 'L' # 'M' or 'L'
-mat_deriv_recovery_types = [1, 2, 3, 4, 5, 6, 7]
+show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
+mat_deriv_recovery_types = [1, 2, 3, 4, 5, 6]
 laplacian_recovery_types = [1, 3, 4, 6, 7]
 
 marker_size = 10
@@ -38,7 +38,6 @@ def FillVectors(recovery_type, sizes, average_errors, max_errors, laplacian_or_m
             sizes.append(size)
             average_errors.append(size_dset[0])
             max_errors.append(size_dset[1])
-
 min_error = float("inf")
 max_error = - float("inf")
 average_errors = []
@@ -65,7 +64,7 @@ if show_math_deriv_or_laplacian == 'M':
             mat_deriv_type = 'L2 only gradient'
             color = 'c'
         elif method == 6:
-            mat_deriv_type = 'Fortin et al. 2012'
+            mat_deriv_type = 'Pouliot et al. 2012'
             color = 'brown'
         elif method == 7:
             mat_deriv_type = 'Zhang and Naga 2005'
@@ -99,7 +98,7 @@ elif show_math_deriv_or_laplacian == 'L':
             laplacian_type = 'L2 divergence of gradient from L2'
             color = 'g'
         elif method == 6:
-            laplacian_type = 'L2 divergence of gradient from Fortin et al. 2012'
+            laplacian_type = 'L2 divergence of gradient from Pouliot et al. 2012'
             color = 'c'
         elif method == 7:
             laplacian_type = 'Guo et al. 2016'
