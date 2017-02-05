@@ -99,7 +99,7 @@ public:
       double Covariant;       //covariant component 
       double Contravariant;   //contravariant component
         	   
-    } TangentSurfaceScalar;
+    } ScalarBaseType;
 
 
     typedef struct
@@ -204,7 +204,25 @@ public:
 	}
  
 
+     void CalculateBaseArea (double& area,
+			     double& a,
+			     double& b,
+			     double& c);
 
+     void CalculateLineIntersection (double& a,
+				     const PointType& P1,
+				     const PointType& P2,
+				     const PointType& V1,
+				     const PointType& V2);
+
+  
+    void  CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector, 
+				  PointType& P1, 
+				  PointType& P2, 
+				  PointType& PS1,
+				  PointType& PS2, 
+				  PointType& Normal);
+  
     void  CalculateBaseDistances (std::vector<BaseLengths>& BaseVector, 
 				  PointType& P1, 
 				  PointType& P2, 

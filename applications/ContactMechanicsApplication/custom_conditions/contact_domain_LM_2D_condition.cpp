@@ -293,25 +293,25 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
 
 
-    mContactVariables.PreStepGap.Normal  = 0;
-    mContactVariables.PreStepGap.Tangent = 0;
+    mContactVariables.PreviousGap.Normal  = 0;
+    mContactVariables.PreviousGap.Tangent = 0;
 
 
-    mContactVariables.PreStepGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
-    mContactVariables.PreStepGap.Tangent = mContactVariables.PreStepGap.Normal;
+    mContactVariables.PreviousGap.Normal = inner_prod((PS-P1),mContactVariables.PreStepSurface.Normal);
+    mContactVariables.PreviousGap.Tangent = mContactVariables.PreviousGap.Normal;
 
-    mContactVariables.PreStepGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
+    mContactVariables.PreviousGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
 
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase.A/PreviousBase.L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase.B/PreviousBase.L)));
+    mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,DS);
 
 
-    mContactVariables.PreStepGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
+    mContactVariables.PreviousGap.Tangent*= inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.PreStepSurface.Normal);
 
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D2*(-PreviousBase.B/PreviousBase.L)));
-    mContactVariables.PreStepGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,DS);
+    mContactVariables.PreviousGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D1*(-PreviousBase.A/PreviousBase.L)));
+    mContactVariables.PreviousGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,(D2*(-PreviousBase.B/PreviousBase.L)));
+    mContactVariables.PreviousGap.Tangent+=inner_prod(mContactVariables.ReferenceSurface.Tangent,DS);
 
 
     //d_n-1=X_n - X_n-1
@@ -330,12 +330,12 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
 
 
-    mContactVariables.PreStepGap.Normal  += 2 * ContactFactor * NormalTensil;
-    mContactVariables.PreStepGap.Tangent += 2 * ContactFactor * TangentTensil;
+    mContactVariables.PreviousGap.Normal  += 2 * ContactFactor * NormalTensil;
+    mContactVariables.PreviousGap.Tangent += 2 * ContactFactor * TangentTensil;
    
 
     //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
-    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
+    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreviousGap.Normal<<", gT:"<<mContactVariables.PreviousGap.Tangent<<"] "<<std::endl; 
 }
 
 
@@ -436,11 +436,11 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     //a.- Assign initial 2nd Piola Kirchhoff stress:
     StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
 
-    // SL
+    // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
     StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
-    // UL  
+    // UTL  
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=F·S)
     //StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
     //StressMatrix=prod(rVariables.F,StressMatrix);
@@ -629,26 +629,26 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
     
     
-    if(mContactVariables.PreStepGap.Normal!=0 && mContactVariables.IterationCounter<1){    
-      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal)<<" PreStepGap.Normal "<<mContactVariables.PreStepGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<std::endl;
+    if(mContactVariables.PreviousGap.Normal!=0 && mContactVariables.IterationCounter<1){    
+      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal)<<" PreviousGap.Normal "<<mContactVariables.PreviousGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<std::endl;
 
-      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal);
+      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
     }
 
     //std::cout<<" EffectiveGapN "<<EffectiveGapN<<" PreviousEffectiveGapN "<<ReferenceGapN<<std::endl;
     //only in the first iteration:
-    //mContactVariables.PreStepGap.Normal=ReferenceGapN;
+    //mContactVariables.PreviousGap.Normal=ReferenceGapN;
       
  
-    if(mContactVariables.PreStepGap.Tangent!=0 && mContactVariables.IterationCounter<1){
-      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent)<<" PreStepGap.Tangent "<<mContactVariables.PreStepGap.Tangent<<" ReferenceGapT "<<ReferenceGapT<<std::endl;
+    if(mContactVariables.PreviousGap.Tangent!=0 && mContactVariables.IterationCounter<1){
+      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreviousGap.Tangent)<<" PreviousGap.Tangent "<<mContactVariables.PreviousGap.Tangent<<" ReferenceGapT "<<ReferenceGapT<<std::endl;
 
-      EffectiveGapT+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent);
+      EffectiveGapT+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreviousGap.Tangent);
     }
 
     //std::cout<<" EffectiveGapT "<<EffectiveGapT<<" PreviousEffectiveGapT "<<ReferenceGapT<<std::endl;
     //only in the first iteration:
-    //mContactVariables.PreStepGap.Tangent=ReferenceGapT;
+    //mContactVariables.PreviousGap.Tangent=ReferenceGapT;
     
 
     // std::cout<<" ConditionID:  "<<this->Id()<<" -> Previous Gap [gN:"<<ReferenceGapN<<", gT:"<<ReferenceGapT<<"] "<<std::endl; 

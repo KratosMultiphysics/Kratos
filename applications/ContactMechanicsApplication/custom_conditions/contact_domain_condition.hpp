@@ -76,7 +76,7 @@ public:
     typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
     ///For 3D contact surfaces definition
-    typedef ContactDomainUtilities::TangentSurfaceScalar  TangentSurfaceScalar;
+    typedef ContactDomainUtilities::ScalarBaseType  ScalarBaseType;
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
@@ -84,6 +84,44 @@ protected:
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
+
+      typedef struct
+    {
+      //Geometrical surface tangent gaps:
+      ScalarBaseType   CurrentGap;     //tangential gap
+     
+      //Contact constraint parameters
+      double   Multiplier;            //Lagrange Multipliyer tangent     
+      double   Penalty;               //Penalty Parameter tangent
+      
+      //Variables of the contact domain elements
+      Vector          dN_dt;      //Discrete variacion of the shape function  in the current tangent direction
+      std::vector<Vector >       Tsigma;          
+
+      ScalarBaseType   CurrentTensil;
+      double           GapSign;
+      
+    } ContactSurfaceParameters;
+
+
+  
+    typedef struct
+    {      
+      ContactSurfaceParameters A;
+      ContactSurfaceParameters B;
+      
+      SurfaceBase    CovariantBase;
+      SurfaceBase    ContravariantBase;
+      
+      //geometrical variables
+      double EquivalentArea;
+      
+      double EquivalentHeigh;
+      
+      double ElementSize;
+
+                  
+    } ContactTangentParameters;
 
     typedef struct
     {
@@ -116,10 +154,14 @@ protected:
 
         std::vector<BaseLengths>   CurrentBase;    //Current Base Lengths variables
         std::vector<BaseLengths>   ReferenceBase;  //Reference Base Lengths variables
-
+      
         //Resultant mechanical tractions
         SurfaceScalar              CurrentTensil;  //Tangential and Normal modulus of the traction vector components
+
       
+        //Tangent parameters used in 3D
+        ContactTangentParameters Tangent;
+
 
     } ContactParameters;
 
@@ -127,40 +169,14 @@ protected:
 
     typedef struct
     {
-      //Geometrical surface tangent gaps:
-      TangentSurfaceScalar   CurrentGap;     //tangential gap
-      TangentSurfaceScalar   PreviousGap;    //tangential gap
-     
-      //Contact constraint parameters
-      double   Multiplier;            //Lagrange Multipliyer tangent     
-      double   Penalty;               //Penalty Parameter tangent
-      
-      //Variables of the contact domain elements
-      Vector          dN_dt;      //Discrete variacion of the shape function  in the current tangent direction
-      std::vector<Vector >       Tsigma;          
-
-    } ContactSurfaceParameters;
-
-
-  
-    typedef struct
-    {      
-      Flags           Options;               //calculation options
-      
-      ContactSurfaceParameters TangentA;
-      ContactSurfaceParameters TangentB;
+      ScalarBaseType   PreviousGapA;
+      ScalarBaseType   PreviousGapB;
       
       SurfaceBase    CovariantBase;
       SurfaceBase    ContravariantBase;
-
-      double EquivalentArea;
-      double EquivalentHeigh;
-      
-      double ElementSize;
                   
-    } ContactTangentParameters;
-
-  
+    } ContactTangentVariables;
+    
   
     typedef struct
     {
@@ -223,19 +239,22 @@ protected:
     {
 
         //Iteration counter:
-        int             IterationCounter;      //the number of the step iteration
+        int             IterationCounter;     //the number of the step iteration
 
         //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 	double          PenaltyFactor;
 
         //Geometrical gaps:
-        SurfaceScalar        PreStepGap;             //effective normal and tangential gap in previous time step configuration
+        SurfaceScalar        PreviousGap;     //effective normal and tangential gap in previous time step configuration
 
 	//Geometric variables
         SurfaceVector        PreStepSurface;    
         SurfaceVector        ReferenceSurface;
 
+        //Tangent variables in 3D
+        ContactTangentVariables  Tangent;
+      
         //Contact condition conectivities
         std::vector<unsigned int> nodes;
 	std::vector<unsigned int> order;
