@@ -658,7 +658,7 @@ DEM_to_fluid_counter         = swim_proc.Counter(1,
                                                  1,
                                                  DEM_parameters.coupling_level_type > 1)
 derivative_recovery_counter    = swim_proc.Counter(1,
-                                                 1,
+                                                 4,
                                                  DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step,
                                                  1,
