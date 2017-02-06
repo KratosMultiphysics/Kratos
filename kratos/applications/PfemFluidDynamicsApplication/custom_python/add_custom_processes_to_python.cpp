@@ -28,6 +28,7 @@
 #include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 
 //PostMeshing processes
+#include "custom_processes/recover_volume_losses_process.hpp"
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
@@ -49,6 +50,15 @@ namespace Kratos
       using namespace boost::python;
       typedef Process                                         ProcessBaseType;
       typedef ModelStartEndMeshingProcess     ModelStartEndMeshingProcessType;
+
+
+
+      class_<RecoverVolumeLossesProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "RecoverVolumeLosses", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
+
 
       class_<RemoveMeshNodesForFluidsProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(

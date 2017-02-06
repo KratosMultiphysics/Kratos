@@ -115,6 +115,14 @@ public:
       
       mrRemesh.Info->NumberOfElements=0;
     
+      const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+      double currentTime = rCurrentProcessInfo[TIME];
+      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      bool firstMesh=false;
+      if(currentTime<2*timeInterval){
+	firstMesh=true;
+      }
+  
       bool box_side_element = false;
       bool wrong_added_node = false;
 
@@ -289,24 +297,33 @@ public:
 	      // 	Alpha*=1.05;
 	      // }
 
-	      if(numfreesurf==0 && numsolid==0){
+	      // if(numfreesurf==0 && numsolid==0 && firstMesh==false){
+	      if(numfreesurf==0 && firstMesh==false){
 		if(dimension==2){
 		  if(numrigid==0){
-		    Alpha*=1.05;
+		    // Alpha*=1.05;
+		    Alpha*=1.5;
 		  }else{
-		    Alpha*=1.2;
+		    // Alpha*=1.2;
+		    Alpha*=1.5;
 		  }
 
 		}
 		if(dimension==3){
 		  if(numrigid==0){
 		    // Alpha*=1.15;
-		    Alpha*=1.2;
+		    Alpha*=1.5;
+		    // std::cout<<"RIGID 0";
 		  }else{
 		    // Alpha*=1.25;
 		    Alpha*=1.5;
+		    // std::cout<<" NONRIGID";
+		    // std::cout<<"Alpha*=1.5 "<<Alpha;
 		  }
 		}
+	      }
+	      if(firstMesh==true){
+		Alpha*=1.15;
 	      }
 	      
 

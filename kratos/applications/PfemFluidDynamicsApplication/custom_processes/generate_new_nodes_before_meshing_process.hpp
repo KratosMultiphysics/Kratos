@@ -235,13 +235,20 @@ private:
 
     int ElementsToRefine=0;
     ElementsToRefine=mrRemesh.Info->RemovedNodes;
+
     if(ElementsToRefine>0)
       std::cout<<" I will find "<<ElementsToRefine <<" new nodes"<<std::endl;
     std::vector<array_1d<double,3> > NewPositions;
     std::vector<double > BiggestVolumes;
     std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
     std::vector<bool > ElementalInterpolation;
-
+    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+    double currentTime = rCurrentProcessInfo[TIME];
+    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+    if(currentTime<2*timeInterval){
+      ElementsToRefine=0;
+      std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
+    }
     int CountNodes=0;
     // double athird=0.3333333333333333;
     NewPositions.resize(ElementsToRefine);
@@ -253,12 +260,12 @@ private:
 
     bool DofsFound=false;
 
+    int count=0;
     if(ElementsToRefine>0 )
       {
  	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
  	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
  	const unsigned int nds = element_begin->GetGeometry().size();
- 	int count=0;
  	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
  	  {
 		
@@ -322,12 +329,20 @@ private:
 
  		double safetyCoefficient2D=1.5;
  		bool dangerousElement=false;
- 		if(rigidNodes>1){
+ 		if(rigidNodes>1 || freesurfaceNodes>1 ){
  		  for (unsigned int i = 0; i < 3; i++){
- 		    if(Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
+ 		    if((Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
+		       (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
  		      Edges[i]=0;
- 		    }
 
+ 		    }
+		    if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+		      Edges[i]=0;
+		    }
+		    if((ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) || ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))  && 
+		       (ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)|| ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
+		      Edges[i]=0;
+		    }
  		  }
 
  		}
@@ -359,8 +374,16 @@ private:
  		    BiggestVolumes[CountNodes]=ElementalVolume;
  		    NewPositions[CountNodes]=NewPosition;
  		    CountNodes++;
- 		  }else if (freesurfaceNodes<2 && rigidNodes<2){
+  		  }else if (freesurfaceNodes<3 && rigidNodes<3 ){
+		    double penalization=1.0;
+		    if(rigidNodes>1){
+		      penalization=0.8;
+		    }
+		    if(freesurfaceNodes>1){
+		      penalization=0.7;
+		    }
 
+		    ElementalVolume*=penalization;
  		    for(int nn= 0; nn< ElementsToRefine; nn++)
  		      {
 
@@ -465,12 +488,16 @@ private:
 
  	      double safetyCoefficient3D=1.6;
  	      bool dangerousElement=false;
- 	      if(rigidNodes>1){
+ 	      if(rigidNodes>1 || freesurfaceNodes>1){
  		for (unsigned int i = 0; i < 6; i++){
- 		  if(Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
+		  if((Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
+		     (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
+ 		  // if(Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
  		    Edges[i]=0;
  		  }
-
+		  if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+		    Edges[i]=0;
+		  }
  		}
 
  	      }else if(rigidNodes==1){
@@ -523,7 +550,16 @@ private:
  		  BiggestVolumes[CountNodes]=ElementalVolume;
  		  NewPositions[CountNodes]=NewPosition;
  		  CountNodes++;
- 		}else if (freesurfaceNodes<3 && rigidNodes<3){
+ 		}else if (freesurfaceNodes<4 && rigidNodes<4){
+		  double penalization=1.0;
+		  if(rigidNodes>2){
+		    penalization=0.7;
+		  }
+		  if(freesurfaceNodes>2){
+		    penalization=0.6;
+		  }
+
+		  ElementalVolume*=penalization;
  		  for(int nn= 0; nn< ElementsToRefine; nn++)
  		    {
  		      if(ElementalVolume>BiggestVolumes[nn]){
@@ -571,11 +607,11 @@ private:
  		}
  		count++;
  	      }
- 	    }
+ 	    } //2D and 3D cases
 
-
-    	  }	 
-      }
+    	  }// elements loop
+	 
+      }//if ElementsToRefine>0
 
 
 

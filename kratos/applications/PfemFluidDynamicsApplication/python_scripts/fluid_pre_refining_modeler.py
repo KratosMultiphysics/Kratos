@@ -93,6 +93,8 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
+        #recover_volume_losses  = KratosPfemFluid.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPreMeshingProcess(recover_volume_losses)
 
         remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)

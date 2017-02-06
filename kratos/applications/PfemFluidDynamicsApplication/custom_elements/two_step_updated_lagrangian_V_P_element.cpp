@@ -319,10 +319,7 @@ namespace Kratos {
 	    double VolumetricCoeff = 0;
 
 	    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
-	    // if(Density==0){
-	    //   std::cout<<"\t Density=0 !!!!!!!!! ";
-	    //   Density=1000.0;
-	    // }
+
 	    // Add integration point contribution to the local mass matrix
 	    // double massWeight=GaussWeight*Density*2.0/TimeStep;
 	    double DynamicWeight=GaussWeight*Density;
@@ -942,6 +939,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
       // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+      if(rGaussWeights[g]<0)
+	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
   
     }
     

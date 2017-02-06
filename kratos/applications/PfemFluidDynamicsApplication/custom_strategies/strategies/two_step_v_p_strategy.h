@@ -391,7 +391,7 @@ public:
 	    }else{
 	      ElementalVolume = 0;
 	    }
-	    double CriticalVolume=-0.00000000001;
+	    double CriticalVolume=-10;
 	    if(ElementalVolume<CriticalVolume){
 	      (itElem)->Reset(ACTIVE);
 	      std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
