@@ -922,11 +922,13 @@ protected:
     {
         /* GET RESULTS */
 
+        const unsigned int step = mThisModelPart.GetProcessInfo()[TIME_STEPS];
+        
         // Automatically save the mesh 
-        OutputMesh(post_output);
+        OutputMesh(post_output, step);
 
         // Automatically save the solution 
-        OutputSol(post_output);
+        OutputSol(post_output, step);
     }
     
     /**
@@ -1222,13 +1224,19 @@ protected:
      * This sets the output mesh
      */
     
-    void OutputMesh(const bool post_output);
+    void OutputMesh(
+        const bool post_output, 
+        const unsigned int step
+        );
     
     /**
      * This sets the output sol
      */
     
-    void OutputSol(const bool post_output);
+    void OutputSol(
+        const bool post_output, 
+        const unsigned int step
+        );
     
     /**
      * This loads the solution
@@ -1994,16 +2002,19 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    void MmgUtility<2>::OutputMesh(const bool post_output)
+    void MmgUtility<2>::OutputMesh(
+        const bool post_output,
+        const unsigned int step
+        )
     {
         std::string MeshName;
         if (post_output == true)
         {
-            MeshName = mStdStringFilename+".o.mesh";
+            MeshName = mStdStringFilename+"_step="+std::to_string(step)+".o.mesh";
         }
         else
         {
-            MeshName = mStdStringFilename+".mesh";
+            MeshName = mStdStringFilename+"_step="+std::to_string(step)+".mesh";
         }
         
         char* MeshFile = new char [MeshName.length() + 1];
@@ -2023,16 +2034,19 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    void MmgUtility<3>::OutputMesh(const bool post_output)
+    void MmgUtility<3>::OutputMesh(
+        const bool post_output,
+        const unsigned int step
+        )
     {
         std::string MeshName;
         if (post_output == true)
         {
-            MeshName = mStdStringFilename+".o.mesh";
+            MeshName = mStdStringFilename+"_step="+std::to_string(step)+".o.mesh";
         }
         else
         {
-            MeshName = mStdStringFilename+".mesh";
+            MeshName = mStdStringFilename+"_step="+std::to_string(step)+".mesh";
         }
         
         char* MeshFile = new char [MeshName.length() + 1];
@@ -2052,16 +2066,19 @@ protected:
     /***********************************************************************************/
 
     template<>  
-    void MmgUtility<2>::OutputSol(const bool post_output)
+    void MmgUtility<2>::OutputSol(
+        const bool post_output,
+        const unsigned int step
+        )
     {
         std::string SolName;
         if (post_output == true)
         {
-            SolName = mStdStringFilename+".o.sol";
+            SolName = mStdStringFilename+"_step="+std::to_string(step)+".o.sol";
         }
         else
         {
-            SolName = mStdStringFilename+".sol";
+            SolName = mStdStringFilename+"_step="+std::to_string(step)+".sol";
         }
         
         char* SolFile = new char [SolName.length() + 1];
@@ -2081,16 +2098,19 @@ protected:
     /***********************************************************************************/
 
     template<>  
-    void MmgUtility<3>::OutputSol(const bool post_output)
+    void MmgUtility<3>::OutputSol(
+        const bool post_output,
+        const unsigned int step
+        )
     {
         std::string SolName;
         if (post_output == true)
         {
-            SolName = mStdStringFilename+".o.sol";
+            SolName = mStdStringFilename+"_step="+std::to_string(step)+".o.sol";
         }
         else
         {
-            SolName = mStdStringFilename+".sol";
+            SolName = mStdStringFilename+"_step="+std::to_string(step)+".sol";
         }
         
         char* SolFile = new char [SolName.length() + 1];
