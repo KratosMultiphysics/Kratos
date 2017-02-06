@@ -171,10 +171,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
        FluidBulkModulus = 1000000000.0;
      }
 
-     // if(FluidViscosity==0){
-     //   // std::cout<<"FluidViscosity was 0 !!!!!!!!"<<std::endl;
-     //   FluidViscosity = 0.001;
-     // }
      DeviatoricCoeff = FluidViscosity;
      VolumetricCoeff = FluidBulkModulus*timeStep;
 

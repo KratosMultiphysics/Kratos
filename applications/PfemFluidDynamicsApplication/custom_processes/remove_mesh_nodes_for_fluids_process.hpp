@@ -696,7 +696,8 @@ private:
 	  if(rigidNodes>1){
 	    // std::cout<<"erased_nodes "<<erased_nodes<<std::endl;
 	    double distWall=0;
-	    double safetyCoefficient3D=0.6;
+	    // double safetyCoefficient3D=0.6;
+	    double safetyCoefficient3D=0.7;
 	    
 	    double elementVolume=ie->GetGeometry().Volume();
 	    double CriticalVolume=0.1*mrRemesh.Refine->MeanVolume;

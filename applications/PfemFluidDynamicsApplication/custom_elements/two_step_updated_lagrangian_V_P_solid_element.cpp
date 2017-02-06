@@ -584,7 +584,8 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
    // ElementalVariables rElementalVariables;
    // this->InitializeElementalVariables(rElementalVariables);
 
-   // bool computeElement=this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
+   // double theta=0;
+   // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
 
    //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
    // double SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
