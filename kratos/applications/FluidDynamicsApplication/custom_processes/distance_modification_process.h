@@ -333,6 +333,11 @@ protected:
             {
                 itElement->Set(ACTIVE, false);
             }
+            // Otherwise, activate the element (it might have been deactivated in a previous time step)
+            else
+            {
+                itElement->Set(ACTIVE, true);
+            }
         }
     }
 
