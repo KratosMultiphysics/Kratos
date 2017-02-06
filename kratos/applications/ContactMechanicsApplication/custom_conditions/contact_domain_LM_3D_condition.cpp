@@ -277,18 +277,12 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
     noalias(F) = ZeroMatrix(3,3);
     
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-
     Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
-
-    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
-    // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
-    // std::cout<<" MC StressVector "<<StressVector<<std::endl;
-    // std::cout<<" MC F "<<F<<std::endl;
 
     StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
 
@@ -340,12 +334,9 @@ void ContactDomainLM3DCondition::CalculatePreviousGapFaceType() //prediction of 
     mContactUtilities.CalculateBaseDistances(PreviousBase,P1,P2,P3,PS,mContactVariables.PreStepSurface.Normal);
     mContactUtilities.CalculateBaseArea(EquivalentArea,PreviousBase[0].L,PreviousBase[1].L,PreviousBase[2].L);
 
-    //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
-
     //complete the computation of the stabilization gap
     double ContactFactor = mContactVariables.StabilizationFactor * EquivalentArea;
 
-    //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
     //f.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
@@ -456,18 +447,12 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
     noalias(F) = ZeroMatrix(3,3);
     
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-
     Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
 
     //Get previous mechanics stored in the master node/condition
     Vector StressVector;
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
-
-    // std::cout<<" Contact Condition["<<this->Id()<<"]"<<std::endl;
-    // std::cout<<" Master Condition : "<<MasterCondition->Id()<<" Contact "<<std::endl;
-    // std::cout<<" MC StressVector "<<StressVector<<std::endl;
-    // std::cout<<" MC F "<<F<<std::endl;
 
     StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
 
@@ -529,12 +514,8 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
     mContactUtilities.CalculateEdgeDistances(PreviousBase,P1,P2,PS1,PS2,mContactVariables.PreStepSurface.Normal);
     double EquivalentArea = 0.25 * (PreviousBase[0].L * PreviousBase[1].L) * (PreviousBase[0].L * PreviousBase[1].L);
 
-    //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
-
     //complete the computation of the stabilization gap
     double ContactFactor = mContactVariables.StabilizationFactor * EquivalentArea;
-
-    //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
     //f.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
@@ -550,19 +531,20 @@ void ContactDomainLM3DCondition::CalculatePreviousGapEdgeType() //prediction of 
     mContactVariables.Tangent.PreviousGapA.Contravariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.ContravariantBase.DirectionA*mContactVariables.PreviousGap.Normal);
     mContactVariables.Tangent.PreviousGapB.Contravariant = mContactVariables.PreviousGap.Normal*(mContactVariables.Tangent.ContravariantBase.DirectionB*mContactVariables.PreviousGap.Normal);
 
-    mContactVariables.PreviousGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
-
-
     PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
     PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
     PointType DS1  =  GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,2);
     PointType DS2  =  GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,2);
+
+    
+    //(g_N)3
+    mContactVariables.PreviousGap.Normal*= inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.PreStepSurface.Normal);
     
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
     mContactVariables.PreviousGap.Normal+=inner_prod(mContactVariables.ReferenceSurface.Normal,(DS1*(PreviousBase[1].B/PreviousBase[1].L))));
-  
+    //(g_T)3
     mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
     mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(D2*(-PreviousBase[0].B/PreviousBase[0].L)));
     mContactVariables.Tangent.PreviousGapA.Covariant+=inner_prod(mContactVariables.Tangent.CovariantBase.DirectionA,(DS1*(PreviousBase[1].A/PreviousBase[1].L)));
@@ -703,6 +685,17 @@ void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     CalculateExplicitFactorsFaceType();
 
 
+
+  //set contact normal
+  array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
+  
+  for(unsigned int i=0; i<3; i++)
+    ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
+
+    
+  if(mContactVariables.IterationCounter < 1)
+    mContactVariables.IterationCounter += 1;
+  
 }
 
 //************************************************************************************
@@ -766,7 +759,6 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / rVariables.Contact.Tangent
     //Current normal:   n,t      -> rVariables.Contact.CurrentSurface.Normal /  rVariables.Contact.CurrentSurface.Tangent
 
-
     //e.- Compute A_n,B_n,L_n
     rVariables.Contact.ReferenceBase.resize(3);
     rVariables.Contact.CurrentBase.resize(3);
@@ -811,34 +803,34 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
 
-    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
-    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
-    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,DS);
 
       
-    //(g_T)3
+    //(g_cvTA)3
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,DS);
 
-    
-    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
-    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
-    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    //(g_cvTB)3
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,DS);
 
-
-    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
-    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
-    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    //(g_cnTA)3
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,DS);
 
-    
-    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D1*(-PreviousBase[0].A/PreviousBase[0].L)));
-    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D2*(-PreviousBase[1].A/PreviousBase[1].L)));
-    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D3*(-PreviousBase[2].A/PreviousBase[2].L)));
+    //(g_cnTB)3
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D2*(-rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D3*(-rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L)));
     ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,DS);
 
     rVariables.Contact.Tangent.EquivalentHeigh = 1;
@@ -847,11 +839,11 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     
     rVariables.Contact.CurrentGap.Normal=ReferenceGapN; //(g_N)3 -- needed in the Kcont1 computation
 
-    rVariables.Contact.Tangent.A.CurrentGap.Covariant=ReferenceGapcvTA; //(g_T)3 -- needed in the Kcont1 computation
-    rVariables.Contact.Tangent.A.CurrentGap.Contravariant=ReferenceGapcnTA; //(g_T)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.A.CurrentGap.Covariant=ReferenceGapcvTA; //(g_cvTA)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.A.CurrentGap.Contravariant=ReferenceGapcnTA; //(g_cvTB)3 -- needed in the Kcont1 computation
     
-    rVariables.Contact.Tangent.B.CurrentGap.Covariant=ReferenceGapcvTB; //(g_T)3 -- needed in the Kcont1 computation
-    rVariables.Contact.Tangent.B.CurrentGap.Contravariant=ReferenceGapcnTB; //(g_T)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.B.CurrentGap.Covariant=ReferenceGapcvTB; //(g_cnTA)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.B.CurrentGap.Contravariant=ReferenceGapcnTB; //(g_cnTB)3 -- needed in the Kcont1 computation
 
     //g.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
 
@@ -872,16 +864,13 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     rVariables.Contact.Tangent.B.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
 
     
-    ReferenceGapN+= 2 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+    ReferenceGapN+= 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
 
-    ReferenceGapcvTA+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
-    ReferenceGapcvTB+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    ReferenceGapcvTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    ReferenceGapcvTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
     
-    ReferenceGapcnTA+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
-    ReferenceGapcnTB+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
-
-
-    //.... falta anar completant
+    ReferenceGapcnTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
+    ReferenceGapcnTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
 
 
     //5.- Compute (Lagrange) Multipliers
@@ -952,16 +941,14 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
       EffectiveGapN = 0;
     //decimal correction from tension vector calculation
 
-    double EffectiveGapT = EffectiveGapcvTA;
-    if( EffectiveGapT < EffectiveGapcvTB )
-      EffectiveGapT = EffectiveGapcvTB;
 
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
     {
 
         rVariables.Contact.Options.Set(ACTIVE);  //normal contact active
 
-        if(fabs(EffectiveGapT)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
+        if( (fabs(EffectiveGapcvTa+EffectiveGapcvTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) ||
+	    (fabs(EffectiveGapcnTa+EffectiveGapcnTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) )
         {
 	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
 	    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;
@@ -984,13 +971,13 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
 
     //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
-    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(3.0*rVariables.Contact.ContactFactor.Normal));
+    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1.0/(3.0*rVariables.Contact.ContactFactor.Normal));
 
     rVariables.Contact.Tangent.A.Multiplier=rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
-    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(1./(3.0*rVariables.Contact.ContactFactor.Tangent));
+    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
 
     rVariables.Contact.Tangent.B.Multiplier=rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
-    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(1./(3.0*rVariables.Contact.ContactFactor.Tangent));
+    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
 
     
     if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
@@ -1002,26 +989,319 @@ void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariabl
     {
         rVariables.Contact.Tangent.B.GapSign*=(-1);
     }
-    
 
-    //if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0){
-      // int active = 0;
-      // if(this->Is(ACTIVE))
-      // 	active = 1;
-      // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
-    //}
-
-    //set contact normal
-    array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
-	
-    for(unsigned int i=0; i<3; i++)
-      ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
-
-    
-    if(mContactVariables.IterationCounter < 1)
-      mContactVariables.IterationCounter += 1;
-
+    //check for distorted patches
 }
+
+
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+{
+
+    //Contact face node1-node2-node3
+    unsigned int node1=mContactVariables.nodes[0];
+    unsigned int node2=mContactVariables.nodes[1];
+    unsigned int slave1=mContactVariables.slave[0];
+    unsigned int slave2=mContactVariables.slave[1];
+
+
+    //1.- Compute tension vector:  (must be updated each iteration)
+    Matrix StressMatrix(3,3);
+    noalias(StressMatrix) = ZeroMatrix(3,3);
+    
+    //a.- Assign initial 2nd Piola Kirchhoff stress:
+    StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+
+    // UL
+    //b.- Compute the 1srt Piola Kirchhoff stress tensor
+    StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
+
+    //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
+    mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);
+
+
+    //d.- Compute the Current Normal and Tangent
+
+    //Current Position    
+    PointType P1  =  GetGeometry()[node1].Coordinates();
+    PointType P2  =  GetGeometry()[node2].Coordinates();
+    PointType PS1 =  GetGeometry()[slave1].Coordinates();
+    PointType PS2 =  GetGeometry()[slave2].Coordinates();
+
+    //Set Current Tangent    
+    rVariables.Contact.Tangent.CovariantBase.DirectionA = P2 - P1;
+    rVariables.Contact.Tangent.CovariantBase.DirectionB = PS2 - PS1;
+
+    TransformCovariantToContravariantBase(rVariables.Contact.Tangent.CovariantBase, rVariables.Contact.Tangent.ContravariantBase);
+
+
+    //Take MasterCondition for computing current normal:    
+    PointType M1  =  MasterCondition.GetGeometry()[0].Coordinates();
+    PointType M2  =  MasterCondition.GetGeometry()[1].Coordinates();
+    PointType M3  =  MasterCondition.GetGeometry()[2].Coordinates();
+
+    PointType V1 = M2-M1;
+    PointType V2 = M3-M1;
+   
+    //Compute Current Normal
+    rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateSurfaceNormal(rVariables.Contact.CurrentSurface.Normal,V1,V2);
+
+
+    if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
+        rVariables.Contact.CurrentSurface.Normal*=-1;
+
+    rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
+
+    if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
+        rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
+
+
+
+    //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
+
+    //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / rVariables.Contact.Tangent
+    //Current normal:   n,t      -> rVariables.Contact.CurrentSurface.Normal /  rVariables.Contact.CurrentSurface.Tangent
+
+    //e.- Compute A_n,B_n,L_n
+    rVariables.Contact.ReferenceBase.resize(3);
+    rVariables.Contact.CurrentBase.resize(3);
+
+    //a, b, l:
+    mContactUtilities.CalculateEdgeDistances(rVariables.Contact.CurrentBase,P1,P2,PS1,PS2,rVariables.Contact.CurrentSurface.Normal);
+    rVariables.Contact.Tangent.EquivalentArea = 0.25 * (rVariables.Contact.CurrentBase[0].L * rVariables.Contact.CurrentBase[1].L) * (rVariables.Contact.CurrentBase[0].L * rVariables.Contact.CurrentBase[1].L);
+
+    //A, B, L:
+
+    //Reference Position
+    PointType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType PS1  =  GetGeometry()[slave1].Coordinates() - (GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType PS2  =  GetGeometry()[slave2].Coordinates() - (GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+
+    mContactUtilities.CalculateEdgeDistances(rVariables.Contact.ReferenceBase,P1,P2,PS1,PS2,mContactVariables.ReferenceSurface.Normal);
+
+
+    //complete the computation of the stabilization gap
+    rVariables.Contact.ContactFactor.Normal  =  mContactVariables.StabilizationFactor * rVariables.Contact.Tangent.EquivalentArea;
+    rVariables.Contact.ContactFactor.Tangent =  rVariables.Contact.ContactFactor.Normal;
+    
+    //f.-obtain the (g_N)3 and (g_T)3 for the n configuration
+
+    M1 = 0.5 * (P1+P2);
+    M2 = 0.5 * (PS1+PS2);
+    double ReferenceGapN = inner_prod((M2-M1),mContactVariables.PreStepSurface.Normal);
+
+    //covariant gap
+    double ReferenceGapcvTA = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,mContactVariables.ReferenceSurface.Normal);
+    double ReferenceGapcvTB = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,mContactVariables.ReferenceSurface.Normal);
+      
+    //contravariant gap
+    double ReferenceGapcnTA = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,mContactVariables.ReferenceSurface.Normal);
+    double ReferenceGapcnTB = ReferenceGapN * inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.ReferenceSurface.Normal);
+
+    PointType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    PointType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
+    PointType DS1  =  GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    PointType DS2  =  GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave2].FastGetSolutionStepValue(DISPLACEMENT,1);
+    
+    //(g_N)3
+    ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
+
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(DS1*(rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,(DS2*(rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L)));
+
+      
+    //(g_cvTA)3
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(DS1*(rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcvTA+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,(DS2*(rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L)));
+
+    //(g_cvTB)3
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(DS1*(rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcvTB+=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,(DS2*(rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L)));
+
+    //(g_cnTA)3
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(DS1*(rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcnTA+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,(DS2*(rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L)));
+
+    //(g_cnTB)3
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(DS1*(rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L)));
+    ReferenceGapcnTB+=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,(DS2*(rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L)));
+
+    rVariables.Contact.Tangent.EquivalentHeigh = norm_2(MathUtils<double>::CrossProduct(rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB) );
+
+    rVariables.Contact.Tangent.EquivalentHeigh *= (0.5/rVariables.Contact.ReferenceBase[0].L);
+    
+    //...
+    
+    rVariables.Contact.CurrentGap.Normal=ReferenceGapN; //(g_N)3 -- needed in the Kcont1 computation
+
+    rVariables.Contact.Tangent.A.CurrentGap.Covariant=ReferenceGapcvTA; //(g_cvTA)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.A.CurrentGap.Contravariant=ReferenceGapcnTA; //(g_cnTA)3 -- needed in the Kcont1 computation
+    
+    rVariables.Contact.Tangent.B.CurrentGap.Covariant=ReferenceGapcvTB; //(g_cvTB)3 -- needed in the Kcont1 computation
+    rVariables.Contact.Tangent.B.CurrentGap.Contravariant=ReferenceGapcnTB; //(g_nTB)3 -- needed in the Kcont1 computation
+
+    //g.- get total effective gap as: gap_n^eff=gap_n+(PreviousTimeStep/CurrentTimeStep)*(gap_n-gap_n-1)
+
+    //gap_n   (in function of the n position of the other node) gap_n=(g_N)3+2*Tau*tn_n
+
+    
+    //h.- Compute normal component of the tension vector:   (tn=n·P·N)
+    rVariables.Contact.CurrentTensil.Normal=inner_prod(mContactVariables.CurrentSurface.Normal,mContactVariables.TractionVector);
+
+    
+    //i.- Compute tangent component of the tension vector:  (tt=cvt·P·N)
+    rVariables.Contact.Tangent.A.CurrentTensil.Covariant=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionA,mContactVariables.TractionVector);
+    rVariables.Contact.Tangent.B.CurrentTensil.Covariant=inner_prod(rVariables.Contact.Tangent.CovariantBase.DirectionB,mContactVariables.TractionVector);
+      
+      
+    //j.- Compute tangent component of the tension vector:  (tt=cnt·P·N)
+    rVariables.Contact.Tangent.A.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionA,mContactVariables.TractionVector);
+    rVariables.Contact.Tangent.B.CurrentTensil.Contravariant=inner_prod(rVariables.Contact.Tangent.ContravariantBase.DirectionB,mContactVariables.TractionVector);
+
+    
+    ReferenceGapN+= 3 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+
+    ReferenceGapcvTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    ReferenceGapcvTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    
+    ReferenceGapcnTA+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.A.CurrentTensil.Contravariant;
+    ReferenceGapcnTB+= 3 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.Tangent.B.CurrentTensil.Contravariant;
+
+
+    //5.- Compute (Lagrange) Multipliers
+
+    //From effective gaps set active contact domain:
+
+    double EffectiveGapN = ReferenceGapN;
+
+    double EffectiveGapcvTA = ReferenceGapcvTA;
+    double EffectiveGapcvTB = ReferenceGapcvTB;
+    
+    double EffectiveGapcnTA = ReferenceGapcnTA;
+    double EffectiveGapcnTB = ReferenceGapcnTB;
+
+
+    double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
+    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
+    
+    
+    if(mContactVariables.PreviousGap.Normal!=0 && mContactVariables.IterationCounter<1){    
+       EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreviousGap.Normal);
+    }     
+ 
+    if(mContactVariables.Tangent.PreviousGapA.Covariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcvTA+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcvTA-mContactVariables.Tangent.PreviousGapA.Covariant);
+    }
+    
+    if(mContactVariables.Tangent.PreviousGapB.Covariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcvTB+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcvTB-mContactVariables.Tangent.PreviousGapB.Covariant);
+    }
+
+    if(mContactVariables.Tangent.PreviousGapA.Contravariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcnTA+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcnTA-mContactVariables.Tangent.PreviousGapA.Contravariant);
+    }
+
+    if(mContactVariables.Tangent.PreviousGapB.Contravariant!=0 && mContactVariables.IterationCounter<1){
+      EffectiveGapcnTB+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapcnTB-mContactVariables.Tangent.PreviousGapB.Contravariant);
+    }
+    
+    //CHECK IF THE ELEMENT IS ACTIVE:
+
+    rVariables.Contact.Options.Set(SLIP,false);
+
+    //CORRECTION: to skip tip contact elements problems:
+    
+    bool check_fictious_geometry = false;
+    
+    //Check ORTHOGONAL FACES in contact
+    if(check_fictious_geometry ==true){
+      PointType& SlaveNormal  =  GetGeometry()[slave].FastGetSolutionStepValue(NORMAL);
+      double orthogonal = inner_prod(SlaveNormal,rVariables.Contact.CurrentSurface.Normal);
+
+      if(EffectiveGapN<=0 && fabs(orthogonal)<=1){
+
+	bool real_contact = CheckFictiousContacts(rVariables);
+
+	if(!real_contact || fabs(orthogonal)<=0.25){
+	  EffectiveGapN = 1; //not active element: geometrically wrong
+	  std::cout<<" DISABLE ContactElement "<<this->Id()<<" real contact "<<real_contact<<" geometrically orthogonal "<<orthogonal<<std::endl;
+	}
+      }
+    }
+    //Check ORTHOGONAL FACES in contact
+    
+    //decimal correction from tension vector calculation
+    if(fabs(EffectiveGapN)<= 1e-15 && fabs(EffectiveGapN)<= 1e-15)
+      EffectiveGapN = 0;
+    //decimal correction from tension vector calculation
+
+
+    if(EffectiveGapN<=0)   //if(EffectiveGap<0){
+    {
+
+        rVariables.Contact.Options.Set(ACTIVE);  //normal contact active
+
+        if( (fabs(EffectiveGapcvTa+EffectiveGapcvTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) ||
+	    (fabs(EffectiveGapcnTa+EffectiveGapcnTB)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)) )
+        {
+	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
+	    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;
+        }
+        else
+        {
+
+	    rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
+	    rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS] += 1;
+        }
+
+	rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
+    }
+    else
+    {
+	rVariables.Contact.Options.Set(ACTIVE,false); //normal contact not active
+    }
+
+    //From total current gap compute multipliers:
+
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
+    rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
+    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1.0/(3.0*rVariables.Contact.ContactFactor.Normal));
+
+    rVariables.Contact.Tangent.A.Multiplier=rVariables.Contact.Tangent.A.CurrentTensil.Covariant;
+    rVariables.Contact.Tangent.A.Multiplier+=rVariables.Contact.Tangent.A.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
+
+    rVariables.Contact.Tangent.B.Multiplier=rVariables.Contact.Tangent.B.CurrentTensil.Covariant;
+    rVariables.Contact.Tangent.B.Multiplier+=rVariables.Contact.Tangent.B.CurrentGap.Covariant*(1.0/(3.0*rVariables.Contact.ContactFactor.Tangent));
+
+    
+    if(rVariables.Contact.Tangent.A.Multiplier<0)  //add the sign of the Lagrange Multiplier
+    {
+        rVariables.Contact.Tangent.A.GapSign*=(-1);
+    }
+
+    if(rVariables.Contact.Tangent.B.Multiplier<0)  //add the sign of the Lagrange Multiplier
+    {
+        rVariables.Contact.Tangent.B.GapSign*=(-1);
+    }
+
+    //check for distorted patches
+    
+}
+
 
 
 //************************************************************************************
@@ -1052,11 +1332,8 @@ void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
       ndm=4;
       
     }
-
-    //falta anar continuant....
-    
+   
     //Set discrete variations of the shape function on the normal and tangent directions:
-
 
     Matrix DN_DX = rVariables.DN_DX;
     for(unsigned int i=0;i<DN_DX.size1();i++)
@@ -1070,52 +1347,123 @@ void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
     // std::cout<<" DN_DX "<<DN_DX<<std::endl;
     // std::cout<<" Variables_DN_DX "<<rVariables.DN_DX<<std::endl;
 
-    //dN_dn:
 
-    rVariables.Contact.dN_dn=ZeroVector(4);
+    if( this->Is(SELECTED) ){
 
-    rVariables.Contact.dN_dn[ndi]=(-1)*rVariables.Contact.CurrentBase[0].A/rVariables.Contact.CurrentBase[0].L;
-    rVariables.Contact.dN_dn[ndj]=(-1)*rVariables.Contact.CurrentBase[0].B/rVariables.Contact.CurrentBase[0].L;
-    rVariables.Contact.dN_dn[ndk]= 1.0;
-
-
-    //dN_drn:
-
-    rVariables.Contact.dN_drn=ZeroVector(4);
-
-    rVariables.Contact.dN_drn[ndi]=(-1)*rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L;
-    rVariables.Contact.dN_drn[ndj]=(-1)*rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L;
-    rVariables.Contact.dN_drn[ndk]= 1.0;
+      //dN_dn:
+      
+      rVariables.Contact.dN_dn.resize(6);
+      noalias(rVariables.Contact.dN_dn) = ZeroVector(6);
+    
+      rVariables.Contact.dN_dn[ndi]=(-1)*rVariables.Contact.CurrentBase[0].A/rVariables.Contact.CurrentBase[0].L;
+      rVariables.Contact.dN_dn[ndj]=(-1)*rVariables.Contact.CurrentBase[0].B/rVariables.Contact.CurrentBase[0].L; 
+      rVariables.Contact.dN_dn[ndk]= rVariables.Contact.CurrentBase[1].A/rVariables.Contact.CurrentBase[1].L; 
+      rVariables.Contact.dN_dn[ndl]= rVariables.Contact.CurrentBase[1].B/rVariables.Contact.CurrentBase[1].L;
 
 
-    //dN_dt:
-
-    rVariables.Contact.dN_dt=ZeroVector(4);
-
-    rVariables.Contact.dN_dt[ndi]=   1.0/rVariables.Contact.CurrentBase[0].L;
-    rVariables.Contact.dN_dt[ndj]=(-1.0)/rVariables.Contact.CurrentBase[0].L;
-
-    // std::cout<<" dN_dn "<<rVariables.Contact.dN_dn<<std::endl;
-    // std::cout<<" dN_drn"<<rVariables.Contact.dN_drn<<std::endl;
-    // std::cout<<" dN_dt "<<rVariables.Contact.dN_dt<<std::endl;
-  
-    //TsigmaP :
-    rVariables.Contact.Tsigma.resize(4);
-    FSigmaP(rVariables,rVariables.Contact.Tsigma,rVariables.Contact.CurrentSurface.Tangent,ndi,ndj,ndk,ndr);
-
-    // for(unsigned int i=0; i<rVariables.Contact.Tsigma.size(); i++)
-    //   std::cout<<" i: "<<i<<" Tsigma "<<rVariables.Contact.Tsigma[i]<<std::endl;
+      //dN_dr:
+    
+      rVariables.Contact.dN_dr.resize(6);
+      noalias(rVariables.Contact.dN_dr) = ZeroVector(6);
+    
+      rVariables.Contact.dN_dr[ndi]=(-1)*rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L;
+      rVariables.Contact.dN_dr[ndj]=(-1)*rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L;
+      rVariables.Contact.dN_dr[ndk]= rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L;
+      rVariables.Contact.dN_dr[ndl]= rVariables.Contact.ReferenceBase[1].B/rVariables.Contact.ReferenceBase[1].L;;
 
 
-    //NsigmaP :
-    rVariables.Contact.Nsigma.resize(4);
-    FSigmaP(rVariables,rVariables.Contact.Nsigma,rVariables.Contact.CurrentSurface.Normal,ndi,ndj,ndk,ndr);
+      //A.dN_dt:
 
-    // for(unsigned int i=0; i<rVariables.Contact.Nsigma.size(); i++)
-    //   std::cout<<" i: "<<i<<" Nsigma "<<rVariables.Contact.Nsigma[i]<<std::endl;
+      rVariables.Contact.Tangent.A.dN_dt.resize(6);
+      noalias(rVariables.Contact.Tangent.A.dN_dt) = ZeroVector(6);
 
 
-    rVariables.DN_DX = DN_DX;
+      rVariables.Contact.Tangent.A.dN_dt[ndi]=-1.0;
+      rVariables.Contact.Tangent.A.dN_dt[ndj]= 1.0;
+
+      //B.dN_dt:
+
+      rVariables.Contact.Tangent.B.dN_dt.resize(6);
+      noalias(rVariables.Contact.Tangent.B.dN_dt) = ZeroVector(6);
+
+      rVariables.Contact.Tangent.B.dN_dt[ndk]= 1.0;
+      rVariables.Contact.Tangent.B.dN_dt[ndl]=-1.0;
+
+      //A.TsigmaP : 1-2-5-6
+      rVariables.Contact.Tangent.A.Tsigma.resize(6);
+
+      //B.TsigmaP :
+      rVariables.Contact.Tangent.B.Tsigma.resize(6);
+
+      //NsigmaP :
+      rVariables.Contact.Nsigma.resize(6);
+
+    }
+    else{
+      
+      
+      rVariables.Contact.dN_dn.resize(5);
+      noalias(rVariables.Contact.dN_dn) = ZeroVector(5);
+    
+      rVariables.Contact.dN_dn[ndi]=(-1)*rVariables.Contact.CurrentBase[0].A/rVariables.Contact.CurrentBase[0].L;
+      rVariables.Contact.dN_dn[ndj]=(-1)*rVariables.Contact.CurrentBase[1].A/rVariables.Contact.CurrentBase[1].L; 
+      rVariables.Contact.dN_dn[ndk]=(-1)*rVariables.Contact.CurrentBase[2].A/rVariables.Contact.CurrentBase[2].L; 
+      rVariables.Contact.dN_dn[ndl]= 1.0;
+
+
+      //dN_dr:
+    
+      rVariables.Contact.dN_dr.resize(5);
+      noalias(rVariables.Contact.dN_dr) = ZeroVector(5);
+    
+      rVariables.Contact.dN_dr[ndi]=(-1)*rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L;
+      rVariables.Contact.dN_dr[ndj]=(-1)*rVariables.Contact.ReferenceBase[1].A/rVariables.Contact.ReferenceBase[1].L;
+      rVariables.Contact.dN_dr[ndk]=(-1)*rVariables.Contact.ReferenceBase[2].A/rVariables.Contact.ReferenceBase[2].L;
+      rVariables.Contact.dN_dr[ndl]= 1.0;
+
+
+      //A.dN_dt:
+
+      rVariables.Contact.Tangent.A.dN_dt.resize(5);
+      rVariables.Contact.Tangent.A.dN_dt.clear();
+
+      rVariables.Contact.Tangent.A.dN_dt[ndi]=-1.0;
+      rVariables.Contact.Tangent.A.dN_dt[ndj]= 1.0;
+
+      //B.dN_dt:
+
+      rVariables.Contact.Tangent.B.dN_dt.resize(5);
+      rVariables.Contact.Tangent.B.dN_dt.clear();
+
+      rVariables.Contact.Tangent.B.dN_dt[ndi]=-1.0;
+      rVariables.Contact.Tangent.B.dN_dt[ndk]= 1.0;
+
+      //A.TsigmaP : 1-3-2-5
+      rVariables.Contact.Tangent.A.Tsigma.resize(5);
+
+      //B.TsigmaP :
+      rVariables.Contact.Tangent.B.Tsigma.resize(5);
+
+      //NsigmaP :
+      rVariables.Contact.Nsigma.resize(5);
+
+    }
+
+  //rVariables.Contact.CurTangent=(rVariables.Contact.Tangent.cvta+rVariables.Contact.Tangent.cvtb).direction();
+
+  //A.TsigmaP :
+  FSigmaP(rVariables,rVariables.Contact.Tangent.A.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionA,ndi,ndj,ndk,ndl,ndm,ndn);
+
+
+  //B.TsigmaP :
+  FSigmaP(rVariables,rVariables.Contact.Tangent.B.Tsigma,rVariables.Contact.Tangent.CovariantBase.DirectionB,ndi,ndj,ndk,ndl,ndm,ndn);
+
+ 
+  //NsigmaP :
+  FSigmaP(rVariables,rVariables.Contact.Nsigma,rVariables.Contact.CurrentSurface.Normal,ndi,ndj,ndk,ndl,ndm,ndn);
+
+
+  rVariables.DN_DX = DN_DX;
 
 }
 
@@ -1123,20 +1471,40 @@ void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr)
+void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn)
 {
-    //Computation with the ndi and storage to ndj
+    if( this->Is(SELECTED) ){
 
-    // std::cout<<" DirVector "<<DirVector<<std::endl;
-    // std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
+      //node for computation / node for assignment (nd1,nd2,nd5,nd6)
+      
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndi, ndi);
+      
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndj, ndj);
+      
+      SigmaP[ndk] = ZeroVector(3);
+      
+      SigmaP[ndl] = ZeroVector(3);
+      
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndk, ndm);
 
-    FSigmaPnd(rVariables, SigmaP, DirVector, ndi, ndi);
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndl, ndn);
+      
+    }
+    else{
+      
+      //node for computation / node for assignment (nd1,nd3,nd2,nd5)
 
-    FSigmaPnd(rVariables, SigmaP, DirVector, ndj, ndj);
-
-    SigmaP[ndk]=ZeroVector(2);
-
-    FSigmaPnd(rVariables, SigmaP, DirVector, ndk, ndr);
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndi, ndi);
+  
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndj, ndj);
+      
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndk, ndk);
+      
+      SigmaP[ndl] = ZeroVector(3);
+      
+      FSigmaPnd(rVariables, SigmaP, DirVector, ndl, ndm);
+      
+    }
 
 }
 
@@ -1147,55 +1515,147 @@ void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vect
 void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& DirVector,unsigned int &ndi,unsigned int &ndj)
 {
     //Computation with the ndi and storage to ndj
-    SigmaP[ndj]=ZeroVector(2);
+    SigmaP[ndj].resize(3);
+    noalias(SigmaP[ndj]) = ZeroVector(3);
 
     //part1:
-    SigmaP[ndj][0]= DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,1))+ DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,0));
+    SigmaP[ndj][0]= DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
+                    DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
+                    DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
 
-       
-    SigmaP[ndj][1]= DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,0))+ DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,1));
+    SigmaP[ndj][1]= DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
+                    DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
+                    DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
 
+    SigmaP[ndj][2]= DirVector[2]*mContactVariables.ReferenceSurface.Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2))+
+                    DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
+                    DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2));
+
+    
     //part2:
-    std::vector<Vector> FD(4);
+    std::vector<Vector> FD(9);
 
-    FD[0].resize(4);
-    FD[0][0]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(2,0));
-    FD[0][1]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,1)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(2,1));
-    FD[0][2]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(2,2));
-    FD[0][3]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(2,2));
+    FD[0].resize(9);
+    FD[0][0]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,0));
+    FD[0][1]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,1)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,1));
+    FD[0][2]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,2));
+    FD[0][3]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[0][4]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[0][5]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[0][6]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[0][7]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,5));
+    FD[0][8]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,5));
 
-    FD[1].resize(4);
-    FD[1][0]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,0)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(2,0));
-    FD[1][1]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,1)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(2,1));
-    FD[1][2]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(2,2));
-    FD[1][3]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(2,2));
+    FD[1].resize(9);
+    FD[1][0]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,0)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,0));
+    FD[1][1]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,1)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,1));
+    FD[1][2]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,2));
+    FD[1][3]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[1][4]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[1][5]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[1][6]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[1][7]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,5));
+    FD[1][8]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,5));
 
-    FD[2].resize(4);
-    FD[2][0]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,0)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(2,0));
-    FD[2][1]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,1)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(2,1));
-    FD[2][2]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(2,2));
-    FD[2][3]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(2,2));
+    FD[2].resize(9);
+    FD[2][0]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,0)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,0)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,0));
+    FD[2][1]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,1)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,1)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,1));
+    FD[2][2]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,2)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,2)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,2));
+    FD[2][3]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[2][4]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[2][5]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[2][6]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[2][7]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,5));
+    FD[2][8]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,5));
 
-    FD[3].resize(4);
-    FD[3][0]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(2,0));
-    FD[3][1]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,1)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(2,1));
-    FD[3][2]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(2,2));
-    FD[3][3]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(2,2));
+    FD[3].resize(9);
+    FD[3][0]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,0)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,0));
+    FD[3][1]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,1)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,1));
+    FD[3][2]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,2));
+    FD[3][3]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[3][4]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[3][5]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[3][6]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[3][7]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,5));
+    FD[3][8]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,5));
 
-    std::vector<Vector> FDB(4);
+    FD[4].resize(9);
+    FD[4][0]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,0));
+    FD[4][1]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,1)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,1));
+    FD[4][2]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,2));
+    FD[4][3]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[4][4]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[4][5]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[4][6]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[4][7]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,5));
+    FD[4][8]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,5));
 
-    FDB[0]=ZeroVector(2);
-    FDB[1]=ZeroVector(2);
-    FDB[2]=ZeroVector(2);
-    FDB[3]=ZeroVector(2);
+    FD[5].resize(9);
+    FD[5][0]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,0)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,0)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,0));
+    FD[5][1]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,1)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,1)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,1));
+    FD[5][2]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,2)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,2)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,2));
+    FD[5][3]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[5][4]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[5][5]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[5][6]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[5][7]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,5));
+    FD[5][8]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,5));
 
-    for(int i=0; i<4; i++)
+    FD[6].resize(9);
+    FD[6][0]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,0)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,0));
+    FD[6][1]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,1)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,1));
+    FD[6][2]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,2)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,2));
+    FD[6][3]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[6][4]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,3)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,3));
+    FD[6][5]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[6][6]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,4)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,4));
+    FD[6][7]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,5));
+    FD[6][8]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,5)+rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,5));
+
+    FD[7].resize(9);
+    FD[7][0]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,0)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,0)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,0));
+    FD[7][1]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,1)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,1)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,1));
+    FD[7][2]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,2)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,2)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,2));
+    FD[7][3]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[7][4]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,3)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,3)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,3));
+    FD[7][5]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[7][6]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,4)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,4)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,4));
+    FD[7][7]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,5));
+    FD[7][8]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,5)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,5)+rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,5));
+
+    FD[8].resize(9);
+    FD[8][0]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,0));
+    FD[8][1]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,1)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,1)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,1));
+    FD[8][2]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,2)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,2)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,2));
+    FD[8][3]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[8][4]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,3)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,3)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,3));
+    FD[8][5]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[8][6]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,4)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,4)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,4));
+    FD[8][7]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
+    FD[8][8]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
+
+    std::vector<Vector> FDB(9);
+
+    FDB[0].resize(3);   FDB[1].resize(3);   FDB[2].resize(3);
+    FDB[3].resize(3);   FDB[4].resize(3);   FDB[5].resize(3);
+    FDB[6].resize(3);   FDB[7].resize(3);   FDB[8].resize(3);
+
+    for(unsigned int i=0; i<9; i++)
     {
-        for(int j=0; j<2; j++)
+      noalias(FDB[i]) = ZeroVector(3);
+    }
+    
+    for(unsigned int i=0; i<9; i++)
+    {
+        for(unsigned int j=0; j<3; j++)
         {
-            FDB[i][j]=FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
-                      (FD[i][2]+FD[i][3])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0));
 
+	  FDB[i][j]= FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+
+	             FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
+	             FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
+            (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
+            (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
+            (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
         }
 
     }
@@ -1205,12 +1665,21 @@ void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::ve
     // std::cout<<" FBD [2] "<<FDB[2]<<std::endl;
     // std::cout<<" FBD [3] "<<FDB[3]<<std::endl;
 
-    for(int i=0; i<2; i++)
+
+    for(unsigned int i=0; i<3; i++)
     {
-        SigmaP[ndj][i]+=DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[0][i])+
-                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[1][i])+
-                        DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[2][i])+
-                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[3][i]);
+      SigmaP[ndj][i]+=  DirVector[0]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[0][i])+
+            	        DirVector[1]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[1][i])+
+                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[2][i])+
+
+                        DirVector[0]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[3][i])+
+                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[4][i])+
+                        DirVector[1]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[5][i])+
+
+                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[1]*(FDB[6][i])+
+                        DirVector[0]*mContactVariables.ReferenceSurface.Normal[2]*(FDB[7][i])+
+                        DirVector[2]*mContactVariables.ReferenceSurface.Normal[0]*(FDB[8][i]);
+
     }
 
 
@@ -1239,7 +1708,8 @@ double& ContactDomainLM3DCondition::CalculateIntegrationWeight(double& rIntegrat
 void ContactDomainLM3DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {    
 
-    F = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
+    F  = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
+    F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
 
 }
 
@@ -1252,12 +1722,22 @@ void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVa
 
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
-		F=rVariables.Contact.Multiplier.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
+	        F = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir] +
+		    rVariables.Contact.Tangent.A.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionA[idir] +
+ 		    rVariables.Contact.Tangent.B.CurrentGap.Contravariant * rVariables.Contact.Tangent.CovariantBase.DirectionB[idir];
+
+		  
+		F *= ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.A.dN_dt[ndi]+
+		       rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.B.dN_dt[ndi] );
+		
+		F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.A.Multiplier * rVariables.Contact.Tangent.Contravariant.DirectionA[idir] + rVariables.Contact.Tangent.B.Multiplier * rVariables.Contact.Tangent.Contravariant.DirectionB[idir] );
+
+		F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
 	}
 	else{
 		F=0.0;
 	}
-
+	
 }
 
 //************************************************************************************
@@ -1266,14 +1746,24 @@ void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVa
 
 void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
-
+         
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
-		F=rVariables.Contact.Multiplier.Normal*(rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 
+	         F = (rVariables.Contact.Tangent.A.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionA[ndi] +
+		      rVariables.Contact.Tangent.B.GapSign * rVariables.Contact.Tangent.CovariantBase.DirectionB[ndi] );
+		  
+		 F *= rVariables.Contact.CurrentGap.Normal * rVariables.Contact.CurrentSurface.Normal[idir];
+		  
+		 F += rVariables.Contact.dN_drn[ndi] * ( rVariables.Contact.Tangent.Contravariant.DirectionA[idir] +
+							 rVariables.Contact.Tangent.Contravariant.DirectionB[idir] );
+
+		 F *= ( rVariables.Contact.Multiplier.Normal * rVariables.Contact.FrictionCoefficient );
+
+		 F *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
 	}
 	else{
-		F=0.0;
+		 F=0.0;
 	}
 
 
@@ -1288,14 +1778,28 @@ void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 {
     Kcont=0;
 
+    double athird = 1.0/3.0;
+    
     //Normal contact contribution:
-    //KI:
-    Kcont = (0.5/rVariables.Contact.ContactFactor.Normal) * (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] )
-      - rVariables.Contact.Multiplier.Normal*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-					      + rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-					      + rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
-      - rVariables.Contact.CurrentTensil.Tangent*(rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir])*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir];
+    //KI:       
+    Kcont =  (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal)) *
+             (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] )-    
+             (mContactDomain.LmN * rVariables.Contact.CurrentGap.Normal ) *
+             (rVariables.Contact.Tangent.ContravariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+	      rVariables.Contact.Tangent.ContravariantBase.Metric(0,1)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+	      rVariables.Contact.Tangent.ContravariantBase.Metric(1,0)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+	      rVariables.Contact.Tangent.ContravariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
+             (rVariables.Contact.Multiplier.Normal) *
+             (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[jdir]+
+	      rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[jdir]+
+	      rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+	      rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
+             (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
+             (mContactDomain.CurrentTensil.TangentcnA*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+	      mContactDomain.CurrentTensil.TangentcnB*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
 
+    // rstiff = cte*geofct_n/tau_n*hdNn_a(in)*ne_a(idime)*hdNn_a(jn)*ne_a(jdime)
+    
     // std::cout<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<idir<<" j "<<jdir<<std::endl;
     // std::cout<<" Kg "<<Kcont;
     // //std::cout<<" constant "<<constant<<" Kg "<<Kcont*constant;
@@ -1308,22 +1812,65 @@ void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVari
     //Stick contact contribution:
     if(rVariables.Contact.Options.Is(NOT_SLIP))
     {
-	//std::cout<<" + stick ";
-        if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
+      //std::cout<<" + stick ";
+      if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
         {
-	    //std::cout<<"(mu_on)";
-            //KI:
-            Kcont += (0.5/rVariables.Contact.ContactFactor.Normal) * (rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+rVariables.Contact.dN_drn[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
-	      + rVariables.Contact.Multiplier.Tangent * (rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-							 + rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-							 - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-							 - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
-	      + rVariables.Contact.CurrentTensil.Normal*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
+	  //std::cout<<"(mu_on)";
+	  //KI:
+	  double raux=rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+ 
+	              rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+ 
+           	      rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir]; //it must be GapcnTA (contravariant gap)
+	  
+	  //KI:
+	  Kcont+= (raux*rVariables.Contact.Tangent.A.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]) *
+	          ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+
+		    rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(0,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
+	    (raux*rVariables.Contact.Tangent.B.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir])*
+  	         ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir]+
+		   rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(1,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) )+
+	    rVariables.Contact.Tangent.A.Multiplier*(rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+			    rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+			   (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
+			   (rVariables.Contact.Tangent.A.CurrentGap.Contvariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contvariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
+			   raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj)-
+			   raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj))-	    
+	    rVariables.Contact.Tangent.B.Multiplier*(rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+			   rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
+			   (rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+
+			   (rVariables.Contact.Tangent.A.CurrentGap.Contvariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contvariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-
+			   raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj)-
+			   raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj));
+
+    // rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
+    //                    ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
+    //                      lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
+
+    //                    (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                                                      
+    //                    ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
+    //                      lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                          
+
+    //           lam_t1*( ne_a(idime)*dNt1_a(in)*ne_a(jdime)*hdNn_a(jn) +
+    // 			  ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt1_a(jn) +  &
+
+    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt1_a(in)*hdNn_n(jn) +                    
+    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -       
+    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - 
+    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) ) +              &
+
+    //           lam_t2*( ne_a(idime)*dNt2_a(in)*ne_a(jdime)*hdNn_a(jn) + ne_a(idime)*hdNn_n(in)*ne_a(jdime)*dNt2_a(jn) +  
+    //                    ( t1cn(idime)*t1cv(jdime) + t2cn(idime)*t2cv(jdime) )*dNt2_a(in)*hdNn_n(jn) +                    
+    //                    ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
+    //                    raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) -
+    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) )
 
             //KII:
-            Kcont += (rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*rVariables.Contact.Tsigma[ndj][jdir];
+	    Kcont+= ((rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir])*
+	     (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])+
+	     (rVariables.Contact.dN_drn[ndi]*(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])));
 
-            //(he_a*ddN_dt_a(in)*ne_a(idime) + hddN_dn_n(in)*te_a(idime))*raux
+  // rstiff = rstiff + ( he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime) )*  
+  //                               ( dNt1_a(in)*raux1 + dNt2_a(in)*raux2 ) +                        &
+  //                               hdNn_n(in)*( t1cn(idime)*raux1 + t2cn(idime)*raux2 )
         }
     }
     else
@@ -1332,18 +1879,36 @@ void ContactDomainLM3DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 	//std::cout<<" + slip ";
         if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
         {
+
+
+//          raux = he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime)
+	  
 	    //std::cout<<"(mu_on)";
             //KI:
-            Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*((0.5/rVariables.Contact.ContactFactor.Normal)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])* (rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])+
-                    rVariables.Contact.Multiplier.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]- rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]- rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])- rVariables.Contact.CurrentTensil.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]));
+//     rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*                                                      
+//                                   ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +                                                    
+//                                     lam_n*ne_a(jdime)*(gmcov(1,1)*dNt1_a(jn) + gmcov(1,2)*dNt2_a(jn)) ) +                          
+//                       (raux*dNt2_a(in) + t2cn(idime)*hdNn_n(in))*                              
+//   	                             ( cte*geofct_n/tau_t*t2cv(jdime)*hdNn_n(jn) +                                                    
+//                                     lam_n*ne_a(jdime)*(gmcov(2,1)*dNt1_a(jn) + gmcov(2,2)*dNt2_a(jn)) ) +                         
+ 
+//                          lam_t1*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt1_a(in) -      
+//                                   raux*dNt1_a(in)*t1cv(jdime)*dNt1_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt1_a(jn) -                
+//                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt1_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt1_a(jn) )+ 
 
+//                          lam_t2*( ( gt1_cv*ne_a(jdime)*dNt1_a(jn) + gt2_cv*ne_a(jdime)*dNt2_a(jn) )*ne_a(idime)*dNt2_a(in) -       
+//                                   raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) -                
+//                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt2_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt2_a(jn) 
 
             //KII:
-            Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*rVariables.Contact.Nsigma[ndj][jdir];
+            
 
         }
     }
 
+
+    Kcont *= (1.0/3.0) * rVariables.Contact.Tangent.EquivalentArea;
+    
     //std::cout<<" Ks "<<Kcont-K1<<std::endl;
 
 }
