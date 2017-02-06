@@ -158,12 +158,16 @@ public:
 
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
+	vel_build->SetCalculateReactionsFlag(false);
+	
         BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
 	this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
+	pressure_build->SetCalculateReactionsFlag(false);
+	
         KRATOS_CATCH("");
     }
 
