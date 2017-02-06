@@ -761,7 +761,7 @@ class Procedures(object):
         if hasattr(self.DEM_parameters, "AmplifiedSearchRadiusExtension"):
             self.CheckVariableType(DEM_parameters.AmplifiedSearchRadiusExtension, float, "")
         if hasattr(self.DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
-            self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, int, "")
+            self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, float, "")
         self.CheckVariableType(DEM_parameters.VirtualMassCoefficient, float, "")
         self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")   #@53214
         self.CheckVariableType(DEM_parameters.MaxTimeStep, float, "")
