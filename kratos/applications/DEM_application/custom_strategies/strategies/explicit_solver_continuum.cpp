@@ -270,6 +270,7 @@ namespace Kratos {
 
     void ContinuumExplicitSolverStrategy::ComputeNewNeighboursHistoricalData() {
         KRATOS_TRY
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         #pragma omp parallel
         {
@@ -282,6 +283,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(TempNeighbourElements);
+                mListOfSphericContinuumParticles[i]->UpdateContinuumNeighboursVector(r_process_info);
                 mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(TempNeighboursIds, TempNeighbourElasticContactForces);
             }
         }
