@@ -118,11 +118,11 @@ public:
 
         //UPDATE POSITION OF ROTOR AXIS:
         const double initial_angle = atan2( (mInitialCoordinatesOfRotorCenter[1] - mCoordinatesOfStatorCenter[1]), (mInitialCoordinatesOfRotorCenter[0] - mCoordinatesOfStatorCenter[0]) );
-        const double rotated_angle = mW1[2] * rCurrentTime;
-        const double current_angle = initial_angle + rotated_angle;
+        const double rotated_angle1 = mW1[2] * rCurrentTime;
+        const double current_angle1 = initial_angle + rotated_angle1;
         array_1d<double,3> vector_to_rotor_center;
-        vector_to_rotor_center[0] = mEccentricity*cos(current_angle);
-        vector_to_rotor_center[1] = mEccentricity*sin(current_angle);
+        vector_to_rotor_center[0] = mEccentricity*cos(current_angle1);
+        vector_to_rotor_center[1] = mEccentricity*sin(current_angle1);
         vector_to_rotor_center[2] = 0.0;
         const array_1d<double,3> current_rotor_position = mCoordinatesOfStatorCenter + vector_to_rotor_center;
 
@@ -130,6 +130,7 @@ public:
         const array_1d<double,3> rotor_velocity = MathUtils<double>::CrossProduct(vector_to_rotor_center, mW1);
 
         //UPDATE LOCAL AXES (ROTATE THEM AROUND (0,0,1) THE ROTATED ANGLE )
+        const double rotated_angle2 = mW2[2] * rCurrentTime;
         array_1d<double,3> current_local_axis_1;
         array_1d<double,3> current_local_axis_2;
         array_1d<double,3> current_local_axis_3;
@@ -138,8 +139,8 @@ public:
         array_1d<double,3> initial_local_axis_1; initial_local_axis_1[0] = 1.0; initial_local_axis_1[1] = 0.0; initial_local_axis_1[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
         array_1d<double,3> initial_local_axis_2; initial_local_axis_2[0] = 0.0; initial_local_axis_2[1] = 1.0; initial_local_axis_2[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
 
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, vertical_vector, rotated_angle, current_local_axis_1);
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, vertical_vector, rotated_angle, current_local_axis_2);
+        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, vertical_vector, rotated_angle2, current_local_axis_1);
+        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, vertical_vector, rotated_angle2, current_local_axis_2);
 
         //UPDATE POSITION AND VELOCITY OF ALL NODES
         for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
@@ -150,7 +151,7 @@ public:
 
             //Use local coordinates with the updated local axes
             array_1d<double,3> from_rotor_center_to_node;
-            from_rotor_center_to_node = local_coordinates[0] * current_local_axis_1 + local_coordinates[1] * current_local_axis_2;
+            noalias(from_rotor_center_to_node) = local_coordinates[0] * current_local_axis_1 + local_coordinates[1] * current_local_axis_2;
 
             array_1d<double,3>& current_node_position = node_i->Coordinates();
             current_node_position[0] = current_rotor_position[0] + local_coordinates[0] * current_local_axis_1[0] + local_coordinates[1] * current_local_axis_2[0];
