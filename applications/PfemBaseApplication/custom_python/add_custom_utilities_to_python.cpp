@@ -225,6 +225,8 @@ namespace Kratos
 	.def("SetNumberOfNewNodes",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewNodes)
 	.def("SetNumberOfNewElements",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewElements)
 	.def("SetNumberOfNewConditions",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewConditions)
+	.def("SetInitialMeshVolume",&ModelerUtilities::MeshingInfoParameters::SetInitialMeshVolume)
+	.def("GetInitialMeshVolume",&ModelerUtilities::MeshingInfoParameters::GetInitialMeshVolume)
 	.def("GetInsertedNodes",&ModelerUtilities::MeshingInfoParameters::GetInsertedNodes)
 	;
 

@@ -305,6 +305,8 @@ public:
       bool  GeometricalSmoothingRequired;
       bool  MechanicalSmoothingRequired;
 
+      double InitialMeshVolume;
+
       void Initialize (){
 
 	NumberOfElements   = 0;
@@ -372,6 +374,16 @@ public:
       void SetNumberOfNewConditions(unsigned int NumberConditions)
       {
 	NumberOfNewConditions = NumberConditions;
+      }
+
+      void SetInitialMeshVolume(double Volume)
+      {
+	InitialMeshVolume = Volume;
+      }
+
+      double GetInitialMeshVolume()
+      {
+	return InitialMeshVolume;
       }
 
       bool CheckGeometricalSmoothing(){
@@ -1322,6 +1334,38 @@ public:
 
       KRATOS_CATCH( "" )
     }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+    static inline double CalculateModelPartVolume(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+      
+	const unsigned int dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+      double ModelPartVolume = 0;
+      if( dimension ==2 ){
+      
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+	  {
+	    ModelPartVolume += i_elem->GetGeometry().Area();
+	  }
+      }
+      else{ //dimension == 3
+      
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+	  {
+	    ModelPartVolume += i_elem->GetGeometry().Volume();
+	  }
+      }
+
+      return ModelPartVolume;
+    
+      KRATOS_CATCH(" ")
+  
+	}
+  
 
 
     //*******************************************************************************************
