@@ -139,18 +139,19 @@ public:
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
             array_1d<double, 3> gradient_value = itNode->FastGetSolutionStepValue(mVariableGradient, 0);
             
-            double element_size = mMinSize;
-            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
-            if ((element_size > nodal_h) && (mEnforceCurrent == true))
-            {
-                element_size = nodal_h;
-            }
-            
             const double ratio = CalculateAnisotropicRatio(distance, mAnisRatio, mBoundLayer, mInterpolation);
             
             // For postprocess pourposes
             double& anisotropic_ratio = itNode->FastGetSolutionStepValue(ANISOTROPIC_RATIO, 0); 
             anisotropic_ratio = ratio;
+            
+
+            double element_size = mMinSize;
+            const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);
+            if (((element_size > nodal_h) && (mEnforceCurrent == true)) || (std::abs(distance) > mBoundLayer))
+            {
+                element_size = nodal_h;
+            }
             
             const double tolerance = 1.0e-12;
             const double norm = norm_2(gradient_value);
