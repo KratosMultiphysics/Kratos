@@ -1273,7 +1273,7 @@ namespace Kratos
 	    }
 	  else{
 
-	    if( mEchoLevel >= 1 )
+	    if( mEchoLevel > 1 )
 	      std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
 			
 	    Normal.clear();
