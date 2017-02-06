@@ -411,9 +411,11 @@ namespace Kratos {
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {
                 AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
-            }
+            }                        
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
+            
+            ComputeForceWithNeighbourFinalOperations();
 
             /*if (i < mContinuumInitialNeighborsSize) {
                 DEM_COPY_SECOND_TO_FIRST_3(mArrayOfDeltaDisplacements[i], DeltDisp);
@@ -425,7 +427,8 @@ namespace Kratos {
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
 
-
+    void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
+    
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
         
         int BrokenBondsCounter = 0.0;
@@ -630,6 +633,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
+            
 
     void SphericContinuumParticle::ReorderFEMneighbours() {
         
@@ -664,6 +668,8 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info){}
+    
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
         
         KRATOS_TRY

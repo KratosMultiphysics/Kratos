@@ -68,8 +68,8 @@ namespace Kratos
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         void ReorderFEMneighbours();
-
-        //virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+        virtual void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
+        virtual void ComputeForceWithNeighbourFinalOperations();
 
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);

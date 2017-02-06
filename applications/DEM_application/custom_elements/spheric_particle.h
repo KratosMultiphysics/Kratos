@@ -54,6 +54,7 @@ virtual ~SphericParticle();
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
+virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
 using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control);
@@ -65,6 +66,8 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
+virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
+virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
@@ -144,11 +147,9 @@ virtual double GetParticleGamma();
 void   SetParticleGammaFromProperties(double* particle_gamma);
 
 array_1d<double, 3>& GetForce();
-double mElasticEnergy;
+
 virtual double& GetElasticEnergy();
-double mInelasticFrictionalEnergy;
 virtual double& GetInelasticFrictionalEnergy();
-double mInelasticViscodampingEnergy;
 virtual double& GetInelasticViscodampingEnergy();
 
 PropertiesProxy* GetFastProperties();
@@ -180,9 +181,9 @@ virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericPartic
 /// Print object's data.
 virtual void PrintData(std::ostream& rOStream) const {}
 
-virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
-
-virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+double mElasticEnergy;
+double mInelasticFrictionalEnergy;
+double mInelasticViscodampingEnergy;
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
@@ -199,7 +200,7 @@ std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 
-virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
+
 
 array_1d<double, 3> mContactMoment; //SLS
 
