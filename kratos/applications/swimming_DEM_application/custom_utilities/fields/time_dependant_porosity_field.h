@@ -208,16 +208,16 @@ void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<doubl
 
 TimeDependantPorosityField GetPorosityField(){return(mAlpha);}
 
-virtual std::string Info() const
+std::string Info() const override
 {
-  return "";
+  return "time-dependant porosity field";
 }
 
 
-virtual void PrintInfo(std::ostream& rOStream) const {}
+void PrintInfo(std::ostream& rOStream) const override {}
 
 
-virtual void PrintData(std::ostream& rOStream) const {}
+void PrintData(std::ostream& rOStream) const override {}
 
 
 protected:
