@@ -70,5 +70,10 @@
 		return [Pfem::xml::ProcGetBodiesValues $domNode $args]
 		]]>
 	</proc>
+	<proc n='GetRigidBodiesValues' args='args'>
+		<![CDATA[
+		return [Pfem::xml::ProcGetRigidBodiesValues $domNode $args]
+		]]>
+	</proc>
 
 </container>
