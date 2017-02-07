@@ -429,11 +429,15 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      return CalculateMinEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+
+      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      return CalculateMinEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the maximum edge
@@ -445,11 +449,15 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MaxEdgeLength() const {
-      return CalculateMaxEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+
+      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      return CalculateMaxEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the average edge
@@ -517,7 +525,7 @@ public:
       double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
       double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      return normFactor * CalculateCircumradius(a,b,c) / CalculateCircumradius(a,b,c);
+      return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -533,15 +541,20 @@ public:
     virtual double InradiusToLongestEdgeQuality() const {
       constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      return normFactor * CalculateInradius(a,b,c) / CalculateMaxEdgeLength(a,b,c);
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
     }
 
-    /** Calculates the minimum to maximum edge length quality metric.
-     * Calculates the minimum to maximum edge length quality metric.
+    /** Calculates the area to edge length quality metric.
+     * Calculates the area to edge length quality metric using the
+     * sum of the distances squares.
      * This metric is bounded by the interval (0,1) being:
      *  1 -> Optimal value
      *  0 -> Worst value
@@ -553,11 +566,15 @@ public:
     virtual double AreaToEdgeLengthRatio() const {
       constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      return normFactor * Area() / (a*a+b*b+c*c);
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      return normFactor * Area() / (sa+sb+sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -574,16 +591,68 @@ public:
     virtual double ShortestAltitudeToEdgeLengthRatio() const {
       constexpr double normFactor = 1.0;
 
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      // Shortest altitude is the one intersecting the largest base.
+      double base = CalculateMaxEdgeLength(sa,sb,sc);
+
+      return normFactor * (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
+    }
+
+    /** Calculates the area to edge length quality metric.
+     * Calculates the area to edge length quality metric using the
+     * square of the sum of the distances.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
+     *
+     * @return The Inradius to Circumradius Quality metric.
+     */
+    virtual double AreaToEdgeLengthSquareRatio() const {
+      constexpr double normFactor = 1.0;
+
       double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
       double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
       double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      // Shortest altitude is the one intersecting the largest base.
-      double base = CalculateMaxEdgeLength(a,b,c);
-
-      return normFactor * (Area() * 2 / base ) / std::sqrt((a*a+b*b+c*c));
+      return normFactor * Area() / std::pow(a+b+c, 2);
     }
 
+    /** Calculates the shortest altitude to longest edge.
+     * Calculates the shortest altitude to longest edge.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     * -1 -> Optimal value with inverted volume.
+     *
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
+     *
+     * @return The shortest altitude to edge length quality metric.
+     */
+    virtual double ShortestAltitudeToLongestEdge() const {
+      constexpr double normFactor = 1.0;
+
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+
+      // Shortest altitude is the one intersecting the largest base (or edge).
+      double base = CalculateMaxEdgeLength(sa,sb,sc);
+
+      return normFactor * (Area() * 2 / base ) / base;
+    }
 
     /**
      * Returns whether given arbitrary point is inside the Geometry
@@ -1636,27 +1705,27 @@ private:
     /** Implements the calculus of the minimum edge length
      * Implements the calculus of the minimum edge length given the length of the geometry edges.
      *
-     * @param  a Length of the edge a
-     * @param  b Length of the edge b
-     * @param  c Length of the edge c
+     * @param  a Squared Length of the edge a
+     * @param  b Squared Length of the edge b
+     * @param  c Squared Length of the edge c
      *
      * @return   The minimum edge length of the geometry with edges a,b,c
      */
     inline double CalculateMinEdgeLength(const double a, const double b, const double c) const {
-      return std::min({a, b, c});
+      return std::sqrt(std::min({a, b, c}));
     }
 
     /** Implements the calculus of the maximum edge length
      * Implements the calculus of the maximum edge length given the length of the geometry edges.
      *
-     * @param  a Length of the edge a
-     * @param  b Length of the edge b
-     * @param  c Length of the edge c
+     * @param  a Squared Length of the edge a
+     * @param  b Squared Length of the edge b
+     * @param  c Squared Length of the edge c
      *
      * @return   The maximum edge length of the geometry with edges a,b,c
      */
     inline double CalculateMaxEdgeLength(const double a, const double b, const double c) const {
-      return std::max({a, b, c});
+      return std::sqrt(std::max({a, b, c}));
     }
 
     /** Implements the calculus of the average edge length

@@ -358,20 +358,25 @@ public:
         return this->Volume();
     }
 
-    /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
+    /** This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * Please note that the folling simplification is used during the
+     * calculus of the determinant in order to reduce the number of operations:
+     *
+     * | a e i 1 |   | a-d e-h i-l |
+     * | b f j 1 | = | b-d f-h j-l |
+     * | c g k 1 |   | c-d g-h k-l |
+     * | d h l 1 |
      *
      * @return double value contains length, area or volume.
+     *
      * @see Length()
      * @see Area()
      * @see Volume()
      *
      * :TODO: might be necessary to reimplement
      */
-
     virtual double Volume() const {
         //closed formula for the linear triangle
         const double onesixth = 1.0/6.0;
@@ -401,8 +406,7 @@ public:
       return Volume();
     }
 
-    /** This method calculates and returns the minimum edge
-     * length of the geometry
+    /** This method calculates and returns the minimum edge length of the geometry.
      *
      * @return double value with the minimum edge length
      *
@@ -410,14 +414,21 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      return CalculateMinEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
-      );
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+
+      return CalculateMinEdgeLength(sa, sb, sc, sd, se, sf);
     }
 
     /** This method calculates and returns the maximum edge
@@ -429,18 +440,24 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MaxEdgeLength() const {
-      return CalculateMaxEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
-      );
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+
+      return CalculateMaxEdgeLength(sa, sb, sc, sd, se, sf);
     }
 
-    /** This method calculates and returns the average edge
-     * length of the geometry
+    /** This method calculates and returns the average edge length of the geometry
      *
      * @return double value with the average edge length
      *
@@ -458,20 +475,47 @@ public:
       );
     }
 
-    /** This method calculates the circumradius of the
-     * geometry
+    /** This method calculates the circumradius of the geometry
      *
      * @return The circumradius of the geometry
      */
     virtual double Circumradius() const {
-      return CalculateCircumradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
-      );
+      //    | s10 y10 z10 |           | s10 x10 z10 |           | s10 x10 y10 |           | x10 y10 z10 |
+      // MX | s20 y20 z20 |        MY | s20 x20 z20 |        MZ | s20 x20 y20 |        AL | x20 y20 z20 |
+      //    | s30 y30 z30 |           | s30 x30 z30 |           | s30 x30 y30 |           | x30 y30 z30 |
+
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
+
+      double aDot = rP0[0] * rP0[0] + rP0[1] * rP0[1] + rP0[2] * rP0[2];
+      double bDot = rP1[0] * rP1[0] + rP1[1] * rP1[1] + rP1[2] * rP1[2];
+      double cDot = rP2[0] * rP2[0] + rP2[1] * rP2[1] + rP2[2] * rP2[2];
+      double dDot = rP3[0] * rP3[0] + rP3[1] * rP3[1] + rP3[2] * rP3[2];
+
+      // Build the simplified matrices
+      double s10 = aDot - dDot;
+      double x10 = rP0[0] - rP3[0];
+      double y10 = rP0[1] - rP3[1];
+      double z10 = rP0[2] - rP3[2];
+
+      double s20 = bDot - dDot;
+      double x20 = rP1[0] - rP3[0];
+      double y20 = rP1[1] - rP3[1];
+      double z20 = rP1[2] - rP3[2];
+
+      double s30 = cDot - dDot;
+      double x30 = rP2[0] - rP3[0];
+      double y30 = rP2[1] - rP3[1];
+      double z30 = rP2[2] - rP3[2];
+
+      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z30 - y30 * z20 * s10 - z30 * s20 * y10;
+      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z30 - x30 * z20 * s10 - z30 * s20 * x10;
+      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y30 - x30 * y20 * s10 - y30 * s20 * x10;
+      double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
+
+      return std::sqrt( (detJMX*detJMX + detJMY*detJMY + detJMZ*detJMZ)) / (2*std::abs(detJAL));
     }
 
     /** This method calculates the inradius of the
@@ -480,16 +524,222 @@ public:
      * @return The inradius of the geometry
      */
     virtual double Inradius() const {
-      return CalculateInradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(0)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(3)-this->GetPoint(2))
-      );
+      //    | x10 y10 z10 |
+      // AL | x20 y20 z20 |
+      //    | x30 y30 z30 |
+
+      const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+      const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+      const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+      const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
+
+      auto c012 = MathUtils<double>::CrossProduct(rP1-rP0, rP2-rP0);
+      auto c013 = MathUtils<double>::CrossProduct(rP1-rP0, rP3-rP0);
+      auto c023 = MathUtils<double>::CrossProduct(rP2-rP0, rP3-rP0);
+      auto c123 = MathUtils<double>::CrossProduct(rP2-rP1, rP3-rP1);
+
+      double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
+      double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
+      double n023 = std::sqrt(c023[0]*c023[0] + c023[1]*c023[1] + c023[2]*c023[2]);
+      double n123 = std::sqrt(c123[0]*c123[0] + c123[1]*c123[1] + c123[2]*c123[2]);
+
+      // Build the simplified matrices
+      double x10 = rP0[0] - rP3[0];
+      double y10 = rP0[1] - rP3[1];
+      double z10 = rP0[2] - rP3[2];
+
+      double x20 = rP1[0] - rP3[0];
+      double y20 = rP1[1] - rP3[1];
+      double z20 = rP1[2] - rP3[2];
+
+      double x30 = rP2[0] - rP3[0];
+      double y30 = rP2[1] - rP3[1];
+      double z30 = rP2[2] - rP3[2];
+
+      double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
+
+      return std::abs(detJAL) / (n012 + n013 + n023 + n123);
     }
 
+    /// Quality functions
+
+    /** Calculates the inradius to circumradius quality metric.
+     * Calculates the inradius to circumradius quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{r}{\ro} \f$
+     *
+     * @return The inradius to circumradius quality metric.
+     */
+    virtual double InradiusToCircumradiusQuality() const {
+      constexpr double normFactor = 3.0;
+
+      return normFactor * Inradius() / Circumradius();
+    };
+
+    /** Calculates the inradius to longest edge quality metric.
+     * Calculates the inradius to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{r}{L} \f$
+     *
+     * @return The inradius to longest edge quality metric.
+     */
+    virtual double InradiusToLongestEdgeQuality() const {
+      constexpr double normFactor = 4.89897982161;
+
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+
+      return normFactor * Inradius() / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
+    }
+
+    /** Calculates the shortest to longest edge quality metric.
+     * Calculates the shortest to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{l}{L} \f$
+     *
+     * @return [description]
+     */
+    virtual double ShortestToLongestEdgeQuality() const {
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+
+      return CalculateMinEdgeLength(sa,sb,sc,sd,se,sf) / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
+    }
+
+    /** Calculates the Regualrity quality metric.
+     * Calculates the Regualrity quality metric.
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{4r}{H} \f$
+     *
+     * @return regualirty quality.
+     */
+    virtual double RegualrityQuiality() const {
+      KRATOS_ERROR << "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4" << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the volume to surface area quality metric.
+     * Calculates the volume to surface area quality metric.
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V^4}{(\sum{A_{i}^{2}})^{3}} \f$
+     *
+     * @return volume to surface quality.
+     */
+    virtual double VolumeToSurfaceAreaQuality() const {
+      KRATOS_ERROR << "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4" << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the Volume to edge length quaility metric.
+     * Calculates the Volume to edge length quaility metric.
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V^{2/3}}{\sum{l_{i}^{2}}} \f$
+     *
+     * @return Volume to edge length quality.
+     */
+    virtual double VolumeToEdgeLengthQuality() const {
+      constexpr double normFactor = 12.0;
+
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0]) + (a[1]*a[1]) + (a[2]*a[2]);
+      double sb = (b[0]*b[0]) + (b[1]*b[1]) + (b[2]*b[2]);
+      double sc = (c[0]*c[0]) + (c[1]*c[1]) + (c[2]*c[2]);
+      double sd = (d[0]*d[0]) + (d[1]*d[1]) + (d[2]*d[2]);
+      double se = (e[0]*e[0]) + (e[1]*e[1]) + (e[2]*e[2]);
+      double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
+
+      return normFactor * std::pow(3*Volume(), 2.0 / 3.0) / (sa + sb + sc + sd + se + sf);
+    }
+
+    /** Calculates the volume to average edge lenght quality metric.
+     * Calculates the volume to average edge lenght quality metric.
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V}{\frac{1}{6}\sum{l_i}} \f$
+     *
+     * @return [description]
+     */
+    virtual double VolumeToAverageEdgeLength() const {
+      // M_SQRT2 stands for std::sqrt(2.0) from 'math.h'
+      constexpr double normFactor = 3.0 * M_SQRT2;
+
+      return normFactor * Volume() / AverageEdgeLength();
+    }
+
+    /** Calculates the volume to average edge length quality metric.
+     * Calculates the volume to average edge length quality metric.
+     * The average edge lenght is calculated using the RMS.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{V}{\sqrt{\frac{1}{6}\sum{A_{i}^{2}}}} \f$
+     *
+     * @return [description]
+     */
+    virtual double VolumeToRMSEdgeLength() const {
+      constexpr double normFactor = 3.0 * M_SQRT2;
+
+      auto a = this->GetPoint(0) - this->GetPoint(1);
+      auto b = this->GetPoint(1) - this->GetPoint(2);
+      auto c = this->GetPoint(2) - this->GetPoint(0);
+      auto d = this->GetPoint(3) - this->GetPoint(0);
+      auto e = this->GetPoint(3) - this->GetPoint(1);
+      auto f = this->GetPoint(3) - this->GetPoint(2);
+
+      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      double sd = (d[0]*d[0])+(d[1]*d[1])+(d[2]*d[2]);
+      double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
+      double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
+
+      return normFactor * Volume() / std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf));
+    }
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -1336,8 +1586,8 @@ private:
      *
      * @return   The minimum edge length of the geometry with edges a,b,c,d,e,f
      */
-    inline double CalculateMinEdgeLength(double a, double b, double c, double d, double e, double f) const {
-      return std::min({a, b, c, d, e, f});
+    inline double CalculateMinEdgeLength(double sa, double sb, double sc, double sd, double se, double sf) const {
+      return std::sqrt(std::min({sa, sb, sc, sd, se, sf}));
     }
 
     /** Implements the calculus of the maximum edge length
@@ -1352,8 +1602,8 @@ private:
      *
      * @return   The maximum edge length of the geometry with edges a,b,c,d,e,f
      */
-    inline double CalculateMaxEdgeLength(double a, double b, double c, double d, double e, double f) const {
-      return std::max({a, b, c, d, e, f});
+    inline double CalculateMaxEdgeLength(double sa, double sb, double sc, double sd, double se, double sf) const {
+      return std::sqrt(std::max({sa, sb, sc, sd, se, sf}));
     }
 
     /** Implements the calculus of the average edge length
@@ -1385,7 +1635,7 @@ private:
      * @return   The circumradius of the geometry with edges a,b,c
      */
     inline double CalculateCircumradius(double a, double b, double c, double d, double e, double f) const {
-      KRATOS_ERROR << "Inradius function hasn't been implemented yet" << std::endl;
+      KRATOS_ERROR << "Circumradius function hasn't been implemented yet" << std::endl;
       return 0.0;
     }
 

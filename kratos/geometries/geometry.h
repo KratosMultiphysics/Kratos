@@ -80,29 +80,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME( Geometry<TPointType> );
 
     /** Different criteria to evaluate the quality of a geometry.
-     * The different criteria are detailed below:
-     *
-     * ASPECT_RATIO: Aspect ratio
-     * ASPECT_RATIO_ALT: Aspect ratio ( alterantive )
-     * RELEVANT_SPHERE_RATIO: Relevant sphere ratio
-     * CIRCUMRADIUS_DIAMETER_RATIO: Circumradius vs diameter ratio
-     * EXTREMEAL_LENGTH_EDGE_RATIO: Extremal length of edge ratio
-     * VOLUME_SURFACE_RATIO: Volume vs surface ratio
-     * AVERAGE_LENGTH_VOLUME_RATIO: Average length vs volume ratio
-     * MAXIMAL_DIHEDRAL_ANGLE: Maximal dihedral angle
-     * MINIMAL_SOLID_ANGLE: Minimal solid angle
+     * Different criteria to evaluate the quality of a geometry.
      */
     enum class QualityCriteria {
-      ASPECT_RATIO,
-      // ASPECT_RATIO_ALT,
-      // RELEVANT_SPHERE_RATIO,
-      // CIRCUMRADIUS_DIAMETER_RATIO,
-      // EXTREMEAL_LENGTH_EDGE_RATIO,
-      // VOLUME_SURFACE_RATIO,
-      AVERAGE_LENGTH_VOLUME_RATIO
-      // MAXIMAL_DIHEDRAL_ANGLE,
-      // MINIMAL_SOLID_ANGLE
+      INRADIUS_TO_CIRCUMRADIUS,
+      AREA_TO_LENGTH,
+      SHORTEST_ALTITUDE_TO_LENGTH,
+      INRADIUS_TO_LONGEST_EDGE,
+      SHORTEST_TO_LONGEST_EDGE,
+      REGULARITY,
+      AVERAGE_LENGTH_VOLUME_RATIO,
+      VOLUME_TO_SURFACE_AREA,
+      VOLUME_TO_EDGE_LENGTH,
+      VOLUME_TO_AVERAGE_EDGE_LENGTH,
+      VOLUME_TO_RMS_EDGE_LENGTH
     };
+
 
     /** Base type for geometry.
     */
@@ -708,12 +701,26 @@ public:
      double Quality(const QualityCriteria qualityCriteria) const {
        double quality = 0.0f;
 
-       if(qualityCriteria == QualityCriteria::ASPECT_RATIO) {
-         quality = AspectRatioQuality();
-       } else if(qualityCriteria == QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO) {
-         quality = AverageEdgeLenghtQuality();
-       } else {
-         KRATOS_ERROR << "Selected quality criteria is not implemented. " << *this << std::endl;
+       if(qualityCriteria == QualityCriteria::INRADIUS_TO_CIRCUMRADIUS) {
+         quality = InradiusToCircumradiusQuality();
+       } else if(qualityCriteria == QualityCriteria::AREA_TO_LENGTH) {
+         quality = AreaToEdgeLengthRatio();
+       } else if(qualityCriteria == QualityCriteria::SHORTEST_ALTITUDE_TO_LENGTH) {
+         quality = ShortestAltitudeToEdgeLengthRatio();
+       } else if(qualityCriteria == QualityCriteria::INRADIUS_TO_LONGEST_EDGE) {
+         quality = InradiusToLongestEdgeQuality();
+       } else if(qualityCriteria == QualityCriteria::SHORTEST_TO_LONGEST_EDGE) {
+         quality = ShortestToLongestEdgeQuality();
+       } else if(qualityCriteria == QualityCriteria::REGULARITY) {
+         quality = RegualrityQuiality();
+       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_SURFACE_AREA) {
+         quality = VolumeToSurfaceAreaQuality();
+       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_EDGE_LENGTH) {
+         quality = VolumeToEdgeLengthQuality();
+       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH) {
+         quality = VolumeToAverageEdgeLength();
+       } else if(qualityCriteria == QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH) {
+         quality = VolumeToRMSEdgeLength();
        }
 
        return quality;
@@ -2106,36 +2113,162 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /** Calculates the quality of the geometry using the aspect ratio metric.
-     *
-     * @return double value contains quality of the geometry
-     *
-     * @see QualityCriteria
-     * @see Quality
-     * @see QualityAverageEdgeLenght
-     */
-    virtual double AspectRatioQuality() const {
-      double maxEdgeLen = MaxEdgeLength();
-      double minEdgeMin = MaxEdgeLength();
+    /// Quality functions
 
-      return minEdgeMin / maxEdgeLen;
+    /** Calculates the inradius to circumradius quality metric.
+     * Calculates the inradius to circumradius quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{r}{\ro} \f$
+     *
+     * @return The inradius to circumradius quality metric.
+     */
+    virtual double InradiusToCircumradiusQuality() const {
+      KRATOS_ERROR << "Calling base class 'InradiusToCircumradiusQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
     }
 
-    /** Calculates the quality of the geometry using the average edge lenght vs volume ratio metric.
+    /** Calculates the minimum to maximum edge length quality metric.
+     * Calculates the minimum to maximum edge length quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
      *
-     * @return double value contains quality of the geometry
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
      *
-     * @see QualityCriteria
-     * @see Quality
-     * @see QualityAspectRatio
+     * @return The Inradius to Circumradius Quality metric.
      */
-    virtual double AverageEdgeLenghtQuality() const {
-      const double normalization_coeficient = 6.0f * std::sqrt(2.0f);
+    virtual double AreaToEdgeLengthRatio() const {
+      KRATOS_ERROR << "Calling base class 'AreaToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
 
-      double volume = this->Volume();
-      double avglen = this->AverageEdgeLength();
+    /** Calculates the shortest altitude to edge length quality metric.
+     * Calculates the shortest altitude to edge length quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * @formulae $$ \frac{h_{min}}{h_{max}} $$
+     *
+     * @return The shortest altitude to edge length quality metric.
+     */
+    virtual double ShortestAltitudeToEdgeLengthRatio() const {
+      KRATOS_ERROR << "Calling base class 'ShortestAltitudeToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
 
-      return normalization_coeficient * volume / (avglen * avglen * avglen);
+    /** Calculates the inradius to longest edge quality metric.
+     * Calculates the inradius to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{r}{L} \f$
+     *
+     * @return The inradius to longest edge quality metric.
+     */
+    virtual double InradiusToLongestEdgeQuality() const {
+      KRATOS_ERROR << "Calling base class 'InradiusToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the shortest to longest edge quality metric.
+     * Calculates the shortest to longest edge quality metric.
+     * This metric is bounded by the interval (0,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *
+     * \f$ \frac{l}{L} \f$
+     *
+     * @return [description]
+     */
+    virtual double ShortestToLongestEdgeQuality() const {
+      KRATOS_ERROR << "Calling base class 'ShortestToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the Regualrity quality metric.
+     * Calculates the Regualrity quality metric.
+     * This metric is bounded by the interval (-1,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *  -1 -> Negative volume
+     *
+     * \f$ \frac{4r}{H} \f$
+     *
+     * @return regualirty quality.
+     */
+    virtual double RegualrityQuiality() const {
+      KRATOS_ERROR << "Calling base class 'RegualrityQuiality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the volume to surface area quality metric.
+     * Calculates the volume to surface area quality metric.
+     * This metric is bounded by the interval (-1,1) being:
+     *   1 -> Optimal value
+     *   0 -> Worst value
+     *  -1 -> Negative volume
+     *
+     * \f$ \frac{V^4}{(\sum{A_{i}^{2}})^{3}} \f$
+     *
+     * @return volume to surface quality.
+     */
+    virtual double VolumeToSurfaceAreaQuality() const {
+      KRATOS_ERROR << "Calling base class 'VolumeToSurfaceAreaQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the Volume to edge length quaility metric.
+     * Calculates the Volume to edge length quaility metric.
+     * This metric is bounded by the interval (-1,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *  -1 -> Negative volume
+     *
+     * \f$ \frac{V^{2/3}}{\sum{l_{i}^{2}}} \f$
+     *
+     * @return Volume to edge length quality.
+     */
+    virtual double VolumeToEdgeLengthQuality() const {
+      KRATOS_ERROR << "Calling base class 'VolumeToEdgeLengthQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the volume to average edge lenght quality metric.
+     * Calculates the volume to average edge lenght quality metric.
+     * This metric is bounded by the interval (-1,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *  -1 -> Negative volume
+     *
+     * \f$ \frac{V}{\frac{1}{6}\sum{l_i}} \f$
+     *
+     * @return [description]
+     */
+    virtual double VolumeToAverageEdgeLength() const {
+      KRATOS_ERROR << "Calling base class 'VolumeToAverageEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the volume to average edge length quality metric.
+     * Calculates the volume to average edge length quality metric.
+     * The average edge lenght is calculated using the RMS.
+     * This metric is bounded by the interval (-1,1) being:
+     *  1 -> Optimal value
+     *  0 -> Worst value
+     *  -1 -> Negative volume
+     *
+     * \f$ \frac{V}{\sqrt{\frac{1}{6}\sum{A_{i}^{2}}}} \f$
+     *
+     * @return [description]
+     */
+    virtual double VolumeToRMSEdgeLength() const {
+      KRATOS_ERROR << "Calling base class 'VolumeToRMSEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
     }
 
     ///@}
