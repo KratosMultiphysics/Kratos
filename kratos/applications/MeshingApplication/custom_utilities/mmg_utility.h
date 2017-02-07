@@ -75,6 +75,36 @@ namespace Kratos
     typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
     
+    #if !defined(KEY_COMPAROR)
+    #define KEY_COMPAROR
+    struct KeyComparor
+    {
+        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
+        {
+            if(lhs.size() != rhs.size())
+                return false;
+
+            for(unsigned int i=0; i<lhs.size(); i++)
+            {
+                if(lhs[i] != rhs[i]) return false;
+            }
+
+            return true;
+        }
+    };
+    #endif
+    
+    #if !defined(KEY_HASHER)
+    #define KEY_HASHER
+    struct KeyHasher
+    {
+        std::size_t operator()(const vector<int>& k) const
+        {
+            return boost::hash_range(k.begin(), k.end());
+        }
+    };
+    #endif
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -785,9 +815,115 @@ protected:
         /* Free memory */
         FreeMemory();
         
+        /* Check model part */
+        CheckModelPart();
+        
         /* We interpolate all the values */
         InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
+    
+    /**
+     * It checks if the model part is correct (not repeated nodes, elements or conditions) NOTE: Can be expensive
+     */
+    
+    void CheckModelPart()
+    {
+        /* Firts we check that the nodes are correct */
+        CheckNodes();
+        
+        /* Later we check that the conditions are right */
+        CheckConditions();
+        
+        /* Finally we check that the elements are right */
+        CheckElements();
+        
+        /* After that we reorder nodes, conditions and elements: */
+        NodesArrayType& pNode = mThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            itNode->SetId(i + 1);
+        }
+        
+        ConditionsArrayType& pCondition = mThisModelPart.Conditions();
+        auto numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            
+            itCondition->SetId(i + 1);
+        }
+        
+        ElementsArrayType& pElement = mThisModelPart.Elements();
+        auto numElements = pElement.end() - pElement.begin();
+        
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElement = pElement.begin() + i;
+            
+            itElement->SetId(i + 1);
+        }
+        
+    }
+    
+    /**
+     * It checks if the nodes are repeated and remove the repeated ones
+     */
+    
+    void CheckNodes()
+    {
+        typedef boost::unordered_map<vector<double>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap node_map;
+        
+        std::vector<unsigned int> nodes_to_remove_ids;
+        
+        vector<double> coords(TDim);
+        
+        NodesArrayType& pNode = mThisModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            const array_1d<double, 3> coordinates = itNode->Coordinates();
+            
+            for(unsigned int cor = 0; cor < TDim; cor++)
+            {
+                coords[cor] = coordinates[cor];
+            }
+            
+            node_map[coords] += 1;
+            
+            if (node_map[coords] > 1)
+            {
+                nodes_to_remove_ids.push_back(itNode->Id());
+                if (mEchoLevel > 0)
+                {
+                    std::cout << "The mode " << itNode->Id() <<  " is repeated"<< std::endl;
+                }
+            }
+        }
+        
+        // Before proceed with the elimination of the nodes we remove the conditions and elements with that nodes
+        // TODO: Finish this
+    }
+    
+    /**
+     * It checks if the conditions are repeated and remove the repeated ones
+     */
+    
+    void CheckConditions();
+    
+    /**
+     * It checks if the elemenst are removed and remove the repeated ones
+     */
+    
+    void CheckElements();
     
     /**
      * It blocks certain nodes before remesh the model
@@ -1516,6 +1652,241 @@ protected:
 ///@name Explicit Specializations
 ///@{
 
+    template<>  
+    void MmgUtility<2>::CheckConditions()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap edge_map;
+
+        vector<unsigned int> ids(2);
+
+        std::vector<unsigned int> conditions_to_remove;
+        
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+                
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            Geometry<Node<3>> edge = itCond->GetGeometry();
+            
+            for(unsigned int i=0; i<edge.size(); i++)
+            {
+                ids[i] = edge[i].Id();
+            }
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+
+            edge_map[ids] += 1;
+            
+            if (edge_map[ids] > 1)
+            {
+                conditions_to_remove.push_back(itCond->Id());
+            }
+        }
+        
+        // Remove the conditions
+        for (unsigned int i_cond = 0; i_cond < conditions_to_remove.size(); i_cond++)
+        {
+            mThisModelPart.RemoveCondition(conditions_to_remove[i_cond]);
+            std::cout << "The condition " << conditions_to_remove[i_cond] << " has been removed" << std::endl;
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+
+    template<>  
+    void MmgUtility<3>::CheckConditions()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap triangle_map;
+        hashmap quadrilateral_map;
+
+        vector<unsigned int> ids_triangles(3);
+        vector<unsigned int> ids_quadrilaterals(4);
+
+        std::vector<unsigned int> conditions_to_remove;
+        
+        // Iterate in the conditions
+        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+                
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pConditions.begin() + i;
+            
+            Geometry<Node<3>> cond_geometry = itCond->GetGeometry();
+            
+            if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
+            {
+                for(unsigned int i = 0; i < 3; i++)
+                {
+                    ids_triangles[i] = cond_geometry[i].Id();
+                }
+                
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids_triangles.begin(), ids_triangles.end());
+
+                triangle_map[ids_triangles] += 1;
+                
+                if (triangle_map[ids_triangles] > 1)
+                {
+                    conditions_to_remove.push_back(itCond->Id());
+                }
+            }
+            else if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
+            {
+                for(unsigned int i = 0; i < 4; i++)
+                {
+                    ids_quadrilaterals[i] = cond_geometry[i].Id();
+                }
+                
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids_quadrilaterals.begin(), ids_quadrilaterals.end());
+
+                quadrilateral_map[ids_quadrilaterals] += 1;
+                
+                if (quadrilateral_map[ids_quadrilaterals] > 1)
+                {
+                    conditions_to_remove.push_back(itCond->Id());
+                }
+            }
+        }
+        
+        // Remove the conditions
+        for (unsigned int i_cond = 0; i_cond < conditions_to_remove.size(); i_cond++)
+        {
+            mThisModelPart.RemoveCondition(conditions_to_remove[i_cond]);
+            std::cout << "The condition " << conditions_to_remove[i_cond] << " has been removed" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+
+    template<>  
+    void MmgUtility<2>::CheckElements()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap triangle_map;
+
+        vector<unsigned int> ids(3);
+
+        std::vector<unsigned int> elements_to_remove;
+        
+        // Iterate in the elements
+        ElementsArrayType& pElements = mThisModelPart.Elements();
+        auto numElements = pElements.end() - pElements.begin();
+                
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itCond = pElements.begin() + i;
+            
+            Geometry<Node<3>> triangle = itCond->GetGeometry();
+            
+            for(unsigned int i=0; i<triangle.size(); i++)
+            {
+                ids[i] = triangle[i].Id();
+            }
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+
+            triangle_map[ids] += 1;
+            
+            if (triangle_map[ids] > 1)
+            {
+                elements_to_remove.push_back(itCond->Id());
+            }
+        }
+        
+        // Remove the elements
+        for (unsigned int i_elem = 0; i_elem < elements_to_remove.size(); i_elem++)
+        {
+            mThisModelPart.RemoveElement(elements_to_remove[i_elem]);
+            std::cout << "The element " << elements_to_remove[i_elem] << " has been removed" << std::endl;
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+
+    template<>  
+    void MmgUtility<3>::CheckElements()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap tetrahedron_map;
+        hashmap prism_map;
+
+        vector<unsigned int> ids_tetrahedrons(3);
+        vector<unsigned int> ids_prisms(4);
+
+        std::vector<unsigned int> elements_to_remove;
+        
+        // Iterate in the elements
+        ElementsArrayType& pElements = mThisModelPart.Elements();
+        auto numElements = pElements.end() - pElements.begin();
+                
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itCond = pElements.begin() + i;
+            
+            Geometry<Node<3>> elem_geometry = itCond->GetGeometry();
+            
+            if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+            {
+                for(unsigned int i = 0; i < 4; i++)
+                {
+                    ids_tetrahedrons[i] = elem_geometry[i].Id();
+                }
+                
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids_tetrahedrons.begin(), ids_tetrahedrons.end());
+
+                tetrahedron_map[ids_tetrahedrons] += 1;
+                
+                if (tetrahedron_map[ids_tetrahedrons] > 1)
+                {
+                    elements_to_remove.push_back(itCond->Id());
+                }
+            }
+            else if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6)
+            {
+                for(unsigned int i = 0; i < 6; i++)
+                {
+                    ids_prisms[i] = elem_geometry[i].Id();
+                }
+                
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids_prisms.begin(), ids_prisms.end());
+
+                prism_map[ids_prisms] += 1;
+                
+                if (prism_map[ids_prisms] > 1)
+                {
+                    elements_to_remove.push_back(itCond->Id());
+                }
+            }
+        }
+        
+        // Remove the elements
+        for (unsigned int i_elem = 0; i_elem < elements_to_remove.size(); i_elem++)
+        {
+            mThisModelPart.RemoveElement(elements_to_remove[i_elem]);
+            std::cout << "The element " << elements_to_remove[i_elem] << " has been removed" << std::endl;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
 //     template<>  // NOTE: Not yet avalaible in the official API
 //     void MmgUtility<2>::BlockNode(unsigned int i_node)
 //     {
