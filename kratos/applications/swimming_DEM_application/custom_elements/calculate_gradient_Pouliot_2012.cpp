@@ -10,7 +10,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
-    const double epsilon = 1e-6 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
+    const double epsilon = 1e-3 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
     //const double epsilon = 1e-6 * this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
 
@@ -21,10 +21,10 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
         rRightHandSideVector(i) *= epsilon;
     }
 
-    AddPouliot2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-
+    //AddFEMLaplacianStabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
     //AddPouliot2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
 
+    AddPouliot2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
     AddPouliot2012RHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
@@ -184,6 +184,33 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddPouliot2012StabilizationLHS
         }
     }
 }
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLHS(const double epsilon, MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    const unsigned int BlockSize = TDim;
+    unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
+
+    double Area;
+    array_1d<double, TNumNodes> N;
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+    double L;
+
+    for (unsigned int i = 0; i < TNumNodes; ++i){ // iterate over rows
+        for (unsigned int j = 0; j < TNumNodes; ++j){
+            L = 0;
+
+            for (unsigned int m = 0; m < TDim; ++m){ // iterate over v components (vx,vy[,vz])
+                L += epsilon * DN_DX(i, m) * DN_DX(j, m);
+            }
+
+            rLeftHandSideMatrix(FirstRow + TDim, FirstCol + TDim) += Area * L;
+            FirstCol += BlockSize;
+        }
+    }
+}
+
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
