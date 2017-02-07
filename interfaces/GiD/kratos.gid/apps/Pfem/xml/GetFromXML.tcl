@@ -355,6 +355,25 @@ proc Pfem::xml::ProcGetBodiesValues {domNode args} {
     return [join $bodies ","]
 }
 
+proc Pfem::xml::ProcGetRigidBodiesValues {domNode args} {
+    customlib::UpdateDocument
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
+    set bodies [list ]
+    foreach body_node [$root selectNodes $xp1] {
+        foreach subnode [$body_node childNodes] {
+            if { [$subnode getAttribute n] eq "BodyType" } { 
+                if { [$subnode getAttribute v] eq "Rigid" } {
+                    lappend bodies [$body_node @name]
+                    break
+                }                    
+            }
+        }
+    }
+    if {[get_domnode_attribute $domNode v] ni $bodies} {$domNode setAttribute v [lindex $bodies 0]}
+    return [join $bodies ","]
+}
+
 proc Pfem::xml::StartSortingWindow { } {
     set data_dict [dict create]
     set conds [Pfem::xml::GetConditionsAndGroups PFEM_Loads]
@@ -519,7 +538,7 @@ proc Pfem::xml::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
         if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
             gid_groups_conds::addF $block_path value [list n Interval pn "Time interval" v $CondUsesIntervals values {[getIntervals]} help $help]
         }
-        gid_groups_conds::addF $block_path value [list n Body pn Body v - values {[GetBodiesValues]} help $help]
+        gid_groups_conds::addF $block_path value [list n Body pn Body v - values {[GetRigidBodiesValues]} help $help]
     }
 }
 
