@@ -23,6 +23,7 @@ class DerivativeRecoveryStrategy:
         self.laplacian_type = pp.CFD_DEM.laplacian_calculation_type
         self.vorticity_type = pp.CFD_DEM.vorticity_calculation_type
         self.pressure_grad_type = pp.CFD_DEM.pressure_grad_recovery_type
+        self.do_pre_recovery = True
         self.must_reconstruct_gradient = self.laplacian_type in {3, 4, 5, 6} and self.mat_deriv_type in {3, 4}
 
         if pp.CFD_DEM.fluid_already_calculated: # the fluid has been calculated before, and the derivatives fed to the fluid_model_part
@@ -53,7 +54,7 @@ class DerivativeRecoveryStrategy:
         elif self.mat_deriv_type == 5:
             return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 6:
-            return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+            return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool, self.do_pre_recovery)
         elif self.mat_deriv_type == 7:
             if self.store_full_gradient:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
