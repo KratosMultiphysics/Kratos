@@ -546,11 +546,8 @@ if DEM_parameters.coupling_level_type:
     d = math.pi / 2*0
 
     flow_field = EthierFlowField(a, d)
-
     space_time_set = SpaceTimeSet()
     field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
-
-
     #Z
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
