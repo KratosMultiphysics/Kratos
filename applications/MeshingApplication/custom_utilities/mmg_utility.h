@@ -653,10 +653,21 @@ protected:
         unsigned int cond_id = 1;
         if (mpRefCondition[0] != nullptr)
         {
+            unsigned int counter_cond0 = 0;
+            const std::vector<unsigned int> conditions_to_remove0 = CheckConditions0();
             int prop_id, isRequired;
             for (int unsigned i_cond = 1; i_cond <= nConditions[0]; i_cond++)
             {
-                ConditionType::Pointer pCondition = CreateCondition0(cond_id, prop_id, isRequired);
+                bool skip_creation = false;
+                if (counter_cond0 < conditions_to_remove0.size())
+                {
+                    if (conditions_to_remove0[counter_cond0] == i_cond)
+                    {
+                        skip_creation = true;
+                        counter_cond0 += 1;
+                    }
+                }
+                ConditionType::Pointer pCondition = CreateCondition0(cond_id, prop_id, isRequired, skip_creation);
                 
                 if (pCondition != nullptr)
                 {
@@ -682,11 +693,21 @@ protected:
         {
             if (mpRefCondition[1] != nullptr) // Quadrilateral
             {
-                ConditionType::Pointer pCondition;
+                unsigned int counter_cond1 = 0;
+                const std::vector<unsigned int> conditions_to_remove1 = CheckConditions1();
                 int prop_id, isRequired;
                 for (int unsigned i_cond = 1; i_cond <= nConditions[1]; i_cond++)
                 {                    
-                    ConditionType::Pointer pCondition = CreateCondition1(cond_id, prop_id, isRequired);
+                    bool skip_creation = false;
+                    if (counter_cond1 < conditions_to_remove1.size())
+                    {
+                        if (conditions_to_remove1[counter_cond1] == i_cond)
+                        {
+                            skip_creation = true;
+                            counter_cond1 += 1;
+                        }
+                    }
+                    ConditionType::Pointer pCondition = CreateCondition1(cond_id, prop_id, isRequired, skip_creation);
                     
                     if (pCondition != nullptr)
                     {
@@ -714,10 +735,21 @@ protected:
         unsigned int elem_id = 1;
         if (mpRefElement[0] != nullptr)
         {
+            unsigned int counter_elem0 = 0;
+            const std::vector<unsigned int> elements_to_remove0 = CheckElements0();
             int prop_id, isRequired;
             for (int unsigned i_elem = 1; i_elem <= nElements[0]; i_elem++)
-            {                
-                ElementType::Pointer pElement = CreateElement0(elem_id, prop_id, isRequired);
+            {  
+                bool skip_creation = false;
+                if (counter_elem0 < elements_to_remove0.size())
+                {
+                    if (elements_to_remove0[counter_elem0] == i_elem)
+                    {
+                        skip_creation = true;
+                        counter_elem0 += 1;
+                    }
+                }
+                ElementType::Pointer pElement = CreateElement0(elem_id, prop_id, isRequired, skip_creation);
                 
                 if (pElement != nullptr)
                 {
@@ -743,10 +775,21 @@ protected:
         {
             if (mpRefElement[1] != nullptr) // Prism
             {
+                unsigned int counter_elem1 = 0;
+                const std::vector<unsigned int> elements_to_remove1 = CheckElements1();
                 int prop_id, isRequired;
                 for (int unsigned i_elem = 1; i_elem <= nElements[1]; i_elem++)
-                {                    
-                    ElementType::Pointer pElement = CreateElement1(elem_id, prop_id, isRequired);
+                {
+                    bool skip_creation = false;  
+                    if (counter_elem1 < elements_to_remove1.size())
+                    {
+                        if (elements_to_remove1[counter_elem1] == i_elem)
+                        {
+                            skip_creation = true;
+                            counter_elem1 += 1;
+                        }
+                    }
+                    ElementType::Pointer pElement = CreateElement1(elem_id, prop_id, isRequired,skip_creation);
                     
                     if (pElement != nullptr)
                     {
@@ -815,66 +858,44 @@ protected:
         /* Free memory */
         FreeMemory();
         
-        /* Check model part */
-        CheckModelPart();
-        
-        /* We interpolate all the values */
-        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
-    }
-    
-    /**
-     * It checks if the model part is correct (not repeated nodes, elements or conditions) NOTE: Can be expensive
-     */
-    
-    void CheckModelPart()
-    {
-        /* Firts we check that the nodes are correct */
-        CheckNodes();
-        
-        /* Later we check that the conditions are right */
-        CheckConditions();
-        
-        /* Finally we check that the elements are right */
-        CheckElements();
-        
         /* After that we reorder nodes, conditions and elements: */
         NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
-        
+
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-            
             itNode->SetId(i + 1);
         }
-        
+
         ConditionsArrayType& pCondition = mThisModelPart.Conditions();
         auto numConditions = pCondition.end() - pCondition.begin();
         
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCondition = pCondition.begin() + i;
-            
             itCondition->SetId(i + 1);
         }
-        
+
         ElementsArrayType& pElement = mThisModelPart.Elements();
         auto numElements = pElement.end() - pElement.begin();
-        
+
         for(unsigned int i = 0; i < numElements; i++) 
         {
             auto itElement = pElement.begin() + i;
-            
             itElement->SetId(i + 1);
         }
         
+        /* We interpolate all the values */
+        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
+    
     
     /**
      * It checks if the nodes are repeated and remove the repeated ones
      */
     
-    void CheckNodes()
+    std::vector<unsigned int> CheckNodes()
     {
         typedef boost::unordered_map<vector<double>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap node_map;
@@ -909,21 +930,22 @@ protected:
             }
         }
         
-        // Before proceed with the elimination of the nodes we remove the conditions and elements with that nodes
-        // TODO: Finish this
+       return nodes_to_remove_ids;
     }
     
     /**
      * It checks if the conditions are repeated and remove the repeated ones
      */
     
-    void CheckConditions();
+    std::vector<unsigned int> CheckConditions0();
+    std::vector<unsigned int> CheckConditions1();
     
     /**
      * It checks if the elemenst are removed and remove the repeated ones
      */
     
-    void CheckElements();
+    std::vector<unsigned int> CheckElements0();
+    std::vector<unsigned int> CheckElements1();
     
     /**
      * It blocks certain nodes before remesh the model
@@ -951,13 +973,15 @@ protected:
     ConditionType::Pointer CreateCondition0(
         const unsigned int cond_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         );
     
     ConditionType::Pointer CreateCondition1(
         const unsigned int cond_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         );
     
     /**
@@ -971,13 +995,15 @@ protected:
     ElementType::Pointer CreateElement0(
         const unsigned int elem_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         );
     
     ElementType::Pointer CreateElement1(
         const unsigned int elem_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         );
     
     /**
@@ -1653,7 +1679,7 @@ protected:
 ///@{
 
     template<>  
-    void MmgUtility<2>::CheckConditions()
+    std::vector<unsigned int> MmgUtility<2>::CheckConditions0()
     {
         typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap edge_map;
@@ -1663,20 +1689,18 @@ protected:
         std::vector<unsigned int> conditions_to_remove;
         
         // Iterate in the conditions
-        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
-                
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < mmgMesh->na; i++) 
         {
-            auto itCond = pConditions.begin() + i;
+            int edge0, edge1, prop_id, isRidge, isRequired;
             
-            Geometry<Node<3>> edge = itCond->GetGeometry();
-            
-            for(unsigned int j=0; j<edge.size(); j++)
+            if (MMG2D_Get_edge(mmgMesh, &edge0, &edge1, &prop_id, &isRidge, &isRequired) != 1 )
             {
-                ids[j] = edge[j].Id();
+                exit(EXIT_FAILURE);
             }
             
+            ids[0] = edge0;
+            ids[1] = edge1;
+
             //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
             std::sort(ids.begin(), ids.end());
 
@@ -1684,204 +1708,217 @@ protected:
             
             if (edge_map[ids] > 1)
             {
-                conditions_to_remove.push_back(itCond->Id());
+                conditions_to_remove.push_back(i + 1);
             }
         }
         
-        // Remove the conditions
-        for (unsigned int i_cond = 0; i_cond < conditions_to_remove.size(); i_cond++)
-        {
-            mThisModelPart.RemoveCondition(conditions_to_remove[i_cond]);
-            std::cout << "The condition " << conditions_to_remove[i_cond] << " has been removed" << std::endl;
-        }
+        return conditions_to_remove;
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
-    
 
     template<>  
-    void MmgUtility<3>::CheckConditions()
+    std::vector<unsigned int> MmgUtility<3>::CheckConditions0()
     {
         typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap triangle_map;
-        hashmap quadrilateral_map;
 
         vector<unsigned int> ids_triangles(3);
+
+        std::vector<unsigned int> conditions_to_remove;
+                
+        for(int i = 0; i < mmgMesh->nt; i++) 
+        {
+            int vertex0, vertex1, vertex2, prop_id, isRequired;
+
+            if (MMG3D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+
+            ids_triangles[0] = vertex0;
+            ids_triangles[1] = vertex1;
+            ids_triangles[2] = vertex2;
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids_triangles.begin(), ids_triangles.end());
+
+            triangle_map[ids_triangles] += 1;
+            
+            if (triangle_map[ids_triangles] > 1)
+            {
+                conditions_to_remove.push_back(i + 1);
+            }
+        }
+        
+        return conditions_to_remove;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    std::vector<unsigned int> MmgUtility<3>::CheckConditions1()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap quadrilateral_map;
+
         vector<unsigned int> ids_quadrilaterals(4);
 
         std::vector<unsigned int> conditions_to_remove;
-        
-        // Iterate in the conditions
-        ConditionsArrayType& pConditions = mThisModelPart.Conditions();
-        auto numConditions = pConditions.end() - pConditions.begin();
                 
-        for(unsigned int i = 0; i < numConditions; i++) 
+        for(int i = 0; i < mmgMesh->nquad; i++) 
         {
-            auto itCond = pConditions.begin() + i;
-            
-            Geometry<Node<3>> cond_geometry = itCond->GetGeometry();
-            
-            if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
-            {
-                for(unsigned int j = 0; j < 3; j++)
-                {
-                    ids_triangles[j] = cond_geometry[j].Id();
-                }
-                
-                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-                std::sort(ids_triangles.begin(), ids_triangles.end());
+            int vertex0, vertex1, vertex2, vertex3, prop_id, isRequired;
 
-                triangle_map[ids_triangles] += 1;
-                
-                if (triangle_map[ids_triangles] > 1)
-                {
-                    conditions_to_remove.push_back(itCond->Id());
-                }
+            if (MMG3D_Get_quadrilateral(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+            {
+                exit(EXIT_FAILURE);
             }
-            else if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
-            {
-                for(unsigned int j = 0; j < 4; j++)
-                {
-                    ids_quadrilaterals[j] = cond_geometry[j].Id();
-                }
-                
-                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-                std::sort(ids_quadrilaterals.begin(), ids_quadrilaterals.end());
 
-                quadrilateral_map[ids_quadrilaterals] += 1;
-                
-                if (quadrilateral_map[ids_quadrilaterals] > 1)
-                {
-                    conditions_to_remove.push_back(itCond->Id());
-                }
+            ids_quadrilaterals[0] = vertex0;
+            ids_quadrilaterals[1] = vertex1;
+            ids_quadrilaterals[2] = vertex2;
+            ids_quadrilaterals[3] = vertex3;
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids_quadrilaterals.begin(), ids_quadrilaterals.end());
+
+            quadrilateral_map[ids_quadrilaterals] += 1;
+            
+            if (quadrilateral_map[ids_quadrilaterals] > 1)
+            {
+                conditions_to_remove.push_back(i + 1);
             }
         }
         
-        // Remove the conditions
-        for (unsigned int i_cond = 0; i_cond < conditions_to_remove.size(); i_cond++)
-        {
-            mThisModelPart.RemoveCondition(conditions_to_remove[i_cond]);
-            std::cout << "The condition " << conditions_to_remove[i_cond] << " has been removed" << std::endl;
-        }
+        return conditions_to_remove;
     }
     
     /***********************************************************************************/
     /***********************************************************************************/
     
-
     template<>  
-    void MmgUtility<2>::CheckElements()
+    std::vector<unsigned int> MmgUtility<2>::CheckElements0()
     {
         typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap triangle_map;
 
-        vector<unsigned int> ids(3);
+        vector<unsigned int> ids_triangles(3);
 
         std::vector<unsigned int> elements_to_remove;
         
         // Iterate in the elements
-        ElementsArrayType& pElements = mThisModelPart.Elements();
-        auto numElements = pElements.end() - pElements.begin();
-                
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < mmgMesh->nt; i++) 
         {
-            auto itCond = pElements.begin() + i;
+            int vertex0, vertex1, vertex2, prop_id, isRequired;
             
-            Geometry<Node<3>> triangle = itCond->GetGeometry();
-            
-            for(unsigned int j=0; j<triangle.size(); j++)
+            if (MMG2D_Get_triangle(mmgMesh, &vertex0, &vertex1, &vertex2, &prop_id, &isRequired) != 1 )
             {
-                ids[j] = triangle[j].Id();
+                exit(EXIT_FAILURE);
             }
             
-            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-            std::sort(ids.begin(), ids.end());
+            ids_triangles[0] = vertex0;
+            ids_triangles[1] = vertex1;
+            ids_triangles[2] = vertex2;
 
-            triangle_map[ids] += 1;
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids_triangles.begin(), ids_triangles.end());
+
+            triangle_map[ids_triangles] += 1;
             
-            if (triangle_map[ids] > 1)
+            if (triangle_map[ids_triangles] > 1)
             {
-                elements_to_remove.push_back(itCond->Id());
+                elements_to_remove.push_back(i + 1);
             }
         }
         
-        // Remove the elements
-        for (unsigned int i_elem = 0; i_elem < elements_to_remove.size(); i_elem++)
+        return elements_to_remove;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<>  
+    std::vector<unsigned int> MmgUtility<3>::CheckElements0()
+    {
+        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        hashmap triangle_map;
+
+        vector<unsigned int> ids_tetrahedron(4);
+
+        std::vector<unsigned int> elements_to_remove;
+                
+        for(int i = 0; i < mmgMesh->ne; i++) 
         {
-            mThisModelPart.RemoveElement(elements_to_remove[i_elem]);
-            std::cout << "The element " << elements_to_remove[i_elem] << " has been removed" << std::endl;
+            int vertex0, vertex1, vertex2, vertex3, prop_id, isRequired;
+
+            if (MMG3D_Get_tetrahedron(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &prop_id, &isRequired) != 1 )
+            {
+                exit(EXIT_FAILURE);
+            }
+
+            ids_tetrahedron[0] = vertex0;
+            ids_tetrahedron[1] = vertex1;
+            ids_tetrahedron[2] = vertex2;
+            ids_tetrahedron[3] = vertex3;
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids_tetrahedron.begin(), ids_tetrahedron.end());
+
+            triangle_map[ids_tetrahedron] += 1;
+            
+            if (triangle_map[ids_tetrahedron] > 1)
+            {
+                elements_to_remove.push_back(i + 1);
+            }
         }
+        
+        return elements_to_remove;
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     
-
     template<>  
-    void MmgUtility<3>::CheckElements()
+    std::vector<unsigned int> MmgUtility<3>::CheckElements1()
     {
         typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
-        hashmap tetrahedron_map;
         hashmap prism_map;
 
-        vector<unsigned int> ids_tetrahedrons(3);
-        vector<unsigned int> ids_prisms(4);
+        vector<unsigned int> ids_prisms(6);
 
         std::vector<unsigned int> elements_to_remove;
-        
-        // Iterate in the elements
-        ElementsArrayType& pElements = mThisModelPart.Elements();
-        auto numElements = pElements.end() - pElements.begin();
                 
-        for(unsigned int i = 0; i < numElements; i++) 
+        for(int i = 0; i < mmgMesh->nprism; i++) 
         {
-            auto itCond = pElements.begin() + i;
-            
-            Geometry<Node<3>> elem_geometry = itCond->GetGeometry();
-            
-            if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
-            {
-                for(unsigned int j = 0; j < 4; j++)
-                {
-                    ids_tetrahedrons[j] = elem_geometry[j].Id();
-                }
-                
-                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-                std::sort(ids_tetrahedrons.begin(), ids_tetrahedrons.end());
+            int vertex0, vertex1, vertex2, vertex3, vertex4, vertex5, prop_id, isRequired;
 
-                tetrahedron_map[ids_tetrahedrons] += 1;
-                
-                if (tetrahedron_map[ids_tetrahedrons] > 1)
-                {
-                    elements_to_remove.push_back(itCond->Id());
-                }
+            if (MMG3D_Get_prism(mmgMesh, &vertex0, &vertex1, &vertex2, &vertex3, &vertex4, &vertex5, &prop_id, &isRequired) != 1 )
+            {
+                exit(EXIT_FAILURE);
             }
-            else if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6)
-            {
-                for(unsigned int j = 0; j < 6; j++)
-                {
-                    ids_prisms[j] = elem_geometry[j].Id();
-                }
-                
-                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-                std::sort(ids_prisms.begin(), ids_prisms.end());
 
-                prism_map[ids_prisms] += 1;
-                
-                if (prism_map[ids_prisms] > 1)
-                {
-                    elements_to_remove.push_back(itCond->Id());
-                }
+            ids_prisms[0] = vertex0;
+            ids_prisms[1] = vertex1;
+            ids_prisms[2] = vertex2;
+            ids_prisms[3] = vertex3;
+            ids_prisms[4] = vertex4;
+            ids_prisms[5] = vertex5;
+            
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids_prisms.begin(), ids_prisms.end());
+
+            prism_map[ids_prisms] += 1;
+            
+            if (prism_map[ids_prisms] > 1)
+            {
+                elements_to_remove.push_back(i + 1);
             }
         }
         
-        // Remove the elements
-        for (unsigned int i_elem = 0; i_elem < elements_to_remove.size(); i_elem++)
-        {
-            mThisModelPart.RemoveElement(elements_to_remove[i_elem]);
-            std::cout << "The element " << elements_to_remove[i_elem] << " has been removed" << std::endl;
-        }
+        return elements_to_remove;
     }
     
     /***********************************************************************************/
@@ -1938,7 +1975,8 @@ protected:
     ConditionType::Pointer MmgUtility<2>::CreateCondition0(        
         const unsigned int cond_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired, 
+        bool skip_creation
         )
     {
         ConditionType::Pointer pCondition = nullptr;
@@ -1953,7 +1991,6 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (edge0 == 0) skip_creation = true;
         if (edge1 == 0) skip_creation = true;
         
@@ -1964,6 +2001,10 @@ protected:
             ConditionNodes[1] = mThisModelPart.pGetNode(edge1);    
             
             pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
+        }
+        else
+        {
+            std::cout << "Condition creation avoided" << std::endl;
         }
         
         return pCondition;
@@ -1976,7 +2017,8 @@ protected:
     ConditionType::Pointer MmgUtility<3>::CreateCondition0(
         const unsigned int cond_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         )
     {
         ConditionType::Pointer pCondition = nullptr;
@@ -1991,7 +2033,6 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (vertex0 == 0) skip_creation = true;
         if (vertex1 == 0) skip_creation = true;
         if (vertex2 == 0) skip_creation = true;
@@ -2005,6 +2046,10 @@ protected:
         
             pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
         }
+        else
+        {
+            std::cout << "Condition creation avoided" << std::endl;
+        }
         
         return pCondition;
     }
@@ -2016,7 +2061,8 @@ protected:
     ConditionType::Pointer MmgUtility<3>::CreateCondition1(
         const unsigned int cond_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         )
     {
         ConditionType::Pointer pCondition = nullptr;
@@ -2031,7 +2077,6 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (vertex0 == 0) skip_creation = true;
         if (vertex1 == 0) skip_creation = true;
         if (vertex2 == 0) skip_creation = true;
@@ -2047,6 +2092,10 @@ protected:
             
             pCondition = mpRefCondition[index_geom]->Create(cond_id, ConditionNodes, mpRefCondition[index_geom]->pGetProperties());
         }
+        else
+        {
+            std::cout << "Condition creation avoided" << std::endl;
+        }
         
         return pCondition;
     }
@@ -2058,7 +2107,8 @@ protected:
     ElementType::Pointer MmgUtility<2>::CreateElement0(        
         const unsigned int elem_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         )
     {
         ElementType::Pointer pElement = nullptr;
@@ -2073,7 +2123,6 @@ protected:
         }
 
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (vertex0 == 0) skip_creation = true;
         if (vertex1 == 0) skip_creation = true;
         if (vertex2 == 0) skip_creation = true;
@@ -2087,6 +2136,10 @@ protected:
             
             pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
         }
+        else
+        {
+            std::cout << "Element creation avoided" << std::endl;
+        }
         
         return pElement;
     }
@@ -2098,7 +2151,8 @@ protected:
     ElementType::Pointer MmgUtility<3>::CreateElement0(
         const unsigned int elem_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         )
     {
         ElementType::Pointer pElement = nullptr;
@@ -2113,7 +2167,6 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (vertex0 == 0) skip_creation = true;
         if (vertex1 == 0) skip_creation = true;
         if (vertex2 == 0) skip_creation = true;
@@ -2129,6 +2182,10 @@ protected:
             
             pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
         }
+        else
+        {
+            std::cout << "Element creation avoided" << std::endl;
+        }
         
         return pElement;
     }
@@ -2140,7 +2197,8 @@ protected:
     ElementType::Pointer MmgUtility<3>::CreateElement1(
         const unsigned int elem_id,
         int& prop_id, 
-        int& isRequired
+        int& isRequired,
+        bool skip_creation
         )
     {
         ElementType::Pointer pElement = nullptr;
@@ -2155,7 +2213,6 @@ protected:
         }
         
         // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
-        bool skip_creation = false;
         if (vertex0 == 0) skip_creation = true;
         if (vertex1 == 0) skip_creation = true;
         if (vertex2 == 0) skip_creation = true;
@@ -2174,6 +2231,10 @@ protected:
             ElementNodes[5] = mThisModelPart.pGetNode(vertex5);
         
             pElement = mpRefElement[index_geom]->Create(elem_id, ElementNodes, mpRefElement[index_geom]->pGetProperties());
+        }
+        else
+        {
+            std::cout << "Element creation avoided" << std::endl;
         }
         
         return pElement;
