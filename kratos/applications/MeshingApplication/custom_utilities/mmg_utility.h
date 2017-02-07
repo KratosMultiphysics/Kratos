@@ -1672,9 +1672,9 @@ protected:
             
             Geometry<Node<3>> edge = itCond->GetGeometry();
             
-            for(unsigned int i=0; i<edge.size(); i++)
+            for(unsigned int j=0; j<edge.size(); j++)
             {
-                ids[i] = edge[i].Id();
+                ids[j] = edge[j].Id();
             }
             
             //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -1724,9 +1724,9 @@ protected:
             
             if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
             {
-                for(unsigned int i = 0; i < 3; i++)
+                for(unsigned int j = 0; j < 3; j++)
                 {
-                    ids_triangles[i] = cond_geometry[i].Id();
+                    ids_triangles[j] = cond_geometry[j].Id();
                 }
                 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -1741,9 +1741,9 @@ protected:
             }
             else if (cond_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
             {
-                for(unsigned int i = 0; i < 4; i++)
+                for(unsigned int j = 0; j < 4; j++)
                 {
-                    ids_quadrilaterals[i] = cond_geometry[i].Id();
+                    ids_quadrilaterals[j] = cond_geometry[j].Id();
                 }
                 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -1790,9 +1790,9 @@ protected:
             
             Geometry<Node<3>> triangle = itCond->GetGeometry();
             
-            for(unsigned int i=0; i<triangle.size(); i++)
+            for(unsigned int j=0; j<triangle.size(); j++)
             {
-                ids[i] = triangle[i].Id();
+                ids[j] = triangle[j].Id();
             }
             
             //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -1842,9 +1842,9 @@ protected:
             
             if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
             {
-                for(unsigned int i = 0; i < 4; i++)
+                for(unsigned int j = 0; j < 4; j++)
                 {
-                    ids_tetrahedrons[i] = elem_geometry[i].Id();
+                    ids_tetrahedrons[j] = elem_geometry[j].Id();
                 }
                 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -1859,9 +1859,9 @@ protected:
             }
             else if (elem_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6)
             {
-                for(unsigned int i = 0; i < 6; i++)
+                for(unsigned int j = 0; j < 6; j++)
                 {
-                    ids_prisms[i] = elem_geometry[i].Id();
+                    ids_prisms[j] = elem_geometry[j].Id();
                 }
                 
                 //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
