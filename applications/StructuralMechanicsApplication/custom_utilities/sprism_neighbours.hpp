@@ -53,7 +53,8 @@ typedef  ModelPart::ElementsContainerType ElementsContainerType;
 ///@}
 ///@name  Functions
 ///@{
-
+#if !defined(KEY_COMPAROR)
+#define KEY_COMPAROR
 struct KeyComparor
 {
     bool operator()(const vector<int>& lhs, const vector<int>& rhs) const
@@ -69,7 +70,10 @@ struct KeyComparor
         return true;
     }
 };
-
+#endif
+    
+#if !defined(KEY_HASHER)
+#define KEY_HASHER
 struct KeyHasher
 {
     std::size_t operator()(const vector<int>& k) const
@@ -77,6 +81,7 @@ struct KeyHasher
         return boost::hash_range(k.begin(), k.end());
     }
 };
+#endif
 
 ///@}
 ///@name Kratos Classes
