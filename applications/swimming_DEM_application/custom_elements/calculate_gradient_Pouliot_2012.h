@@ -316,6 +316,12 @@ private:
 
     virtual void AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo);
 
+    virtual void AddStabilizationRHSContribution(VectorType& F,
+                                                 const array_1d<double, TNumNodes>& rShapeFunc,
+                                                 const double Weight);
+
+    void CalculateStabilizationRHS(const double epsilon, VectorType& F, ProcessInfo& rCurrentProcessInfo);
+
     void AssembleEdgeRHSContributionX(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
 
     void AssembleEdgeRHSContributionY(const unsigned int edge[2], const double h_edge_inv, const array_1d<double, 3>& edge_normalized_vector, VectorType& F);
