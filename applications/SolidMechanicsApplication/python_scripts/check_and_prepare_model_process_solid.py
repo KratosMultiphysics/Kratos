@@ -134,6 +134,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             transfer_process.Execute()
 
         for part in processes_parts:
+            part.Set(KratosMultiphysics.BOUNDARY)
             entity_type = "Conditions"
             assign_flags = KratosSolid.FlagsContainer()
             assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
