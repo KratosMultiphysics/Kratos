@@ -402,6 +402,13 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	    HardeningLaw::Parameters HardeningParameters;
 	    HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
 	    HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
+	    HardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
+	    HardeningParameters.SetDeltaTime(rReturnMappingVariables.DeltaTime);
+	    
+	    if( rReturnMappingVariables.Options.Is(PLASTIC_RATE_REGION) )
+	      HardeningParameters.SetRateFactor(0);
+	    else if ( rReturnMappingVariables.Options.IsNot(PLASTIC_RATE_REGION) )
+	      HardeningParameters.SetRateFactor(1);
 
 	    DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
