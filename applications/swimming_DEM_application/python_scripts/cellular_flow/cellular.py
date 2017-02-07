@@ -546,6 +546,7 @@ if DEM_parameters.coupling_level_type:
     U = 0.3
     k = 2.72
     omega = 0*math.pi
+
     flow_field = CellularFlowField(L, U, k, omega)
     space_time_set = SpaceTimeSet()
     field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
@@ -1097,7 +1098,6 @@ with h5py.File(file_name) as f:
     dset_mat_deriv[1] = current_mat_deriv_errors[1]
     dset_laplacian[0] = current_laplacian_errors[0]
     dset_laplacian[1] = current_laplacian_errors[1]
-
 
 if num_type(size_parameter) == 'int':
     size_parameter_name = '_ndiv_'
