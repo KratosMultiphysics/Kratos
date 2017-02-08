@@ -41,10 +41,17 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
-    
+
     set root [customlib::GetBaseRoot]
-    if {[$root selectNodes "[spdAux::getRoute NodalResults]/value\[@n='DISTANCE'\]"] eq ""} {gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]}
-    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceReading'\]"] eq ""} {gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]}
+    if {[$root selectNodes "[spdAux::getRoute NodalResults]/value\[@n='DISTANCE'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]
+    }
+    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceReading'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]
+    }
+    if {[$root selectNodes "[spdAux::getRoute Results]/condition\[@n='EmbeddedDrag'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute Results] include [list n EmbeddedDrag active 1 path {apps/EmbeddedFluid/xml/EmbeddedDrag.spd}]
+    }
     customlib::ProcessIncludes $::Kratos::kratos_private(Path)
     spdAux::parseRoutes
     # Erase when Fractional step is available

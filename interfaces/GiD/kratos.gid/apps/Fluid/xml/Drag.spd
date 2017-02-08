@@ -4,4 +4,3 @@
     <value n="print_drag_to_screen" pn="Print drag to screen"  v="0" values="0,1"/>
     <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help=""/>
 </condition>
-    
