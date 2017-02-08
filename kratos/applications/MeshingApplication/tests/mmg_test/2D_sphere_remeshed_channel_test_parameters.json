@@ -118,7 +118,7 @@
         "Parameters"            : {
             "strategy"                         : "Hessian",
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : "VELOCITY",
+                "metric_variable"                  : ["VELOCITY"],
                 "interpolation_error"              : 0.004
             },
             "automatic_remesh"                 : true,
