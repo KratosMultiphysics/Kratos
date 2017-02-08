@@ -8,13 +8,15 @@ from json_utilities import *
 import json
 KratosMultiphysics.CheckForPreviousImport()
 
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MmgProcess(Model, settings["Parameters"])
 
+
 class MmgProcess(KratosMultiphysics.Process):
-  
+
     def __init__(self,Model,params):
 
         ## Settings string in json format
@@ -28,7 +30,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : "DISTANCE",
+                "metric_variable"                  : ["DISTANCE"],
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.0
             },
@@ -61,19 +63,19 @@ class MmgProcess(KratosMultiphysics.Process):
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
+        # Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.RecursivelyValidateAndAssignDefaults(default_parameters)
-        
+
         self.Model= Model
         self.model_part_name = self.params["model_part_name"].GetString()
         self.dim = self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.params = params
 
         self.output_file_name = self.params["output_file_name"].GetString()
-        
+    
         self.enforce_current = self.params["enforce_current"].GetBool()
-        
+    
         self.initial_remeshing = self.params["initial_remeshing"].GetBool()
         
         # Select the remeshing strategy
@@ -82,7 +84,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["scalar_variable"].GetString() )
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif (self.strategy == "Hessian"):
-            self.metric_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() )
+            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
             self.interpolation_error = self.params["hessian_strategy_parameters"]["interpolation_error"].GetDouble()  
             self.mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()  
             if (self.mesh_dependent_constant == 0.0):
@@ -167,14 +169,14 @@ class MmgProcess(KratosMultiphysics.Process):
         # We need to check if the model part has been modified recently
         if (self.Model[self.model_part_name].Is(KratosMultiphysics.MODIFIED) == True):
             self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, False)
-            self.step = 0 # Reset (just to be sure)
+            self.step = 0  # Reset (just to be sure)
         else:
             self.step += 1
             if self.step_frequency > 0:
                 if self.step >= self.step_frequency:
                     if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
                         self._ExecuteRefinement()
-                        self.step = 0 # Reset
+                        self.step = 0  # Reset
             
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -194,180 +196,172 @@ class MmgProcess(KratosMultiphysics.Process):
             if (self.dim == 2):
                 if (self.anisotropy_remeshing == True):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
-                    self.Model[self.model_part_name],
-                    self.minimal_size,
-                    self.enforce_current,
-                    self.gradient_variable,
-                    self.hmin_over_hmax_anisotropic_ratio, 
-                    self.boundary_layer_max_distance, 
-                    self.interpolation
+                        self.Model[self.model_part_name],
+                        self.minimal_size,
+                        self.enforce_current,
+                        self.gradient_variable,
+                        self.hmin_over_hmax_anisotropic_ratio, 
+                        self.boundary_layer_max_distance, 
+                        self.interpolation
                     ))
                 else:
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
-                    self.Model[self.model_part_name],
-                    self.minimal_size,
-                    self.enforce_current,
-                    self.gradient_variable
+                        self.Model[self.model_part_name],
+                        self.minimal_size,
+                        self.enforce_current,
+                        self.gradient_variable
                     ))
             else:
                 if (self.anisotropy_remeshing == True):
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
-                    self.Model[self.model_part_name],
-                    self.minimal_size,
-                    self.enforce_current,
-                    self.gradient_variable,
-                    self.hmin_over_hmax_anisotropic_ratio, 
-                    self.boundary_layer_max_distance, 
-                    self.interpolation
+                        self.Model[self.model_part_name],
+                        self.minimal_size,
+                        self.enforce_current,
+                        self.gradient_variable,
+                        self.hmin_over_hmax_anisotropic_ratio, 
+                        self.boundary_layer_max_distance, 
+                        self.interpolation
                     ))
                 else:
                     self.MetricsProcess.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(
-                    self.Model[self.model_part_name],
-                    self.minimal_size,
-                    self.enforce_current,
-                    self.gradient_variable
+                        self.Model[self.model_part_name],
+                        self.minimal_size,
+                        self.enforce_current,
+                        self.gradient_variable
                     ))
             
         elif (self.strategy == "Hessian"):
-            for node in self.Model[self.model_part_name].Nodes:
-                val = node.GetSolutionStepValue(self.metric_variable, 0)
-                break
-            if isinstance(val,float): 
-                if (self.dim == 2):
-                    if (self.anisotropy_remeshing == True):
-                        self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
-                        self.Model[self.model_part_name],
-                        self.metric_variable,
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.enforce_current,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
-                        self.interpolation
-                        ))
-                    else:
-                        self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
-                        self.Model[self.model_part_name],
-                        self.metric_variable,
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.enforce_current
-                        ))
-                else:
-                    if (self.anisotropy_remeshing == True):
-                        self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
-                        self.Model[self.model_part_name],
-                        self.metric_variable,
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.enforce_current,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
-                        self.interpolation
- 
-                        ))
-                    else:
-                        self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
-                        self.Model[self.model_part_name],
-                        self.metric_variable,
-                        self.minimal_size,
-                        self.maximal_size,
-                        self.enforce_current,
-                        self.interpolation_error,
-                        self.mesh_dependent_constant
-                        ))
-            else:
-                components = [KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_X" ),KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_Y" )]
-                if (self.dim == 3):
-                    components.append(KratosMultiphysics.KratosGlobals.GetVariable( self.params["hessian_strategy_parameters"]["metric_variable"].GetString() + "_Z" ))
-            
-                for comp in components:
+            for current_metric_variable in self.metric_variable:
+                if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
                     if (self.dim == 2):
                         if (self.anisotropy_remeshing == True):
                             self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp2D(
-                            self.Model[self.model_part_name],
-                            comp,
-                            self.minimal_size,
-                            self.maximal_size,
-                            self.enforce_current,
-                            self.interpolation_error,
-                            self.mesh_dependent_constant,
-                            self.hmin_over_hmax_anisotropic_ratio, 
-                            self.boundary_layer_max_distance, 
-                            self.interpolation
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant,
+                                self.hmin_over_hmax_anisotropic_ratio, 
+                                self.boundary_layer_max_distance, 
+                                self.interpolation
                             ))
                         else:
                             self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp2D(
-                            self.Model[self.model_part_name],
-                            comp,
-                            self.minimal_size,
-                            self.maximal_size,
-                            self.enforce_current
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current
                             ))
                     else:
                         if (self.anisotropy_remeshing == True):
                             self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp3D(
-                            self.Model[self.model_part_name],
-                            comp,
-                            self.minimal_size,
-                            self.maximal_size,
-                            self.enforce_current,
-                            self.interpolation_error,
-                            self.mesh_dependent_constant,
-                            self.hmin_over_hmax_anisotropic_ratio, 
-                            self.boundary_layer_max_distance, 
-                            self.interpolation
-    
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant,
+                                self.hmin_over_hmax_anisotropic_ratio, 
+                                self.boundary_layer_max_distance, 
+                                self.interpolation
+
                             ))
                         else:
                             self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcessComp3D(
-                            self.Model[self.model_part_name],
-                            comp,
-                            self.minimal_size,
-                            self.maximal_size,
-                            self.enforce_current,
-                            self.interpolation_error,
-                            self.mesh_dependent_constant
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant
                             ))
-    
+                else:
+                    if (self.dim == 2):
+                        if (self.anisotropy_remeshing == True):
+                            self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant,
+                                self.hmin_over_hmax_anisotropic_ratio, 
+                                self.boundary_layer_max_distance, 
+                                self.interpolation
+                            ))
+                        else:
+                            self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess2D(
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current
+                            ))
+                    else:
+                        if (self.anisotropy_remeshing == True):
+                            self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant,
+                                self.hmin_over_hmax_anisotropic_ratio, 
+                                self.boundary_layer_max_distance, 
+                                self.interpolation
+
+                            ))
+                        else:
+                            self.MetricsProcess.append(MeshingApplication.ComputeHessianSolMetricProcess3D(
+                                self.Model[self.model_part_name],
+                                current_metric_variable,
+                                self.minimal_size,
+                                self.maximal_size,
+                                self.enforce_current,
+                                self.interpolation_error,
+                                self.mesh_dependent_constant
+                            ))
+
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient
         if (self.dim == 2):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
         else: 
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
-            
+
     def _ExecuteRefinement(self):
-            
         if (self.strategy == "LevelSet"):
             # Calculate the gradient
             self.local_gradient.Execute()
-        
+
         # Recalculate NODAL_H
         self.find_nodal_h.Execute()
 
         self._InitializeMetric()
-        
+
         print("Calculating the metrics")
         # Execute metric computation
         for metric_process in self.MetricsProcess:
             metric_process.Execute()
-        
+
         print("Remeshing")
         self.MmgUtility.RemeshModelPart(self.save_external_files, self.max_number_of_searchs)
-        
+
         if (self.strategy == "LevelSet"):
             self.local_gradient.Execute() # Recalculate gradient after remeshing
 
         # We need to set that the model part has been modified (later on we will act in consequence)
         self.Model[self.model_part_name].Set(KratosMultiphysics.MODIFIED, True)
-            
+
         print("Remesh finished")
-            
+
     def _InitializeMetric(self):
         # Initialize metric
         if (self.dim == 2):
@@ -385,7 +379,7 @@ class MmgProcess(KratosMultiphysics.Process):
             ZeroVector[5] = 0.0
         for node in self.Model[self.model_part_name].Nodes:
             node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
-            
+
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
@@ -393,8 +387,33 @@ class MmgProcess(KratosMultiphysics.Process):
             raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
         # Retrieve submodelparts name from input (a string) and request the corresponding C++ object to the kernel
-        return [ self.Model[self.model_part_name].GetSubModelPart( param[i].GetString() ) for i in range( 0,param.size() ) ]
-    
+        return [self.Model[self.model_part_name].GetSubModelPart(param[i].GetString()) for i in range(0, param.size())]
+
+    def __generate_variable_list_from_input(self,param):
+      '''Parse a list of variables from input.'''
+      # At least verify that the input is a string
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+      
+      variable_list = []
+      
+      for i in range( 0,param.size()):
+          aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
+          for node in self.Model[self.model_part_name].Nodes:
+            val = node.GetSolutionStepValue(aux_var, 0)
+            break
+          if isinstance(val,float): 
+              variable_list.append(aux_var)
+          else:
+              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
+              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
+              if (self.dim == 3):
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+      
+      return variable_list
+
 def linear_interpolation(x, x_list, y_list):
     ind_inf = 0
     ind_sup = -1
@@ -407,21 +426,22 @@ def linear_interpolation(x, x_list, y_list):
         if x_list[-(1 + i)] >= x:
             ind_sup = -(1 + i)
             x_sup = x_list[ind_sup]
-    
+
     if (x_sup - x_inf == 0):
         y = y_list[ind_inf]
     else:
         prop_sup = (x - x_inf)/(x_sup - x_inf)
         prop_inf = 1.0 - prop_sup
         y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
-    
+
     return y
+
 
 def normpdf(x, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data =  read_external_json(dir_path+"/normal_distribution.json")
+    data = read_external_json(dir_path+"/normal_distribution.json")
     z = (x-mean)/sd
-    z_list    = data["Z"]
+    z_list = data["Z"]
     prob_list = data["Prob"]
     if (z > 0):
         prob = linear_interpolation(z, z_list, prob_list)
@@ -429,10 +449,11 @@ def normpdf(x, mean, sd):
         prob = 1.0 - linear_interpolation(-z, z_list, prob_list)
     return prob
 
+
 def normvalf(prob, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data =  read_external_json(dir_path+"/normal_distribution.json")
-    z_list    = data["Z"]
+    data = read_external_json(dir_path+"/normal_distribution.json")
+    z_list = data["Z"]
     prob_list = data["Prob"]
     if (prob >= 0.5):
         z = linear_interpolation(prob, prob_list, z_list)

@@ -85,7 +85,7 @@
             "output_file_name"                 : "mmg_test/3D_hessian_test",
             "strategy"                         : "Hessian",
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : "DISTANCE",
+                "metric_variable"                  : ["DISTANCE"],
                 "interpolation_error"              : 0.004
             },
             "automatic_remesh"                 : true,
