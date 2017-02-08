@@ -34,7 +34,21 @@ set( KRATOS_DAM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_stress.cpp
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_local_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_local_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_local_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_nonlocal_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_nonlocal_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_nonlocal_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
 )
 
 ###############################################################

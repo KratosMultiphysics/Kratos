@@ -41,7 +41,8 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
-
+    Flags& Options = rValues.GetOptions();
+    
     Vector& StrainVector = rValues.GetStrainVector();
     Vector& StressVector = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
@@ -63,11 +64,11 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
     ElasticVariables.ReferenceTemperature = CurrentProcessInfo[REFERENCE_TEMPERATURE];
 
-    if(rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
     {
 		this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 		
-		if( rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
+		if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
 		{
 			double Temperature;
 			this->CalculateDomainTemperature( ElasticVariables, Temperature);
@@ -78,7 +79,7 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 			StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
 		}
 	}
-	else if( rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
+	else if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) //TOTAL STRESS
     {        
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
@@ -90,13 +91,13 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         StressVector = prod(ConstitutiveMatrix,(StrainVector - ThermalStrainVector));
     }
-    else if( rValues.GetOptions().Is( ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) ) //This should be COMPUTE_MECHANICAL_STRESS
+    else if( Options.Is( ConstitutiveLaw::TOTAL_TENSOR ) ) //This should be COMPUTE_MECHANICAL_STRESS
     {        
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
         StressVector = prod(ConstitutiveMatrix,StrainVector);
     }
-    else if( rValues.GetOptions().Is( ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) ) //This should be COMPUTE_THERMAL_STRESS
+    else if( Options.Is( ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) ) //This should be COMPUTE_THERMAL_STRESS
     {
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
@@ -107,7 +108,7 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         StressVector = prod(ConstitutiveMatrix,StrainVector);
     }
-    else if(rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_STRAIN ) ) //This should be COMPUTE_THERMAL_STRAIN
+    else if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ) ) //This should be COMPUTE_THERMAL_STRAIN
     {
         double Temperature;
         this->CalculateDomainTemperature( ElasticVariables, Temperature);
