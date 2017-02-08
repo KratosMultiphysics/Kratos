@@ -167,8 +167,8 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	      //3.- Calculate the consistency condition
   	      bool converged = this->CalculateConsistencyCondition( rReturnMappingVariables, PlasticVariables, CriterionParameters);
 	    
-	      if(!converged)
-		std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
+	      // if(!converged)
+	      // 	std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
 
 
 	      //4.- Update back stress, plastic strain and stress
@@ -406,9 +406,9 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	    HardeningParameters.SetDeltaTime(rReturnMappingVariables.DeltaTime);
 	    
 	    if( rReturnMappingVariables.Options.Is(PLASTIC_RATE_REGION) )
-	      HardeningParameters.SetRateFactor(0);
-	    else if ( rReturnMappingVariables.Options.IsNot(PLASTIC_RATE_REGION) )
 	      HardeningParameters.SetRateFactor(1);
+	    else if ( rReturnMappingVariables.Options.IsNot(PLASTIC_RATE_REGION) )
+	      HardeningParameters.SetRateFactor(0);
 
 	    DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
