@@ -148,7 +148,7 @@ public:
                 KRATOS_THROW_ERROR( std::invalid_argument, "Missing variable on node ", itNode->Id() )
             }
             
-            const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
+            const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
             const Vector& hessian = itNode->GetValue(AUXILIAR_HESSIAN);
 
             const double nodal_h = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
