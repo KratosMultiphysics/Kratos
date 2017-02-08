@@ -77,6 +77,14 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     Vector& rStrainVector = rValues.GetStrainVector();
 
     // Initialize main variables
+
+    // LinearElasticMatrix
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    const unsigned int VoigtSize = rStrainVector.size();
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+    
     // ReturnMappingVariables
     FlowRule::RadialReturnVariables ReturnMappingVariables;
     ReturnMappingVariables.initialize();
@@ -89,14 +97,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize (for nonlocal damage it must be 1.0)
     ReturnMappingVariables.CharacteristicSize = 1.0;
-    
-    // LinearElasticMatrix
-    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-    const unsigned int VoigtSize = rStrainVector.size();
-    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
-    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
-    
+
     if(Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)) // LOCAL QUANTITIES
     {
         if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
@@ -177,9 +178,17 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     // Get values for the constitutive law
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     Vector& rStrainVector = rValues.GetStrainVector();
-    Vector& rStressVector = rValues.GetStressVector();
-
+    const unsigned int VoigtSize = rStrainVector.size();
+    Vector EffectiveStressVector(VoigtSize);
+    
     // Initialize main variables
+
+    // LinearElasticMatrix
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+    
     // ReturnMappingVariables
     FlowRule::RadialReturnVariables ReturnMappingVariables;
     ReturnMappingVariables.initialize();
@@ -194,24 +203,25 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     ReturnMappingVariables.CharacteristicSize = 1.0;
     ReturnMappingVariables.NormIsochoricStress = mNonlocalEquivalentStrain;
 
-    // LinearElasticMatrix
-    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-    const unsigned int VoigtSize = rStrainVector.size();
-    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
-    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
-    
     if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,false); // Restore sate variable = false
         
-        this->UpdateInternalStateVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
     }
     else // No convergence is achieved. Restore state variable to equilibrium
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,true); // Restore sate variable = true
         
-        this->UpdateInternalStateVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+    }
+
+    if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS))
+    {
+        // COMPUTE_STRESS
+        Vector& rStressVector = rValues.GetStressVector();
+        
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 }
 
