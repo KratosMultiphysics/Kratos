@@ -87,6 +87,9 @@ double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunctio
 	const double& rStressNorm = rValues.GetStressNorm();
 
 	const HardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+
+	//std::cout<<" yield function "<<std::endl;
+	//rHardeningParameters.print();
 	
 	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rHardeningParameters);
 		
@@ -110,7 +113,10 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 
 
 	double Hardening = 0;
-		
+
+	//std::cout<<" state function "<<std::endl;
+	//rHardeningParameters.print();
+	
 	Hardening = mpHardeningLaw->CalculateHardening( Hardening, rHardeningParameters );
 
 	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
@@ -130,6 +136,10 @@ double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaSta
 
 	double DeltaHardening = 0;
 
+
+	//std::cout<<" delta state function "<<std::endl;
+	//rHardeningParameters.print();
+      
 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, rHardeningParameters );
 
 	//std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;

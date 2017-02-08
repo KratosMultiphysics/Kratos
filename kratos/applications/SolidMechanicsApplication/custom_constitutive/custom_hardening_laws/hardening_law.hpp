@@ -56,16 +56,16 @@ public:
 	{
 	private:
 
-        double         mRateFactor;
+        double        mRateFactor;
 
-        const double*  mpDeltaGamma;
-        const double*  mpLameMu_bar;
+        const double* mpDeltaGamma;
+        const double* mpLameMu_bar;
 
-        const double*  mpDeltaTime;
-        const double*  mpTemperature;	
+        const double* mpDeltaTime;
+        const double* mpTemperature;	
 
-        const double*  mpEquivalentPlasticStrain;
-        const double*  mpEquivalentPlasticStrainOld;		
+        const double* mpEquivalentPlasticStrain;
+        const double* mpEquivalentPlasticStrainOld;		
         
         const double* mpCharacteristicSize;
         
@@ -103,6 +103,61 @@ public:
         
         const Matrix& GetStrainMatrix () const { return *mpStrainMatrix; }
         const Matrix& GetStressMatrix () const { return *mpStressMatrix; }
+
+
+	void print() const
+	  {
+	    std::cout<<" RateFactor "<<mRateFactor<<std::endl;
+	    std::cout<<" DeltaGamma "<<*mpDeltaGamma<<std::endl;
+	    std::cout<<" LameMubar "<<*mpLameMu_bar<<std::endl;
+	    std::cout<<" DeltaTime "<<*mpDeltaTime<<std::endl;
+	    std::cout<<" Temperature "<<*mpTemperature<<std::endl;
+	    std::cout<<" EquivalentPlastic "<<*mpEquivalentPlasticStrain<<std::endl;
+	    std::cout<<" mpEquivalentPlasticStrainOld "<<*mpEquivalentPlasticStrainOld<<std::endl;
+	    // std::cout<<" CharacteristicSize "<<*mpCharacteristicSize<<std::endl;
+	    // std::cout<<" StrainMatrix "<<*mpStrainMatrix<<std::endl;
+	    // std::cout<<" StressMatrix "<<*mpStressMatrix<<std::endl;
+	  }
+	  
+	// /// Constructor
+	// Parameters(){};
+	  
+        // /// Copy constructor.
+	// Parameters(Parameters const& rOther)
+	//   :mRateFactor(rOther.mRateFactor)
+	//   ,mpDeltaGamma(rOther.mpDeltaGamma)
+	//   ,mpLameMu_bar(rOther.mpLameMu_bar)
+	//   ,mpDeltaTime(rOther.mpDeltaTime)
+	//   ,mpTemperature(rOther.mpTemperature)
+	//   ,mpEquivalentPlasticStrain(rOther.mpEquivalentPlasticStrain)
+	//   ,mpEquivalentPlasticStrainOld(rOther.mpEquivalentPlasticStrainOld)
+	//   ,mpCharacteristicSize(rOther.mpCharacteristicSize)
+	//   ,mpStrainMatrix(rOther.mpStrainMatrix)
+	//   ,mpStressMatrix(rOther.mpStressMatrix)
+	//   {
+
+	//   };
+
+	// /// Assignment operator.
+        // Parameters& operator=(Parameters const& rOther)
+	// {
+	//   mRateFactor  = rOther.mRateFactor;
+	//   mpDeltaGamma = rOther.mpDeltaGamma;
+	//   mpLameMu_bar = rOther.mpLameMu_bar;
+	//   mpDeltaTime  = rOther.mpDeltaTime;
+	//   mpTemperature = rOther.mpTemperature;
+	//   mpEquivalentPlasticStrain = rOther.mpEquivalentPlasticStrain;
+	//   mpEquivalentPlasticStrainOld = rOther.mpEquivalentPlasticStrainOld;
+	//   mpCharacteristicSize = rOther.mpCharacteristicSize;
+	//   mpStrainMatrix = rOther.mpStrainMatrix;
+	//   mpStressMatrix = rOther.mpStressMatrix;
+	//   return *this;
+	// }
+
+	// /// Destructor.
+	// virtual ~Parameters() {};
+
+	  
 	};
 
 

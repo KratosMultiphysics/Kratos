@@ -58,48 +58,48 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 	{
 	private:
 
-        const double* mpStressNorm;
-        HardeningLaw::Parameters HardeningParameters;
+	  const double* mpStressNorm;
+	  HardeningLaw::Parameters HardeningParameters;
 
 	public:
     
-        //Set Parameters
-		void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
+	  //Set Parameters
+	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
-		//Get Parameters
-		const double& GetStressNorm  () const { return *mpStressNorm;  };
+	  //Get Parameters
+	  const double& GetStressNorm  () const { return *mpStressNorm;  };
 
-		//Set Hardening Parameters
-		void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
-		void SetDeltaGamma  (const double& rDeltaGamma)  { HardeningParameters.SetDeltaGamma(rDeltaGamma);   };
-		void SetLameMu_bar  (const double& rLameMu_bar)  { HardeningParameters.SetLameMu_bar(rLameMu_bar);   };
-		void SetDeltaTime   (const double& rDeltaTime)   { HardeningParameters.SetDeltaTime(rDeltaTime);     };
-		void SetTemperature (const double& rTemperature) { HardeningParameters.SetTemperature(rTemperature); };
+	  //Set Hardening Parameters
+	  void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
+	  void SetDeltaGamma  (const double& rDeltaGamma)  { HardeningParameters.SetDeltaGamma(rDeltaGamma);   };
+	  void SetLameMu_bar  (const double& rLameMu_bar)  { HardeningParameters.SetLameMu_bar(rLameMu_bar);   };
+	  void SetDeltaTime   (const double& rDeltaTime)   { HardeningParameters.SetDeltaTime(rDeltaTime);     };
+	  void SetTemperature (const double& rTemperature) { HardeningParameters.SetTemperature(rTemperature); };
 		
-		void SetEquivalentPlasticStrain       (const double& rEquivalentPlasticStrain)       {  HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain);       };
-		void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
+	  void SetEquivalentPlasticStrain       (const double& rEquivalentPlasticStrain)       {  HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain);       };
+	  void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
 
-        void SetCharacteristicSize (const double& rCharacteristicSize) {HardeningParameters.SetCharacteristicSize(rCharacteristicSize);}
+	  void SetCharacteristicSize (const double& rCharacteristicSize) {HardeningParameters.SetCharacteristicSize(rCharacteristicSize);}
         
-        void SetStrainMatrix (const Matrix& rStrainMatrix) { HardeningParameters.SetStrainMatrix(rStrainMatrix); }
-        void SetStressMatrix (const Matrix& rStressMatrix) { HardeningParameters.SetStressMatrix(rStressMatrix); }
+	  void SetStrainMatrix (const Matrix& rStrainMatrix) { HardeningParameters.SetStrainMatrix(rStrainMatrix); }
+	  void SetStressMatrix (const Matrix& rStressMatrix) { HardeningParameters.SetStressMatrix(rStressMatrix); }
 
-		//Get Hardening Parameters
-		const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
-		const double& GetDeltaGamma  () const { return HardeningParameters.GetDeltaGamma();   };
-		const double& GetLameMu_bar  () const { return HardeningParameters.GetLameMu_bar();   };
-		const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
-		const double& GetTemperature () const { return HardeningParameters.GetTemperature();  };
+	  //Get Hardening Parameters
+	  const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
+	  const double& GetDeltaGamma  () const { return HardeningParameters.GetDeltaGamma();   };
+	  const double& GetLameMu_bar  () const { return HardeningParameters.GetLameMu_bar();   };
+	  const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
+	  const double& GetTemperature () const { return HardeningParameters.GetTemperature();  };
 		
-		const double& GetEquivalentPlasticStrain       () const { return HardeningParameters.GetEquivalentPlasticStrain();    };
-		const double& GetEquivalentPlasticStrainOld    () const { return HardeningParameters.GetEquivalentPlasticStrainOld(); };
+	  const double& GetEquivalentPlasticStrain       () const { return HardeningParameters.GetEquivalentPlasticStrain();    };
+	  const double& GetEquivalentPlasticStrainOld    () const { return HardeningParameters.GetEquivalentPlasticStrainOld(); };
 		
-		const HardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
+	  const HardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
-        const double& GetCharacteristicSize () const {return HardeningParameters.GetCharacteristicSize();}
+	  const double& GetCharacteristicSize () const {return HardeningParameters.GetCharacteristicSize();}
         
-		const Matrix& GetStrainMatrix () const { return HardeningParameters.GetStrainMatrix(); }
-        const Matrix& GetStressMatrix () const { return HardeningParameters.GetStressMatrix(); }
+	  const Matrix& GetStrainMatrix () const { return HardeningParameters.GetStrainMatrix(); }
+	  const Matrix& GetStressMatrix () const { return HardeningParameters.GetStressMatrix(); }
 	};
 
         ///@name Type Definitions

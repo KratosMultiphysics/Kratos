@@ -466,10 +466,10 @@ public:
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
 	
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
-   	     //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
    	double R1= inner_prod(ReferenceDx,b);
    	// ** Restore Current Displacement, Velocity, Acceleration
@@ -609,14 +609,13 @@ public:
    	//Timer::Start("LineSearch");
 	     
    	//s0  (alpha=0)
-   	double R0= inner_prod(Dx,b);
+   	double R0 = inner_prod(Dx,b);
 
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
-	
+
 	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
-	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 
    	double R1= inner_prod(ReferenceDx,b);
@@ -627,7 +626,8 @@ public:
 
 	std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
 
-   	if(R0*R1<0){
+   	//if(R0*R1<0){
+	if(R0*R1<0 || fabs(R1)>fabs(R0)){ //linesearch only active if the norm or the residual does not decrease
 
    	  //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
 
@@ -639,10 +639,9 @@ public:
   	  double CurrentAlpha  = 1.0; 
 
 	  int iterations=0;
-	  int max_iterations = 3;
-	  std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
+	  int max_iterations = 10;
 
-	  while(fabs(R2/R0)>0.5 && iterations<max_iterations && fabs(R2)>1e-4) {
+	  while(fabs(R2/R0)>0.3 && (R2*R0)<0 && iterations<max_iterations && fabs(R2)>1e-4) {
 	  
 	    if( nabla < 0 )
 	      alpha = 0.5*(nabla+sqrt(nabla*(nabla-4)));
@@ -653,6 +652,9 @@ public:
 	      break;
 	    
 
+	    std::cout<<" [R2: "<<R2<<", R0: "<<R0<<"] [nabla: "<<nabla<<", alpha "<<alpha<<"] "<<std::endl;
+
+
 	    CurrentAlpha  = alpha;
 
   
@@ -661,11 +663,11 @@ public:
 	
 	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
-	    //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
 	    //slope_k = slope_k+1
 	    R2 = inner_prod(ReferenceDx,b);
+	    
 	    // ** Restore Current Displacement, Velocity, Acceleration
 	    Dx *= (-1);
 	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
@@ -674,7 +676,8 @@ public:
 	       
 	    //slope_k-1 = slope_k
 	    nabla = R0/R2;
-	       
+
+	    
 	    iterations++;
 	  }
 	  
@@ -692,8 +695,11 @@ public:
    	// }
   
 
-   	if(rCurrentAlpha>1 || rCurrentAlpha<=0)
-   	  rCurrentAlpha=1;
+   	if(rCurrentAlpha>1)
+	  rCurrentAlpha=1;
+
+	if(rCurrentAlpha<=0)
+	  rCurrentAlpha=0.001;
 
    	//Restore Current Displacement, Velocity, Acceleration
    	Dx      = ReferenceDx;
