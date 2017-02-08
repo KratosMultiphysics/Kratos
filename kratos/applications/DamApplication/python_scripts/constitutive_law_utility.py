@@ -26,14 +26,6 @@ def SetConstitutiveLaw(model_part):
             prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic2DPlaneStrain())
         elif(ConstitutiveLawName == "ThermalLinearElastic3D"):
             prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic3DLaw())
-        elif(ConstitutiveLawName == "BilinearCohesive2DLaw"):
-            prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive2DLaw())
-        elif(ConstitutiveLawName == "BilinearCohesive3DLaw"):
-            prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive3DLaw())
-        elif(ConstitutiveLawName == "SimoJuLocalDamage3DLaw"):
-            prop.SetValue(CONSTITUTIVE_LAW, SimoJuLocalDamage3DLaw())
-        elif(ConstitutiveLawName == "SimoJuLocalDamagePlaneStrain2DLaw"):
-            prop.SetValue(CONSTITUTIVE_LAW, SimoJuLocalDamagePlaneStrain2DLaw())
-        elif(ConstitutiveLawName == "SimoJuLocalDamagePlaneStress2DLaw"):
-            prop.SetValue(CONSTITUTIVE_LAW, SimoJuLocalDamagePlaneStress2DLaw())
-
+        else:
+            mat = globals().get(ConstitutiveLawName)()
+            prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())

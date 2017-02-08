@@ -42,6 +42,43 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    //create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    //create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    //set constitutive law flags:
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY); //Note: this is for nonlocal damage
+    
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+    {
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,PointNumber);
+
+        //set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables,Values,PointNumber);
+        
+        //call the constitutive law to update material variables
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    this->InitializeNonLinearIteration(rCurrentProcessInfo);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {    
     //create and initialize element variables:
@@ -72,12 +109,9 @@ void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& 
 
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
-
-        //call the constitutive law to update material variables
-        mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
         
         //call the constitutive law to update material variables
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+        mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
         
         this->SaveGPStress(StressContainer,Variables.StressVector,VoigtSize,PointNumber);
     }
@@ -263,7 +297,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         else if(rVariable == THERMAL_STRESS_VECTOR) 
             ConstitutiveLawOptions.Set(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY);
         else if(rVariable == MECHANICAL_STRESS_VECTOR)  
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::TOTAL_TENSOR);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

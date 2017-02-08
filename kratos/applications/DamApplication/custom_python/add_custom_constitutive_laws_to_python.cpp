@@ -31,6 +31,18 @@
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
 
+#include "custom_constitutive/thermal_simo_ju_local_damage_3D_law.hpp"
+#include "custom_constitutive/thermal_simo_ju_local_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/thermal_simo_ju_local_damage_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/thermal_simo_ju_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/thermal_simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/thermal_modified_mises_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -47,6 +59,17 @@ void  AddCustomConstitutiveLawsToPython()
 
     class_< ThermalLinearElastic2DPlaneStress, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStress",init<>() );
 
+    class_< ThermalSimoJuLocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamage3DLaw",init<>() );
+    class_< ThermalSimoJuLocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamagePlaneStrain2DLaw",init<>() );
+    class_< ThermalSimoJuLocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamagePlaneStress2DLaw",init<>() );
+
+    class_< ThermalSimoJuNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamage3DLaw",init<>() );
+    class_< ThermalSimoJuNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamagePlaneStrain2DLaw",init<>() );
+    class_< ThermalSimoJuNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuNonlocalDamagePlaneStress2DLaw",init<>() );
+
+    class_< ThermalModifiedMisesNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamage3DLaw",init<>() );
+    class_< ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw",init<>() );
+    class_< ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",init<>() );
 }
 
 }  // namespace Python.

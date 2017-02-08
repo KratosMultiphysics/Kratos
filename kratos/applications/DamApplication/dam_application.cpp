@@ -132,6 +132,18 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStress",mThermalLinearElastic2DPlaneStress);
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
+    Serializer::Register("ThermalSimoJuLocalDamage3DLaw",mThermalSimoJuLocalDamage3DLaw);
+    Serializer::Register("ThermalSimoJuLocalDamagePlaneStrain2DLaw",mThermalSimoJuLocalDamagePlaneStrain2DLaw);
+    Serializer::Register("ThermalSimoJuLocalDamagePlaneStress2DLaw",mThermalSimoJuLocalDamagePlaneStress2DLaw);
+
+    Serializer::Register("ThermalSimoJuNonlocalDamage3DLaw",mThermalSimoJuNonlocalDamage3DLaw);
+    Serializer::Register("ThermalSimoJuNonlocalDamagePlaneStrain2DLaw",mThermalSimoJuNonlocalDamagePlaneStrain2DLaw);
+    Serializer::Register("ThermalSimoJuNonlocalDamagePlaneStress2DLaw",mThermalSimoJuNonlocalDamagePlaneStress2DLaw);
+
+    Serializer::Register("ThermalModifiedMisesNonlocalDamage3DLaw",mThermalModifiedMisesNonlocalDamage3DLaw);
+    Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw);
+    Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw);
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION )    
     

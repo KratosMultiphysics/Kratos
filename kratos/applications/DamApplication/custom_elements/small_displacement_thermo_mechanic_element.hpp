@@ -45,6 +45,10 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
