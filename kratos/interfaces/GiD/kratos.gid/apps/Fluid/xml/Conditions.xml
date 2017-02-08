@@ -30,7 +30,7 @@
     </outputs>
   </ConditionItem>-->
 
-  <ConditionItem n="AutomaticInlet2D" pn="Automatic inlet velocity" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="AutomaticInlet2D" pn="Automatic inlet velocity" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="VELOCITY" App="Fluid"
 	ElementType="Line" ProcessName="AssignAutomaticDirectionVectorProcess" help="" units="m/s" unit_magnitude="Velocity">
@@ -45,7 +45,7 @@
     </outputs>
   </ConditionItem>
 
-  <ConditionItem n="AutomaticInlet3D" pn="Automatic inlet velocity" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="AutomaticInlet3D" pn="Automatic inlet velocity" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="VELOCITY" App="Fluid"
 	ElementType="Surface" ProcessName="AssignAutomaticDirectionVectorProcess" help="" units="m/s" unit_magnitude="Velocity">

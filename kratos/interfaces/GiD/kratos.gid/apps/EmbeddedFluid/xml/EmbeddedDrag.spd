@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="EmbeddedDrag" pn="Embedded drag" un="FLEmbeddedDrags" icon="drag">
+    <value n="write_drag_output_file" pn="Write drag output file" v="No" values="Yes,No"/>
+    <value n="print_drag_to_screen" pn="Print drag to screen"  v="No" values="Yes,No"/>
+    <value n="Interval" pn="Time interval" v="Total" values="[getIntervals]" help=""/>
+</container>
