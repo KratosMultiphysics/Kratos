@@ -697,12 +697,6 @@ namespace Kratos {
     for (SizeType i = 0; i < NumNodes; ++i){
       rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
 
-     //  if(rValues[i]==0 && rGeom[i].Is(FREE_SURFACE))
-     // 	std::cout<<"                     pressure = 0 for this free-surface node               "<<std::endl;
-     // if(rValues[i]==0 && rGeom[i].Is(RIGID))
-     // 	std::cout<<"                     pressure = 0 for this rigid node               "<<std::endl;
-
-
       if(rGeom[i].Is(BOUNDARY)){
 	rGeom[i].FastGetSolutionStepValue(INTERF) = 1;
 
@@ -1470,73 +1464,13 @@ rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepVal
     NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
     NormalMean = NormalA*0.5+ NormalB*0.5;
-  }else  if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && (rGeom[1].Is(FREE_SURFACE)  || rGeom[1].Is(RIGID)) && !(rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
-    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccMean = AccA*0.5+ AccB*0.5;
-    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    NormalMean = NormalA*0.5+ NormalB*0.5;
-  }else if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) ) && (rGeom[0].Is(FREE_SURFACE)  || rGeom[0].Is(RIGID)) && !(rGeom[2].Is(RIGID) && rGeom[0].Is(RIGID))){
-    AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccMean = AccA*0.5+ AccB*0.5;
-    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    NormalMean = NormalA*0.5+ NormalB*0.5;
-  }else if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) ) && (rGeom[2].Is(FREE_SURFACE)  || rGeom[2].Is(RIGID)) && !(rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID))){
-    AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-
-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-    AccMean = AccA*0.5+ AccB*0.5;
-    NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    NormalMean = NormalA*0.5+ NormalB*0.5;
   }
 
   NormalAcceleration=0.5*(NormalA[0]*AccA[0]+NormalA[1]*AccA[1]) +0.5*(NormalB[0]*AccB[0]+NormalB[1]*AccB[1]);
-  // NormalAcceleration=NormalMean[0]*AccMean[0]+NormalMean[1]*AccMean[1];
 
  NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
     NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
     2*NormalMean[0]*SpatialDefRate[2]*NormalMean[1];
-
-  // if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE)){
-  //   NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }else if(rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
-  //   NormalA    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }else if(rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
-  //   NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }else  if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && (rGeom[1].Is(FREE_SURFACE)  || rGeom[1].Is(RIGID)) && !(rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
-  //   NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }else if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) ) && (rGeom[0].Is(FREE_SURFACE)  || rGeom[0].Is(RIGID)) && !(rGeom[2].Is(RIGID) && rGeom[0].Is(RIGID))){
-  //   NormalA    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }else if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) ) && (rGeom[2].Is(FREE_SURFACE)  || rGeom[2].Is(RIGID)) && !(rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID))){
-  //   NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //   NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //   NormalMean = NormalA*0.5;
-  // }
-
-  // NormalAcceleration=NormalMean[0]*MeanAcceleration[0]+NormalMean[1]*MeanAcceleration[1];
- 
-  // NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
-  //   NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
-  //   2*NormalMean[0]*SpatialDefRate[2]*NormalMean[1];
 
 }
 
@@ -1563,22 +1497,9 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
   AccC.clear();
   array_1d<double, 3>  AccMean(3,0.0);
   AccMean.clear();
-  // VectorType ElementalAcceleration = ZeroVector(3);
-  // this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
   GeometryType& rGeom = this->GetGeometry();
 
   const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  unsigned int numBoundary=0;
-  unsigned int numFreeSurf=0;
-  for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
-	numBoundary++;
-	if(rGeom[i].Is(FREE_SURFACE)){
-	  numFreeSurf++;
-	}
-      }
-    }
 
   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
@@ -1628,34 +1549,9 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
     NormalAcceleration=0.33333333*(NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2] + 
 				   NormalB[0]*AccB[0] + NormalB[1]*AccB[1] + NormalB[2]*AccB[2] + 
 				   NormalC[0]*AccC[0] + NormalC[1]*AccC[1] + NormalC[2]*AccC[2]);
-  }else if(numFreeSurf>0){
-      double count=0;
-      if(rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID)){
-	count+=1.0;
-	NormalA   = rGeom[0].FastGetSolutionStepValue(NORMAL);
-	AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
-	NormalAcceleration+=NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2];
-      }
-      if(rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID)){
-	count+=1.0;
-	NormalA   = rGeom[1].FastGetSolutionStepValue(NORMAL);
-	AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
-	NormalAcceleration+=NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2];
-      }
-      if(rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID)){
-	count+=1.0;
-	NormalA   = rGeom[2].FastGetSolutionStepValue(NORMAL);
-	AccA= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-	NormalAcceleration+=NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2];
-      }
-      if(rGeom[3].Is(FREE_SURFACE) || rGeom[3].Is(RIGID)){
-	count+=1.0;
-	NormalA   = rGeom[3].FastGetSolutionStepValue(NORMAL);
-	AccA= 0.5/TimeStep*(rGeom[3].FastGetSolutionStepValue(VELOCITY,0)-rGeom[3].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[3].FastGetSolutionStepValue(ACCELERATION,1); 
-	NormalAcceleration+=NormalA[0]*AccA[0] + NormalA[1]*AccA[1] + NormalA[2]*AccA[2];
-      }
-      NormalAcceleration*=1.0/count;
   }
+
+
 
    
     NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
@@ -1665,63 +1561,6 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
       2*NormalMean[0]*SpatialDefRate[4]*NormalMean[2]+
       2*NormalMean[1]*SpatialDefRate[5]*NormalMean[2];
 
-
-  // if(numBoundary>2){
-  //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-  //     NormalA     = rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //     NormalMean = NormalA*0.333333333333;
-  //   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-  //     NormalA     = rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[3].FastGetSolutionStepValue(NORMAL);
-  //     NormalMean = NormalA*0.333333333333;
-  //   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-  //     NormalA     = rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[3].FastGetSolutionStepValue(NORMAL);
-  //     NormalMean = NormalA*0.333333333333;
-  //   }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
-  //     NormalA     = rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //     NormalA    += rGeom[3].FastGetSolutionStepValue(NORMAL);
-  //     NormalMean = NormalA*0.333333333333;
-  //   }else  if(numFreeSurf>0){
-  //     double count=0;
-  //     if(rGeom[0].Is(FREE_SURFACE)){
-  // 	count+=1.0;
-  // 	NormalA    += rGeom[0].FastGetSolutionStepValue(NORMAL);
-  //     }
-  //     if(rGeom[1].Is(FREE_SURFACE)){
-  // 	count+=1.0;
-  // 	NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
-  //     }
-  //     if(rGeom[2].Is(FREE_SURFACE)){
-  // 	count+=1.0;
-  // 	NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
-  //     }
-  //     if(rGeom[3].Is(FREE_SURFACE)){
-  // 	count+=1.0;
-  // 	NormalA    += rGeom[3].FastGetSolutionStepValue(NORMAL);
-  //     }
-  //     if(count!=0){
-  // 	NormalMean = NormalA/count;
-  //     }else{
-  // 	NormalMean = NormalA;
-  //     }
-
-  //   }
-  // }
-
-  //   NormalAcceleration=NormalMean[0]*MeanAcc[0]+NormalMean[1]*MeanAcc[1]+NormalMean[2]*MeanAcc[2];
-    
-  //   NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
-  //     NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
-  //     NormalMean[2]*SpatialDefRate[2]*NormalMean[2]+
-  //     2*NormalMean[0]*SpatialDefRate[3]*NormalMean[1]+
-  //     2*NormalMean[0]*SpatialDefRate[4]*NormalMean[2]+
-  //     2*NormalMean[1]*SpatialDefRate[5]*NormalMean[2];
 
 }
 
