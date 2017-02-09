@@ -29,6 +29,9 @@ extern "C" {
 //#include "geometries/triangle_2d_3.h"
 #include "wind_turbine_application.h"
 
+// Extra includes for debug mesh printouts
+#include "includes/gid_io.h"
+
 namespace Kratos
 {
 
@@ -76,32 +79,40 @@ class WindTurbineRotationUtilities
         };
 
 public:
-	WindTurbineRotationUtilities(ModelPart&);
+        WindTurbineRotationUtilities(ModelPart&);
+
+        WindTurbineRotationUtilities(ModelPart&,double Zmin,double Zmax);
 
         void DoRotationAndRemesh(const int&, const double&, const double&);
+
+        void GetModelPartForOutput(ModelPart&);
 
         // debugging functions
         void DoExtractFaceNodes(ModelPart&, const int&);
         int GetRemeshingRank() { return mRemeshingRank; }
+        void PrintBaseBoundaries(GidIO<>& rIO);
 
 private:
 	ModelPart& mrGlobalModelPart;
 	ModelPart::ElementsContainerType mInnerElems;        // container of the elements inside the inner circumference
-	ModelPart::ElementsContainerType mOuterElems;         // container of the elements out of the outer circumference
+	ModelPart::ElementsContainerType mOuterElems;        // container of the elements out of the outer circumference
 	ModelPart::ElementsContainerType mInnerInterfElems;  // container of the elements bordering the inner circumference
 	ModelPart::ElementsContainerType mOuterInterfElems;  // container of the elements bordering the outer circumference
 	ModelPart::ElementsContainerType mCrownElems;        // container of the elements inside the crown
 
 	ModelPart::NodesContainerType mInterfaceNodes;
 	ModelPart::NodesContainerType mInnerNodes;
+    
         std::vector<int> mConstrainedBoundaryNodeAuxIndices;
 	int mFirstOuterInterfaceNodeOffset;
         int mNumberOfBoundaryFaces;
         std::vector<double> mAngleHistory;
+        double mOmega;
         unsigned int mNumberOfNodesPerElement;
         unsigned int mEchoLevel;
 
         // Percolate the whole ModelPart and put the elements and nodes in the proper containers
+        void InitializeUtility();
         void FillElementRegions();
 	void FillNodeRegions();
         unsigned int DecideElementRegion(const unsigned int&, std::vector<WindTurbineRegionMultiplicity>&, unsigned int& edgeOppositeVertex, bool& warning) const;
@@ -117,11 +128,44 @@ private:
         void CleanTriangulationDataStructure( triangulateio& );
 
         double CalculateRotationVelocity(double NewRotAngle);
+        void SetMeshVelocity(double Rx, double Ry, array_1d<double,3>& rMeshVelocity);
 
         void RemoveLocalNodesWithNoElements();
         void InspectNodeContainerAndLogToFile(ModelPart::NodesContainerType&, const std::string&);
 
-        /// beginning of parallel stuff
+        // Tools to be used in case Tetgen decides to add nodes
+        std::vector< Node<3>::Pointer > mCrownNodes;
+        unsigned int mLastGlobalNodeId;
+
+        void AddCrownNodesToModelPart( int FirstNewNodeOffset, tetgenio& TetgenOutput);
+        void InterpolateNodalDataForNewNodes();
+        void Parallel_FindLastNodeId();
+
+        // Additional data and functions for the periodic case
+        double mZmin;
+        double mZmax;
+
+        std::vector< Node<3>::Pointer > mInterfaceNodesAuxContainer;
+        std::vector< Node<3>::Pointer > mMinSideInterfaceNodes;
+        std::vector< Node<3>::Pointer > mMaxSideInterfaceNodes;
+
+        std::vector<int> mMinSideBoundaryEdges;
+        std::vector<int> mMaxSideBoundaryEdges;
+
+        std::vector<int> mMinSideFacets;
+        std::vector<int> mMaxSideFacets;
+
+        static bool AuxIdComp(Node<3>::Pointer pThis, Node<3>::Pointer pThat);
+        void FillBaseNodeRegions(std::vector< Node<3>::Pointer >& rAllNodes, std::vector< Node<3>::Pointer >& rNodeContainer, double Zpos);
+        void FillBaseRegionEdges(std::vector< Node<3>::Pointer >& rInterfaceNodeList, std::vector<int>& rBoundaryElementList, std::vector<int>& rEdgeList, double Zpos);
+
+        void CreateNewBaseFacets(std::vector< Node<3>::Pointer >& rBaseNodes, std::vector<int>& rEdgeList, std::vector<int>& rFacetList);
+
+        // Nodes on interface containers are sorted, first nodes on the inner side, then these on the outer
+        int mFirstOuterNodeOnMinSideOffset;
+        int mFirstOuterNodeOnMaxSideOffset;
+
+        // beginning of parallel stuff
         int mThisRank;
         int mRemeshingRank;
         int mNumberOfRanks;
@@ -138,8 +182,13 @@ private:
         template <class EntitiesContainer> void Parallel_MigrateEntities(const EntitiesContainer&);
         template <class EntitiesContainer> void Parallel_SerializerSave(EntitiesContainer&, std::string&);
         template <class EntitiesContainer> void Parallel_SerializerLoad(EntitiesContainer&, std::string&);
+        void Parallel_SerializerLoadNodes(ModelPart::NodesContainerType&, const char*, const int&);
         template <class EntitiesContainer> void Parallel_SerializerLoad(EntitiesContainer&, const char*, const int&);
-        /// end of parallel stuff
+
+        void Parallel_TransferDataToRemeshingProcessor();
+        void Parallel_GatherNodesAndFacets();
+        static bool PointerIdComp(Node<3>::Pointer const* pThis, Node<3>::Pointer const* pThat);
+        // end of parallel stuff
 };
 
 }

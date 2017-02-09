@@ -64,8 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
-
 namespace Kratos
 {
 	
@@ -78,9 +76,12 @@ namespace Python
 	using namespace boost::python;
 
     	class_< WindTurbineRotationUtilities > ("WindTurbineRotationUtilities", init< ModelPart& >())
+        .def( init< ModelPart&, double, double >() )
         .def("DoRotationAndRemesh", &WindTurbineRotationUtilities::DoRotationAndRemesh)
         .def("DoExtractFaceNodes", &WindTurbineRotationUtilities::DoExtractFaceNodes)
         .def("GetRemeshingRank", &WindTurbineRotationUtilities::GetRemeshingRank)
+        .def("GetModelPartForOutput",&WindTurbineRotationUtilities::GetModelPartForOutput)
+        .def("PrintBaseBoundaries",&WindTurbineRotationUtilities::PrintBaseBoundaries)
         ;
 
 	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;

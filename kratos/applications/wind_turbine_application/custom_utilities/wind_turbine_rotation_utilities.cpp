@@ -30,6 +30,8 @@
     #include <mpi.h>
 #endif
 
+#include "includes/kratos_flags.h"
+
 #include "wind_turbine_rotation_utilities.h"
 
 namespace Kratos
@@ -69,32 +71,77 @@ WindTurbineRegionMultiplicity WindTurbineRegionMultiplicity::operator++(int)
 WindTurbineRotationUtilities::WindTurbineRotationUtilities(ModelPart& rAllTheModelPart)
 	:mrGlobalModelPart(rAllTheModelPart)
 {
-	mFirstOuterInterfaceNodeOffset = 0;
-        mNumberOfBoundaryFaces = 0;
-        mAngleHistory.reserve(2); // Old rotation angles
-        mEchoLevel = WIND_TURBINE_ECHOLEVEL_DEEPINFO;   //_ALL;
+    mZmin = 0.0;
+    mZmax = 0.0;
+    InitializeUtility();
+}
 
-        FillNodeRegions();
-        FillElementRegions();
+WindTurbineRotationUtilities::WindTurbineRotationUtilities(ModelPart& rAllTheModelPart,double Zmin, double Zmax)
+	:mrGlobalModelPart(rAllTheModelPart)
+{
+    KRATOS_TRY;
+    if (Zmin == Zmax)
+        KRATOS_THROW_ERROR(std::invalid_argument,"Error in WindTurbineRotationUtilities initialization (version with periodic boundary): Zmin is equal to Zmax","");
+    mZmin = Zmin;
+    mZmax = Zmax;
+    InitializeUtility();
+    KRATOS_CATCH("");
+}
+
+void WindTurbineRotationUtilities::InitializeUtility()
+{
+    std::vector<int> BadIds;
+    for (ModelPart::NodeIterator itNode = mrGlobalModelPart.NodesBegin(); itNode != mrGlobalModelPart.NodesEnd(); itNode++)
+        if (itNode->FastGetSolutionStepValue(FLAG_VARIABLE) == 0)
+            BadIds.push_back(itNode->Id());
+    if (BadIds.size()>0)
+        std::cout << "Found nodes without FLAG_VARIABLE: " << std::endl;
+    for (unsigned int i = 0; i < BadIds.size();i++)
+        std::cout << BadIds[i] << " ";
+    std::cout << std::endl;
+
+    mFirstOuterInterfaceNodeOffset = 0;
+    mNumberOfBoundaryFaces = 0;
+    mAngleHistory.reserve(2); // Old rotation angles
+    mOmega = 0.0;
+    mEchoLevel = WIND_TURBINE_ECHOLEVEL_INFO;   //_ALL;
+    //mEchoLevel = WIND_TURBINE_ECHOLEVEL_NONE;
+    FillNodeRegions();
+    FillElementRegions();
 
 #if defined( WIND_TURBINE_USE_PARALLEL_EXTENSION )
-        Parallel_DecideRemeshingProcessor();
-        Parallel_MigrateEntities(mInterfaceNodes);
-        // the processors different from the remesher don't need the crown elements anymore
-        if (mThisRank != mRemeshingRank)
-        {
-            DestroyCrownElements();
-            DestroyCrownNodes();
-        }
+    Parallel_DecideRemeshingProcessor();
+    Parallel_FindLastNodeId();
+    //Parallel_MigrateEntities(mInterfaceNodes);
+    Parallel_TransferDataToRemeshingProcessor();
+    // the processors different from the remesher don't need the crown elements anymore
+    if (mThisRank != mRemeshingRank)
+    {
+        DestroyCrownElements();
+        DestroyCrownNodes();
+    }
 
-        MPI_Barrier(MPI_COMM_WORLD);
-        RemoveLocalNodesWithNoElements();
-        MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+    RemoveLocalNodesWithNoElements();
+    MPI_Barrier(MPI_COMM_WORLD);
 #else
-        // these are unused though, in this case
-        mThisRank = 0;
-        mRemeshingRank = 0;
-        mNumberOfRanks = 1;
+    mLastGlobalNodeId = mrGlobalModelPart.NumberOfNodes();
+    // Additional setup in case of periodic conditions
+    // Note: in the parallel case, the same operation is done as part of Parallel_MigrateEntities()
+    if (mZmin != mZmax)
+    {
+        mInterfaceNodesAuxContainer = std::vector< Node<3>::Pointer >( mInterfaceNodes.ptr_begin(), mInterfaceNodes.ptr_end() );
+        std::sort(mInterfaceNodesAuxContainer.begin(),mInterfaceNodesAuxContainer.end(),&WindTurbineRotationUtilities::AuxIdComp);
+        FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMinSideInterfaceNodes, mZmin);
+        FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMinSideBoundaryEdges, mZmin);
+        FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMaxSideInterfaceNodes, mZmax);
+        FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMaxSideBoundaryEdges, mZmax);
+    }
+
+    // these are unused though, in this case
+    mThisRank = 0;
+    mRemeshingRank = 0;
+    mNumberOfRanks = 1;
 #endif
 
 }
@@ -269,7 +316,7 @@ void WindTurbineRotationUtilities::FillElementRegions()
 	}
 
 
-        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_DEEPINFO)
+        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE ) //WIND_TURBINE_ECHOLEVEL_DEEPINFO)
         {
             std::cout << std::endl << "--- Assignments----------------------" << std::endl;
             std::cout << "Element regions filled." << std::endl;
@@ -336,21 +383,19 @@ void WindTurbineRotationUtilities::DoRotationAndRemesh(const int& dimensions, co
     if ( mThisRank == mRemeshingRank )
     {
 #endif
-	// erasing elements in the crown region
-	DestroyCrownElements();
+        // erasing elements in the crown region
+        DestroyCrownElements();
+        DestroyCrownNodes();
 #if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
     }
-#endif
-        // erasing also the nodes in the crown region (this just for 3D, but could be also for 2D)
-        if (dimensions == 3)
-            DestroyCrownNodes();
 
-#if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-	// rotating inner nodes and consequently the elements identified by them
-        RotateEntities((double)WIND_TURBINE_INNER_REGION, rotAngle, timeStep);
-        RotateEntities((double)WIND_TURBINE_INNER_INTERF_REGION, rotAngle, timeStep);
+
+    // rotating inner nodes and consequently the elements identified by them
+    mOmega = CalculateRotationVelocity(rotAngle);
+    RotateEntities((double)WIND_TURBINE_INNER_REGION, rotAngle, timeStep);
+    RotateEntities((double)WIND_TURBINE_INNER_INTERF_REGION, rotAngle, timeStep);
 
 #if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
     // in this case, only the remeshing processor can perform the regeneration
@@ -394,9 +439,6 @@ void WindTurbineRotationUtilities::RotateEntities(const double& regionFlag, cons
         double cosRotAngle = cos(rotAngle);
         double sinRotAngle = sin(rotAngle);
 
-        // set mesh velocity
-        double Omega = CalculateRotationVelocity(rotAngle);
-
         // now i am iterating in a container already fully stored, this means i can change any content properties
         // operating in-iterator-step (without offsetting from .ElementBegin())...
         for (ModelPart::NodesContainerType::iterator itr = pNodes->begin(); itr != (pNodes->end() - itrOffset); itr++)
@@ -420,56 +462,105 @@ void WindTurbineRotationUtilities::RotateEntities(const double& regionFlag, cons
                 itr->Y() = Y;
 
                 array_1d<double,3> MeshVelocity(3,0.0);
-                double Radius = sqrt( X*X + Y*Y );
-                if ( Radius > 1.0e-12 )
-                {
-                    double Vtang = Omega * Radius;
-                    MeshVelocity[0] = - Vtang * Y / Radius; //sinRotAngle;
-                    MeshVelocity[1] = Vtang * X / Radius; //cosRotAngle;
-                }
+                SetMeshVelocity(X,Y,MeshVelocity);
+
                 itr->FastGetSolutionStepValue(MESH_VELOCITY) = MeshVelocity;
                 if ( itr->IsFixed(VELOCITY_X) || itr->IsFixed(VELOCITY_Y) || itr->IsFixed(VELOCITY_Z) ) itr->FastGetSolutionStepValue(VELOCITY) = MeshVelocity;
         }
 }
 
+void WindTurbineRotationUtilities::SetMeshVelocity(double Rx, double Ry, array_1d<double,3>& rMeshVelocity)
+{
+    double Radius = std::sqrt(Rx*Rx + Ry*Ry);
+    if ( Radius > 1.0e-12 )
+    {
+        double Vtang = mOmega * Radius;
+        rMeshVelocity[0] = - Vtang * Ry / Radius; //sinRotAngle;
+        rMeshVelocity[1] = Vtang * Rx / Radius; //cosRotAngle;
+    }
+}
 
 void WindTurbineRotationUtilities::DestroyCrownElements()
 {
-	ModelPart::MeshType& rMesh = mrGlobalModelPart.GetMesh();
+    // Mark elements for deletion
+    for (ModelPart::ElementsContainerType::iterator itr = mCrownElems.begin(); itr != mCrownElems.end(); itr++)
+        itr->Set(TO_ERASE,true);
 
-	for (ModelPart::ElementsContainerType::iterator itr = mCrownElems.begin(); itr != mCrownElems.end(); itr++)
-	{
-		// removing the element from the model part
-		rMesh.RemoveElement( itr->Id() );
-	}
+    // Delete elements from ModelPart
+    ModelPart::ElementsContainerType NewElements;
+    NewElements.reserve( mrGlobalModelPart.NumberOfElements() - mCrownElems.size() );
 
-	// now cleaning the crownRegion reference list
+    for (ModelPart::ElementsContainerType::ptr_iterator itr = mrGlobalModelPart.Elements().ptr_begin();
+            itr != mrGlobalModelPart.Elements().ptr_end(); itr++)
+        if ( (**itr).Is(TO_ERASE) == false)
+            NewElements.push_back( *itr );
+
+    mrGlobalModelPart.Elements().swap( NewElements );
+
 #if defined(WIND_TURBINE_USE_PARALLEL_EXTENSION)
-        mLastKratosGlobalElementId -= mCrownElems.size();
+    // Delete elements from Communicator
+    ModelPart::ElementsContainerType NewCommElements;
+    ModelPart::MeshType& rLocalMesh = mrGlobalModelPart.GetCommunicator().LocalMesh();
+    NewCommElements.reserve( rLocalMesh.NumberOfElements() - mCrownElems.size() );
+
+    for (ModelPart::ElementsContainerType::ptr_iterator itr = rLocalMesh.Elements().ptr_begin(); itr != rLocalMesh.Elements().ptr_end(); itr++)
+        if ( (**itr).Is(TO_ERASE) == false)
+            NewCommElements.push_back( *itr );
+
+    rLocalMesh.Elements().swap(NewCommElements);
+
+    mLastKratosGlobalElementId -= mCrownElems.size();
+    
+    std::cout << "Rank " << mThisRank << " deleting " << mCrownElems.size() << " crown elements." << std::endl;
+#else
+    std::cout << "Deleting " << mCrownElems.size() << " crown elements." << std::endl;
+    //mrGlobalModelPart.GetCommunicator().LocalMesh() = mrGlobalModelPart.Elements(); 
 #endif
+
+    // now cleaning the crownRegion reference list
 	mCrownElems.clear();
 }
 
 void WindTurbineRotationUtilities::DestroyCrownNodes()
 {
-        ModelPart::MeshType& rMesh = mrGlobalModelPart.GetMesh();
-
-        for ( ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
-        itr != mrGlobalModelPart.NodesEnd();
-        itr++)
+    // Mark nodes for deletion
+    unsigned int RedundantNodes = 0;
+    for ( ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin(); itr != mrGlobalModelPart.NodesEnd(); itr++)
+    {
+        if (   (int)(itr->GetSolutionStepValue(FLAG_VARIABLE)) == WIND_TURBINE_UNKNOWN_REGION   // <- because the new nodes by Tetgen do not have flag associated to them!!
+            || (int)(itr->GetSolutionStepValue(FLAG_VARIABLE)) == WIND_TURBINE_CROWN_REGION)
         {
-                // removing the node from the model part
-                if ((int)(itr->GetSolutionStepValue(FLAG_VARIABLE)) == WIND_TURBINE_UNKNOWN_REGION   // <- because the new nodes by Tetgen do not have flag associated to them!!
-                 || (int)(itr->GetSolutionStepValue(FLAG_VARIABLE)) == WIND_TURBINE_CROWN_REGION)
-                    rMesh.RemoveNode( itr->Id() );
+            itr-> Set(TO_ERASE,true);
+            RedundantNodes++;
         }
+    }
+
+    // removing the node from the model part
+    ModelPart::NodesContainerType NewNodes;
+    ModelPart::NodesContainerType NewLocalNodes;
+    NewNodes.reserve( mrGlobalModelPart.NumberOfNodes() - RedundantNodes );
+    NewLocalNodes.reserve( mrGlobalModelPart.GetCommunicator().LocalMesh().Nodes().size() );
+
+    for (ModelPart::NodesContainerType::ptr_iterator itr = mrGlobalModelPart.Nodes().ptr_begin(); itr != mrGlobalModelPart.Nodes().ptr_end(); itr++)
+        if ( (**itr).Is(TO_ERASE) == false)
+        {
+            NewNodes.push_back( *itr );
+            if ( (**itr).FastGetSolutionStepValue(PARTITION_INDEX) == mThisRank)
+                NewLocalNodes.push_back( *itr );
+        }
+
+    NewLocalNodes.reserve( NewLocalNodes.size() );
+
+//    mrGlobalModelPart.Nodes().swap( NewNodes );
+//    mrGlobalModelPart.GetCommunicator().LocalMesh().Nodes().swap( NewLocalNodes );
+    std::cout << "Rank " << mThisRank << " found and deleted " << RedundantNodes << " crown nodes." << std::endl;
 }
 
 void WindTurbineRotationUtilities::RegenerateCrownElements2D()
 {
 	// ****** preparing food for Trigen
         char trigenOptsNormal[] = "PpcYYQj";
-        char trigenOptsVerbose[] = "PpcYYVVj";
+        char trigenOptsVerbose[] = "PpcYYVj"; //"PpcYYVVj"; // the extra V makes it more verbose
         char* trigenOpts = trigenOptsNormal;
 
         if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
@@ -565,7 +656,9 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
 
 	    Element::Pointer pElem = mInnerInterfElems.begin()->Create(id, geom, properties);
             (mrGlobalModelPart.Elements()).push_back(pElem);
-
+#if defined(WIND_TURBINE_USE_PARALLEL_EXTENSION)
+            mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().push_back(pElem);
+#endif
             mCrownElems.push_back(pElem);  // update crown region element reference list
         }
 
@@ -584,14 +677,24 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
 
 void WindTurbineRotationUtilities::RegenerateCrownElements3D()
 {
+    // If periodic conditions are used, start by using trigen to create additinal facets
+    // providing a closed domain for tetgen
+    int NumAdditionalFacets = 0;
+    if (mZmax != mZmin)
+    {
+        CreateNewBaseFacets(mMinSideInterfaceNodes,mMinSideBoundaryEdges,mMinSideFacets);
+        CreateNewBaseFacets(mMaxSideInterfaceNodes,mMaxSideBoundaryEdges,mMaxSideFacets);
+        NumAdditionalFacets = ( mMinSideFacets.size() + mMaxSideFacets.size() ) / 3;
+    }
+
         char tetgenOptsNormal[] = "pYYQ";
-        char tetgenOptsVerbose[] = "pYYVV";
+//        char tetgenOptsVerbose[] = "pYYVV";
         char* tetgenOpts = tetgenOptsNormal;
 
-        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
-        {
-            tetgenOpts = tetgenOptsVerbose;    // setting verbosity to the stars...
-        }
+//        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
+//        {
+//            tetgenOpts = tetgenOptsVerbose;    // setting verbosity to the stars...
+//        }
 
         tetgenio inData, outData;
         inData.initialize();
@@ -602,13 +705,21 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         inData.pointlist = new REAL[inData.numberofpoints * 3];   // a base is a triangle
         inData.pointmarkerlist = new int[inData.numberofpoints];
 
-        inData.holelist = new REAL[3];
-        *(inData.holelist) = (REAL)0.0;
-        *(inData.holelist + 1) = (REAL)0.0;
-        *(inData.holelist + 2) = (REAL)0.0; //(-0.75); TODO: clean this owful hard-coded setting
-        inData.numberofholes = 1;
+        if (mZmin == mZmax) // Non-periodic case: carve a hole
+        {
+            inData.holelist = new REAL[3];
+            *(inData.holelist) = (REAL)0.0;
+            *(inData.holelist + 1) = (REAL)0.0;
+            *(inData.holelist + 2) = (REAL)0.5; //(-0.75); TODO: clean this owful hard-coded setting
+            inData.numberofholes = 1;
+        }
+        else // No holes required in the periodic case
+        {
+            inData.holelist = (REAL*)NULL;
+            inData.numberofholes = 0;
+        }
 
-        inData.numberoffacets = mNumberOfBoundaryFaces;   // constrained facets
+        inData.numberoffacets = mNumberOfBoundaryFaces + NumAdditionalFacets;   // constrained facets
         inData.facetlist = new tetgenio::facet[inData.numberoffacets];
         inData.facetmarkerlist = new int[inData.numberoffacets];
 
@@ -661,10 +772,72 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
             facetListIdx++;
         }
 
+        // In the periodic case, write additional facets to define a closed shell
+        if (NumAdditionalFacets > 0)
+        {
+            for (unsigned int i = 0; i < mMinSideFacets.size(); )
+            {
+                tetgenio::polygon polyg;
+                polyg.numberofvertices = 3;
+                polyg.vertexlist = new int[3];
+
+                tetgenio::facet face;
+                face.numberofholes = 0;
+                face.holelist = (REAL*)NULL;
+                face.numberofpolygons = 1;
+                face.polygonlist = new tetgenio::polygon[1];
+                face.polygonlist[0] = polyg;
+
+                face.polygonlist[0].vertexlist[0] = mMinSideFacets[i++];
+                face.polygonlist[0].vertexlist[1] = mMinSideFacets[i++];
+                face.polygonlist[0].vertexlist[2] = mMinSideFacets[i++];
+
+                inData.facetlist[facetListIdx] = face;
+                inData.facetmarkerlist[facetListIdx] = 1;
+                facetListIdx++;
+            }
+            
+            for (unsigned int i = 0; i < mMaxSideFacets.size(); )
+            {
+                tetgenio::polygon polyg;
+                polyg.numberofvertices = 3;
+                polyg.vertexlist = new int[3];
+
+                tetgenio::facet face;
+                face.numberofholes = 0;
+                face.holelist = (REAL*)NULL;
+                face.numberofpolygons = 1;
+                face.polygonlist = new tetgenio::polygon[1];
+                face.polygonlist[0] = polyg;
+
+                face.polygonlist[0].vertexlist[0] = mMaxSideFacets[i++];
+                face.polygonlist[0].vertexlist[1] = mMaxSideFacets[i++];
+                face.polygonlist[0].vertexlist[2] = mMaxSideFacets[i++];
+
+                inData.facetlist[facetListIdx] = face;
+                inData.facetmarkerlist[facetListIdx] = 1;
+                facetListIdx++;
+            }
+        }
+
         // FEEDING TETGEN!
         tetrahedralize(tetgenOpts, &inData, &outData);
 
         // ****** CREATING THE NEW KRATOS ELEMENTS AND UPDATING THE MODEL PART
+        int NumExtraPoints = outData.numberofpoints - inData.numberofpoints;
+        for ( std::vector< Node<3>::Pointer >::iterator itNode = mCrownNodes.begin(); itNode != mCrownNodes.end(); itNode++)
+        {
+            std::cout << "POSTSOLVE" << std::endl;
+            KRATOS_WATCH( (*itNode)->Id() );
+            KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(DENSITY) );
+            KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(VISCOSITY,1) );
+            KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(PRESSURE,1) );
+            KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(VELOCITY_X) );
+        } 
+        if (NumExtraPoints > 0)
+        {
+            AddCrownNodesToModelPart(inData.numberofpoints,outData);
+        }
         unsigned int newElemsNumber = outData.numberoftetrahedra;
 
         Properties::Pointer properties = mrGlobalModelPart.GetMesh().pGetProperties(1);
@@ -691,19 +864,35 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
 
             for (unsigned int point = base; point < base+4; point++)
             {
-                for (ModelPart::NodesContainerType::iterator refItr = boundaryNodesItr; refItr != mInterfaceNodes.end(); refItr++)
+                // Note: the '<=' in the next statement is necessary because tetgen indices start from 1
+                if ( (unsigned int)outData.tetrahedronlist[point] <= mInterfaceNodesAuxContainer.size() )
+                    geom.push_back( mInterfaceNodesAuxContainer[ outData.tetrahedronlist[point]-1 ] );
+                else
                 {
-                    if ( refItr->GetValue(AUX_ID) == outData.tetrahedronlist[point] )
-                        geom.push_back( *(refItr.base()) );
+                    unsigned int offset = inData.numberofpoints + 1;
+                    geom.push_back( mCrownNodes[ outData.tetrahedronlist[point]-offset] );
                 }
             }
 
-            Element::Pointer pElem = mInnerInterfElems.begin()->Create(id, geom, properties);
-            (mrGlobalModelPart.Elements()).push_back(pElem);
+            if (geom.size() == 4)
+            {
+                Element::Pointer pElem = mInnerInterfElems.begin()->Create(id, geom, properties);
+                (mrGlobalModelPart.Elements()).push_back(pElem);
+                mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().push_back(pElem);
 
-            mCrownElems.push_back(pElem);  // update crown region element reference list
+                mCrownElems.push_back(pElem);  // update crown region element reference list
+            }
+            else
+            {
+//                std::cout << "SKIPPING ELEMENT DUE TO MISSING NODE" << std::endl;
+                KRATOS_THROW_ERROR(std::runtime_error,"Crown element creation failed: trying to access non-existing node","");
+            }
 
         }
+
+        if (NumExtraPoints > 0)
+            InterpolateNodalDataForNewNodes();
+
 #if defined(WIND_TURBINE_USE_PARALLEL_EXTENSION)
             std::cout << "RegenerateCrownElements3D(): for next cycle the first global id will be " << mLastKratosGlobalElementId << std::endl;
             mLastKratosGlobalElementId += mCrownElems.size();
@@ -771,6 +960,7 @@ unsigned int WindTurbineRotationUtilities::DecideElementRegion(const unsigned in
                                                 break;
 					default:
                                                 std::cout << "Warning: not handled (switched in the case of \"2\" Multiplicity)" << std::endl;
+                                                std::cout << "Combination includes " << regionMultiplicity[0].Region() << " and " << regionMultiplicity[1].Region() << " nodes." << std::endl;
 						break;
                                 }
                                 break;
@@ -1219,6 +1409,71 @@ double WindTurbineRotationUtilities::CalculateRotationVelocity(double NewRotAngl
 }
 
 
+void WindTurbineRotationUtilities::GetModelPartForOutput(ModelPart& rOutModelPart)
+{
+    rOutModelPart.SetBufferSize( mrGlobalModelPart.GetBufferSize() );
+    rOutModelPart.SetProcessInfo( mrGlobalModelPart.pGetProcessInfo() );
+    rOutModelPart.SetProperties( mrGlobalModelPart.pProperties());
+
+    // Nodes
+    ModelPart::NodesContainerType NewNodes;
+    ModelPart::NodesContainerType NewLocalNodes;
+    for (ModelPart::NodesContainerType::ptr_iterator i = mrGlobalModelPart.Nodes().ptr_begin(); i != mrGlobalModelPart.Nodes().ptr_end(); i++)
+        if ( (**i).FastGetSolutionStepValue(FLAG_VARIABLE) != double(WIND_TURBINE_CROWN_REGION) )
+        {
+            NewNodes.push_back( *i );
+            if ( (**i).FastGetSolutionStepValue(PARTITION_INDEX) == mThisRank )
+                NewLocalNodes.push_back( *i );
+        }
+
+    rOutModelPart.Nodes().swap(NewNodes);
+    rOutModelPart.GetCommunicator().LocalMesh().Nodes().swap( NewLocalNodes );
+
+    // Elements
+    for (ModelPart::ElementsContainerType::iterator itr = mCrownElems.begin(); itr != mCrownElems.end(); itr++)
+        itr->Set(TO_ERASE,true);
+
+    ModelPart::ElementsContainerType NewElements;
+    NewElements.reserve( mrGlobalModelPart.NumberOfElements() - mCrownElems.size() );
+
+    for (ModelPart::ElementsContainerType::ptr_iterator itr = mrGlobalModelPart.Elements().ptr_begin();
+            itr != mrGlobalModelPart.Elements().ptr_end(); itr++)
+        if ( (**itr).Is(TO_ERASE) == false)
+            NewElements.push_back( *itr );
+
+    rOutModelPart.Elements().swap( NewElements );
+
+    ModelPart::ElementsContainerType NewCommElements;
+    ModelPart::MeshType& rLocalMesh = rOutModelPart.GetCommunicator().LocalMesh();
+    NewCommElements.reserve( rLocalMesh.NumberOfElements() - mCrownElems.size() );
+
+    for (ModelPart::ElementsContainerType::ptr_iterator itr = rLocalMesh.Elements().ptr_begin(); itr != rLocalMesh.Elements().ptr_end(); itr++)
+        if ( (**itr).Is(TO_ERASE) == false)
+            NewCommElements.push_back( *itr );
+
+    rLocalMesh.Elements().swap(NewCommElements);
+ 
+    for (ModelPart::ElementsContainerType::iterator itr = mCrownElems.begin(); itr != mCrownElems.end(); itr++)
+        itr->Set(TO_ERASE,false);
+
+    // Conditions
+    ModelPart::ConditionsContainerType NewConditions;
+    NewConditions.reserve( mrGlobalModelPart.NumberOfConditions() );
+
+    for (ModelPart::ConditionsContainerType::ptr_iterator itr = mrGlobalModelPart.Conditions().ptr_begin(); itr != mrGlobalModelPart.Conditions().ptr_end(); itr++)
+        NewConditions.push_back( *itr );
+
+    rOutModelPart.Conditions().swap( NewConditions );
+
+    ModelPart::ConditionsContainerType NewCommConditions;
+    NewCommConditions.reserve( rLocalMesh.NumberOfConditions() );
+
+    for (ModelPart::ConditionsContainerType::ptr_iterator itr = rLocalMesh.Conditions().ptr_begin(); itr != rLocalMesh.Conditions().ptr_end(); itr++)
+        NewCommConditions.push_back( *itr );
+
+    rLocalMesh.Conditions().swap(NewCommConditions);
+}
+
 // this function is for debug purposes
 void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, const int& domainSize)
 {
@@ -1276,8 +1531,414 @@ void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, c
 
         auxModelPart.Elements() = mCrownElems;
     }
-    // else
-      //auxModelPart.Clear();
+//    else
+//        auxModelPart.Clear();
+}
+
+// Functions for periodic case
+
+bool WindTurbineRotationUtilities::AuxIdComp(Node<3>::Pointer pThis, Node<3>::Pointer pThat)
+{
+    return pThis->GetValue(AUX_ID) < pThat->GetValue(AUX_ID);
+}
+
+void WindTurbineRotationUtilities::FillBaseNodeRegions(
+        std::vector< Node<3>::Pointer >& rAllNodes,
+        std::vector< Node<3>::Pointer >& rNodeContainer,
+        double Zpos)
+{
+    int AuxId = 1;
+    rNodeContainer.clear();
+    int counter = 1;
+    for (std::vector< Node<3>::Pointer >::iterator itNode = rAllNodes.begin(); itNode != rAllNodes.end(); itNode++)
+{
+if ( (*itNode)->GetValue(AUX_ID) != counter++ ) std::cout << "Wrong AuxId (" << (*itNode)->GetValue(AUX_ID) << ") in position " << counter-2 << std::endl;
+        if ( (*itNode)->Z() == Zpos)
+        {
+            rNodeContainer.push_back( *itNode );
+            (*itNode)->SetValue(AUX_BASE_ID,AuxId++);
+        }
+}
+std::cout << rNodeContainer.size() << " interface nodes on boundary." << std::endl;
+    if (rNodeContainer.size() == 0)
+        KRATOS_THROW_ERROR(std::runtime_error,"No interface nodes found on periodic face at Z=",Zpos);
+}
+
+void WindTurbineRotationUtilities::FillBaseRegionEdges(
+        std::vector< Node<3>::Pointer >& rInterfaceNodeList,
+        std::vector<int>& rBoundaryElementList,
+        std::vector<int>& rEdgeList,
+        double Zpos)
+{
+    KRATOS_TRY;
+
+    //std::cout << "Entering WindTurbineRotationUtilities::FillBaseRegionEdges" << std::endl;
+    //std::cout << "interface node list size: " << rInterfaceNodeList.size()  << std::endl;
+
+    unsigned int NodesPerFace = 3;
+    unsigned int EdgeCount[3] = {0,0,0};
+
+    for (int i = 0; i < mNumberOfBoundaryFaces; i++)
+    {
+        // initialize auxiliary array
+        EdgeCount[0] = 0;
+        EdgeCount[1] = 0;
+        EdgeCount[2] = 0;
+
+        // If a node is in the base region, mark its edges as candidates
+        int n = i * NodesPerFace;
+        Node<3>& rNode0 = *(rInterfaceNodeList[ rBoundaryElementList[n]-1 ]);
+        if (rNode0.Z() == Zpos)
+        {
+            EdgeCount[1] += 1;
+            EdgeCount[2] += 1;
+        }
+
+        Node<3>& rNode1 = *(rInterfaceNodeList[ rBoundaryElementList[n+1]-1 ]);
+        if (rNode1.Z() == Zpos)
+        {
+            EdgeCount[2] += 1;
+            EdgeCount[0] += 1;
+        }
+        
+        Node<3>& rNode2 = *(rInterfaceNodeList[ rBoundaryElementList[n+2]-1 ]);
+        if (rNode2.Z() == Zpos)
+        {
+            EdgeCount[0] += 1;
+            EdgeCount[1] += 1;
+        }
+
+        // Edges with both nodes on the base are added to the list of constraints for trigen
+        if (EdgeCount[0] == 2)
+        {
+            rEdgeList.push_back( rNode1.GetValue(AUX_BASE_ID) );
+            rEdgeList.push_back( rNode2.GetValue(AUX_BASE_ID) );
+        }
+
+        if (EdgeCount[1] == 2)
+        {
+            rEdgeList.push_back( rNode2.GetValue(AUX_BASE_ID) );
+            rEdgeList.push_back( rNode0.GetValue(AUX_BASE_ID) );
+        }
+
+        if (EdgeCount[2] == 2)
+        {
+            rEdgeList.push_back( rNode0.GetValue(AUX_BASE_ID) );
+            rEdgeList.push_back( rNode1.GetValue(AUX_BASE_ID) );
+        }
+    }
+
+    std::cout << rEdgeList.size() << std::endl;
+    for (unsigned int i = 0; i < rEdgeList.size(); i+=2)
+        std::cout << rEdgeList[i] << "-" << rEdgeList[i+1] << " " ;
+    std::cout << std::endl;
+
+    KRATOS_CATCH("");    
+}
+
+
+void WindTurbineRotationUtilities::CreateNewBaseFacets(
+        std::vector< Node<3>::Pointer >& rBaseNodes,
+        std::vector<int>& rEdgeList,
+        std::vector<int>& rFacetList)
+{
+    // ****** preparing food for Trigen
+    char trigenOptsNormal[] = "PpcYYQj";
+//    char trigenOptsVerbose[] = "PpcYYVVj";
+    char* trigenOpts = trigenOptsNormal;
+
+//    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
+//    {
+//        trigenOpts = trigenOptsVerbose;    // setting verbosity to the stars...
+//    }
+
+	// initializing i/o containers
+	struct triangulateio inData;
+    struct triangulateio outData;
+    struct triangulateio vorOutData;
+
+    InitTriangulationDataStructure(inData);
+    InitTriangulationDataStructure(outData);
+    InitTriangulationDataStructure(vorOutData);
+
+    inData.numberofpoints = rBaseNodes.size();
+    inData.pointlist = (REAL*) malloc(inData.numberofpoints * 2 * sizeof(REAL));
+    inData.pointmarkerlist = (int*) malloc(inData.numberofpoints * sizeof(int));
+
+    inData.holelist = new REAL[2];
+    *(inData.holelist) = (REAL) 0.0;
+    *(inData.holelist + 1) = (REAL) 0.0;
+    inData.numberofholes = 1;
+
+    inData.numberofsegments = rEdgeList.size() / 2;
+    inData.segmentlist = (int*) malloc( rEdgeList.size() * sizeof(int));
+    inData.segmentmarkerlist = (int*) malloc(inData.numberofsegments * sizeof(int));
+    
+    
+    for (std::vector< Node<3>::Pointer >::iterator itNode = rBaseNodes.begin(); itNode != rBaseNodes.end(); itNode++)
+    {
+        int auxId = (*itNode)->GetValue(AUX_BASE_ID);
+        int base = (auxId - 1)*2;
+        inData.pointlist[base] = (*itNode)->X();
+        inData.pointlist[base + 1] = (*itNode)->Y();
+    }
+
+    // Pass list of edges to trigen 
+    // Nodes are identified by AUX_BASE_ID value, which should be equivalent to order in rBaseNodes
+    // (NOTE: not using the '-z' switch, this means dereferencing in triangleio starts from 1)
+    unsigned int idx = 0;
+    for (int i = 0; i < inData.numberofsegments; i++)
+    {
+        inData.segmentmarkerlist[i] = 1;
+        inData.segmentlist[idx] = rEdgeList[idx];
+        idx++;
+        inData.segmentlist[idx] = rEdgeList[idx];
+        idx++;
+    }
+
+	// ****** FEEDING TRIGEN
+    triangulate(trigenOpts, &inData, &outData, &vorOutData);
+
+	// ****** USE TRIGEN OUTPUT TO CREATE A LIST OF NEW FACETS
+    // The node index used here is the one given by the node's AUX_ID, which is the one used in preparing data for Tetgen
+    rFacetList.resize(3*outData.numberoftriangles);
+    for (unsigned int i = 0; i < rFacetList.size(); i++)
+    {
+        rFacetList[i] = rBaseNodes[ outData.trianglelist[i]-1 ]->GetValue(AUX_ID);
+    }
+
+	CleanTriangulationDataStructure(vorOutData);
+	CleanTriangulationDataStructure(inData);
+	CleanTriangulationDataStructure(outData);
+}
+
+void WindTurbineRotationUtilities::PrintBaseBoundaries(GidIO<>& rIO)
+{
+    // Auxiliary model part
+    ModelPart OutModelPart("out");
+    OutModelPart.SetBufferSize( mrGlobalModelPart.GetBufferSize() );
+    OutModelPart.SetNodes( mrGlobalModelPart.pNodes() );
+    OutModelPart.SetProcessInfo( mrGlobalModelPart.pGetProcessInfo() );
+    OutModelPart.SetProperties( mrGlobalModelPart.pProperties());
+
+    if (mThisRank == mRemeshingRank)
+    {
+        // Generate conditions to represent trigen boundary data
+        unsigned int propid = OutModelPart.NumberOfProperties();
+        std::string ConditionName = std::string("PeriodicCondition");
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
+        Properties::Pointer MinSideLineProp = Properties::Pointer(new Properties(propid++));
+        OutModelPart.AddProperties(MinSideLineProp);
+        Properties::Pointer MaxSideLineProp = Properties::Pointer(new Properties(propid++));
+        OutModelPart.AddProperties(MaxSideLineProp);
+        int index = 1;
+
+        std::cout << "Printing segments on Min side" << std::endl;
+        for ( unsigned int i = 0; i < mMinSideBoundaryEdges.size(); )
+        {
+            Geometry< Node<3> >::PointsArrayType GeomNodes;
+            GeomNodes.push_back( mMinSideInterfaceNodes[ mMinSideBoundaryEdges[i++]-1 ] );
+            GeomNodes.push_back( mMinSideInterfaceNodes[ mMinSideBoundaryEdges[i++]-1 ] );
+            Condition::Pointer pCondition = rReferenceCondition.Create(index++, GeomNodes, MinSideLineProp);
+            OutModelPart.Conditions().push_back(pCondition);
+        }
+
+        std::cout << "Printing segments on Max side" << std::endl;
+        for ( unsigned int i = 0; i < mMaxSideBoundaryEdges.size(); )
+        {
+            Geometry< Node<3> >::PointsArrayType GeomNodes;
+            GeomNodes.push_back( mMaxSideInterfaceNodes[ mMaxSideBoundaryEdges[i++]-1 ] );
+            GeomNodes.push_back( mMaxSideInterfaceNodes[ mMaxSideBoundaryEdges[i++]-1 ] );
+            Condition::Pointer pCondition = rReferenceCondition.Create(index++, GeomNodes, MaxSideLineProp);
+            OutModelPart.Conditions().push_back(pCondition);
+        }
+        
+        // Generate conditions to represent tetgen boundary data
+        std::string FaceConditionName = std::string("Condition3D");
+        const Condition& rReferenceFaceCondition = KratosComponents<Condition>::Get(FaceConditionName);
+        Properties::Pointer MinSideFaceProp = Properties::Pointer(new Properties(propid++));
+        OutModelPart.AddProperties(MinSideFaceProp);
+        Properties::Pointer MaxSideFaceProp = Properties::Pointer(new Properties(propid++));
+        OutModelPart.AddProperties(MaxSideFaceProp);
+/*
+        for ( unsigned int i = 0; i < mMinSideFacets.size(); )
+        {
+            Geometry< Node<3> >::PointsArrayType GeomNodes;
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMinSideFacets[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMinSideFacets[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMinSideFacets[i++]-1 ] );
+            Condition::Pointer pCondition = rReferenceFaceCondition.Create(index++, GeomNodes, MinSideFaceProp);
+            OutModelPart.Conditions().push_back(pCondition);
+        }
+
+        for ( unsigned int i = 0; i < mMaxSideFacets.size(); )
+        {
+            Geometry< Node<3> >::PointsArrayType GeomNodes;
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMaxSideFacets[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMaxSideFacets[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mMaxSideFacets[i++]-1 ] );
+            Condition::Pointer pCondition = rReferenceFaceCondition.Create(index++, GeomNodes, MaxSideFaceProp);
+            OutModelPart.Conditions().push_back(pCondition);
+        }
+*/
+        // Add the standard tetgen boundary data
+        Properties::Pointer FixedCrownFacesProp = Properties::Pointer(new Properties(propid++));
+        OutModelPart.AddProperties(FixedCrownFacesProp);
+        for ( unsigned int i = 0; i < mConstrainedBoundaryNodeAuxIndices.size(); )
+        {
+            Geometry< Node<3> >::PointsArrayType GeomNodes;
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mConstrainedBoundaryNodeAuxIndices[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mConstrainedBoundaryNodeAuxIndices[i++]-1 ] );
+            GeomNodes.push_back( mInterfaceNodesAuxContainer[ mConstrainedBoundaryNodeAuxIndices[i++]-1 ] );
+            Condition::Pointer pCondition = rReferenceFaceCondition.Create(index++, GeomNodes, FixedCrownFacesProp);
+            OutModelPart.Conditions().push_back(pCondition);
+        }
+
+        std::cout << "Printing nodal data" << std::endl;
+        for (ModelPart::NodeIterator itr = OutModelPart.NodesBegin(); itr != OutModelPart.NodesEnd(); itr++)
+        {
+            itr->FastGetSolutionStepValue(REACTION_X,0) = double(itr->GetValue(AUX_ID));
+            itr->FastGetSolutionStepValue(REACTION_Y,0) = double(itr->GetValue(AUX_BASE_ID));
+        }
+    }
+
+    rIO.InitializeMesh( 0 );
+    rIO.WriteNodeMesh( OutModelPart.GetMesh() );
+    rIO.WriteMesh( OutModelPart.GetMesh() );
+    rIO.FinalizeMesh();
+
+    rIO.InitializeResults( 0, OutModelPart.GetMesh() );
+/*    rIO.WriteNodalResults(REACTION, OutModelPart.Nodes(), 0, 0);
+    //rIO.WriteNodalResults(PRESSURE, global_model_part.Nodes, ststep, 0)*/
+    rIO.FinalizeResults();
+//    rIO.Flush();
+}
+
+
+void WindTurbineRotationUtilities::AddCrownNodesToModelPart( int FirstNewNodeOffset, tetgenio& TetgenOutput)
+{
+    // Delete old set of crown nodes
+    mCrownNodes.resize(0);
+
+    mCrownNodes.reserve(TetgenOutput.numberofpoints - FirstNewNodeOffset);
+    unsigned int NewId = mLastGlobalNodeId + 1;
+
+    Node<3>::DofsContainerType& rDofSet = mrGlobalModelPart.NodesBegin()->GetDofs();
+
+    for ( int point = FirstNewNodeOffset; point < TetgenOutput.numberofpoints; point++)
+    {
+        // Create node
+        int OutPos = 3*TetgenOutput.tetrahedronlist[point];
+/*        Node<3>::Pointer pNewNode( new Node<3>( *(mrGlobalModelPart.NodesBegin()) ) );
+        pNewNode->SetId(NewId++);
+        pNewNode->X() = TetgenOutput.pointlist[OutPos];
+        pNewNode->X0() = TetgenOutput.pointlist[OutPos];
+        pNewNode->Y() = TetgenOutput.pointlist[OutPos+1];
+        pNewNode->Y0() = TetgenOutput.pointlist[OutPos+1];
+        pNewNode->Z() = TetgenOutput.pointlist[OutPos+2];
+        pNewNode->Z0() = TetgenOutput.pointlist[OutPos+2];
+
+        Node<3>::DofsContainerType& rDofSet = pNewNode->GetDofs();
+        for (typename Node<3>::DofsContainerType::iterator itDof = rDofSet.begin(); itDof != rDofSet.end(); itDof++)
+        {   
+            itDof->SetEquationId(0);       
+            itDof->FreeDof();
+        }*/
+
+        Node<3>::Pointer pNewNode( new Node<3>(NewId++, TetgenOutput.pointlist[OutPos], TetgenOutput.pointlist[OutPos+1], TetgenOutput.pointlist[OutPos+2]) );
+
+        // Define solution step data containers and dofs
+        pNewNode->SetSolutionStepVariablesList( &(mrGlobalModelPart.GetNodalSolutionStepVariablesList()) );
+        pNewNode->SetBufferSize( mrGlobalModelPart.NodesBegin()->GetBufferSize() );
+        pNewNode->CreateSolutionStepData();
+
+        for (typename Node<3>::DofsContainerType::iterator itDof = rDofSet.begin(); itDof != rDofSet.end(); itDof++)
+        {
+            typename Node<3>::DofType::Pointer pDof = pNewNode->pAddDof( *itDof );
+            pDof->SetEquationId(0);
+            pDof->FreeDof();
+        }
+        
+        mCrownNodes.push_back( pNewNode );
+    }
+    std::cout << "Added " << mCrownNodes.size() << " new nodes" << std::endl;
+    // Add nodes to model part (new nodes will be all local)
+    ModelPart::MeshType& rLocalMesh = mrGlobalModelPart.GetCommunicator().LocalMesh();
+    mrGlobalModelPart.Nodes().reserve( mrGlobalModelPart.NumberOfNodes() + mCrownNodes.size() );
+    rLocalMesh.Nodes().reserve( rLocalMesh.Nodes().size() + mCrownNodes.size() );
+
+    for ( std::vector< Node<3>::Pointer >::iterator itNode = mCrownNodes.begin(); itNode != mCrownNodes.end(); itNode++ )
+    {
+        mrGlobalModelPart.Nodes().push_back(*itNode);
+        rLocalMesh.Nodes().push_back(*itNode);
+    }
+
+    mrGlobalModelPart.Nodes().Sort();
+    mrGlobalModelPart.GetCommunicator().LocalMesh().Nodes().Sort();
+}
+
+void WindTurbineRotationUtilities::InterpolateNodalDataForNewNodes()
+{
+    std::vector<double> NodalWeights(mCrownNodes.size(),0.0);
+    unsigned int IdOffset = mLastGlobalNodeId+1;
+    unsigned int StepDataSize = mrGlobalModelPart.GetNodalSolutionStepDataSize();
+    unsigned int buffer_size = mrGlobalModelPart.GetBufferSize();
+
+    for ( ModelPart::ElementIterator itElem = mCrownElems.begin(); itElem != mCrownElems.end(); itElem++ )
+    {
+        std::vector<int> FixedNodes;
+        std::vector<int> CrownNodes;
+        for ( unsigned int i = 0; i < itElem->GetGeometry().PointsNumber(); i++)
+            if ( itElem->GetGeometry()[i].Id() > mLastGlobalNodeId)
+                CrownNodes.push_back(i);
+            else
+                FixedNodes.push_back(i);
+
+        if ( CrownNodes.size() > 0 )
+        {
+            for (std::vector<int>::iterator c = CrownNodes.begin(); c != CrownNodes.end(); c++)
+            {
+                Node<3>& DestNode = itElem->GetGeometry()[*c];
+                for (std::vector<int>::iterator f = FixedNodes.begin(); f != FixedNodes.end(); f++)
+                {
+                    Node<3>& SourceNode = itElem->GetGeometry()[*f];
+
+                    for (unsigned int step = 0; step < buffer_size; step++)
+                    {
+                        double* SourceData = SourceNode.SolutionStepData().Data(step);
+                        double* DestData = DestNode.SolutionStepData().Data(step);
+
+                        for (unsigned int j = 0; j < StepDataSize; j++)
+                            DestData[j] += SourceData[j];
+                    }
+                    NodalWeights[ DestNode.Id() - IdOffset ]++;
+                }
+            }
+        }
+    }
+
+    // Some values should not be interpolated
+    for ( std::vector< Node<3>::Pointer >::iterator itNode = mCrownNodes.begin(); itNode != mCrownNodes.end(); itNode++)
+    {
+        for (unsigned int step = 0; step < buffer_size; step++)
+        {
+            double* Data = (*itNode)->SolutionStepData().Data(step);
+            for (unsigned int j = 0; j < StepDataSize; j++)
+                Data[j] /=  NodalWeights[ (*itNode)->Id() - IdOffset ]; 
+        }
+
+        KRATOS_WATCH( (*itNode)->Id() );
+        KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(DENSITY) );
+        KRATOS_WATCH( (*itNode)->FastGetSolutionStepValue(VISCOSITY) );
+        (*itNode)->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>(3,0.0);
+        (*itNode)->FastGetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank;
+        (*itNode)->FastGetSolutionStepValue(FLAG_VARIABLE) = double(WIND_TURBINE_CROWN_REGION);
+        array_1d<double,3> MeshVel(3,0.0);
+        double X = (*itNode)->X();
+        double Y = (*itNode)->Y();
+        SetMeshVelocity(X,Y,MeshVel);
+        (*itNode)->FastGetSolutionStepValue(MESH_VELOCITY) = MeshVel;
+    }
 }
 
 
@@ -1464,7 +2125,9 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
         {
             ModelPart::NodesContainerType* nodesContainer = new ModelPart::NodesContainerType();
             ModelPart::NodesContainerType::iterator nItr;
-            Parallel_SerializerLoad(*nodesContainer, &recvData[recvRankOffsets[rankTurn]], recvRankDepths[rankTurn]-1);
+            std::cout << "remeshing rank: Receiving from rank " << rankTurn << std::endl;
+std::cout << recvRankOffsets[rankTurn] << " " << recvRankDepths[rankTurn]-1 << std::endl;
+            Parallel_SerializerLoadNodes(*nodesContainer, &recvData[recvRankOffsets[rankTurn]], recvRankDepths[rankTurn]-1);
             std::cout << "remeshing rank: from rank " << rankTurn << " I received " << nodesContainer->size() << " nodes" << std::endl;
             nItr = nodesContainer->begin();
             if (nodesContainer->size())
@@ -1562,7 +2225,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                             }
                         }
                         mConstrainedBoundaryNodeAuxIndices.push_back(auxId);
-                        std::cout << std::endl << "[node AUX_ID " << auxId << " added to the Global Constrained series]." << std::endl;
+                        std::cout << std::endl << "[node " << rankNodesItr->Id() << " with AUX_ID " << auxId << " added to the Global Constrained series]." << std::endl;
                         break;
                     }
 
@@ -1691,6 +2354,20 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
         mLastKratosGlobalElementId += mCrownElems.size();
         DestroyCrownElements();
         DestroyCrownNodes();
+
+        // Additional setup in case of periodic conditions
+        if (mZmin != mZmax)
+        {
+            std::cout << "rank " << mThisRank << " (remeshing rank is " << mRemeshingRank << ") entered periodic condition section." << std::endl;
+            mInterfaceNodesAuxContainer = std::vector< Node<3>::Pointer >( mInterfaceNodes.ptr_begin(), mInterfaceNodes.ptr_end() );
+            std::sort(mInterfaceNodesAuxContainer.begin(),mInterfaceNodesAuxContainer.end(),&WindTurbineRotationUtilities::AuxIdComp);
+            std::cout << "Interface node vector has " << mInterfaceNodesAuxContainer.size() << " entries." << std::endl;
+            FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMinSideInterfaceNodes, mZmin);
+            FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMinSideBoundaryEdges, mZmin);
+            FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMaxSideInterfaceNodes, mZmax);
+            FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMaxSideBoundaryEdges, mZmax);
+        }
+
         switch (mNumberOfNodesPerElement)
         {
             case 3:
@@ -1699,6 +2376,108 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
 
             case 4:
                 mNumberOfBoundaryFaces = mConstrainedBoundaryNodeAuxIndices.size()/3;
+                RegenerateCrownElements3D(); 
+                break;
+        }
+
+    }
+    else
+    {
+        // setting the new ownership
+        for (ModelPart::NodesContainerType::iterator itr = mInterfaceNodes.begin();
+                itr != mInterfaceNodes.end();
+                itr++)
+        {
+            itr->GetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank; //marking them with the REMESHING_RANK as the new owner!
+        }
+
+        // Update the communicator of non-remeshing ranks to account for the elements sent away
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().clear();
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().reserve( mrGlobalModelPart.NumberOfElements() );
+        for (ModelPart::ElementsContainerType::ptr_iterator itr = mrGlobalModelPart.Elements().ptr_begin();
+                itr !=  mrGlobalModelPart.Elements().ptr_end(); itr++)
+            mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().push_back(*itr);
+
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().clear();
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().reserve( mrGlobalModelPart.NumberOfConditions() );
+        for (ModelPart::ConditionsContainerType::ptr_iterator itr = mrGlobalModelPart.Conditions().ptr_begin();
+                itr !=  mrGlobalModelPart.Conditions().ptr_end(); itr++)
+            mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().push_back(*itr);
+    }
+
+    delete[] recvRankDepths;
+    delete[] recvData;
+    delete[] recvRankOffsets;
+    delete[] recvConstrainedNodes;
+}
+
+void WindTurbineRotationUtilities::Parallel_TransferDataToRemeshingProcessor()
+{
+
+    // Nodes in the remeshing area which already belong to the model part are temporarily removed
+    // This is done to avoid introducing duplicates later
+    if (mThisRank == mRemeshingRank)
+    {
+        for (ModelPart::NodeIterator itNode = mrGlobalModelPart.NodesBegin(); itNode != mrGlobalModelPart.NodesEnd(); itNode++)
+            itNode->Set(TO_ERASE,false);
+
+        for (ModelPart::NodeIterator itNode = mInterfaceNodes.begin(); itNode != mInterfaceNodes.end(); itNode++)
+            itNode->Set(TO_ERASE,true);
+
+        ModelPart::NodesContainerType NewNodes;
+        NewNodes.reserve( mrGlobalModelPart.NumberOfNodes() - mInterfaceNodes.size() );
+
+        for (ModelPart::NodesContainerType::ptr_iterator itr = mrGlobalModelPart.Nodes().ptr_begin(); itr != mrGlobalModelPart.Nodes().ptr_end(); itr++)
+            if ( (**itr).Is(TO_ERASE) == false )
+                NewNodes.push_back( *itr );
+
+        mrGlobalModelPart.Nodes().swap( NewNodes );
+
+        for (ModelPart::NodeIterator itNode = mInterfaceNodes.begin(); itNode != mInterfaceNodes.end(); itNode++)
+            itNode->Set(TO_ERASE,false);
+    }
+
+    // Send nodes and facet data to remeshing process
+    Parallel_GatherNodesAndFacets();
+
+    // Rebuild model part to take into account new node distribution
+    if (mThisRank == mRemeshingRank)
+    {
+        // Regenerate the crown elements based on the nodes arrived from the other ranks
+        // and assign them to the remeshing model part (I redo it in a whole using the remesher itself)
+        mLastKratosGlobalElementId += mCrownElems.size();
+        DestroyCrownElements();
+        DestroyCrownNodes();
+
+        // Add received nodes to the model part
+        mrGlobalModelPart.Nodes().reserve( mrGlobalModelPart.NumberOfNodes() + mInterfaceNodes.size() );
+        for ( ModelPart::NodesContainerType::ptr_iterator iNode = mInterfaceNodes.ptr_begin(); iNode != mInterfaceNodes.ptr_end(); iNode++)
+        {
+            mrGlobalModelPart.Nodes().push_back( *iNode );
+            (*iNode)->FastGetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank;
+        }
+        mrGlobalModelPart.Nodes().Sort();
+
+        // Additional setup in case of periodic conditions
+        if (mZmin != mZmax)
+        {
+            std::cout << "rank " << mThisRank << " (remeshing rank is " << mRemeshingRank << ") entered periodic condition section." << std::endl;
+            mInterfaceNodesAuxContainer = std::vector< Node<3>::Pointer >( mInterfaceNodes.ptr_begin(), mInterfaceNodes.ptr_end() );
+            std::sort(mInterfaceNodesAuxContainer.begin(),mInterfaceNodesAuxContainer.end(),&WindTurbineRotationUtilities::AuxIdComp);
+            std::cout << "Interface node vector has " << mInterfaceNodesAuxContainer.size() << " entries." << std::endl;
+            FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMinSideInterfaceNodes, mZmin);
+            FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMinSideBoundaryEdges, mZmin);
+            FillBaseNodeRegions(mInterfaceNodesAuxContainer, mMaxSideInterfaceNodes, mZmax);
+            FillBaseRegionEdges(mInterfaceNodesAuxContainer, mConstrainedBoundaryNodeAuxIndices, mMaxSideBoundaryEdges, mZmax);
+        }
+
+        switch (mNumberOfNodesPerElement)
+        {
+            case 3:
+                RegenerateCrownElements2D();
+                break;
+
+            case 4:
                 RegenerateCrownElements3D();
                 break;
         }
@@ -1708,17 +2487,282 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
     {
         // setting the new ownership
         for (ModelPart::NodesContainerType::iterator itr = mInterfaceNodes.begin();
-             itr != mInterfaceNodes.end();
-             itr++)
+                itr != mInterfaceNodes.end();
+                itr++)
         {
-            itr->GetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank; //marking them with the REMESHING_RANK as the new owner!
+            itr->FastGetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank; //marking them with the REMESHING_RANK as the new owner!
+        }
+
+        // Update the communicator of non-remeshing ranks to account for the elements sent away
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().clear();
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().reserve( mrGlobalModelPart.NumberOfElements() );
+        for (ModelPart::ElementsContainerType::ptr_iterator itr = mrGlobalModelPart.Elements().ptr_begin();
+                itr !=  mrGlobalModelPart.Elements().ptr_end(); itr++)
+            mrGlobalModelPart.GetCommunicator().LocalMesh().Elements().push_back(*itr);
+
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().clear();
+        mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().reserve( mrGlobalModelPart.NumberOfConditions() );
+        for (ModelPart::ConditionsContainerType::ptr_iterator itr = mrGlobalModelPart.Conditions().ptr_begin();
+                itr !=  mrGlobalModelPart.Conditions().ptr_end(); itr++)
+            mrGlobalModelPart.GetCommunicator().LocalMesh().Conditions().push_back(*itr);
+    }
+}
+
+void WindTurbineRotationUtilities::Parallel_GatherNodesAndFacets()
+{
+    // 1. Serialize node data
+    std::string SendNodeData;    // Buffer of serialized nodes
+    int SendNodeDataLength;      // Size of node buffer to be sent
+    int *RecvDataLengths = NULL; // Sizes of buffers to be received
+
+    // 2. Calculate and allocate necessary space for received data on remeshing rank
+    if (mThisRank != mRemeshingRank)
+    {
+        Parallel_SerializerSave(mInterfaceNodes, SendNodeData);
+        SendNodeDataLength = SendNodeData.size()+1; // Data will be sent as c string, account for ending null character
+    }
+    else
+    {
+        SendNodeData = "";
+        SendNodeDataLength = 1;
+        RecvDataLengths = new int[2*mNumberOfRanks];
+    }
+
+    std::cout << "rank " << mThisRank << " is sending " << SendNodeDataLength << " chars of serialized nodal data (from " << mInterfaceNodes.size() << " nodes) and " << mConstrainedBoundaryNodeAuxIndices.size()/(mNumberOfNodesPerElement-1) << " facets" << std::endl;
+
+    // make the remesher receive buffer lengths from all the other ranks
+    // Each rank sends, in order:
+    // 0- Size of serialized nodal data
+    // 1- Size of local facet data vector
+    int SendDataLengths[2] = { SendNodeDataLength, (int)mConstrainedBoundaryNodeAuxIndices.size() };
+    MPI_Gather(&SendDataLengths, 2, MPI_INT, RecvDataLengths, 2, MPI_INT, mRemeshingRank, MPI_COMM_WORLD);
+
+    // Allocate space on the remeshing process for received data
+    char *RecvNodeData = NULL;
+    std::vector<int> RecvFacetData;
+    int NodeRecvSizes[mNumberOfRanks];
+    int NodeRecvOffsets[mNumberOfRanks];
+    int FacetRecvSizes[mNumberOfRanks];
+    int FacetRecvOffsets[mNumberOfRanks];
+
+    if (mThisRank == mRemeshingRank)
+    {
+        NodeRecvOffsets[0] = 0;
+        FacetRecvOffsets[0] = 0; 
+
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+        {
+            NodeRecvSizes[rank] = RecvDataLengths[2*rank];
+            if(rank) NodeRecvOffsets[rank] = NodeRecvOffsets[rank-1] + NodeRecvSizes[rank-1];
+            FacetRecvSizes[rank] = RecvDataLengths[2*rank+1];
+            if(rank) FacetRecvOffsets[rank] = FacetRecvOffsets[rank-1] + FacetRecvSizes[rank-1];
+        }
+
+        int TotalNodeDataLength = NodeRecvSizes[mNumberOfRanks-1]+NodeRecvOffsets[mNumberOfRanks-1];
+        int TotalFacetDataLength = FacetRecvSizes[mNumberOfRanks-1]+FacetRecvOffsets[mNumberOfRanks-1];
+        RecvNodeData = new char[TotalNodeDataLength];
+        RecvFacetData.resize(TotalFacetDataLength);
+    }
+    else
+    {
+        RecvFacetData.resize(1);
+    }
+
+    // 3. Send data to remeshing processor
+
+    if (mThisRank == mRemeshingRank)
+    {
+        std::cout << "Summary of data to be received on rank " << mRemeshingRank << ":" << std::endl;
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+            std::cout << " From rank " << rank << ": " << NodeRecvSizes[rank] << " chars of nodal data and " << FacetRecvSizes[rank] / (mNumberOfNodesPerElement-1)  << " facets" << std::endl;
+
+/*        std::cout << "Nodal data offsets: ";
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+            std::cout << NodeRecvOffsets[rank] << " ";
+        std::cout << std::endl;
+        std::cout << "Nodal data sizes:   ";
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+            std::cout << NodeRecvSizes[rank] << " ";
+        std::cout << std::endl;*/
+    }
+
+    // Send node data
+    char *pSendNodeData = (char*)SendNodeData.c_str(); // non-const char* to pass to MPI
+    MPI_Gatherv(pSendNodeData, SendNodeDataLength, MPI_CHAR, RecvNodeData, NodeRecvSizes, NodeRecvOffsets, MPI_CHAR, mRemeshingRank, MPI_COMM_WORLD);
+
+
+    // Create nodes from serialized data
+    std::vector< Node<3>::Pointer > RecvNodes;
+    if (mThisRank == mRemeshingRank)
+    {
+        ModelPart::NodesContainerType ReadNodes;
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+        {
+            if (rank != mRemeshingRank)
+            {
+                Parallel_SerializerLoadNodes(ReadNodes,&RecvNodeData[ NodeRecvOffsets[rank] ], NodeRecvSizes[rank]-1 );
+                if (ReadNodes.size() > 0)
+                {
+                    std::cout << "From rank " << rank << ", recovered " << ReadNodes.size() << " nodes with AUX_ID range (" << ReadNodes.begin()->GetValue(AUX_ID) << "--" << (ReadNodes.end()-1)->GetValue(AUX_ID) << ")." << std::endl;
+                    RecvNodes.reserve(RecvNodes.size()+ReadNodes.size());
+                    for (ModelPart::NodesContainerType::ptr_iterator iNode = ReadNodes.ptr_begin(); iNode < ReadNodes.ptr_end(); iNode++)
+                    {
+                        RecvNodes.push_back(*iNode);
+                    }
+                }
+                ReadNodes.clear();
+            }
+            else
+            {
+                std::cout << "From remeshing rank (" << rank << "), using " << mInterfaceNodes.size() << " nodes with AUX_ID range (" << mInterfaceNodes.begin()->GetValue(AUX_ID) << "--" << (mInterfaceNodes.end()-1)->GetValue(AUX_ID) << ")." << std::endl;
+                for (ModelPart::NodesContainerType::ptr_iterator iNode = mInterfaceNodes.ptr_begin(); iNode < mInterfaceNodes.ptr_end(); iNode++)
+                {
+                    (*iNode)->GetValue(AUX_ID) *= -1; // This is a trick so that, when a node has duplicates coming from different partitions, the local copy is kept.
+                    RecvNodes.push_back(*iNode);
+                }
+            }
         }
     }
 
-    delete[] recvRankDepths;
-    delete[] recvData;
-    delete[] recvRankOffsets;
-    delete[] recvConstrainedNodes;
+    // Send facets
+    int *pSendFacetData = NULL;
+    if (mConstrainedBoundaryNodeAuxIndices.size() > 0)
+        pSendFacetData = &(mConstrainedBoundaryNodeAuxIndices[0]);
+    int *pRecvFacetData = &(RecvFacetData[0]);
+    MPI_Gatherv(pSendFacetData, mConstrainedBoundaryNodeAuxIndices.size(), MPI_INT, pRecvFacetData, FacetRecvSizes, FacetRecvOffsets, MPI_INT, mRemeshingRank, MPI_COMM_WORLD);
+
+    // Determining the first Unique Global Kratos element ID, to be used later by the remesher
+    // gathering the number of elements of every rank
+    Parallel_FindLastKratosGlobalElementId();
+
+    if (mThisRank == mRemeshingRank)
+    {
+        std::cout << "Summary of received data:" << std::endl;
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+            std::cout << " From rank " << rank << ": " << NodeRecvSizes[rank] << " chars of nodal data and " << FacetRecvSizes[rank] / (mNumberOfNodesPerElement-1) << " facets" << std::endl;
+
+
+        // 4. Unify AUX_ID across received nodes, detect and remove duplicates
+        // Duplicate nodes have the same Id (and coordinates), but come from different processors and have different AUX_ID
+        std::vector< Node<3>::Pointer* > AuxNodeList;
+        AuxNodeList.reserve( RecvNodes.size() );
+        for ( unsigned int i = 0; i < RecvNodes.size(); i++)
+            AuxNodeList.push_back( &RecvNodes[i] );
+
+        // Sort the auxiliary list so we can iterate read nodes by Node Id (instead of AUX_ID)
+        std::sort(AuxNodeList.begin(),AuxNodeList.end(),&WindTurbineRotationUtilities::PointerIdComp);
+
+        // If a node is a duplicate, reorient its pointer in RecvNodes to the first copy.
+        // If it is not a duplicate, store it in a clean list.
+        mInterfaceNodes.clear();
+        ModelPart::NodesContainerType OuterNodes;
+        switch( (int)( ( *(AuxNodeList[0]) )->FastGetSolutionStepValue(FLAG_VARIABLE) )  )
+        {
+        case WIND_TURBINE_INNER_INTERF_REGION:
+
+            mInterfaceNodes.push_back( *(AuxNodeList[0]) );
+            break;
+        case WIND_TURBINE_OUTER_INTERF_REGION:
+            OuterNodes.push_back(*(AuxNodeList[0]) );
+            break;
+        default:
+            std::stringstream Msg;
+            Msg << "Error in WindTurbineRotationUtilities::Parallel_GatherNodesAndFacets line " << __LINE__ << std::endl;
+            Msg << "The remeshing process received as input a node which is not identified as interface (unexpected FLAG_VARIABLE value)" << std::endl;
+            Msg << "Wrong node has Id " << ( *(AuxNodeList[0]) )->Id() << " and FLAG_VARIABLE " << ( *(AuxNodeList[0]) )->FastGetSolutionStepValue(FLAG_VARIABLE) << std::endl;
+            throw std::runtime_error(Msg.str());
+        }
+        int count = 0;
+        for ( unsigned int i = 1; i < AuxNodeList.size(); i++)
+        {
+            Node<3>::Pointer& pThisNode = *(AuxNodeList[i]);
+            Node<3>::Pointer& pLastNode = *(AuxNodeList[i-1]);
+            if ( pThisNode->Id() == pLastNode->Id() )
+            {
+                count++;
+                Node<3>::Pointer temp( pLastNode );
+                pThisNode.swap( temp );
+            }
+            else
+            {
+                switch ( (int)( pThisNode->FastGetSolutionStepValue(FLAG_VARIABLE) )  )
+                {
+                case WIND_TURBINE_INNER_INTERF_REGION:
+                case WIND_TURBINE_INTERNAL_CYL_BASE:
+                    mInterfaceNodes.push_back( pThisNode );
+                    break;
+                case WIND_TURBINE_OUTER_INTERF_REGION:
+                case WIND_TURBINE_EXTERNAL_CYL_BASE:
+                    OuterNodes.push_back( pThisNode );
+                    break;
+                default:
+                    std::stringstream Msg;
+                    Msg << "Error in WindTurbineRotationUtilities::Parallel_GatherNodesAndFacets line " << __LINE__ << std::endl;
+                    Msg << "The remeshing process received as input a node which is not identified as interface (unexpected FLAG_VARIABLE value)" << std::endl;
+                    Msg << "Wrong node has Id " << pThisNode->Id() << " and FLAG_VARIABLE " << pThisNode->FastGetSolutionStepValue(FLAG_VARIABLE) << std::endl;
+                    throw std::runtime_error(Msg.str());
+                }
+            }
+        }
+
+        // Merge the two auxiliary lists, assign new AUX_ID and update counters
+        int AuxId = 1;
+        mInterfaceNodes.reserve( mInterfaceNodes.size() + OuterNodes.size() );
+        for (ModelPart::NodesContainerType::iterator iNode = mInterfaceNodes.begin(); iNode != mInterfaceNodes.end(); iNode++)
+            iNode->SetValue(AUX_ID,AuxId++);
+        mFirstOuterInterfaceNodeOffset = mInterfaceNodes.size();
+        for (ModelPart::NodesContainerType::ptr_iterator iNode = OuterNodes.ptr_begin(); iNode != OuterNodes.ptr_end(); iNode++)
+        {
+            (*iNode)->SetValue(AUX_ID,AuxId++);
+            mInterfaceNodes.push_back( *iNode );
+        }
+
+        // 5. Merge facet data and update it to reflect new AUX_ID
+        mConstrainedBoundaryNodeAuxIndices.resize(0);
+        mConstrainedBoundaryNodeAuxIndices.reserve(RecvFacetData.size());
+        for (unsigned int i = 0; i < RecvFacetData.size(); i++)
+            mConstrainedBoundaryNodeAuxIndices.push_back( RecvNodes[ RecvFacetData[i]-1 ]->GetValue(AUX_ID) );
+
+        mNumberOfBoundaryFaces = mConstrainedBoundaryNodeAuxIndices.size() / (mNumberOfNodesPerElement-1);
+
+        std::cout << "After rebuilding sent data in remeshing process, we have:" << std::endl;
+        std::cout << " " << mInterfaceNodes.size() << " interface nodes (of which " << mFirstOuterInterfaceNodeOffset << " are on the inner side)." << std::endl;
+        std::cout << " " << mConstrainedBoundaryNodeAuxIndices.size() << " facet data entries, defining " << mNumberOfBoundaryFaces << " facets." << std::endl;
+        std::cout << " " << count << " extra nodes were sent as duplicates." << std::endl;
+    }
+
+    // 6. Delete auxiliary data
+    delete [] RecvDataLengths;
+    delete [] RecvNodeData;
+}
+
+bool WindTurbineRotationUtilities::PointerIdComp(Node<3>::Pointer const* pThis, Node<3>::Pointer const* pThat)
+{
+    // In case the two nodes are the same, the local copy (which has negative AUX_ID) gets preference.
+    //This is because existing local elements and conditions already point to that copy, not to the received ones.
+    if ( (**pThis).Id() != (**pThat).Id() )
+        return (**pThis).Id() < (**pThat).Id();
+    else 
+        return (**pThis).GetValue(AUX_ID) < (**pThat).GetValue(AUX_ID);
+}
+
+void WindTurbineRotationUtilities::Parallel_FindLastNodeId()
+{
+    unsigned int MaxLocalId = 0;
+    for (ModelPart::NodeIterator it = mrGlobalModelPart.GetCommunicator().LocalMesh().Nodes().begin(); it != mrGlobalModelPart.GetCommunicator().LocalMesh().Nodes().end(); it++)
+        if ( MaxLocalId < it->Id() ) MaxLocalId = it->Id();
+
+    int SendId = int(MaxLocalId);
+    int MaxIdInRank[mNumberOfRanks];
+
+    MPI_Gather(&SendId,1,MPI_INT,MaxIdInRank,1,MPI_INT,mRemeshingRank,MPI_COMM_WORLD);
+
+    if (mThisRank == mRemeshingRank)
+    {
+        mLastGlobalNodeId = 0;
+        for (int rank = 0; rank < mNumberOfRanks; rank++)
+            if ( int(mLastGlobalNodeId) < MaxIdInRank[rank] ) mLastGlobalNodeId = MaxIdInRank[rank];
+    }
 }
 
 // Determining the first Unique Global Kratos element ID, to be used later by the remesher
@@ -1782,7 +2826,7 @@ void WindTurbineRotationUtilities::InspectNodeContainerAndLogToFile(ModelPart::N
 }
 
 
-// function suggested by Riccardo, to mark for deletion possibly the orphan nodes
+// Delete nodes that no longer belong to any local condition or element
 void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
 {
     for (ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
@@ -1807,22 +2851,27 @@ void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
         itr != mrGlobalModelPart.ConditionsEnd();
         itr++)
     {
-        for( unsigned int n = 0; n < mNumberOfNodesPerElement-1; n++ )
+        for( unsigned int n = 0; n < itr->GetGeometry().PointsNumber(); n++ )
         {
             itr->GetGeometry()[n].Set(TO_ERASE, false);
         }
     }
 
     int orphanCounter = 0;
-    for (ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
-        itr != mrGlobalModelPart.NodesEnd();
-        itr++)
+    ModelPart::NodesContainerType NewNodes;
+    for (ModelPart::NodesContainerType::ptr_iterator itr = mrGlobalModelPart.Nodes().ptr_begin();
+            itr != mrGlobalModelPart.Nodes().ptr_end();
+            itr++)
     {
-        if (itr->Is(TO_ERASE) == true)
+        if ( (*itr)->Is(TO_ERASE) )
             orphanCounter++;
+        else
+            NewNodes.push_back( *itr );
     }
 
-    std::cout << orphanCounter << " orphan nodes have been marked for deletion";
+    mrGlobalModelPart.Nodes().swap( NewNodes );
+
+    std::cout << orphanCounter << " orphan nodes have been deleted";
     if (mNumberOfRanks > 1)
         std::cout << " in rank " << mThisRank << std::endl;
 }
@@ -1831,37 +2880,75 @@ void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
 template <class EntitiesContainer>
 void WindTurbineRotationUtilities::Parallel_SerializerSave(EntitiesContainer& rInputEntities, std::string& buffer)
 {
-    Kratos::Serializer entitySerializer;
+    Kratos::Serializer entitySerializer; //(Serializer::SERIALIZER_TRACE_ALL);
     std::stringstream *serializer_buffer;
 
 
+    VariablesList *pvariables_list = &mrGlobalModelPart.GetNodalSolutionStepVariablesList();
+    entitySerializer.save("variables_list",pvariables_list);
     entitySerializer.save("entities", rInputEntities);
 
     serializer_buffer = (std::stringstream *)entitySerializer.pGetBuffer();
     buffer = std::string(serializer_buffer->str());
+
+    /*
+    std::ofstream sendlog;
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    std::stringstream outname;
+    outname << "serialized_data_" << rank << ".out";
+    const char* ofname = outname.str().c_str();
+    sendlog.open(ofname, std::ios::out | std::ios::app);
+    sendlog << buffer;
+    sendlog.flush();
+    sendlog.close();
+    */
 }
 
 template <class EntitiesContainer>
 void WindTurbineRotationUtilities::Parallel_SerializerLoad(EntitiesContainer& rOutputEntities, std::string& buffer)
 {
-    Kratos::Serializer entitySerializer;
+    Kratos::Serializer entitySerializer; //(Serializer::SERIALIZER_TRACE_ALL);
     std::stringstream *serializer_buffer;
 
     serializer_buffer = (std::stringstream *)entitySerializer.pGetBuffer();
     serializer_buffer->write((char*)(buffer.c_str()), buffer.size());
 
+    VariablesList *pvariables_list = 0;
+    entitySerializer.load("variables_list",pvariables_list);
     entitySerializer.load("entities", rOutputEntities);
 }
 
-template <class EntitiesContainer>
-void WindTurbineRotationUtilities::Parallel_SerializerLoad(EntitiesContainer& rOutputEntities, const char* buffer, const int& bufferSize)
+void WindTurbineRotationUtilities::Parallel_SerializerLoadNodes(ModelPart::NodesContainerType& rOutputEntities, const char* buffer, const int& bufferSize)
 {
-    Kratos::Serializer entitySerializer;
+    Kratos::Serializer entitySerializer; //(Serializer::SERIALIZER_TRACE_ALL);
     std::stringstream *serializer_buffer;
 
     serializer_buffer = (std::stringstream *)entitySerializer.pGetBuffer();
     serializer_buffer->write(buffer, bufferSize);
 
+    VariablesList *pvariables_list = 0;
+    entitySerializer.load("variables_list",pvariables_list);
+    entitySerializer.load("entities", rOutputEntities);
+
+//    VariablesList &rLocalVariablesList = mrGlobalModelPart.GetNodalSolutionStepVariablesList();
+//    for ( ModelPart::NodeIterator i = rOutputEntities.begin(); i != rOutputEntities.end(); i++)
+//          i->SetSolutionStepVariablesList(pvariables_list);
+//        i->SetSolutionStepVariablesList(&rLocalVariablesList);
+}
+
+
+template <class EntitiesContainer>
+void WindTurbineRotationUtilities::Parallel_SerializerLoad(EntitiesContainer& rOutputEntities, const char* buffer, const int& bufferSize)
+{
+    Kratos::Serializer entitySerializer; //(Serializer::SERIALIZER_TRACE_ALL);
+    std::stringstream *serializer_buffer;
+
+    serializer_buffer = (std::stringstream *)entitySerializer.pGetBuffer();
+    serializer_buffer->write(buffer, bufferSize);
+
+    VariablesList *pvariables_list = 0;
+    entitySerializer.load("variables_list",pvariables_list);
     entitySerializer.load("entities", rOutputEntities);
 }
 
