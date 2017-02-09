@@ -30,7 +30,7 @@ git clone https://github.com/MmgTools/mmg.git
 Add the following to the main Kratos configure.sh: 
 
 -DINCLUDE_MMG=ON                                                                  \
--DMMG_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/"\
+-DMMG_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/"\
 -DMMG2D_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmg2d/"\
 -DMMG3D_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmg3d/"\
 -DMMGS_INCLUDE_DIR="kratos_dir/applications/MeshingApplication/custom_external_libraries/mmg/include/mmg/mmgs/"\
