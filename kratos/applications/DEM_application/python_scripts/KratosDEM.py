@@ -164,8 +164,8 @@ creator_destructor.SetMaxNodeId(max_Id)
 #Strategy Initialization
 os.chdir(main_path)
 solver.Initialize() # Possible modifications of number of elements and number of nodes
-#dt = min(DEM_parameters.MaxTimeStep, spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
-dt = DEM_parameters.MaxTimeStep
+dt = min(DEM_parameters.MaxTimeStep, spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
+#dt = DEM_parameters.MaxTimeStep
 #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
 #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 if (DEM_parameters.dem_inlet_option):
