@@ -1,5 +1,5 @@
 /* 
- * File:   GeometryFunctions.h
+ * File:   AuxiliaryFunctions.h
  * Author: msantasusana
  *
  * Created on 21 de mayo de 2012, 19:40
@@ -8,10 +8,11 @@
 #ifndef _DEM_AUXILIARY_FUNCTIONS_H
 #define	_DEM_AUXILIARY_FUNCTIONS_H
 
-
 #include <cmath>
 #include "containers/array_1d.h"
 #include "../../../kratos/includes/serializer.h"
+#include "includes/model_part.h"
+#include "../DEM_application_variables.h"
 
 namespace Kratos {
     
@@ -20,10 +21,11 @@ namespace Kratos {
 	static inline void CalculateAlphaFactor3D(int n_neighbours, double external_sphere_area, double total_equiv_area , double& alpha) {
 
 	    double external_polyhedron_area = 0.0;
+	    
 	    switch (n_neighbours) {
                   
                 case 4:
-            external_polyhedron_area = 3.30797*external_sphere_area;
+                    external_polyhedron_area = 3.30797*external_sphere_area;
 		    break;
 		  
                 case 5:
@@ -39,7 +41,7 @@ namespace Kratos {
 		    break;
 			
                 case 8:
-            external_polyhedron_area = 1.65399*external_sphere_area;
+                    external_polyhedron_area = 1.65399*external_sphere_area;
 		    break;
 			
                 case 9:
@@ -91,16 +93,16 @@ namespace Kratos {
 		    break;
 		
                 default:
-		    external_polyhedron_area = 1.15*external_sphere_area;
+		    external_polyhedron_area = 1.15000*external_sphere_area;
 		    break;
+            
             }//switch (n_neighbours)
 			
-		alpha = external_polyhedron_area/total_equiv_area;
+            alpha = external_polyhedron_area/total_equiv_area;
 			
 	}//CalculateAlphaFactor
 	  
-	static inline void CalculateAlphaFactor2D(int n_neighbours, double external_circle_perimeter, double total_equiv_perimeter , double& alpha)
-        {
+	static inline void CalculateAlphaFactor2D(int n_neighbours, double external_circle_perimeter, double total_equiv_perimeter , double& alpha) {
 
             double external_polygon_perimeter = 0.0;
         
@@ -156,15 +158,15 @@ namespace Kratos {
                      
                 default:
                     external_polygon_perimeter = 1.0*external_circle_perimeter;
-                    break;
+
+                break;
                        
             }//switch (n_neighbours)
             
             alpha = external_polygon_perimeter/total_equiv_perimeter;
             
         }//CalculateAlphaFactor
-	  
-	  
+	  	  
 	static inline void SwitchCase(int case_opt, bool& delta_OPTION, bool& continuum_simulation_OPTION) {
 		
 	    switch (case_opt) {
@@ -191,10 +193,8 @@ namespace Kratos {
                       
 		default:
                     delta_OPTION = false;
-	            continuum_simulation_OPTION = false;
-				  
-	    }
-			  
+	            continuum_simulation_OPTION = false;				  
+	    }			  
 	} //SwitchCase
 	  
 	inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double current_time, double final_time)
@@ -202,8 +202,65 @@ namespace Kratos {
             array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
             return externally_applied_force_now;
         
-        }// inline array_1d<double,3> LinearTimeIncreasingFunction                
+        }// LinearTimeIncreasingFunction
         
+        static inline void ComputeReactionOnTopAndBottomSpheres(ModelPart& r_model_part) {
+            
+            typedef ModelPart::ElementsContainerType ElementsArrayType;
+            ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+                            
+            //double Y_coord    = 0.0;
+            double Z_coord    = 0.0;
+            double RX_bottom  = 0.0;
+            double RY_bottom  = 0.0;
+            double RZ_bottom  = 0.0;
+            double RX_top     = 0.0;
+            double RY_top     = 0.0;
+            double RZ_top     = 0.0;
+            double RX_average = 0.0;
+            double RY_average = 0.0;
+            double RZ_average = 0.0;
+            double time       = 0.0;
+
+            ElementsArrayType::iterator elem_iterator_begin = pElements.ptr_begin();
+            ElementsArrayType::iterator elem_iterator_end = pElements.ptr_end();
+
+            for (ElementsArrayType::iterator elem_iterator = elem_iterator_begin; elem_iterator != elem_iterator_end; ++elem_iterator) {
+                //Node<3>& node = elem_iterator->GetGeometry()[0];
+                array_1d<double, 3>& reaction_force = elem_iterator->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
+                //Y_coord = elem_iterator->GetGeometry()[0].Coordinates()[1];
+                Z_coord = elem_iterator->GetGeometry()[0].Coordinates()[2];
+                //if (Y_coord < 0.15) { /////////////////////////////////// Take this correctly!!
+                //if ((Z_coord < 0.3) || (Y_coord > 0.3)) {
+                if (Z_coord < 0.25) {
+                    RX_bottom += reaction_force[0];
+                    RY_bottom += reaction_force[1]; 
+                    RZ_bottom += reaction_force[2]; 
+                } else {
+                    RX_top += reaction_force[0];
+                    RY_top += reaction_force[1];
+                    RZ_top += reaction_force[2];
+                }
+            } //loop over particles
+
+            time = r_model_part.GetProcessInfo()[TIME];
+            RX_average = 0.5 * (RX_bottom - RX_top);
+            RY_average = 0.5 * (RY_bottom - RY_top);
+            RZ_average = 0.5 * (RZ_bottom - RZ_top);
+
+            std::ofstream outputfileX("reaction_forces_X.txt", std::ios_base::out | std::ios_base::app);
+            std::ofstream outputfileZ("reaction_forces_Z.txt", std::ios_base::out | std::ios_base::app);
+            std::ofstream outputfileYZ("reaction_forces_YZ.txt", std::ios_base::out | std::ios_base::app);
+
+            outputfileX  << time << " " << RX_bottom << " " << RX_top << " " << RX_average << "\n";
+            outputfileZ  << time << " " << RZ_bottom << " " << RZ_top << " " << RZ_average << "\n";
+            outputfileYZ << time << " " << RY_bottom << " " << RY_top << " " << RY_average << " " << RZ_bottom << " " << RZ_top << " " << RZ_average << "\n";
+
+            outputfileX.close();
+            outputfileZ.close();
+            outputfileYZ.close();
+        }
+ 	  
         static inline Vector EigenValuesDirectMethod(const Matrix& A) {
             // Given a real symmetric 3x3 matrix A, compute the eigenvalues
             const int dim= A.size1();
@@ -254,7 +311,6 @@ namespace Kratos {
         }
                     	  
     }//namespace AuxiliaryFunctions
-
   
 }//namespace Kratos
 
