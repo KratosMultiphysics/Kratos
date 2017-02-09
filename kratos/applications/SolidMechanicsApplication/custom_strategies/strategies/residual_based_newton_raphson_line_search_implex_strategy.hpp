@@ -33,330 +33,332 @@
 namespace Kratos
 {
 
-  /**@name Kratos Globals */
-  /*@{ */
+   /**@name Kratos Globals */
+   /*@{ */
 
 
-  /*@} */
-  /**@name Type Definitions */
-  /*@{ */
+   /*@} */
+   /**@name Type Definitions */
+   /*@{ */
 
-  /*@} */
-
-
-  /**@name  Enum's */
-  /*@{ */
+   /*@} */
 
 
-  /*@} */
-  /**@name  Functions */
-  /*@{ */
+   /**@name  Enum's */
+   /*@{ */
+
+
+   /*@} */
+   /**@name  Functions */
+   /*@{ */
 
 
 
-  /*@} */
-  /**@name Kratos Classes */
-  /*@{ */
+   /*@} */
+   /**@name Kratos Classes */
+   /*@{ */
 
-  /// Short class definition.
+   /// Short class definition.
 
-  /**   Detail class definition.
+   /**   Detail class definition.
 
-	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+     \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+     \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-	\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+     \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-	\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-	\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-	\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-	\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-	\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+     \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-  */
-  template<class TSparseSpace,
-	   class TDenseSpace, // = DenseSpace<double>,
-	   class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-	   >
-  class ResidualBasedNewtonRaphsonLineSearchImplexStrategy
-    : public ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver>
-  //: public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
-  {
-  public:
-    /**@name Type Definitions */
-    /*@{ */
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+     \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-    /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchImplexStrategy );
+     \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+     \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-    typedef typename BaseType::TDataType TDataType;
-
-    typedef TSparseSpace SparseSpaceType;
-
-    typedef typename BaseType::TSchemeType TSchemeType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+     \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    */
+   template<class TSparseSpace,
+      class TDenseSpace, // = DenseSpace<double>,
+      class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         >
+         class ResidualBasedNewtonRaphsonLineSearchImplexStrategy
+         : public ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver>
+           //: public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+         {
+            public:
+               /**@name Type Definitions */
+               /*@{ */
+               typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
-    /** Constructor.
-     */
-    ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
-						       ModelPart& model_part,
-						       typename TSchemeType::Pointer pScheme,
-						       typename TLinearSolver::Pointer pNewLinearSolver,
-						       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-						       int MaxIterations = 30,
-						       bool CalculateReactions = false,
-						       bool ReformDofSetAtEachStep = false,
-						       bool MoveMeshFlag = false
-						       )
-      //: SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
-       : ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver> ( model_part, pScheme, pNewLinearSolver, 
-              pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
-    {
-      KRATOS_TRY
+               /** Counted pointer of ClassName */
+               //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+               KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchImplexStrategy );
 
-      KRATOS_CATCH( "" )
-	}
+               typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
-						       ModelPart& model_part,
-						       typename TSchemeType::Pointer pScheme,
-						       typename TLinearSolver::Pointer pNewLinearSolver,
-						       typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-						       typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-						       int MaxIterations = 30,
-						       bool CalculateReactions = false,
-						       bool ReformDofSetAtEachStep = false,
-						       bool MoveMeshFlag = false
-						       )
-    //: SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
-       : ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver> ( model_part, pScheme, pNewLinearSolver, 
-             pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
-    {
-      KRATOS_TRY
+               typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+
+               typedef typename BaseType::TDataType TDataType;
+
+               typedef TSparseSpace SparseSpaceType;
+
+               typedef typename BaseType::TSchemeType TSchemeType;
+
+               //typedef typename BaseType::DofSetType DofSetType;
+
+               typedef typename BaseType::DofsArrayType DofsArrayType;
+
+               typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+               typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+               typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
+               typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+
+               typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+               typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
+
+               /*@} */
+               /**@name Life Cycle
+                */
+               /*@{ */
+
+               /** Constructor.
+                */
+               ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
+                     ModelPart& model_part,
+                     typename TSchemeType::Pointer pScheme,
+                     typename TLinearSolver::Pointer pNewLinearSolver,
+                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                     int MaxIterations = 30,
+                     bool CalculateReactions = false,
+                     bool ReformDofSetAtEachStep = false,
+                     bool MoveMeshFlag = false
+                     )
+                  //: SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+                  : ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver> ( model_part, pScheme, pNewLinearSolver, 
+                        pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+            {
+               KRATOS_TRY
 
       KRATOS_CATCH( "" )
-	}
+            }
 
-    /** Destructor.
-     */
-    virtual ~ResidualBasedNewtonRaphsonLineSearchImplexStrategy()
-    {
-    }
-           
-    
-    //Set and Get Scheme ... containing Builder, Update and other
-    virtual bool  GetImplexSetToConstitutiveEquations()
-    {
-       if ( mImplexFlag == true) {
-          if ( this->GetModelPart().GetProcessInfo()[IMPLEX] == 1) {
-             return true;
-          }
-       }
-       return false; 
-    }
+               ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
+                     ModelPart& model_part,
+                     typename TSchemeType::Pointer pScheme,
+                     typename TLinearSolver::Pointer pNewLinearSolver,
+                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                     int MaxIterations = 30,
+                     bool CalculateReactions = false,
+                     bool ReformDofSetAtEachStep = false,
+                     bool MoveMeshFlag = false
+                     )
+                  //: SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+                  : ResidualBasedNewtonRaphsonLineSearchStrategy < TSparseSpace, TDenseSpace, TLinearSolver> ( model_part, pScheme, pNewLinearSolver, 
+                        pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+            {
+               KRATOS_TRY
 
-    //**********************************************************************
-    //**********************************************************************
+      KRATOS_CATCH( "" )
+            }
 
-    void Initialize()
-    {
-       KRATOS_TRY
+               /** Destructor.
+                */
+               virtual ~ResidualBasedNewtonRaphsonLineSearchImplexStrategy()
+               {
+               }
 
-       mImplexFlag = true;
-       if ( mImplexFlag == true)
-          this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
 
-       ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Initialize();
+               //Set and Get Scheme ... containing Builder, Update and other
+               virtual bool  GetImplexSetToConstitutiveEquations()
+               {
+                  if ( mImplexFlag == true) {
+                     if ( this->GetModelPart().GetProcessInfo()[IMPLEX] == 1) {
+                        return true;
+                     }
+                  }
+                  return false; 
+               }
 
-       KRATOS_CATCH( "" )
+               //**********************************************************************
+               //**********************************************************************
 
-    }
-    
-    
-    virtual void FinalizeSolutionStep( )
-    {
-       KRATOS_TRY
+               void InitializeSolutionStep()
+               {
+                  KRATOS_TRY
 
-       if ( mImplexFlag == true)
-          this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
+      mImplexFlag = true;
+                  if ( mImplexFlag == true) {
+                     this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
+                  }
 
-       if ( ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::GetCalculateReactionsFlag() == true)
-       //if ( this->GetCalculateReactionsFlag() == true) 
-       {
-          typename TSchemeType::Pointer pScheme = this->GetScheme();
-          typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
-          TSystemMatrixType& mA  = this->GetSystemMatrix();
-          TSystemVectorType& mDx = this->GetSystemDx();
-          TSystemVectorType& mb  = this->GetSystemb();
+                  ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
 
-          (pBuilderAndSolver)->CalculateReactions( pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-       }
+                  KRATOS_CATCH( "" )
 
-       ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
+               }
 
 
-       KRATOS_CATCH( "" )
-    }
+               virtual void FinalizeSolutionStep( )
+               {
+                  KRATOS_TRY
 
-    /*@} */
-    /**@name Operators
-     */
-    /*@{ */
+      if ( mImplexFlag == true) {
+         this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
+      }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+                  if ( ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::GetCalculateReactionsFlag() == true)
+                     //if ( this->GetCalculateReactionsFlag() == true) 
+                  {
+                     typename TSchemeType::Pointer pScheme = this->GetScheme();
+                     typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+                     TSystemMatrixType& mA  = this->GetSystemMatrix();
+                     TSystemVectorType& mDx = this->GetSystemDx();
+                     TSystemVectorType& mb  = this->GetSystemb();
 
+                     (pBuilderAndSolver)->CalculateReactions( pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+                  }
 
-    /*@} */
-    /**@name Access */
+                  ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
 
-    /*@{ */
 
+                  KRATOS_CATCH( "" )
+               }
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+               /*@} */
+               /**@name Operators
+                */
+               /*@{ */
 
+               /*@} */
+               /**@name Operations */
+               /*@{ */
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
 
+               /*@} */
+               /**@name Access */
 
-    /*@} */
+               /*@{ */
 
-  private:
-    /**@name Protected static Member Variables */
-    /*@{ */
 
+               /*@} */
+               /**@name Inquiry */
+               /*@{ */
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
 
+               /*@} */
+               /**@name Friends */
+               /*@{ */
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
 
+               /*@} */
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+            private:
+               /**@name Protected static Member Variables */
+               /*@{ */
 
 
+               /*@} */
+               /**@name Protected member Variables */
+               /*@{ */
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
 
+               /*@} */
+               /**@name Protected Operators*/
+               /*@{ */
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
 
+               /*@} */
+               /**@name Protected Operations*/
+               /*@{ */
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
 
 
+               /*@} */
+               /**@name Protected  Access */
+               /*@{ */
 
-    /*@} */
 
-  protected:
-    /**@name Static Member Variables */
-    /*@{ */
+               /*@} */
+               /**@name Protected Inquiry */
+               /*@{ */
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+               /*@} */
+               /**@name Protected LifeCycle */
+               /*@{ */
 
 
-    bool mImplexFlag; // ho he posat perquè sóc així però només entra aquí si hi ha implex... :'P
-    //flag to allow to not finalize the solution step, so the historical variables are not updated
 
+               /*@} */
 
+            protected:
+               /**@name Static Member Variables */
+               /*@{ */
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-    //**********************************************************************
-    //**********************************************************************
 
+               /*@} */
+               /**@name Member Variables */
+               /*@{ */
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
 
+               bool mImplexFlag; // ho he posat perquè sóc així però només entra aquí si hi ha implex... :'P
+               //flag to allow to not finalize the solution step, so the historical variables are not updated
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+               /*@} */
+               /**@name Private Operators*/
+               /*@{ */
+               //**********************************************************************
+               //**********************************************************************
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+               /*@} */
+               /**@name Private Operations*/
+               /*@{ */
 
-    /** Copy constructor.
-     */
-    ResidualBasedNewtonRaphsonLineSearchImplexStrategy(const ResidualBasedNewtonRaphsonLineSearchImplexStrategy& Other)
-    {
-    };
 
+               /*@} */
+               /**@name Private  Access */
+               /*@{ */
 
-    /*@} */
 
-  }; /* Class ResidualBasedNewtonRaphsonLineSearchStrategy */
+               /*@} */
+               /**@name Private Inquiry */
+               /*@{ */
 
-  /*@} */
 
-  /**@name Type Definitions */
-  /*@{ */
+               /*@} */
+               /**@name Un accessible methods */
+               /*@{ */
 
+               /** Copy constructor.
+                */
+               ResidualBasedNewtonRaphsonLineSearchImplexStrategy(const ResidualBasedNewtonRaphsonLineSearchImplexStrategy& Other)
+               {
+               };
 
-  /*@} */
+
+               /*@} */
+
+         }; /* Class ResidualBasedNewtonRaphsonLineSearchStrategy */
+
+   /*@} */
+
+   /**@name Type Definitions */
+   /*@{ */
+
+
+   /*@} */
 
 } /* namespace Kratos.*/
 
