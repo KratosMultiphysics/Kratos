@@ -41,10 +41,13 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    DamUPScheme(double beta, double gamma): Scheme<TSparseSpace,TDenseSpace>()
+    DamUPScheme(double beta, double gamma, double rayleigh_m ,double rayleigh_k  ): Scheme<TSparseSpace,TDenseSpace>()
     {   
         mBeta = beta;
         mGamma = gamma;
+        mrayleigh_m = rayleigh_m;
+        mrayleigh_k = rayleigh_k;
+        
         
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -133,6 +136,12 @@ public:
         r_model_part.GetProcessInfo()[VELOCITY_PRESSURE_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
         r_model_part.GetProcessInfo()[ACCELERATION_PRESSURE_COEFFICIENT] = 1.0/(mBeta*mDeltaTime*mDeltaTime);
         
+        r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mrayleigh_m;
+        r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mrayleigh_k;
+        
+        KRATOS_WATCH(mrayleigh_m)
+        KRATOS_WATCH(mrayleigh_k)
+
         BaseType::mSchemeIsInitialized = true;
         
         KRATOS_CATCH("")
@@ -532,6 +541,8 @@ protected:
     double mBeta;
     double mGamma;
     double mDeltaTime;
+    double mrayleigh_m;
+    double mrayleigh_k;
     
     std::vector< Matrix > mMassMatrix;
     std::vector< Vector > mAccelerationVector;
