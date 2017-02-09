@@ -33,15 +33,17 @@ namespace Kratos
          // We can put here UpdateTemperatureDependentRadius()
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
         mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];         
-        mPreviousTemperature = 293;		// initial temperature in the first time step
-        SetTemperature(mPreviousTemperature);// initial temperature in the first time step
+        //mPreviousTemperature = 250;	// initial temperature in the first time step
+        //SetTemperature(mPreviousTemperature);// initial temperature in the first time step
+        if (GetGeometry()[0].Coordinates()[1] > 2){ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 200.0; }
+        else{ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 0.0;}
     }
 
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(ProcessInfo& r_process_info)
     {
             TBaseElement::InitializeSolutionStep(r_process_info);
-            UpdateTemperatureDependentRadius(r_process_info);
+            //UpdateTemperatureDependentRadius(r_process_info);
     }
     
     template< class TBaseElement >
@@ -60,10 +62,14 @@ namespace Kratos
     void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {                                                                                                                             
         KRATOS_TRY                           
         mConductiveHeatFlux = 0.0 ;
+
+//        if (GetGeometry()[0].Coordinates()[1] < 0.02){   //0.15
+//        mTemperature    = 0.0;
+//            }
               
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             if(mNeighbourElements[i] == NULL) continue;
-            
+
             ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
             const double &other_radius = neighbour_iterator->GetRadius();
             const double &other_temperature = neighbour_iterator->GetTemperature();
@@ -81,7 +87,7 @@ namespace Kratos
             ComputeContactArea(rmin, indentation, calculation_area);
             mConductiveHeatFlux += -mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
         }       //for each neighbor
-                
+
         KRATOS_CATCH("")                
       }         //ComputeHeatFluxes  
     
@@ -126,7 +132,7 @@ namespace Kratos
                                                         double dt, 
                                                         const array_1d<double,3>& gravity, int search_control) {
         TBaseElement::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
-        ComputeConductiveHeatFlux(r_current_process_info);        
+        ComputeConductiveHeatFlux(r_current_process_info);
     }
         
     
@@ -142,7 +148,7 @@ namespace Kratos
         double thermal_inertia = GetMass() * mSpecificHeat;
         double dt = r_process_info[DELTA_TIME];
         if (mSpecificHeat>0) {// putting this condition to avoid issue, when mSpecificHeat is equal zero, which cause the wrong temperature_increment calculation        
-            double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;
+            double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;            
             SetTemperature(GetTemperature() + temperature_increment);
             GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mConductiveHeatFlux;
         }
@@ -163,22 +169,22 @@ namespace Kratos
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2)
     {
-        thermalRelVel = 0;
-        double temperature = GetTemperature();
-        double other_temperature = element2->GetTemperature();
-        double previous_temperature = mPreviousTemperature;
-        double previous_other_temperature = element2->mPreviousTemperature;
-        double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-        double updated_radius = GetRadius();
-        double updated_other_radius = element2->GetRadius();
+//        thermalRelVel = 0;
+//        double temperature = GetTemperature();
+//        double other_temperature = element2->GetTemperature();
+//        double previous_temperature = mPreviousTemperature;
+//        double previous_other_temperature = element2->mPreviousTemperature;
+//        double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+//        double updated_radius = GetRadius();
+//        double updated_other_radius = element2->GetRadius();
 
-        double dt = r_process_info[DELTA_TIME];
-        double temperature_increment_elem1 = temperature - previous_temperature;
-        double temperature_increment_elem2 = other_temperature - previous_other_temperature;
-        thermalDeltDisp = updated_radius * thermal_alpha * temperature_increment_elem1;
-        thermalDeltDisp = thermalDeltDisp + updated_other_radius * thermal_alpha * temperature_increment_elem2;
-        thermalRelVel = updated_radius * thermal_alpha * temperature_increment_elem1 / dt;
-        thermalRelVel = thermalRelVel + updated_other_radius * thermal_alpha * temperature_increment_elem2 / dt;
+//        double dt = r_process_info[DELTA_TIME];
+//        double temperature_increment_elem1 = temperature - previous_temperature;
+//        double temperature_increment_elem2 = other_temperature - previous_other_temperature;
+//        thermalDeltDisp = updated_radius * thermal_alpha * temperature_increment_elem1;
+//        thermalDeltDisp = thermalDeltDisp + updated_other_radius * thermal_alpha * temperature_increment_elem2;
+//        thermalRelVel = updated_radius * thermal_alpha * temperature_increment_elem1 / dt;
+//        thermalRelVel = thermalRelVel + updated_other_radius * thermal_alpha * temperature_increment_elem2 / dt;
     }
 
     template< class TBaseElement >
@@ -188,17 +194,17 @@ namespace Kratos
                                                                                                             double OldLocalCoordSystem[3][3],
                                                                                                             double LocalCoordSystem[3][3], 
                                                                                                             SphericParticle* neighbour_iterator) {
-        double thermalDeltDisp = 0;
-        double thermalRelVel = 0;
-        ThermalSphericParticle<TBaseElement>* thermal_neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbour_iterator);
-        UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbour_iterator);
+//        double thermalDeltDisp = 0;
+//        double thermalRelVel = 0;
+//        ThermalSphericParticle<TBaseElement>* thermal_neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbour_iterator);
+//        UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbour_iterator);
 
-        double LocalRelVel[3]          = {0.0};
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
+//        double LocalRelVel[3]          = {0.0};
+//        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
 
-        //LocalRelVel[2] -= thermalRelVel;
+//        //LocalRelVel[2] -= thermalRelVel;
 
-        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);   
+//        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);
     }
 
     template class ThermalSphericParticle<SphericParticle>; //Explicit Instantiation
