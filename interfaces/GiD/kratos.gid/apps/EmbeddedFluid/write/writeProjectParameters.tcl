@@ -11,10 +11,10 @@ proc ::EmbeddedFluid::write::getParametersDict { } {
 
       # Set the distance reading settings dictionary
       set dist_settings_dict [dict create]
-      set dist_mode [write::getValue EMBFLDistanceReading ReadingMode]
+      set dist_mode [write::getValue EMBFLDistanceSettings ReadingMode]
       dict set dist_settings_dict import_mode $dist_mode
       if {$dist_mode ne "from_mdpa"} {
-            set dist_file [write::getValue EMBFLDistanceReading distance_file_name]
+            set dist_file [write::getValue EMBFLDistanceSettings distance_file_name]
             dict set dist_settings_dict distance_file_name $dist_file
       }
       dict set solverSettingsDict distance_reading_settings $dist_settings_dict
@@ -42,14 +42,14 @@ proc EmbeddedFluid::write::getAuxiliarProcessList {} {
 
 proc EmbeddedFluid::write::getDistanceModificationDict { } {
       set distance_modif_dict [dict create ]
-      dict set distance_modif_dict python_module apply_distance_modification_process
-      dict set distance_modif_dict kratos_module KratosMultiphysics.FluidDynamicsApplication
-      dict set distance_modif_dict process_name ApplyDistanceModificationProcess
+      dict set distance_modif_dict "python_module" apply_distance_modification_process
+      dict set distance_modif_dict "kratos_module" KratosMultiphysics.FluidDynamicsApplication
+      dict set distance_modif_dict "process_name" ApplyDistanceModificationProcess
             set parameters_dict [dict create ]
-            dict set parameters_dict mesh_id 0
-            dict set parameters_dict model_part_name [lindex [write::getPartsMeshId] 0]
-            dict set parameters_dict check_at_each_time_step false
-      dict set distance_modif_dict Parameters $parameters_dict
+            dict set parameters_dict "mesh_id" 0
+            dict set parameters_dict "model_part_name" [lindex [write::getPartsMeshId] 0]
+            dict set parameters_dict "check_at_each_time_step" [write::getValue EMBFLDistanceSettings correct_distance_at_each_step]
+      dict set distance_modif_dict "Parameters" $parameters_dict
       return $distance_modif_dict
 }
 
@@ -61,9 +61,9 @@ proc EmbeddedFluid::write::getEmbeddedDragProcessDict {} {
         set params [dict create]
         dict set params "mesh_id" 0
         dict set params "fluid_model_part" [lindex [write::getPartsMeshId] 0]
-        dict set params write_drag_output_file [write::getValue FLEmbeddedDrags write_drag_output_file]
-        dict set params print_drag_to_screen [write::getValue FLEmbeddedDrags print_drag_to_screen]
-        dict set params interval [write::getInterval [write::getValue FLEmbeddedDrags Interval] ]
+        dict set params "write_drag_output_file" [write::getValue EMBFLEmbeddedDrag write_drag_output_file]
+        dict set params "print_drag_to_screen" [write::getValue EMBFLEmbeddedDrag print_drag_to_screen]
+        dict set params "interval" [write::getInterval [write::getValue EMBFLEmbeddedDrag Interval] ]
     dict set pdict "Parameters" $params
 
     return $pdict
