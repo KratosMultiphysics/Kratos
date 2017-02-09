@@ -297,7 +297,7 @@ class DamUPSolver:
                 
         beta=0.25
         gamma=0.5
-        scheme = KratosDam.DamUPScheme(beta,gamma)
+        scheme = KratosDam.DamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)       
         
         return scheme
          
