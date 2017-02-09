@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="DistanceReading" pn="Distance reading settings" un="EMBFLDistanceReading" help="Distance reading settings" open_window="0">
+<container n="DistanceSettings" pn="Distance function settings" un="EMBFLDistanceSettings" help="Distance function settings" open_window="0">
 	<value n="ReadingMode" pn="Reading mode" v="from_mdpa" values="from_mdpa,from_GiD_file" dict="from_mdpa,From mdpa,from_GiD_file,From GiD file" help="" actualize_tree="1">
 		<dependencies value="from_mdpa" node="../value[@n='distance_file_name']" att1="state" v1="hidden"/>
 		<dependencies value="from_GiD_file" node="../value[@n='distance_file_name']" att1="state" v1="normal"/>
 	</value>
 	<value n='distance_file_name' pn='Distance file name' v='-' values='[GetFilesValues]' update_proc='AddFile' help='Select a distance file .post.res' state='hidden' />
+	<value n='correct_distance_at_each_step' pn='Correct at each step' v='No' values='Yes,No' help='A distance correction is done at de beggining of the analysis to avoid bad cuts. Select if this correction has to be done at each time step.' />
 </container>
