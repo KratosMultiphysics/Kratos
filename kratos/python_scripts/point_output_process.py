@@ -1,20 +1,28 @@
 from KratosMultiphysics import *
 
+def Factory(settings, Model):
+    if(type(settings) != Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return PointOutputProcess(Model, settings["Parameters"])
+
 class PointOutputProcess(Process):
 
     defaults = Parameters('''{
-        "position" :    [],
+        "position"         : [],
+        "model_part_name"  : "",
         "output_file_name" : "",
         "output_variables" : []
     }''')
 
-    def __init__(self,model_part,params):
+    # def __init__(self,model_part,params):
+    def __init__(self,Model,params):
 
-        self.model_part = model_part
+        # self.model_part = model_part
+        self.model_part = Model[params["model_part_name"].GetString()]
 
         # Note: params is expected to be an array of valid point definitions.
-        if not params.IsArray():
-            raise Exception("{0} Error: Input Parameters do not define a list of points".format(self.__class__.__name__))
+        # if not params["position"].IsArray():
+        #     raise Exception("{0} Error: Input Parameters do not define a list of points".format(self.__class__.__name__))
 
         self.params = params
 
@@ -26,51 +34,52 @@ class PointOutputProcess(Process):
 
     def ExecuteInitialize(self):
 
-        for j in range(0,self.params.size()):
+        # for j in range(0,self.params["position"].size()):
 
-            param = self.params[j]
-            param.ValidateAndAssignDefaults(self.defaults)
+            # param = self.params[j]
+        param = self.params
+        param.ValidateAndAssignDefaults(self.defaults)
 
-            output_file_name = param["output_file_name"].GetString()
-            if output_file_name == "":
-                # If this is empty, we do not have a file to print to (and we are probably working with incomplete/default input), skip
-                continue
+        output_file_name = param["output_file_name"].GetString()
+        # if output_file_name == "":
+        #     # If this is empty, we do not have a file to print to (and we are probably working with incomplete/default input), skip
+        #     continue
 
-            position_data = param["position"]
-            pos = []
+        position_data = param["position"]
+        pos = []
 
-            for i in range(0,position_data.size()):
-                pos.append(position_data[i].GetDouble())
+        for i in range(0,position_data.size()):
+            pos.append(position_data[i].GetDouble())
 
-            position = Vector(pos) # conversion from list to ublas vector
+        position = Vector(pos) # conversion from list to ublas vector
 
 
-            # Identify the position of the point within the mesh
-            area_coordinates = Vector()
-            point_locator = PointLocation(self.model_part)
-            elem_id = point_locator.Find(position,area_coordinates) # If successful, fills in area coordinates in second argument
+        # Identify the position of the point within the mesh
+        area_coordinates = Vector()
+        point_locator = PointLocation(self.model_part)
+        elem_id = point_locator.Find(position,area_coordinates) # If successful, fills in area coordinates in second argument
 
-            # Check if a point was found, and initalize output
-            # NOTE: If the search was not successful, we fail silently and do nothing.
-            # This is BY DESIGN, as we are supposed to work on MPI too, and the point
-            # in question might lie on a different partition.
-            if point_locator.found():
+        # Check if a point was found, and initalize output
+        # NOTE: If the search was not successful, we fail silently and do nothing.
+        # This is BY DESIGN, as we are supposed to work on MPI too, and the point
+        # in question might lie on a different partition.
+        if point_locator.found():
 
-                self.positions.append(position)
-                self.elements.append(self.model_part.Elements[elem_id]) # Note: this is actually a find
-                self.area_coordinates.append(area_coordinates)
+            self.positions.append(position)
+            self.elements.append(self.model_part.Elements[elem_id]) # Note: this is actually a find
+            self.area_coordinates.append(area_coordinates)
 
-                variable_data = param["output_variables"]
-                if not variable_data.IsArray():
-                    raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+            variable_data = param["output_variables"]
+            if not variable_data.IsArray():
+                raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
-                variable_names = [ variable_data[i].GetString() for i in range( 0,variable_data.size() ) ]
-                output_variables = [ KratosGlobals.GetVariable( var ) for var in variable_names ]
+            variable_names = [ variable_data[i].GetString() for i in range( 0,variable_data.size() ) ]
+            output_variables = [ KratosGlobals.GetVariable( var ) for var in variable_names ]
 
-                output_file = self.__initialize_output_file(output_file_name, position, variable_names, output_variables)
+            output_file = self.__initialize_output_file(output_file_name, position, variable_names, output_variables)
 
-                self.output_files.append(output_file)
-                self.output_variables.append(output_variables)
+            self.output_files.append(output_file)
+            self.output_variables.append(output_variables)
 
     def ExecuteBeforeSolutionLoop(self):
         pass
