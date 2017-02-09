@@ -219,12 +219,8 @@ namespace Kratos
 
 		  }
 		}
+
 	    
-	      unsigned int freeSurfaceNodes=0;
-	      unsigned int wallNodes=0;
-	    
-	      unsigned int freeWall=0;
-	      unsigned int freeParticles=0;
 	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
 		{
 		  //i_node->PrintInfo(std::cout);
@@ -239,7 +235,6 @@ namespace Kratos
 			  if(i_mp->Is(FLUID)) {
 			    i_node->Reset(FLUID);   //reset isolated
 			  }
-			  freeWall++;
 			  // std::cout<<" fluid 1. SET PRESSURE 0 TO ISOLATED NODE ("<<nodeId<<") its pressure was "<<pressureRigid<<std::endl;
 			}
 		      i_node->Reset(ISOLATED);   //reset isolated
@@ -266,7 +261,6 @@ namespace Kratos
 
 		    if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
 		      i_node->FastGetSolutionStepValue(PRESSURE) = 0;
-		      freeParticles++;
 		      (i_mp->Nodes()).push_back(*(i_node.base()));
 		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
 		      rModelPart.Nodes().back().SetId(nodeId);
@@ -276,28 +270,14 @@ namespace Kratos
 		    
 		  }
 		
-		  if(i_node->Is(BOUNDARY)){
-
-		    if(i_node->IsNot(RIGID)){
-		      i_node->Set(FREE_SURFACE);
-		      freeSurfaceNodes++;
-		    }else{
-		      wallNodes++;
-		    }
-		  }
-		  else{
+		  if(i_node->IsNot(BOUNDARY)){
 
 		    if( i_node->SolutionStepsDataHas(CONTACT_FORCE) )
 		      noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 		  }
 				
 		}
-	      if( EchoLevel > 1 ){
-		std::cout<<"-------...PFEMFLUID....------ freeSurfaceNodes "<<freeSurfaceNodes<<std::endl;
-		std::cout<<"----------PFEMFLUID---------- wallNodes "<<wallNodes<<std::endl;
-		std::cout<<"----------PFEMFLUID---------- freeWall "<<freeWall<<std::endl;
-		std::cout<<"----------PFEMFLUID---------- freeParticles "<<freeParticles<<std::endl;
-	      }
+
 	    }
 	    //i_mp->Nodes().Sort();  
 	    
@@ -307,7 +287,36 @@ namespace Kratos
 		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
 		  PreservedConditions.push_back(*(i_cond.base()));
 		  PreservedConditions.back().SetId(condId);
-		  condId+=1;	
+		  condId+=1;    
+
+
+		  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+		  unsigned int NumNodes=rGeometry.size();
+		  unsigned int freeSurfaceNodes=0;
+		  unsigned int rigidNodes=0;
+		  for (unsigned int n = 0; n < NumNodes; ++n)
+		    {
+
+		      if(rGeometry[n].Is(RIGID) || rGeometry[n].Is(SOLID)){
+		  	// std::cout<<"rigid node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
+		  	rigidNodes++;
+		      }else {
+		  	freeSurfaceNodes++;
+		      }
+		    }
+		  if((freeSurfaceNodes>0 && rigidNodes>0) || rigidNodes==0){
+		    for (unsigned int n = 0; n < NumNodes; ++n)
+		      {
+			rGeometry[n].Set(FREE_SURFACE);
+
+		  	if(rGeometry[n].IsNot(FREE_SURFACE)){
+		  	  rGeometry[n].Set(FREE_SURFACE);
+		  	  // std::cout<<"this is a freeSurface node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
+		  	}
+		      }
+		  }
+
+
 		}
 	      }
 
