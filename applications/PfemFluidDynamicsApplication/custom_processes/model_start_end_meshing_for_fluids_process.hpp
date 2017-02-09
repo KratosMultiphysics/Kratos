@@ -308,11 +308,6 @@ namespace Kratos
 		    for (unsigned int n = 0; n < NumNodes; ++n)
 		      {
 			rGeometry[n].Set(FREE_SURFACE);
-
-		  	if(rGeometry[n].IsNot(FREE_SURFACE)){
-		  	  rGeometry[n].Set(FREE_SURFACE);
-		  	  // std::cout<<"this is a freeSurface node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
-		  	}
 		      }
 		  }
 
