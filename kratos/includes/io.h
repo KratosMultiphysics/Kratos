@@ -1,24 +1,14 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 #if !defined(KRATOS_IO_H_INCLUDED )
 #define  KRATOS_IO_H_INCLUDED
@@ -126,89 +116,94 @@ public:
 
     virtual bool ReadNode(NodeType& rThisNode)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class.", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class." << std::endl;
     }
 
     virtual bool ReadNodes(NodesContainerType& rThisNodes)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual std::size_t ReadNodesNumber()
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class.", "");
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class." << std::endl;;
     }
 
     virtual void WriteNodes(NodesContainerType const& rThisNodes)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadProperties(Properties& rThisProperties)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadProperties(PropertiesContainerType& rThisProperties)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void WriteElements(ElementsContainerType const& rThisElements)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadInitialValues(ModelPart& rThisModelPart)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadInitialValues(NodesContainerType& rThisNodes, ElementsContainerType& rThisElements, ConditionsContainerType& rThisConditions)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
 //       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
 
     virtual void ReadMesh(MeshType & rThisMesh)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void ReadModelPart(ModelPart & rThisModelPart)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+    
+    virtual void WriteModelPart(ModelPart & rThisModelPart)
+    {
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "");
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;;
     }
 
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
@@ -219,7 +214,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
@@ -231,7 +226,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     ///@}

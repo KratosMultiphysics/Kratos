@@ -18,6 +18,7 @@
 #include <string>
 #include <fstream>
 #include <set>
+#include <typeinfo>
 
 
 // External includes
@@ -145,8 +146,6 @@ public:
     virtual void WriteMesh(MeshType & rThisMesh);
 
     virtual void ReadModelPart(ModelPart & rThisModelPart);
-
-
 
     virtual void WriteModelPart(ModelPart & rThisModelPart);
 
@@ -302,12 +301,19 @@ protected:
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
     void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
+    
+    void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
-	template<class TablesContainerType>
+    template<class TablesContainerType>
     void ReadTableBlock(TablesContainerType& rTables);
 
     void ReadTableBlock(ModelPart::TablesContainerType& rTables);
 
+    template<class TablesContainerType>
+    void WriteTableBlock(TablesContainerType& rTables);
+
+    void WriteTableBlock(ModelPart::TablesContainerType& rTables);
+    
     void ReadNodesBlock(NodesContainerType& rThisNodes);
 
     void ReadNodesBlock(ModelPart& rModelPart);
@@ -327,6 +333,8 @@ protected:
 
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
+    
+    void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
     void ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable);
@@ -343,6 +351,8 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
+    
+    void WriteElementalDataBlock(ElementsContainerType& rThisElements);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
@@ -351,6 +361,8 @@ protected:
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
+    
+    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
@@ -378,6 +390,8 @@ protected:
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
+    
+    void WriteMeshBlock(ModelPart& rModelPart);
 
 
     void ReadMeshDataBlock(MeshType& rMesh);
@@ -392,6 +406,8 @@ protected:
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
+    
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 

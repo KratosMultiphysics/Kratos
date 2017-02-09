@@ -40,6 +40,7 @@ def AssambleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     #smallSuite.addTest(TModelPartIO('test_model_part_io_read_model_part'))
+    #smallSuite.addTest(TModelPartIO('test_model_part_io_write_model_part'))
     #smallSuite.addTest(TModelPart('test_model_part_properties'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModelPart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModelPartIO]))
