@@ -225,7 +225,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
-                                                                 array_1d<double, 3>& rInitialRotaMoment,
+                                                                 double& RollingResistance,
                                                                  ProcessInfo& r_process_info,
                                                                  const double dt,
                                                                  const bool multi_stage_RHS) {
@@ -388,11 +388,7 @@ namespace Kratos {
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce,ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
-                    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
-                    noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in a single time step
-                }
-                ComputeMoments(LocalElasticContactForce[2], TotalGlobalElasticContactForce, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                ComputeMoments(LocalContactForce[2], TotalGlobalElasticContactForce, RollingResistance, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
                                                                                         LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);

@@ -124,7 +124,7 @@ namespace Kratos
         virtual double GetInitialDeltaWithFEM(int index) override;
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                    array_1d<double, 3>& rContactForce,
-                                                   array_1d<double, 3>& InitialRotaMoment,
+                                                   double& RollingResistance,
                                                    ProcessInfo& r_process_info,
                                                    const double dt,
                                                    const bool multi_stage_RHS) final;

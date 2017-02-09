@@ -148,7 +148,6 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     KRATOS_TRY
     array_1d<double, 3> additional_forces;
     array_1d<double, 3> additionally_applied_moment;
-    array_1d<double, 3> initial_rotation_moment;
     array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
     array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
@@ -156,28 +155,32 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     mContactMoment.clear();
     additional_forces.clear();
     additionally_applied_moment.clear();
-    initial_rotation_moment.clear();
     elastic_force.clear();
     contact_force.clear();
     rigid_element_force.clear();
     
-    if (this->Is(DEMFlags::HAS_ROTATION)) {
-        if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-            array_1d<double, 3>& rolling_resistance_moment = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
-            rolling_resistance_moment.clear();
-        }
-    }
 
     bool multi_stage_RHS = false;
+    double RollingResistance = 0.0;
 
     InitializeForceComputation(r_process_info);
 
-    ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_process_info, dt, multi_stage_RHS);
+    ComputeBallToBallContactForce(elastic_force, contact_force, RollingResistance, r_process_info, dt, multi_stage_RHS);
 
-    ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_process_info, dt, search_control);
+    ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, dt, search_control);
 
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
+    }
+    
+    // ROLLING FRICTION
+    if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
+        if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
+            array_1d<double, 3>& rolling_resistance_moment = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
+            rolling_resistance_moment.clear();
+            
+            ComputeRollingFriction(rolling_resistance_moment, RollingResistance, dt);       
+        }
     }
 
     array_1d<double,3>& total_forces = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
@@ -664,9 +667,9 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         DeltDisp[2] += (new_axes1[2] - new_axes2[2]) + (e2[2] - e1[2]);
 }
 
-void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
+void SphericParticle::ComputeMoments(double NormalLocalContactForce,
                                      double Force[3],
-                                     array_1d<double, 3>& rInitialRotaMoment,
+                                     double& RollingResistance,
                                      double LocalCoordSystem2[3],
                                      SphericParticle* p_neighbour,
                                      double indentation,
@@ -691,7 +694,6 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
 
-        array_1d<double, 3>& rolling_resistance_moment = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
         
         double equiv_rolling_friction_coeff       = GetRollingFriction() * GetInteractionRadius();
 
@@ -701,52 +703,44 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
         }
 
         if (equiv_rolling_friction_coeff != 0.0) {
-            double MaxRotaMoment[3]       = {rInitialRotaMoment[0] + mContactMoment[0], rInitialRotaMoment[1] + mContactMoment[1], rInitialRotaMoment[2] + mContactMoment[2]};
-            double CoordSystemMoment1[3]  = {0.0};
-            double CoordSystemMoment2[3]  = {0.0};
-            double MR[3]                  = {0.0};
+            RollingResistance += fabs(NormalLocalContactForce) * equiv_rolling_friction_coeff;
+        }
+    }
+}
 
-            GeometryFunctions::CrossProduct(LocalCoordSystem2, MaxRotaMoment, CoordSystemMoment1);
-            if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0) {
-                double det_coor_sys_moment_i_1 = 1.0 / DEM_MODULUS_3(CoordSystemMoment1);
-                DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, det_coor_sys_moment_i_1)
-            }
+void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt)
+{
+    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
+    array_1d<double, 3> ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
 
-            GeometryFunctions::CrossProduct(MaxRotaMoment, CoordSystemMoment1, CoordSystemMoment2);
-            if (DEM_MODULUS_3(CoordSystemMoment2) > 0.0) {
-                double det_coor_sys_moment_i_2 = 1.0 / DEM_MODULUS_3(CoordSystemMoment2);
-                DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, det_coor_sys_moment_i_2)
-            }
+    double MaxRotaMoment[3]      = {initial_rotation_moment[0] + mContactMoment[0], initial_rotation_moment[1] + mContactMoment[1], initial_rotation_moment[2] + mContactMoment[2]};
+    double CoordSystemMoment[3]  = {0.0};
 
-            if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) {
-                GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
-                double AbsoluteNormalLocalElasticContactForce = fabs(NormalLocalElasticContactForce);
-                DEM_MULTIPLY_BY_SCALAR_3(MR, AbsoluteNormalLocalElasticContactForce)                
-            }
-            
-            double MR_now = DEM_MODULUS_3(MR) * equiv_rolling_friction_coeff;
-            double MR_max = DEM_MODULUS_3(MaxRotaMoment);
+    CoordSystemMoment[0]         = MaxRotaMoment[0] / DEM_MODULUS_3(MaxRotaMoment);
+    CoordSystemMoment[1]         = MaxRotaMoment[1] / DEM_MODULUS_3(MaxRotaMoment);
+    CoordSystemMoment[2]         = MaxRotaMoment[2] / DEM_MODULUS_3(MaxRotaMoment);
 
-            if (MR_max > MR_now) {
-                mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
-                mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
-                mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
-                rolling_resistance_moment[0] += MR[0] * equiv_rolling_friction_coeff;
-                rolling_resistance_moment[1] += MR[1] * equiv_rolling_friction_coeff;
-                rolling_resistance_moment[2] += MR[2] * equiv_rolling_friction_coeff;
-            }
-            else {
-                rolling_resistance_moment = - mContactMoment;      
-                mContactMoment = - rInitialRotaMoment;
-            }
-        } // if (equiv_rolling_friction_coeff != 0.0)
-    } // if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
+    double MR_now = DEM_MODULUS_3(CoordSystemMoment) * RollingResistance;
+    double MR_max = DEM_MODULUS_3(MaxRotaMoment);
 
+    if (MR_max > MR_now) {
+        mContactMoment[0] -= CoordSystemMoment[0] * RollingResistance;
+        mContactMoment[1] -= CoordSystemMoment[1] * RollingResistance;
+        mContactMoment[2] -= CoordSystemMoment[2] * RollingResistance;
+        rolling_resistance_moment[0] -= CoordSystemMoment[0] * RollingResistance;
+        rolling_resistance_moment[1] -= CoordSystemMoment[1] * RollingResistance;
+        rolling_resistance_moment[2] -= CoordSystemMoment[2] * RollingResistance;
+    }
+    else {
+        rolling_resistance_moment = - mContactMoment;      
+        mContactMoment = - initial_rotation_moment;
+    }   
 }
 
 void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elastic_force,
                                                     array_1d<double, 3>& r_contact_force,
-                                                    array_1d<double, 3>& rInitialRotaMoment,
+                                                    double& RollingResistance,
                                                     ProcessInfo& r_process_info,
                                                     const double dt,
                                                     const bool multi_stage_RHS)
@@ -806,15 +800,15 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
         RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, ineighbour);
 
-        double LocalContactForce[3]             = {0.0};
-        double GlobalContactForce[3]            = {0.0};
-        double LocalElasticContactForce[3]      = {0.0};
-        double LocalElasticExtraContactForce[3] = {0.0};        
-        double GlobalElasticContactForce[3]     = {0.0};
+        double LocalContactForce[3]              = {0.0};
+        double GlobalContactForce[3]             = {0.0};
+        double LocalElasticContactForce[3]       = {0.0};
+        double LocalElasticExtraContactForce[3]  = {0.0};        
+        double GlobalElasticContactForce[3]      = {0.0};
         double GlobalElasticExtraContactForce[3] = {0.0};
         double TotalGlobalElasticContactForce[3] = {0.0};
-        double ViscoDampingLocalContactForce[3] = {0.0};
-        double cohesive_force                   =  0.0;
+        double ViscoDampingLocalContactForce[3]  = {0.0};
+        double cohesive_force                    =  0.0;
 
         if (indentation > 0.0) {
             double OldLocalElasticContactForce[3] = {0.0};
@@ -839,12 +833,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
-            if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
-                const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
-                noalias(rInitialRotaMoment) = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
-            }
-
-            ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
+            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], ineighbour, indentation);
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -858,7 +847,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,
-                                                         array_1d<double, 3>& rInitialRotaMoment,
+                                                         double& RollingResistance,
                                                          array_1d<double, 3>& rigid_element_force,
                                                          ProcessInfo& r_process_info,
                                                          double mTimeStep,
@@ -961,12 +950,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             rigid_element_force[2] -= GlobalContactForce[2];            
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-                    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / mTimeStep;
-                    noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
-                }
-
-              ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
 
             //WEAR

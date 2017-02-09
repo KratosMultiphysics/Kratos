@@ -216,42 +216,43 @@ SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
-                                                array_1d<double, 3>& InitialRotaMoment,
+                                                double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
                                                 ProcessInfo& r_process_info,
                                                 double mTimeStep,
                                                 int search_control) final;
 
-
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
+
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
+
 virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                     array_1d<double, 3>& rContactForce,
-                                     array_1d<double, 3>& InitialRotaMoment,
-                                     ProcessInfo& r_process_info,
-                                     const double dt,
-                                     const bool multi_stage_RHS);
+                                           array_1d<double, 3>& rContactForce,
+                                           double& RollingResistance,
+                                           ProcessInfo& r_process_info,
+                                           const double dt,
+                                           const bool multi_stage_RHS);
 
 virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
-                    double RelVel[3],
-                    double LocalCoordSystem[3][3],
-                    double OldLocalCoordSystem[3][3],
-                    const array_1d<double, 3> &other_to_me_vect,
-                    const array_1d<double, 3> &vel,
-                    const array_1d<double, 3> &delta_displ,
-                    SphericParticle* neighbour_iterator,
-                    double& distance);
+                                       double RelVel[3],
+                                       double LocalCoordSystem[3][3],
+                                       double OldLocalCoordSystem[3][3],
+                                       const array_1d<double, 3> &other_to_me_vect,
+                                       const array_1d<double, 3> &vel,
+                                       const array_1d<double, 3> &delta_displ,
+                                       SphericParticle* neighbour_iterator,
+                                       double& distance);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
-                    double DeltDesp[3],
-                    double RelVel[3],
-                    double OldLocalCoordSystem[3][3],
-                    const double &other_radius,
-                    const double &dt,
-                    const array_1d<double, 3> &angl_vel,
-                    SphericParticle* neighbour_iterator);
+                                                                        double DeltDesp[3],
+                                                                        double RelVel[3],
+                                                                        double OldLocalCoordSystem[3][3],
+                                                                        const double &other_radius,
+                                                                        const double &dt,
+                                                                        const array_1d<double, 3> &angl_vel,
+                                                                        SphericParticle* neighbour_iterator);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                             double DeltDisp[3], //IN GLOBAL AXES
@@ -261,52 +262,54 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(cons
                                                                             SphericParticle* neighbour_iterator);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
-                                                                                double RelVel[3],
-                                                                                double OldLocalCoordSystem[3][3],
-                                                                                const double& other_radius,
-                                                                                const double& dt,
-                                                                                const array_1d<double, 3>& ang_vel,
-                                                                                SphericParticle* p_neighbour);
+                                                                              double RelVel[3],
+                                                                              double OldLocalCoordSystem[3][3],
+                                                                              const double& other_radius,
+                                                                              const double& dt,
+                                                                              const array_1d<double, 3>& ang_vel,
+                                                                              SphericParticle* p_neighbour);
 
-virtual void ComputeMoments(double normalLocalElasticContactForce,
-                      double GlobalElasticContactForces[3],
-                      array_1d<double, 3>& rInitialRotaMoment,
-                      double LocalCoordSystem_2[3],
-                      SphericParticle* neighbour_iterator,
-                      double indentation,
-                      bool wall=false) final;
+virtual void ComputeMoments(double normalLocalContactForce,
+                            double GlobalElasticContactForces[3],
+                            double& RollingResistance,
+                            double LocalCoordSystem_2[3],
+                            SphericParticle* neighbour_iterator,
+                            double indentation,
+                            bool wall=false) final;
+                      
+virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 
 virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
-                    double LocalCoordSystem[3][3],
-                    double LocalContactForce[3],
-                    double LocalElasticContactForce[3],
-                    double LocalElasticExtraContactForce[3],                    
-                    double GlobalContactForce[3],
-                    double GlobalElasticContactForce[3],
-                    double GlobalElasticExtraContactForce[3],
-                    double TotalGlobalElasticContactForce[3],
-                    double ViscoDampingLocalContactForce[3],
-                    const double cohesive_force,
-                    array_1d<double, 3>& other_ball_to_ball_forces,
-                    array_1d<double, 3>& rElasticForce,
-                    array_1d<double, 3>& rContactForce,
-                    const unsigned int i_neighbour_count,
-                    ProcessInfo& r_process_info) final;
+                                   double LocalCoordSystem[3][3],
+                                   double LocalContactForce[3],
+                                   double LocalElasticContactForce[3],
+                                   double LocalElasticExtraContactForce[3],                    
+                                   double GlobalContactForce[3],
+                                   double GlobalElasticContactForce[3],
+                                   double GlobalElasticExtraContactForce[3],
+                                   double TotalGlobalElasticContactForce[3],
+                                   double ViscoDampingLocalContactForce[3],
+                                   const double cohesive_force,
+                                   array_1d<double, 3>& other_ball_to_ball_forces,
+                                   array_1d<double, 3>& rElasticForce,
+                                   array_1d<double, 3>& rContactForce,
+                                   const unsigned int i_neighbour_count,
+                                   ProcessInfo& r_process_info) final;
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
-                    double LocalContactForce[3],
-                    double LocalElasticContactForce[3],
-                    double GlobalContactForce[3],
-                    double GlobalElasticContactForce[3],
-                    double ViscoDampingLocalContactForce[3],
-                    const double cohesive_force,
-                    array_1d<double, 3>& rElasticForce,
-                    array_1d<double, 3>& rContactForce,
-                    const unsigned int iRigidFaceNeighbour) final;
+                                      double LocalContactForce[3],
+                                      double LocalElasticContactForce[3],
+                                      double GlobalContactForce[3],
+                                      double GlobalElasticContactForce[3],
+                                      double ViscoDampingLocalContactForce[3],
+                                      const double cohesive_force,
+                                      array_1d<double, 3>& rElasticForce,
+                                      array_1d<double, 3>& rContactForce,
+                                      const unsigned int iRigidFaceNeighbour) final;
 
 virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
@@ -325,9 +328,9 @@ virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticCo
                                                     SphericParticle* element);
 
 virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
-                                                const double other_to_me_vect[3],
-                                                const double distance,
-                                                const double contact_area);
+                                               const double other_to_me_vect[3],
+                                               const double distance,
+                                               const double contact_area);
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
