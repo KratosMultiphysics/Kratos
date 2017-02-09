@@ -206,6 +206,7 @@ namespace Kratos {
         void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         virtual void Initialize();
         virtual void CalculateMaxTimeStep();
+        double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual double Solve();
