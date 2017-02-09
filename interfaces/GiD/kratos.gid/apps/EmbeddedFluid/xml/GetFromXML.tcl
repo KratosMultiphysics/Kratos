@@ -46,8 +46,8 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     if {[$root selectNodes "[spdAux::getRoute NodalResults]/value\[@n='DISTANCE'\]"] eq ""} {
         gid_groups_conds::addF [spdAux::getRoute NodalResults] value [list n DISTANCE pn Distance v Yes values {Yes,No} state normal]
     }
-    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceReading'\]"] eq ""} {
-        gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceReading active 1 path {apps/EmbeddedFluid/xml/DistanceReading.spd}]
+    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceSettings'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceSettings active 1 path {apps/EmbeddedFluid/xml/DistanceSettings.spd}]
     }
     if {[$root selectNodes "[spdAux::getRoute Results]/condition\[@n='EmbeddedDrag'\]"] eq ""} {
         gid_groups_conds::addF [spdAux::getRoute Results] include [list n EmbeddedDrag active 1 path {apps/EmbeddedFluid/xml/EmbeddedDrag.spd}]
