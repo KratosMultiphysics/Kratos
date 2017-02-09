@@ -1397,6 +1397,10 @@ class DEMIo(object):
 
     def AddClusterVariables(self):
         self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
+            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
+            #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
