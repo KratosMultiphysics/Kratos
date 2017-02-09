@@ -1,8 +1,8 @@
-//Authors: J. Irazábal (CIMNE)
-//   Date: July 2015
+//Authors: J. Irazabal (CIMNE)
+//   Date: November 2016
 
-#if !defined(DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED)
-#define DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED
+#if !defined(DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED)
+#define DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED
 
 #include <string>
 #include <iostream>
@@ -12,16 +12,16 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Conical_damage : public DEMDiscontinuumConstitutiveLaw {
-    
+    class DEM_D_Hertz_dependent_friction : public DEMDiscontinuumConstitutiveLaw {
+
     public:
         using DEMDiscontinuumConstitutiveLaw::CalculateNormalForce;
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Conical_damage);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_dependent_friction);
 
-        DEM_D_Conical_damage() {}
+        DEM_D_Hertz_dependent_friction() {}
 
-        ~DEM_D_Conical_damage() {}
+        ~DEM_D_Hertz_dependent_friction() {}
 
         void Initialize(const ProcessInfo& r_process_info);
 
@@ -31,13 +31,9 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
-        void InitializeDamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
+        void InitializeDependentContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
-        void DamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
-
-        void InitializeDamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
-
-        void DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
+        void InitializeDependentContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -75,21 +71,35 @@ namespace Kratos {
                                                    DEMWall* const wall,
                                                    const double indentation);
 
-        template <class NeighbourClassType>
-        void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                                   const double OldLocalElasticContactForce[3],
-                                                   double LocalElasticContactForce[3],
-                                                   double ViscoDampingLocalContactForce[3],
-                                                   const double LocalDeltDisp[3],            
-                                                   bool& sliding,
-                                                   SphericParticle* const element,
-                                                   NeighbourClassType* const neighbour,
-                                                   const double equiv_radius,
-                                                   const double equiv_young,
-                                                   double indentation,
-                                                   double previous_indentation,
-                                                   double& AuxElasticShearForce, 
-                                                   double& MaximumAdmisibleShearForce);
+        void CalculateTangentialForce(const double normal_contact_force,
+                                      const double OldLocalElasticContactForce[3],
+                                      double LocalElasticContactForce[3],
+                                      double ViscoDampingLocalContactForce[3],
+                                      const double LocalDeltDisp[3],            
+                                      bool& sliding,
+                                      SphericParticle* const element1,
+                                      SphericParticle* const element2,
+                                      const double equiv_radius,
+                                      const double equiv_young,
+                                      double indentation,
+                                      double previous_indentation,
+                                      double& AuxElasticShearForce, 
+                                      double& MaximumAdmisibleShearForce);
+        
+        void CalculateTangentialForceWithFEM(const double normal_contact_force,
+                                             const double OldLocalElasticContactForce[3],
+                                             double LocalElasticContactForce[3],
+                                             double ViscoDampingLocalContactForce[3],
+                                             const double LocalDeltDisp[3],            
+                                             bool& sliding,
+                                             SphericParticle* const element,
+                                             DEMWall* const wall,
+                                             const double equiv_radius,
+                                             const double equiv_young,
+                                             double indentation,
+                                             double previous_indentation,
+                                             double& AuxElasticShearForce, 
+                                             double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
@@ -139,7 +149,7 @@ namespace Kratos {
                     //rSerializer.load("MyMemberName",myMember);
         }
 
-    }; //class DEM_D_Conical_damage
+    }; //class DEM_D_Hertz_dependent_friction
 
 } /* namespace Kratos.*/
-#endif /* DEM_D_CONICAL_DAMAGE_CL_H_INCLUDED  defined */
+#endif /* DEM_D_DEPENDENT_FRICTION_CL_H_INCLUDED  defined */

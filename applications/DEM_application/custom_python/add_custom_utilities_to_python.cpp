@@ -157,6 +157,7 @@ void AddCustomUtilitiesToPython() {
      
     class_<DEMFEMUtilities, boost::noncopyable >
         ("DEMFEMUtilities", init<>())
+        .def("ChangeMeshVelocity", &DEMFEMUtilities::ChangeMeshVelocity)
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
         ;
