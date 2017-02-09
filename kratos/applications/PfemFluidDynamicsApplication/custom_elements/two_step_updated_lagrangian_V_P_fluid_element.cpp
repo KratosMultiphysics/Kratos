@@ -519,8 +519,8 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundRHSVector(VectorType
   array_1d<double, 3>  AccB(3,0.0);
   AccB.clear();
 
-  VectorType ElementalAcceleration = ZeroVector(2);
-  this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
+  // VectorType ElementalAcceleration = ZeroVector(2);
+  // this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
 
   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
@@ -572,8 +572,8 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
   AccC.clear();
   GeometryType& rGeom = this->GetGeometry();
 
-  VectorType ElementalAcceleration = ZeroVector(2);
-  this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
+  // VectorType ElementalAcceleration = ZeroVector(3);
+  // this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
 
   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
