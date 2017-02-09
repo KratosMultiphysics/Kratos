@@ -129,7 +129,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, y_params) )
         self.aux_processes.append( experimental_assign_value_process.AssignValueProcess(Model, z_params) )
 
-        print("Finished construction of AssignVectorByComponentsProcess")
+        # print("Finished construction of AssignVectorByDirectionProcess")
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:
