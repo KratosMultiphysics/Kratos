@@ -25,6 +25,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidEdge.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/SolidFace.cpp
