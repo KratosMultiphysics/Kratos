@@ -704,8 +704,7 @@ public:
      * @return [description]
      */
     virtual double VolumeToAverageEdgeLength() const {
-      // M_SQRT2 stands for std::sqrt(2.0) from 'math.h'
-      constexpr double normFactor = 3.0 * M_SQRT2;
+      constexpr double normFactor = 3.0 * 1.41421356237309504880;
 
       return normFactor * Volume() / AverageEdgeLength();
     }
@@ -722,7 +721,7 @@ public:
      * @return [description]
      */
     virtual double VolumeToRMSEdgeLength() const {
-      constexpr double normFactor = 3.0 * M_SQRT2;
+      constexpr double normFactor = 3.0 * 1.41421356237309504880;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
