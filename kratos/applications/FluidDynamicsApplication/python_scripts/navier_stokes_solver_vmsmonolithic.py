@@ -41,26 +41,19 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "lgmres",
-                "velocity_block_preconditioner" : {
-                    "krylov_type" : "bicgstab",
-                    "tolerance" : 1e-3,
-                    "preconditioner_type" : "spai0",
-                    "max_iteration": 50
-                },
-                "pressure_block_preconditioner" : {
-                    "krylov_type" : "cg",
-                    "tolerance" : 1e-2,
-                    "preconditioner_type" : "spai0",
-                    "max_iteration": 50
-                },
-                "tolerance" : 1e-7,
-                "gmres_krylov_space_dimension": 50,
-                "max_iteration": 200,
-                "verbosity" : 0,
-                "scaling": true,
-                "coarse_enough" : 5000
+                    "solver_type" : "AMGCL",
+                    "smoother_type":"ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation",
+                    "max_iteration": 200,
+                    "provide_coordinates": false,
+                    "gmres_krylov_space_dimension": 100,
+                    "verbosity" : 0,
+                    "tolerance": 1e-7,
+                    "scaling": false,
+                    "block_size": 1,
+                    "use_block_matrices_if_possible" : true,
+                    "coarse_enough" : 5000
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -109,6 +102,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         ## Add base class variables
         super(NavierStokesSolver_VMSMonolithic, self).AddVariables()
         ## Add specific variables needed for the monolithic solver
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)         # Kinematic viscosity value
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
 
         print("Monolithic fluid solver variables added correctly")
@@ -235,3 +229,16 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
     def Solve(self):
         self.DivergenceClearance()
         (self.solver).Solve()
+
+
+    def _ExecuteAfterReading(self):
+        super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()
+
+        # Read the KINEMATIC VISCOSITY
+        for el in self.main_model_part.Elements:
+            # rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            break
+
+        # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
