@@ -1,4 +1,4 @@
-import KratosMultiphysics 
+import KratosMultiphysics
 import sys
 from math import *
 
@@ -10,17 +10,17 @@ class aux_object_cpp_callback:
     def f(self,x,y,z,t):
         return eval(self.compiled_function)
         #return 0
-        
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignValueProcess(Model, settings["Parameters"])
 
-    
+
 ##all the processes python processes should be derived from "python_process"
 class AssignValueProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
-        KratosMultiphysics.Process.__init__(self) 
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
@@ -42,20 +42,20 @@ class AssignValueProcess(KratosMultiphysics.Process):
                     settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
-        
+
         #here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
-                
-        
-        
+
+
+
         settings.ValidateAndAssignDefaults(default_settings)
 
-        #admissible values for local axes, are "empty" or 
+        #admissible values for local axes, are "empty" or
         #"local_axes"               :{
         #    "origin" : [0.0, 0.0, 0.0]
-        #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ] 
+        #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
         #    }
         self.non_trivial_local_system = False
         if(settings["local_axes"].Has("origin")): # not empty
@@ -70,13 +70,13 @@ class AssignValueProcess(KratosMultiphysics.Process):
             self.R[2,0] = settings["local_axes"]["axes"][2][0].GetDouble()
             self.R[2,1] = settings["local_axes"]["axes"][2][1].GetDouble()
             self.R[2,2] = settings["local_axes"]["axes"][2][2].GetDouble()
-            
+
             self.x0 = KratosMultiphysics.Vector(3)
             self.x0[0] = settings["local_axes"]["origin"][0].GetDouble()
             self.x0[1] = settings["local_axes"]["origin"][1].GetDouble()
             self.x0[2] = settings["local_axes"]["origin"][2].GetDouble()
 
-        
+
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.variable = getattr(KratosMultiphysics, settings["variable_name"].GetString())
@@ -85,41 +85,40 @@ class AssignValueProcess(KratosMultiphysics.Process):
         self.interval[0] = settings["interval"][0].GetDouble()
         self.interval[1] = settings["interval"][1].GetDouble()
         self.is_fixed = settings["constrained"].GetBool()
-        
+
         self.value_is_numeric = False
         self.is_time_function = False
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = settings["value"].GetDouble()
-        else:            
+        else:
             self.function_string = settings["value"].GetString()
             if (sys.version_info > (3, 0)):
                 self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
             else:
                 self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval'))
-            
-            if(self.function_string.find("x") == -1 and 
+
+            if(self.function_string.find("x") == -1 and
                self.function_string.find("y") == -1 and
                self.function_string.find("z") == -1): #depends on time alone!
                     self.is_time_function = True
             else:
-                self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.aux_function ) 
-            
-        
+                self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.aux_function )
+
+
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
-        
-            
-        print("finished construction of ApplyCustomFunctionProcess Process")
-        
+
+        # print("Finished construction of ApplyCustomFunctionProcess Process")
+
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        
+
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 
             if(self.is_fixed):
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
-                
+
             if self.value_is_numeric:
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
@@ -136,13 +135,13 @@ class AssignValueProcess(KratosMultiphysics.Process):
                             y = self.R[1,0]*dx[0] + self.R[1,1]*dx[1] + self.R[1,2]*dx[2]
                             z = self.R[2,0]*dx[0] + self.R[2,1]*dx[1] + self.R[2,2]*dx[2]
                             node.SetSolutionStepValue(self.variable,0,self.aux_function.f(x,y,z,current_time))
-                        
-            
+
+
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        
+
         #print("inside ExecuteFinalizeSolutionStep of AssignValueProcess"     )
-        
+
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
             #print("Freeing variable", self.variable)
             #here we free all of the nodes in the mesh
