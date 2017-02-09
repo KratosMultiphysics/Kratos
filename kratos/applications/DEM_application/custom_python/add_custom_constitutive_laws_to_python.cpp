@@ -33,7 +33,7 @@
 #include "../custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_dev_CL.h"
 #include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
-#include "../custom_constitutive/DEM_D_Conical_damage_CL.h"
+#include "../custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "../custom_constitutive/dem_kdem_2d_cl.h"
 #include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
@@ -89,7 +89,7 @@ namespace Kratos {
             class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
                     ;
                     
-            class_<DEM_D_Conical_damage, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Conical_damage",init<>())
+            class_<DEM_D_Hertz_dependent_friction, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_dependent_friction",init<>())
                     ;
             
             // DEM Continuum Constitutive Laws:  

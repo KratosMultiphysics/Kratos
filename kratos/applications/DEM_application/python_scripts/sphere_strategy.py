@@ -374,17 +374,7 @@ class ExplicitStrategy:
         alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))))
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
-    
-    def SinAlphaConicalDamage(self, e):
 
-        if e < 0.001:
-            sinAlpha = 0.001
-            
-        else:
-            sinAlpha = math.sin(math.radians(e))
-
-        return (1-sinAlpha)/sinAlpha
-    
     def IntegrationSchemeTranslator(self, name):
         class_name = None
 
@@ -442,22 +432,12 @@ class ExplicitStrategy:
         elif (type_of_law == 'Hertz'):
             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
             write_gamma = True
-            
-        elif (type_of_law == 'Conical_damage'):
-            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-            write_gamma = True
-            alpha = properties[ALPHA]
-            AlphaFunction = self.SinAlphaConicalDamage(alpha)
-            write_AlphaFunction = True
 
         else:
             pass
 
         if write_gamma == True:
             properties[DAMPING_GAMMA] = gamma
-            
-        if write_AlphaFunction == True:
-            properties[ALPHA_FUNCTION] = AlphaFunction
             
         if properties.Has(CLUSTER_FILE_NAME):
             cluster_file_name = properties[CLUSTER_FILE_NAME]

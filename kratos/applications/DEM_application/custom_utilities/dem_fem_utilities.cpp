@@ -29,6 +29,22 @@ namespace Kratos
     // Destructor
 
     DEMFEMUtilities::~DEMFEMUtilities() {}
+    
+    void DEMFEMUtilities::ChangeMeshVelocity(ModelPart& r_model_part, std::string id, array_1d<double, 3> linear_velocity) {
+ 
+        if (r_model_part.NumberOfSubModelParts()) {
+            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+                 
+                ModelPart& submp = *sub_model_part;
+                const std::string identifier = submp[IDENTIFIER];
+                
+                if (identifier == id)
+                {                   
+                    submp[LINEAR_VELOCITY] = linear_velocity;
+                } //if (id = mesh_number)
+            } //for (unsigned int mesh_number = 1; mesh_number < r_model_part.NumberOfMeshes(); mesh_number++)
+        } //if ( r_model_part.NumberOfMeshes() > 1 )
+    }
       
     void DEMFEMUtilities::MoveAllMeshes(ModelPart& r_model_part, double time, double dt) {
 

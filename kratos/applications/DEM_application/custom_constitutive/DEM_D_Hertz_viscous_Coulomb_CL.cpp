@@ -240,7 +240,7 @@ namespace Kratos {
 
         const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
         const double neighbour_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
-        const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);    
+        const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);
         
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         

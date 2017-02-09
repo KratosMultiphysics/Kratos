@@ -31,7 +31,7 @@
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
-#include "custom_constitutive/DEM_D_Conical_damage_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -758,7 +758,7 @@ namespace Kratos
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
-    Serializer::Register("DEM_D_Conical_damage", DEM_D_Conical_damage());
+    Serializer::Register("DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
     
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());    
