@@ -33,6 +33,7 @@ namespace Kratos
         // Variables definition
         KRATOS_DEFINE_VARIABLE(int, AUX_ID);
         KRATOS_DEFINE_VARIABLE(int, AUX_INTERF_ID );
+        KRATOS_DEFINE_VARIABLE(int, AUX_BASE_ID );
 //	KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
 //	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
