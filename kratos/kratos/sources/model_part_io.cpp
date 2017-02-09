@@ -1766,38 +1766,49 @@ namespace Kratos
             }
             else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(VariableName))
             {
-                (*mpStream) << "Begin NodalData\t" << VariableName << "_X" << std::endl;
-                auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_X"));
-                for(unsigned int j = 0; j < numNodes; j++) 
+                if(KratosComponents<array_1d_component_type>::Has(VariableName + "_X")) // To check if it defined by components or as a vector
                 {
-                    auto itNode = rThisNodes.begin() + j;
+                    (*mpStream) << "Begin NodalData\t" << VariableName << "_X" << std::endl;
+                    auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_X"));
+                    for(unsigned int j = 0; j < numNodes; j++) 
+                    {
+                        auto itNode = rThisNodes.begin() + j;
+                        
+                        const bool is_fixed = itNode->IsFixed(VariableX);
+                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableX, 0) << std::endl;
+                    }
+                    (*mpStream) << "End NodalData" << std::endl << std::endl;
                     
-                    const bool is_fixed = itNode->IsFixed(VariableX);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableX, 0) << std::endl;
+                    (*mpStream) << "Begin NodalData\t" << VariableName << "_Y" << std::endl;
+                    auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Y"));
+                    for(unsigned int j = 0; j < numNodes; j++) 
+                    {
+                        auto itNode = rThisNodes.begin() + j;
+                        
+                        const bool is_fixed = itNode->IsFixed(VariableY);
+                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableY, 0) << std::endl;
+                    }
+                    (*mpStream) << "End NodalData" << std::endl << std::endl;
+                    
+                    (*mpStream) << "Begin NodalData\t" << VariableName << "_Z" << std::endl;
+                    auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Z"));
+                    for(unsigned int j = 0; j < numNodes; j++) 
+                    {
+                        auto itNode = rThisNodes.begin() + j;
+                        
+                        const bool is_fixed = itNode->IsFixed(VariableZ);
+                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableZ, 0) << std::endl;
+                    } 
+                    (*mpStream) << "End NodalData" << std::endl << std::endl;
                 }
-                (*mpStream) << "End NodalData" << std::endl << std::endl;
-                
-                (*mpStream) << "Begin NodalData\t" << VariableName << "_Y" << std::endl;
-                auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Y"));
-                for(unsigned int j = 0; j < numNodes; j++) 
+                else
                 {
-                    auto itNode = rThisNodes.begin() + j;
-                    
-                    const bool is_fixed = itNode->IsFixed(VariableY);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableY, 0) << std::endl;
+                   std::cout << VariableName << " is not a valid variable for output!!!" << std::endl;
+//                 (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
+//                 auto Variable = KratosComponents<array_1d<double, 3>>::Get(VariableName);
+//                 // TODO: Finish me
+//                 (*mpStream) << "End NodalData" << std::endl << std::endl;
                 }
-                (*mpStream) << "End NodalData" << std::endl << std::endl;
-                
-                (*mpStream) << "Begin NodalData\t" << VariableName << "_Z" << std::endl;
-                auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Z"));
-                for(unsigned int j = 0; j < numNodes; j++) 
-                {
-                    auto itNode = rThisNodes.begin() + j;
-                    
-                    const bool is_fixed = itNode->IsFixed(VariableZ);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableZ, 0) << std::endl;
-                } 
-                (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
 //             else if(KratosComponents<Variable<Quaternion<double> > >::Has(VariableName))
 //             {
