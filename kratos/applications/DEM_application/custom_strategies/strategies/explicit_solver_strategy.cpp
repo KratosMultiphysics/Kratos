@@ -3,6 +3,11 @@
 //
 
 #include "explicit_solver_strategy.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+
+#include <iostream>
+#include <fstream>
+#include <cmath>
 
 namespace Kratos {
 
@@ -20,7 +25,9 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SendProcessInfoToClustersModelPart() {
+        
         KRATOS_TRY
+        
         ProcessInfo& r_process_info = mpDem_model_part->GetProcessInfo();
         ProcessInfo& rClusters_process_info = mpCluster_model_part->GetProcessInfo();
 
@@ -33,11 +40,14 @@ namespace Kratos {
         rClusters_process_info[VIRTUAL_MASS_OPTION] = r_process_info[VIRTUAL_MASS_OPTION];
         rClusters_process_info[TRIHEDRON_OPTION] = r_process_info[TRIHEDRON_OPTION];
         rClusters_process_info[NODAL_MASS_COEFF] = r_process_info[NODAL_MASS_COEFF];
+        
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::UpdateMaxIdOfCreatorDestructor() {
+        
         KRATOS_TRY
+        
         ModelPart& r_model_part = GetModelPart();
         int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(r_model_part);
         int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(*mpFem_model_part);
@@ -47,11 +57,14 @@ namespace Kratos {
         max_Id = std::max(max_Id, max_FEM_Id);
         max_Id = std::max(max_Id, max_cluster_Id);
         mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
+        
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles) {
+        
         KRATOS_TRY
+        
         bool found = false;
         const int number_of_particles = (int) rCustomListOfSphericParticles.size();
         #pragma omp parallel for
@@ -92,11 +105,14 @@ namespace Kratos {
 
             if (!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!", "");
         }
+        
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::Initialize() {
+        
         KRATOS_TRY
+        
         ModelPart& r_model_part = GetModelPart();
 
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -156,7 +172,7 @@ namespace Kratos {
 
         // 5. Finalize Solution Step.
         //FinalizeSolutionStep();
-        //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
+
         KRATOS_CATCH("")
     }// Initialize()
 
@@ -393,22 +409,58 @@ namespace Kratos {
 
         std::cout << std::scientific;
         std::cout << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
-                << temp_time_step << " with a diving factor: " << mSafetyFactor << " ) *************" << "\n" << std::endl;
+                  << temp_time_step << " with a diving factor: " << mSafetyFactor << " ) *************" << "\n" << std::endl;
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::GetForce() {
+        
         KRATOS_TRY
+        
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double dt = r_process_info[DELTA_TIME];
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
+        //double dem_stress_zz = 0.0;
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
-
-        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)for schedule(dynamic, 100) //schedule(guided)
+        
+        //double total_volume = 0.0;
+        //unsigned int total_particles = 0;
+        
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)for schedule(dynamic, 100) //schedule(guided) TODO UNCOMMENT
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity, mSearchControl);
+            //total_volume += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+            //++total_particles;
+            //dem_stress_zz += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ);
         }
+        
+        //KRATOS_WATCH(total_volume)
+        //KRATOS_WATCH(total_particles)
+        
+        /*
+        dem_stress_zz /= number_of_particles;
+        
+        double variance_dem_stress_zz = 0.0;
+        
+        double standard_deviation_dem_stress_zz = 0.0;
+        
+        double new_dem_stress_zz = 0.0;
+        
+        for (int i = 0; i < number_of_particles; i++) {
+            new_dem_stress_zz = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ);
+            variance_dem_stress_zz += (new_dem_stress_zz - dem_stress_zz) * (new_dem_stress_zz - dem_stress_zz);
+        }
+        
+        variance_dem_stress_zz /= number_of_particles;
+        
+        standard_deviation_dem_stress_zz = sqrt(variance_dem_stress_zz);
+        
+        double time = r_process_info[TIME];
+        std::ofstream outputfile("dem_stress_zz.txt", std::ios_base::out | std::ios_base::app);
+        outputfile << time << " " << dem_stress_zz << " " << standard_deviation_dem_stress_zz << "\n";
+        outputfile.close();
+        */
         KRATOS_CATCH("")
     }
 
@@ -418,7 +470,6 @@ namespace Kratos {
         double dt = r_process_info[DELTA_TIME];
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
         const int number_of_particles = (int) mListOfSphericParticles.size();
-
 
         #pragma omp parallel
         {
@@ -435,6 +486,7 @@ namespace Kratos {
                 mListOfSphericParticles[i]->FinalCalculateRightHandSide(r_process_info, dt, gravity);
             }
         }
+        
         KRATOS_CATCH("")
     }
 
@@ -526,6 +578,7 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::FinalizeSolutionStep() {
+        
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -538,10 +591,12 @@ namespace Kratos {
             ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts.
+                (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts
             } //loop over particles
-
-        } // loop threads OpenMP
+        } // loop over OpenMP threads
+        
+        //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
+    
         KRATOS_CATCH("")
     }
 
@@ -565,14 +620,22 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::InitializeDEMElements() {
+        
         KRATOS_TRY
+        
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericParticles.size();
+        double total_mass = 0.0;
+        
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
+            total_mass += mListOfSphericParticles[i]->GetMass();
         }
+        
+        KRATOS_WATCH(total_mass)
+        
         KRATOS_CATCH("")
     }
 
@@ -905,9 +968,10 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SearchNeighbours() {
+        
         KRATOS_TRY
 
-        if (! mDoSearchNeighbourElements){
+        if (!mDoSearchNeighbourElements) {
             return;
         }
 
@@ -934,13 +998,13 @@ namespace Kratos {
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();
         }
-
         KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::ComputeNewNeighboursHistoricalData() {
+        
         KRATOS_TRY
-                const int number_of_particles = (int) mListOfSphericParticles.size();
+        const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel
         {
