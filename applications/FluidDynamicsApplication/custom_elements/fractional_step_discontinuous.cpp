@@ -680,7 +680,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             //loop on cut edges
             unsigned int edge_counter;
 
-            if (this->IsDefined(SLIP) == false && this->IsNot(SLIP))
+            if (this->IsDefined(SLIP) == true && this->IsNot(SLIP))
             {
                 edge_counter = 0;
                 for (unsigned int i = 0; i < TDim; i++)
