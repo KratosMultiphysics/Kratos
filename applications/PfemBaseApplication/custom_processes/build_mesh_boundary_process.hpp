@@ -281,8 +281,9 @@ namespace Kratos
 			    if( !inserted ){
 			      
 			      if( rPreservedConditions[ic->Id()-1] == 0 ){
-			      
-				condition_found = this->FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,iface);
+
+				ModelerUtilities ModelerUtils;
+				condition_found = ModelerUtils.FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,iface);
 				
 				if( condition_found ){
 				

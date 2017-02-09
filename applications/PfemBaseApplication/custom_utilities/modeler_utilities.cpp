@@ -1657,6 +1657,66 @@ namespace Kratos
 
   }
 
+  //**************************************************************************
+  //**************************************************************************
+
+  bool ModelerUtilities::FindCondition(Geometry< Node<3> >& rConditionGeometry ,Geometry< Node<3> >& rGeometry, boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
+  {
+      
+    KRATOS_TRY
+    // not equivalent geometry sizes for boundary conditions:
+    if( rConditionGeometry.size() != lnofa[iface] )
+      return false;
+      
+    // line boundary condition:
+    if( lnofa[iface] == 2 )
+      {
+	if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+		&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id() ) || 
+	    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+		&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+	  {	 
+	    return true;
+	  }
+	else
+	  {
+	    return false;
+	  }
+	    
+      }
+      
+    //3D faces:
+    if(  lnofa[iface] == 3 )
+      {
+	if( (   rConditionGeometry[0].Id() == rGeometry[lpofa(1,iface)].Id() 
+		&& rConditionGeometry[1].Id() == rGeometry[lpofa(2,iface)].Id()
+		&& rConditionGeometry[2].Id() == rGeometry[lpofa(3,iface)].Id() ) || 
+	    (   rConditionGeometry[0].Id() == rGeometry[lpofa(3,iface)].Id() 
+		&& rConditionGeometry[1].Id() == rGeometry[lpofa(1,iface)].Id()
+		&& rConditionGeometry[2].Id() == rGeometry[lpofa(2,iface)].Id() ) ||
+	    (   rConditionGeometry[0].Id() == rGeometry[lpofa(2,iface)].Id() 
+		&& rConditionGeometry[1].Id() == rGeometry[lpofa(3,iface)].Id()
+		&& rConditionGeometry[2].Id() == rGeometry[lpofa(1,iface)].Id() ) )
+	  {
+	    return true;
+	  }
+	else
+	  {
+	    return false;
+	  }
+	  
+      }
+
+    if(  lnofa[iface] > 3 )
+      {
+	KRATOS_THROW_ERROR( std::logic_error, "Wrong Condition Number of Face Nodes",*this );
+      }
+
+    return false;
+
+    KRATOS_CATCH( "" )
+  
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -1749,7 +1809,7 @@ namespace Kratos
 
   }
 
-
+  
   //*******************************************************************************************
   //*******************************************************************************************
 
