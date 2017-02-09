@@ -186,9 +186,40 @@ namespace Kratos {
         double beta = 0.03;
         double critical_timestep = beta * KRATOS_M_PI / critical_period;
 
+        double t = CalculateMaxInletTimeStep();
+        if (t<critical_timestep && t>0.0){critical_timestep = t;}
+
         r_process_info[DELTA_TIME] = critical_timestep;
         std::cout << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
-        KRATOS_CATCH("")
+
+
+       //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
+       //double young = (*mpInlet_model_part)[YOUNG_MODULUS];  // no funciona pq no forma part de modelpart sino de properties
+       //PropertiesContainerType pprop2 = mpInlet_model_part->PropertiesArray(0);
+       //long unsigned int pprop4 = mpInlet_model_part->NumberOfSubModelParts();
+       KRATOS_CATCH("")
+    }
+
+    double ExplicitSolverStrategy::CalculateMaxInletTimeStep() {
+        for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it != mpInlet_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
+            if ((*props_it).Has(PARTICLE_DENSITY)) {
+                int inlet_prop_id = props_it->GetId();
+                double young = (*props_it)[YOUNG_MODULUS];
+                double density = (*props_it)[PARTICLE_DENSITY];
+                double poisson = (*props_it)[POISSON_RATIO];
+
+                for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = mpInlet_model_part->SubModelPartsBegin(); sub_model_part != mpInlet_model_part->SubModelPartsEnd(); ++sub_model_part) {
+                    int smp_prop_id = (*sub_model_part)[PROPERTIES_ID];
+                    if (smp_prop_id == inlet_prop_id) {
+                        double radius = (*sub_model_part)[RADIUS];
+                        double shear_modulus = young/(2.0*(1.0+poisson));
+                        double t = (KRATOS_M_PI*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
+                        return t;
+                    }
+                }
+            }
+        }
+        return 0.0;
     }
 
     void ExplicitSolverStrategy::InitializeClusters() {
