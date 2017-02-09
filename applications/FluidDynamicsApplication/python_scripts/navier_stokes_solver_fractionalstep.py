@@ -107,6 +107,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         ## Add base class variables
         super(NavierStokesSolver_FractionalStep, self).AddVariables()
         ## Add specific variables needed for the fractional step solver
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)         # Kinematic viscosity value
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
@@ -178,3 +179,16 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         (self.solver).Solve()
         if(self.compute_reactions):
             (self.solver).CalculateReactions()
+
+
+    def _ExecuteAfterReading(self):
+        super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()
+
+        # Read the KINEMATIC VISCOSITY
+        for el in self.main_model_part.Elements:
+            # rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            break
+
+        # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

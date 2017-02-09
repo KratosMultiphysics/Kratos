@@ -105,25 +105,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)           # Nodal volume necessary for refinement
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)           # Nodal volume necessary for refinement
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Wave velocity
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE) # Nodal external pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
 
         print("Monolithic embedded fluid solver variables added correctly")
-
-
-    # def ImportModelPart(self):
-    #     ## Base class ImportModelPart
-    #     self._ModelPartReading()
-    #     ## Replace elements and conditions, check the input reading and set KINEMATIC_VISCOSITY and DENSITY
-    #     self._ExecuteAfterReading()
-    #     ## Set buffer size
-    #     self._SetBufferSize()
-    #
-    #     print ("Embedded solver model reading finished.")
 
 
     def Initialize(self):

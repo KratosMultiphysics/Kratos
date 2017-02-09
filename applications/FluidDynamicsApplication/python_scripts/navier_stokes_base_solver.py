@@ -79,16 +79,14 @@ class NavierStokesBaseSolver:
 
     def AddVariables(self):
         ## Add base class variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
@@ -100,13 +98,6 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
-
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.AUXILIAR_GRADIENT)  
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.AUXILIAR_HESSIAN)  
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.ANISOTROPIC_RATIO)  
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMeshing.MMG_METRIC)  
 
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
@@ -130,9 +121,9 @@ class NavierStokesBaseSolver:
         # Adding C_SMAGORINSKY
         for elem in self.main_model_part.Elements:
             elem.SetValue(KratosMultiphysics.C_SMAGORINSKY, 0.0)
-    
+
         print ("Base class model reading finished.")
-        
+
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
@@ -227,14 +218,14 @@ class NavierStokesBaseSolver:
         # Read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
         for el in self.main_model_part.Elements:
             rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            # kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
             break
 
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
     def _SetBufferSize(self):
         ## Set the buffer size
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
+            self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
