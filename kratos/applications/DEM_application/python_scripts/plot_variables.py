@@ -80,9 +80,9 @@ class tangential_force_plotter:
             for id in list_of_nodes_ids:
                 if node.Id == id:
                     self.list_of_nodes.append(node)
-                    colti_file_writer = open("variables_for_node_" + str(id) + "_iter_" + str(iteration) + ".txt", 'w');
-                    colti_file_writer.write("#Time  TOTAL_FORCES_Y  TOTAL_FORCES_Z  ANGULAR_VELOCITY_X\n")
-                    self.files.append(colti_file_writer)
+                    file_writer = open("variables_for_node_" + str(id) + "_iter_" + str(iteration) + ".txt", 'w');
+                    file_writer.write("#Time  TOTAL_FORCES_Y  TOTAL_FORCES_Z  ANGULAR_VELOCITY_X\n")
+                    self.files.append(file_writer)
                     print("The Id " + str(id) + " was found in the model part")
                     break
                     
@@ -96,17 +96,17 @@ class tangential_force_plotter:
         
         i = 0
         
-        for colti_file_writer in self.files:
+        for file_writer in self.files:
             node = self.list_of_nodes[i]
             string = str(time) \
             + "  " + str(node.GetSolutionStepValue(TOTAL_FORCES_Y)) \
             + "  " + str(node.GetSolutionStepValue(TOTAL_FORCES_Z)) \
             + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_X)) \
             + '\n'
-            colti_file_writer.write(string)
+            file_writer.write(string)
             i = i + 1 
                
     def close_files(self):
         
-        for colti_file_writer in self.files:
-            colti_file_writer.close()            
+        for file_writer in self.files:
+            file_writer.close()            
