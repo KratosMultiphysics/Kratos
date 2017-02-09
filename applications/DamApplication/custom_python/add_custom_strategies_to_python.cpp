@@ -76,7 +76,7 @@ void  AddCustomStrategiesToPython()
         init< double, double, double >());
 
 	class_< DamUPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamUPScheme",
-        init< double, double >());
+        init< double, double, double, double >());
     
     class_< DamPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamPScheme",
         init< double, double >());
