@@ -33,6 +33,7 @@
 
 //PreMeshing processes
 #include "custom_processes/refine_mesh_elements_on_threshold_process.hpp"
+#include "custom_processes/refine_mesh_elements_in_edges_process.hpp"
 #include "custom_processes/refine_mesh_boundary_process.hpp"
 #include "custom_processes/remove_mesh_nodes_process.hpp"
 
@@ -119,6 +120,12 @@ namespace Kratos
 	 )
 	;
 
+      class_<RefineMeshElementsInEdgesProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SetElementEdgesToRefine", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
+      
       class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
 	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
