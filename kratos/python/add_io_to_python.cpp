@@ -76,6 +76,12 @@ void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
 
+void IntPrintOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+}
+
 void Array1DPrintOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3> >& rVariable,
                                 ModelPart& r_model_part, double SolutionTag )
 {
@@ -99,6 +105,9 @@ void (GidIO<>::*pointer_to_bool_write_nodal_results)( Variable<bool> const& rVar
         GidIO<>::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &GidIO<>::WriteNodalResults;
 void (GidIO<>::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
+        GidIO<>::NodesContainerType& rNodes, double SolutionTag,
+        std::size_t SolutionStepNumber ) = &GidIO<>::WriteNodalResults;
+void (GidIO<>::*pointer_to_int_write_nodal_results)( Variable<int> const& rVariable,
         GidIO<>::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &GidIO<>::WriteNodalResults;
 void (GidIO<>::*pointer_to_array1d_write_nodal_results)(
@@ -219,6 +228,7 @@ void  AddIOToPython()
 
     .def("WriteNodalResults",pointer_to_bool_write_nodal_results)
     .def("WriteNodalResults",pointer_to_double_write_nodal_results)
+    .def("WriteNodalResults",pointer_to_int_write_nodal_results)
     .def("WriteNodalResults",pointer_to_array1d_write_nodal_results)
 
 //                    .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
@@ -235,6 +245,7 @@ void  AddIOToPython()
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
+    .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)

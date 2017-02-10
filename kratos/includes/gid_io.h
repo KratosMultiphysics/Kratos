@@ -729,6 +729,28 @@ public:
         Timer::Stop("Writing Results");
 
     }
+    /**
+     * writes nodal results for variables of type double
+     */
+    void WriteNodalResults( Variable<int> const& rVariable,
+                            NodesContainerType& rNodes, double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+
+        Timer::Start("Writing Results");
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                             SolutionStepNumber) );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
 
     /**
      * writes nodal results for variables of type array_1d<double, 3>
@@ -1383,6 +1405,31 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param r_model_part the current model part
      */
     virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& r_model_part,
+                                     double SolutionTag, int value_index = 0 )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Results");
+
+        for ( typename std::vector<TGaussPointContainer>::iterator it =
+                    mGidGaussPointContainers.begin();
+                it != mGidGaussPointContainers.end(); it++ )
+        {
+
+            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+        }
+
+        Timer::Stop("Writing Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints variables of type int on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param r_model_part the current model part
+     */
+    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& r_model_part,
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
