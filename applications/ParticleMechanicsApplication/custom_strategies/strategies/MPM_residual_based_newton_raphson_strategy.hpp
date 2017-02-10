@@ -488,8 +488,8 @@ public:
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         //std::cout<<"InitializeNonLinIteration"<<std::endl;
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        std::cout<<"PreCriteria"<<std::endl;
-        std::cout<<"is_converged"<<is_converged<<std::endl;
+        //std::cout<<"PreCriteria"<<std::endl;
+        //std::cout<<"is_converged"<<is_converged<<std::endl;
         //function to perform the building and the solving phase.
         //std::cout<<"mRebuildLevel"<<BaseType::mRebuildLevel<<std::endl;
         //std::cout<<"mStiffnessMatrixIsBuilt"<<BaseType::mStiffnessMatrixIsBuilt<<std::endl;
@@ -576,14 +576,14 @@ public:
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
                 {	
-					std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
+					//std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
                         //mA = 0.00;
                         TSparseSpace::SetToZero(mA);
                         TSparseSpace::SetToZero(mDx);
                         TSparseSpace::SetToZero(mb);
-						std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
+						//std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                     }
                     else
@@ -802,14 +802,14 @@ public:
             {
                 if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
                 {	
-					std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
+					//std::cout<<" GetKeepSystemConstantDuringIterations "<<GetKeepSystemConstantDuringIterations()<<std::endl;
                     if( GetKeepSystemConstantDuringIterations() == false)
                     {
                         //mA = 0.00;
                         TSparseSpace::SetToZero(mA);
                         TSparseSpace::SetToZero(mDx);
                         TSparseSpace::SetToZero(mb);
-						std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
+						//std::cout<<" pBuilderAndSolver->BuildAndSolve "<<std::endl;
                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                     }
                     else
@@ -893,8 +893,8 @@ public:
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 	if( mFinalizeSolutionStep ){
-      std::cout<<"i'm here"<<std::endl;
-	  std::cout<<"CALLING THE FINALIZE SOLUTION STEP"<<std::endl;
+      //std::cout<<"i'm here"<<std::endl;
+	  //std::cout<<"CALLING THE FINALIZE SOLUTION STEP"<<std::endl;
 	  pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 	  
 	  pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
@@ -975,19 +975,22 @@ public:
         KRATOS_TRY
 
 	if (this->GetEchoLevel() > 1) //if it is needed to print info
-	  std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+	  //std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        
+        
+        
 
         SparseSpaceType::Clear(mpA);
+        TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
 
         SparseSpaceType::Clear(mpDx);
+        TSystemVectorType& mDx = *mpDx;
         SparseSpaceType::Resize(mDx, 0);
 
         SparseSpaceType::Clear(mpb);
+        TSystemVectorType& mb = *mpb;
         SparseSpaceType::Resize(mb, 0);
 
 

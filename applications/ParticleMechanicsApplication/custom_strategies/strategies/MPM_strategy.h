@@ -214,8 +214,8 @@ public:
 
     /*@{ */
     
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle")
-    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3)
+    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {   
         
          //populate for the first time the mpm_model_part
@@ -232,10 +232,10 @@ public:
         
         
         array_1d<double,3> xg ;
-        array_1d<double,3> MP_Displacement;
-        array_1d<double,3> MP_Velocity;
-        double MP_KineticEnergy = 0.0;
-        double MP_StrainEnergy = 0.0;
+        array_1d<double,3> MP_Displacement = ZeroVector(3); 
+        array_1d<double,3> MP_Velocity = ZeroVector(3);
+        //double MP_KineticEnergy = 0.0;
+        //double MP_StrainEnergy = 0.0;
         //Vector MP_CauchyVector = ZeroVector(3);
         //Vector MP_AlmansiVector = ZeroVector(3);
         //Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
@@ -258,9 +258,42 @@ public:
                     double Density = i->GetProperties()[DENSITY];  
                     //std::cout<< "Density "<< Density<<std::endl;
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
-                                   
-                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                    //Matrix shape_functions_values = this->MP16ShapeFunctions();
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    if (m_GeometryElement == "Triangle")
+                    {
+						if(m_NumPar == 1)
+						{
+							shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+						}
+						else if(m_NumPar == 3)
+						{
+							shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+						}
+						else if(m_NumPar == 6)
+						{
+							shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+						}
+						else if(m_NumPar == 16)
+						{
+							shape_functions_values = this->MP16ShapeFunctions();
+						}
+					}               
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+						if(m_NumPar == 1)
+						{
+							shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+						}
+						else if(m_NumPar == 4)
+							{
+								shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+							}
+						else if(m_NumPar == 9)
+							{
+								shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+							}
+					}
+		    //Matrix shape_functions_values = this->MP16ShapeFunctions();
                     //std::cout<<"shape_functions_values "<< shape_functions_values<<std::endl;
                     //const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( GeometryData::GI_GAUSS_4); 
                     
@@ -269,12 +302,13 @@ public:
 
                     
                     //evaluation of element area/volume
-                    double area = GeometryUtils::CalculateVolume2D(rGeom);
+                    //double area = GeometryUtils::CalculateVolume2D(rGeom);
                     
+		            double area = rGeom.Area();
                     //int integration_point_per_element = 3;
                     
                     MP_Mass = area * Density / integration_point_per_elements;
-                    std::cout<<"MP_Mass "<<MP_Mass<<std::endl;
+                    //std::cout<<"MP_Mass "<<MP_Mass<<std::endl;
                     MP_Volume = area / integration_point_per_elements;
                     
                     
@@ -322,8 +356,8 @@ public:
                             
                             p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
                             p_element -> SetValue(MP_VELOCITY, MP_Velocity);
-                            p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
-                            p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+                            //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
+                            //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
                             //push back to model_part
                             mpm_model_part.Elements().push_back(p_element);
                         
@@ -343,7 +377,7 @@ public:
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
-            double ratio_tolerance = 0.0001;
+            double ratio_tolerance = 1e-04;
             double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
             
@@ -364,11 +398,11 @@ public:
            
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
-            double ratio_tolerance = 0.0001;
+            double ratio_tolerance = 0.00005;
             double always_converged_norm = 1e-09;
             
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-            int MaxIterations = 10;
+            int MaxIterations = 20;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -748,7 +782,14 @@ public:
             {   
                 
                 i -> Reset(ACTIVE);
-                
+                i ->GetGeometry()[0].Reset(ACTIVE);
+                i ->GetGeometry()[1].Reset(ACTIVE);
+                i ->GetGeometry()[2].Reset(ACTIVE);
+                if (TDim ==3)
+                {
+					
+					i ->GetGeometry()[3].Reset(ACTIVE);
+				}
                 //i -> SetValue(COUNTER, 0);     
             }
         //std::cout << " 22222222222222222222 "<<std::endl;  
@@ -796,6 +837,16 @@ public:
                 k->GetGeometry()(1) = pelem->GetGeometry()(1);
                 k->GetGeometry()(2) = pelem->GetGeometry()(2);
                 
+                pelem->GetGeometry()[0].Set(ACTIVE);
+                pelem->GetGeometry()[1].Set(ACTIVE);
+                pelem->GetGeometry()[2].Set(ACTIVE);
+                
+                if (TDim ==3)
+                {
+					
+					k->GetGeometry()(3) = pelem->GetGeometry()(3);
+					pelem->GetGeometry()[3].Set(ACTIVE);
+				}
                 //if use quadrilateral add this line
                 //k->GetGeometry()(3) = pelem->GetGeometry()(3);
                 
@@ -861,6 +912,7 @@ public:
                 k->GetGeometry()(3) = pelem->GetGeometry()(3);
                 //if use quadrilateral add this line
                 //k->GetGeometry()(3) = pelem->GetGeometry()(3);
+                
                 
                 //if(k->Id() == 27938)
                     //{
@@ -948,7 +1000,8 @@ protected:
     ModelPart& mr_grid_model_part;
     ModelPart& mr_mpm_model_part;
     std::string m_GeometryElement;
-    
+    int m_NumPar;
+
     SolvingStrategyType::Pointer mp_solving_strategy;
 
     /*@} */

@@ -41,6 +41,15 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_AUX)
     model_part.AddNodalSolutionStepVariable(AUX_VELOCITY)
     model_part.AddNodalSolutionStepVariable(AUX_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(AUX_R)
+    model_part.AddNodalSolutionStepVariable(AUX_T)
+    model_part.AddNodalSolutionStepVariable(AUX_R_VEL)
+    model_part.AddNodalSolutionStepVariable(AUX_T_VEL)
+    model_part.AddNodalSolutionStepVariable(AUX_R_ACC)
+    model_part.AddNodalSolutionStepVariable(AUX_T_ACC)
+    model_part.AddNodalSolutionStepVariable(DENSITY)
+    model_part.AddNodalSolutionStepVariable(NODAL_LUMPED_MASS)
+
     if config is not None:
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
@@ -88,7 +97,7 @@ def AddDofs(model_part, config=None):
 class ParticleSolver:
     #
 
-    def __init__(self, model_part1, model_part2, new_element, domain_size, geometry_element):
+    def __init__(self, model_part1, model_part2, new_element, domain_size, geometry_element, num_particle):
 
         # default settings
         
@@ -100,56 +109,14 @@ class ParticleSolver:
         
         self.domain_size = domain_size
         self.geometry_element = geometry_element
+        self.num_particle = num_particle
+
         self.buffer_size = 3 #default buffer_size
-
-        self.pressure_dofs = False
-        self.rotation_dofs = False
-        self.stabilization_factor = 1.0
-
-        # definition of the solvers
-        self.scheme_type = "DynamicSolver"
-        self.time_integration_method = "Implicit" 
-        self.explicit_integration_scheme = "CentralDifferences" #for explicit strategies
-        
-        self.arlequin = 0
-        
         self.linear_solver = SkylineLUFactorizationSolver()
-
-        # definition of the convergence criteria
-        self.rel_disp_tol = 1e-4
-        self.abs_disp_tol = 1e-9
-        self.rel_res_tol = 1e-4
-        self.abs_res_tol = 1e-9
-        self.max_iters = 30
-
-        self.convergence_criterion_type = "Residual_criteria"
-        self.particle_convergence_criterion = ResidualCriteria(self.rel_res_tol, self.abs_res_tol)
-        # self.mechanical_convergence_criterion = DisplacementCriteria(self.rel_disp_tol,self.abs_disp_tol)
-        # self.mechanical_convergence_criterion = ComponentWiseResidualConvergenceCriterion(self.rel_res_tol,self.abs_res_tol)
-        # self.mechanical_convergence_criterion = DisplacementConvergenceCriterion(self.rel_disp_tol,self.abs_disp_tol)
-
-        # definition of the default builder_and_solver:
-        #self.block_builder = False
-        #self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
-
-        # definition of the component wise calculation "computation is slower"
-        #(it affects to strategy, builder_and_solver, scheme and convergence_criterion)
-        self.component_wise = False
-
-        # definition of computing flags
-        self.compute_reactions = True
-        self.compute_contact_forces = False
-        self.line_search = False
-        self.implex = False
-        self.reform_step_dofs = True
-
-        # definition of the (x_n+1 = x_n+dx) in each iteration -> strategy base class includes de MoveMesh method
+      
         self.move_mesh_flag = False
         
-        self.max_delta_time = 1e-5
-        self.fraction_delta_time = 0.9
-        self.time_step_prediction_level = 0
-        self.rayleigh_damping = False
+     
 
         print("::[Particle Solver]:: -START-")
 
@@ -168,40 +135,12 @@ class ParticleSolver:
     def Initialize(self):
 
        
-        if(self.time_integration_method == "Implicit"):
-
-          # creating the convergence criterion:
-          self.SetConvergenceCriterion()
-
-          # creating the solution strategy (application strategy or python strategy)
-
-          # self.reform_step_dofs = False;
-          print('set solving strategy')
-          #if(self.component_wise):
-              #self.particle_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-          
-         # else:
-              #if(self.line_search):
-                  #self.particle_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-              #else:
-        if(self.domain_size==2):
-            self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element)
-        else:
-            self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element)
-        #if(self.time_integration_method == "Explicit"):
-            #self.particle_solver = ExplicitStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-          
-            #self.particle_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
-        
-        
-        # creating the builder and solver:
-        print('set builder and solver')
-        # creating the solution scheme:
-        #self.SetBuilderAndSolver()
-        print('set solution scheme')
-        #self.SetSolutionScheme()
        
-        self.SetStabilizationFactor(self.stabilization_factor)
+        if(self.domain_size==2):
+            self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element,self.num_particle)
+        else:
+            self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element, self.num_particle)
+      
         
         (self.particle_solver).SetEchoLevel(self.echo_level)
         
@@ -213,7 +152,7 @@ class ParticleSolver:
 
     #
     def Solve(self):
-        print("In the solver ")
+        #print("In the solver ")
         (self.particle_solver).Solve()
 
     #
@@ -222,9 +161,7 @@ class ParticleSolver:
         (self.particle_solver).SetEchoLevel(level)
 
     #
-    def SetStabilizationFactor(self, factor):
-        self.model_part1.ProcessInfo[STABILIZATION_FACTOR] = factor
-
+    
     #
     def SetRestart(self, load_restart):
         # check if is a restart file is loaded
@@ -246,133 +183,14 @@ class ParticleSolver:
         self.particle_solver.Check();
 
     #
-    def SetBuilderAndSolver(self):
-
-        # type of builder and solver
-        if(self.component_wise):
-            self.builder_and_solver = ComponentWiseBuilderAndSolver(self.linear_solver)
-        else:
-            if(self.block_builder):
-                # to keep matrix blocks in builder
-                self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
-            else:
-                self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-    #
-    def SetSolutionScheme(self):
-
-        if(self.time_integration_method == "Explicit"):
-            
-            if(self.explicit_integration_scheme == "CentralDifferences"):
-
-                  self.particle_scheme = ExplicitCentralDifferencesScheme(self.max_delta_time, self.fraction_delta_time, self.time_step_prediction_level, self.rayleigh_damping)
-          
-        else:
-          
-          # type of solver for implicit solution method (static,dynamic,quasi-static,pseudo-dynamic)
-               
-          if(self.scheme_type == "StaticSolver"):
-              self.particle_scheme = ResidualBasedIncrementalUpdateStaticScheme()   
-          elif(self.scheme_type == "DynamicSolver"):
-              # definition of time scheme
-              self.damp_factor_f = 0.00;
-              self.damp_factor_m = -0.01;
-              self.dynamic_factor = 1;
-              
-              self.model_part1.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
-              self.model_part1.ProcessInfo[RAYLEIGH_BETA ] = 0.0
-
-              if(self.component_wise):
-                  self.particle_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
-              else:
-                  if(self.compute_contact_forces):
-                      self.particle_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                  else:
-                      self.particle_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
-          elif(self.scheme_type == "QuasiStaticSolver"):
-              # definition of time scheme
-              self.damp_factor_f = 0.00;
-              self.damp_factor_m = 0.00;
-              self.dynamic_factor = 0;  # quasi-static
-              if(self.component_wise):
-                  self.particle_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
-              else:
-                  if(self.compute_contact_forces):
-                      self.particle_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                  else:
-                      self.particle_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                  # self.particle_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
-          elif(self.scheme_type == "PseudoDynamicSolver"):
-              # definition of time scheme
-              self.damp_factor_f = -0.3;
-              self.damp_factor_m = 10.0;
-              self.particle_scheme = ResidualBasedRelaxationScheme(self.damp_factor_f, self.damp_factor_m)
-
-    #
-    def SetConvergenceCriterion(self):
-
-        # particle convergence criteria
-        D_RT = self.rel_disp_tol;
-        D_AT = self.abs_disp_tol;
-        R_RT = self.rel_res_tol;
-        R_AT = self.abs_res_tol;
-
-        if(self.rotation_dofs):
-
-            if(self.convergence_criterion_type == "Displacement_criteria"):
-                self.particle_convergence_criterion = DisplacementCriteria(D_RT, D_AT)
-            elif(self.convergence_criterion_type == "Residual_criteria"):
-                self.particle_convergence_criterion = ResidualCriteria(R_RT, R_AT)
-            elif(self.convergence_criterion_type == "And_criteria"):
-                Displacement = DisplacementCriteria(D_RT, D_AT)
-                Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = AndCriteria(Residual, Displacement)
-            elif(self.convergence_criterion_type == "Or_criteria"):
-                Displacement = DisplacementCriteria(D_RT, D_AT)
-                Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = OrCriteria(Residual, Displacement)
-            elif(self.convergence_criterion_type == "Mixed_criteria"):
-                Displacement = MixedElementCriteria(D_RT, D_AT)
-                Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = AndCriteria(Residual, Displacement)
-
-        else:
-
-            if(self.echo_level > 1):
-                print("::[Particle Solver]:: CONVERGENCE CRITERION : ", self.convergence_criterion_type)
-
-            if(self.convergence_criterion_type == "Displacement_criteria"):
-                self.particle_convergence_criterion = DisplacementConvergenceCriterion(D_RT, D_AT)
-            elif(self.convergence_criterion_type == "Residual_criteria"):
-                if(self.component_wise):
-                    self.particle_convergence_criterion = ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    self.particle_convergence_criterion = ResidualCriteria(R_RT, R_AT)
-            elif(self.convergence_criterion_type == "And_criteria"):
-                Displacement = DisplacementConvergenceCriterion(D_RT, D_AT)
-                if(self.component_wise):
-                    Residual = ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = AndCriteria(Residual, Displacement)
-            elif(self.convergence_criterion_type == "Or_criteria"):
-                Displacement = DisplacementConvergenceCriterion(D_RT, D_AT)
-                if(self.component_wise):
-                    Residual = ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = OrCriteria(Residual, Displacement)
-            elif(self.convergence_criterion_type == "Mixed_criteria"):
-                Displacement = MixedElementConvergeCriteria(D_RT, D_AT)
-                Residual = ResidualCriteria(R_RT, R_AT)
-                self.particle_convergence_criterion = AndCriteria(Residual, Displacement)
-
+  
+    
 
 #
 #
-def CreateSolver(model_part1, model_part2, new_element, config, geometry_element):
+def CreateSolver(model_part1, model_part2, new_element, config, geometry_element, num_par):
 
-    structural_solver = ParticleSolver(model_part1, model_part2,new_element, config.domain_size,geometry_element)
+    structural_solver = ParticleSolver(model_part1, model_part2,new_element, config.domain_size,geometry_element, num_par)
 
     #Explicit scheme parameters
     if(hasattr(config, "max_delta_time")):

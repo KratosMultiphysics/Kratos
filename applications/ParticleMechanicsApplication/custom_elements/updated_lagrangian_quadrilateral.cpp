@@ -1527,11 +1527,9 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
     void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-
-		
-		//const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		//const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-		//unsigned int voigtsize  = 3;
+	//const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	//const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+	//unsigned int voigtsize  = 3;
             
         //if( dimension == 3 )
         //{
@@ -1566,14 +1564,6 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
                 GetGeometry(),
                 Variables.N,
                 rCurrentProcessInfo );
-                
-        //Vector v0 = Variables.N[0] * Variables.StressVector * this->GetValue(MP_MASS) / GetGeometry()[0].GetSolutionStepValue(NODAL_MASS, 0);
-        //Vector v1 = Variables.N[1] * Variables.StressVector * this->GetValue(MP_MASS) / GetGeometry()[1].GetSolutionStepValue(NODAL_MASS, 0);
-        //Vector v2 = Variables.N[2] * Variables.StressVector * this->GetValue(MP_MASS) / GetGeometry()[2].GetSolutionStepValue(NODAL_MASS, 0);
-        //Vector v3 = Variables.N[3] * Variables.StressVector * this->GetValue(MP_MASS) / GetGeometry()[3].GetSolutionStepValue(NODAL_MASS, 0);
-                
-        //Vector TotalNodal        
-                
         //for ( unsigned int i = 0; i < number_of_nodes; i++ )
             //{   
                 ////GetGeometry()[i].GetSolutionStepValue(STRESSES, 0) = ZeroVector(voigtsize);
@@ -1588,13 +1578,6 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
                 ////std::cout<<" GetGeometry()[i].GetSolutionStepValue(STRESSES, 0) "<<  GetGeometry()[i].GetSolutionStepValue(STRESSES, 0)<<std::endl;
 			    //}
 			//}
-			
-		//if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-        //{
-			//std::cout<<" Variables.StressVector "<< " Id "<< Variables.StressVector<<std::endl;
-			//std::cout<<" NodalStress "<< " Id "<< NodalStress<<std::endl;
-			//std::cout<<" GetGeometry()[i].GetSolutionStepValue(STRESSES, 0) "<< " Id "<< GetGeometry()[0].GetSolutionStepValue(STRESSES, 0)<<std::endl;
-		//}
         //call the element internal variables update
         this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
         
@@ -1603,6 +1586,8 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
 
         KRATOS_CATCH( "" )
     }
+
+
 ////************************************************************************************************************
 	//void UpdatedLagrangianQuadrilateral::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 	//{
@@ -1664,8 +1649,6 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
     
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
-        
-        
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
     //std::cout<<" before get equivalent plastic strain "<<std::endl;
     //double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
@@ -1747,9 +1730,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
                 
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
                 MP_Acceleration[j] += rVariables.N[i] * NodalAcceleration[j];
-                //PERCHE NON FUNZIONA QUESTA INTERPOLAZIONE?
-                MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];
-                
+                MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];           
                 
                 //MP_Acceleration[j] +=NodalInertia[j]/(rVariables.N[i] * MP_Mass * MP_number);//
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
@@ -1773,8 +1754,6 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         
         //**************************************************************************************************************************
         //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003) !!!USING THIS EXPRESSION I CONSERVE MORE ENERGY   
-        //THIS EXPRESSION IS OK WHEN NO Dirichlet BOUNDARY CONDITIONS ARE APPLIED.
-        //WHEN BOUNDARY CONDITIONS ARE APPLIED SOMETHING HAS TO BE CHANGED to conserve the total linear momentum
         //MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
         //MP_Velocity += MP_PreviousVelocity;
         //Update the MP Velocity
@@ -2347,6 +2326,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         array_1d<double,3> rPointLocal = ZeroVector(dimension);
         //local coordinates of the MP position 
+	//I evaluate the local coordinates of the integration point
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
         
         if (dimension == 2)
@@ -2493,6 +2473,7 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         array_1d<double,3> rPointLocal = ZeroVector(dimension);
         
         //local coordinates of the MP position 
+	//I evaluate the local coordinates of the integration point
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
         if (dimension == 2)
         {
