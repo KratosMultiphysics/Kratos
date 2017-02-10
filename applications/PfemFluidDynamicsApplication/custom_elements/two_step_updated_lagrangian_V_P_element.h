@@ -482,13 +482,13 @@ namespace Kratos
 						 double& MeanValueMass,
 						 const double TimeStep){};
 
-     virtual void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
+      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 					  MatrixType& rDampingMatrix,
 					  const ShapeFunctionDerivativesType& rShapeDeriv,
 					  const double secondLame,
 					  const double bulkModulus,
 					  const double theta,
-					  const double Weight){};
+					  const double Weight);
 	
       virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
 						   const ShapeFunctionsType& rN,
