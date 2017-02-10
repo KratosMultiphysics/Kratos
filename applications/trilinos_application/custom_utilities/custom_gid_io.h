@@ -90,6 +90,12 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                                double SolutionTag, unsigned int parameter_index )
+    {
+        KRATOS_ERROR << "PrintResults for Variable<int> is not implemented." << std::endl;
+    }
+
     virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int parameter_index )
     {
@@ -357,4 +363,4 @@ public:
 
 }// namespace Kratos.
 
-#endif // KRATOS_GID_TRILINOS_GAUSS_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_GID_TRILINOS_GAUSS_POINT_CONTAINER_H_INCLUDED defined
