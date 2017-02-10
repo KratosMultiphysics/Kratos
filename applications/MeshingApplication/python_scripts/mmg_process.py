@@ -22,6 +22,7 @@ class MmgProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "mesh_id"                          : 0,
             "output_file_name"                 : "out",
             "model_part_name"                  : "MainModelPart",
             "strategy"                         : "LevelSet",
@@ -73,11 +74,11 @@ class MmgProcess(KratosMultiphysics.Process):
         self.params = params
 
         self.output_file_name = self.params["output_file_name"].GetString()
-    
+
         self.enforce_current = self.params["enforce_current"].GetBool()
-    
+
         self.initial_remeshing = self.params["initial_remeshing"].GetBool()
-        
+
         # Select the remeshing strategy
         self.strategy = self.params["strategy"].GetString()
         if (self.strategy == "LevelSet"):
@@ -85,22 +86,22 @@ class MmgProcess(KratosMultiphysics.Process):
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif (self.strategy == "Hessian"):
             self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
-            self.interpolation_error = self.params["hessian_strategy_parameters"]["interpolation_error"].GetDouble()  
-            self.mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()  
+            self.interpolation_error = self.params["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            self.mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (self.mesh_dependent_constant == 0.0):
                 self.mesh_dependent_constant = 0.5 * (self.dim/(self.dim + 1))**2.0
-        
+
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         self.find_nodal_h.Execute()
-        
+
         # Calculate the parameters of automatic remeshing
         if (self.params["automatic_remesh"].GetBool() == True):
             import statistics as stat
             nodal_h_values = []
             for node in self.Model[self.model_part_name].Nodes:
                 nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
-            
+
             # Calculate the minimum size
             if (self.params["automatic_remesh_parameters"]["automatic_remesh_type"].GetString() == "Ratio"):
                 # NOTE: For mode: https://docs.python.org/3/library/statistics.html
@@ -108,7 +109,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     ref = stat.mean(nodal_h_values)
                 elif (self.params["automatic_remesh_parameters"]["refer_type"].GetString() == "Median"):
                     ref = stat.median(nodal_h_values)
-                
+
                 self.minimal_size = ref * (self.params["automatic_remesh_parameters"]["min_size_ratio"].GetDouble())
                 self.maximal_size = ref * (self.params["automatic_remesh_parameters"]["max_size_ratio"].GetDouble())
             elif (self.params["automatic_remesh_parameters"]["automatic_remesh_type"].GetString() == "Percentage"):
@@ -116,14 +117,14 @@ class MmgProcess(KratosMultiphysics.Process):
                 stdev = stat.stdev(nodal_h_values)
                 prob = (self.params["automatic_remesh_parameters"]["min_size_current_percentage"].GetDouble())/100
                 self.minimal_size = normvalf(prob, mean, stdev)
-                
+
                 prob = (self.params["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
                 self.maximal_size = normvalf(prob, mean, stdev)
         else:
             # Manually defined
             self.minimal_size = self.params["minimal_size"].GetDouble()
             self.maximal_size = self.params["maximal_size"].GetDouble()
-            
+
         # Anisotropic remeshing parameters
         self.anisotropy_remeshing = self.params["anisotropy_remeshing"].GetBool()
         if (self.anisotropy_remeshing == True):
@@ -133,38 +134,38 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.boundary_layer_max_distance = self.params["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble()
             self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
-            
+
         self.initial_step = self.params["initial_step"].GetInt()
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
-        self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt() 
-        self.echo_level = self.params["echo_level"].GetInt() 
-        
-    def ExecuteInitialize(self): 
-        
+        self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt()
+        self.echo_level = self.params["echo_level"].GetInt()
+
+    def ExecuteInitialize(self):
+
         # NOTE: Add more model part if interested
         submodelpartslist = self.__generate_submodelparts_list_from_input(self.params["fix_contour_model_parts"])
-            
+
         for submodelpart in submodelpartslist:
             for node in submodelpart.Nodes:
-                node.Set(KratosMultiphysics.BLOCKED, True) 
+                node.Set(KratosMultiphysics.BLOCKED, True)
 
         if (self.strategy == "LevelSet"):
             self._CreateGradientProcess()
-            
+
         self._CreateMetricsProcess()
-        
+
         if (self.dim == 2):
             self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
         else:
             self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
-        
+
         if (self.initial_remeshing == True):
             self._ExecuteRefinement()
-        
+
     def ExecuteBeforeSolutionLoop(self):
         self.step = 0
-        
+
     def ExecuteInitializeSolutionStep(self):
         # We need to check if the model part has been modified recently
         if (self.Model[self.model_part_name].Is(KratosMultiphysics.MODIFIED) == True):
@@ -177,7 +178,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
                         self._ExecuteRefinement()
                         self.step = 0  # Reset
-            
+
     def ExecuteFinalizeSolutionStep(self):
         pass
 
@@ -189,9 +190,9 @@ class MmgProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         pass
-    
+
     def _CreateMetricsProcess(self):
-        self.MetricsProcess = [] 
+        self.MetricsProcess = []
         if (self.strategy == "LevelSet"):
             if (self.dim == 2):
                 if (self.anisotropy_remeshing == True):
@@ -200,8 +201,8 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.minimal_size,
                         self.enforce_current,
                         self.gradient_variable,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
+                        self.hmin_over_hmax_anisotropic_ratio,
+                        self.boundary_layer_max_distance,
                         self.interpolation
                     ))
                 else:
@@ -218,8 +219,8 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.minimal_size,
                         self.enforce_current,
                         self.gradient_variable,
-                        self.hmin_over_hmax_anisotropic_ratio, 
-                        self.boundary_layer_max_distance, 
+                        self.hmin_over_hmax_anisotropic_ratio,
+                        self.boundary_layer_max_distance,
                         self.interpolation
                     ))
                 else:
@@ -229,7 +230,7 @@ class MmgProcess(KratosMultiphysics.Process):
                         self.enforce_current,
                         self.gradient_variable
                     ))
-            
+
         elif (self.strategy == "Hessian"):
             for current_metric_variable in self.metric_variable:
                 if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
@@ -243,8 +244,8 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.enforce_current,
                                 self.interpolation_error,
                                 self.mesh_dependent_constant,
-                                self.hmin_over_hmax_anisotropic_ratio, 
-                                self.boundary_layer_max_distance, 
+                                self.hmin_over_hmax_anisotropic_ratio,
+                                self.boundary_layer_max_distance,
                                 self.interpolation
                             ))
                         else:
@@ -265,8 +266,8 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.enforce_current,
                                 self.interpolation_error,
                                 self.mesh_dependent_constant,
-                                self.hmin_over_hmax_anisotropic_ratio, 
-                                self.boundary_layer_max_distance, 
+                                self.hmin_over_hmax_anisotropic_ratio,
+                                self.boundary_layer_max_distance,
                                 self.interpolation
 
                             ))
@@ -291,8 +292,8 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.enforce_current,
                                 self.interpolation_error,
                                 self.mesh_dependent_constant,
-                                self.hmin_over_hmax_anisotropic_ratio, 
-                                self.boundary_layer_max_distance, 
+                                self.hmin_over_hmax_anisotropic_ratio,
+                                self.boundary_layer_max_distance,
                                 self.interpolation
                             ))
                         else:
@@ -313,8 +314,8 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.enforce_current,
                                 self.interpolation_error,
                                 self.mesh_dependent_constant,
-                                self.hmin_over_hmax_anisotropic_ratio, 
-                                self.boundary_layer_max_distance, 
+                                self.hmin_over_hmax_anisotropic_ratio,
+                                self.boundary_layer_max_distance,
                                 self.interpolation
 
                             ))
@@ -333,7 +334,7 @@ class MmgProcess(KratosMultiphysics.Process):
         # We compute the scalar value gradient
         if (self.dim == 2):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
-        else: 
+        else:
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.Model[self.model_part_name], self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
 
     def _ExecuteRefinement(self):
@@ -365,12 +366,12 @@ class MmgProcess(KratosMultiphysics.Process):
     def _InitializeMetric(self):
         # Initialize metric
         if (self.dim == 2):
-            ZeroVector = KratosMultiphysics.Vector(3) 
+            ZeroVector = KratosMultiphysics.Vector(3)
             ZeroVector[0] = 0.0
             ZeroVector[1] = 0.0
             ZeroVector[2] = 0.0
         else:
-            ZeroVector = KratosMultiphysics.Vector(6) 
+            ZeroVector = KratosMultiphysics.Vector(6)
             ZeroVector[0] = 0.0
             ZeroVector[1] = 0.0
             ZeroVector[2] = 0.0
@@ -396,22 +397,22 @@ class MmgProcess(KratosMultiphysics.Process):
           raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-      
+
       variable_list = []
-      
+
       for i in range( 0,param.size()):
           aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
           for node in self.Model[self.model_part_name].Nodes:
             val = node.GetSolutionStepValue(aux_var, 0)
             break
-          if isinstance(val,float): 
+          if isinstance(val,float):
               variable_list.append(aux_var)
           else:
               variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
               variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
               if (self.dim == 3):
                 variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
-      
+
       return variable_list
 
 def linear_interpolation(x, x_list, y_list):
@@ -432,7 +433,7 @@ def linear_interpolation(x, x_list, y_list):
     else:
         prop_sup = (x - x_inf)/(x_sup - x_inf)
         prop_inf = 1.0 - prop_sup
-        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
+        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup
 
     return y
 
