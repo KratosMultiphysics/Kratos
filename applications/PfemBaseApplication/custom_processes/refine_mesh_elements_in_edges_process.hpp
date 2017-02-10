@@ -122,6 +122,10 @@ public:
 
 	    //4.- Insert new nodes to model part
 	    this->SetNodesToModelPart(mrModelPart, ListOfNewNodes);
+
+	    //0.- Clean locally used flags
+	    this->CleanUsedFlags(mrModelPart);
+
 	    
 	  }
       
