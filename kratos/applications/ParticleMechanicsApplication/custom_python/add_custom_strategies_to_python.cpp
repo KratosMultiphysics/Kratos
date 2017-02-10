@@ -137,7 +137,7 @@ namespace Kratos
 			class_< MPMStrategyType2D, bases< BaseSolvingStrategyType >, boost::noncopyable >
 				  (  
 				  "MPM2D",
-				  init < ModelPart&, ModelPart&,  LinearSolverType::Pointer,const Element&, bool , std::string , std::string >() )
+				  init < ModelPart&, ModelPart&,  LinearSolverType::Pointer,const Element&, bool , std::string , std::string , int>() )
 				
 				  
 				  .def( "SearchElement", &MPMStrategyType2D::SearchElement)
@@ -147,7 +147,7 @@ namespace Kratos
 			class_< MPMStrategyType3D, bases< BaseSolvingStrategyType >, boost::noncopyable >
 				  (  
 				  "MPM3D",
-				  init < ModelPart&, ModelPart&,  LinearSolverType::Pointer,const Element&, bool, std::string , std::string >() )
+				  init < ModelPart&, ModelPart&,  LinearSolverType::Pointer,const Element&, bool, std::string , std::string , int>() )
 				
 				  
 				  .def( "SearchElement", &MPMStrategyType3D::SearchElement)

@@ -372,6 +372,14 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    
+    void Calculate(const Variable<double>& rVariable,
+                           double& Output,
+                           const ProcessInfo& rCurrentProcessInfo);
+                 
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+                           array_1d<double, 3 > & Output,
+                           const ProcessInfo& rCurrentProcessInfo);
     void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**

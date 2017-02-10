@@ -503,7 +503,7 @@ public:
     /**
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
-    //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutputz, ProcessInfo& rCurrentProcessInfo);
+    //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo);
     
 
 

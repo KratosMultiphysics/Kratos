@@ -463,54 +463,545 @@ public:
         KRATOS_TRY
 
         ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
-        
+
         //LOOP OVER THE GRID NODES PERFORMED FOR CLEAR ALL NODAL INFORMATION
-        
+
         for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
                 i != mr_grid_model_part.NodesEnd(); ++i)
+        {
+            if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
             {
-                if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
-                {
 
-                    array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                    double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE);
+                array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                //double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
 
-                    NodalMomentum.clear();
-                    NodalInertia.clear();
-                    NodalMass= 0.0;
-                    NodalPressure = 0.0;
-                }
-                
-                if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
-                {
-                    array_1d<double, 3 > & NodalDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                    array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                    array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY);
-                    array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION);
-                    
-                                        
-                    NodalDisplacement.clear();
-                    NodalVelocity.clear();
-                    NodalAcceleration.clear();
-                    DeltaNodalVelocity.clear();
-                    DeltaNodalAcceleration.clear();
-                }
-                if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
-                {
-                    array_1d<double, 3 > & ExternalForce = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
-                    array_1d<double, 3 > & InternalForce = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
-                    ExternalForce.clear();
-                    InternalForce.clear();
-                }
+                double & NodalDensity = (i)->FastGetSolutionStepValue(DENSITY);
+                double & NodalAuxR = (i)->FastGetSolutionStepValue(AUX_R);
+                array_1d<double, 3 > & NodalAuxRVel = (i)->FastGetSolutionStepValue(AUX_R_VEL);
+                array_1d<double, 3 > & NodalAuxRAcc = (i)->FastGetSolutionStepValue(AUX_R_ACC);
+
+                NodalMomentum.clear();
+                NodalInertia.clear();
+                NodalMass= 0.0;
+                //NodalMPressure = 0.0;
+                NodalPressure = 0.0;
+
+                NodalDensity = 0.0;
+                NodalAuxR = 0.0;
+                NodalAuxRVel.clear();
+                NodalAuxRAcc.clear();
+                //std::cout<< "NodalDensity "<< (i)->FastGetSolutionStepValue(DENSITY)<<std::endl;
             }
+
+            if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
+            {
+                array_1d<double, 3 > & NodalDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+                double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE);
+                array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+                array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY);
+                array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION);
+                //array_1d<double, 3 > & NodalStress = (i)->FastGetSolutionStepValue(NODAL_STRESSES);
+
+                NodalDisplacement.clear();
+                NodalPressure = 0.0;
+                NodalVelocity.clear();
+                NodalAcceleration.clear();
+                DeltaNodalVelocity.clear();
+                DeltaNodalAcceleration.clear();
+                //NodalStress.clear();
+            }
+            //if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
+            //{
+            //array_1d<double, 3 > & ExternalForce = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
+            //array_1d<double, 3 > & InternalForce = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
+            //ExternalForce.clear();
+            //InternalForce.clear();
+            //}
+        }
+//******************************************************************************************************************
+        //EVALUATION OF DENSITY FIELD
+		//double output;
+		//for (ModelPart::ElementIterator i = r_model_part.ElementsBegin();
+                //i != r_model_part.ElementsEnd(); ++i)
+            //{   
+                
+                //i -> Calculate(DENSITY, output, CurrentProcessInfo);
+                   
+            //}
+
+        //double NormDeltaDensity = 1.0;
+        //double NormDensity = 1.0;
+
+        //double TolDensity = 5.0e-4;
+        //double RatioNormDensity = 1.0;
+        //int ItNum = 1;
         
         
+        //while (RatioNormDensity > TolDensity && ItNum < 10)
+        //{
+            //std::cout<< "ItNum "<<ItNum<<std::endl;
+            //double DeltaNodalDensity = 0.0;
+            //NormDeltaDensity = 0.0;
+            //NormDensity = 0.0;
+            //RatioNormDensity = 0.0;
+
+
+            //for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
+                    //i != mr_grid_model_part.NodesEnd(); ++i)
+            //{
+                
+                //double & NodalLumpedMass = i->FastGetSolutionStepValue(NODAL_LUMPED_MASS);
+               
+                //NodalLumpedMass = 0.0;
+                //const double NodalAuxR = i->FastGetSolutionStepValue(AUX_R);
+                //double & NodalAuxT = i->FastGetSolutionStepValue(AUX_T);
+                
+                //NodalAuxT = NodalAuxR;
+            //}
+
+			 ////for (ModelPart::ElementIterator i = mr_grid_model_part.ElementsBegin();
+                    ////i != mr_grid_model_part.ElementsEnd(); ++i)
+            ////{
+				////double ElementalArea = i->GetGeometry().Area();
+				////const unsigned int number_of_nodes = i ->GetGeometry().PointsNumber();
+				////for (unsigned int j=0; j<number_of_nodes; j++)
+
+                ////{
+					
+					////double& NodalLumpedMass = i->GetGeometry()[j].GetSolutionStepValue(NODAL_LUMPED_MASS);
+					////NodalLumpedMass += ElementalArea/(3);
+				////}
+				
+				
+			////}
+            //for (ModelPart::ElementIterator i = mr_grid_model_part.ElementsBegin();
+                    //i != mr_grid_model_part.ElementsEnd(); ++i)
+            //{
+                
+                //const unsigned int number_of_nodes = i ->GetGeometry().PointsNumber();
+                //double ElementalArea = i->GetGeometry().Area();
+                ////std::cout<<" ElementalArea "<<ElementalArea<<std::endl;
+
+
+                //double consistent_mass = 0.0;
+
+                //for (unsigned int j=0; j<number_of_nodes; j++)
+
+                //{
+                    //double Aux_term = 0.0;
+                    //double NodalAuxR = i->GetGeometry()[j].GetSolutionStepValue(AUX_R);
+                    //double & NodalAuxT = i->GetGeometry()[j].GetSolutionStepValue(AUX_T);
+                    
+					
+                    //double& NodalLumpedMass = i->GetGeometry()[j].GetSolutionStepValue(NODAL_LUMPED_MASS);
+
+                    //for (unsigned int k=0; k<number_of_nodes; k++)
+
+                    //{
+						//double NodalDensity = i->GetGeometry()[k].GetSolutionStepValue(DENSITY);
+                         //if ( number_of_nodes==3)
+                        //{
+							//if(i->GetGeometry()[k].Id() == 9446)// || i->GetGeometry()[j].Id() == 577 || i->GetGeometry()[j].Id() == 618)
+                    //{
+							//std::cout<<" ELEMENT ID " << i->Id()<<std::endl;
+						//}
+                            //consistent_mass = ElementalArea/(12);
+                            ////consistent_mass = 0.0;
+                            //if(j==k)
+                                //consistent_mass = (2 * ElementalArea)/(12);
+                                ////consistent_mass = (ElementalArea)/(3);
+                        //}
+                        
+						
+                        //Aux_term += consistent_mass * NodalDensity;
+						
+						//if(i->GetGeometry()[j].Id() == 9446)
+                    //{
+						//std::cout<<" NODE ID J"<<i->GetGeometry()[j].Id()<<std::endl;
+						//std::cout<<" NODE ID K"<<i->GetGeometry()[k].Id()<<std::endl;
+						//std::cout<<" Aux_term "<<Aux_term<<std::endl;
+						//std::cout<<" consistent_mass "<<consistent_mass<<std::endl;
+						//std::cout<<" NodalDensity "<<NodalDensity<<std::endl;
+					//}
+
+                    //}
+                    //NodalAuxT -= Aux_term;
+                    
+                    //NodalLumpedMass += ElementalArea/(3);
+					
+                    //if(i->GetGeometry()[j].Id() == 9446)// || i->GetGeometry()[j].Id() == 577 || i->GetGeometry()[j].Id() == 618)
+                    //{
+                    ////std::cout<<" NodalLumpedMass "<<i->GetGeometry()[j].GetSolutionStepValue(NODAL_LUMPED_MASS)<<std::endl;
+                    //std::cout<<" NODE ID "<<i->GetGeometry()[j].Id()<<std::endl;
+                    //std::cout<<" NodalAuxR "<<NodalAuxR<<std::endl;
+                    //std::cout<<" Aux_term "<<Aux_term<<std::endl;
+                    //std::cout<<" aux_T "<<NodalAuxT<<std::endl;
+                    //std::cout<<" NodalLumpedMass "<<NodalLumpedMass<<std::endl;
+                    //}
+                //}
+		
+		//}
+
+            //for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
+                    //i != mr_grid_model_part.NodesEnd(); ++i)
+            //{
+
+
+                //double & NodalDensity = (i)->FastGetSolutionStepValue(DENSITY);
+                //const double NodalLumpedMass = (i)->FastGetSolutionStepValue(NODAL_LUMPED_MASS);
+                //DeltaNodalDensity = (i)->FastGetSolutionStepValue(AUX_T) / NodalLumpedMass;
+
+                ////update the nodal density
+
+                ////std::cout<<" NodalDensity before update"<<NodalDensity<<std::endl;
+                ////std::cout<<" NODE ID "<<(i)->Id()<<std::endl;
+                ////std::cout<<" aux_T "<<(i)->FastGetSolutionStepValue(AUX_T)<<std::endl;
+                ////std::cout<<" NodalLumpedMass "<<NodalLumpedMass<<std::endl;
+                ////std::cout<<" DeltaNodalDensity "<<DeltaNodalDensity<<std::endl;
+
+				//if(i->Id() == 9446)// || i->Id() == 577 || i->Id() == 618)
+                //{
+					//std::cout<<" NodalDensity before update"<<NodalDensity<<std::endl;
+					//std::cout<<" NodalLumpedMass "<<NodalLumpedMass<<std::endl;
+					//std::cout<<" aux_T "<<(i)->FastGetSolutionStepValue(AUX_T)<<std::endl;
+					//std::cout<<" DeltaNodalDensity "<<DeltaNodalDensity<<std::endl;
+				//}
+				//NodalDensity += DeltaNodalDensity;
+                ////NodalDensity += DeltaNodalDensity;
+               
+					
+				
+                //if(i->Id() == 9446)// || i->Id() == 577 || i->Id() == 618)
+                //{
+					//std::cout<<" NodalDensity after update"<<NodalDensity<<std::endl;
+					
+				//}
+                
+                ////std::cout<<" NodalDensity "<<NodalDensity<<std::endl;
+                ////else
+                ////{
+                ////DeltaNodalDensity = 0.0;
+                ////}
+                ////std::cout<<" NodalDensity after update"<<NodalDensity<<std::endl;
+                
+                
+				//NormDeltaDensity += (DeltaNodalDensity * DeltaNodalDensity);
+                //NormDensity += (NodalDensity * NodalDensity);
+				
+                ////if (NodalDensity != 0.0)
+                ////{
+				
+                ////////evaluate the nodal error
+                //////double RatioDensity = DeltaNodalDensity/NodalDensity;
+                //////RatioDensity *= RatioDensity;
+                ////////Delta += DeltaNodalDensity;
+                ////////double RatioDensity = Delta/NodalDensity;
+				////std::cout<<" NODE ID "<<(i)->Id()<<std::endl;
+                ////std::cout<<" NodalDensity "<<NodalDensity<<std::endl;
+                ////std::cout<<" DeltaNodalDensity "<<DeltaNodalDensity<<std::endl;
+                //////std::cout<<" RatioDensity "<<RatioDensity<<std::endl;
+                ////////update the global error
+                //////RatioNormDensity += RatioDensity;
+                ////}
+            //}
+            //NormDeltaDensity = sqrt(NormDeltaDensity);
+            //NormDensity = sqrt(NormDensity);
+            //RatioNormDensity = NormDeltaDensity / NormDensity;
+            //std::cout<<" RatioNormDensity "<<RatioNormDensity<<std::endl;
+            ////std::cout<< "ItNum "<<ItNum<<std::endl;
+            //++ItNum;
+        //}
+////**********************************************************************************************************
+        ////evaluation of velocity and acceleration field
+        //array_1d<double, 3 > OutputVelocity;
+        //array_1d<double, 3 > OutputAcceleration;
+        //for (ModelPart::ElementIterator i = r_model_part.ElementsBegin();
+                //i != r_model_part.ElementsEnd(); ++i)
+            //{   
+                
+                //i -> Calculate(VELOCITY, OutputVelocity, CurrentProcessInfo);
+                //i -> Calculate(ACCELERATION, OutputAcceleration, CurrentProcessInfo);
+                  
+            //}
         
+
+        //double TolVelocity = 1.0e-4;
+        //double TolAcceleration = 1.0e-4;
+        //double RatioNormVel = 1.0;
+        //double RatioNormAcc = 1.0;
+        //double NormVel = 1.0;
+        //double NormAcc = 1.0;
+        //double NormDeltaVel = 1.0;
+        //double NormDeltaAcc = 1.0;
+        //ItNum = 1;
+        //while (RatioNormVel > TolVelocity && RatioNormAcc > TolAcceleration)// && ItNum < 3)
+        //{
+            //RatioNormVel = 0.0;
+            //RatioNormAcc = 0.0;
+            //NormVel = 0.0;
+            //NormAcc = 0.0;
+            //NormDeltaVel = 0.0;
+            //NormDeltaAcc = 0.0;
+
+            //std::cout<< "ItNum "<<ItNum<<std::endl;
+            //for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
+                    //i != mr_grid_model_part.NodesEnd(); ++i)
+            //{
+                //array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
+                //array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
+
+                //DeltaNodalVelocity.clear();
+                //DeltaNodalAcceleration.clear();
+
+
+                //array_1d<double, 3 > NodalAuxRVel = i->FastGetSolutionStepValue(AUX_R_VEL);
+                //array_1d<double, 3 > NodalAuxRAcc = i->FastGetSolutionStepValue(AUX_R_ACC);
+
+                //array_1d<double, 3 > & NodalAuxTVel = i->FastGetSolutionStepValue(AUX_T_VEL);
+                //array_1d<double, 3 > & NodalAuxTAcc = i->FastGetSolutionStepValue(AUX_T_ACC);
+                //double & NodalLumpedMass = i->FastGetSolutionStepValue(NODAL_LUMPED_MASS);
+                //NodalAuxTVel = NodalAuxRVel;
+                //NodalAuxTAcc = NodalAuxRAcc;
+                ////if(i->Id() == 18)
+                ////{
+                    ////std::cout<< "NODE ID "<<i->Id()<<std::endl;
+                    ////std::cout<< "NodalAuxTVel "<<NodalAuxTVel<<std::endl;
+                    ////std::cout<< "NodalAuxTAcc "<<NodalAuxTAcc<<std::endl;
+                ////}
+                //NodalLumpedMass = 0.0;
+
+            //}
+
+            //for (ModelPart::ElementIterator i = mr_grid_model_part.ElementsBegin();
+                    //i != mr_grid_model_part.ElementsEnd(); ++i)
+            //{
+                
+					
+                    //const unsigned int number_of_nodes = i ->GetGeometry().PointsNumber();
+                    //double ElementalArea = i->GetGeometry().Area();
+                    //double dimension = i->GetGeometry().WorkingSpaceDimension();
+
+                    //double consistent_mass = 0.0;
+                    //array_1d<double, 3 > Aux_term_vel = ZeroVector(3);
+                    //array_1d<double, 3 > Aux_term_acc = ZeroVector(3);
+
+                    //for (unsigned int j=0; j<number_of_nodes; j++)
+
+                    //{
+
+                       
+                        
+                        //Aux_term_vel.clear();
+                        //Aux_term_acc.clear();
+                        
+
+                        ////array_1d<double, 3 > NodalAuxRVel = i->GetGeometry()[j].GetSolutionStepValue(AUX_R_VEL);
+                        //array_1d<double, 3 >& NodalAuxTVel = i->GetGeometry()[j].GetSolutionStepValue(AUX_T_VEL);
+
+                        ////array_1d<double, 3 > NodalAuxRAcc = i->GetGeometry()[j].GetSolutionStepValue(AUX_R_ACC);
+                        //array_1d<double, 3 >& NodalAuxTAcc = i->GetGeometry()[j].GetSolutionStepValue(AUX_T_ACC);
+
+                        
+                        
+                        //double& NodalLumpedMass = i->GetGeometry()[j].GetSolutionStepValue(NODAL_LUMPED_MASS);
+						
+
+                        //for (unsigned int k=0; k<number_of_nodes; k++)
+                        //{
+							
+							//array_1d<double, 3 > NodalVelocity = i->GetGeometry()[k].GetSolutionStepValue(VELOCITY,1);
+							//array_1d<double, 3 > NodalAcceleration = i->GetGeometry()[k].GetSolutionStepValue(ACCELERATION,1);
+							//const double NodalDensity = i->GetGeometry()[k].GetSolutionStepValue(DENSITY);
+                            
+                            //if ( number_of_nodes==3)//i->GetGeometry()[k].Is(ACTIVE))
+							//{
+                                //consistent_mass = ElementalArea/(12);
+                            ////consistent_mass = 0.0;
+                            //if(j==k)
+                                //consistent_mass = (2 * ElementalArea)/(12);
+                                ////consistent_mass = (ElementalArea)/(3);
+                            //}
+                            
+                            
+                            //for (unsigned int l = 0; l < dimension; l++)
+                            //{
+								
+                                //Aux_term_vel[l] += consistent_mass * NodalDensity * NodalVelocity[l];
+                                //Aux_term_acc[l] += consistent_mass * NodalDensity * NodalAcceleration[l];
+                            
+							//}
+							////if(i->GetGeometry()[j].Id()==18)
+                        ////{
+                            ////std::cout<< " ELEMENT ID "<< i->Id()<<std::endl;
+                            ////std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
+                            ////std::cout<< "NodalAcceleration"<<NodalAcceleration<<std::endl;
+                            ////std::cout<< "NodalDensity"<<NodalDensity<<std::endl;
+                            ////std::cout<< "consistent_mass"<<consistent_mass<<std::endl;
+                            ////std::cout<< "contribution Aux_term_acc"<<consistent_mass * NodalDensity * NodalAcceleration<<std::endl;
+                            
+                        ////}
+							
+
+                        //}
+
+                        //NodalLumpedMass += ElementalArea/(3);
+                        ////if(i->GetGeometry()[j].Id()==18)
+                        ////{
+
+                            ////std::cout<< "NodalAuxTVel in element loop before "<<NodalAuxTVel<<std::endl;
+                            ////std::cout<< "NodalAuxTAcc in element loop before"<<NodalAuxTAcc<<std::endl;
+                        ////}
+                        
+                        ////GLOBAL VALUES OF TVEL AND TACC ARE EVALUATED FOR EACH ELEMENT CONTRIBUTION
+                        //NodalAuxTVel -= Aux_term_vel;
+                        //NodalAuxTAcc -= Aux_term_acc;
+
+                        ////if(i->GetGeometry()[j].Id()==18)
+                        ////{
+                            ////std::cout<< " ELEMENT ID "<< i->Id()<<std::endl;
+                            ////std::cout<< "Aux_term_vel in element loop "<<Aux_term_vel<<std::endl;
+                            ////std::cout<< "Aux_term_acc in element loop"<<Aux_term_acc<<std::endl;
+                            ////std::cout<< "NodalAuxTVel in element loop after"<<NodalAuxTVel<<std::endl;
+                            ////std::cout<< "NodalAuxTAcc in element loop after"<<NodalAuxTAcc<<std::endl;
+                        ////}
+
+                        ////if(NodalDensity != 0.0)
+                        ////{
+
+                        ////std::cout<< "NODE ID "<<i->GetGeometry()[j].Id()<<std::endl;
+                        ////std::cout<< "NodalAuxTVel in element loop "<<NodalAuxTVel<<std::endl;
+                        ////std::cout<< "NodalAuxTAcc in element loop"<<NodalAuxTAcc<<std::endl;
+                        ////}
+
+                    //}
+               
+            //}
+
+            //for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
+                    //i != mr_grid_model_part.NodesEnd(); ++i)
+            //{
+
+
+                ////double DeltaNodalDensity = (i)->GetSolutionStepValue(DELTA_DENSITY);
+                //double & NodalDensity = (i)->FastGetSolutionStepValue(DENSITY);
+                //double NodalLumpedMass = (i)->FastGetSolutionStepValue(NODAL_LUMPED_MASS);
+                //array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+                //array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+
+                //array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
+                //array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
+
+                //if(NodalDensity != 0.0)
+                //{
+					
+                    //if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+                    //{
+                        //DeltaNodalVelocity[0] = (i)->FastGetSolutionStepValue(AUX_T_VEL)[0] / (NodalLumpedMass * NodalDensity);
+                        //DeltaNodalAcceleration[0] = (i)->FastGetSolutionStepValue(AUX_T_ACC)[0] / (NodalLumpedMass * NodalDensity);
+                    //}
+                    //else
+                    //{
+                        //DeltaNodalVelocity[0] = 0.0;
+                        //DeltaNodalAcceleration[0] = 0.0;
+
+                    //}
+                    //if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
+                    //{
+                        //DeltaNodalVelocity[1] = (i)->FastGetSolutionStepValue(AUX_T_VEL)[1] / (NodalLumpedMass * NodalDensity);
+                        //DeltaNodalAcceleration[1] = (i)->FastGetSolutionStepValue(AUX_T_ACC)[1] / (NodalLumpedMass * NodalDensity);
+                    //}
+                    //else
+                    //{
+                        //DeltaNodalVelocity[1] = 0.0;
+                        //DeltaNodalAcceleration[1] = 0.0;
+
+                    //}
+                    //if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
+                    //{
+                        //DeltaNodalVelocity[2] = (i)->FastGetSolutionStepValue(AUX_T_VEL)[2] / (NodalLumpedMass * NodalDensity);
+                        //DeltaNodalAcceleration[2] = (i)->FastGetSolutionStepValue(AUX_T_ACC)[2] / (NodalLumpedMass * NodalDensity);
+                    //}
+                    //else
+                    //{
+                        //DeltaNodalVelocity[2] = 0.0;
+                        //DeltaNodalAcceleration[2] = 0.0;
+
+                    //}
+
+
+
+                    ////update nodal velocity and nodal acceleration
+                    //NodalVelocity += DeltaNodalVelocity;
+                    //NodalAcceleration += DeltaNodalAcceleration;
+                    ////if(i->Id() == 618 || i->Id() == 597)
+                ////{
+					////std::cout<< "DeltaNodalVelocity "<<DeltaNodalVelocity<<std::endl;
+					////std::cout<< "DeltaNodalAcceleration "<<DeltaNodalAcceleration<<std::endl;
+					////std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
+					////std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
+				////}
+                    ////~ if(i->Id()==18)
+                    ////~ {
+                        ////~ //std::cout<< "NODE ID "<<(i)->Id()<<std::endl;
+                        ////~ std::cout<< "aux_T_vel "<<(i)->FastGetSolutionStepValue(AUX_T_VEL)<<std::endl;
+                        ////~ std::cout<< "aux_T_acc "<<(i)->FastGetSolutionStepValue(AUX_T_ACC)<<std::endl;
+                        ////~ std::cout<< "NodalLumpedMass * NodalDensity "<<NodalLumpedMass * NodalDensity<<std::endl;
+                        ////~ std::cout<< "DeltaNodalVelocity "<<DeltaNodalVelocity<<std::endl;
+                        ////~ std::cout<< "DeltaNodalAcceleration "<<DeltaNodalAcceleration<<std::endl;
+                        ////~ std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
+                        ////~ std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
+                    ////~ }
+                    //NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
+                    //NormDeltaAcc += (DeltaNodalAcceleration[0]*DeltaNodalAcceleration[0]+DeltaNodalAcceleration[1]*DeltaNodalAcceleration[1]+DeltaNodalAcceleration[2]*DeltaNodalAcceleration[2]);
+
+                    //NormVel += (NodalVelocity[0]*NodalVelocity[0]+NodalVelocity[1]*NodalVelocity[1]+NodalVelocity[2]*NodalVelocity[2]);
+                    //NormAcc += (NodalAcceleration[0]*NodalAcceleration[0]+NodalAcceleration[1]*NodalAcceleration[1]+NodalAcceleration[2]*NodalAcceleration[2]);
+                //}
+                ////if((i)->Id() ==1)
+                ////{
+                ////std::cout<< "NODE ID "<<(i)->Id()<<std::endl;
+                ////std::cout<< "NodalLumpedMass * NodalDensity "<<NodalLumpedMass * NodalDensity<<std::endl;
+                ////std::cout<< "aux_T_vel "<<(i)->FastGetSolutionStepValue(AUX_T_VEL)<<std::endl;
+                ////std::cout<< "DeltaNodalVelocity "<<DeltaNodalVelocity<<std::endl;
+                ////std::cout<< "DeltaNodalVelocity "<<DeltaNodalVelocity<<std::endl;
+                ////std::cout<< "DeltaNodalAcceleration "<<DeltaNodalAcceleration<<std::endl;
+                ////std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
+                ////std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
+                ////std::cout<< "NormVel "<<NormVel<<std::endl;
+                ////std::cout<< "NormAcc "<<NormAcc<<std::endl;
+                ////std::cout<< "NormDeltaVel "<<NormDeltaVel<<std::endl;
+                ////std::cout<< "NormDeltaAcc "<<NormDeltaAcc<<std::endl;
+                ////}
+            //}
+
+            //NormVel = sqrt(NormVel);//(nodes_counter*2);
+            //NormAcc = sqrt(NormAcc);//(nodes_counter*2);
+            //NormDeltaVel = sqrt(NormDeltaVel);//(nodes_counter*2);
+            //NormDeltaAcc = sqrt(NormDeltaAcc);//(nodes_counter*2);
+
+            //RatioNormVel = NormDeltaVel/NormVel;
+            //RatioNormAcc = NormDeltaAcc/NormAcc;
+            ////std::cout<< "ItNum "<<ItNum<<std::endl;
+            //std::cout<< "RatioNormVel "<<RatioNormVel<<std::endl;
+            //std::cout<< "RatioNormAcc "<<RatioNormAcc<<std::endl;
+            //++ItNum;
+        //}
+
+
+
+
+        //Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
+
+
+
+
+
         double RatioNormVel = 1.0;
-		double RatioNormAcc = 1.0;
+        double RatioNormAcc = 1.0;
         double NormVel = 1.0;
         double NormAcc = 1.0;
         double NormDeltaVel = 1.0;
@@ -518,243 +1009,278 @@ public:
         double TolVel = 5.0e-4;
         double TolAcc = 5.0e-4;
         int ItNum = 1;
-        //for (unsigned int i = 0; i<20; i++)// 
+        //for (unsigned int i = 0; i<20; i++)//
         //while(RatioNormVel > TolVel || RatioNormAcc > TolAcc)
-        while (RatioNormVel > TolVel && RatioNormAcc > TolAcc)
-        //while (ItNum <5)
+        while (RatioNormVel > TolVel && RatioNormAcc > TolAcc && ItNum <1000)
+        //while (ItNum <2)
         {
-			std::cout<< "ItNum "<<ItNum<<std::endl;
-            for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-                i != mr_grid_model_part.NodesEnd(); ++i)
-            {
-                if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
-                {
+        std::cout<< "ItNum "<<ItNum<<std::endl;
+        for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
+        i != mr_grid_model_part.NodesEnd(); ++i)
+        {
+        if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
+        {
 
-                    array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
-                    
-                    double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                    NodalMomentum.clear();
-                    NodalInertia.clear();
-                    DeltaNodalVelocity.clear();
-                    DeltaNodalAcceleration.clear();
-                    
-                    NodalMass = 0.0;
-                }
-            
-                //if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
-                    
-                //{
-                    //std::cout<<"***************before calling initializa solution step********************************"<<std::endl;
-                    //std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)<<std::endl;
-                    //std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)<<std::endl;
-                    //std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
-                    //std::cout<<"NodalInertia[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
-                    //std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
-                //}
-            }
-            //IterativeExtrapolation evaluate again the global nodal nodal momentum inertia in function of a auxiliary function
-            //std::cout<<"BEFORE CALLING FOR THE INITIALIZE SOLUTION STEP OF THE ELEMENT AFTER THE FIRST TIME"<<std::endl;
-            NormVel = 0.0;
-            NormAcc = 0.0;
-            NormDeltaVel = 0.0;
-            NormDeltaAcc = 0.0;
-            //TolVel = 1;
-            //TolAcc = 1;
-            int nodes_counter = 0;
-            Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
-            
-            
-            for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-            {
-                double & NodalMass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-                
-                if (NodalMass > 1.0e-16 )//> 1.0e-18)
-                {   
-                    //if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
-                    
-                        //{
-                            //std::cout<<"***************after calling initializa solution step********************************"<<std::endl;
-                            //std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)<<std::endl;
-                            //std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)<<std::endl;
-                            //std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
-                            //std::cout<<"NodalInertia[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
-                            //std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
-                        //}
-                    
-                    array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
-                    array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
-                    
-                    array_1d<double, 3 > & NodalMomentum     = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    array_1d<double, 3 > & NodalInertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                    array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                    
-                    //if ((i)->Id() == 4116 || (i)->Id() == 4159 || (i)->Id() == 4163)
-                //{
-					
-					//std::cout<<"NodalVelocity "<<(i)->Id()<<NodalVelocity<<std::endl; 
-					//std::cout<<"NodalAcceleration "<<(i)->Id()<<NodalAcceleration<<std::endl; 
-					//std::cout<<"DeltaNodalVelocity "<<(i)->Id()<<DeltaNodalVelocity<<std::endl; 
-					//std::cout<<"DeltaNodalAcceleration"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl;
-					//std::cout<<"NodalMass "<<(i)->Id()<<NodalMass<<std::endl;       
-					
-				//}
+        array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+        array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+        //double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+        array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
+        array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
 
-               
-                    
-                    //if (i->HasDofFor(DISPLACEMENT_X))
-                //{
-                    //DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                    //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
-                    
-                //}
-                //if (i->HasDofFor(DISPLACEMENT_Y))
-                //{
-                    //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-                    //DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
-                    
-                //}
-                //if (i->HasDofFor(DISPLACEMENT_Z))
-                //{
-                    //DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                    //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-                    
-                //}             
-  
-//************************************************************************************************************************************************************                    
-                    
-                    if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-                    {
-                        DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                        DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
-                    }
-                    else
-                    {
-                        DeltaNodalVelocity[0] = 0.0;
-                        DeltaNodalAcceleration[0] = 0.0;
-                        
-                    }
-                    if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
-                    {
-                       
-                        
-                        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
-                        DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-                        
-                        
-                        ////if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
-                    
-                        ////{
-                            
-                            ////std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)[1]<<std::endl;
-                            ////std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)[1]<<std::endl;
-                            ////std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)[1]<<std::endl;
-                            ////std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
-                        ////}                        
-                    }
-                    else
-                    {
-                        DeltaNodalVelocity[1] = 0.0;
-                        DeltaNodalAcceleration[1] = 0.0;
-                        
-                    }
-                    if (i->HasDofFor(DISPLACEMENT_Z))
-                    {
-                        if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
-                        {
-                            DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                            DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-                        }
-                        else
-                        {
-                            DeltaNodalVelocity[2] = 0.0;
-                            DeltaNodalAcceleration[2] = 0.0;
-                            
-                        }
-                    }
-//************************************************************************************************************************************************************                    
-                    //(i)->FastGetSolutionStepValue(VELOCITY,1) += DeltaNodalVelocity;
-                    //(i)->FastGetSolutionStepValue(ACCELERATION,1) += DeltaNodalAcceleration;
-                    
-                    
-                    
-                    NodalVelocity += DeltaNodalVelocity;
-                    NodalAcceleration += DeltaNodalAcceleration;
-                    
-                    NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
-                    NormDeltaAcc += (DeltaNodalAcceleration[0]*DeltaNodalAcceleration[0]+DeltaNodalAcceleration[1]*DeltaNodalAcceleration[1]+DeltaNodalAcceleration[2]*DeltaNodalAcceleration[2]);
-					
-					NormVel += (NodalVelocity[0]*NodalVelocity[0]+NodalVelocity[1]*NodalVelocity[1]+NodalVelocity[2]*NodalVelocity[2]);
-					NormAcc += (NodalAcceleration[0]*NodalAcceleration[0]+NodalAcceleration[1]*NodalAcceleration[1]+NodalAcceleration[2]*NodalAcceleration[2]);
-					//if ((i)->Id() == 4116 || (i)->Id() == 4159 || (i)->Id() == 4163)
-                //{
-					//std::cout<<"DeltaNodalVelocity "<<(i)->Id()<<DeltaNodalVelocity<<std::endl; 
-					//std::cout<<"DeltaNodalAcceleration"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl; 
-					//std::cout<<"NodalVelocity "<<(i)->Id()<<NodalVelocity<<std::endl; 
-					//std::cout<<"NodalAcceleration "<<(i)->Id()<<NodalAcceleration<<std::endl; 
-					////std::cout<<"NodalVelocity "<<(i)->Id()<<(i)->FastGetSolutionStepValue(VELOCITY)<<std::endl; 
-					////std::cout<<"NodalAcceleration "<<(i)->Id()<<(i)->FastGetSolutionStepValue(ACCELERATION)<<std::endl; 
-					////std::cout<<"NodalDispMass "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_DISPMASS)<<std::endl;  
-					////std::cout<<"NodalImposedDisplacement "<<(i)->Id()<<NodalImposedDisplacement<<std::endl;   
-					//std::cout<<"NodalMass "<<(i)->Id()<<NodalMass<<std::endl;       
-					
-				//}
-                    //if ((i)->Id() == 36)// || (i)->Id() == 55 || (i)->Id() == 61)
-                    
-                    //{
-						////std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
-                        ////std::cout<<"NodalMomentum "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
-                        ////std::cout<<"NodalMass "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
-                        ////std::cout<<"NodalInertia "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
-                        //std::cout<<"Delta NodalVelocity in initialize solution step"<<(i)->Id()<<DeltaNodalVelocity<<std::endl;
-                        //std::cout<<"Delta NodalAcceleration in initialize solution step"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl;
-                        //std::cout<<"NodalVelocity in initialize solution step"<<(i)->Id()<<(i)->FastGetSolutionStepValue(VELOCITY,1)<<std::endl;
-                        //std::cout<<"NodalAcceleration in initialize solution step"<<(i)->Id()<<(i)->FastGetSolutionStepValue(ACCELERATION,1)<<std::endl;
-                    //}
-                ++nodes_counter;
-                }
-                
-            }  
-            //std::cout<<"  NormVel "<< NormVel<<std::endl;
-            //std::cout<<"  NormAcc "<< NormAcc<<std::endl;
-            
-            //std::cout<<"  NormDeltaVel "<< NormDeltaVel<<std::endl;
-            //std::cout<<"  NormDeltaAcc "<< NormDeltaAcc<<std::endl;
-            //std::cout<<"  nodes_counter "<< nodes_counter<<std::endl;
-            
-            NormVel = sqrt(NormVel);//(nodes_counter*2);
-            NormAcc = sqrt(NormAcc);//(nodes_counter*2);
-            NormDeltaVel = sqrt(NormDeltaVel);//(nodes_counter*2);
-            NormDeltaAcc = sqrt(NormDeltaAcc);//(nodes_counter*2);
-            
-            //std::cout<<"  NormVel "<< NormVel<<std::endl;
-            //std::cout<<"  NormAcc "<< NormAcc<<std::endl;
-            //std::cout<<"  NormDeltaVel "<< NormDeltaVel<<std::endl;
-            //std::cout<<"  NormDeltaAcc "<< NormDeltaAcc<<std::endl;
-            //if (ItNum ==1)
-            //{
-				//InitialNormVel = NormVel;
-				//InitialNormAcc = NormAcc;
-			//}
-			//std::cout<<"  InitialNormVel "<< InitialNormVel<<std::endl;
-            //std::cout<<"  InitialNormAcc "<< InitialNormAcc<<std::endl;
-			RatioNormVel = NormDeltaVel/NormVel;
-			RatioNormAcc = NormDeltaAcc/NormAcc;
-			//if (InitialNormVel == 0.0 || InitialNormAcc == 0.0)
-			//{
-				//RatioNormVel = 0.0;
-				//RatioNormAcc = 0.0;
-			//}
-			
-            
-            
-            //std::cout<< " RatioNormVel "<< RatioNormVel << std::endl;
-            //std::cout<< " RatioNormAcc "<< RatioNormAcc << std::endl;
-            ++ItNum;
+        double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+        NodalMomentum.clear();
+        NodalInertia.clear();
+        //NodalMPressure = 0.0;
+        DeltaNodalVelocity.clear();
+        DeltaNodalAcceleration.clear();
+
+        NodalMass = 0.0;
+        }
+
+        //if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
+
+        //{
+        //std::cout<<"***************before calling initializa solution step********************************"<<std::endl;
+        //std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)<<std::endl;
+        //std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)<<std::endl;
+        //std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
+        //std::cout<<"NodalInertia[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
+        //std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
+        //}
+        }
+        //IterativeExtrapolation evaluate again the global nodal nodal momentum inertia in function of a auxiliary function
+        //std::cout<<"BEFORE CALLING FOR THE INITIALIZE SOLUTION STEP OF THE ELEMENT AFTER THE FIRST TIME"<<std::endl;
+        NormVel = 0.0;
+        NormAcc = 0.0;
+        NormDeltaVel = 0.0;
+        NormDeltaAcc = 0.0;
+        //TolVel = 1;
+        //TolAcc = 1;
+        int nodes_counter = 0;
+        Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
+
+
+        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
+        i != r_model_part.NodesEnd(); ++i)
+        {
+        double & NodalMass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
+        //double & DeltaNodalPressure=(i)->FastGetSolutionStepValue(AUX_PRESSURE,1);
+        //DeltaNodalPressure = 0.0;
+        if (NodalMass > 1.0e-16 )//> 1.0e-18)
+        {
+        //if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
+
+        //{
+        //std::cout<<"***************after calling initializa solution step********************************"<<std::endl;
+        //std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)<<std::endl;
+        //std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)<<std::endl;
+        //std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
+        //std::cout<<"NodalInertia[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
+        //std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
+        //}
+
+        array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
+        array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
+
+        array_1d<double, 3 > & NodalMomentum     = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+        array_1d<double, 3 > & NodalInertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+        //double & NodalMPressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+
+        array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+        array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+        //double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+        
+        //if ((i)->Id() == 2276)// || (i)->Id() == 4159 || (i)->Id() == 4163)
+        //{
+
+        ////std::cout<<"NodalVelocity "<<(i)->Id()<<NodalVelocity<<std::endl;
+        ////std::cout<<"NodalAcceleration "<<(i)->Id()<<NodalAcceleration<<std::endl;
+        ////std::cout<<"DeltaNodalVelocity "<<(i)->Id()<<DeltaNodalVelocity<<std::endl;
+        ////std::cout<<"DeltaNodalAcceleration"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl;
+        //std::cout<<"NodalPressure "<<(i)->Id()<<NodalPressure<<std::endl;
+
+        //}
+        //if ((i)->Id() == 2276)// || (i)->Id() == 4159 || (i)->Id() == 4163)
+        //{
+
+        //std::cout<<"NodalPressure_BEFORE "<<(i)->Id()<<NodalPressure<<std::endl;
+
+        //}
+
+
+
+        //if (i->HasDofFor(DISPLACEMENT_X))
+        //{
+        //DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+        //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+
+        //}
+        //if (i->HasDofFor(DISPLACEMENT_Y))
+        //{
+        //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+        //DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+
+        //}
+        //if (i->HasDofFor(DISPLACEMENT_Z))
+        //{
+        //DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+        //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+
+        //}
+        
+        //if (i->HasDofFor(PRESSURE))
+        //{
+        //DeltaNodalPressure = NodalMPressure/NodalMass;
+
+        //}
+
+
+//************************************************************************************************************************************************************
+
+        if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+        {
+        DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+        DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+        }
+        else
+        {
+        DeltaNodalVelocity[0] = 0.0;
+        DeltaNodalAcceleration[0] = 0.0;
+        //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+
+        }
+        if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
+        {
+
+
+        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+        DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+
+
+        ////if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
+
+        ////{
+
+        ////std::cout<<"DeltaNodalVelocity[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_VELOCITY,1)[1]<<std::endl;
+        ////std::cout<<"DeltaNodalAcceleration[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(AUX_ACCELERATION,1)[1]<<std::endl;
+        ////std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)[1]<<std::endl;
+        ////std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
+        ////}
+        }
+        else
+        {
+        DeltaNodalVelocity[1] = 0.0;
+        DeltaNodalAcceleration[1] = 0.0;
+        //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+
+        }
+        if (i->HasDofFor(DISPLACEMENT_Z))
+        {
+        if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
+        {
+        DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+        DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+        }
+        else
+        {
+        DeltaNodalVelocity[2] = 0.0;
+        DeltaNodalAcceleration[2] = 0.0;
+        //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+
+        }
+        }
+//************************************************************************************************************************************************************
+        //(i)->FastGetSolutionStepValue(VELOCITY,1) += DeltaNodalVelocity;
+        //(i)->FastGetSolutionStepValue(ACCELERATION,1) += DeltaNodalAcceleration;
+
+
+
+        NodalVelocity += DeltaNodalVelocity;
+        NodalAcceleration += DeltaNodalAcceleration;
+
+        //NodalPressure += DeltaNodalPressure;
+
+        //if ((i)->Id() == 2276)// || (i)->Id() == 4159 || (i)->Id() == 4163)
+        //{
+
+        //std::cout<<"NodalPressure_AFTER "<<(i)->Id()<<NodalPressure<<std::endl;
+
+        //}
+
+
+        NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
+        NormDeltaAcc += (DeltaNodalAcceleration[0]*DeltaNodalAcceleration[0]+DeltaNodalAcceleration[1]*DeltaNodalAcceleration[1]+DeltaNodalAcceleration[2]*DeltaNodalAcceleration[2]);
+
+        NormVel += (NodalVelocity[0]*NodalVelocity[0]+NodalVelocity[1]*NodalVelocity[1]+NodalVelocity[2]*NodalVelocity[2]);
+        NormAcc += (NodalAcceleration[0]*NodalAcceleration[0]+NodalAcceleration[1]*NodalAcceleration[1]+NodalAcceleration[2]*NodalAcceleration[2]);
+        //if ((i)->Id() == 1998)// || (i)->Id() == 4159 || (i)->Id() == 4163)
+        //{
+        //std::cout<<"DeltaNodalVelocity "<<(i)->Id()<<DeltaNodalVelocity<<std::endl;
+        //std::cout<<"DeltaNodalAcceleration"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl;
+        //std::cout<<"NodalVelocity "<<(i)->Id()<<NodalVelocity<<std::endl;
+        //std::cout<<"NodalAcceleration "<<(i)->Id()<<NodalAcceleration<<std::endl;
+        ////std::cout<<"NodalVelocity "<<(i)->Id()<<(i)->FastGetSolutionStepValue(VELOCITY)<<std::endl;
+        ////std::cout<<"NodalAcceleration "<<(i)->Id()<<(i)->FastGetSolutionStepValue(ACCELERATION)<<std::endl;
+        ////std::cout<<"NodalDispMass "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_DISPMASS)<<std::endl;
+        ////std::cout<<"NodalImposedDisplacement "<<(i)->Id()<<NodalImposedDisplacement<<std::endl;
+        //std::cout<<"NodalMass "<<(i)->Id()<<NodalMass<<std::endl;
+
+        //}
+        //if ((i)->Id() == 36)// || (i)->Id() == 55 || (i)->Id() == 61)
+
+        //{
+        ////std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
+        ////std::cout<<"NodalMomentum "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)<<std::endl;
+        ////std::cout<<"NodalMass "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
+        ////std::cout<<"NodalInertia "<<(i)->Id()<<(i)->FastGetSolutionStepValue(NODAL_INERTIA)<<std::endl;
+        //std::cout<<"Delta NodalVelocity in initialize solution step"<<(i)->Id()<<DeltaNodalVelocity<<std::endl;
+        //std::cout<<"Delta NodalAcceleration in initialize solution step"<<(i)->Id()<<DeltaNodalAcceleration<<std::endl;
+        //std::cout<<"NodalVelocity in initialize solution step"<<(i)->Id()<<(i)->FastGetSolutionStepValue(VELOCITY,1)<<std::endl;
+        //std::cout<<"NodalAcceleration in initialize solution step"<<(i)->Id()<<(i)->FastGetSolutionStepValue(ACCELERATION,1)<<std::endl;
+        //}
+        ++nodes_counter;
+        }
+
+        }
+        //std::cout<<"  NormVel "<< NormVel<<std::endl;
+        //std::cout<<"  NormAcc "<< NormAcc<<std::endl;
+
+        //std::cout<<"  NormDeltaVel "<< NormDeltaVel<<std::endl;
+        //std::cout<<"  NormDeltaAcc "<< NormDeltaAcc<<std::endl;
+        //std::cout<<"  nodes_counter "<< nodes_counter<<std::endl;
+
+        NormVel = sqrt(NormVel);//(nodes_counter*2);
+        NormAcc = sqrt(NormAcc);//(nodes_counter*2);
+        NormDeltaVel = sqrt(NormDeltaVel);//(nodes_counter*2);
+        NormDeltaAcc = sqrt(NormDeltaAcc);//(nodes_counter*2);
+
+        //std::cout<<"  NormVel "<< NormVel<<std::endl;
+        //std::cout<<"  NormAcc "<< NormAcc<<std::endl;
+        //std::cout<<"  NormDeltaVel "<< NormDeltaVel<<std::endl;
+        //std::cout<<"  NormDeltaAcc "<< NormDeltaAcc<<std::endl;
+        //if (ItNum ==1)
+        //{
+        //InitialNormVel = NormVel;
+        //InitialNormAcc = NormAcc;
+        //}
+        //std::cout<<"  InitialNormVel "<< InitialNormVel<<std::endl;
+        //std::cout<<"  InitialNormAcc "<< InitialNormAcc<<std::endl;
+        RatioNormVel = NormDeltaVel/NormVel;
+        RatioNormAcc = NormDeltaAcc/NormAcc;
+        //if (InitialNormVel == 0.0 || InitialNormAcc == 0.0)
+        //{
+        //RatioNormVel = 0.0;
+        //RatioNormAcc = 0.0;
+        //}
+
+        //std::cout<< " NormDeltaVel "<< NormDeltaVel << std::endl;
+        //std::cout<< " NormVel "<< NormVel << std::endl;
+        //std::cout<< " NormDeltaAcc "<< NormDeltaAcc << std::endl;
+        //std::cout<< " NormAcc "<< NormAcc << std::endl;
+
+        //std::cout<< " RatioNormVel "<< RatioNormVel << std::endl;
+        //std::cout<< " RatioNormAcc "<< RatioNormAcc << std::endl;
+        ++ItNum;
         }
         
 
