@@ -77,11 +77,15 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> CompressedSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    typedef LinearSolver<CompressedSpaceType, DenseSpaceType > SparseLinearSolverType;
+
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, bool, double, const int>())
-			.def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
+    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, bool, double, bool, boost::python::list>())
+            .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
             .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
             .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
             ;
@@ -110,7 +114,7 @@ void  AddCustomUtilitiesToPython()
             // For running penalized projection method
             // ----------------------------------------------------------------
             .def("compute_projected_search_direction", &OptimizationUtilities::compute_projected_search_direction)
-			.def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
+        	.def("correct_projected_search_direction", &OptimizationUtilities::correct_projected_search_direction)
 
             // ----------------------------------------------------------------
             // General optimization operations
@@ -124,7 +128,7 @@ void  AddCustomUtilitiesToPython()
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
             .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
             .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
-			.def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
+            .def("extract_surface_nodes", &GeometryUtilities::extract_surface_nodes)
             ;
 
     // ========================================================================
@@ -145,7 +149,7 @@ void  AddCustomUtilitiesToPython()
             .def("get_value", &MassResponseFunction::get_value)
             .def("get_initial_value", &MassResponseFunction::get_initial_value) 
             .def("get_gradient", &MassResponseFunction::get_gradient)                              
-            ;
+            ;                     
 }
 
 

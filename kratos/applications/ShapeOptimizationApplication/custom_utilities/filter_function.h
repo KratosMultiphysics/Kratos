@@ -179,7 +179,7 @@ class FilterFunction
             double squared_scalar_distance = dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
             // Compute weight
             // Note that we do not compute the square root of the distances to save this expensive computation (it is not needed here)
-            weight_ij = exp(-squared_scalar_distance / (2 * m_filter_size * m_filter_size / 9.0));
+            weight_ij = std::max(0.0, exp(-squared_scalar_distance / (2 * m_filter_size * m_filter_size / 9.0)));
             break;
         }
         // Linear filter

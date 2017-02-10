@@ -3,9 +3,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-from KratosMultiphysics.ALEApplication import *
 
 # For time measures
 import time as timer
@@ -33,22 +33,14 @@ main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_dat
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 #construct the solver (main setting methods are located in the solver_module)
-CSM_solver_module = __import__(ProjectParameters["structure_solver_settings"]["solver_type"].GetString())
-CSM_solver = CSM_solver_module.CreateSolver(main_model_part, ProjectParameters["structure_solver_settings"])
+solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
+CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
 #add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
 # if we integrate it in the model part we cannot use combined solvers
 CSM_solver.AddVariables()
 
 # --------------------------------------------------------------------------
-# Import mesh-motion solver and add solution variables
-mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
-mesh_solver = mesh_solver_module.CreateSolver(main_model_part, ProjectParameters["mesh_solver_settings"])
-
-#add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
-# if we integrate it in the model part we cannot use combined solvers
-mesh_solver.AddVariables()
-
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
 import optimization_settings as opt_settings
@@ -56,7 +48,6 @@ import response_function_factory
 response_function_solver = response_function_factory.CreateSolver( main_model_part, opt_settings )
 
 # --------------------------------------------------------------------------
-
 #read model_part (note: the buffer_size is set here) (restart can be read here)
 CSM_solver.ImportModelPart()
 
@@ -65,16 +56,11 @@ CSM_solver.ImportModelPart()
 CSM_solver.AddDofs()
 
 # --------------------------------------------------------------------------
-# Add Dofs for mesh solver
-# mesh_solver.ImportModelPart()
-mesh_solver.AddDofs()
-
-# --------------------------------------------------------------------------
 
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
-for i in range(ProjectParameters["structure_solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["structure_solver_settings"]["processes_sub_model_part_list"][i].GetString()
+for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
     if( main_model_part.HasSubModelPart(part_name) ):
         Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
@@ -91,9 +77,14 @@ if(echo_level>1):
 #### processes settings start ####
 
 import process_factory
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )        
-
+#the process order of execution is important
+list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+if(ProjectParameters.Has("output_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+            
 #print list of constructed processes
 if(echo_level>1):
     for process in list_of_processes:
@@ -130,8 +121,6 @@ CSM_solver.SetEchoLevel(echo_level)
 
 
 # --------------------------------------------------------------------------
-mesh_solver.Initialize()
-
 # Initialize response function solvers
 for response_id in response_function_solver:
     response_function_solver[response_id].initialize()
@@ -164,6 +153,10 @@ def solve_structure(opt_itr):
     
     gid_output.ExecuteFinalizeSolutionStep()
 
+    # processes to be executed at the end of the solution step
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
+
     # processes to be executed before witting the output
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
@@ -183,70 +176,6 @@ def FinalizeKSMProcess():
     gid_output.ExecuteFinalize()
 
 # ======================================================================================================================================
-# Mesh motion part
-# ======================================================================================================================================
-
-def MoveMesh(X, opt_itr):
-    
-    # Extract surface nodes
-    sub_model_part_name = "surface_nodes"     
-    GeometryUtilities(main_model_part).extract_surface_nodes(sub_model_part_name)
-
-    # Apply shape update as boundary condition for computation of mesh displacement 
-    for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
-        if(node.Id in X.keys()):
-            node.Fix(MESH_DISPLACEMENT_X)
-            node.Fix(MESH_DISPLACEMENT_Y)
-            node.Fix(MESH_DISPLACEMENT_Z)              
-            disp = Vector(3)
-            disp[0] = X[node.Id][0]
-            disp[1] = X[node.Id][1]
-            disp[2] = X[node.Id][2]
-            node.SetSolutionStepValue(MESH_DISPLACEMENT,0,disp)
-
-    # Solve for mesh-update
-    mesh_solver.Solve()
-
-    # Update reference mesh (Since shape updates are imposed as incremental quantities)
-    mesh_solver.UpdateReferenceMesh()
-
-# --------------------------------------------------------------------------
-def ComputeAndAddMeshDerivatives(dFdXs, dFdX):
-   
-    # Here we solve the pseudo-elastic mesh-motion system again using modified BCs
-    # The contributions from the mesh derivatives appear as reaction forces
-
-    for node in main_model_part.Nodes:
-
-        # Apply dirichlet conditions
-        if node.Id in dFdXs.keys():
-            node.Fix(MESH_DISPLACEMENT_X)
-            node.Fix(MESH_DISPLACEMENT_Y)
-            node.Fix(MESH_DISPLACEMENT_Z)              
-            xs = Vector(3)
-            xs[0] = 0.0
-            xs[1] = 0.0
-            xs[2] = 0.0
-            node.SetSolutionStepValue(MESH_DISPLACEMENT,0,xs)
-        # Apply RHS conditions       
-        else:
-            rhs = Vector(3)
-            rhs[0] = dFdX[node.Id][0]
-            rhs[1] = dFdX[node.Id][1]
-            rhs[2] = dFdX[node.Id][2]
-            node.SetSolutionStepValue(MESH_RHS,0,rhs)
-
-    # Solve mesh-motion problem with previously modified BCs
-    mesh_solver.Solve()
-
-    # Compute and add gradient contribution from mesh motion
-    for node_id in dFdXs.keys():
-        node = main_model_part.Nodes[node_id]
-        sens_contribution = Vector(3)
-        sens_contribution = node.GetSolutionStepValue(MESH_REACTION)
-        dFdXs[node.Id] = dFdXs[node_id] + sens_contribution
-
-# ======================================================================================================================================
 # Optimization part
 # ======================================================================================================================================
 
@@ -262,16 +191,19 @@ def analyzer(X, controls, opt_itr, response):
 
     if(controls["strain_energy"]["calc_value"]):
 
-        # Advance time iterator of main_model_part (for proper computation of mesh & state)
+        # Advance time iterator of main_model_part
         step = float(opt_itr)
         main_model_part.CloneTimeStep(step)
-    
-        # Move mesh
-        print("\n> Start ALEApplication to move mesh")
-        MoveMesh(X, opt_itr)
+
+        # Udate mesh coordinates of main_model_part
+        for node_id in X.keys():
+            node = main_model_part.Nodes[node_id]
+            node.X0 = node.X0 + X[node_id][0]
+            node.Y0 = node.Y0 + X[node_id][1]
+            node.Z0 = node.Z0 + X[node_id][2]
 
         interim_time = timer.time()
-        print("> Time needed for moving the mesh = ",round(interim_time - start_time,2),"s")
+        print("> Time needed for updating the mesh = ",round(interim_time - start_time,2),"s")
 
         # Solve structural problem
         print("\n> Start SolidMechanicsApplication to solve structure")
@@ -297,9 +229,6 @@ def analyzer(X, controls, opt_itr, response):
         dFdXs = {}
         for node_id in X.keys():
             dFdXs[node_id] = dFdX[node_id]
-
-        # If contribution from mesh-motion to gradient shall be considered
-        # ComputeAndAddMeshDerivatives(dFdXs, dFdX) 
 
         # Store gradient in response container
         response["strain_energy"]["gradient"] = dFdXs

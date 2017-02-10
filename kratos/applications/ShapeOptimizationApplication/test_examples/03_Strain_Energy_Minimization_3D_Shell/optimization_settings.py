@@ -44,14 +44,15 @@ design_surface_name = "design_surface"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
-filter_size = 35
+filter_size = 3
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-perform_edge_damping = False
+perform_edge_damping = True
 # options: True    - edge damping is applied with the settings below
 #        : False   - no edge damping is applied, settings below can be ignored
-damped_edges = [ ]
+damped_edges = [ ["support_edges", False, True, True, "linear", 3 ],
+                 ["side_edges", False, False, True, "linear", 3 ] ]
 # damped_edges = [ [edge_sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
 #                  [edge_sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
 #                  ... ]
@@ -68,10 +69,10 @@ optimization_algorithm = "steepest_descent"
 #          "penalized_projection",
     
 # General convergence criterions
-max_opt_iterations = 100
+max_opt_iterations = 300
     
 # Case: "steepest descent"
-relative_tolerance_objective = 1e-0 # [%]
+relative_tolerance_objective = 1e-1 # [%]
     
 # Case: optimization_algorithm = "augmented_lagrange"
 max_sub_opt_iterations = 100
@@ -87,7 +88,7 @@ lambda_0 = 0.0
 
 # Only constant step-size is implemented yet
 normalize_search_direction = True
-step_size = 1.5 # e.g. 5 for active normalization or 1e7 for inactive normalization
+step_size = .1 # e.g. 5 for active normalization or 1e7 for inactive normalization
 
 # ================================================================================================================
 # For GID output 
@@ -99,6 +100,8 @@ nodal_results=[ "NORMALIZED_SURFACE_NORMAL",
                 "DESIGN_UPDATE",
                 "DESIGN_CHANGE_ABSOLUTE",
                 "SHAPE_UPDATE",
+                "SENSITIVITIES_DEACTIVATED",
+                "SHAPE_UPDATES_DEACTIVATED",
                 "SHAPE_CHANGE_ABSOLUTE"]
 VolumeOutput = True
 GiDPostMode = "Binary"

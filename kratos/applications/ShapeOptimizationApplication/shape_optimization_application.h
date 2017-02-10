@@ -105,6 +105,9 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double,IS_ON_BOUNDARY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
 
+	// For edge damping
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
+
     // To create and process mapping matrix
     KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
 
@@ -116,7 +119,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_X);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
-
 
 	///@} 
 	///@name Type Definitions
@@ -280,6 +282,7 @@ namespace Kratos
 
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
+		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
 
 

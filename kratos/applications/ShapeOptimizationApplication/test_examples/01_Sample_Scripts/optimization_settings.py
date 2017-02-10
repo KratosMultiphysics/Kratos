@@ -13,18 +13,16 @@ design_history_file = "design_history.csv"
 # Define container of objective functions
 # Format: objectives = { "unique_func_id": {"gradient_mode": "analytic"},
 #                        "unique_func_id": {"gradient_mode": "semi_analytic", "step_size": 1e-5},
-#                        "unique_func_id": {"gradient_mode": "finite_differencing", "step_size": 1e-5},
 #                        "unique_func_id": {"gradient_mode": "external"},
 #                        ... }
-objectives = { "some_objective_name": {"gradient_mode": "external"} }
+objectives = {  }
 
 # Define container of constraint functions
-# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "analytic"},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "semi_analytic", "step_size": 1e-5},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "finite_differencing", "step_size": 1e-5},
-#                         "unique_func_id": {"type": "eq"/"ineq", "gradient_mode": "external"},
+# Format: constraints = { "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "analytic"},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "semi_analytic", "step_size": 1e-5},
+#                         "unique_func_id": {"type": "eq"/"ineq","gradient_mode": "external"},
 #                         ... }    
-constraints = { "some_constraint_name": {"type": "eq", "gradient_mode": "external"} }
+constraints = {  }
     
 # ================================================================================================================  
 # Design variables 
@@ -46,10 +44,19 @@ design_surface_name = "path/to/your/mpda/some_mesh_name"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
+filter_size = 3
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-filter_size = 50
+perform_edge_damping = True
+# options: True    - edge damping is applied with the settings below
+#        : False   - no edge damping is applied, settings below can be ignored
+damped_edges = []
+# damped_edges = [ [edge_sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                  [edge_sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                  ... ]
+# options for damping function: "cosine"
+#                               "linear"
 
 # ================================================================================================================
 # Optimization algorithm 
@@ -73,7 +80,7 @@ penalty_fac_0 = 4
 gamma = 4
 penalty_fac_max = 2000
 lambda_0 = 0.0
-            
+        
 # ================================================================================================================ 
 # Determination of step size (line-search) 
 # ================================================================================================================

@@ -43,8 +43,8 @@
 //
 // ==============================================================================
 
-#ifndef FUNCTION_TESTER_UTILITIES
-#define FUNCTION_TESTER_UTILITIES
+#ifndef DAMPING_FUNCTION_H
+#define DAMPING_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -52,6 +52,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <iomanip> // for std::setprecision
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -70,12 +71,6 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/spatial_containers/spatial_containers.h"
-#include "../../kratos/utilities/timer.h"
-#include "../../kratos/processes/node_erase_process.h"
-#include "../../kratos/utilities/binbased_fast_point_locator.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
-#include "../../kratos/spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -107,7 +102,7 @@ namespace Kratos
 
 */
 
-class FunctionTester
+class DampingFunction
 {
   public:
     ///@name Type Definitions
@@ -117,36 +112,42 @@ class FunctionTester
     // Type definitions for better reading later
     // ==========================================================================
     typedef array_1d<double, 3> array_3d;
-    typedef Node<3> NodeType;
-    typedef std::vector<NodeType::Pointer> NodeVector;
-    typedef std::vector<NodeType::Pointer>::iterator PointIterator;
-    typedef std::vector<double> DistanceVector;
-    typedef std::vector<double>::iterator DistanceIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    // ==========================================================================
-    // Type definitions for linear algebra including sparse systems
-    // ==========================================================================
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-    typedef typename SparseSpaceType::VectorType VectorType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-    /// Pointer definition of FunctionTester
-    KRATOS_CLASS_POINTER_DEFINITION(FunctionTester);
+    /// Pointer definition of DampingFunction
+    KRATOS_CLASS_POINTER_DEFINITION(DampingFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    FunctionTester(ModelPart &model_part)
-        : mr_model_part(model_part)
+    DampingFunction(std::string damping_function_type, double damping_radius)
+        : m_damping_radius(damping_radius)
     {
+        // Set precision for output
+        std::cout.precision(12);
+
+        // Create strings to compare to
+        std::string cosine("cosine");
+        std::string linear("linear");
+
+        // Set type of dymping function
+
+        // Type 1: Cosine function
+        if (damping_function_type.compare(cosine) == 0)
+            m_damping_function_type = 1;
+
+        // Type 2: Linear function
+        else if (damping_function_type.compare(linear) == 0)
+            m_damping_function_type = 2;
+
+        // Throw error message in case of wrong specification
+        else
+            KRATOS_THROW_ERROR(std::invalid_argument, "Specified damping function type not recognized. Options are: linear , cosine. Specified: ",damping_function_type);
     }
 
     /// Destructor.
-    virtual ~FunctionTester()
+    virtual ~DampingFunction()
     {
     }
 
@@ -159,62 +160,42 @@ class FunctionTester
     ///@{
 
     // ==============================================================================
-    void test_function()
+
+    double compute_damping_factor(array_3d i_coord, array_3d j_coord)
     {
         KRATOS_TRY;
 
-        // // Create list of possible nearest neighbors in a KD-Tree
-        // NodeVector list_of_nodes;
-        // for (ModelPart::NodesContainerType::iterator node_it = mr_model_part.NodesBegin(); node_it != mr_model_part.NodesEnd(); ++node_it)
-        // {
-        //     NodeType::Pointer pnode = *(node_it.base());
-        //     list_of_nodes.push_back(pnode);
-        // }
+        // Compute distance vector
+        array_3d dist_vector = i_coord - j_coord;
 
-        // // Construct KD-Tree
-        // typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, PointIterator, DistanceIterator > BucketType;
-        // typedef Tree< KDTreePartition<BucketType> > tree;
-        // int bucket_size = 20;
-        // tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+        // Depending on which damping function is chosen, compute damping factor
+        double damping_factor = 0.0;
+        switch (m_damping_function_type)
+        {
+        // Cosine damping function
+        case 1:
+        {
+            // Compute distance
+            double scalar_distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            // Compute damping factor
+            damping_factor = std::min(1.0, 0.5*(1-cos(PI/m_damping_radius*scalar_distance)));
+            break;
+        }
+        // Linear damping function
+        case 2:
+        {
+            // Compute distance
+            double distance = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            // Compute damping factor
+            damping_factor = std::min(1.0, distance / m_damping_radius);
+            break;
+        }
+        }
 
-        // // Loop over all integration points of model-part and find corresponding closest neighbors
-        // for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-        // {
-        // 	// Get geometry information of current element (integration method, integration points, shape function values of integration points)
-        // 	const Element::GeometryType::IntegrationMethod integration_method = elem_i->GetIntegrationMethod();
-        // 	const Element::GeometryType::IntegrationPointsArrayType& integration_points = elem_i->GetGeometry().IntegrationPoints(integration_method);
-        // 	const Matrix& N_container = elem_i->GetGeometry().ShapeFunctionsValues(integration_method);
-
-        // 	std::cout << "------------------------------" << std::endl;
-        // 	std::cout << "elem_i->Id() = " << elem_i->Id() << std::endl;
-
-        // 	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        // 	{
-        // 		// Compute global coordinates of current integration point and get corresponding weight
-        // 		NodeType::CoordinatesArrayType ip_coordinates = elem_i->GetGeometry().GlobalCoordinates(ip_coordinates, integration_points[PointNumber].Coordinates());
-        // 		NodeType::Pointer point_of_interest = Node < 3 > ::Pointer(new Node<3>(PointNumber, ip_coordinates ));
-        // 		double i_weight = integration_points[PointNumber].Weight();
-
-        // 		// Search nearest neighbor of current integration point
-        // 		NodeType resulting_nearest_point;
-        // 		NodeType::Pointer nearest_point = nodes_tree.SearchNearestPoint( *point_of_interest );
-
-        // 		// Get FEM-shape-function-value for current integration point
-        // 		Vector N_FEM_GPi = row( N_container, PointNumber);
-
-        // 		// Some output
-        // 		KRATOS_WATCH(integration_points[PointNumber]);
-        // 		KRATOS_WATCH(*point_of_interest);
-        // 		KRATOS_WATCH(*nearest_point);
-        // 		KRATOS_WATCH(N_FEM_GPi);
-        // 	}
-
-        // }
+        return damping_factor;
 
         KRATOS_CATCH("");
     }
-
-    // --------------------------------------------------------------------------
 
     // ==============================================================================
 
@@ -233,13 +214,13 @@ class FunctionTester
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "FunctionTester";
+        return "DampingFunction";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "FunctionTester";
+        rOStream << "DampingFunction";
     }
 
     /// Print object's data.
@@ -291,14 +272,8 @@ class FunctionTester
     ///@name Member Variables
     ///@{
 
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
-    ModelPart &mr_model_part;
-
-    // ==============================================================================
-    // General working arrays
-    // ==============================================================================
+    double m_damping_radius;
+    unsigned int m_damping_function_type;
 
     ///@}
     ///@name Private Operators
@@ -321,14 +296,14 @@ class FunctionTester
     ///@{
 
     /// Assignment operator.
-    //      FunctionTester& operator=(FunctionTester const& rOther);
+    //      DampingFunction& operator=(DampingFunction const& rOther);
 
     /// Copy constructor.
-    //      FunctionTester(FunctionTester const& rOther);
+    //      DampingFunction(DampingFunction const& rOther);
 
     ///@}
 
-}; // Class FunctionTester
+}; // Class DampingFunction
 
 ///@}
 
@@ -343,4 +318,4 @@ class FunctionTester
 
 } // namespace Kratos.
 
-#endif // FUNCTION_TESTER_UTILITIES
+#endif // DAMPING_FUNCTION_H

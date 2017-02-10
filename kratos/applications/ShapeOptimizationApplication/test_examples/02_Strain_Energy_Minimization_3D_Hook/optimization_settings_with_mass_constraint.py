@@ -46,10 +46,19 @@ design_surface_name = "design_surface"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
+filter_size = 35
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-filter_size = 35
+perform_edge_damping = False
+# options: True    - edge damping is applied with the settings below
+#        : False   - no edge damping is applied, settings below can be ignored
+damped_edges = [ ]
+# damped_edges = [ [edge_sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                  [edge_sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                  ... ]
+# options for damping function: "cosine"
+#                               "linear"
 
 # ================================================================================================================
 # Optimization algorithm 
