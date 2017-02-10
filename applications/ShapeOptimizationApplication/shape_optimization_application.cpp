@@ -58,6 +58,7 @@
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -101,6 +102,9 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,IS_ON_BOUNDARY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
 
+    // For edge damping
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
+
     // To create and process mapping matrix
     KRATOS_CREATE_VARIABLE(int,MAPPING_MATRIX_ID);
 
@@ -123,6 +127,7 @@ namespace Kratos
 		mSmallDisplacementAnalyticSensitivityElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
 
         mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mShapeOptimizationCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
         mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
 
     {}
@@ -162,6 +167,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(IS_ON_BOUNDARY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
 
+        // For edge damping
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
+
         // To create and process mapping matrix
         KRATOS_REGISTER_VARIABLE(MAPPING_MATRIX_ID);
 
@@ -182,6 +190,7 @@ namespace Kratos
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
+        KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D4N", mShapeOptimizationCondition3D4N );
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition2D2N", mShapeOptimizationCondition2D2N );
  	}
 

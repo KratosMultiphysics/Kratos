@@ -131,13 +131,12 @@ class VertexMorphingMethod:
         self.opt_model_part = opt_model_part
 
         # Create mapper to map between geometry and design space 
-        max_nodes_affected = 10000 # Specification required by spatial (tree) search 
-                                   # Defines maximum nodes that may be considered within the filter radius
         self.mapper = VertexMorphingMapper( self.opt_model_part,
-                                            config.filter_function,
-                                            config.use_mesh_preserving_filter_matrix,
-                                            config.filter_size,
-                                            max_nodes_affected )
+                                            self.config.filter_function,
+                                            self.config.use_mesh_preserving_filter_matrix,
+                                            self.config.filter_size,
+                                            self.config.perform_edge_damping,
+                                            self.config.damped_edges )
 
         # Toolbox to perform optimization
         self.opt_utils = OptimizationUtilities( self.opt_model_part,
@@ -637,8 +636,8 @@ class VertexMorphingMethod:
             # if( opt_itr > 1 and response[only_F_id]["value"]>previous_f):
             #     self.config.step_size = self.config.step_size/2
 
+            correction_scaling = [False] 
             if(constraints_given):
-                correction_scaling = [False] 
                 self.opt_utils.compute_projected_search_direction( response[only_C_id]["value"] )
                 self.opt_utils.correct_projected_search_direction( response[only_C_id]["value"], previous_c, correction_scaling )
                 self.opt_utils.compute_design_update()
@@ -791,9 +790,9 @@ class Controller:
         # Initialize response container to provide storage for any response
         self.response_container = {}       
         for func_id in config.objectives:
-            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
+            self.response_container[func_id] = {}
         for func_id in config.constraints:
-            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}            
+            self.response_container[func_id] = {}          
 
     # --------------------------------------------------------------------------
     def initialize_controls( self ):
@@ -812,7 +811,7 @@ class Controller:
 
         # Create and initialize container to store any response defined 
         for func_id in self.response_container:
-            self.response_container[func_id] = {"value": None, "gradient": None}
+            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
 
         # Return container
         return self.response_container      

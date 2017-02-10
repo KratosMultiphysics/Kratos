@@ -242,7 +242,6 @@ public:
 
     	// Some type-definitions
     	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
-    	//typedef boost::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
 
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
     	hashmap n_faces_map;
