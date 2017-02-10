@@ -165,7 +165,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	    {
 
 	      //3.- Calculate the consistency condition
-  	      bool converged = this->CalculateConsistencyCondition( rReturnMappingVariables, PlasticVariables, CriterionParameters);
+  	      //bool converged = this->CalculateConsistencyCondition( rReturnMappingVariables, PlasticVariables, CriterionParameters);
 	    
 	      // if(!converged)
 	      // 	std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
