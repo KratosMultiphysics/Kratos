@@ -11,7 +11,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
     const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
     //const double epsilon = 1e-3 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
-    const double epsilon = 0*1e-3;//* this->GetGeometry().MinEdgeLength();
+    const double epsilon = 1e-3;//* this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
     double weight = this->GetGeometry().Volume();
 
@@ -22,14 +22,21 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
         rRightHandSideVector(i) *= 0*epsilon;
     }
 
-    for (unsigned int i=0; i<TNumNodes; ++i){
-        double weight_i = weight * epsilon / TNumNodes / this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
-        for (unsigned int j=0; j<TDim; ++j){
-            rLeftHandSideMatrix(i * TDim + j, i * TDim + j) = weight_i;
-            rRightHandSideVector(i * TDim + j) = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT)[j] * weight_i;
-        }
-    }
+//    for (unsigned int i=0; i<TNumNodes; ++i){
+//        double weight_i = weight * epsilon / TNumNodes / this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
+//        for (unsigned int j=0; j<TDim; ++j){
+//            rLeftHandSideMatrix(i * TDim + j, i * TDim + j) = weight_i;
+//            rRightHandSideVector(i * TDim + j) = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT)[j] * weight_i;
+//        }
+//    }
 
+//    for (unsigned int i=0; i<TNumNodes; ++i){
+//        double weight_i = weight * epsilon / TNumNodes / this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
+//        for (unsigned int j=0; j<TDim; ++j){
+//            rLeftHandSideMatrix(i * TDim + j, i * TDim + j) = weight_i;
+//            rRightHandSideVector(i * TDim + j) = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z_GRADIENT)[j] * weight_i;
+//        }
+//    }
 
     //AddFEMLaplacianStabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
     //AddPouliot2012StabilizationLHS(epsilon, rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -221,15 +228,18 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLH
     }
 }
 
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012<TDim, TNumNodes>::AssembleEdgeLHSContribution(const unsigned int edge[2], const array_1d<double, 3>& edge_normalized_vector, MatrixType& rLeftHandSideMatrix)
-{
+{   const double epsilon = 1e-4 * this->GetGeometry().MinEdgeLength()* this->GetGeometry().MinEdgeLength()* this->GetGeometry().MinEdgeLength();
     for (unsigned int node_e = 0; node_e < 2; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             for (unsigned int node_f = 0; node_f < 2; ++node_f){
                 for (unsigned int j = 0; j < TDim; ++j){
-                    rLeftHandSideMatrix(TDim * edge[node_e] + i, TDim * edge[node_f] + j) += edge_normalized_vector[i] * edge_normalized_vector[j];
+                    double stab = 0.0;
+                    if (i == j){
+                        stab = node_e == node_f ? epsilon : - epsilon;
+                    }
+                    rLeftHandSideMatrix(TDim * edge[node_e] + i, TDim * edge[node_f] + j) += edge_normalized_vector[i] * edge_normalized_vector[j] + stab;
                 }
             }
         }
