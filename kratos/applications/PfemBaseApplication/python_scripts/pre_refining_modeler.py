@@ -79,6 +79,11 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         refine_mesh_elements = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
 
+
+        refine_edge_elements = KratosPfemBase.SetElementEdgesToRefine(self.model_part,self.MeshingParameters,self.echo_level)
+        self.mesher.SetPreMeshingProcess(refine_edge_elements)
+        
+
         refine_mesh_boundary = KratosPfemBase.RefineMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)            
         self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
