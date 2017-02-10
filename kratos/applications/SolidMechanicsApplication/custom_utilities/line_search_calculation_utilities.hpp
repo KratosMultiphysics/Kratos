@@ -131,6 +131,10 @@ public:
       
       //line-search error based
       //alpha = LineSearchD(pBuilderAndSolver,pScheme,r_model_part,A,Dx,b,rCurrentAlpha,rPreviousAlpha);
+
+      //line-search eclipse
+      //alpha = LineSearchE(pBuilderAndSolver,pScheme,r_model_part,A,Dx,b,rCurrentAlpha,rPreviousAlpha);
+
       
       return alpha;
       
@@ -462,112 +466,138 @@ public:
 	     
    	//s0  (alpha=0)
    	double R0= TSparseSpace::Dot(Dx,b);
-	double Residual0 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
-   	//s1  (alpha=1)
-   	Dx = ReferenceDx *1;
+	//double Residual0 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
+
+
+	
+   	//s-1  ()
+   	// Dx = ReferenceDx * (-1);
+	// pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	// //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	// pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+
+	// double Residual_1 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
+
+	// // ** Restore Current Displacement, Velocity, Acceleration
+	// Dx *= (-1);
+   	// pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	// b.clear();
+
+	
+	//s1  (alpha=1)
+   	Dx = ReferenceDx * 1;
 	
 	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
 	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
 	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	double R1= TSparseSpace::Dot(ReferenceDx,b);
 
-   	double R1= TSparseSpace::Dot(ReferenceDx,b);
-	double Residual1 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
+	//double Residual1 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
    	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
-	double Residual2 = 0;
+	//double Residual2 = 0;
 	//std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
-	std::cout<<" Residual0 "<<Residual0<<" Residual1 "<<Residual1<<std::endl;
-   	if(R0*R1<0){
+	//std::cout<<" Residual0 "<<Residual0<<" Residual1 "<<Residual1<<std::endl;
 
-   	  //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
+	// if( Residual0>Residual_1*0.4 && Residual0>1e-4 ){
 
-	  double R2 = R1;
-	  if(fabs(R1)<fabs(R0))
-	    R2=R0;
-	  double R0start = R0;
+	  //std::cout<<" Residual0 "<<Residual0<<" Residual_1 "<<Residual_1*0.4<<std::endl;
+	
+	  if(R0*R1<0){
 
-	  double alpha = 0;
-	  double nabla = 0;
-	  double delta = 1;
+	    //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
 
-  	  double CurrentAlpha  = 1.0; 
-   	  //double PreviousAlpha = 0.0;
+	    double R2 = R1;
+	    if(fabs(R1)<fabs(R0))
+	      R2=R0;
+	    double R0start = R0;
 
-	  int iterations=0;
-	  int max_iterations = 10;
-	  //std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
+	    double alpha = 0;
+	    double nabla = 0;
+	    double delta = 1;
 
-	  while(fabs(R2/R0start)>0.3 && iterations<max_iterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7) {
+	    double CurrentAlpha  = 1.0; 
+	    //double PreviousAlpha = 0.0;
+
+	    int iterations=0;
+	    int max_iterations = 4;
+	    //std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
+
+	    while(fabs(R2/R0start)>0.3 && iterations<max_iterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7) {
 	  
 
-	    alpha = 0.5*(nabla+delta);
+	      alpha = 0.5*(nabla+delta);
 
 
-	    //std::cout<<" R2 = "<<fabs(R2)<<" ?> "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
-	    //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
+	      //std::cout<<" R2 = "<<fabs(R2)<<" ?> "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
+	      //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
 
 
-	    //alpha_k-1 = alpha_k
-	    //PreviousAlpha = CurrentAlpha;
+	      //alpha_k-1 = alpha_k
+	      //PreviousAlpha = CurrentAlpha;
 
-	    //alpha_k  = alpha_k+1
-	    CurrentAlpha  = alpha;
+	      //alpha_k  = alpha_k+1
+	      CurrentAlpha  = alpha;
 
   
-	    //compute s(alpha_k+1)
-	    Dx = ReferenceDx * CurrentAlpha;
+	      //compute s(alpha_k+1)
+	      Dx = ReferenceDx * CurrentAlpha;
 	
-	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	      pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
-	    //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	      //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	      pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
-	    //slope_k = slope_k+1
-	    R2 = TSparseSpace::Dot(ReferenceDx,b);
-	    Residual2 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
-	    std::cout<<" Residual2 "<<Residual2<<std::endl;
-	    // ** Restore Current Displacement, Velocity, Acceleration
-	    Dx *= (-1);
-	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-	    b.clear();
+	      //slope_k = slope_k+1
+	      R2 = TSparseSpace::Dot(ReferenceDx,b);
+	      //Residual2 = TSparseSpace::TwoNorm(b)/TSparseSpace::Size(b);
+	      //std::cout<<" Residual2 "<<Residual2<<std::endl;
+	      // ** Restore Current Displacement, Velocity, Acceleration
+	      Dx *= (-1);
+	      pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	      b.clear();
 
 	     
 	       
-	    if(R2*R1<0){
-	      //slope_k-1 = slope_k
-	      nabla = alpha;
-	      R0 = R2;
-	    }
-	    else if(R2*R0<0){
-	      //slope_k-1 = slope_k
-	      delta = alpha;
-	      R1 = R2;
-	    }
-	    else{
-	      break;
-	    }
+	      if(R2*R1<0){
+		//slope_k-1 = slope_k
+		nabla = alpha;
+		R0 = R2;
+	      }
+	      else if(R2*R0<0){
+		//slope_k-1 = slope_k
+		delta = alpha;
+		R1 = R2;
+	      }
+	      else{
+		break;
+	      }
 
 	       
-	    iterations++;
-	  }
-	  
-	  if( GetEchoLevel() > 0 )
-	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
-	  //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
+	      iterations++;
+	    }
+
+
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	    //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
 	   
 	   
-	  rPreviousAlpha = rCurrentAlpha;
-	  rCurrentAlpha  = CurrentAlpha;
+	    rPreviousAlpha = rCurrentAlpha;
+	    rCurrentAlpha  = CurrentAlpha;
     
-   	}
-   	// else{
-   	//   Step.CurrentAlpha  = Step.PreviousAlpha;
-   	// }
+	  }
+	  // else{
+	  //   Step.CurrentAlpha  = Step.PreviousAlpha;
+	  // }
 
+
+	  //}
+	
    	if(rCurrentAlpha>1 || rCurrentAlpha<=0)
    	  rCurrentAlpha=1;
 
@@ -614,7 +644,7 @@ public:
    	//s0  (alpha=0)
    	double R0 = TSparseSpace::Dot(Dx,b);
 
-	double Residual0 = TSparseSpace::TwoNorm(b);
+	//double Residual0 = TSparseSpace::TwoNorm(b);
 	
    	//s1  (alpha=1)
    	Dx = ReferenceDx *1;
@@ -625,15 +655,15 @@ public:
 
    	double R1= TSparseSpace::Dot(ReferenceDx,b);
 
-	double Residual1 = TSparseSpace::TwoNorm(b);
+	//double Residual1 = TSparseSpace::TwoNorm(b);
 	
    	// ** Restore Current Displacement, Velocity, Acceleration
    	Dx *= (-1);
    	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
-	std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
-	std::cout<<" Residual0 "<<Residual0<<" Residual1 "<<Residual1<<std::endl;
+	// std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
+	// std::cout<<" Residual0 "<<Residual0<<" Residual1 "<<Residual1<<std::endl;
 
    	//if(R0*R1<0){
 	if( R0*R1<0 ){ //linesearch only active if the norm or the residual does not decrease
@@ -651,7 +681,7 @@ public:
 	  int max_iterations = 10;
 
 	  //while(fabs(R2/R0)>0.5 && iterations<max_iterations && fabs(R2)>1e-4) {
-	  while( fabs(R2/R0)>0.3 && iterations<max_iterations && fabs(R2)>1e-4 ) {
+	  while( fabs(R2/R0)>0.5 && iterations<max_iterations && fabs(R2)>1e-4 ) {
 	  
 	    if( nabla < 0 )
 	      alpha = 0.5*(nabla+sqrt(nabla*(nabla-4)));
@@ -662,7 +692,7 @@ public:
 	      break;
 	    
 
-	    std::cout<<" [R2: "<<R2<<", R0: "<<R0<<"] [nabla: "<<nabla<<", alpha "<<alpha<<"] "<<std::endl;
+	    //std::cout<<" [R2: "<<R2<<", R0: "<<R0<<"] [nabla: "<<nabla<<", alpha "<<alpha<<"] "<<std::endl;
 
 	    CurrentAlpha  = alpha;
 
@@ -690,7 +720,7 @@ public:
 	    iterations++;
 	  }
 
-	  std::cout<<" Initial Slope "<<R0<<" EndSlope "<<R1<<std::endl;
+	  //std::cout<<" Initial Slope "<<R0<<" EndSlope "<<R1<<std::endl;
 	  
 	  if( GetEchoLevel() > 0 )
 	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
@@ -724,6 +754,118 @@ public:
 	return rCurrentAlpha;
     };
 
+
+  //**************************************************************************
+  //**************************************************************************
+
+  
+   double LineSearchE( TBuilderAndSolverPointerType pBuilderAndSolver,
+		       TSchemePointerType pScheme,
+		       ModelPart& r_model_part, 
+		       TSystemMatrixType& A,
+		       TSystemVectorType& Dx,
+		       TSystemVectorType& b,
+		       double rCurrentAlpha,
+		       double rPreviousAlpha)
+    {
+        KRATOS_TRY
+
+   	//bool linesearch_success=false;
+
+
+   	//Save Current Displacement, Velocity, Acceleration) as history
+   	DofsArrayType HistoricDofSet = pBuilderAndSolver->GetDofSet();
+
+   	DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+
+   	TSystemVectorType  ReferenceDx = Dx;
+
+   	//Timer::Start("LineSearch");
+	     
+   	//s0  (alpha=0)
+   	double R0 = TSparseSpace::Dot(Dx,b);
+	
+   	//s1  (alpha=1)
+   	Dx = ReferenceDx *1;
+
+	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+
+	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+
+   	double R1= TSparseSpace::Dot(ReferenceDx,b);
+	
+   	// ** Restore Current Displacement, Velocity, Acceleration
+   	Dx *= (-1);
+   	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	b.clear();
+
+	// std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
+	
+ 	double R2 = R1;
+	
+	double alpha = 1;
+	double nabla = R0/R1;
+
+	double CurrentAlpha  = 1.0; 
+	
+	int iterations=0;
+	int max_iterations = 10;
+
+	while( fabs(R2/R0)>0.5 && iterations<max_iterations && fabs(R2)>1e-4 ) {
+	  
+	  if( nabla < 0 )
+	    alpha = nabla*0.5 + sqrt(nabla*nabla*0.25-nabla);
+	  else if( nabla > 0 )
+	    alpha = nabla*0.5;
+	    
+	  CurrentAlpha  = alpha;
+  
+	  //compute s(alpha_k+1)
+	  Dx = ReferenceDx * CurrentAlpha;
+	
+	  pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+
+	  pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	     
+	  //slope_k = slope_k+1
+	  R2 = TSparseSpace::Dot(ReferenceDx,b);
+	    
+	  // ** Restore Current Displacement, Velocity, Acceleration
+	  Dx *= (-1);
+	  pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	  b.clear();
+    	       
+	  //slope_k-1 = slope_k
+	  nabla = R0/R2;
+	    
+	  iterations++;
+	}
+
+	//std::cout<<" Initial Slope "<<R0<<" EndSlope "<<R1<<std::endl;
+	
+	if( GetEchoLevel() > 0 )
+	  std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+		
+	rPreviousAlpha = rCurrentAlpha;
+	rCurrentAlpha  = CurrentAlpha;
+	
+		
+   	if(rCurrentAlpha>1)
+	  rCurrentAlpha=1;
+	
+	if(rCurrentAlpha<=0)
+	  rCurrentAlpha=0.001;
+	
+   	//Restore Current Displacement, Velocity, Acceleration
+   	Dx      = ReferenceDx;
+	
+   	//Timer::Stop("LineSearch");
+	
+   	KRATOS_CATCH( "" )
+	  
+	return rCurrentAlpha;
+    };
+  
     /*@} */
     /**@name Operations */
     /*@{ */

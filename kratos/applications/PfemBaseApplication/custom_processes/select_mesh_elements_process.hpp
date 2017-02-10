@@ -342,9 +342,9 @@ public:
 		}
 	      // else{
 
-	      // 	for( unsigned int n=0; n<nds; n++)
+	      //  	for( unsigned int n=0; n<nds; n++)
 	      // 	  {
-	      // 	    std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
+	      //  	    std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
 	      // 	  }
 		
 	      // 	std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
@@ -458,8 +458,11 @@ public:
       }
 
       if( mEchoLevel > 0 ){
-	std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
-	std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
+	// std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
+	// std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
+	// if(OutNumberOfElements-mrRemesh.Info->NumberOfElements!=0)
+	//   std::cout<<" DELETED ELEMENTS "<<std::endl;
+	
 	std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
       }
 

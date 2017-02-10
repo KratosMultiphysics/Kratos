@@ -382,12 +382,16 @@ private:
 		  
 		  Geometry<Node<3> > InsideFace(FaceNodes);
 		  rListOfFacesToSplit.push_back(InsideFace);
-		  
+		  break;
 		}
 		
 	      }
 	  }
 
+	std::cout<<" rEdgeElements "<< rBoundaryEdgedElements.size()<<std::endl;
+	std::cout<<" rEdgeConditions "<< rBoundaryEdgedConditions.size()<<std::endl;
+ 	std::cout<<" FacesToSplit "<<rListOfFacesToSplit.size()<<std::endl;
+	
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();
 		i_cond != rBoundaryEdgedConditions.end(); i_cond++)
 	  {
