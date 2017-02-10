@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="AdaptivitySettings" pn="Mesh adaptivity" un="EMBFLAdaptivitySettings" help="Mesh adaptivity strategy settings. The mesh adaptivity is done according to the distance function by means of the mmg library" open_window="0">
+	<value n="mesh_adaptivity" pn="Mesh adaptivity" un="MeshAdaptivity" v="No" values="Yes,No" help="Switch on/off the mesh adaptivity strategy" actualize="1" />
+	<value n="initial_step" pn="First remeshing step" v="1" help="First remeshing step" state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+	<value n="step_frequency" pn="Remeshing step frequency" v="0" help="Remeshing step frequency. Set 0 for unique remeshing" state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+	<value n="initial_remeshing" pn="Initial remeshing" v="Yes" values="Yes,No" help="Decide to perform an initial remeshing" state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+	<value n="hmin_over_hmax_anisotropic_ratio" pn="Anisotropic ratio" v="0.01" help="The minimal anisotropic ratio considered (NOTE: 0 is the maximum value of anisotropy, 1 is not anisotropic at all) " state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+	<value n="boundary_layer_min_size_ratio" pn="BL minimum size ratio" v="2.0" help="When the threshold value is specified using a ratio of reference " state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+	<value n="echo_level" pn="Echo level" v="3" values="0,1,2,3,4" help="Screen output level" state="[checkStateByUniqueName MeshAdaptivity Yes]" />
+</container>
