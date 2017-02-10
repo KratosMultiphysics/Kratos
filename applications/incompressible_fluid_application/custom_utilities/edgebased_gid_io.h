@@ -157,6 +157,11 @@ public:
         }
     }
 
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
+    }
+
 
     void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part,
                        double SolutionTag, int value_index = 0 )
@@ -376,7 +381,7 @@ public:
             mMeshNodes.Unique();
         }
     }
-	
+
 	    void SetMeshFile(GiD_FILE MeshFile){mMeshFile = MeshFile;};
     void SetResultFile(GiD_FILE ResultFile){mResultFile = ResultFile;};
 
@@ -589,7 +594,7 @@ public:
     //output files - to be set from the gid_io
     GiD_FILE mMeshFile;
     GiD_FILE mResultFile;
-	
+
     ///member variables
     GeometryData::KratosGeometryType mGeometryType;
     GiD_ElementType mGidElementType;
@@ -602,4 +607,4 @@ public:
 }// namespace Kratos.
 
 
-#endif // KRATOS_EDGEBASED_GID_IO_BASE_H_INCLUDED  defined 
+#endif // KRATOS_EDGEBASED_GID_IO_BASE_H_INCLUDED  defined
