@@ -33,8 +33,8 @@ main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_dat
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 #construct the solver (main setting methods are located in the solver_module)
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+CSM_solver_module = __import__(ProjectParameters["structure_solver_settings"]["solver_type"].GetString())
+CSM_solver = CSM_solver_module.CreateSolver(main_model_part, ProjectParameters["structure_solver_settings"])
 
 #add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
 # if we integrate it in the model part we cannot use combined solvers
@@ -42,8 +42,12 @@ CSM_solver.AddVariables()
 
 # --------------------------------------------------------------------------
 # Import mesh-motion solver and add solution variables
-import mesh_solver_structural_similarity as mesh_solver_class
-mesh_solver_class.AddVariables(main_model_part)
+mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
+mesh_solver = mesh_solver_module.CreateSolver(main_model_part, ProjectParameters["mesh_solver_settings"])
+
+#add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
+# if we integrate it in the model part we cannot use combined solvers
+mesh_solver.AddVariables()
 
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
@@ -62,14 +66,15 @@ CSM_solver.AddDofs()
 
 # --------------------------------------------------------------------------
 # Add Dofs for mesh solver
-mesh_solver_class.AddDofs(main_model_part)
+# mesh_solver.ImportModelPart()
+mesh_solver.AddDofs()
 
 # --------------------------------------------------------------------------
 
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
-for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+for i in range(ProjectParameters["structure_solver_settings"]["processes_sub_model_part_list"].size()):
+    part_name = ProjectParameters["structure_solver_settings"]["processes_sub_model_part_list"][i].GetString()
     if( main_model_part.HasSubModelPart(part_name) ):
         Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
@@ -86,14 +91,9 @@ if(echo_level>1):
 #### processes settings start ####
 
 import process_factory
-#the process order of execution is important
-list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-if(ProjectParameters.Has("problem_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
-if(ProjectParameters.Has("output_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-            
+list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )        
+
 #print list of constructed processes
 if(echo_level>1):
     for process in list_of_processes:
@@ -130,10 +130,6 @@ CSM_solver.SetEchoLevel(echo_level)
 
 
 # --------------------------------------------------------------------------
-# Set and initialize mesh-solver
-reform_dofs_at_each_step = False
-compute_reactions = True
-mesh_solver = mesh_solver_class.MeshSolverStructuralSimilarity(main_model_part,reform_dofs_at_each_step,compute_reactions)
 mesh_solver.Initialize()
 
 # Initialize response function solvers

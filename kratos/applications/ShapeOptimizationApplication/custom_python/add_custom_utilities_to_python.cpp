@@ -63,6 +63,7 @@
 #include "custom_utilities/vertex_morphing_mapper.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
+#include "linear_solvers/linear_solver.h"
 
 // ==============================================================================
 
