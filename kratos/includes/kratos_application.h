@@ -385,6 +385,7 @@ protected:
     const Element  mElement2D3N;	
     const Element  mElement2D4N;	
 
+    const Element  mElement3D2N;	
     const Element  mElement3D3N;	
     const Element  mElement3D4N;
     const Element  mElement3D6N;	
