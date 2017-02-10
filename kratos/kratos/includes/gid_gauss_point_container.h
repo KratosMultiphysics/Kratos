@@ -134,6 +134,47 @@ public:
         }
     }
 
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            std::vector<int> ValuesOnIntPoint(mSize);
+            if( mMeshElements.size() != 0 )
+            {
+                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                        it != mMeshElements.end(); it++ )
+                {
+                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                     r_model_part.GetProcessInfo() );
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
+                    {
+                        int index = mIndexContainer[i];
+                        GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
+                    }                    
+                }
+            }
+            if( mMeshConditions.size() != 0 )
+            {
+                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                        it != mMeshConditions.end(); it++ )
+                {
+                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                     r_model_part.GetProcessInfo() );
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
+                    {
+                        int index = mIndexContainer[i];
+                        GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
+                    }                    
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
 
     virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )

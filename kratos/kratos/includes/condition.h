@@ -805,6 +805,12 @@ public:
     {
     }
 
+    virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					     std::vector<array_1d<double, 3 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
