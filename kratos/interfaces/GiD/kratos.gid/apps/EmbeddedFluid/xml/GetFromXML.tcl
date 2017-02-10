@@ -49,6 +49,9 @@ proc EmbeddedFluid::xml::CustomTree { args } {
     if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='DistanceSettings'\]"] eq ""} {
         gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n DistanceSettings active 1 path {apps/EmbeddedFluid/xml/DistanceSettings.spd}]
     }
+    if {[$root selectNodes "[spdAux::getRoute EMBFLSolutionParameters]/container\[@n='AdaptivitySettings'\]"] eq ""} {
+        gid_groups_conds::addF [spdAux::getRoute EMBFLSolutionParameters] include [list n AdaptivitySettings active 1 path {apps/EmbeddedFluid/xml/AdaptivitySettings.spd}]
+    }
     if {[$root selectNodes "[spdAux::getRoute Results]/condition\[@n='EmbeddedDrag'\]"] eq ""} {
         gid_groups_conds::addF [spdAux::getRoute Results] include [list n EmbeddedDrag active 1 path {apps/EmbeddedFluid/xml/EmbeddedDrag.spd}]
     }

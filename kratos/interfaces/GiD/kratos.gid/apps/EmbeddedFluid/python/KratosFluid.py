@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -17,6 +16,7 @@ ProjectParameters = Parameters( parameter_file.read())
 ## Get echo level and parallel type
 verbosity = ProjectParameters["problem_data"]["echo_level"].GetInt()
 parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
+mesh_adaptivity = ProjectParameters["problem_data"]["mesh_adaptivity"].GetBool()
 
 ## Import KratosMPI if needed
 if (parallel_type == "MPI"):
@@ -86,9 +86,11 @@ if(verbosity > 1):
 ## Processes construction
 import process_factory
 # "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
+# Note 0: mesh adaptivity process must be firstly constructed to ensure that it is executed the first.
 # Note 1: gravity is firstly constructed. Outlet process might need its information.
 # Note 2: conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
+list_of_processes =  process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["mesh_adaptivity_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["auxiliar_process_list"] )
@@ -143,6 +145,18 @@ while(time <= end_time):
 
         gid_output.ExecuteInitializeSolutionStep()
 
+        # If mesh adaptivity is used, check if the main_model_part has been remeshed
+        if (mesh_adaptivity):
+            if (main_model_part.Is(MODIFIED)):
+                # If remeshed has been performe, initialize processes and solver again
+                solver.Initialize()
+                for process in list_of_processes:
+                    process.ExecuteInitialize()
+                for process in list_of_processes:
+                    process.ExecuteBeforeSolutionLoop()
+                for process in list_of_processes:
+                    process.ExecuteInitializeSolutionStep()
+
         solver.Solve()
 
         for process in list_of_processes:
@@ -150,7 +164,6 @@ while(time <= end_time):
 
         gid_output.ExecuteFinalizeSolutionStep()
 
-        #TODO: decide if it shall be done only when output is processed or not
         for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
 
