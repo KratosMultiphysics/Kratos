@@ -330,7 +330,7 @@ public:
       bool refine_condition = false;
       
       //THRESHOLD VALUE INSERT
-      double size_for_threshold_face  = 1.50 * mrRemesh.Refine->CriticalSide; 
+      double size_for_threshold_face  = 2.50 * mrRemesh.Refine->CriticalSide; 
 
       if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
 	refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
@@ -372,7 +372,8 @@ public:
     {
       KRATOS_TRY
 
-      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) ){
+      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE)
+	   || ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) ) ){
 
 	bool refine_condition = false;
 	bool curved_contact      = false;	
@@ -899,7 +900,8 @@ public:
       pNode->SetValue(MODEL_PART_NAME,rModelPart.Name());
 
       //set nodal_h
-      pNode->FastGetSolutionStepValue(NODAL_H) = mrRemesh.Refine->CriticalSide;
+      //pNode->FastGetSolutionStepValue(NODAL_H) = mrRemesh.Refine->CriticalSide; //too small problems     
+      pNode->FastGetSolutionStepValue(NODAL_H) = rGeometry.DomainSize();
       
       //set normal
       noalias(pNode->FastGetSolutionStepValue(NORMAL)) = pCondition->GetValue(NORMAL);
