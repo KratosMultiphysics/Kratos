@@ -55,7 +55,7 @@ class ComputeEmbeddedDragProcess(python_process.PythonProcess):
 
         current_time = self.fluid_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
+        if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
 
             drag_x = KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_X, self.fluid_model_part, 0)
             drag_y = KratosMultiphysics.VariableUtils().SumHistoricalNodeScalarVariable(KratosMultiphysics.REACTION_Y, self.fluid_model_part, 0)
