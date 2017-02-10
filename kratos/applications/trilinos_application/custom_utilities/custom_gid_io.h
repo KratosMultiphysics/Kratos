@@ -90,12 +90,6 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                                double SolutionTag, unsigned int parameter_index )
-    {
-        KRATOS_ERROR << "PrintResults for Variable<int> is not implemented." << std::endl;
-    }
-
     virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int parameter_index )
     {
@@ -153,6 +147,11 @@ public:
             }
             GiD_fEndResult(ResultFile );
         }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
     }
 
     virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
