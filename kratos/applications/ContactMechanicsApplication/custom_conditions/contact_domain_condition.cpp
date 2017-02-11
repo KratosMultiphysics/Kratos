@@ -1071,12 +1071,16 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
     CurrentVelocity.clear();
     CalculateRelativeDisplacement(rVariables, CurrentVelocity);
 
-    if(norm_2(TangentVelocity)<1e-2*(norm_2(CurrentVelocity)/norm_2(TangentVelocity)))
-    {
-      TangentVelocity.clear();
+    if( norm_2(TangentVelocity)>0 ){
+      
+      if(norm_2(TangentVelocity)<1e-2*(norm_2(CurrentVelocity)/norm_2(TangentVelocity)))
+	{
+	  TangentVelocity.clear();
+	}
     }
 
     //std::cout<<" TangentVelocity ["<<this->Id()<<"] :"<<TangentVelocity<<std::endl;
+    //std::cout<<" TangentDisplacement ["<<this->Id()<<"] :"<<CurrentVelocity<<std::endl;
 
 }
 
@@ -1162,7 +1166,7 @@ void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVa
 	    rVariables.Contact.FrictionCoefficient = 0;
     }
 
-    //std::cout<<" friction coefficient "<<rVariables.Contact.FrictionCoefficient<<std::endl;
+    //std::cout<<" friction coefficient "<<rVariables.Contact.FrictionCoefficient<<" static "<<GetProperties()[MU_STATIC]<<" dynamic "<<GetProperties()[MU_DYNAMIC]<<std::endl;
 
 }
 
@@ -1182,15 +1186,9 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
     
     //SET TANGENT DIRECTION-RELATIVE VELOCITY AND FRICTION PARAMETERS
 
-    //Initialize friction parameter
-    Variables.Contact.FrictionCoefficient   =0;
-
     Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS);
     if( GetProperties()[FRICTION_ACTIVE] == 1 )
 	    Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
-
-    //Tangent velocity and stablish friction parameter
-    PointType TangentVelocity (3,0.0);
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -1200,11 +1198,6 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	//Calculate Functions for the Contact Tangent Matrix construction
 	this->CalculateDomainShapeN(Variables);
 
-	//Calculate Relative Velocity
-	this->CalculateRelativeVelocity    ( Variables, TangentVelocity);
-
-	//Calculate Friction Coefficient
-	this->CalculateFrictionCoefficient ( Variables, TangentVelocity);
 
 	// UL (ask for the last known configuration size)
         //double IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
@@ -1354,40 +1347,57 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
     Vector Nforce;
     Vector Tforce;
 
-    // PointType NormalForce  (3,0.0);
-    // PointType TangentForce (3,0.0);
+    Nforce.resize(dimension);
+    Tforce.resize(dimension);
 
     unsigned int index=0;
     for (unsigned int ndi=0; ndi<size; ndi++)
     {
-	Nforce=ZeroVector( dimension );
-        Tforce=ZeroVector( dimension );
+        noalias(Nforce) = ZeroVector(dimension);
+        noalias(Tforce) = ZeroVector(dimension);
 
-	// NormalForce.clear();
-	// TangentForce.clear();
+	//TANGENT FORCE STICK
+	if(rVariables.Contact.Options.Is(NOT_SLIP))
+	  {
+	    for (unsigned int i=0; i<dimension; i++)
+	      {
+		//NORMAL FORCE
+		this->CalculateNormalForce(Nforce[i],rVariables,ndi,i);
 
-        for (unsigned int i=0; i<dimension; i++)
-        {
-            //NORMAL FORCE
-   	    this->CalculateNormalForce(Nforce[i],rVariables,ndi,i);
-
-            //TANGENT FORCE
-            if(rVariables.Contact.Options.Is(NOT_SLIP))
-            {
+		//TANGENT FORCE
 		this->CalculateTangentStickForce(Tforce[i],rVariables,ndi,i);
-            }
-            else
-            {
-                this->CalculateTangentSlipForce(Tforce[i],rVariables,ndi,i);
-            }
+		
+		rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
+		
+		// NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
+		// TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
+		
+		index++;
+	      }
 
-	    rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
- 
-	    // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
-	    // TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
+	    //std::cout<<" Contact["<<this->Id()<<"] STICK: ("<<Tforce<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+	  }
+	else{ //TANGENT FORCE SLIP
+	  
+	  for (unsigned int i=0; i<dimension; i++)
+	    {
+	      //NORMAL FORCE
+	      this->CalculateNormalForce(Nforce[i],rVariables,ndi,i);
+	      
+	      //TANGENT FORCE
+	      this->CalculateTangentSlipForce(Tforce[i],rVariables,ndi,i);
+	      
 
-	    index++;
-        }
+	      rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
+	      
+	      // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
+	      // TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
+	      
+	      index++;
+	    }
+
+	  //std::cout<<" Contact["<<this->Id()<<"] SLIP: ("<<Tforce<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+	}
 	
 	// if( ndi < GetGeometry().PointsNumber() )
 	//   {
