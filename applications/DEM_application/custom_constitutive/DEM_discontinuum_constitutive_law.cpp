@@ -147,10 +147,10 @@ namespace Kratos {
                                                         double& cohesive_force,
                                                         SphericParticle* element1,
                                                         SphericParticle* element2,
-                                                        bool& sliding) {
+                                                        bool& sliding, double LocalCoordSystem[3][3]) {
 
         InitializeContact(element1, element2, indentation);   
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);   
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);   
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
         CalculateTangentialForce(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);        
@@ -193,7 +193,8 @@ namespace Kratos {
         return 0.0;
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(SphericParticle* element1, SphericParticle* element2, const double indentation) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation,
+        double LocalCoordSystem[3][3]) {        
         return CalculateNormalForce(indentation);
     }
         

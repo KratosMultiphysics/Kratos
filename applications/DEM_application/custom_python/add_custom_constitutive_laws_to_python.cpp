@@ -21,6 +21,10 @@
 #include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
 
+#include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
+#include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
+
+
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
@@ -92,6 +96,10 @@ namespace Kratos {
             class_<DEM_D_Hertz_dependent_friction, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_dependent_friction",init<>())
                     ;
             
+            class_<DEM_D_Hertz_confined, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Hertz_confined",init<>())
+                    ;
+            class_<DEM_D_Linear_confined, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_confined",init<>())
+                    ;
             // DEM Continuum Constitutive Laws:  
 
             class_< DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer, boost::noncopyable > //bases< ConstitutiveLawBaseType >

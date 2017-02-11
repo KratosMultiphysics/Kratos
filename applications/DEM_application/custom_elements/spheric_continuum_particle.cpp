@@ -370,7 +370,9 @@ namespace Kratos {
             } else if (indentation > 0.0) {
                 double cohesive_force =  0.0;
                 const double previous_indentation = indentation + LocalDeltDisp[2];
-                mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding);
+                mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
+                        LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+                        ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding, LocalCoordSystem);
             }
 
             // Transforming to global forces and adding up
@@ -405,7 +407,7 @@ namespace Kratos {
                 CalculateOnContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
                 AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
             }                        
 

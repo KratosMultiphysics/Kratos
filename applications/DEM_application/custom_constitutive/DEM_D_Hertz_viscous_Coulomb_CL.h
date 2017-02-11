@@ -46,7 +46,7 @@ namespace Kratos {
                              double& cohesive_force,
                              SphericParticle* element1,
                              SphericParticle* element2,
-                             bool& sliding);
+                             bool& sliding, double LocalCoordSystem[3][3]);
 
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
