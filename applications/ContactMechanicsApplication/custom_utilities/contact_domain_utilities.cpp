@@ -310,7 +310,7 @@ namespace Kratos
 
 		Tangent.clear();
 		Tangent[0] =    (P2[0] - P1[0]);
-		Tangent[1] =   -(P2[1] - P1[1]);
+		Tangent[1] =    (P2[1] - P1[1]);
 		Tangent[2] =    0.00;
 
 		if(norm_2(Tangent)!=0)

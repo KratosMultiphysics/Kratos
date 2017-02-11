@@ -307,6 +307,20 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     if(rVariables.Contact.CurrentGap.Normal<=0)   //if(EffectiveGap<0){
     {
 
+        //Initialize friction parameter
+        rVariables.Contact.FrictionCoefficient = 0;
+
+        //Tangent velocity and stablish friction parameter
+        PointType TangentVelocity (3,0.0);
+
+        //Calculate Relative Velocity
+        this->CalculateRelativeVelocity    ( rVariables, TangentVelocity);
+    
+	//Calculate Friction Coefficient
+        this->CalculateFrictionCoefficient ( rVariables, TangentVelocity);
+
+
+      
 	 rVariables.Contact.Options.Set(ACTIVE,true); //normal contact active
 
         // if(fabs(EffectiveGapT)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
@@ -372,6 +386,7 @@ void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,Gene
 		F=0.0;
 	}
 
+		
 }
 
 //************************************************************************************
