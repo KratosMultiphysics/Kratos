@@ -310,13 +310,18 @@ namespace Kratos
       array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
       double NormNormal = norm_2(Normal);
 
+      double Shrink = rGeometry[0].FastGetSolutionStepValue(SHRINK_FACTOR); 
+      
       if( NormNormal != 0)
 	Normal /= NormNormal;
 
       //inside point of the region:
-      in.regionlist[0] = rGeometry[0][0]-((-1)*Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
-      in.regionlist[1] = rGeometry[0][1]-((-1)*Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
-	    
+      in.regionlist[0] = rGeometry[0][0]+((-1)*Normal[0]*Shrink*rMeshingVariables.OffsetFactor*inside_factor);
+      in.regionlist[1] = rGeometry[0][1]+((-1)*Normal[1]*Shrink*rMeshingVariables.OffsetFactor*inside_factor);
+
+      // std::cout<<" region list point [x:"<<rGeometry[0][0]<<",y:"<<rGeometry[0][1]<<"]"<<std::endl;
+      // std::cout<<" region list [x:"<<in.regionlist[0]<<",y:"<<in.regionlist[1]<<"]"<<std::endl;
+      
       //region attribute (regional attribute or marker "A" must be switched)
       in.regionlist[2] = MeshId; 
 

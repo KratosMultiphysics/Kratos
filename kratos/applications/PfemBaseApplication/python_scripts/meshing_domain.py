@@ -94,7 +94,7 @@ class MeshingDomain(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         
-        #construct the solving strategy
+        #construct the meshing strategy
         meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
@@ -222,22 +222,25 @@ class MeshingDomain(object):
 
         self.MeshingParameters.SetMeshId(self.settings["mesh_id"].GetInt())
         self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
+
+        if(self.active_remeshing):
+
+            self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
+            self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
  
-        self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
-        self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
- 
-        self.SetInfoParameters();
-        self.SetTransferParameters();
-        self.SetRefiningParameters();
+            self.SetInfoParameters();
+            self.SetTransferParameters();
+            self.SetRefiningParameters();
         
-        self.MeshingParameters.SetInfoParameters(self.InfoParameters)
-        self.MeshingParameters.SetTransferParameters(self.TransferParameters)
-        self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
+            self.MeshingParameters.SetInfoParameters(self.InfoParameters)
+            self.MeshingParameters.SetTransferParameters(self.TransferParameters)
+            self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
         
 
     def ExecuteMeshing(self):
-        
-        self.MeshingStrategy.GenerateMesh()
+
+        if( self.active_remeshing ):
+            self.MeshingStrategy.GenerateMesh()
         
         
     def SetMeshSizeValues(self):
