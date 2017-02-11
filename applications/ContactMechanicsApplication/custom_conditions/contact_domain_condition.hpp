@@ -803,6 +803,12 @@ protected:
 
 
     /**
+     * Calculation of the tangent via perturbation of the dofs variables : testing purposes
+     */
+    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+					 ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * Calculate LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,

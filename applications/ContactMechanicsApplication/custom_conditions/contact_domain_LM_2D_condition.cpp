@@ -283,6 +283,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //complete the computation of the stabilization gap
     double ContactFactor = mContactVariables.StabilizationFactor * PreviousBase.L;
+    double ContactFactorTangent = ContactFactor * GetProperties()[TANGENTIAL_PENALTY_RATIO];
 
     //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
@@ -331,7 +332,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
 
     mContactVariables.PreviousGap.Normal  += 2 * ContactFactor * NormalTensil;
-    mContactVariables.PreviousGap.Tangent += 2 * ContactFactor * TangentTensil;
+    mContactVariables.PreviousGap.Tangent += 2 * ContactFactorTangent * TangentTensil;
    
 
     //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
@@ -536,7 +537,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //complete the computation of the stabilization gap
     rVariables.Contact.ContactFactor.Normal  =  mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
-    rVariables.Contact.ContactFactor.Tangent =  rVariables.Contact.ContactFactor.Normal;
+    rVariables.Contact.ContactFactor.Tangent =  rVariables.Contact.ContactFactor.Normal * GetProperties()[TANGENTIAL_PENALTY_RATIO];
     
     //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
 
