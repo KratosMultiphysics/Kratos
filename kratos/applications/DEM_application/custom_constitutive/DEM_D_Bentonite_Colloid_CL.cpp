@@ -91,7 +91,7 @@ namespace Kratos {
                                                   double& cohesive_force,
                                                   SphericParticle* element1,
                                                   SphericParticle* element2,
-                                                  bool& sliding){
+                                                  bool& sliding, double LocalCoordSystem[3][3]){
 
         //InitializeContact(element1, element2, indentation);
 //G

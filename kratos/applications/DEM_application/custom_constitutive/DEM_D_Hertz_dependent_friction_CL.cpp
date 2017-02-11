@@ -64,13 +64,14 @@ namespace Kratos {
                                                                 double& cohesive_force,
                                                                 SphericParticle* element1,
                                                                 SphericParticle* element2,
-                                                                bool& sliding) {
+                                                                bool& sliding, 
+                                                                double LocalCoordSystem[3][3]) {
 
         double equiv_radius, equiv_young, equiv_shear;
 
         InitializeDependentContact(element1, element2, equiv_radius, equiv_young, equiv_shear, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                     
 
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);

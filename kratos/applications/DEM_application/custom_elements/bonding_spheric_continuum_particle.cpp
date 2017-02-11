@@ -109,6 +109,14 @@ namespace Kratos
         void BondingSphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){
             SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations();
             //TODO: ADD SOMETHING HERE like 'mIdsOfElementsToBeBonded.push_back(id_of_neighbour)'
+            
+             for(int i=mContinuumInitialNeighborsSize; i<(int)mNeighbourElements.size(); i++) {
+                  //if (> ) { 
+                mIdsOfElementsToBeBonded.push_back(i);
+                //mIdsOfElementsToBeBonded.push_back(mNeighbourElements[i]);
+
+                 // }
+             }
         }
                        
 }  // namespace Kratos.

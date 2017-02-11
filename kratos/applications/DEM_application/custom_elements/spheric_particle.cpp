@@ -819,7 +819,9 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
             const double previous_indentation = indentation + LocalDeltDisp[2];
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
-            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding);
+            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
+                    LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, 
+                    ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding, LocalCoordSystem);
         }
 
         array_1d<double, 3> other_ball_to_ball_forces(3,0.0);

@@ -46,7 +46,8 @@ namespace Kratos {
                              double& cohesive_force,
                              SphericParticle* element1,
                              SphericParticle* element2,
-                             bool& sliding);
+                             bool& sliding, 
+                             double LocalCoordSystem[3][3]) override;
 
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
@@ -59,17 +60,17 @@ namespace Kratos {
                                     double& cohesive_force,
                                     SphericParticle* const element,
                                     DEMWall* const wall,
-                                    bool& sliding);
+                                    bool& sliding) override;
                 
-        double CalculateNormalForce(const double indentation);
+        double CalculateNormalForce(const double indentation) override;
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
-                                            const double indentation);
+                                            const double indentation) override;
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
                                                    DEMWall* const wall,
-                                                   const double indentation);
+                                                   const double indentation) override;
 
         void CalculateTangentialForce(const double normal_contact_force,
                                       const double OldLocalElasticContactForce[3],

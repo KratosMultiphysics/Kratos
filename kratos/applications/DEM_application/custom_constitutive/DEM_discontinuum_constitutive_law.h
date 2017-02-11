@@ -116,7 +116,7 @@ namespace Kratos {
                                                         double& cohesive_force,
                                                         SphericParticle* element1,
                                                         SphericParticle* element2,
-                                                        bool& sliding);
+                                                        bool& sliding, double LocalCoordSystem[3][3]);
         
         virtual void CalculateForcesWithFEM( ProcessInfo& r_process_info,
                                             const double OldLocalContactForce[3],
@@ -132,7 +132,7 @@ namespace Kratos {
                                             bool& sliding);
                 
         virtual double CalculateNormalForce(const double indentation);
-        virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
         virtual double CalculateNormalForce(SphericParticle* const element, DEMWall* const wall, const double indentation);
             
         virtual void CalculateTangentialForce(const double normal_force,

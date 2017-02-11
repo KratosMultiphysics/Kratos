@@ -64,11 +64,12 @@ namespace Kratos {
                                                       double& cohesive_force,
                                                       SphericParticle* element1,
                                                       SphericParticle* element2,
-                                                      bool& sliding) {
+                                                      bool& sliding, 
+                                                      double LocalCoordSystem[3][3]) {
 
         InitializeContact(element1, element2, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation);
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
         
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -240,7 +241,7 @@ namespace Kratos {
 
         const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
         const double neighbour_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
-        const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);
+        const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);    
         
         MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         
