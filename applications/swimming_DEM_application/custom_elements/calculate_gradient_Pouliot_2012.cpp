@@ -9,7 +9,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateLocalSystem(MatrixTyp
                                   ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
+    //const double h_inv = 1.0 / this->GetGeometry().MinEdgeLength();
     //const double epsilon = 1e-3 * h_inv * h_inv; // we divide by h^3 to scale the L2 system to the same RHS order of magnitude as the Pouliot 2012 system; then we multiply by h to make the sum of systems of order 2 (the L2 system is accurate of order 1 only)
     const double epsilon = 1e-3;//* this->GetGeometry().MinEdgeLength();
     const unsigned int LocalSize(TDim * TNumNodes);
