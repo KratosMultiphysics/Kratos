@@ -148,12 +148,11 @@ public:
      } // REFINE END;
 
 
-     mrRemesh.Info->InsertedBoundaryConditions    = mrModelPart.NumberOfConditions(mMeshId)-mrRemesh.Info->InsertedBoundaryConditions;
      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes(mMeshId)-mrRemesh.Info->InsertedBoundaryNodes;
 
      if( this->mEchoLevel > 0 ){
-        std::cout<<"   [ CONDITIONS ( inserted : "<<mrRemesh.Info->InsertedBoundaryConditions<<" ) ]"<<std::endl;
-        std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" ) ]"<<std::endl;
+        std::cout<<"   [ CONDITIONS ( total : "<<mrModelPart.NumberOfConditions(mMeshId)<<" ) ]"<<std::endl;
+        std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" total: "<<mrModelPart.NumberOfNodes(mMeshId)<<" ) ]"<<std::endl;
 
 	if( this->mEchoLevel >=1 ){
 	  mrRemesh.Refine->Info.BoundaryConditionsRefined.EchoStats();
@@ -905,7 +904,7 @@ public:
       
       //set normal
       noalias(pNode->FastGetSolutionStepValue(NORMAL)) = pCondition->GetValue(NORMAL);
-      
+	    
       //set original position
       const array_1d<double,3>& Displacement = pNode->FastGetSolutionStepValue(DISPLACEMENT);
       pNode->X0() = pNode->X() - Displacement[0];
@@ -1125,6 +1124,11 @@ public:
 	
       }
 
+       if( this->mEchoLevel > 0 )
+	std::cout<<"   [ CONDITIONS ( inserted : "<<list_of_conditions.size()<<" ) ]"<<std::endl;
+
+       mrRemesh.Info->InsertedBoundaryConditions = list_of_conditions.size();
+       
       //renumerate conditions
       // unsigned int id=1;
       // for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
@@ -1156,6 +1160,10 @@ public:
     	  if(i_cond->IsNot(TO_ERASE))
     	    rModelPart.Conditions().push_back(*(i_cond.base()));
     	}
+
+      if( this->mEchoLevel > 0 )
+	std::cout<<"   [ CONDITIONS ( erased : "<<PreservedConditions.size()-rModelPart.Conditions().size()<<" ) ]"<<std::endl;
+
 	  	
       KRATOS_CATCH( "" )
     }

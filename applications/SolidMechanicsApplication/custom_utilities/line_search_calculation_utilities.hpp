@@ -524,7 +524,7 @@ public:
 	    //double PreviousAlpha = 0.0;
 
 	    int iterations=0;
-	    int max_iterations = 4;
+	    int max_iterations = 10;
 	    //std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
 
 	    while(fabs(R2/R0start)>0.3 && iterations<max_iterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7) {

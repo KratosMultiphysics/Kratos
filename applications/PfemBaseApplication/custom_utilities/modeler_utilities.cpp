@@ -1768,7 +1768,7 @@ namespace Kratos
 
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
 
-	if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
+	if(rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED)){
 
 	  if( (nodes_begin + i)->Is(BOUNDARY) ){
 	       
@@ -1785,11 +1785,15 @@ namespace Kratos
 	    for(unsigned int j=0; j<dimension; j++){
 	      PointList[base+j]   = Coordinates[j] + Offset[j];
 	    }
+
+	    //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates + Offset<<std::endl;
 	  }
 	  else{
 	    for(unsigned int j=0; j<dimension; j++){
 	      PointList[base+j]   = Coordinates[j];
 	    }
+
+	    //std::cout<<" Node ["<<(nodes_begin + i)->Id()<<"] "<<Coordinates<<std::endl;
 	  }
 
 	}
