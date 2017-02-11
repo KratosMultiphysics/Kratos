@@ -525,8 +525,8 @@ class Procedures(object):
                     Coordination_Number = 2.0 * Total_Contacts / Total_Particles
 
             Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
-            Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
-            Model_Data.write("Coordination Number NC: " + str(Coordination_Number) + '\n')
+            Model_Data.write("Total Number of Bonds: " + str(Total_Contacts) + '\n')
+            Model_Data.write("Bonded Coordination Number NC: " + str(Coordination_Number) + '\n')
             Model_Data.write('\n')
             #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')            
             self.KRATOSprint ("Coordination Number: " + str(Coordination_Number) + "\n")
