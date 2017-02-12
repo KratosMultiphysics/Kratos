@@ -25,7 +25,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_module": "contact_meshing_strategy",
-             "meshing_frequency": 0,
+             "meshing_frequency": 0.0,
              "remesh": true,
              "constrained": false,
              "contact_parameters":{

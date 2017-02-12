@@ -346,6 +346,8 @@ public:
 	}
 	
       }
+
+      refine_condition = false;
       
       //DISTANCE VALUE INSERT
       double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
@@ -411,19 +413,24 @@ public:
 	
 	}
 
-	double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
-	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
+	if( contact_active || contact_semi_active ){ 
 	
-	if( refine_condition ){
+	  double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
+	  refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
+	
+	  if( refine_condition ){
 	  
-	  mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
-	  if(contact_active || contact_semi_active){
-	    mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
-	    if(curved_contact)
-	      mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
+	    mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
+	    if(contact_active || contact_semi_active){
+	      mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
+	      if(curved_contact)
+		mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
+	    }
+	    return true;
 	  }
-	  return true;
+
 	}
+	
       }
       
       return false;
