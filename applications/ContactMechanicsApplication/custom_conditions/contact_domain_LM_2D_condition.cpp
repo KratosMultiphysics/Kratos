@@ -183,7 +183,13 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     unsigned int slave=mContactVariables.slaves.back();
 
     //Get Reference Normal
-    mContactVariables.ReferenceSurface.Normal=GetValue(NORMAL);
+    PointType PP1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) -GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    PointType PP2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+
+    mContactVariables.ReferenceSurface.Normal=mContactUtilities.CalculateFaceNormal(mContactVariables.ReferenceSurface.Normal,PP1,PP2);
+	
+    //std::cout<<" COMPUTED NORMAL "<<mContactVariables.ReferenceSurface.Normal<<" CONDITION NORMAL "<<GetValue(NORMAL)<<std::endl;
+    //mContactVariables.ReferenceSurface.Normal=GetValue(NORMAL);
 
     //std::cout<<" Got Normal ["<<this->Id()<<"] "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
 
@@ -253,15 +259,15 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
 
-    if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        mContactVariables.PreStepSurface.Normal*=-1;
+    // if((inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
+    //     mContactVariables.PreStepSurface.Normal*=-1;
 
-    mContactVariables.PreStepSurface.Normal /= norm_2(mContactVariables.PreStepSurface.Normal);       //to be unitary
+    // mContactVariables.PreStepSurface.Normal /= norm_2(mContactVariables.PreStepSurface.Normal);       //to be unitary
 
-    if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
-    {
-        mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
-    }
+    // if(!(norm_2(mContactVariables.PreStepSurface.Normal)))
+    // {
+    //     mContactVariables.PreStepSurface.Normal=mContactVariables.ReferenceSurface.Normal;
+    // }
 
     //Set Previous Tangent
     mContactVariables.PreStepSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
@@ -325,11 +331,12 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     
     
     //g.- Compute normal component of the tension vector:   (tn=n·P·N)
-    NormalTensil=inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.TractionVector);
+    //NormalTensil=inner_prod(mContactVariables.PreStepSurface.Normal,mContactVariables.TractionVector);
+    NormalTensil=inner_prod(mContactVariables.ReferenceSurface.Normal,mContactVariables.TractionVector);
 
     //h.- Compute tangent component of the tension vector:  (tt=t·P·N)
-    TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
-
+    //TangentTensil=inner_prod(mContactVariables.PreStepSurface.Tangent,mContactVariables.TractionVector);
+    TangentTensil=inner_prod(mContactVariables.ReferenceSurface.Tangent,mContactVariables.TractionVector);
 
     mContactVariables.PreviousGap.Normal  += 2 * ContactFactor * NormalTensil;
     mContactVariables.PreviousGap.Tangent += 2 * ContactFactorTangent * TangentTensil;
@@ -471,14 +478,14 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
 
-    if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
-        rVariables.Contact.CurrentSurface.Normal*=-1;
+    // if(double(inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal))<0) //to give the correct direction
+    //     rVariables.Contact.CurrentSurface.Normal*=-1;
 
-    rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
-
-    if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
-        rVariables.Contact.CurrentSurface.Normal=mContactVariables.ReferenceSurface.Normal;
-
+    
+    // if(!(norm_2(rVariables.Contact.CurrentSurface.Normal)))
+    //   rVariables.Contact.CurrentSurface.Normal = mContactVariables.ReferenceSurface.Normal;
+    // else
+    //   rVariables.Contact.CurrentSurface.Normal /= norm_2(rVariables.Contact.CurrentSurface.Normal);  //to be unitary
 
     //compute the current tangent vector
     //rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
@@ -597,9 +604,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     rVariables.Contact.TangentialGapSign=1;
 
-    if((rVariables.Contact.CurrentGap.Tangent)<0)
+    if( rVariables.Contact.CurrentGap.Tangent < 0 )
     {
-        rVariables.Contact.TangentialGapSign*=(-1);
+        rVariables.Contact.TangentialGapSign=-1;
     }
 
 
@@ -687,8 +694,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     //Check ORTHOGONAL FACES in contact
     
     //decimal correction from tension vector calculation
-    if(fabs(EffectiveGapN)<= 1e-15 && fabs(EffectiveGapN)<= 1e-15)
-      EffectiveGapN = 0;
+    // if(fabs(EffectiveGapN)<= 1e-15 && fabs(EffectiveGapN)<= 1e-15)
+    //   EffectiveGapN = 0;
     //decimal correction from tension vector calculation
 
     
@@ -704,27 +711,31 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
         PointType TangentVelocity (3,0.0);
       
         //Calculate Relative Velocity
-        this->CalculateRelativeVelocity(rVariables,TangentVelocity);
+        this->CalculateRelativeVelocity(rVariables,TangentVelocity,rCurrentProcessInfo);
       
         //Calculate Friction Coefficient
         this->CalculateFrictionCoefficient(rVariables,TangentVelocity);
       
-      
-        rVariables.Contact.Options.Set(ACTIVE);  //normal contact active
+
+	//std::cout<<" Friction Coefficient ["<<this->Id()<<"]"<<rVariables.Contact.FrictionCoefficient<<" Sign "<<rVariables.Contact.TangentialGapSign<<std::endl;
+	
+        rVariables.Contact.Options.Set(ACTIVE,true);  //normal contact active
 
 	//std::cout<<" EffectiveGapT ["<<this->Id()<<"] :"<<EffectiveGapT<<std::endl;
 	//std::cout<<" mu * EffectiveGapN ["<<this->Id()<<"] :"<<rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN)<<", mu :"<<rVariables.Contact.FrictionCoefficient<<std::endl;
 	
-        if(fabs(EffectiveGapT)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
+        if(fabs(EffectiveGapT)<rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
         {
 	    rVariables.Contact.Options.Set(SLIP,false); //contact stick case active
-	    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;
+	    rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;	   
+	    
         }
         else
         {
-
 	    rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
 	    rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS] += 1;
+
+	    //std::cout<<" EffectiveGapT ["<<this->Id()<<"] :"<<EffectiveGapT<<" Reference Gap "<<ReferenceGapT<<" mu*Fn "<<(rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))<<std::endl;
         }
 
 	rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
@@ -739,6 +750,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
 
     //rVariables.Contact.Options.Set(SLIP,false); //impose stick
+    //rVariables.Contact.Options.Set(SLIP,true); //impose slip
 
     //From total current gap compute multipliers:
 
@@ -749,12 +761,22 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     rVariables.Contact.Multiplier.Tangent =rVariables.Contact.CurrentTensil.Tangent;
     rVariables.Contact.Multiplier.Tangent+=rVariables.Contact.CurrentGap.Tangent*(1./(2.0*rVariables.Contact.ContactFactor.Tangent));
 
+    //std::cout<<" Mt "<<rVariables.Contact.Multiplier.Tangent<<" Mn*mu "<<rVariables.Contact.Multiplier.Normal*rVariables.Contact.FrictionCoefficient<<std::endl;
 
-    if(rVariables.Contact.Multiplier.Tangent<0)  //add the sign of the Lagrange Multiplier
-    {
-        rVariables.Contact.TangentialGapSign*=(-1);
+    if( rVariables.Contact.Multiplier.Normal < 0 ){
+      
+      if( rVariables.Contact.Multiplier.Tangent < 0 )  //set the sign of the Lagrange Multiplier
+	{
+	  rVariables.Contact.TangentialGapSign = 1;
+	}
+      else
+	{
+	  rVariables.Contact.TangentialGapSign = -1;
+	}
+      
     }
-
+    
+    //std::cout<<" Tangent "<<rVariables.Contact.Multiplier.Tangent<<std::endl;
 
     if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0){
       // int active = 0;
@@ -1065,11 +1087,16 @@ void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 	//std::cout<<" + slip ";
 	    //std::cout<<"(mu_on)";
             //KI:
-	    Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*((0.5/rVariables.Contact.ContactFactor.Normal)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])* (rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])
-		    +rVariables.Contact.Multiplier.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]- rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]- rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
+	    Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*
+	      ((0.5/rVariables.Contact.ContactFactor.Normal)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])
+		    +rVariables.Contact.Multiplier.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+							 + rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+							 - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+							 - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
 	            -rVariables.Contact.CurrentTensil.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]));
+
             //KII:
-            Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*rVariables.Contact.Nsigma[ndj][jdir];
+            Kcont+= (rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*rVariables.Contact.Tsigma[ndj][jdir];
 
         }
       }

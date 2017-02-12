@@ -763,13 +763,15 @@ protected:
      *  Parameters for friction law Relative Tangent Velocity:
      */
     virtual void CalculateRelativeVelocity(GeneralVariables& rVariables,
-					   PointType & TangentVelocity);
+					   PointType & TangentVelocity,
+					   ProcessInfo& rCurrentProcessInfo);
 
     /**
      *  Parameters for friction law Relative Tangent Displacement:
      */
     virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
-					       PointType & TangentDisplacement);
+					       PointType & TangentDisplacement,
+					       ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate current tangent vector

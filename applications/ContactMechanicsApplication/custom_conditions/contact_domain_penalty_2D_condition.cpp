@@ -314,10 +314,10 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
         PointType TangentVelocity (3,0.0);
 
         //Calculate Relative Velocity
-        this->CalculateRelativeVelocity    ( rVariables, TangentVelocity);
+        this->CalculateRelativeVelocity    ( rVariables, TangentVelocity, rCurrentProcessInfo);
     
 	//Calculate Friction Coefficient
-        this->CalculateFrictionCoefficient ( rVariables, TangentVelocity);
+        this->CalculateFrictionCoefficient ( rVariables, TangentVelocity );
 
 
       
