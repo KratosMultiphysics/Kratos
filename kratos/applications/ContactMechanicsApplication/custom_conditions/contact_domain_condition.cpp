@@ -1125,7 +1125,7 @@ Matrix& ContactDomainCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, PointType & TangentVelocity)
+void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, PointType & TangentVelocity, ProcessInfo& rCurrentProcessInfo)
 {
     //if current tangent is not previously computed, do it here.
     rVariables.Contact.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.Contact.CurrentSurface.Tangent );
@@ -1158,7 +1158,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 
     //Filter for low velocities (relatives to dynamic waves)
     CurrentVelocity.clear();
-    CalculateRelativeDisplacement(rVariables, CurrentVelocity);
+    CalculateRelativeDisplacement(rVariables, CurrentVelocity,rCurrentProcessInfo);
 
     if( norm_2(TangentVelocity)>0 ){
       
@@ -1167,6 +1167,11 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 	  TangentVelocity.clear();
 	}
     }
+    else{
+      
+      TangentVelocity = CurrentVelocity;
+    }
+      
 
     //std::cout<<" TangentVelocity ["<<this->Id()<<"] :"<<TangentVelocity<<std::endl;
     //std::cout<<" TangentDisplacement ["<<this->Id()<<"] :"<<CurrentVelocity<<std::endl;
@@ -1177,7 +1182,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, PointType & TangentDisplacement)
+void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, PointType & TangentDisplacement, ProcessInfo& rCurrentProcessInfo)
 {
 
     // (Tangent vector previously computed)
@@ -1199,6 +1204,7 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
     //Relative tangent movement of the slave if the master is fixed (the direction is implicit in the method)
     TangentDisplacement = rVariables.Contact.CurrentSurface.Tangent*(inner_prod(TangentDisplacement,rVariables.Contact.CurrentSurface.Tangent));
 
+    TangentDisplacement /= rCurrentProcessInfo[DELTA_TIME];
 }
 
 //************************************************************************************
@@ -1228,7 +1234,6 @@ void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVa
     if(Velocity!=0)
     {
 
-
         rVariables.Contact.FrictionCoefficient=muDynamic+(muStatic-muStatic)*exp((-1)*paramC*fabs(Velocity));
 
 
@@ -1250,7 +1255,6 @@ void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVa
     }
 
     //Activate or deactivate friction (simulation type)
-
     if( rVariables.Contact.Options.IsNot(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) ){
 	    rVariables.Contact.FrictionCoefficient = 0;
     }
@@ -1435,16 +1439,17 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 
     Vector Nforce;
     Vector Tforce;
-
+    Vector TSforce;
+    
     Nforce.resize(dimension);
     Tforce.resize(dimension);
-
+    
     unsigned int index=0;
     for (unsigned int ndi=0; ndi<size; ndi++)
     {
         noalias(Nforce) = ZeroVector(dimension);
         noalias(Tforce) = ZeroVector(dimension);
-
+	
 	//TANGENT FORCE STICK
 	if(rVariables.Contact.Options.Is(NOT_SLIP))
 	  {
@@ -1476,7 +1481,6 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 	      //TANGENT FORCE
 	      this->CalculateTangentSlipForce(Tforce[i],rVariables,ndi,i);
 	      
-
 	      rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
 	      
 	      // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
@@ -1485,7 +1489,7 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 	      index++;
 	    }
 
-	  //std::cout<<" Contact["<<this->Id()<<"] SLIP: ("<<Tforce<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+	  //std::cout<<" Contact["<<this->Id()<<"] SLIP: ("<<Tforce<<") STICK: ("<<TSforce<<") "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
 	}
 	
 	// if( ndi < GetGeometry().PointsNumber() )

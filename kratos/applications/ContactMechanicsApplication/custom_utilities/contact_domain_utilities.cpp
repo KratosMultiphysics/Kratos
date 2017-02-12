@@ -289,15 +289,15 @@ namespace Kratos
 
 	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, PointType& P1, PointType &P2)
 	{
-
+   	        //contact element is ouside (sign criterion)
 		Normal.clear();
-		Normal[0] =    P2[1] - P1[1];
-		Normal[1] = - (P2[0] - P1[0]);
+		Normal[0] = - (P2[1] - P1[1]);
+		Normal[1] =   (P2[0] - P1[0]);
 		Normal[2] =    0.00;
 
 		if(norm_2(Normal)!=0)
-			Normal/=norm_2(Normal);
-
+		  Normal/=norm_2(Normal);
+		
 		return Normal;
 	}
 
@@ -307,10 +307,10 @@ namespace Kratos
 
 	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& P1, PointType &P2)
 	{
-
+   	        //contact element is ouside (sign criterion)
 		Tangent.clear();
-		Tangent[0] =    (P2[0] - P1[0]);
-		Tangent[1] =    (P2[1] - P1[1]);
+		Tangent[0] =  -(P2[0] - P1[0]);
+		Tangent[1] =  -(P2[1] - P1[1]);
 		Tangent[2] =    0.00;
 
 		if(norm_2(Tangent)!=0)
@@ -328,7 +328,7 @@ namespace Kratos
 
 	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& Normal)
 	{
-
+	        //counter clock-wise movement
 		Tangent.clear();
 		Tangent[0] =  - Normal[1];
 		Tangent[1] =    Normal[0];
