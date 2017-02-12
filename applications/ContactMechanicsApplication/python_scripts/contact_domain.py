@@ -35,7 +35,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
             "offset_factor": 0.0,
             "meshing_strategy":{
                "python_module": "contact_meshing_strategy",
-               "meshing_frequency": 0,
+               "meshing_frequency": 0.0,
                "remesh": true,
                "constrained": false,
                "contact_parameters":{

@@ -167,6 +167,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         # schedule next meshing
         if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):
+                time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
                 while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency
             else:

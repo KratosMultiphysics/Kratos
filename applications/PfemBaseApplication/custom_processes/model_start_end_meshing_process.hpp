@@ -782,7 +782,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      //Add Contact modelparts to main modelpart  flags: ( CONTACT ) in contact model parts keep only nodes and contact conditions // after that a contact search will be needed 
+      //Add Contact modelparts to main modelpart  flags: ( CONTACT ) in contact model parts keep only nodes and contact conditions // after that a contact search will be needed
+
+      //if contact condition has the same geometry size as an elements printing ids will coincide,
+      //renumber conditions with rElemId instead of rCondId :: in order to ensure it check maximun and apply it
+      unsigned int rContactId = rCondId;
+      if( rElemId > rCondId )
+	rContactId = rElemId;
+       
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
@@ -820,8 +827,8 @@ namespace Kratos
 		    
 		    (i_mp->Conditions()).push_back(*(i_cond.base()));
 		    rPreservedConditions.push_back(*(i_cond.base()));
-		    rPreservedConditions.back().SetId(rCondId);
-		    rCondId+=1;
+		    rPreservedConditions.back().SetId(rContactId);
+		    rContactId+=1;
 		    
 		  }
 		  
@@ -836,7 +843,13 @@ namespace Kratos
 	  }
 	  
 	}
-	
+
+      
+      if( rElemId > rCondId )
+	rElemId = rContactId;
+      else
+	rCondId = rContactId;
+      
 
       KRATOS_CATCH(" ")
     }
