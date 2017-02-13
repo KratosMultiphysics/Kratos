@@ -127,12 +127,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         append PutStrings \]
     }
     puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
-    ## body_domain_sub_model_part_list
-    set PutStrings \[
-    AppendGroupNames PutStrings Body_Part
-    set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]
-    puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
@@ -156,51 +150,62 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings,"
-    ## loads_sub_model_part_list
+    ## body_domain_sub_model_part_list
     set PutStrings \[
-    set iGroup 0
-    # Force
-    AppendGroupNamesWithNum PutStrings iGroup Force
-    # Face_Load
-    AppendGroupNamesWithNum PutStrings iGroup Face_Load
-    # Normal_Load
-    AppendGroupNamesWithNum PutStrings iGroup Normal_Load
-    # Normal_Fluid_Flux
-    AppendGroupNamesWithNum PutStrings iGroup Normal_Fluid_Flux
-    # Interface_Face_Load
-    AppendGroupNamesWithNum PutStrings iGroup Interface_Face_Load
-    # Interface_Normal_Fluid_Flux
-    AppendGroupNamesWithNum PutStrings iGroup Interface_Normal_Fluid_Flux
-    # Body_Acceleration
-    AppendGroupNamesWithNum PutStrings iGroup Body_Acceleration
-    if {$iGroup > 0} {
-        set PutStrings [string trimright $PutStrings ,]
-    }
+    AppendGroupNames PutStrings Body_Part
+    set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $FileVar "        \"loads_sub_model_part_list\":          $PutStrings,"
-    ## loads_variable_list
-    set PutStrings \[
-    # Force
-    AppendGroupVariables PutStrings Force FORCE
-    # Face_Load
-    AppendGroupVariables PutStrings Face_Load FACE_LOAD
-    # Normal_Load
-    AppendGroupVariables PutStrings Normal_Load NORMAL_CONTACT_STRESS
-    # Normal_Fluid_Flux
-    AppendGroupVariables PutStrings Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    # Interface_Face_Load
-    AppendGroupVariables PutStrings Interface_Face_Load FACE_LOAD
-    # Interface_Normal_Fluid_Flux
-    AppendGroupVariables PutStrings Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    # Body_Acceleration
-    AppendGroupVariables PutStrings Body_Acceleration VOLUME_ACCELERATION
-    if {$iGroup > 0} {
-        set PutStrings [string trimright $PutStrings ,]
+    if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
+        ## loads_sub_model_part_list
+        set PutStrings \[
+        set iGroup 0
+        # Force
+        AppendGroupNamesWithNum PutStrings iGroup Force
+        # Face_Load
+        AppendGroupNamesWithNum PutStrings iGroup Face_Load
+        # Normal_Load
+        AppendGroupNamesWithNum PutStrings iGroup Normal_Load
+        # Normal_Fluid_Flux
+        AppendGroupNamesWithNum PutStrings iGroup Normal_Fluid_Flux
+        # Interface_Face_Load
+        AppendGroupNamesWithNum PutStrings iGroup Interface_Face_Load
+        # Interface_Normal_Fluid_Flux
+        AppendGroupNamesWithNum PutStrings iGroup Interface_Normal_Fluid_Flux
+        # Body_Acceleration
+        AppendGroupNamesWithNum PutStrings iGroup Body_Acceleration
+        if {$iGroup > 0} {
+            set PutStrings [string trimright $PutStrings ,]
+        }
+        append PutStrings \]
+        puts $FileVar "        \"loads_sub_model_part_list\":          $PutStrings,"
+        ## loads_variable_list
+        set PutStrings \[
+        # Force
+        AppendGroupVariables PutStrings Force FORCE
+        # Face_Load
+        AppendGroupVariables PutStrings Face_Load FACE_LOAD
+        # Normal_Load
+        AppendGroupVariables PutStrings Normal_Load NORMAL_CONTACT_STRESS
+        # Normal_Fluid_Flux
+        AppendGroupVariables PutStrings Normal_Fluid_Flux NORMAL_FLUID_FLUX
+        # Interface_Face_Load
+        AppendGroupVariables PutStrings Interface_Face_Load FACE_LOAD
+        # Interface_Normal_Fluid_Flux
+        AppendGroupVariables PutStrings Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
+        # Body_Acceleration
+        AppendGroupVariables PutStrings Body_Acceleration VOLUME_ACCELERATION
+        if {$iGroup > 0} {
+            set PutStrings [string trimright $PutStrings ,]
+        }
+        append PutStrings \]
+        puts $FileVar "        \"loads_variable_list\":                $PutStrings"
+        puts $FileVar "    \},"
+    } else {
+        puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings"
+        puts $FileVar "    \},"
     }
-    append PutStrings \]
-    puts $FileVar "        \"loads_variable_list\":                $PutStrings"
-    puts $FileVar "    \},"
-
+    
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
