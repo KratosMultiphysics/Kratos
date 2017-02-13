@@ -20,7 +20,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io")) #reusing the file that is already in the directory
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         model_part_io.ReadModelPart(model_part)
     
         #define a Model TODO: replace to use the real Model once available
