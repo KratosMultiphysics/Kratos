@@ -1,4 +1,4 @@
-<img src="http://www.cimne.com/kratos/img/logo.png"><>
+<img src="http://www.cimne.com/kratos/img/logo.png">
 
 # Overview
 
