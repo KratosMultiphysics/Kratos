@@ -15,7 +15,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##set the variable values
@@ -42,7 +42,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##save the variable values
@@ -63,7 +63,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##save the variable values
@@ -82,7 +82,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##save the variable values
@@ -101,7 +101,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##extract the nodes with DISPLACEMENT_X equal to 0.0
@@ -121,7 +121,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##apply the fixity
@@ -140,7 +140,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##set the data vector [0,1,2,...]
@@ -167,7 +167,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         scalar_val = 0.1
