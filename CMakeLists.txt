@@ -8,23 +8,11 @@ set (KratosMultiphysics_VERSION_MINOR 0)
 #get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
-find_package(Subversion QUIET)
-if(Subversion_FOUND)
-  get_filename_component(ABS_PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR} REALPATH)
-  include(FindSubversion)
-  Subversion_WC_INFO(${ABS_PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
-    "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
-  )
-else(Subversion_FOUND)
-  # If svn is not found use 0 as a default placeholder
-  set (KRATOS_SVN_REVISION_WC_REVISION 0)
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
-    "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
-  )
-endif(Subversion_FOUND)
+set (KRATOS_SVN_REVISION_WC_REVISION 0)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
+  "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
+)
 
 #set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})

@@ -14,7 +14,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
         
         settings = Parameters(
@@ -114,7 +114,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
         
         #reset all data
