@@ -50,7 +50,7 @@ class NavierStokesBaseSolver:
             "MoveMeshFlag": false,
             "use_slip_conditions": false,
             "turbulence_model": "None",
-            "use_spalart_allmaras": false,
+            "use_spalart_allmaras": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
