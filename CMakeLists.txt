@@ -14,18 +14,19 @@ find_package(Git)
 if(GIT_FOUND)
   execute_process(
     COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-    OUTPUT_VARIABLE KratosMultiphysics_VERSION_GSHA1
+    OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
+else(GIT_FOUND)
+  message("Git was not found on your system. SHA1 number will be set to 0.")
+  set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
+
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
 )
-
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
