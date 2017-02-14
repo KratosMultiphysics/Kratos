@@ -2,17 +2,30 @@ cmake_minimum_required (VERSION 2.8.6)
 project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_VERSION_MAJOR 5)
-set (KratosMultiphysics_VERSION_MINOR 0)
+set (KratosMultiphysics_MAJOR_VERSION 5)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
-set (KRATOS_SVN_REVISION_WC_REVISION 0)
+# Search the SHA1 Associated with the commit in the HEAD
+find_package(Git)
+if(GIT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+    OUTPUT_VARIABLE KratosMultiphysics_VERSION_GSHA1
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endif(GIT_FOUND)
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
 )
+
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
