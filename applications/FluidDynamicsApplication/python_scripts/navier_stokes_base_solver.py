@@ -38,6 +38,11 @@ class NavierStokesBaseSolver:
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
+            "time_stepping"                : {
+            "automatic_time_step" : true,
+            "CFL_number"          : 1,
+            "maximum_delta_time"  : 0.01
+            },
             "alpha":-0.1,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
@@ -45,7 +50,7 @@ class NavierStokesBaseSolver:
             "MoveMeshFlag": false,
             "use_slip_conditions": false,
             "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "use_spalart_allmaras": false,
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -86,6 +91,7 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
@@ -149,8 +155,11 @@ class NavierStokesBaseSolver:
                     #~ for node in model_part.Nodes:
                         #~ node.AddDof(TURBULENT_VISCOSITY)
 
+    def AdaptMesh(self):
+        pass
+
     def GetMinimumBufferSize(self):
-        return 3;
+        return 3
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
@@ -159,10 +168,29 @@ class NavierStokesBaseSolver:
         pass
 
     def ComputeDeltaTime(self):
-        pass
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
+        # User-defined delta time
+        else:
+            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return delta_time
+
+    def Initialize(self):
+        raise Exception("Calling the Navier-Stokes base solver. Please implement the custom Initialize() method of your solver.")
 
     def SaveRestart(self):
         pass #one should write the restart file here
+
+    def Clear(self):
+        (self.solver).Clear()
+
+    def Check(self):
+        (self.solver).Check()
+
+    def SetEchoLevel(self, level):
+        (self.solver).SetEchoLevel(level)
 
     def SolverInitialize(self):
         (self.solver).Initialize()
@@ -185,15 +213,6 @@ class NavierStokesBaseSolver:
         self.SolverPredict()
         self.SolverSolveSolutionStep()
         self.SolverFinalizeSolutionStep()
-
-    def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
-
-    def Clear(self):
-        (self.solver).Clear()
-
-    def Check(self):
-        (self.solver).Check()
 
     def _ModelPartReading(self):
         ## Model part reading

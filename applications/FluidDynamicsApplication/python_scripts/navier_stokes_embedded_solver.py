@@ -50,7 +50,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
                 "smoother_type"       : "ilu0",
-                "krylov_type"         : "lgmres",
+                "krylov_type"         : "gmres",
                 "coarsening_type"     : "aggregation",
                 "scaling"             : true,
                 "verbosity"           : 0
@@ -58,6 +58,11 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "maximum_delta_time"  : 0.01
+            },
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "MoveMeshFlag": false,
@@ -105,7 +110,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)           # Nodal volume necessary for refinement
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)           # Nodal volume necessary for refinement
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
@@ -119,6 +124,11 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.computing_model_part = self.GetComputingModelPart()
 
         move_mesh_flag = False
+
+        # If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility(self.computing_model_part,
+                                                                        self.settings["time_stepping"])
 
         # Creating the solution strategy
         self.conv_criteria = KratosFluid.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),

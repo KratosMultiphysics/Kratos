@@ -73,20 +73,20 @@ void  AddCustomUtilitiesToPython()
     .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
     ;
 
-    class_<EstimateDtUtilities < 2 >, boost::noncopyable >("EstimateDtUtilities2D", init< ModelPart&, const double, const double >())
+    class_<EstimateDtUtility < 2 >, boost::noncopyable >("EstimateDtUtilities2D", init< ModelPart&, const double, const double >())
     .def(init< ModelPart&, Parameters& >())
-    .def("SetCFL",&EstimateDtUtilities < 2 > ::SetCFL)
-    .def("SetDtMax",&EstimateDtUtilities < 2 > ::SetDtMax)
-    .def("EstimateDt",&EstimateDtUtilities < 2 > ::EstimateDt)
-    .def("CalculateLocalCFL",&EstimateDtUtilities < 2 > ::CalculateLocalCFL)
+    .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
+    .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
+    .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
+    .def("CalculateLocalCFL",&EstimateDtUtility < 2 > ::CalculateLocalCFL)
     ;
 
-    class_<EstimateDtUtilities < 3 >, boost::noncopyable >("EstimateDtUtilities3D", init< ModelPart&, const double, const double >())
+    class_<EstimateDtUtility < 3 >, boost::noncopyable >("EstimateDtUtilities3D", init< ModelPart&, const double, const double >())
     .def(init< ModelPart&, Parameters& >())
-    .def("SetCFL",&EstimateDtUtilities < 3 > ::SetCFL)
-    .def("SetDtMax",&EstimateDtUtilities < 3 > ::SetDtMax)
-    .def("EstimateDt",&EstimateDtUtilities < 3 > ::EstimateDt)
-    .def("CalculateLocalCFL",&EstimateDtUtilities < 3 > ::CalculateLocalCFL)
+    .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
+    .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
+    .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
+    .def("CalculateLocalCFL",&EstimateDtUtility < 3 > ::CalculateLocalCFL)
     ;
 
     typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);

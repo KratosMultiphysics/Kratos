@@ -67,7 +67,12 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
-            "no_skin_parts":[""]
+            "no_skin_parts":[""],
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "maximum_delta_time"  : 0.01
+            },
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -122,6 +127,11 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         MoveMeshFlag = False
 
         self.use_slip_conditions = True
+
+        # If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility(self.computing_model_part,
+                                                                        self.settings["time_stepping"])
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:

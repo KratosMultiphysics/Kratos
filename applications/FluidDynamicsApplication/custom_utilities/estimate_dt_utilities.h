@@ -44,7 +44,7 @@ namespace Kratos
 
 /// Estimate the time step in a fluid problem to obtain a given Courant number.
 template< unsigned int TDim, unsigned int TNumNodes=TDim+1 >
-class EstimateDtUtilities
+class EstimateDtUtility
 {
 public:
 
@@ -57,7 +57,7 @@ public:
      * @param CFL The user-defined Courant-Friedrichs-Lewy number
      * @param DtMax user-defined maximum time increment allowed
      */
-    EstimateDtUtilities(ModelPart& rModelPart, const double CFL, const double DtMax)
+    EstimateDtUtility(ModelPart& rModelPart, const double CFL, const double DtMax)
     {
         mCFL = CFL;
         mDtMax = DtMax;
@@ -69,9 +69,10 @@ public:
      * @param rModelPart The model part containing the problem mesh
      * @param rParameters Kratos parameters containing the CFL number and max time step
      */
-    EstimateDtUtilities(ModelPart& rModelPart, Parameters& rParameters)
+    EstimateDtUtility(ModelPart& rModelPart, Parameters& rParameters)
     {
         Parameters defaultParameters(R"({
+            "automatic_time_step"   : true,
             "CFL_number"            : 1.0,
             "maximum_delta_time"    : 0.01
         })");
@@ -84,7 +85,7 @@ public:
     }
 
     /// Destructor
-    ~EstimateDtUtilities()
+    ~EstimateDtUtility()
     {}
 
     ///@}

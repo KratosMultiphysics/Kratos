@@ -58,12 +58,16 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "maximum_delta_time"  : 0.01
+            },
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "regularization_coef": 1000,
             "MoveMeshFlag": false,
-            "use_slip_conditions": false,
             "turbulence_model": "None",
             "use_spalart_allmaras": false
         }""")
@@ -119,7 +123,12 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         #~ if self.use_spalart_allmaras:
             #~ self.activate_spalart_allmaras()
 
-        # creating the solution strategy
+        # If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility(self.computing_model_part,
+                                                                        self.settings["time_stepping"])
+
+        # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
@@ -128,13 +137,13 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                                KratosCFD.PATCH_INDEX)
+                                                                                                      self.settings["move_mesh_strategy"].GetInt(),
+                                                                                                      self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                                                      KratosCFD.PATCH_INDEX)
         else:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                            self.settings["move_mesh_strategy"].GetInt(),
-                                                                                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                                                                                                      self.settings["move_mesh_strategy"].GetInt(),
+                                                                                                      self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if self.turbulence_model is None:
