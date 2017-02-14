@@ -16,13 +16,13 @@ export PYTHONPATH="$HOME/Kratos:$PYTHONPATH"
 
 ## Linux
 # Setting PATHs for Kratos libs
-export LD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/Kratos/external_libraries/boost_1_62_0/stage/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/boost_1_62_0/stage/lib:$LD_LIBRARY_PATH"
 # Setting PATH for Python 3
 export PATH="/usr/bin/python3:$PATH"
 
 ## OS X
 #~ # Setting PATHs for Kratos
-#~ export DYLD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/Kratos/external_libraries/boost_1_62_0/stage/lib:$DYLD_LIBRARY_PATH"
+#~ export DYLD_LIBRARY_PATH="$HOME/Kratos/libs:$HOME/boost_1_62_0/stage/lib:$DYLD_LIBRARY_PATH"
 #~ # Setting PATH for Python 3
 #~ export PATH="/Library/Frameworks/Python.framework/Versions/3.5/bin:${PATH}"
 
