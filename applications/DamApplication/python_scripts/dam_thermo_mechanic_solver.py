@@ -421,7 +421,7 @@ class DamThermoMechanicSolver(object):
                                                                                move_mesh_flag)
             else:
                 self.main_model_part.ProcessInfo[KratosPoro.IS_CONVERGED]=True
-                self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.mechanical_computing_model_part, 
+                solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.mechanical_computing_model_part, 
                                                                                     scheme, 
                                                                                     self.mechanical_linear_solver, 
                                                                                     convergence_criterion, 
