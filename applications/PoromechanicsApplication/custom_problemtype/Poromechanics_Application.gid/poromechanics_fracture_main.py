@@ -33,6 +33,7 @@ else:
 
 ## Defining variables ----------------------------------------------------------------------------------------
 
+domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 problem_path = os.getcwd()
 echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
@@ -46,7 +47,7 @@ tol = delta_time*1.0e-10
 
 # Defining the model part
 main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
 main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
@@ -127,6 +128,14 @@ for process in list_of_processes:
 ## Set results when they are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
+# Initialize Fracture Propagation Utility
+FracturePropagation = ProjectParameters["problem_data"]["fracture_propagation"].GetBool()
+if FracturePropagation:
+    import poromechanics_fracture_propagation_utility
+    fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
+                                                                                             problem_name,
+                                                                                             ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
+
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
 while( (time+tol) <= end_time ):
@@ -159,8 +168,24 @@ while( (time+tol) <= end_time ):
     
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
+    
+    # Fracture Propagation Utility
+    IsRemeshed = False
+    if FracturePropagation:
+        if fracture_utility.IsPropagationStep():
+            main_model_part,solver,list_of_processes,gid_output,IsRemeshed = fracture_utility.CheckPropagation(main_model_part,
+                                                                                                               solver,
+                                                                                                               list_of_processes,
+                                                                                                               gid_output)
 
 ## Finalize --------------------------------------------------------------------------------------------------
+
+# Print last step if model was regenerated at the end
+if IsRemeshed:
+    #solver._CheckConvergence()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.PrintOutput()
 
 # Finalizing output files
 gid_output.ExecuteFinalize()

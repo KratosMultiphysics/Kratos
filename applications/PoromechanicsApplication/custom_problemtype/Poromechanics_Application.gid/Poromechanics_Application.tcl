@@ -73,7 +73,11 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     WriteProjectParameters $basename $dir $problemtypedir $TableDict
     
     # Copy python script in the problemdir
-    file copy -force [file join $problemtypedir poromechanics_main.py] [file join $dir MainKratos.py]
+    if {[GiD_AccessValue get gendata Fracture_Propagation] eq true} {
+        file copy -force [file join $problemtypedir poromechanics_fracture_main.py] [file join $dir MainKratos.py]
+    } else {
+        file copy -force [file join $problemtypedir poromechanics_main.py] [file join $dir MainKratos.py]
+    }
     
     # Run the problem
     set run 1
