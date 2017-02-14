@@ -1,20 +1,34 @@
 cmake_minimum_required (VERSION 2.8.6)
 project (KratosMultiphysics)
 
-#set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_VERSION_MAJOR 5)
-set (KratosMultiphysics_VERSION_MINOR 0)
+# Set here the version number **** only update upon tagging a release!
+set (KratosMultiphysics_MAJOR_VERSION 5)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
-#get subversion data. This is done automagically by the cmakes
+# Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
-set (KRATOS_SVN_REVISION_WC_REVISION 0)
+# Search the SHA1 Associated with the commit in the HEAD
+find_package(Git)
+if(GIT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+    OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+else(GIT_FOUND)
+  message("Git was not found on your system. SHA1 number will be set to 0.")
+  set (KratosMultiphysics_SHA1_NUMBER 0)
+endif(GIT_FOUND)
+
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
   "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
 )
 
-#set compiler flags
+# Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
@@ -87,7 +101,7 @@ if(${MSVC14})
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC14})
 
-#tell the linker to give an error if undefined functions are found
+# Tell the linker to give an error if undefined functions are found
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
 # Set kratos specific module path
@@ -102,9 +116,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 #     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
 # endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
 
-
-
-##find all dependencies
+## Find all dependencies
 
 ##*****************************
 #find and include OpenMP if possible
