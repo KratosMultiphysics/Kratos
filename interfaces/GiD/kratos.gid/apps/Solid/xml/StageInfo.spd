@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="StageInfo" pn="Analysis type" help="Stage information" icon="analysis" state="normal" open_window="0">
-    <value n="SolutionType" pn="Solution type" un="SLSoluType" v="Static" values="Static,Dynamic" help="Solution type" actualize_tree="1"/>
-    <value n="SolStratCombo" pn="Solution strategy" un="SLSolStrat" v="" values="" dict="[GetSolutionStrategiesSolid App Solid]" actualize_tree="1" state="[DisableIfUniqueName SLSoluType Static]"/>
-    <value n="Scheme" pn="Scheme" un="SLScheme" v="" values="" dict="[GetSchemes]" state="[DisableIfUniqueName SLSoluType Static]"  actualize_tree="1"/>
-    <value n="AnalysisType" pn="Linear type" un="SLAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type" state="[checkStateByUniqueName SLSoluType Static]"/>
-</container>
-    
