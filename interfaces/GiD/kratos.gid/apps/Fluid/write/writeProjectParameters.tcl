@@ -28,9 +28,15 @@ proc ::Fluid::write::getParametersDict { } {
     dict set problemDataDict echo_level $echo_level
 
     # Time Parameters
-    dict set problemDataDict start_step [write::getValue FLTimeParameters StartTime]
+    dict set problemDataDict start_time [write::getValue FLTimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue FLTimeParameters EndTime]
-    dict set problemDataDict time_step [write::getValue FLTimeParameters DeltaTime]
+    set automaticDeltaTime [write::getValue FLTimeParameters AutomaticDeltaTime]
+    #if {$automaticDeltaTime eq "Yes"} {
+    #    dict set problemDataDict "CFL_number" [write::getValue FLTimeParameters CFLNumber]
+    #} else {
+    #    dict set problemDataDict "time_step" [write::getValue FLTimeParameters DeltaTime]
+    #}
+
     #dict set problemDataDict divergence_step [expr [write::getValue FLTimeParameters DivergenceCleareanceStep]]
 
     dict set projectParametersDict problem_data $problemDataDict
@@ -66,6 +72,16 @@ proc ::Fluid::write::getParametersDict { } {
     dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
     # No skin parts
     dict set solverSettingsDict no_skin_parts [getNoSkinConditionMeshId]
+    # Time stepping settings
+    set timeSteppingDict [dict create]
+    dict set timeSteppingDict automatic_time_step $automaticDeltaTime
+    if {$automaticDeltaTime eq "Yes"} {
+        dict set timeSteppingDict "CFL_number" [write::getValue FLTimeParameters CFLNumber]
+        dict set timeSteppingDict "maximum_delta_time" [write::getValue FLTimeParameters MaximumDeltaTime]
+    } else {
+        dict set timeSteppingDict "time_step" [write::getValue FLTimeParameters DeltaTime]
+    }
+    dict set solverSettingsDict time_stepping $timeSteppingDict
 
     dict set projectParametersDict solver_settings $solverSettingsDict
 
@@ -179,7 +195,7 @@ proc Fluid::write::getNoSkinConditionMeshId {} {
     set root [$doc documentElement]
 
     set listOfNoSkinGroups [list ]
-    
+
     # Append drag processes model parts names
     set xp1 "[spdAux::getRoute FLDrags]/group"
     set dragGroups [$root selectNodes $xp1]

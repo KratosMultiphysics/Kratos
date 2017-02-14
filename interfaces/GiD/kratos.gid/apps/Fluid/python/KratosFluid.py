@@ -107,10 +107,11 @@ solver.Initialize()
 fluid_model_part = solver.GetComputingModelPart()
 
 ## Stepping and time settings
-Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+# Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+start_time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-time = 0.0
+time = start_time
 step = 0
 out = 0.0
 
@@ -127,8 +128,9 @@ if ((parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (verbosity > 0
 
 while(time <= end_time):
 
+    Dt = solver.ComputeDeltaTime()
+    step += 1
     time = time + Dt
-    step = step + 1
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
@@ -136,30 +138,30 @@ while(time <= end_time):
         print("STEP = ", step)
         print("TIME = ", time)
 
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
+
+    gid_output.ExecuteInitializeSolutionStep()
+
     if(step >= 3):
-        for process in list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-
-        gid_output.ExecuteInitializeSolutionStep()
-
         solver.Solve()
 
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
-        gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalizeSolutionStep()
 
-        #TODO: decide if it shall be done only when output is processed or not
-        for process in list_of_processes:
-            process.ExecuteBeforeOutputStep()
+    #TODO: decide if it shall be done only when output is processed or not
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
 
-        if gid_output.IsOutputStep():
-            gid_output.PrintOutput()
+    if gid_output.IsOutputStep():
+        gid_output.PrintOutput()
 
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-        out = out + Dt
+    out = out + Dt
 
 for process in list_of_processes:
     process.ExecuteFinalize()

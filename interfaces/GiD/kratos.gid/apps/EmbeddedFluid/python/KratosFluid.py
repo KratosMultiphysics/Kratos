@@ -16,7 +16,6 @@ ProjectParameters = Parameters( parameter_file.read())
 ## Get echo level and parallel type
 verbosity = ProjectParameters["problem_data"]["echo_level"].GetInt()
 parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
-mesh_adaptivity = ProjectParameters["problem_data"]["mesh_adaptivity"].GetBool()
 
 ## Import KratosMPI if needed
 if (parallel_type == "MPI"):
@@ -86,11 +85,9 @@ if(verbosity > 1):
 ## Processes construction
 import process_factory
 # "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
-# Note 0: mesh adaptivity process must be firstly constructed to ensure that it is executed the first.
 # Note 1: gravity is firstly constructed. Outlet process might need its information.
 # Note 2: conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-list_of_processes =  process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["mesh_adaptivity_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
+list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["auxiliar_process_list"] )
@@ -110,10 +107,11 @@ solver.Initialize()
 fluid_model_part = solver.GetComputingModelPart()
 
 ## Stepping and time settings
-Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+# Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+start_time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-time = 0.0
+time = start_time
 step = 0
 out = 0.0
 
@@ -130,8 +128,9 @@ if ((parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (verbosity > 0
 
 while(time <= end_time):
 
+    Dt = solver.ComputeDeltaTime()
+    step += 1
     time = time + Dt
-    step = step + 1
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
@@ -139,41 +138,30 @@ while(time <= end_time):
         print("STEP = ", step)
         print("TIME = ", time)
 
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
+
+    gid_output.ExecuteInitializeSolutionStep()
+
     if(step >= 3):
-        for process in list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-
-        gid_output.ExecuteInitializeSolutionStep()
-
-        # If mesh adaptivity is used, check if the main_model_part has been remeshed
-        if (mesh_adaptivity):
-            if (main_model_part.Is(MODIFIED)):
-                # If remeshed has been performe, initialize processes and solver again
-                solver.Initialize()
-                for process in list_of_processes:
-                    process.ExecuteInitialize()
-                for process in list_of_processes:
-                    process.ExecuteBeforeSolutionLoop()
-                for process in list_of_processes:
-                    process.ExecuteInitializeSolutionStep()
-
         solver.Solve()
 
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
-        gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalizeSolutionStep()
 
-        for process in list_of_processes:
-            process.ExecuteBeforeOutputStep()
+    #TODO: decide if it shall be done only when output is processed or not
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
 
-        if gid_output.IsOutputStep():
-            gid_output.PrintOutput()
+    if gid_output.IsOutputStep():
+        gid_output.PrintOutput()
 
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-        out = out + Dt
+    out = out + Dt
 
 for process in list_of_processes:
     process.ExecuteFinalize()
