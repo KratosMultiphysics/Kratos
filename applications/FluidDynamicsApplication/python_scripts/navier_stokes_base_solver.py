@@ -248,3 +248,13 @@ class NavierStokesBaseSolver:
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
+
+    def _GetAutomaticTimeSteppingUtility(self):
+        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+        else:
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+
+        return EstimateDeltaTimeUtility

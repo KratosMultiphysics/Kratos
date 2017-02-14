@@ -125,8 +125,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility(self.computing_model_part,
-                                                                        self.settings["time_stepping"])
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()  
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),

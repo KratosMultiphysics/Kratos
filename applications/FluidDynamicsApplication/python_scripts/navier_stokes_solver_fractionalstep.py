@@ -72,7 +72,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
                 "maximum_delta_time"  : 0.01
-            },
+            }
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -122,7 +122,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
 
     def Initialize(self):
-        compute_model_part = self.GetComputingModelPart()
+        self.computing_model_part = self.GetComputingModelPart()
 
         MoveMeshFlag = False
 
@@ -130,13 +130,12 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility(self.computing_model_part,
-                                                                        self.settings["time_stepping"])
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
-            self.solver_settings = KratosCFD.FractionalStepSettingsPeriodic(compute_model_part,
-                                                                            compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+            self.solver_settings = KratosCFD.FractionalStepSettingsPeriodic(self.computing_model_part,
+                                                                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                             self.settings.GetInt(),
                                                                             self.use_slip_conditions,
                                                                             MoveMeshFlag,
@@ -144,8 +143,8 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
                                                                             KratosCFD.PATCH_INDEX)
 
         else:
-            self.solver_settings = KratosCFD.FractionalStepSettings(compute_model_part,
-                                                                    compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+            self.solver_settings = KratosCFD.FractionalStepSettings(self.computing_model_part,
+                                                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                     self.settings["time_order"].GetInt(),
                                                                     self.use_slip_conditions,
                                                                     MoveMeshFlag,
@@ -165,12 +164,12 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            self.solver = KratosCFD.FSStrategy(compute_model_part,
+            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
                                                self.solver_settings,
                                                self.settings["predictor_corrector"].GetBool(),
                                                KratosCFD.PATCH_INDEX)
         else:
-            self.solver = KratosCFD.FSStrategy(compute_model_part,
+            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
                                                self.solver_settings,
                                                self.settings["predictor_corrector"].GetBool())
 
@@ -192,7 +191,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
 
     def _ExecuteAfterReading(self):
-        super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()
+        super(NavierStokesSolver_FractionalStep, self)._ExecuteAfterReading()
 
         # Read the KINEMATIC VISCOSITY
         for el in self.main_model_part.Elements:
