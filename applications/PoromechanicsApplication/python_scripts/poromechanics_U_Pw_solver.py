@@ -121,7 +121,7 @@ class UPwSolver(object):
         print("Variables correctly added")
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
     def AddDofs(self):
         
@@ -136,13 +136,13 @@ class UPwSolver(object):
         if(self.settings["solution_type"].GetString() == "Dynamic"):
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X);
-                node.AddDof(KratosMultiphysics.VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                node.AddDof(KratosMultiphysics.VELOCITY_X)
+                node.AddDof(KratosMultiphysics.VELOCITY_Y)
+                node.AddDof(KratosMultiphysics.VELOCITY_Z)
                 # adding ACCELERATION as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z);        
+                node.AddDof(KratosMultiphysics.ACCELERATION_X)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z)
                 
         print("DOFs correctly added")
 
@@ -183,7 +183,7 @@ class UPwSolver(object):
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
-        self.Solver.Check();
+        self.Solver.Check()
 
         print ("Initialization UPwSolver finished")
     

@@ -37,6 +37,7 @@ class DamThermoMechanicSolver(object):
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
+            "echo_level": 0,
             "buffer_size": 2,
             "reference_temperature" : 10.0,
             "processes_sub_model_part_list": [""],
@@ -156,7 +157,7 @@ class DamThermoMechanicSolver(object):
         print("Variables correctly added")
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
     def AddDofs(self):
         
@@ -171,13 +172,13 @@ class DamThermoMechanicSolver(object):
         if(self.settings["mechanical_solver_settings"]["solution_type"].GetString() == "Dynamic"):
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X);
-                node.AddDof(KratosMultiphysics.VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                node.AddDof(KratosMultiphysics.VELOCITY_X)
+                node.AddDof(KratosMultiphysics.VELOCITY_Y)
+                node.AddDof(KratosMultiphysics.VELOCITY_Z)
                 # adding ACCELERATION as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z);        
+                node.AddDof(KratosMultiphysics.ACCELERATION_X)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z)
                 
         print("DOFs correctly added")
 
@@ -201,6 +202,10 @@ class DamThermoMechanicSolver(object):
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosSolid.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
+
+        # Get the computing model parts
+        self.thermal_computing_model_part = self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
+        self.mechanical_computing_model_part = self.GetComputingModelPart()
         
         # Builder and solver creation
         thermal_builder_and_solver = self._ConstructBuilderAndSolver(self.settings["thermal_solver_settings"]["block_builder"].GetBool(),self.thermal_linear_solver)
@@ -211,37 +216,35 @@ class DamThermoMechanicSolver(object):
         mechanical_scheme = self._ConstructScheme(self.settings["mechanical_solver_settings"]["scheme_type"].GetString(),
                                          self.settings["mechanical_solver_settings"]["solution_type"].GetString())
         
-        #TODO:seguir
-        
         # Get the convergence criterion
         convergence_criterion = self._ConstructConvergenceCriterion(self.settings["mechanical_solver_settings"]["convergence_criterion"].GetString())
                 
         # Solver creation
-        self.Thermal_Solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part, 
-                                                                             mechanical_scheme, 
-                                                                             self.linear_solver, 
-                                                                             builder_and_solver, 
-                                                                             compute_reactions, 
-                                                                             reform_step_dofs, 
-                                                                             False, 
-                                                                             move_mesh_flag)
-        self.Mechanical_Solver = self._ConstructSolver(builder_and_solver,
-                                            scheme,
-                                            convergence_criterion,
-                                            self.settings["mechanical_solver_settings"]["strategy_type"].GetString())
+        self.Thermal_Solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.thermal_computing_model_part, 
+                                                                             thermal_scheme, 
+                                                                             self.thermal_linear_solver, 
+                                                                             thermal_builder_and_solver, 
+                                                                             self.settings["thermal_solver_settings"]["compute_reactions"].GetBool(), 
+                                                                             self.settings["thermal_solver_settings"]["reform_dofs_at_each_step"].GetBool(), 
+                                                                             self.settings["thermal_solver_settings"]["compute_norm_dx_flag"].GetBool(), 
+                                                                             self.settings["thermal_solver_settings"]["move_mesh_flag"].GetBool())
+        self.Mechanical_Solver = self._ConstructSolver(mechanical_builder_and_solver,
+                                                       mechanical_scheme,
+                                                       convergence_criterion,
+                                                       self.settings["mechanical_solver_settings"]["strategy_type"].GetString())
 
         # Set echo_level
         self.Thermal_Solver.SetEchoLevel(self.settings["thermal_solver_settings"]["echo_level"].GetInt())
         self.Mechanical_Solver.SetEchoLevel(self.settings["mechanical_solver_settings"]["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
-        self.Thermal_Solver.Check();
-        self.Mechanical_Solver.Check();
+        self.Thermal_Solver.Check()
+        self.Mechanical_Solver.Check()
 
-        print ("Initialization UPwSolver finished")
+        print ("Initialization DamThermoMechanicSolver finished")
     
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+        return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
     
     def GetOutputVariables(self):
         pass
@@ -253,44 +256,54 @@ class DamThermoMechanicSolver(object):
         pass #one should write the restart file here
         
     def Solve(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-        
-        self.Solver.Solve()
+        if self.settings["thermal_solver_settings"]["clear_storage"].GetBool():
+            self.Thermal_Solver.Clear()
+        if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
+            self.Mechanical_Solver.Clear()
+
+        self.Thermal_Solver.Solve()
+        self.Mechanical_Solver.Solve()
 
     # solve :: sequencial calls
     
     def InitializeStrategy(self):
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-        
-        self.Solver.Initialize()
+        if self.settings["thermal_solver_settings"]["clear_storage"].GetBool():
+            self.Thermal_Solver.Clear()
+        if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
+            self.Mechanical_Solver.Clear()
+
+        self.Thermal_Solver.Initialize()
+        self.Mechanical_Solver.Initialize()
 
     def InitializeSolutionStep(self):
-        self.Solver.InitializeSolutionStep()
+        self.Thermal_Solver.InitializeSolutionStep()
+        self.Mechanical_Solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.Solver.Predict()
+        self.Thermal_Solver.Predict()
+        self.Mechanical_Solver.Predict()
 
     def SolveSolutionStep(self):
-        self.Solver.SolveSolutionStep()
+        self.Thermal_Solver.SolveSolutionStep()
+        self.Mechanical_Solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        self.Solver.FinalizeSolutionStep()
+        self.Thermal_Solver.FinalizeSolutionStep()
+        self.Mechanical_Solver.FinalizeSolutionStep()
 
     # solve :: sequencial calls
 
     def SetEchoLevel(self, level):
-        
-        self.Solver.SetEchoLevel(level)
+        self.Thermal_Solver.SetEchoLevel(level)
+        self.Mechanical_Solver.SetEchoLevel(level)
 
     def Clear(self):
-        
-        self.Solver.Clear()
+        self.Thermal_Solver.Clear()
+        self.Mechanical_Solver.Clear()
         
     def Check(self):
-        
-        self.Solver.Check()
+        self.Thermal_Solver.Check()
+        self.Mechanical_Solver.Check()
 
     #### Specific internal functions ####
 
@@ -353,11 +366,11 @@ class DamThermoMechanicSolver(object):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
         
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
+        D_RT = self.settings["mechanical_solver_settings"]["displacement_relative_tolerance"].GetDouble()
+        D_AT = self.settings["mechanical_solver_settings"]["displacement_absolute_tolerance"].GetDouble()
+        R_RT = self.settings["mechanical_solver_settings"]["residual_relative_tolerance"].GetDouble()
+        R_AT = self.settings["mechanical_solver_settings"]["residual_absolute_tolerance"].GetDouble()
+        echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
         
         if(convergence_criterion == "Displacement_criterion"):
             convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
@@ -382,23 +395,23 @@ class DamThermoMechanicSolver(object):
     
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
         
-        nonlocal_damage = self.settings["nonlocal_damage"].GetBool()
-        max_iters = self.settings["max_iteration"].GetInt()
-        compute_reactions = self.settings["compute_reactions"].GetBool()
-        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
-        move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
+        nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
+        max_iters = self.settings["mechanical_solver_settings"]["max_iteration"].GetInt()
+        compute_reactions = self.settings["mechanical_solver_settings"]["compute_reactions"].GetBool()
+        reform_step_dofs = self.settings["mechanical_solver_settings"]["reform_dofs_at_each_step"].GetBool()
+        move_mesh_flag = self.settings["mechanical_solver_settings"]["move_mesh_flag"].GetBool()
                 
         if strategy_type == "Newton-Raphson":
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             if nonlocal_damage:
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
-                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
-                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
-                solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
+                self.strategy_params = KratosMultiphysics.Parameters("{}")
+                self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+                self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
+                solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.mechanical_computing_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
+                                                                               self.mechanical_linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -407,31 +420,31 @@ class DamThermoMechanicSolver(object):
                                                                                reform_step_dofs,
                                                                                move_mesh_flag)
             else:
-                solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.main_model_part,
-                                                                       scheme,
-                                                                       self.linear_solver,
-                                                                       convergence_criterion,
-                                                                       builder_and_solver,
-                                                                       self.strategy_params,
-                                                                       max_iters,
-                                                                       compute_reactions,
-                                                                       reform_step_dofs,
-                                                                       move_mesh_flag)
+                self.main_model_part.ProcessInfo[KratosPoro.IS_CONVERGED]=True
+                self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.mechanical_computing_model_part, 
+                                                                                    scheme, 
+                                                                                    self.mechanical_linear_solver, 
+                                                                                    convergence_criterion, 
+                                                                                    builder_and_solver, 
+                                                                                    max_iters, 
+                                                                                    compute_reactions, 
+                                                                                    reform_step_dofs, 
+                                                                                    move_mesh_flag)
         else:
             # Arc-Length strategy
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            self.strategy_params.AddValue("desired_iterations",self.settings["mechanical_solver_settings"]["desired_iterations"])
+            self.strategy_params.AddValue("max_radius_factor",self.settings["mechanical_solver_settings"]["max_radius_factor"])
+            self.strategy_params.AddValue("min_radius_factor",self.settings["mechanical_solver_settings"]["min_radius_factor"])
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+            self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
             if nonlocal_damage:
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
-                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
-                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
-                solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.main_model_part,
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
+                solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.mechanical_computing_model_part,
                                                                                scheme,
-                                                                               self.linear_solver,
+                                                                               self.mechanical_linear_solver,
                                                                                convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
@@ -440,9 +453,9 @@ class DamThermoMechanicSolver(object):
                                                                                reform_step_dofs,
                                                                                move_mesh_flag)
             else:
-                solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.main_model_part,
+                solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.mechanical_computing_model_part,
                                                                        scheme,
-                                                                       self.linear_solver,
+                                                                       self.mechanical_linear_solver,
                                                                        convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
@@ -455,10 +468,10 @@ class DamThermoMechanicSolver(object):
 
     def _CheckConvergence(self):
         
-        IsConverged = self.Solver.IsConverged()
+        IsConverged = self.Mechanical_Solver.IsConverged()
         
         return IsConverged
     
     def _UpdateLoads(self):
         
-        self.Solver.UpdateLoads()
+        self.Mechanical_Solver.UpdateLoads()

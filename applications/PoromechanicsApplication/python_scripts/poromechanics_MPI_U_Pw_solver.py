@@ -134,7 +134,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
-        self.Solver.Check();
+        self.Solver.Check()
 
         print ("Initialization MPI UPwSolver finished")
 
