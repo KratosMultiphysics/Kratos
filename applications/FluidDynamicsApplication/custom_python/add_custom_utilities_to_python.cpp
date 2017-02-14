@@ -1,22 +1,22 @@
 /// KratosFluidDynamicsApplication
-// 
+//
 // Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi,Jordi Cotela CIMNE (International Center for Numerical Methods in Engineering)
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
+//
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 // 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
 // 			This product includes Kratos Multi-Physics technology.
 // 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
@@ -45,10 +45,11 @@
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
-#include "custom_utilities/periodic_condition_utilities.h"
-#include "custom_utilities/fractional_step_settings.h"
+#include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
+#include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
+#include "custom_utilities/periodic_condition_utilities.h"
 #include "utilities/split_tetrahedra.h"
 
 
@@ -70,6 +71,22 @@ void  AddCustomUtilitiesToPython()
     .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
     .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
     .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
+    ;
+
+    class_<EstimateDtUtilities < 2 >, boost::noncopyable >("EstimateDtUtilities2D", init< ModelPart&, const double, const double >())
+    .def(init< ModelPart&, Parameters& >())
+    .def("SetCFL",&EstimateDtUtilities < 2 > ::SetCFL)
+    .def("SetDtMax",&EstimateDtUtilities < 2 > ::SetDtMax)
+    .def("EstimateDt",&EstimateDtUtilities < 2 > ::EstimateDt)
+    .def("CalculateLocalCFL",&EstimateDtUtilities < 2 > ::CalculateLocalCFL)
+    ;
+
+    class_<EstimateDtUtilities < 3 >, boost::noncopyable >("EstimateDtUtilities3D", init< ModelPart&, const double, const double >())
+    .def(init< ModelPart&, Parameters& >())
+    .def("SetCFL",&EstimateDtUtilities < 3 > ::SetCFL)
+    .def("SetDtMax",&EstimateDtUtilities < 3 > ::SetDtMax)
+    .def("EstimateDt",&EstimateDtUtilities < 3 > ::EstimateDt)
+    .def("CalculateLocalCFL",&EstimateDtUtilities < 3 > ::CalculateLocalCFL)
     ;
 
     typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);
@@ -115,7 +132,7 @@ void  AddCustomUtilitiesToPython()
     .def("GetStrategy",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
     .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
-    
+
     class_< FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
             ("FractionalStepSettingsPeriodic",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy)
@@ -131,9 +148,9 @@ void  AddCustomUtilitiesToPython()
     class_<IntegrationPointToNodeTransformationUtility3DType>("IntegrationPointToNodeTransformationUtility3D")
         .def("TransformFromIntegrationPointsToNodes",&IntegrationPointToNodeTransformationUtility3DType::TransformFromIntegrationPointsToNodes<double>)
         ;
-        
-        
-        
+
+
+
 
 }
 
@@ -144,4 +161,3 @@ void  AddCustomUtilitiesToPython()
 }  // namespace Python.
 
 } // Namespace Kratos
-
