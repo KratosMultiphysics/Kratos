@@ -6,6 +6,9 @@ cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
 
+# Version
+kratos/includes/kratos_version.h
+
 # Prerequisites
 *.d
 
