@@ -77,11 +77,11 @@ namespace Kratos
       /// Default constructor is deleted.
       TetrahedraEdgeShell() = delete;
 
-	  /// This constructor assumes that the neibour elements of the node are cacluclated
-	  TetrahedraEdgeShell(PointType& EdgePoint1, PointType& EdgePoint2);
+	  
+	  TetrahedraEdgeShell(PointType::Pointer pEdgePoint1, PointType::Pointer pEdgePoint2);
 
     TetrahedraEdgeShell(TetrahedraEdgeShell&& rOther) noexcept
-		  :  mrPoint1(rOther.mrPoint1) , mrPoint2(rOther.mrPoint2), mShellPoints(rOther.mShellPoints), mTetrahedra(rOther.mTetrahedra)
+		  :  mpPoint1(rOther.mpPoint1) , mpPoint2(rOther.mpPoint2), mShellPoints(rOther.mShellPoints), mTetrahedraEdge(rOther.mTetrahedraEdge), mIsClosed(rOther.mIsClosed)
 	  {
 	  }
 
@@ -98,9 +98,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void AddTetrahedron(GeomertyType* TheTetrahedron);
+      void AddTetrahedron(GeomertyType* TheTetrahedron, char EdgeIndex);
 
-      void AddShellPoints(PointType* pPoint1, PointType* pPoint2);
+	  void AddShellPoints();
+
+	  double CalculateMinQuality(const GeomertyType::QualityCriteria QualityCriteria) const;
 
 
       ///@}
@@ -112,8 +114,17 @@ namespace Kratos
 	  }
 
 	  std::size_t GetNumberOfTetrahedra() const {
-		  return mTetrahedra.size();
+		  return mTetrahedraEdge.size();
 	  }
+
+	  bool IsClosed() const { return mIsClosed; }
+
+	  PointType::Pointer Point1() { return mpPoint1; }
+
+	  PointType::Pointer Point2() { return mpPoint2; }
+
+	  PointType::Pointer ShellPoint(std::size_t i) { return mShellPoints[i]; }
+
 
 
       ///@}
@@ -151,11 +162,12 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-		 PointType const& mrPoint1;
-		 PointType const& mrPoint2;
+		 PointType::Pointer mpPoint1;
+		 PointType::Pointer mpPoint2;
 
-		 std::vector<std::pair<PointType*,PointType*> > mShellPoints;
-		 std::vector<GeomertyType*> mTetrahedra;
+		 std::vector<PointType::Pointer> mShellPoints;
+		 std::vector<std::pair<GeomertyType*, char> > mTetrahedraEdge;
+		 bool mIsClosed;
 
 
       ///@}

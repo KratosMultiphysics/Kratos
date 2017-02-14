@@ -46,7 +46,7 @@ namespace Kratos {
 
 			Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":1,
+                "number_of_divisions":10,
                 "element_name": "Element3D4N"
             }  )");
 
@@ -54,7 +54,7 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 
-			GidIO<> gid_io("/home/pooyan/kratos/tests/edge_swapping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
 			gid_io.InitializeMesh(0.00);
 			gid_io.WriteMesh(model_part.GetMesh());
 			gid_io.FinalizeMesh();

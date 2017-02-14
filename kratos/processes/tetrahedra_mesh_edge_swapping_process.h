@@ -147,6 +147,8 @@ namespace Kratos
 
       ModelPart& mrModelPart;
 
+	  EdgesContainerType mEdges;
+
       ///@}
       ///@name Private Operators
       ///@{
@@ -155,6 +157,8 @@ namespace Kratos
       ///@}
       ///@name Private Operations
       ///@{
+
+	  void EdgeSwapping3(TetrahedraEdgeShell & EdgeShell);
 
 
       ///@}
