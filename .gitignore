@@ -1,16 +1,16 @@
 # Compiled python
 *.pyc
 
-# CMake directory
+# Common build directory
 cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
 cmake_clang/
+packaging/*
+packaging_aux/*
 
 # Compile and install directories
 KratosMultiphysics/*
-packaging/*
-packaging_aux/*
 script.py
 
 # Version
