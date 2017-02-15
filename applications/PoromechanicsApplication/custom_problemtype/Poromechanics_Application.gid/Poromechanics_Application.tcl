@@ -3,12 +3,14 @@
 proc InitGIDProject { dir } {
     
     # Initialize ProblemType Menu
-    GiDMenu::Create "Poromechanics Application" PRE
-    GiDMenu::InsertOption "Poromechanics Application" [list "Parts"] 0 PRE "GidOpenConditions \"Parts\"" "" ""
-	GiDMenu::InsertOption "Poromechanics Application" [list "Dirichlet Constraints"] 1 PRE "GidOpenConditions \"Dirichlet_Constraints\"" "" ""
-	GiDMenu::InsertOption "Poromechanics Application" [list "Loads"] 2 PRE "GidOpenConditions \"Loads\"" "" ""
-    GiDMenu::InsertOption "Poromechanics Application" [list "Project Parameters"] 3 PRE "GidOpenProblemData" "" ""
-	GiDMenu::UpdateMenus
+    if { [GidUtils::IsTkDisabled] eq 0} {  
+        GiDMenu::Create "Poromechanics Application" PRE
+        GiDMenu::InsertOption "Poromechanics Application" [list "Parts"] 0 PRE "GidOpenConditions \"Parts\"" "" ""
+        GiDMenu::InsertOption "Poromechanics Application" [list "Dirichlet Constraints"] 1 PRE "GidOpenConditions \"Dirichlet_Constraints\"" "" ""
+        GiDMenu::InsertOption "Poromechanics Application" [list "Loads"] 2 PRE "GidOpenConditions \"Loads\"" "" ""
+        GiDMenu::InsertOption "Poromechanics Application" [list "Project Parameters"] 3 PRE "GidOpenProblemData" "" ""
+        GiDMenu::UpdateMenus
+    }
     
     # Save ProblemTypePath
     set ::Poromechanics_Application::ProblemTypePath $dir
