@@ -32,18 +32,17 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/geometry_utilities.h"
 
-
 namespace Kratos
 {
 
-///@addtogroup IncompressibleFluidApplication
+///@addtogroup FluidDynamicsApplication
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
 /// Estimate the time step in a fluid problem to obtain a given Courant number.
-template< unsigned int TDim, unsigned int TNumNodes=TDim+1 >
+template< unsigned int TDim >
 class EstimateDtUtility
 {
 public:
@@ -53,23 +52,23 @@ public:
 
     /// Constructor
     /**
-     * @param rModelPart The model part containing the problem mesh
+     * @param ModelPart The model part containing the problem mesh
      * @param CFL The user-defined Courant-Friedrichs-Lewy number
      * @param DtMax user-defined maximum time increment allowed
      */
-    EstimateDtUtility(ModelPart& rModelPart, const double CFL, const double DtMax)
+    EstimateDtUtility(ModelPart::Pointer ModelPart, const double CFL, const double DtMax)
     {
         mCFL = CFL;
         mDtMax = DtMax;
-        mrModelPart = rModelPart;
+        mpModelPart = ModelPart;
     }
 
     /// Constructor with Kratos parameters
     /**
-     * @param rModelPart The model part containing the problem mesh
+     * @param ModelPart The model part containing the problem mesh
      * @param rParameters Kratos parameters containing the CFL number and max time step
      */
-    EstimateDtUtility(ModelPart& rModelPart, Parameters& rParameters)
+    EstimateDtUtility(ModelPart::Pointer ModelPart, Parameters& rParameters)
     {
         Parameters defaultParameters(R"({
             "automatic_time_step"   : true,
@@ -81,7 +80,7 @@ public:
 
         mCFL = rParameters["CFL_number"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
-        mrModelPart = rModelPart;
+        mpModelPart = ModelPart;
     }
 
     /// Destructor
@@ -120,114 +119,72 @@ public:
 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
+        OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
 
-        std::vector<double> MaxProj(NumThreads,0.0);
+        double MaxLocalCFL = 0.0;
+        const double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
-        #pragma omp parallel shared(MaxProj)
+        #pragma omp parallel reduction(max:MaxLocalCFL)
         {
             int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
+            ModelPart::ElementIterator ElemBegin = mpModelPart->ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementIterator ElemEnd = mpModelPart->ElementsBegin() + ElementPartition[k+1];
 
-            double& rMaxProj = MaxProj[k];
-
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            GeometryDataContainer GeometryInfo;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
-                // Get the element's geometric parameters
-                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
-
-                // Elemental Velocity
-                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int i = 1; i < TNumNodes; ++i)
-                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
-
-                // Maximum element size along the direction of velocity
-                for (unsigned int i = 0; i < TNumNodes; ++i)
+                double ElementCFL = CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
+                if (ElementCFL > MaxLocalCFL)
                 {
-                    double Proj = 0.0;
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        Proj += ElementVel[d]*DN_DX(i,d);
-                    Proj = fabs(Proj);
-                    if (Proj > rMaxProj) rMaxProj = Proj;
-                }
+                   MaxLocalCFL = ElementCFL;
+                } 
             }
         }
 
-        // Obtain the maximum projected element size (compare thread results)
-        double Max = 0.0;
-        for (int k = 0; k < NumThreads; ++k)
-            if (Max < MaxProj[k]) Max = MaxProj[k];
+        double NewDt = mCFL * CurrentDt / MaxLocalCFL;
 
-        // Dt to obtain user-defined CFL
-        double dt = mCFL / Max;
-        if(dt > mDtMax)
-            dt = mDtMax;
+        // Limit max Dt
+        if (NewDt > mDtMax)
+        {
+            NewDt = mDtMax;
+        }
 
         // Perform MPI sync if needed
-        double global_dt = dt;
-        mrModelPart.GetCommunicator().MinAll(global_dt);
-        dt = global_dt;
+        mpModelPart->GetCommunicator().MinAll(NewDt);
 
-        return dt;
+        return NewDt;
 
         KRATOS_CATCH("")
     }
 
-    /// Calculate each element's CFL for a given time step value.
+    /// Calculate each element's CFL for the current time step.
     /**
-     * This function is mainly intended for test and debug purposes, but can
-     * be sometimes useful to detect where a mesh is inadequate. CFL values
-     * are stored as the elemental value of DIVPROJ, so be careful with elements
-     * that use it, such as Fluid and VMS (in particular, avoid printing both
-     * nodal and elemental values of the variable in GiD)
-     * @param Dt The time step used by the fluid solver
+     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
+     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
      */
-    void CalculateLocalCFL(const double Dt)
+    void CalculateLocalCFL()
     {
         KRATOS_TRY;
 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
+        OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
+
+        const double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
+            ModelPart::ElementIterator ElemBegin = mpModelPart->ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementIterator ElemEnd = mpModelPart->ElementsBegin() + ElementPartition[k+1];
 
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            GeometryDataContainer GeometryInfo;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
-                // Get the element's geometric parameters
-                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
-
-                // Elemental Velocity
-                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int i = 1; i < TNumNodes; ++i)
-                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
-
-                // Maximum element size along the direction of velocity
-                double ElemProj = 0.0;
-                for (unsigned int i = 0; i < TNumNodes; ++i)
-                {
-                    double Proj = 0.0;
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        Proj += ElementVel[d]*DN_DX(i,d);
-                    Proj = fabs(Proj);
-                    if (Proj > ElemProj) ElemProj = Proj;
-                }
-                itElem->SetValue(DIVPROJ,ElemProj*Dt);
+                double ElementCFL = CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
+                itElem->SetValue(CFL_NUMBER,ElementCFL);
             }
         }
 
@@ -238,30 +195,53 @@ public:
 
 private:
 
+    ///@name Auxiliary Data types
+    ///@{
+
+    struct GeometryDataContainer {
+        double Area;
+        array_1d<double, TDim+1> N;
+        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+    };
+
+    ///@}
     ///@name Member Variables
     ///@{
 
-    double              mCFL; // A reference to the user-defined CFL number
-    double              mDtMax; // A reference to the user-defined maximum time increment allowed
-    ModelPart           mrModelPart; // A reference to the problem's model part
+    double              mCFL; // User-defined CFL number
+    double              mDtMax; // User-defined maximum time increment allowed
+    ModelPart::Pointer  mpModelPart; // The problem's model part
 
     ///@} // Member variables
-    ///@name Serialization
+    ///@name Private Operations
     ///@{
 
-    //friend class Serializer;
+    double CalculateElementCFL(Element &rElement, GeometryDataContainer& rGeometryInfo, double Dt)
+    {
+        double Proj = 0.0;
 
-    //virtual void save(Serializer& rSerializer) const
-    //{
-    //    rSerializer.save("mrModelPart",mrModelPart);
-    //}
+        // Get the element's geometric parameters
+        Geometry< Node<3> >& rGeom = rElement.GetGeometry();
+        GeometryUtils::CalculateGeometryData(rGeom, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
 
-    //virtual void load(Serializer& rSerializer)
-    //{
-    //    rSerializer.load("mrModelPart",mrModelPart);
-    //}
+        // Elemental Velocity
+        array_1d<double,3> ElementVel = rGeometryInfo.N[0]*rGeom[0].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 1; i < TDim+1; ++i)
+            ElementVel += rGeometryInfo.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-    ///@}
+        // Calculate u/h as the maximum projection of the velocity along element heights
+        for (unsigned int i = 0; i < TDim+1; ++i)
+        {
+            for (unsigned int d = 0; d < TDim; ++d)
+                Proj += ElementVel[d]*rGeometryInfo.DN_DX(i,d);
+            Proj = fabs(Proj);
+        }
+
+        return Proj*Dt;
+    }
+
+
+    ///@} // Private Operations
 
 };
 
