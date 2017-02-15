@@ -31,7 +31,7 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                 "variable_name"   : "SPECIFY_VARIABLE_NAME", 
                 "interval"        : [0.0, 1e30], 
                 "value"           : 0.0, 
-                "tolerance_rank"       : 3, 
+                "tolerance_rank"  : 3, 
                 "local_axes"      : {} 
             } 
             """ 
