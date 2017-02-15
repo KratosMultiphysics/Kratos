@@ -38,10 +38,10 @@ class NavierStokesBaseSolver:
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "time_stepping"                : {
-            "automatic_time_step" : true,
-            "CFL_number"          : 1,
-            "maximum_delta_time"  : 0.01
+            "time_stepping": {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "maximum_delta_time"  : 0.01
             },
             "alpha":-0.1,
             "move_mesh_strategy": 0,
