@@ -1,0 +1,19 @@
+# Ubuntu 14.04 Xenial support
+sudo: required
+dist: trusty
+
+# Enable C++ support
+language: cpp
+
+# Compiler selection
+compiler:
+  - clang-3.9
+
+# before_install:
+#   - sudo apt-get install lib
+
+# Build steps
+script:
+  - cp scripts/build/dist/configure_ubuntu_16_04.sh cmake_build/configure.sh
+  - cd cmake_build
+  - sh configure.sh
