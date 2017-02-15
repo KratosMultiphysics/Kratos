@@ -473,32 +473,6 @@ void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessIn
   CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
   CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
-  //--------------
-  
-  //set contact forces to nodes
-
-  //create local system components
-  LocalSystemComponents LocalSystem;
-
-  //calculation flags
-  LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
-  LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_NODAL_CONTACT_FORCES);
-  MatrixType LeftHandSideMatrix = Matrix();
-  VectorType RightHandSideVector = Vector();
-  
-  //Initialize sizes for the system components:
-  this->InitializeSystemMatrices( LeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
-
-  //Set Variables to Local system components
-  LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-  LocalSystem.SetRightHandSideVector(RightHandSideVector);
-
-  //Calculate condition system
-  this->CalculateConditionSystem( LocalSystem, CurrentProcessInfo );
-
-  //-------------
-  
-  //Store historical variables
   MeshDataTransferUtilities::TransferParameters TransferVariables;
   TransferVariables.SetVariable(CAUCHY_STRESS_VECTOR);
   TransferVariables.SetVariable(DEFORMATION_GRADIENT);
@@ -1340,8 +1314,7 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	      //contribution to contact forces
 	      this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 
-	      if( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_NODAL_CONTACT_FORCES) )
-		this->AddExplicitContribution( rLocalSystem.GetRightHandSideVector(), CONTACT_FORCES_VECTOR, CONTACT_FORCE, rCurrentProcessInfo);
+	      this->AddExplicitContribution( rLocalSystem.GetRightHandSideVector(), CONTACT_FORCES_VECTOR, CONTACT_FORCE, rCurrentProcessInfo);
 	    }
 
 
