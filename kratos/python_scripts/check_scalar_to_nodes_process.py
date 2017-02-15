@@ -31,6 +31,7 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                 "variable_name"   : "SPECIFY_VARIABLE_NAME", 
                 "interval"        : [0.0, 1e30], 
                 "value"           : 0.0, 
+                "tolerance_rank"       : 3, 
                 "local_axes"      : {} 
             } 
             """ 
@@ -100,42 +101,33 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                     self.is_time_function = True 
  
         # Error tolerance 
-        self.tol = 1.0e-4 
+        self.tol = settings["tolerance_rank"].GetInt() 
          
         # print("Finished construction of ApplyCustomFunctionProcess Process") 
  
     def ExecuteInitializeSolutionStep(self): 
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] 
+        pass
  
+    def ExecuteFinalizeSolutionStep(self): 
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] 
+    
         if(current_time >= self.interval[0] and  current_time<self.interval[1]): 
- 
+
             if self.value_is_numeric: 
                 for node in self.mesh.Nodes: 
                     value = node.GetSolutionStepValue(self.variable, 0) 
-                    if (abs((self.value - value)/value) < self.tol): 
-                        check = True 
-                    else: 
-                        check = False 
-                    self.assertTrue(check) 
+                    self.assertAlmostEqual(self.value, value, self.tol)  
             else: 
                 if self.is_time_function: 
                     self.value = self.aux_function.f(0.0,0.0,0.0,current_time) 
                     for node in self.mesh.Nodes: 
                         value = node.GetSolutionStepValue(self.variable, 0) 
-                        if (abs((self.value - value)/value) < self.tol): 
-                            check = True 
-                        else: 
-                            check = False 
-                        self.assertTrue(check) 
+                        self.assertAlmostEqual(self.value, value, self.tol) 
                 else: #most general case - space varying function (possibly also time varying) 
                     if self.non_trivial_local_system == False: 
                         for node in self.model_part.Nodes: 
                             value = node.GetSolutionStepValue(self.variable, 0) 
-                            if (abs((value - self.aux_function.f(node.X,node.Y,node.Z,current_time))/value) < self.tol): 
-                                check = True  
-                            else: 
-                                check = False 
-                            self.assertTrue(check) 
+                            self.assertAlmostEqual(self.aux_function.f(node.X,node.Y,node.Z,current_time), value, self.tol) 
                     else: #TODO: OPTIMIZE!! 
                         for node in self.model_part.Nodes: 
                             dx = node - self.x0 
@@ -143,11 +135,4 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                             y = self.R[1,0]*dx[0] + self.R[1,1]*dx[1] + self.R[1,2]*dx[2] 
                             z = self.R[2,0]*dx[0] + self.R[2,1]*dx[1] + self.R[2,2]*dx[2] 
                             value = node.GetSolutionStepValue(self.variable, 0) 
-                            if (abs((value - self.aux_function.f(x,y,z,current_time))/value) < self.tol): 
-                                check = True 
-                            else: 
-                                check = False 
-                            self.assertTrue(check) 
- 
-    def ExecuteFinalizeSolutionStep(self): 
-        pass 
+                            self.assertAlmostEqual(self.aux_function.f(x,y,z,current_time), value, self.tol)
