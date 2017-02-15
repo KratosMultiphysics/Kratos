@@ -418,7 +418,7 @@ public:
 	  double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
 	  refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
 
-	  std::cout<<" FACTOR "<<factor<<std::endl;
+	  //std::cout<<" FACTOR "<<factor<<std::endl;
 	  
 	  if( refine_condition ){
 	  

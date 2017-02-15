@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<ProcessList>
-    <Process n="SetInterfaceProcess" pn="FSI Interface" python_module="set_interface_process"
-		kratos_module="KratosMultiphysics.FSIApplication" help="" >
-    <inputs>
-    </inputs>
-    </Process>
-</ProcessList>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-  <container n="Dam" pn="Dam" icon="units" prefix="Dam" tree_state="open" open_window="0">
-    <include n="ModelInfo" active="1" path="apps/Dam/xml/ModelInfo.spd"/>
-    <include n="Parts" active="1" path="apps/Dam/xml/Parts.spd"/>
-    <include n="DirichletBoundaryConditions" active="1" path="apps/Dam/xml/DirichletBoundaryConditions.spd"/>
-    <include n="Loads" active="1" path="apps/Dam/xml/Loads.spd"/> 
-    <include n="Solution" active="1" path="apps/Dam/xml/Solution.spd"/> 
-    <include n="Results" active="1" path="apps/Dam/xml/Results.spd"/>            
-  </container>
