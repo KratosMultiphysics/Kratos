@@ -121,16 +121,19 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
 
-        double MaxLocalCFL = 0.0;
         const double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
-        #pragma omp parallel reduction(max:MaxLocalCFL)
+        std::vector<double> MaxCFL(NumThreads,0.0);
+
+        #pragma omp parallel shared(MaxCFL)
         {
             int k = OpenMPUtils::ThisThread();
             ModelPart::ElementIterator ElemBegin = mpModelPart->ElementsBegin() + ElementPartition[k];
             ModelPart::ElementIterator ElemEnd = mpModelPart->ElementsBegin() + ElementPartition[k+1];
 
             GeometryDataContainer GeometryInfo;
+
+            double MaxLocalCFL = 0.0;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
@@ -140,9 +143,19 @@ public:
                    MaxLocalCFL = ElementCFL;
                 } 
             }
+
+            MaxCFL[k] = MaxLocalCFL;
         }
 
-        double NewDt = mCFL * CurrentDt / MaxLocalCFL;
+        // Reduce to maximum the thread results
+        // Note that MSVC14 does not support max reductions, which are part of OpenMP 3.1
+        double CurrentCFL = MaxCFL[0];
+        for (unsigned int k = 1; k < NumThreads; k++)
+        {
+            if (CurrentCFL > MaxCFL[k]) CurrentCFL = MaxCFL[k];
+        }
+
+        double NewDt = mCFL * CurrentDt / CurrentCFL;
 
         // Limit max Dt
         if (NewDt > mDtMax)
