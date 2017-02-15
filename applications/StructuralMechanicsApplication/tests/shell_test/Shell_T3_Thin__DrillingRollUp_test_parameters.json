@@ -77,22 +77,7 @@
             "time_frequency"   : 0.01
         }
     }
-    ],
-    "check_analytic_results_process" : [
-    {
-        "python_module"   : "from_analytic_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromAnalyticCheckResultProcess",
-        "Parameters"            : {
-            "variable_name"    : "DISPLACEMENT_X",
-            "mesh_id"          : 0,
-            "f(x,y,z,t)="      : "cos(10.0*t)",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],    
+    ],   
     "apply_custom_function_process" : [],
     "restart_options"          : {
         "SaveRestart"      : false,
