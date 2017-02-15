@@ -55,6 +55,8 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     
+    #if !defined(GETCOORDINATES)
+    #define GETCOORDINATES
     static inline Matrix GetCoordinates(
         const GeometryType& nodes,
         const bool current
@@ -83,10 +85,13 @@ namespace Kratos
         
         return Coordinates;
     }
+    #endif
 
     /***********************************************************************************/
     /***********************************************************************************/
 
+    #if !defined(GETVARIABLESMATRIX)
+    #define GETVARIABLESMATRIX
     static inline Matrix GetVariableMatrix(
         const GeometryType& nodes,
         const Variable<array_1d<double,3> >& rVarName,
@@ -136,6 +141,7 @@ namespace Kratos
         
         return VarMatrix;
     }
+    #endif
     
 ///@}
 ///@name Kratos Classes

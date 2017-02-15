@@ -365,6 +365,15 @@ public:
         );
 
     /**
+     * This function initializes the ALM frictionless mortar conditions already created 
+     */
+    
+    void InitializeALMFrictionlessMortarConditions(
+        const double rActiveCheckFactor,
+        const int rIntegrationOrder
+        );
+    
+    /**
      * This function initializes nodes 
      */
     
@@ -393,6 +402,17 @@ public:
         const int rIntegrationOrder
         );
 
+    
+    /**
+     * This function initializes ALM frictionless conditions
+     */
+        
+    void InitializeALMFrictionlessConditions(
+        ModelPart & rModelPart, 
+        const double rActiveCheckFactor,
+        const int rIntegrationOrder
+        );
+    
     /**
      * This function clears the NTN conditions already created 
      */
@@ -422,24 +442,28 @@ public:
      */
     
     void TotalClearMortarConditions();
+    void TotalClearALMFrictionlessMortarConditions();
     
     /**
      * This function clears the mortar conditions already created 
      */
     
     void PartialClearMortarConditions();
+    void PartialClearALMFrictionlessMortarConditions();
     
     /**
      * This function clears conditions already created 
      */
     
     void TotalClearConditions(ModelPart & rModelPart);
+    void TotalClearALMFrictionlessConditions(ModelPart & rModelPart);
     
     /**
      * This function clears partially the conditions already created 
      */
     
     void PartialClearConditions(ModelPart & rModelPart);
+    void PartialClearALMFrictionlessConditions(ModelPart & rModelPart);
     
     /**
      * This function creates a lists  points ready for the NTN method
@@ -545,8 +569,16 @@ public:
         const double SearchFactor,
         const int type_search
     );
+    void CreateALMFrictionlessMortarConditions(
+        const double SearchFactor,
+        const int type_search
+    );
     
     void UpdateMortarConditions(
+        const double SearchFactor,
+        const int type_search
+    );
+    void UpdateMortarALMFrictionlessConditions(
         const double SearchFactor,
         const int type_search
     );

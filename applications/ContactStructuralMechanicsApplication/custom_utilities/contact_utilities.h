@@ -24,13 +24,51 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+    
+///@}
+///@name  Enum's
+///@{
+    
+///@}
+///@name  Functions
+///@{
+    
 class ContactUtilities
 {
 public:
-    /**
-     * @name Type definitions
-     * @{
-     */
+    ///@name Type Definitions
+    ///@{
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+    
+    ///@}
+    ///@name Operations
+    ///@{
+
     
     // General type definitions
     typedef Node<3>                                          NodeType;
@@ -39,8 +77,7 @@ public:
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
 
-    /***********************************************************************************/
-    /***********************************************************************************/
+
 
     /**
      * This function fills the contact_container for the Mortar condition
@@ -121,9 +158,6 @@ public:
             ConditionPointers->push_back(aux_contact_container);
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * Project a point over a line/plane following an arbitrary direction
@@ -209,9 +243,6 @@ public:
         }
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * Project a point over a plane
      * @param PointOrigin: A point in the plane
@@ -236,9 +267,6 @@ public:
          PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * Calculates the distance between nodes
      * @param PointOrigin: A point in the plane
@@ -256,9 +284,6 @@ public:
         
         return dist;
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the center and radius of the geometry of a condition
@@ -295,9 +320,6 @@ public:
         
         ConditionNormal(pCond);
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the normal of a condition
@@ -313,9 +335,6 @@ public:
         
         GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the normal of a condition
@@ -337,9 +356,6 @@ public:
         
         return normal;
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * This function calculates the normal of a geometry
@@ -377,9 +393,6 @@ public:
         
         GeometryNormal(Normal, TangentXi, TangentEta, Geom);
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * This function calculates the tangents at a given node
@@ -419,9 +432,6 @@ public:
         }
         
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * It computes the mean of the normal in the condition in all the nodes
@@ -514,9 +524,6 @@ public:
             }
         }
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * It computes the directional derivative of the normal in the condition in all the nodes
@@ -730,9 +737,6 @@ public:
             }
         }
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * Calculates the determinant of the jacobian of the contact element  
@@ -755,9 +759,6 @@ public:
             KRATOS_THROW_ERROR( std::logic_error, "Illegal local dimension for contact element. Dimension = ", J.size2( ) );
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * It changes from active to inactive and viceversa the nodes 
@@ -850,6 +851,74 @@ public:
         }
     }
     
+    /**
+     * It changes from active to inactive and viceversa the nodes 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the conditions changed
+     */
+    
+    static inline void ReComputeActiveInactiveALMFrictionless(ModelPart & rModelPart)
+    {
+        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+       
+        ConditionsArrayType& pCond = rModelPart.GetSubModelPart("Contact").Conditions();
+        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
+        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
+        
+        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
+        {
+            bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            if( (itCond)->IsDefined(ACTIVE) == true)
+            {
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                // Recompute Active/Inactive nodes
+                double epsilon = 0.0;
+                if (itCond->GetProperties().Has(PENALTY_FACTOR) == true)
+                {
+                    epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
+                }
+                
+                double k = 0.0;
+                if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
+                {
+                    k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
+                }
+
+                Geometry<Node<3> > & CondGeometry = itCond->GetGeometry();
+                
+                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
+                {
+                    if (CondGeometry[itNode].Is(VISITED) == false)
+                    {
+                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0);      
+                        
+                        if (gn < 0.0) // NOTE: Penetration
+                        {
+                            augmented_normal_presssure += epsilon * gn;     
+                        }
+                        
+                        if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, true);
+                        }
+                        else
+                        {
+                            CondGeometry[itNode].Set(ACTIVE, false);
+//                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                        }
+                        
+                        CondGeometry[itNode].Set(VISITED, true);
+                    }
+                }
+            }
+        }
+    }
+    
     /***********************************************************************************/
     /***********************************************************************************/
     
@@ -876,9 +945,6 @@ public:
             }
         }
     }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
     
     /**
      * It resets the value of the weighted gap and slip 
@@ -912,6 +978,34 @@ public:
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
                 itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
+            }
+        }
+    }
+    
+    /**
+     * It resets the value of the weighted gap 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the nodes changed
+     */
+    
+    static inline void ResetWeightedALMFrictionlessValues(ModelPart & rModelPart)
+    {
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
+        
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            if (itNode->Is(SLAVE))
+            {   
+                if (itNode->Is(ACTIVE) == false)
+                {
+                    itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                }
+                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
             }
         }
     }

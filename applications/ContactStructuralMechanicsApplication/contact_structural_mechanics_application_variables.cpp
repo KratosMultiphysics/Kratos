@@ -32,6 +32,8 @@ KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                   
 KRATOS_CREATE_VARIABLE( double, GAP_GP )                                          // A double storing the gap of the GP
 KRATOS_CREATE_VARIABLE( double, SLIP_GP )                                         // A double storing the slip of the GP
 KRATOS_CREATE_VARIABLE( double, DOUBLE_LM_FACTOR )                                // The double LM parameter
+KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )                                  // The penalty factor for the ALM
+KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )                                    // The scale factor for the ALM
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                            // The double LM
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )             // For getting the normal contact stress in the GP
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP )         // For getting the tangential contact stress in the GP

@@ -30,6 +30,9 @@
 
 /* CONDITIONS */
 // Mortar conditions
+#include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
+
+// OLD Mortar conditions 
 #include "custom_conditions/mortar_contact_condition.h"
 #include "custom_conditions/mortar_contact_2D_condition.hpp"
 #include "custom_conditions/mortar_contact_3D_condition.hpp"
@@ -199,6 +202,11 @@ private:
     
     /* CONDITIONS*/
     // Mortar conditions
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2> mALMFrictionlessMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3> mALMFrictionlessMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4> mALMFrictionlessMortarContactCondition3D4N;
+    
+    // OLD Mortar conditions
 //     const MortarContact2DCondition mMortarContactCondition2D2N;
     const MortarContactCondition<2, 2, false> mMortarContactCondition2D2N;
 //     const MortarContact2DCondition mMortarContactCondition2D3N;

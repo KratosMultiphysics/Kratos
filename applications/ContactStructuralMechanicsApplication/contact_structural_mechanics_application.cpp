@@ -43,6 +43,15 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mTestElement2D1N( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1 ) ) ) ),
     /* CONDITIONS */
     // Contact mortar conditions
+    mALMFrictionlessMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+//     mALMFrictionlessMortarContactCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mALMFrictionlessMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+//     mALMFrictionlessMortarContactCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mALMFrictionlessMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+//     mALMFrictionlessMortarContactCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
+//     mALMFrictionlessMortarContactCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
+
+    // OLD Contact mortar conditions 
     mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMortarContactCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -64,7 +73,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    // CONDITIONS
+    // CONDITIONS // TODO: Clean all this mesh
     /* Mortar method */
     KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
@@ -82,6 +91,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( GAP_GP )                                          // A double storing the gap of the GP
     KRATOS_REGISTER_VARIABLE( SLIP_GP )                                         // A double storing the slip of the GP
     KRATOS_REGISTER_VARIABLE( DOUBLE_LM_FACTOR )                                // The double LM parameter
+    KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
+    KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                    // The double LM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
@@ -93,6 +104,13 @@ void KratosContactStructuralMechanicsApplication::Register()
     
     // Register the conditions
     // Mortar contact condition
+    KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition2D2N", mALMFrictionlessMortarContactCondition2D2N );
+//     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition2D3N", mALMFrictionlessMortarContactCondition2D3N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D3N", mALMFrictionlessMortarContactCondition3D3N );
+//     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D6N", mALMFrictionlessMortarContactCondition3D6N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D4N", mALMFrictionlessMortarContactCondition3D4N );
+//     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D8N", mALMFrictionlessMortarContactCondition3D8N );
+//     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition3D9N", mALMFrictionlessMortarContactCondition3D9N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D3N", mMortarContactCondition2D3N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D3N", mMortarContactCondition3D3N );
