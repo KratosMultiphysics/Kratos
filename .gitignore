@@ -12,6 +12,9 @@ kratos/includes/kratos_version.h
 # Prerequisites
 *.d
 
+# Time files
+*.time
+
 # Compiled Object files
 *.slo
 *.lo
