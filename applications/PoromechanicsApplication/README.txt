@@ -51,7 +51,7 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 #~ include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
 #~ include_directories(${TRILINOS_INCLUDE_DIR})
 
-#~ target_link_libraries(KratosPoromechanicsApplication KratosCore KratosSolidMechanicsApplication KratosTrilinosApplication)
+#~ target_link_libraries(KratosPoromechanicsApplication KratosCore KratosTrilinosApplication KratosSolidMechanicsApplication)
 
 and comment the line just above the previous one:
 
