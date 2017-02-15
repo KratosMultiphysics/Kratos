@@ -679,7 +679,7 @@ class GiDOutputProcess(Process):
                     # you get the parts ["problem","tested","145.post.bin"]
                     num_parts  = len(file_parts)
                     # take the last part                    
-                    end_parts  = file_parts[num_parts1].split(".")
+                    end_parts  = file_parts[num_parts-1].split(".")
                     # you get the parts ["145","post","bin"]
                     print_id   = end_parts[0]
                     # you get "145"
