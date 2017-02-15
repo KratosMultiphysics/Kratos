@@ -161,11 +161,12 @@ namespace Kratos
       double iters = 0;
 
       bool simple = true; //weight = 1;
-	  
+            
       bool   converged = false;
       double MaxLength = 0;
       double NewMaxLength = 0;
 
+      double boundary_weight = 1.2;
 
       unsigned int number_of_nodes = 0;
       
@@ -184,13 +185,13 @@ namespace Kratos
 	double Weight = 0;
 	array_1d<double,3> TotalDistance;
 
-
+	
 	//convergence variables
 	double Length = 0;
 	MaxLength     = NewMaxLength;
 	NewMaxLength  = 0;
 	   
-
+	
        	number_of_nodes = 0;
 	for(unsigned int in = 0; in<rNodes.size(); in++)
 	  {
@@ -237,6 +238,9 @@ namespace Kratos
 			Weight = 0;
 		    }
 
+		    if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->Is(BOUNDARY) )
+		      Weight *= boundary_weight;
+		    
 		    if(NewMaxLength<Length)
 		      NewMaxLength = Length;
 			
