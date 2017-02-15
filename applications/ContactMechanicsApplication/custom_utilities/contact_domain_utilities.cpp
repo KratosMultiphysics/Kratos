@@ -27,8 +27,7 @@ namespace Kratos
 	KRATOS_CREATE_LOCAL_FLAG( ContactDomainUtilities, COMPUTE_FRICTION_FORCES,            4 );
 	KRATOS_CREATE_LOCAL_FLAG( ContactDomainUtilities, COMPUTE_FRICTION_STIFFNESS,         5 );
 
-	KRATOS_CREATE_LOCAL_FLAG( ContactDomainUtilities, COMPUTE_NODAL_CONTACT_FORCES,       6 );
-       
+
 	//*******************************************************************************************
 	//*******************************************************************************************
 
