@@ -798,6 +798,8 @@ namespace Kratos {
             }
             return;
         }//CRITICAL DELTA CALCULATION
+        
+        SphericParticle::Calculate(rVariable, Output, r_process_info);
 
         KRATOS_CATCH("")
     }//Calculate
