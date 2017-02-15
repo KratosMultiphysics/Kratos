@@ -117,7 +117,7 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
 
@@ -141,7 +141,7 @@ public:
                 if (ElementCFL > MaxLocalCFL)
                 {
                    MaxLocalCFL = ElementCFL;
-                } 
+                }
             }
 
             MaxCFL[k] = MaxLocalCFL;
@@ -180,7 +180,7 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
 
