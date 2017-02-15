@@ -286,12 +286,12 @@ public:
 	  threshold_value += *v;
 
 	threshold_value /= double(Value.size());
-	threshold_value *= MasterElement.GetGeometry().Area();
+	threshold_value *= MasterElement.GetGeometry().DomainSize();
 	
 	//calculate condition length
 	double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
-	if( threshold_value > mrRemesh.Refine->ReferenceThreshold * MasterElement.GetGeometry().Area() && face_size > critical_size )
+	if( threshold_value > mrRemesh.Refine->ReferenceThreshold && face_size > critical_size )
 	  return true;
       }
 
@@ -412,20 +412,25 @@ public:
 	  }
 	
 	}
-
+	
 	if( contact_active || contact_semi_active ){ 
 	
 	  double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
 	  refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
-	
+
+	  //std::cout<<" FACTOR "<<factor<<std::endl;
+	  
 	  if( refine_condition ){
 	  
 	    mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
+
 	    if(contact_active || contact_semi_active){
+	      
 	      mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
 	      if(curved_contact)
 		mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
 	    }
+	    
 	    return true;
 	  }
 
