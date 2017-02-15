@@ -54,11 +54,13 @@ public:
     /**
      * @param ModelPart The model part containing the problem mesh
      * @param CFL The user-defined Courant-Friedrichs-Lewy number
+     * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
      */
-    EstimateDtUtility(ModelPart::Pointer ModelPart, const double CFL, const double DtMax)
+    EstimateDtUtility(ModelPart::Pointer ModelPart, const double CFL, const double DtMin, const double DtMax)
     {
         mCFL = CFL;
+        mDtMin = DtMin;
         mDtMax = DtMax;
         mpModelPart = ModelPart;
     }
@@ -73,12 +75,14 @@ public:
         Parameters defaultParameters(R"({
             "automatic_time_step"   : true,
             "CFL_number"            : 1.0,
-            "maximum_delta_time"    : 0.01
+            "minimum_delta_time"    : 1e-4,
+            "maximum_delta_time"    : 0.1
         })");
 
         rParameters.ValidateAndAssignDefaults(defaultParameters);
 
         mCFL = rParameters["CFL_number"].GetDouble();
+        mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
         mpModelPart = ModelPart;
     }
@@ -104,6 +108,15 @@ public:
     /**
     * @param CFL the user-defined CFL number used in the automatic time step computation
     */
+    void SetDtMin(const double DtMin)
+    {
+        mDtMin = DtMin;
+    }
+
+    /// Set the maximum time step allowed value.
+    /**
+    * @param CFL the user-defined CFL number used in the automatic time step computation
+    */
     void SetDtMax(const double DtMax)
     {
         mDtMax = DtMax;
@@ -121,7 +134,7 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
 
-        const double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
+        double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
         std::vector<double> MaxCFL(NumThreads,0.0);
 
@@ -155,12 +168,27 @@ public:
             if (CurrentCFL > MaxCFL[k]) CurrentCFL = MaxCFL[k];
         }
 
-        double NewDt = mCFL * CurrentDt / CurrentCFL;
+        double NewDt = 0.0;
 
-        // Limit max Dt
-        if (NewDt > mDtMax)
+        // Avoid division by 0 when the maximum CFL number is close to 0 (e.g. problem initialization)
+        if (CurrentCFL < 1e-10)
         {
-            NewDt = mDtMax;
+            std::cout << "Setting minimum delta time " << mDtMin << " as current time step." << std::endl;
+            NewDt = mDtMin;
+        }
+        else
+        {
+            // Compute new Dt
+            NewDt = mCFL * CurrentDt / CurrentCFL;
+            // Limit max and min Dt
+            if (NewDt > mDtMax)
+            {
+                NewDt = mDtMax;
+            }
+            else if (NewDt < mDtMin)
+            {
+                NewDt = mDtMin;
+            }
         }
 
         // Perform MPI sync if needed
@@ -221,8 +249,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    double              mCFL; // User-defined CFL number
-    double              mDtMax; // User-defined maximum time increment allowed
+    double              mCFL;        // User-defined CFL number
+    double              mDtMax;      // User-defined maximum time increment allowed
+    double              mDtMin;      // User-defined minimum time increment allowed
     ModelPart::Pointer  mpModelPart; // The problem's model part
 
     ///@} // Member variables
