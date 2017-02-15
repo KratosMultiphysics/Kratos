@@ -12,4 +12,4 @@ install:
 script:
 - cp scripts/build/dist/configure_ubuntu_16_04.sh cmake_build/configure.sh
 - cd cmake_build
-- sh configure.sh
+- bash configure.sh
