@@ -17,6 +17,12 @@
 #include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
+//Trilinos includes
+//~ #include "mpi.h"
+//~ #include "Epetra_FECrsMatrix.h"
+//~ #include "Epetra_FEVector.h"
+//~ #include "trilinos_space.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -31,7 +37,9 @@
 #include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/dam_UP_scheme.hpp"
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
-
+//~ #include "custom_strategies/schemes/trilinos_incrementalupdate_static_damped_scheme.hpp"
+//~ #include "custom_strategies/schemes/trilinos_bossak_displacement_scheme.hpp"
+//~ #include "custom_strategies/schemes/trilinos_dam_UP_scheme.hpp"
 
 //strategies
 #include "custom_strategies/strategies/dam_eulerian_convection_diffusion_strategy.hpp"
@@ -63,6 +71,12 @@ void  AddCustomStrategiesToPython()
     //custom strategies types
     typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategyType;
 
+    //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+    //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
+    //~ typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
+    //~ typedef TrilinosBossakDisplacementScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosBossakDisplacementSchemeType;
+    //~ typedef TrilinosDamUPScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosDamUPSchemeType;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
@@ -80,6 +94,17 @@ void  AddCustomStrategiesToPython()
     
     class_< DamPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamPScheme",
         init< double, double >());
+
+    //~ class_< TrilinosIncrementalUpdateStaticDampedSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosIncrementalUpdateStaticDampedScheme", 
+        //~ init< double, double >() );
+
+    //~ class_< TrilinosBossakDisplacementSchemeType, bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosBossakDisplacementScheme",
+        //~ init< double, double, double >());
+
+	//~ class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
+        //~ init< double, double, double, double >());
+        
+
     // Strategies       
     class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
         init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
