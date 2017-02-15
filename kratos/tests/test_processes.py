@@ -131,7 +131,7 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module"   : "experimental_assign_value_process",
+                        "python_module"   : "assign_scalar_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignValueProcess",
                         "Parameters"            : {
@@ -143,7 +143,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         }
                     },
                     {
-                        "python_module"   : "experimental_assign_value_process",
+                        "python_module"   : "assign_scalar_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignValueProcess",
                         "Parameters"            : {
@@ -159,7 +159,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         }
                     },
                     {
-                        "python_module"   : "experimental_assign_vector_process",
+                        "python_module"   : "assign_vector_components_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorProcess",
                         "Parameters"            : {
@@ -171,7 +171,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             }   
                     },
                     {
-                        "python_module"   : "experimental_assign_vector_process",
+                        "python_module"   : "assign_vector_components_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorProcess",
                         "Parameters"            : {
@@ -184,7 +184,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             }   
                     },
                     {
-                        "python_module"   : "experimental_assign_vector_process",
+                        "python_module"   : "assign_vector_components_to_nodes_process",
                         "kratos_module" : "KratosMultiphysics",
                         "process_name"          : "AssignVectorProcess",
                         "Parameters"            : {
