@@ -178,7 +178,15 @@ class GiDOutputProcess(Process):
                 self.next_output = self.model_part.ProcessInfo[TIME]
             else:
                 self.next_output = self.model_part.ProcessInfo[STEP]
+            
+            # Remove post results
+            if self.output_label_is_time:
+                label = self.model_part.ProcessInfo[TIME]
+            else:
+                label = self.printed_step_count
 
+            self.__remove_post_results_files(label)
+                
             # Restart .post.lst files
             self.__restart_list_files(additional_list_files)
         else:
@@ -639,6 +647,50 @@ class GiDOutputProcess(Process):
             print(" Problem Path do not exists , check the Problem Path selected ")
         else:
             filelist = [f for f in os.listdir(os.getcwd()) if f.endswith(".lst")]
+            for f in filelist:
+                if(os.path.exists(f)):
+                    try:
+                        os.remove(f)
+                    except WindowsError:
+                        pass
+    #
+    def __remove_post_results_files(self, step_label):
+
+        path = os.getcwd()
+
+        if self.post_mode == GiDPostMode.GiD_PostBinary:
+            ext = ".post.bin"
+        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+            ext = ".post.res"
+        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+            ext = ".post.res"
+            
+        # remove post result files:
+        if(os.path.exists(path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            filelist = []
+            for f in os.listdir(os.getcwd()):
+                if(f.endswith(ext)):
+
+                    #if f.name = problem_tested_145.post.bin
+                    file_parts = f.split('_')
+                    # you get the parts ["problem","tested","145.post.bin"]
+                    num_parts  = len(file_parts)
+                    # take the last part                    
+                    end_parts  = file_parts[num_parts-1].split(".")
+                    # you get the parts ["145","post","bin"]
+                    print_id   = end_parts[0]
+                    # you get "145"
+                    
+                    try:
+                        float(print_id)
+                    except ValueError:
+                        break
+                    
+                    if( float(print_id) >  float(step_label) ):
+                        filelist.append(f)
+            
             for f in filelist:
                 if(os.path.exists(f)):
                     try:
