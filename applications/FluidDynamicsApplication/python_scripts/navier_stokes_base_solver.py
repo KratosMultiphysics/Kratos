@@ -41,6 +41,7 @@ class NavierStokesBaseSolver:
             "time_stepping": {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
             "alpha":-0.1,

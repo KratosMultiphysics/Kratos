@@ -32,7 +32,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
             "maximum_pressure_iterations": 3,
             "velocity_tolerance": 1e-3,
             "pressure_tolerance": 1e-2,
-            "echo_level": 1,
+            "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
@@ -70,6 +70,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
             "time_stepping"                : {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,

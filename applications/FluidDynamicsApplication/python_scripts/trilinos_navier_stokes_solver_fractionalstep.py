@@ -35,10 +35,9 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "maximum_pressure_iterations": 3,
             "velocity_tolerance": 1e-3,
             "pressure_tolerance": 1e-2,
-            "echo_level": 1,
+            "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
-            "dynamic_tau": 0.001,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": false,
@@ -62,7 +61,15 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
-            "no_skin_parts":[""]
+            "no_skin_parts":[""],
+            "time_stepping": {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
+            "move_mesh_flag": false,
+            "use_slip_conditions": true
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -138,32 +145,34 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
 
     def Initialize(self):
+        ## Construct the communicator
         self.EpetraComm = KratosTrilinos.CreateCommunicator()
 
-        compute_model_part = self.GetComputingModelPart()
+        ## Get the computing model part
+        self.computing_model_part = self.GetComputingModelPart()
 
-        MoveMeshFlag = False
-
-        use_slip_conditions = True
+        ## If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
             self.solver_settings = KratosTrilinos.TrilinosFractionalStepSettingsPeriodic(self.EpetraComm,
-                                                                                        compute_model_part,
-                                                                                        compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                                        self.computing_model_part,
+                                                                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                         self.settings["time_order"].GetInt(),
-                                                                                        use_slip_conditions,
-                                                                                        MoveMeshFlag,
+                                                                                        self.settings["use_slip_conditions"].GetBool(),
+                                                                                        self.settings["move_mesh_flag"].GetBool(),
                                                                                         self.settings["reform_dofs_at_each_step]"].GetBool(),
                                                                                         KratosFluid.PATCH_INDEX)
 
         else:
             self.solver_settings = KratosTrilinos.TrilinosFractionalStepSettings(self.EpetraComm,
-                                                                                 compute_model_part,
-                                                                                 compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                                 self.computing_model_part,
+                                                                                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                  self.settings["time_order"].GetInt(),
-                                                                                 use_slip_conditions,
-                                                                                 MoveMeshFlag,
+                                                                                 self.settings["use_slip_conditions"].GetBool(),
+                                                                                 self.settings["move_mesh_flag"].GetBool(),
                                                                                  self.settings["reform_dofs_at_each_step"].GetBool())
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -178,7 +187,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
                                          self.settings["pressure_tolerance"].GetDouble(),
                                          self.settings["maximum_pressure_iterations"].GetInt())
 
-        self.solver = KratosTrilinos.TrilinosFSStrategy(compute_model_part,
+        self.solver = KratosTrilinos.TrilinosFSStrategy(self.computing_model_part,
                                                         self.solver_settings,
                                                         self.settings["predictor_corrector"].GetBool(),
                                                         KratosFluid.PATCH_INDEX)
