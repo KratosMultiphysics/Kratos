@@ -5,6 +5,13 @@
 cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
+cmake_clang/
+
+# Compile and install directories
+KratosMultiphysics/*
+packaging/*
+packaging_aux/*
+script.py
 
 # Version
 kratos/includes/kratos_version.h
