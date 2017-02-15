@@ -45,8 +45,8 @@ CMAKE_BIN=cmake
 #        C_COMPILER=gcc
 #        CXX_COMPILER=g++
 # --------------------------------------------------------------------------------------------------------------
-C_COMPILER=CC
-CXX_COMPILER=CXX
+C_COMPILER=${CC}
+CXX_COMPILER=${CXX}
 
 # Build type
 #    Indicate the build type. Possible values are "Release", "RelWithDebInfo" or "Debug"
