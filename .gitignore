@@ -11,6 +11,9 @@ packaging_aux/*
 
 # Compile and install directories
 KratosMultiphysics/*
+libpython*
+libs/*
+runkratos
 script.py
 
 # Version
