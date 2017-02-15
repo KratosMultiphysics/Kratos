@@ -166,7 +166,7 @@ namespace Kratos
       double MaxLength = 0;
       double NewMaxLength = 0;
 
-      double boundary_weight = 1.2;
+      double boundary_weight = 0.5; //(0,1]
 
       unsigned int number_of_nodes = 0;
       
