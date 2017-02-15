@@ -6,10 +6,11 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install -qq g++-4.8
+- sudo apt-get install -qq gcc-4.8 g++-4.8 gfortran python-dev libboost-all-dev libblas-dev liblapack-dev 
+- export CC="gcc-4.8"
 - export CXX="g++-4.8"
 
 script:
-- cp scripts/build/dist/configure_ubuntu_16_04.sh cmake_build/configure.sh
+- cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
