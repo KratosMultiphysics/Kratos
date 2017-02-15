@@ -233,10 +233,12 @@ namespace Kratos
     // check mesh size introduced :: warning must be shown
     // if(!out_buffer_active)
     //   std::cout.rdbuf(buffer);
-        
-    if(mpMeshingVariables->Options.Is( ModelerUtilities::REFINE ))
-      mpModelerUtilities->CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
-		
+
+    if(mpMeshingVariables->Options.Is( ModelerUtilities::REFINE )){
+      ModelerUtilities ModelerUtils;
+      ModelerUtils.CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
+    }
+    
     // if(!out_buffer_active){
     //   buffer = std::cout.rdbuf();
     //   std::ofstream fout("/dev/null");
