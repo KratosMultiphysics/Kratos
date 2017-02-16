@@ -141,10 +141,16 @@ public:
 					y_water=0.0;
 				}
                 
+                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
+                if(unit_acceleration<0.0)
+                {
                 // The first part is related to hydrostatic pressure 
-                double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
-                
-                KRATOS_WATCH(pressure)
+                    double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                }
+                else
+                {
+                    double pressure = (mspecific*(y_water));
+                }
                 
                 if(pressure>0.0)
                 {
@@ -219,8 +225,16 @@ public:
 					y_water=0.0;
 				}
                 
+                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
+                if(unit_acceleration<0.0)
+                {
                 // The first part is related to hydrostatic pressure 
-                double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                    double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                }
+                else
+                {
+                    double pressure = (mspecific*(y_water));
+                }
                 
                 if(pressure>0.0)
                 {
