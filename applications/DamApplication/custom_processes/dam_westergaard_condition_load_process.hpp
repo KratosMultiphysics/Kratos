@@ -145,7 +145,7 @@ public:
                 if(unit_acceleration<0.0)
                 {
                 // The first part is related to hydrostatic pressure 
-                    double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                    double pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
                 }
                 else
                 {
@@ -229,7 +229,7 @@ public:
                 if(unit_acceleration<0.0)
                 {
                 // The first part is related to hydrostatic pressure 
-                    double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                    double pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
                 }
                 else
                 {
