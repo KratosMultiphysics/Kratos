@@ -1,5 +1,3 @@
-[//]: <> (![http://www.mmgtools.org/](https://www.mmgtools.org/files/2016/09/logo_mmg.png  "http://www.mmgtools.org/") TODO: Ask permision to use the image)
-
 # MMG Libray 
 > Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004
 
