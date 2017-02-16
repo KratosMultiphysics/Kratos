@@ -63,8 +63,8 @@ private:
         value_iterator mValueIterator;
         std::unique_ptr<Parameters> mpParameters;
     public:
-        iterator_adaptor(value_iterator it,  boost::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(&(*it), proot)){}
-        iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator),  mpParameters(new Parameters(*(it.mpParameters))){} 
+        iterator_adaptor(value_iterator it,  boost::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(&(*it), proot)) {}
+        iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator),  mpParameters(new Parameters(*(it.mpParameters))) {}
         iterator_adaptor& operator++()
         {
             mValueIterator++;
@@ -102,7 +102,7 @@ private:
         {
             return mValueIterator;
         }
-        std::string name()
+        const std::string name()
         {
             return mValueIterator.key();
         }
@@ -114,9 +114,9 @@ private:
         value_iterator mValueIterator;
         std::unique_ptr<Parameters> mpParameters;
     public:
-        const_iterator_adaptor(value_iterator it,  boost::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<json*>(&(*it)), proot)){}
+        const_iterator_adaptor(value_iterator it,  boost::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<json*>(&(*it)), proot)) {}
         //TODO: use copy constructor in the following method
-        const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))){} 
+        const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
@@ -155,7 +155,7 @@ private:
         {
             return mValueIterator;
         }
-        std::string name()
+        const std::string name()
         {
             return mValueIterator.key();
         }
@@ -169,7 +169,7 @@ public:
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
 
-    Parameters(const std::string json_string)
+    Parameters(const std::string& json_string)
     {
         mproot = boost::shared_ptr<json>(new json( json::parse( json_string )));
         mpvalue = mproot.get();
@@ -178,7 +178,7 @@ public:
     /// Assignment operator.
     Parameters& operator=(Parameters const& rOther)
     {
-        if(mproot.get() ==  mpvalue || mproot == nullptr)              
+        if(mproot.get() ==  mpvalue || mproot == nullptr)
         {
             KRATOS_WATCH("inside operator = case1")
             mproot = boost::shared_ptr<json>(new json( json::parse( rOther.WriteJsonString() )));
@@ -190,7 +190,7 @@ public:
             *mpvalue = json( json::parse( rOther.WriteJsonString() ) );
             // note that mproot is unchanged
         }
-        
+
         return *this;
     }
     /// Copy constructor.
@@ -228,26 +228,26 @@ public:
 
 
     //*******************************************************************************************************
-    Parameters GetValue(const std::string entry)
+    Parameters GetValue(const std::string& entry)
     {
         auto j = mpvalue->find(entry);
         if( j == mpvalue->end()) KRATOS_THROW_ERROR(std::invalid_argument,"--------- ERROR : --------- getting a value that does not exist. entry string : ",entry);
         return Parameters(&(*j), mproot);
     }
 
-    Parameters operator[](const std::string entry)
+    Parameters operator[](const std::string& entry)
     {
         return this->GetValue(entry);
     }
 
-    void SetValue(const std::string entry, const Parameters& other_value)
+    void SetValue(const std::string& entry, const Parameters& other_value)
     {
         if(mpvalue->find(entry) == mpvalue->end()) KRATOS_THROW_ERROR(std::invalid_argument,"value must exist to be set. Use AddValue instead","");
 
         (*mpvalue)[entry] = *(other_value.mpvalue);
     }
 
-    void AddValue(const std::string entry, const Parameters& other_value)
+    void AddValue(const std::string& entry, const Parameters& other_value)
     {
         if(mpvalue->find(entry) == mpvalue->end())
         {
@@ -255,7 +255,7 @@ public:
         }
     }
 
-    Parameters AddEmptyValue(const std::string entry)
+    Parameters AddEmptyValue(const std::string& entry)
     {
         if(this->Has(entry) == false)
         {
@@ -266,7 +266,7 @@ public:
 
 
     //*******************************************************************************************************
-    bool Has(const std::string entry) const
+    bool Has(const std::string& entry) const
     {
         return mpvalue->find(entry) != mpvalue->end();
     }
@@ -340,7 +340,7 @@ public:
     {
         *mpvalue=value;
     }
-    void SetString(const std::string value)
+    void SetString(const std::string& value)
     {
         *mpvalue=value;
     }
