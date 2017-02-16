@@ -1,16 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Python imports
 import time as timer
 import os
 import sys
-
-# Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 sys.path.insert(0,'')
-# DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
@@ -34,13 +29,14 @@ else:
         #return ModelPartIO(modelpart)
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
+
 class Solution:
+    
     def __init__(self):
         pass
 
-    def Run(self):
-        
 
+    def Run(self):        
 
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
@@ -58,19 +54,25 @@ class Solution:
             import ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
+            
+        self.solver_strategy = SolverStrategy
+        
+        self.Initialize()        
+        
+        self.RunMainTemporalLoop()
 
-        ##############################################################################
-        #                                                                            #
-        #    INITIALIZE                                                              #
-        #                                                                            #
-        ##############################################################################
+        self.Finalize()        
 
-        procedures    = DEM_procedures.Procedures(DEM_parameters)
-        procedures.CheckInputParameters(DEM_parameters)
+
+        
+    def Initialize(self):
+        
+        self.procedures    = DEM_procedures.Procedures(DEM_parameters)
+        self.procedures.CheckInputParameters(DEM_parameters)
 
         # Creating necessary directories
         self.main_path = os.getcwd()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
 
         self.demio         = DEM_procedures.DEMIo(DEM_parameters, self.post_path)
         self.report        = DEM_procedures.Report()
@@ -78,7 +80,7 @@ class Solution:
         self.materialTest  = DEM_procedures.MaterialTest()
 
         # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = procedures.KRATOSprint
+        self.KRATOSprint   = self.procedures.KRATOSprint
 
         # Prepare modelparts
         self.spheres_model_part    = ModelPart("SpheresPart")
@@ -93,10 +95,10 @@ class Solution:
         self.creator_destructor = ParticleCreatorDestructor()
         self.dem_fem_search = DEM_FEM_Search()
 
-        scheme = procedures.SetScheme()
-        self.solver = SolverStrategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, scheme, DEM_parameters, procedures)
+        scheme = self.procedures.SetScheme()
+        self.solver = self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, scheme, DEM_parameters, self.procedures)
 
-        procedures.AddAllVariablesInAllModelParts(self.solver, scheme, self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part, DEM_parameters)
+        self.procedures.AddAllVariablesInAllModelParts(self.solver, scheme, self.all_model_parts, DEM_parameters)
 
         os.chdir(self.main_path)
         # Reading the model_part
@@ -139,7 +141,7 @@ class Solution:
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
 
         # Setting up the buffer size
-        procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
+        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
@@ -160,12 +162,12 @@ class Solution:
         self.parallelutils.Repart(self.spheres_model_part)
 
         #Setting up the BoundingBox
-        self.bounding_box_time_limits = procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
+        self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
         dt = DEM_parameters.MaxTimeStep
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
-        max_Id = procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
+        max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
         self.creator_destructor.SetMaxNodeId(max_Id)    
 
         #Strategy Initialization
@@ -185,54 +187,23 @@ class Solution:
         os.chdir(self.graphs_path)
         self.DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, self.spheres_model_part, self.cluster_model_part, "EnergyPlot.grf")
 
-        self.materialTest.Initialize(DEM_parameters, procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
+        self.materialTest.Initialize(DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
         self.KRATOSprint("Initialization Complete" + "\n")
 
         self.report.Prepare(timer, DEM_parameters.ControlTime)
 
-        procedures.ModelData(self.spheres_model_part, self.solver)
+        self.procedures.ModelData(self.spheres_model_part, self.solver)
 
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
 
-        ##############################################################################
-        #    MAIN LOOP                                                               #
-        ##############################################################################
         self.report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         
-        self.RunMainTemporalLoop()
-
-        
-
-        self.KRATOSprint("Finalizing execution...")
-
-        self.demio.FinalizeMesh()
-        self.materialTest.FinalizeGraphs()
-        self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
-        self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
-
-        self.DEMEnergyCalculator.FinalizeEnergyPlot()
-
-        self.demio.CloseMultifiles()
-
-        os.chdir(self.main_path)
-
-        objects_to_destroy = [self.demio, procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils, 
-                              self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
-
-        if (DEM_parameters.dem_inlet_option):
-            objects_to_destroy.append(DEM_inlet)
-
-        for obj in objects_to_destroy:
-            del obj
-
-        procedures.DeleteFiles()
-
-        self.KRATOSprint(self.report.FinalReport(timer))
+    
     
     def RunMainTemporalLoop(self):
         
@@ -246,13 +217,13 @@ class Solution:
             time  = time + dt
             step += 1
 
-            self.DEMFEMProcedures.UpdateTimeInModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time,dt,step) 
+            self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, time,dt,step) 
 
             #### SOLVE #########################################
             self.solver.Solve()
             ####################################################
 
-            self.DEMFEMProcedures.MoveAllMeshes(self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, time, dt)
+            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if (DEM_parameters.dem_inlet_option):
@@ -295,7 +266,34 @@ class Solution:
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     self.solver.PrepareContactElementsForPrinting()
 
-                self.demio.PrintResults(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.contact_model_part, self.mapping_model_part, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+                self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
                 os.chdir(self.main_path)
 
                 time_old_print = time
+                
+    
+    def Finalize(self):
+        
+        self.KRATOSprint("Finalizing execution...")
+
+        self.demio.FinalizeMesh()
+        self.materialTest.FinalizeGraphs()
+        self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
+        self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
+        self.DEMEnergyCalculator.FinalizeEnergyPlot()
+        self.demio.CloseMultifiles()
+
+        os.chdir(self.main_path)
+
+        objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils, 
+                              self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
+
+        if (DEM_parameters.dem_inlet_option):
+            objects_to_destroy.append(DEM_inlet)
+
+        for obj in objects_to_destroy:
+            del obj
+
+        self.procedures.DeleteFiles()
+
+        self.KRATOSprint(self.report.FinalReport(timer))

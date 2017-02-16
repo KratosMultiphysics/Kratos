@@ -271,7 +271,7 @@ solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, de
 
 # Add variables
 
-procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
+procedures.AddAllVariablesInAllModelParts(solver, scheme, all_model_parts, DEM_parameters)
 vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
 vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
