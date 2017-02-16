@@ -1,5 +1,20 @@
 language: cpp
 compiler: g++
+cache: apt
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntu-toolchain-r/test'
+      - sourceline: 'ppa:boost-latest/ppa'
+    packages:
+      - gcc-4.9
+      - g++-4.9
+      - gfortran
+      - python-dev
+      - libboost1.55-all-dev
+      - libblas-dev
+      - liblapack-dev
 
 before_install:
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -7,9 +22,8 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install -qq gcc-4.8 g++-4.8 gfortran python-dev libboost1.55-all-dev libblas-dev liblapack-dev
-- export CC="gcc-4.8"
-- export CXX="g++-4.8"
+- export CC="gcc-4.9"
+- export CXX="g++-4.9"
 
 script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
