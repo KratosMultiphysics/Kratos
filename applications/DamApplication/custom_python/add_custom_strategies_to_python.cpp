@@ -38,7 +38,6 @@
 #include "custom_strategies/schemes/dam_UP_scheme.hpp"
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
 //~ #include "custom_strategies/schemes/trilinos_incrementalupdate_static_damped_scheme.hpp"
-//~ #include "custom_strategies/schemes/trilinos_bossak_displacement_scheme.hpp"
 //~ #include "custom_strategies/schemes/trilinos_dam_UP_scheme.hpp"
 
 //strategies
@@ -74,7 +73,6 @@ void  AddCustomStrategiesToPython()
     //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
     //~ typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
-    //~ typedef TrilinosBossakDisplacementScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosBossakDisplacementSchemeType;
     //~ typedef TrilinosDamUPScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosDamUPSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,10 +94,7 @@ void  AddCustomStrategiesToPython()
         init< double, double >());
 
     //~ class_< TrilinosIncrementalUpdateStaticDampedSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosIncrementalUpdateStaticDampedScheme", 
-        //~ init< double, double >() );
-
-    //~ class_< TrilinosBossakDisplacementSchemeType, bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosBossakDisplacementScheme",
-        //~ init< double, double, double >());
+        //~ init< double >() );
 
 	//~ class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
         //~ init< double, double, double, double >());

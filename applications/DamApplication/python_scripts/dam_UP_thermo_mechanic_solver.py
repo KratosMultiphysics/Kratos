@@ -11,7 +11,7 @@ import KratosMultiphysics.DamApplication as KratosDam
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
-
+#TODO
 import dam_thermo_mechanic_solver
 
 
