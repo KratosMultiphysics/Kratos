@@ -6,7 +6,7 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install -qq gcc-4.8 g++-4.8 gfortran python-dev libboost1.54-all-dev libblas-dev liblapack-dev
+- sudo apt-get install -qq gcc-4.8 g++-4.8 gfortran python-dev libboost1.55-all-dev libblas-dev liblapack-dev
 - export CC="gcc-4.8"
 - export CXX="g++-4.8"
 
