@@ -71,6 +71,7 @@ class ContactProcess(KratosMultiphysics.Process):
         # Appending the conditions created to the computing_model_part
         computing_model_part = self.main_model_part.GetSubModelPart("computing_domain")
         computing_model_part.CreateSubModelPart("Contact")
+        interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
 
         if (self.normal_variation == True):
             computing_model_part.Set(KratosMultiphysics.INTERACTION, True)
@@ -88,7 +89,8 @@ class ContactProcess(KratosMultiphysics.Process):
             
         elem_E_values = []
         for elem in computing_model_part.Elements:
-            elem_E_values.append(elem.GetProperties()[KratosMultiphysics.YOUNG_MODULUS])
+            prop = elem.Properties
+            elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
             
         mean_E = stat.mean(elem_E_values)
             
@@ -119,9 +121,9 @@ class ContactProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, "", self.simplify_geometry) 
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, "", self.simplify_geometry) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
