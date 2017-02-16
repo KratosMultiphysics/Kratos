@@ -149,11 +149,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.EpetraComm = KratosTrilinos.CreateCommunicator()
 
         ## Get the computing model part
-<<<<<<< HEAD
         self.computing_model_part = self.GetComputingModelPart()
-=======
-        compute_model_part = self.GetComputingModelPart()
->>>>>>> fldyn-automatic-time-stepping-migration
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
