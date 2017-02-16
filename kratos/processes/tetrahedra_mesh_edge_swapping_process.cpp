@@ -115,8 +115,16 @@ void TetrahedraMeshEdgeSwappingProcess::PrintData(std::ostream& rOStream) const 
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & EdgeShell) {
 	Tetrahedra3D4<Node<3>> tetrahedra_1(EdgeShell.Point1(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(1), EdgeShell.ShellPoint(2));
 	Tetrahedra3D4<Node<3>> tetrahedra_2(EdgeShell.Point2(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(2), EdgeShell.ShellPoint(1));
-	KRATOS_WATCH(tetrahedra_1.Volume());
-	KRATOS_WATCH(tetrahedra_2.Volume());
+	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
+	
+	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
+	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
+	if (min_quality > original_min_quality) {
+		std::cout << min_quality << " is improved respect to " << original_min_quality << std::endl;
+	}
+	else
+		std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
+
 }
 
 }  // namespace Kratos.
