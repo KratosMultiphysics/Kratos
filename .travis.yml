@@ -3,6 +3,7 @@ compiler: g++
 
 before_install:
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo add-apt-repository -y ppa:boost-latest/ppa
 - sudo apt-get update -qq
 
 install:
