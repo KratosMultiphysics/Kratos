@@ -106,15 +106,6 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
 
-        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
-        #~ if config is not None:
-            #~ if hasattr(config, "TurbulenceModel"):
-                #~ if config.TurbulenceModel == "Spalart-Allmaras":
-                    #~ model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
-                    #~ model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
-                    #~ model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-                    #~ model_part.AddNodalSolutionStepVariable(DISTANCE)
-
         print("Base class fluid solver variables added correctly")
 
     def ImportModelPart(self):
@@ -125,36 +116,25 @@ class NavierStokesBaseSolver:
         ## Set buffer size
         self._SetBufferSize()
 
-        # Adding C_SMAGORINSKY
-        for elem in self.main_model_part.Elements:
-            elem.SetValue(KratosMultiphysics.C_SMAGORINSKY, 0.0)
-
         print ("Base class model reading finished.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
-        # Model part writing
+
+        ## Model part writing
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AddDofs(self):
-
+        ## Adding dofs
         for node in self.main_model_part.Nodes:
-            # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
             node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
 
         print("Base class fluid solver DOFs added correctly.")
-
-        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
-        #~ if config is not None:
-            #~ if hasattr(config, "TurbulenceModel"):
-                #~ if config.TurbulenceModel == "Spalart-Allmaras":
-                    #~ for node in model_part.Nodes:
-                        #~ node.AddDof(TURBULENT_VISCOSITY)
 
     def AdaptMesh(self):
         pass
