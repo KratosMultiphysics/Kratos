@@ -57,12 +57,12 @@ public:
      * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
      */
-    EstimateDtUtility(ModelPart::Pointer ModelPart, const double CFL, const double DtMin, const double DtMax)
+    EstimateDtUtility(ModelPart &ModelPart, const double CFL, const double DtMin, const double DtMax):
+      mrModelPart(ModelPart)
     {
         mCFL = CFL;
         mDtMin = DtMin;
         mDtMax = DtMax;
-        mpModelPart = ModelPart;
     }
 
     /// Constructor with Kratos parameters
@@ -70,7 +70,8 @@ public:
      * @param ModelPart The model part containing the problem mesh
      * @param rParameters Kratos parameters containing the CFL number and max time step
      */
-    EstimateDtUtility(ModelPart::Pointer ModelPart, Parameters& rParameters)
+    EstimateDtUtility(ModelPart& ModelPart, Parameters& rParameters):
+      mrModelPart(ModelPart)
     {
         Parameters defaultParameters(R"({
             "automatic_time_step"   : true,
@@ -84,7 +85,6 @@ public:
         mCFL = rParameters["CFL_number"].GetDouble();
         mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
-        mpModelPart = ModelPart;
     }
 
     /// Destructor
@@ -132,17 +132,17 @@ public:
 
         unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
+        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
-        double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
+        double CurrentDt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
         std::vector<double> MaxCFL(NumThreads,0.0);
 
         #pragma omp parallel shared(MaxCFL)
         {
             int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mpModelPart->ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mpModelPart->ElementsBegin() + ElementPartition[k+1];
+            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
 
             GeometryDataContainer GeometryInfo;
 
@@ -192,7 +192,7 @@ public:
         }
 
         // Perform MPI sync if needed
-        mpModelPart->GetCommunicator().MinAll(NewDt);
+        mrModelPart.GetCommunicator().MinAll(NewDt);
 
         return NewDt;
 
@@ -210,15 +210,15 @@ public:
 
         unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mpModelPart->NumberOfElements(),NumThreads,ElementPartition);
+        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
-        const double CurrentDt = mpModelPart->GetProcessInfo().GetValue(DELTA_TIME);
+        const double CurrentDt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mpModelPart->ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mpModelPart->ElementsBegin() + ElementPartition[k+1];
+            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
 
             GeometryDataContainer GeometryInfo;
 
@@ -249,10 +249,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    double              mCFL;        // User-defined CFL number
-    double              mDtMax;      // User-defined maximum time increment allowed
-    double              mDtMin;      // User-defined minimum time increment allowed
-    ModelPart::Pointer  mpModelPart; // The problem's model part
+    double    mCFL;         // User-defined CFL number
+    double    mDtMax;       // User-defined maximum time increment allowed
+    double    mDtMin;       // User-defined minimum time increment allowed
+    ModelPart &mrModelPart; // The problem's model part
 
     ///@} // Member variables
     ///@name Private Operations
