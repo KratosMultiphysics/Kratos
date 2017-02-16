@@ -180,13 +180,11 @@ public:
     {
         if(mproot.get() ==  mpvalue || mproot == nullptr)
         {
-            KRATOS_WATCH("inside operator = case1")
             mproot = boost::shared_ptr<json>(new json( json::parse( rOther.WriteJsonString() )));
             mpvalue = mproot.get();
         }
         else
         {
-            KRATOS_WATCH("inside operator = case2")
             *mpvalue = json( json::parse( rOther.WriteJsonString() ) );
             // note that mproot is unchanged
         }
