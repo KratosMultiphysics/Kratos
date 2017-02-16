@@ -20,7 +20,6 @@
 #include "structural_mechanics_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include <vector>
-#include <bitset> 
 
 // Project includes
 #include "includes/serializer.h"
@@ -28,6 +27,9 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
+
+/* Logging format include */
+#include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos 
 {
@@ -303,9 +305,13 @@ public:
         void print( )
         {
             KRATOS_WATCH( N_Slave );
+//             LOG_VECTOR_PRETTY( N_Slave );
             KRATOS_WATCH( N_Master );
+//             LOG_VECTOR_PRETTY( N_Master );
             KRATOS_WATCH( Phi_LagrangeMultipliers );
+//             LOG_VECTOR_PRETTY( Phi_LagrangeMultipliers );
             KRATOS_WATCH( j_Slave );
+//             LOG_MATRIX_PRETTY( j_Slave );
             KRATOS_WATCH( DetJSlave );
         }
     };
@@ -620,13 +626,9 @@ protected:
         array_1d<Type2, Size1> Delta_Normal_m;
         
         // Ae
-        Type3 Me;
-        Type3 De;
         Type3 Ae;
         
         // Derivatives Ae
-        array_1d<Type3, Size1> DeltaMe;
-        array_1d<Type3, Size1> DeltaDe;
         array_1d<Type3, Size1> DeltaAe;
         
         // Default destructor
@@ -665,14 +667,10 @@ protected:
         void InitializeDeltaAeComponents()
         {
             // Ae
-            Me = ZeroMatrix(TNumNodes, TNumNodes);
-            De = ZeroMatrix(TNumNodes, TNumNodes);
             Ae = ZeroMatrix(TNumNodes, TNumNodes);
             // Derivatives Ae
             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
             {
-                DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
-                DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
                 DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
             }
         }
@@ -707,6 +705,45 @@ protected:
             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
             {
                 Delta_Normal_m[i] = ZeroMatrix(TNumNodes, TDim);
+            }
+        }
+    };
+    
+    /** 
+     * This data will be used to compute the Ae and DeltaAe matrices
+     */ 
+    struct AeData
+    {
+    public:
+        
+        // Auxiliar types
+        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
+        
+        // Auxiliar sizes
+        static const unsigned int Size1 = (TNumNodes * TDim);
+        
+        // Matrices
+        Type3 Me;
+        Type3 De;
+
+        // Derivatives matrices
+        array_1d<Type3, Size1> DeltaMe;
+        array_1d<Type3, Size1> DeltaDe;
+        
+        // Default destructor
+        ~AeData(){}
+        
+        // Initialize the DeltaAe components
+        void Initialize()
+        {
+            // Matrices
+            Me = ZeroMatrix(TNumNodes, TNumNodes);
+            De = ZeroMatrix(TNumNodes, TNumNodes);
+            // Derivatives matrices
+            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+            {
+                DeltaMe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+                DeltaDe[i] = ZeroMatrix(TNumNodes, TNumNodes);
             }
         }
     };
@@ -753,15 +790,19 @@ protected:
             }
         }
         
-        void print() // TODO: Use the beatiful look
+        void print() 
         {
             KRATOS_WATCH(DOperator);
+//             LOG_MATRIX_PRETTY(DOperator);
             KRATOS_WATCH(MOperator);
+//             LOG_MATRIX_PRETTY(MOperator);
             
 //             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
 //             {
 //                 KRATOS_WATCH(DeltaDOperator[i]);
+// //                 LOG_MATRIX_PRETTY(DeltaDOperator[i]);
 //                 KRATOS_WATCH(DeltaMOperator[i]);
+// //                 LOG_MATRIX_PRETTY(DeltaMOperator[i]);
 //             }
         }
     };
@@ -1167,6 +1208,7 @@ protected:
     void CalculateDeltaAeComponents(
         GeneralVariables& rVariables,
         DerivativeData& rDerivativeData,
+        AeData& rAeData,
         const double& rIntegrationWeight
     );
     
@@ -1189,7 +1231,10 @@ protected:
     /*
      * Calculates the matrix DeltaAe
      */
-    void CalculateDeltaAe(DerivativeData& rDerivativeData);
+    void CalculateDeltaAe(
+        DerivativeData& rDerivativeData,
+        AeData& rAeData
+        );
     
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/

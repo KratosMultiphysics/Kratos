@@ -103,18 +103,18 @@ class ContactProcess(KratosMultiphysics.Process):
             
         for node in self.o_interface.Nodes:
             interface_computing_model_part.AddNode(node, 0)  
-            node.Set(KratosMultiphysics.INTERFACE,True)
+            node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
         for node in self.d_interface.Nodes:
             interface_computing_model_part.AddNode(node, 0)
-            node.Set(KratosMultiphysics.INTERFACE,True)
+            node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
-        self.Preprocess  = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
         
         if self.params["contact_type"].GetString() == "Frictionless":
-            condition_name = "AugmentedLagrangianMethodFrictionlessMortar"
+            condition_name = "ALMFrictionlessMortarContact"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
