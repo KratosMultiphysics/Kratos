@@ -249,6 +249,14 @@ class TestParameters(KratosUnittest.TestCase):
         
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
         self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
+        
+    def test_add_value(self):
+        kp = Parameters("{}")
+        kp.AddEmptyValue("new_double").SetDouble(1.0)
+        
+        self.assertTrue(kp.Has("new_double"))
+        self.assertEqual(kp["new_double"].GetDouble(), 1.0)
+        
 
 if __name__ == '__main__':
     KratosUnittest.main()

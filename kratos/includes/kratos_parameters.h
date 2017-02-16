@@ -259,7 +259,7 @@ public:
     {
         if(this->Has(entry) == false)
         {
-            return Parameters((*this)[entry]);
+            return Parameters(&(*mpvalue)[entry],  mproot);
         }
         return this->GetValue(entry);
     }
