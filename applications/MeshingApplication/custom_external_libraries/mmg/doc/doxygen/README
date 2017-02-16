@@ -1,9 +1,0 @@
-MMGS doxygen documentation is in the mmgs directory and MMG3D doxygen documentation in the mmg3d directory.
-
-To see documentation in html : open [mmgs|mmg3d]/html/index.html
-
-To see it in pdf (not build for now, uncomment associated lines in CMakeLists.txt to build it):
- $cd [mmgs|mmg3d]
- $cd latex
- $make pdf
-open latex/refman.pdf
