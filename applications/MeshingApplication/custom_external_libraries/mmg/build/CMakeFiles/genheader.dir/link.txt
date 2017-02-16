@@ -1,1 +1,0 @@
-/usr/bin/cc   -Wno-char-subscripts -O3 -mavx2 -fPIC -fopenmp -O3 -DNDEBUG   CMakeFiles/genheader.dir/scripts/genheader.c.o  -o ../bin/genheader -rdynamic 
