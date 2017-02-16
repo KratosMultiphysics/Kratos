@@ -166,7 +166,9 @@ namespace Kratos
       double MaxLength = 0;
       double NewMaxLength = 0;
 
-      double boundary_weight = 0.5; //(0,1]
+      bool contact_active = false;
+      double boundary_weight = 0.9; //(0,1]
+      double contact_weight  = 0.8; //(0,1]
 
       unsigned int number_of_nodes = 0;
       
@@ -238,8 +240,21 @@ namespace Kratos
 			Weight = 0;
 		    }
 
-		    if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->Is(BOUNDARY) )
-		      Weight *= boundary_weight;
+		    if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->Is(BOUNDARY) ){
+		      
+		      contact_active = false;
+		      if( (nodes_begin+(NeighborNodesList[in+1][i]-1))->SolutionStepsDataHas(CONTACT_FORCE) ){
+			array_1d<double, 3 > & ContactForce = (nodes_begin+(NeighborNodesList[in+1][i]-1))->FastGetSolutionStepValue(CONTACT_FORCE);
+			if( norm_2(ContactForce) !=0 )
+			  contact_active = true;
+		      }
+
+		      if( contact_active )
+			Weight *= contact_weight;
+		      else
+			Weight *= boundary_weight;
+
+		    }
 		    
 		    if(NewMaxLength<Length)
 		      NewMaxLength = Length;
@@ -1014,7 +1029,7 @@ namespace Kratos
 
 	  if( rModelPart.Nodes(MeshId)[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
 	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
-	    if(norm_2(ContactForceNormal)==0 )
+	    if(norm_2(ContactForceNormal) !=0 )
 	      contact_active = true;
 	  }
 	  
