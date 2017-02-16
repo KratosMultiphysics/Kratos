@@ -46,3 +46,7 @@ kratos/includes/kratos_version.h
 *.la
 *.a
 *.lib
+
+# Output of tests of meshing application (MMG)
+*.o.sol
+*.o.mesh
