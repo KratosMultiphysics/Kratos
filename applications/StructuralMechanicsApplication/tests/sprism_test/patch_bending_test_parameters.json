@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "patch_bending_test",
+        "problem_name"    : "patch_membrane_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 0.01,
@@ -38,57 +38,99 @@
     },
     "constraints_process_list" : [
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_components_to_nodes_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : false,
-            "value"           : [0.0,0.0,0.0]
+            "interval"        : [0.0,"End"],
+            "value"           : [0.0,0.0,0.0],
+            "constrained"     : [true,true,false],
+            "local_axes"      : {}
         }
     },
     {
-        "python_module"   : "impose_vector_value_by_components_process",
+        "python_module" : "assign_vector_components_to_nodes_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "help"          : "",
+        "process_name"  : "AssignVectorComponentsToNodesProcess",
+        "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",  
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0,"End"],
+            "value"           : [0.0,0.0,0.0],
+            "constrained"     : [false,false,true],
+            "local_axes"      : {}
         }
     }
     ],
     "loads_process_list" : [],
-    "list_other_processes" : [
+    "apply_custom_function_process" : [
     {
-        "python_module"   : "sprism_patch_bending_test_local_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics",
         "help"                  : "",
-        "process_name"          : "ApplyLocalProcess",
+        "process_name"          : "AssignVectorComponentsToNodesProcess",
+        "parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0,1.0],
+            "value"           : ["-1.0e-7*(z-0.0005)*(x+y/2.0)","-1.0e-7*(z-0.0005)(x/2.0+y)","0.5*1.0e-7*(x**2.0+x*y+y**2.0)"],
+            "constrained"     : [true,true,true],
+            "local_axes"      : {}
+        }
+    }],
+    "check_analytic_results_process" : [
+    {
+        "python_module" : "check_scalar_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "CheckScalarToNodesProcess",
         "Parameters"            : {
-            "model_part_name"  : "Parts_Parts_Auto1"
+            "mesh_id"           : 0,
+            "model_part_name"   : "Parts_Parts_Auto1",
+            "variable_name"     : "DISPLACEMENT_X",
+            "interval"          : [1.0, "End"],
+            "value"             : "-1.0e-7*(z-0.0005)*(x+y/2.0)"
         }
     },
     {
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
-        "process_name"         : "SPRISMProcess",
-        "Parameters":{
+        "python_module" : "check_scalar_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "CheckScalarToNodesProcess",
+        "Parameters"            : {
+            "mesh_id"           : 0,
+            "model_part_name"   : "Parts_Parts_Auto1",
+            "variable_name"     : "DISPLACEMENT_Y",
+            "interval"          : [1.0, "End"],
+            "value"             : "-1.0e-7*(z-0.0005)(x/2.0+y)"
+        }
+    },
+    {
+        "python_module" : "check_scalar_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "CheckScalarToNodesProcess",
+        "Parameters"            : {
+            "mesh_id"           : 0,
+            "model_part_name"   : "Parts_Parts_Auto1",
+            "variable_name"     : "DISPLACEMENT_Z",
+            "interval"          : [1.0, "End"],
+            "value"             : "0.5 * 1.0e-7*(x**2.0 + x*y + y**2.0)"
+        }
+    },{
+        "python_module" : "sprism_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "Parameters"    :{
             "model_part_name"  : "Parts_Parts_Auto1"
-            }
-    }
-    ],
+        }
+    }],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,

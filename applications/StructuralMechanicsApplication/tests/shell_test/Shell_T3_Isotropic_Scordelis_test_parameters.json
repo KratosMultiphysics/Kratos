@@ -78,7 +78,6 @@
         }
     }
     ],
-    "apply_custom_function_process" : [],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
