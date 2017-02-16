@@ -424,7 +424,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+        demio.PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
         
         if nodeplotter:
