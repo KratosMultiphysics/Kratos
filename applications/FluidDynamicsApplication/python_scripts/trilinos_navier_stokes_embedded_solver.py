@@ -140,6 +140,10 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Construct the communicator
         self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
 
+        ## If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
         
