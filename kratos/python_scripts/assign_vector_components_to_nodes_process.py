@@ -55,8 +55,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
-        
-        print(settings.PrettyPrintJsonString())
 
         import assign_scalar_to_nodes_process
 
