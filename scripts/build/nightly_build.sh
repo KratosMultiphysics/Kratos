@@ -22,7 +22,7 @@ chmod 777 smtp-cli
 
 wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz
 tar xzf master.tar.gz
-mv ${HOME}master/Kratos-master ${HOME}/Kratos
+mv ${HOME}/Kratos-master ${HOME}/Kratos
 cd ${HOME}/Kratos
 
 mkdir -p cmake_gcc
