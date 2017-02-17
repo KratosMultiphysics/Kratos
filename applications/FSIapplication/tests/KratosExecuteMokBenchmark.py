@@ -101,10 +101,8 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        ## Stepping and time settings
-        Dt = self.ProjectParameters["fluid_solver_settings"]["problem_data"]["time_step"].GetDouble()
+        ## Time settings
         end_time = self.ProjectParameters["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
-
         time = 0.0
         step = 0
         out = 0.0
@@ -118,6 +116,7 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
 
         while(time <= end_time):
 
+            Dt = (self.solver).ComputeDeltaTime()
             time = time + Dt
             step = step + 1
 
@@ -152,7 +151,7 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
                 self.gid_output_structure.ExecuteInitializeSolutionStep()
                 self.gid_output_fluid.ExecuteInitializeSolutionStep()
 
-            self.solver.Solve()
+            (self.solver).Solve()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
