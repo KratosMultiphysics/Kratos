@@ -10,20 +10,7 @@ def SetConstitutiveLaw(model_part):
     for prop in model_part.Properties:
         if prop.Has(CONSTITUTIVE_LAW_NAME):
             ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
-            if(ConstitutiveLawName == "LinearElastic2DPlaneStress"):
-                prop.SetValue(CONSTITUTIVE_LAW, LinearElasticPlaneStress2DLaw())
-            elif(ConstitutiveLawName == "LinearElastic2DPlaneStrain"):
-                prop.SetValue(CONSTITUTIVE_LAW, LinearElasticPlaneStrain2DLaw())
-            elif(ConstitutiveLawName == "LinearElastic3D"):
-                prop.SetValue(CONSTITUTIVE_LAW, LinearElastic3DLaw())
-            elif(ConstitutiveLawName == "ThermalLinearElastic2DPlaneStress"):
-                prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic2DPlaneStress())
-            elif(ConstitutiveLawName == "ThermalLinearElastic2DPlaneStrain"):
-                prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic2DPlaneStrain())
-            elif(ConstitutiveLawName == "ThermalLinearElastic3D"):
-                prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic3DLaw())
-            else:
-                mat = globals().get(ConstitutiveLawName)()
-                prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+            mat = globals().get(ConstitutiveLawName)()
+            prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
         else:
             print("Property",prop.Id,"has no CONSTITUTIVE_LAW_NAME")
