@@ -76,10 +76,12 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.x0[1] = settings["local_axes"]["origin"][1].GetDouble()
             self.x0[2] = settings["local_axes"]["origin"][2].GetDouble()
 
-
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        if(type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable):
+            msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
+            raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.variable = getattr(KratosMultiphysics, settings["variable_name"].GetString())
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = settings["interval"][0].GetDouble()

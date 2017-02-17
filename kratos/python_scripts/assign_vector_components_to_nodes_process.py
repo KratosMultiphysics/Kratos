@@ -46,6 +46,11 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         #print(settings.PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
+        
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
+            msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
+            raise Exception(msg)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
