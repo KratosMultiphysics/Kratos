@@ -146,22 +146,88 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>
 {
     KRATOS_TRY;
     
-    // Create and initialize condition variables:
+    // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;
     
-    // Initialize the current contact data
+    // Create the current contact data
     DerivativeData rDerivativeData;
     
-    // Reading integration points
+    // Create the mortar operators
+    MortarConditionMatrices rThisMortarConditionMatrices;
+
+//     // Reading integration points 
 //     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
 //                                                                          mColocationIntegration.IntegrationPoints( ) :
 //                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+                                                                                  
     this->InitializeDerivativeData(rDerivativeData, rCurrentProcessInfo);
     
-    this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo);
+    // Compute Ae and its derivative
+    this->CalculateAeAndDeltaAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
     
-//     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
+    // Iterate over the master segments
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
+    {   
+        // Reading integration points
+        this->ComputeSelectiveIntegrationMethod(PairIndex);
+        const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+                                                                         mColocationIntegration.IntegrationPoints( ) :
+                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+                                                                         
+        // Initialize general variables for the current master element
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
+        
+        // Update the contact data
+        this->UpdateDerivativeData(rDerivativeData, PairIndex);
+        
+        // Initialize the mortar operators
+        rThisMortarConditionMatrices.Initialize();
+         
+        // Compute the normal derivatives of the master
+        this->CalculateDeltaNormalMaster(rDerivativeData);
+        
+        // Initialize the integration weight
+        double total_weight = 0.0;
+        
+        // Integrating the mortar operators
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            // Calculate the kinematic variables
+            bool inside = this->CalculateKinematics( rVariables, rDerivativeData, PointNumber, integration_points );
+            
+            if (inside == true)
+            {                    
+                const double IntegrationWeight = integration_points[PointNumber].Weight();
+                total_weight += IntegrationWeight;
+                
+                this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationWeight);
+            }
+        }
+        
+        // We can consider the pair if at least one of the collocation point is inside 
+        if (total_weight > 0.0)
+        {            
+            // Setting the weighted gap
+            // Mortar condition matrices - DOperator and MOperator
+            const bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
+            const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
+            
+            // Current coordinates 
+            const bounded_matrix<double, TNumNodes, TDim> x1 = GetCoordinates(this->GetGeometry());
+            const bounded_matrix<double, TNumNodes, TDim> x2 = GetCoordinates(mThisMasterElements[PairIndex]->GetGeometry());
     
+            const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(DOperator, x1) - prod(MOperator, x2); 
+            
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            {
+                const array_1d<double, TDim> normal = subrange(GetGeometry()[iNode].GetValue(NORMAL), 0, TDim);
+                const array_1d<double, TDim> aux_array = row(Dx1Mx2, iNode);
+                
+                #pragma omp atomic 
+                GetGeometry()[iNode].GetValue(WEIGHTED_GAP) += inner_prod(aux_array, normal); 
+            }
+        }
+    }
     
     KRATOS_CATCH( "" );
 }
@@ -617,7 +683,8 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim, TNumNodes
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
                 
-                this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, IntegrationWeight);
+                this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationWeight);
+//                 this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, rDerivativeData, IntegrationWeight);
             }
         }
         
@@ -660,25 +727,25 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim, TNumNodes
                 LOG_VECTOR_PRETTY( RHS_contact_pair );
             }
             
-            // Setting the weighted gap
-            // Mortar condition matrices - DOperator and MOperator
-            const bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-            const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
-            
-            // Current coordinates 
-            const bounded_matrix<double, TNumNodes, TDim> x1 = GetCoordinates(this->GetGeometry());
-            const bounded_matrix<double, TNumNodes, TDim> x2 = GetCoordinates(mThisMasterElements[PairIndex]->GetGeometry());
-    
-            const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(DOperator, x1) - prod(MOperator, x2); 
-            
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-            {
-                const array_1d<double, TDim> normal = GetGeometry()[iNode].GetValue(NORMAL);
-                const array_1d<double, TDim> aux_array = row(Dx1Mx2, iNode);
-                
-                #pragma omp atomic 
-                GetGeometry()[iNode].GetValue(WEIGHTED_GAP) += inner_prod(aux_array, - normal); 
-            }
+//             // Setting the weighted gap
+//             // Mortar condition matrices - DOperator and MOperator
+//             const bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
+//             const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
+//             
+//             // Current coordinates 
+//             const bounded_matrix<double, TNumNodes, TDim> x1 = GetCoordinates(this->GetGeometry());
+//             const bounded_matrix<double, TNumNodes, TDim> x2 = GetCoordinates(mThisMasterElements[PairIndex]->GetGeometry());
+//     
+//             const bounded_matrix<double, TNumNodes, TDim> Dx1Mx2 = prod(DOperator, x1) - prod(MOperator, x2); 
+//             
+//             for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+//             {
+//                 const array_1d<double, TDim> normal = subrange(GetGeometry()[iNode].GetValue(NORMAL), 0, TDim);
+//                 const array_1d<double, TDim> aux_array = row(Dx1Mx2, iNode);
+//                 
+//                 #pragma omp atomic 
+//                 GetGeometry()[iNode].GetValue(WEIGHTED_GAP) += inner_prod(aux_array, normal); 
+//             }
         }
     }
     
@@ -911,25 +978,61 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>
     {
         for (unsigned int j_slave = 0; j_slave < TNumNodes; j_slave++)
         {
-            DOperator(i_slave, j_slave) += J_s * rIntegrationWeight * Phi[j_slave] * N1[i_slave];
-            MOperator(i_slave, j_slave) += J_s * rIntegrationWeight * Phi[j_slave] * N2[i_slave];
+            const double phi = Phi[j_slave];
+            const double n1  = N1[i_slave];
+            const double n2  = N2[i_slave];
             
-//             for (unsigned int i = 0; i < TDim * TNumNodes; i++)
-//             {
-//                 DeltaDOperator[i](i_slave, j_slave) += DeltaJ_s[i] * rIntegrationWeight * Phi[j_slave] * N1[i_slave]     \
-//                                                      + J_s * rIntegrationWeight * DeltaPhi[i][j_slave] * N1[i_slave]     \
-//                                                      + J_s * rIntegrationWeight * Phi[j_slave] * DeltaN1[i][i_slave];
-//                                                                             
-//                 DeltaMOperator[i](i_slave, j_slave) += DeltaJ_s[i] * rIntegrationWeight * Phi[j_slave] * N2[i_slave]     \
-//                                                      + J_s * rIntegrationWeight * DeltaPhi[i][j_slave] * N2[i_slave]     \
-//                                                      + J_s * rIntegrationWeight * Phi[j_slave] * DeltaN2[i][i_slave];
-//             }
-//             for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; i++)
-//             {
-//                 DeltaDOperator[i](i_slave, j_slave) += J_s * rIntegrationWeight * Phi[j_slave] * DeltaN1[i][i_slave];
-//                                                                             
-//                 DeltaMOperator[i](i_slave, j_slave) += J_s * rIntegrationWeight * Phi[j_slave] * DeltaN2[i][i_slave];
-//             }
+            DOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * n1;
+            MOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * n2;
+            
+            for (unsigned int i = 0; i < TDim * TNumNodes; i++)
+            {
+                DeltaDOperator[i](i_slave, j_slave) += DeltaJ_s[i] * rIntegrationWeight * phi* n1           \
+                                                     + J_s * rIntegrationWeight * DeltaPhi[i][j_slave] * n1 \
+                                                     + J_s * rIntegrationWeight * phi* DeltaN1[i][i_slave];
+                                                                            
+                DeltaMOperator[i](i_slave, j_slave) += DeltaJ_s[i] * rIntegrationWeight * phi* n2           \
+                                                     + J_s * rIntegrationWeight * DeltaPhi[i][j_slave] * n2 \
+                                                     + J_s * rIntegrationWeight * phi* DeltaN2[i][i_slave];
+            }
+            for (unsigned int i = TDim * TNumNodes; i < 2 * TDim * TNumNodes; i++)
+            {
+                DeltaDOperator[i](i_slave, j_slave) += J_s * rIntegrationWeight * phi* DeltaN1[i][i_slave];
+                                                                            
+                DeltaMOperator[i](i_slave, j_slave) += J_s * rIntegrationWeight * phi* DeltaN2[i][i_slave];
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes>
+void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes>::CalculateMortarOperators(
+    MortarConditionMatrices& rThisMortarConditionMatrices,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+    )
+{
+    /* DEFINITIONS */
+    const double J_s = rVariables.DetJSlave; 
+    const VectorType Phi = rVariables.Phi_LagrangeMultipliers;
+    const VectorType N1  = rVariables.N_Slave;
+    const VectorType N2  = rVariables.N_Master;
+
+    // Mortar condition matrices - DOperator and MOperator
+    bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
+    bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
+    
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
+    {
+        for (unsigned int j_slave = 0; j_slave < TNumNodes; j_slave++)
+        {
+            const double phi = Phi[j_slave];
+            
+            DOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * N1[i_slave];
+            MOperator(i_slave, j_slave) += J_s * rIntegrationWeight * phi * N2[i_slave];
         }
     }
 }
@@ -1306,187 +1409,175 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodFrictionlessMortarContac
         const double clhs10 =     X1(1,1) + u1(1,1);
         const double clhs11 =     X2(0,1) + u2(0,1);
         const double clhs12 =     X2(1,1) + u2(1,1);
-        const double clhs13 =     lmnormal[1]*scale_factor - penalty_parameter*(normalslave(1,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(1,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
+        const double clhs13 =     lmnormal[1]*scale_factor + penalty_parameter*(normalslave(1,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(1,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
         const double clhs14 =     DeltaDOperator[4](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs15 =     DeltaDOperator[4](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs16 =     DeltaMOperator[4](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs17 =     normalslave(1,1)*(-clhs1*clhs11 + clhs10*clhs15 - clhs12*clhs16 + clhs14*clhs9);
-        const double clhs18 =     -clhs0;
-        const double clhs19 =     clhs14*clhs2;
-        const double clhs20 =     clhs15*clhs4;
-        const double clhs21 =     clhs1*clhs6;
-        const double clhs22 =     clhs16*clhs7;
-        const double clhs23 =     penalty_parameter*(clhs17 + normalslave(1,0)*(clhs18 + clhs19 + clhs20 - clhs21 - clhs22));
-        const double clhs24 =     clhs0*clhs23 - clhs1*clhs13;
-        const double clhs25 =     DeltaMOperator[5](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs26 =     DeltaDOperator[5](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs27 =     DeltaDOperator[5](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs28 =     DeltaMOperator[5](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs29 =     normalslave(1,0)*(clhs2*clhs26 - clhs25*clhs6 + clhs27*clhs4 - clhs28*clhs7);
-        const double clhs30 =     clhs26*clhs9;
-        const double clhs31 =     clhs10*clhs27;
-        const double clhs32 =     clhs11*clhs25;
-        const double clhs33 =     clhs12*clhs28;
-        const double clhs34 =     penalty_parameter*(clhs29 + normalslave(1,1)*(clhs18 + clhs30 + clhs31 - clhs32 - clhs33));
-        const double clhs35 =     clhs0*clhs34 - clhs13*clhs25;
-        const double clhs36 =     DeltaMOperator[6](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs37 =     DeltaDOperator[6](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs38 =     DeltaDOperator[6](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs39 =     DeltaMOperator[6](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs40 =     normalslave(1,1)*(clhs10*clhs38 - clhs11*clhs36 - clhs12*clhs39 + clhs37*clhs9);
-        const double clhs41 =     -clhs8;
-        const double clhs42 =     clhs2*clhs37;
-        const double clhs43 =     clhs38*clhs4;
-        const double clhs44 =     clhs36*clhs6;
-        const double clhs45 =     clhs39*clhs7;
-        const double clhs46 =     penalty_parameter*(clhs40 + normalslave(1,0)*(clhs41 + clhs42 + clhs43 - clhs44 - clhs45));
-        const double clhs47 =     clhs0*clhs46 - clhs13*clhs36;
-        const double clhs48 =     DeltaMOperator[7](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs49 =     DeltaDOperator[7](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs50 =     DeltaDOperator[7](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs51 =     DeltaMOperator[7](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs52 =     normalslave(1,0)*(clhs2*clhs49 + clhs4*clhs50 - clhs48*clhs6 - clhs51*clhs7);
-        const double clhs53 =     clhs49*clhs9;
-        const double clhs54 =     clhs10*clhs50;
-        const double clhs55 =     clhs11*clhs48;
-        const double clhs56 =     clhs12*clhs51;
-        const double clhs57 =     penalty_parameter*(clhs52 + normalslave(1,1)*(clhs41 + clhs53 + clhs54 - clhs55 - clhs56));
-        const double clhs58 =     clhs0*clhs57 - clhs13*clhs48;
-        const double clhs59 =     DeltaMOperator[0](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs60 =     DeltaDOperator[0](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs61 =     DeltaDOperator[0](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs62 =     DeltaMOperator[0](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs63 =     normalslave(1,0)*(clhs2*clhs60 + clhs3 + clhs4*clhs61 - clhs59*clhs6 - clhs62*clhs7) + normalslave(1,1)*(clhs10*clhs61 - clhs11*clhs59 - clhs12*clhs62 + clhs60*clhs9);
+        const double clhs18 =     normalslave(1,0)*(clhs0 + clhs1*clhs6 - clhs14*clhs2 - clhs15*clhs4 + clhs16*clhs7);
+        const double clhs19 =     -clhs17 + clhs18;
+        const double clhs20 =     clhs19*penalty_parameter;
+        const double clhs21 =     -clhs0*clhs20 + clhs1*clhs13;
+        const double clhs22 =     DeltaMOperator[5](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs23 =     DeltaDOperator[5](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs24 =     DeltaDOperator[5](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs25 =     DeltaMOperator[5](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs26 =     normalslave(1,0)*(clhs2*clhs23 - clhs22*clhs6 + clhs24*clhs4 - clhs25*clhs7) - normalslave(1,1)*(clhs0 - clhs10*clhs24 + clhs11*clhs22 + clhs12*clhs25 - clhs23*clhs9);
+        const double clhs27 =     clhs26*penalty_parameter;
+        const double clhs28 =     clhs0*clhs27 + clhs13*clhs22;
+        const double clhs29 =     DeltaMOperator[6](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs30 =     DeltaDOperator[6](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs31 =     DeltaDOperator[6](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs32 =     DeltaMOperator[6](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs33 =     normalslave(1,1)*(clhs10*clhs31 - clhs11*clhs29 - clhs12*clhs32 + clhs30*clhs9);
+        const double clhs34 =     normalslave(1,0)*(-clhs2*clhs30 + clhs29*clhs6 - clhs31*clhs4 + clhs32*clhs7 + clhs8);
+        const double clhs35 =     -clhs33 + clhs34;
+        const double clhs36 =     clhs35*penalty_parameter;
+        const double clhs37 =     -clhs0*clhs36 + clhs13*clhs29;
+        const double clhs38 =     DeltaMOperator[7](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs39 =     DeltaDOperator[7](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs40 =     DeltaDOperator[7](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs41 =     DeltaMOperator[7](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs42 =     normalslave(1,0)*(clhs2*clhs39 - clhs38*clhs6 + clhs4*clhs40 - clhs41*clhs7) - normalslave(1,1)*(-clhs10*clhs40 + clhs11*clhs38 + clhs12*clhs41 - clhs39*clhs9 + clhs8);
+        const double clhs43 =     clhs42*penalty_parameter;
+        const double clhs44 =     clhs0*clhs43 + clhs13*clhs38;
+        const double clhs45 =     DeltaMOperator[0](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs46 =     DeltaDOperator[0](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs47 =     DeltaDOperator[0](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs48 =     DeltaMOperator[0](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs49 =     normalslave(1,0)*(clhs2*clhs46 + clhs3 + clhs4*clhs47 - clhs45*clhs6 - clhs48*clhs7) + normalslave(1,1)*(clhs10*clhs47 - clhs11*clhs45 - clhs12*clhs48 + clhs46*clhs9);
+        const double clhs50 =     clhs49*penalty_parameter;
+        const double clhs51 =     clhs0*clhs50 + clhs13*clhs45;
+        const double clhs52 =     DeltaMOperator[1](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs53 =     DeltaDOperator[1](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs54 =     DeltaDOperator[1](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs55 =     DeltaMOperator[1](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs56 =     normalslave(1,0)*(clhs2*clhs53 + clhs4*clhs54 - clhs52*clhs6 - clhs55*clhs7) + normalslave(1,1)*(clhs10*clhs54 - clhs11*clhs52 - clhs12*clhs55 + clhs3 + clhs53*clhs9);
+        const double clhs57 =     clhs56*penalty_parameter;
+        const double clhs58 =     clhs0*clhs57 + clhs13*clhs52;
+        const double clhs59 =     DeltaMOperator[2](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs60 =     DeltaDOperator[2](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs61 =     DeltaDOperator[2](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs62 =     DeltaMOperator[2](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs63 =     normalslave(1,0)*(clhs2*clhs60 + clhs4*clhs61 + clhs5 - clhs59*clhs6 - clhs62*clhs7) + normalslave(1,1)*(clhs10*clhs61 - clhs11*clhs59 - clhs12*clhs62 + clhs60*clhs9);
         const double clhs64 =     clhs63*penalty_parameter;
-        const double clhs65 =     clhs0*clhs64 - clhs13*clhs59;
-        const double clhs66 =     DeltaMOperator[1](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs67 =     DeltaDOperator[1](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs68 =     DeltaDOperator[1](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs69 =     DeltaMOperator[1](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs70 =     normalslave(1,0)*(clhs2*clhs67 + clhs4*clhs68 - clhs6*clhs66 - clhs69*clhs7) + normalslave(1,1)*(clhs10*clhs68 - clhs11*clhs66 - clhs12*clhs69 + clhs3 + clhs67*clhs9);
+        const double clhs65 =     clhs0*clhs64 + clhs13*clhs59;
+        const double clhs66 =     DeltaMOperator[3](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs67 =     DeltaDOperator[3](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs68 =     DeltaDOperator[3](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs69 =     DeltaMOperator[3](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs70 =     normalslave(1,0)*(clhs2*clhs67 + clhs4*clhs68 - clhs6*clhs66 - clhs69*clhs7) + normalslave(1,1)*(clhs10*clhs68 - clhs11*clhs66 - clhs12*clhs69 + clhs5 + clhs67*clhs9);
         const double clhs71 =     clhs70*penalty_parameter;
-        const double clhs72 =     clhs0*clhs71 - clhs13*clhs66;
-        const double clhs73 =     DeltaMOperator[2](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs74 =     DeltaDOperator[2](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs75 =     DeltaDOperator[2](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs76 =     DeltaMOperator[2](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs77 =     normalslave(1,0)*(clhs2*clhs74 + clhs4*clhs75 + clhs5 - clhs6*clhs73 - clhs7*clhs76) + normalslave(1,1)*(clhs10*clhs75 - clhs11*clhs73 - clhs12*clhs76 + clhs74*clhs9);
-        const double clhs78 =     clhs77*penalty_parameter;
-        const double clhs79 =     clhs0*clhs78 - clhs13*clhs73;
-        const double clhs80 =     DeltaMOperator[3](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs81 =     DeltaDOperator[3](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs82 =     DeltaDOperator[3](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs83 =     DeltaMOperator[3](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs84 =     normalslave(1,0)*(clhs2*clhs81 + clhs4*clhs82 - clhs6*clhs80 - clhs7*clhs83) + normalslave(1,1)*(clhs10*clhs82 - clhs11*clhs80 - clhs12*clhs83 + clhs5 + clhs81*clhs9);
-        const double clhs85 =     clhs84*penalty_parameter;
-        const double clhs86 =     clhs0*clhs85 - clhs13*clhs80;
-        const double clhs87 =     normalslave(1,0)*scale_factor;
-        const double clhs88 =     normalslave(1,1)*scale_factor;
-        const double clhs89 =     -clhs13*clhs16 + clhs23*clhs8;
-        const double clhs90 =     -clhs13*clhs28 + clhs34*clhs8;
-        const double clhs91 =     -clhs13*clhs39 + clhs46*clhs8;
-        const double clhs92 =     -clhs13*clhs51 + clhs57*clhs8;
-        const double clhs93 =     -clhs13*clhs62 + clhs64*clhs8;
-        const double clhs94 =     -clhs13*clhs69 + clhs71*clhs8;
-        const double clhs95 =     -clhs13*clhs76 + clhs78*clhs8;
-        const double clhs96 =     -clhs13*clhs83 + clhs8*clhs85;
-        const double clhs97 =     clhs13*clhs14 - clhs23*clhs3;
-        const double clhs98 =     clhs13*clhs26 - clhs3*clhs34;
-        const double clhs99 =     clhs13*clhs37 - clhs3*clhs46;
-        const double clhs100 =     clhs13*clhs49 - clhs3*clhs57;
-        const double clhs101 =     clhs13*clhs60 - clhs3*clhs64;
-        const double clhs102 =     clhs13*clhs67 - clhs3*clhs71;
-        const double clhs103 =     clhs13*clhs74 - clhs3*clhs78;
-        const double clhs104 =     clhs13*clhs81 - clhs3*clhs85;
-        const double clhs105 =     clhs13*clhs15 - clhs23*clhs5;
-        const double clhs106 =     clhs13*clhs27 - clhs34*clhs5;
-        const double clhs107 =     clhs13*clhs38 - clhs46*clhs5;
-        const double clhs108 =     clhs13*clhs50 - clhs5*clhs57;
-        const double clhs109 =     clhs13*clhs61 - clhs5*clhs64;
-        const double clhs110 =     clhs13*clhs68 - clhs5*clhs71;
-        const double clhs111 =     clhs13*clhs75 - clhs5*clhs78;
-        const double clhs112 =     clhs13*clhs82 - clhs5*clhs85;
+        const double clhs72 =     clhs0*clhs71 + clhs13*clhs66;
+        const double clhs73 =     normalslave(1,0)*scale_factor;
+        const double clhs74 =     normalslave(1,1)*scale_factor;
+        const double clhs75 =     clhs13*clhs16 - clhs20*clhs8;
+        const double clhs76 =     clhs13*clhs25 + clhs27*clhs8;
+        const double clhs77 =     clhs13*clhs32 - clhs36*clhs8;
+        const double clhs78 =     clhs13*clhs41 + clhs43*clhs8;
+        const double clhs79 =     clhs13*clhs48 + clhs50*clhs8;
+        const double clhs80 =     clhs13*clhs55 + clhs57*clhs8;
+        const double clhs81 =     clhs13*clhs62 + clhs64*clhs8;
+        const double clhs82 =     clhs13*clhs69 + clhs71*clhs8;
+        const double clhs83 =     penalty_parameter*(clhs17 - clhs18);
+        const double clhs84 =     clhs13*clhs14 + clhs3*clhs83;
+        const double clhs85 =     clhs13*clhs23 + clhs27*clhs3;
+        const double clhs86 =     penalty_parameter*(clhs33 - clhs34);
+        const double clhs87 =     clhs13*clhs30 + clhs3*clhs86;
+        const double clhs88 =     clhs13*clhs39 + clhs3*clhs43;
+        const double clhs89 =     clhs13*clhs46 + clhs3*clhs50;
+        const double clhs90 =     clhs13*clhs53 + clhs3*clhs57;
+        const double clhs91 =     clhs13*clhs60 + clhs3*clhs64;
+        const double clhs92 =     clhs13*clhs67 + clhs3*clhs71;
+        const double clhs93 =     clhs13*clhs15 + clhs5*clhs83;
+        const double clhs94 =     clhs13*clhs24 + clhs27*clhs5;
+        const double clhs95 =     clhs13*clhs31 + clhs5*clhs86;
+        const double clhs96 =     clhs13*clhs40 + clhs43*clhs5;
+        const double clhs97 =     clhs13*clhs47 + clhs5*clhs50;
+        const double clhs98 =     clhs13*clhs54 + clhs5*clhs57;
+        const double clhs99 =     clhs13*clhs61 + clhs5*clhs64;
+        const double clhs100 =     clhs13*clhs68 + clhs5*clhs71;
     
-        lhs(0,0)=clhs24*normalslave(1,0);
-        lhs(0,1)=clhs35*normalslave(1,0);
-        lhs(0,2)=clhs47*normalslave(1,0);
-        lhs(0,3)=clhs58*normalslave(1,0);
-        lhs(0,4)=clhs65*normalslave(1,0);
-        lhs(0,5)=clhs72*normalslave(1,0);
-        lhs(0,6)=clhs79*normalslave(1,0);
-        lhs(0,7)=clhs86*normalslave(1,0);
+        lhs(0,0)=clhs21*normalslave(1,0);
+        lhs(0,1)=clhs28*normalslave(1,0);
+        lhs(0,2)=clhs37*normalslave(1,0);
+        lhs(0,3)=clhs44*normalslave(1,0);
+        lhs(0,4)=clhs51*normalslave(1,0);
+        lhs(0,5)=clhs58*normalslave(1,0);
+        lhs(0,6)=clhs65*normalslave(1,0);
+        lhs(0,7)=clhs72*normalslave(1,0);
         lhs(0,8)=0;
-        lhs(0,9)=-clhs0*clhs87;
-        lhs(1,0)=clhs24*normalslave(1,1);
-        lhs(1,1)=clhs35*normalslave(1,1);
-        lhs(1,2)=clhs47*normalslave(1,1);
-        lhs(1,3)=clhs58*normalslave(1,1);
-        lhs(1,4)=clhs65*normalslave(1,1);
-        lhs(1,5)=clhs72*normalslave(1,1);
-        lhs(1,6)=clhs79*normalslave(1,1);
-        lhs(1,7)=clhs86*normalslave(1,1);
+        lhs(0,9)=clhs0*clhs73;
+        lhs(1,0)=clhs21*normalslave(1,1);
+        lhs(1,1)=clhs28*normalslave(1,1);
+        lhs(1,2)=clhs37*normalslave(1,1);
+        lhs(1,3)=clhs44*normalslave(1,1);
+        lhs(1,4)=clhs51*normalslave(1,1);
+        lhs(1,5)=clhs58*normalslave(1,1);
+        lhs(1,6)=clhs65*normalslave(1,1);
+        lhs(1,7)=clhs72*normalslave(1,1);
         lhs(1,8)=0;
-        lhs(1,9)=-clhs0*clhs88;
-        lhs(2,0)=clhs89*normalslave(1,0);
-        lhs(2,1)=clhs90*normalslave(1,0);
-        lhs(2,2)=clhs91*normalslave(1,0);
-        lhs(2,3)=clhs92*normalslave(1,0);
-        lhs(2,4)=clhs93*normalslave(1,0);
-        lhs(2,5)=clhs94*normalslave(1,0);
-        lhs(2,6)=clhs95*normalslave(1,0);
-        lhs(2,7)=clhs96*normalslave(1,0);
+        lhs(1,9)=clhs0*clhs74;
+        lhs(2,0)=clhs75*normalslave(1,0);
+        lhs(2,1)=clhs76*normalslave(1,0);
+        lhs(2,2)=clhs77*normalslave(1,0);
+        lhs(2,3)=clhs78*normalslave(1,0);
+        lhs(2,4)=clhs79*normalslave(1,0);
+        lhs(2,5)=clhs80*normalslave(1,0);
+        lhs(2,6)=clhs81*normalslave(1,0);
+        lhs(2,7)=clhs82*normalslave(1,0);
         lhs(2,8)=0;
-        lhs(2,9)=-clhs8*clhs87;
-        lhs(3,0)=clhs89*normalslave(1,1);
-        lhs(3,1)=clhs90*normalslave(1,1);
-        lhs(3,2)=clhs91*normalslave(1,1);
-        lhs(3,3)=clhs92*normalslave(1,1);
-        lhs(3,4)=clhs93*normalslave(1,1);
-        lhs(3,5)=clhs94*normalslave(1,1);
-        lhs(3,6)=clhs95*normalslave(1,1);
-        lhs(3,7)=clhs96*normalslave(1,1);
+        lhs(2,9)=clhs73*clhs8;
+        lhs(3,0)=clhs75*normalslave(1,1);
+        lhs(3,1)=clhs76*normalslave(1,1);
+        lhs(3,2)=clhs77*normalslave(1,1);
+        lhs(3,3)=clhs78*normalslave(1,1);
+        lhs(3,4)=clhs79*normalslave(1,1);
+        lhs(3,5)=clhs80*normalslave(1,1);
+        lhs(3,6)=clhs81*normalslave(1,1);
+        lhs(3,7)=clhs82*normalslave(1,1);
         lhs(3,8)=0;
-        lhs(3,9)=-clhs8*clhs88;
-        lhs(4,0)=clhs97*normalslave(1,0);
-        lhs(4,1)=clhs98*normalslave(1,0);
-        lhs(4,2)=clhs99*normalslave(1,0);
-        lhs(4,3)=clhs100*normalslave(1,0);
-        lhs(4,4)=clhs101*normalslave(1,0);
-        lhs(4,5)=clhs102*normalslave(1,0);
-        lhs(4,6)=clhs103*normalslave(1,0);
-        lhs(4,7)=clhs104*normalslave(1,0);
+        lhs(3,9)=clhs74*clhs8;
+        lhs(4,0)=-clhs84*normalslave(1,0);
+        lhs(4,1)=-clhs85*normalslave(1,0);
+        lhs(4,2)=-clhs87*normalslave(1,0);
+        lhs(4,3)=-clhs88*normalslave(1,0);
+        lhs(4,4)=-clhs89*normalslave(1,0);
+        lhs(4,5)=-clhs90*normalslave(1,0);
+        lhs(4,6)=-clhs91*normalslave(1,0);
+        lhs(4,7)=-clhs92*normalslave(1,0);
         lhs(4,8)=0;
-        lhs(4,9)=clhs3*clhs87;
-        lhs(5,0)=clhs97*normalslave(1,1);
-        lhs(5,1)=clhs98*normalslave(1,1);
-        lhs(5,2)=clhs99*normalslave(1,1);
-        lhs(5,3)=clhs100*normalslave(1,1);
-        lhs(5,4)=clhs101*normalslave(1,1);
-        lhs(5,5)=clhs102*normalslave(1,1);
-        lhs(5,6)=clhs103*normalslave(1,1);
-        lhs(5,7)=clhs104*normalslave(1,1);
+        lhs(4,9)=-clhs3*clhs73;
+        lhs(5,0)=-clhs84*normalslave(1,1);
+        lhs(5,1)=-clhs85*normalslave(1,1);
+        lhs(5,2)=-clhs87*normalslave(1,1);
+        lhs(5,3)=-clhs88*normalslave(1,1);
+        lhs(5,4)=-clhs89*normalslave(1,1);
+        lhs(5,5)=-clhs90*normalslave(1,1);
+        lhs(5,6)=-clhs91*normalslave(1,1);
+        lhs(5,7)=-clhs92*normalslave(1,1);
         lhs(5,8)=0;
-        lhs(5,9)=clhs3*clhs88;
-        lhs(6,0)=clhs105*normalslave(1,0);
-        lhs(6,1)=clhs106*normalslave(1,0);
-        lhs(6,2)=clhs107*normalslave(1,0);
-        lhs(6,3)=clhs108*normalslave(1,0);
-        lhs(6,4)=clhs109*normalslave(1,0);
-        lhs(6,5)=clhs110*normalslave(1,0);
-        lhs(6,6)=clhs111*normalslave(1,0);
-        lhs(6,7)=clhs112*normalslave(1,0);
+        lhs(5,9)=-clhs3*clhs74;
+        lhs(6,0)=-clhs93*normalslave(1,0);
+        lhs(6,1)=-clhs94*normalslave(1,0);
+        lhs(6,2)=-clhs95*normalslave(1,0);
+        lhs(6,3)=-clhs96*normalslave(1,0);
+        lhs(6,4)=-clhs97*normalslave(1,0);
+        lhs(6,5)=-clhs98*normalslave(1,0);
+        lhs(6,6)=-clhs99*normalslave(1,0);
+        lhs(6,7)=-clhs100*normalslave(1,0);
         lhs(6,8)=0;
-        lhs(6,9)=clhs5*clhs87;
-        lhs(7,0)=clhs105*normalslave(1,1);
-        lhs(7,1)=clhs106*normalslave(1,1);
-        lhs(7,2)=clhs107*normalslave(1,1);
-        lhs(7,3)=clhs108*normalslave(1,1);
-        lhs(7,4)=clhs109*normalslave(1,1);
-        lhs(7,5)=clhs110*normalslave(1,1);
-        lhs(7,6)=clhs111*normalslave(1,1);
-        lhs(7,7)=clhs112*normalslave(1,1);
+        lhs(6,9)=-clhs5*clhs73;
+        lhs(7,0)=-clhs93*normalslave(1,1);
+        lhs(7,1)=-clhs94*normalslave(1,1);
+        lhs(7,2)=-clhs95*normalslave(1,1);
+        lhs(7,3)=-clhs96*normalslave(1,1);
+        lhs(7,4)=-clhs97*normalslave(1,1);
+        lhs(7,5)=-clhs98*normalslave(1,1);
+        lhs(7,6)=-clhs99*normalslave(1,1);
+        lhs(7,7)=-clhs100*normalslave(1,1);
         lhs(7,8)=0;
-        lhs(7,9)=clhs5*clhs88;
+        lhs(7,9)=-clhs5*clhs74;
         lhs(8,0)=0;
         lhs(8,1)=0;
         lhs(8,2)=0;
@@ -1497,14 +1588,14 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodFrictionlessMortarContac
         lhs(8,7)=0;
         lhs(8,8)=0.5*std::pow(scale_factor, 2.0)/penalty_parameter;
         lhs(8,9)=0;
-        lhs(9,0)=scale_factor*(clhs17 - normalslave(1,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22));
-        lhs(9,1)=scale_factor*(clhs29 - normalslave(1,1)*(clhs0 - clhs30 - clhs31 + clhs32 + clhs33));
-        lhs(9,2)=scale_factor*(clhs40 - normalslave(1,0)*(-clhs42 - clhs43 + clhs44 + clhs45 + clhs8));
-        lhs(9,3)=scale_factor*(clhs52 - normalslave(1,1)*(-clhs53 - clhs54 + clhs55 + clhs56 + clhs8));
-        lhs(9,4)=clhs63*scale_factor;
-        lhs(9,5)=clhs70*scale_factor;
-        lhs(9,6)=clhs77*scale_factor;
-        lhs(9,7)=clhs84*scale_factor;
+        lhs(9,0)=clhs19*scale_factor;
+        lhs(9,1)=-clhs26*scale_factor;
+        lhs(9,2)=clhs35*scale_factor;
+        lhs(9,3)=-clhs42*scale_factor;
+        lhs(9,4)=-clhs49*scale_factor;
+        lhs(9,5)=-clhs56*scale_factor;
+        lhs(9,6)=-clhs63*scale_factor;
+        lhs(9,7)=-clhs70*scale_factor;
         lhs(9,8)=0;
         lhs(9,9)=0;
     }
@@ -1523,195 +1614,183 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodFrictionlessMortarContac
         const double clhs10 =     X1(1,1) + u1(1,1);
         const double clhs11 =     X2(0,1) + u2(0,1);
         const double clhs12 =     X2(1,1) + u2(1,1);
-        const double clhs13 =     lmnormal[0]*scale_factor - penalty_parameter*(normalslave(0,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(0,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
+        const double clhs13 =     lmnormal[0]*scale_factor + penalty_parameter*(normalslave(0,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(0,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
         const double clhs14 =     DeltaDOperator[4](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs15 =     DeltaDOperator[4](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs16 =     DeltaMOperator[4](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs17 =     normalslave(0,1)*(-clhs1*clhs11 + clhs10*clhs15 - clhs12*clhs16 + clhs14*clhs9);
-        const double clhs18 =     -clhs0;
-        const double clhs19 =     clhs14*clhs2;
-        const double clhs20 =     clhs15*clhs4;
-        const double clhs21 =     clhs1*clhs6;
-        const double clhs22 =     clhs16*clhs7;
-        const double clhs23 =     penalty_parameter*(clhs17 + normalslave(0,0)*(clhs18 + clhs19 + clhs20 - clhs21 - clhs22));
-        const double clhs24 =     clhs0*clhs23 - clhs1*clhs13;
-        const double clhs25 =     DeltaMOperator[5](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs26 =     DeltaDOperator[5](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs27 =     DeltaDOperator[5](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs28 =     DeltaMOperator[5](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs29 =     normalslave(0,0)*(clhs2*clhs26 - clhs25*clhs6 + clhs27*clhs4 - clhs28*clhs7);
-        const double clhs30 =     clhs26*clhs9;
-        const double clhs31 =     clhs10*clhs27;
-        const double clhs32 =     clhs11*clhs25;
-        const double clhs33 =     clhs12*clhs28;
-        const double clhs34 =     penalty_parameter*(clhs29 + normalslave(0,1)*(clhs18 + clhs30 + clhs31 - clhs32 - clhs33));
-        const double clhs35 =     clhs0*clhs34 - clhs13*clhs25;
-        const double clhs36 =     DeltaMOperator[6](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs37 =     DeltaDOperator[6](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs38 =     DeltaDOperator[6](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs39 =     DeltaMOperator[6](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs40 =     normalslave(0,1)*(clhs10*clhs38 - clhs11*clhs36 - clhs12*clhs39 + clhs37*clhs9);
-        const double clhs41 =     -clhs8;
-        const double clhs42 =     clhs2*clhs37;
-        const double clhs43 =     clhs38*clhs4;
-        const double clhs44 =     clhs36*clhs6;
-        const double clhs45 =     clhs39*clhs7;
-        const double clhs46 =     penalty_parameter*(clhs40 + normalslave(0,0)*(clhs41 + clhs42 + clhs43 - clhs44 - clhs45));
-        const double clhs47 =     clhs0*clhs46 - clhs13*clhs36;
-        const double clhs48 =     DeltaMOperator[7](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs49 =     DeltaDOperator[7](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs50 =     DeltaDOperator[7](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs51 =     DeltaMOperator[7](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs52 =     normalslave(0,0)*(clhs2*clhs49 + clhs4*clhs50 - clhs48*clhs6 - clhs51*clhs7);
-        const double clhs53 =     clhs49*clhs9;
-        const double clhs54 =     clhs10*clhs50;
-        const double clhs55 =     clhs11*clhs48;
-        const double clhs56 =     clhs12*clhs51;
-        const double clhs57 =     penalty_parameter*(clhs52 + normalslave(0,1)*(clhs41 + clhs53 + clhs54 - clhs55 - clhs56));
-        const double clhs58 =     clhs0*clhs57 - clhs13*clhs48;
-        const double clhs59 =     DeltaMOperator[0](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs60 =     DeltaDOperator[0](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs61 =     DeltaDOperator[0](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs62 =     DeltaMOperator[0](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs63 =     normalslave(0,0)*(clhs2*clhs60 + clhs3 + clhs4*clhs61 - clhs59*clhs6 - clhs62*clhs7) + normalslave(0,1)*(clhs10*clhs61 - clhs11*clhs59 - clhs12*clhs62 + clhs60*clhs9);
+        const double clhs18 =     normalslave(0,0)*(clhs0 + clhs1*clhs6 - clhs14*clhs2 - clhs15*clhs4 + clhs16*clhs7);
+        const double clhs19 =     -clhs17 + clhs18;
+        const double clhs20 =     clhs19*penalty_parameter;
+        const double clhs21 =     -clhs0*clhs20 + clhs1*clhs13;
+        const double clhs22 =     DeltaMOperator[5](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs23 =     DeltaDOperator[5](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs24 =     DeltaDOperator[5](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs25 =     DeltaMOperator[5](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs26 =     normalslave(0,0)*(clhs2*clhs23 - clhs22*clhs6 + clhs24*clhs4 - clhs25*clhs7) - normalslave(0,1)*(clhs0 - clhs10*clhs24 + clhs11*clhs22 + clhs12*clhs25 - clhs23*clhs9);
+        const double clhs27 =     clhs26*penalty_parameter;
+        const double clhs28 =     clhs0*clhs27 + clhs13*clhs22;
+        const double clhs29 =     DeltaMOperator[6](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs30 =     DeltaDOperator[6](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs31 =     DeltaDOperator[6](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs32 =     DeltaMOperator[6](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs33 =     normalslave(0,1)*(clhs10*clhs31 - clhs11*clhs29 - clhs12*clhs32 + clhs30*clhs9);
+        const double clhs34 =     normalslave(0,0)*(-clhs2*clhs30 + clhs29*clhs6 - clhs31*clhs4 + clhs32*clhs7 + clhs8);
+        const double clhs35 =     -clhs33 + clhs34;
+        const double clhs36 =     clhs35*penalty_parameter;
+        const double clhs37 =     -clhs0*clhs36 + clhs13*clhs29;
+        const double clhs38 =     DeltaMOperator[7](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs39 =     DeltaDOperator[7](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs40 =     DeltaDOperator[7](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs41 =     DeltaMOperator[7](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs42 =     normalslave(0,0)*(clhs2*clhs39 - clhs38*clhs6 + clhs4*clhs40 - clhs41*clhs7) - normalslave(0,1)*(-clhs10*clhs40 + clhs11*clhs38 + clhs12*clhs41 - clhs39*clhs9 + clhs8);
+        const double clhs43 =     clhs42*penalty_parameter;
+        const double clhs44 =     clhs0*clhs43 + clhs13*clhs38;
+        const double clhs45 =     DeltaMOperator[0](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs46 =     DeltaDOperator[0](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs47 =     DeltaDOperator[0](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs48 =     DeltaMOperator[0](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs49 =     normalslave(0,0)*(clhs2*clhs46 + clhs3 + clhs4*clhs47 - clhs45*clhs6 - clhs48*clhs7) + normalslave(0,1)*(clhs10*clhs47 - clhs11*clhs45 - clhs12*clhs48 + clhs46*clhs9);
+        const double clhs50 =     clhs49*penalty_parameter;
+        const double clhs51 =     clhs0*clhs50 + clhs13*clhs45;
+        const double clhs52 =     DeltaMOperator[1](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs53 =     DeltaDOperator[1](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs54 =     DeltaDOperator[1](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs55 =     DeltaMOperator[1](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs56 =     normalslave(0,0)*(clhs2*clhs53 + clhs4*clhs54 - clhs52*clhs6 - clhs55*clhs7) + normalslave(0,1)*(clhs10*clhs54 - clhs11*clhs52 - clhs12*clhs55 + clhs3 + clhs53*clhs9);
+        const double clhs57 =     clhs56*penalty_parameter;
+        const double clhs58 =     clhs0*clhs57 + clhs13*clhs52;
+        const double clhs59 =     DeltaMOperator[2](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs60 =     DeltaDOperator[2](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs61 =     DeltaDOperator[2](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs62 =     DeltaMOperator[2](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs63 =     normalslave(0,0)*(clhs2*clhs60 + clhs4*clhs61 + clhs5 - clhs59*clhs6 - clhs62*clhs7) + normalslave(0,1)*(clhs10*clhs61 - clhs11*clhs59 - clhs12*clhs62 + clhs60*clhs9);
         const double clhs64 =     clhs63*penalty_parameter;
-        const double clhs65 =     clhs0*clhs64 - clhs13*clhs59;
-        const double clhs66 =     DeltaMOperator[1](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs67 =     DeltaDOperator[1](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs68 =     DeltaDOperator[1](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs69 =     DeltaMOperator[1](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs70 =     normalslave(0,0)*(clhs2*clhs67 + clhs4*clhs68 - clhs6*clhs66 - clhs69*clhs7) + normalslave(0,1)*(clhs10*clhs68 - clhs11*clhs66 - clhs12*clhs69 + clhs3 + clhs67*clhs9);
+        const double clhs65 =     clhs0*clhs64 + clhs13*clhs59;
+        const double clhs66 =     DeltaMOperator[3](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs67 =     DeltaDOperator[3](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs68 =     DeltaDOperator[3](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs69 =     DeltaMOperator[3](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs70 =     normalslave(0,0)*(clhs2*clhs67 + clhs4*clhs68 - clhs6*clhs66 - clhs69*clhs7) + normalslave(0,1)*(clhs10*clhs68 - clhs11*clhs66 - clhs12*clhs69 + clhs5 + clhs67*clhs9);
         const double clhs71 =     clhs70*penalty_parameter;
-        const double clhs72 =     clhs0*clhs71 - clhs13*clhs66;
-        const double clhs73 =     DeltaMOperator[2](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs74 =     DeltaDOperator[2](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs75 =     DeltaDOperator[2](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs76 =     DeltaMOperator[2](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs77 =     normalslave(0,0)*(clhs2*clhs74 + clhs4*clhs75 + clhs5 - clhs6*clhs73 - clhs7*clhs76) + normalslave(0,1)*(clhs10*clhs75 - clhs11*clhs73 - clhs12*clhs76 + clhs74*clhs9);
-        const double clhs78 =     clhs77*penalty_parameter;
-        const double clhs79 =     clhs0*clhs78 - clhs13*clhs73;
-        const double clhs80 =     DeltaMOperator[3](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs81 =     DeltaDOperator[3](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs82 =     DeltaDOperator[3](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs83 =     DeltaMOperator[3](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs84 =     normalslave(0,0)*(clhs2*clhs81 + clhs4*clhs82 - clhs6*clhs80 - clhs7*clhs83) + normalslave(0,1)*(clhs10*clhs82 - clhs11*clhs80 - clhs12*clhs83 + clhs5 + clhs81*clhs9);
-        const double clhs85 =     clhs84*penalty_parameter;
-        const double clhs86 =     clhs0*clhs85 - clhs13*clhs80;
-        const double clhs87 =     normalslave(0,0)*scale_factor;
-        const double clhs88 =     normalslave(0,1)*scale_factor;
-        const double clhs89 =     -clhs13*clhs16 + clhs23*clhs8;
-        const double clhs90 =     -clhs13*clhs28 + clhs34*clhs8;
-        const double clhs91 =     -clhs13*clhs39 + clhs46*clhs8;
-        const double clhs92 =     -clhs13*clhs51 + clhs57*clhs8;
-        const double clhs93 =     -clhs13*clhs62 + clhs64*clhs8;
-        const double clhs94 =     -clhs13*clhs69 + clhs71*clhs8;
-        const double clhs95 =     -clhs13*clhs76 + clhs78*clhs8;
-        const double clhs96 =     -clhs13*clhs83 + clhs8*clhs85;
-        const double clhs97 =     clhs13*clhs14 - clhs23*clhs3;
-        const double clhs98 =     clhs13*clhs26 - clhs3*clhs34;
-        const double clhs99 =     clhs13*clhs37 - clhs3*clhs46;
-        const double clhs100 =     clhs13*clhs49 - clhs3*clhs57;
-        const double clhs101 =     clhs13*clhs60 - clhs3*clhs64;
-        const double clhs102 =     clhs13*clhs67 - clhs3*clhs71;
-        const double clhs103 =     clhs13*clhs74 - clhs3*clhs78;
-        const double clhs104 =     clhs13*clhs81 - clhs3*clhs85;
-        const double clhs105 =     clhs13*clhs15 - clhs23*clhs5;
-        const double clhs106 =     clhs13*clhs27 - clhs34*clhs5;
-        const double clhs107 =     clhs13*clhs38 - clhs46*clhs5;
-        const double clhs108 =     clhs13*clhs50 - clhs5*clhs57;
-        const double clhs109 =     clhs13*clhs61 - clhs5*clhs64;
-        const double clhs110 =     clhs13*clhs68 - clhs5*clhs71;
-        const double clhs111 =     clhs13*clhs75 - clhs5*clhs78;
-        const double clhs112 =     clhs13*clhs82 - clhs5*clhs85;
+        const double clhs72 =     clhs0*clhs71 + clhs13*clhs66;
+        const double clhs73 =     normalslave(0,0)*scale_factor;
+        const double clhs74 =     normalslave(0,1)*scale_factor;
+        const double clhs75 =     clhs13*clhs16 - clhs20*clhs8;
+        const double clhs76 =     clhs13*clhs25 + clhs27*clhs8;
+        const double clhs77 =     clhs13*clhs32 - clhs36*clhs8;
+        const double clhs78 =     clhs13*clhs41 + clhs43*clhs8;
+        const double clhs79 =     clhs13*clhs48 + clhs50*clhs8;
+        const double clhs80 =     clhs13*clhs55 + clhs57*clhs8;
+        const double clhs81 =     clhs13*clhs62 + clhs64*clhs8;
+        const double clhs82 =     clhs13*clhs69 + clhs71*clhs8;
+        const double clhs83 =     penalty_parameter*(clhs17 - clhs18);
+        const double clhs84 =     clhs13*clhs14 + clhs3*clhs83;
+        const double clhs85 =     clhs13*clhs23 + clhs27*clhs3;
+        const double clhs86 =     penalty_parameter*(clhs33 - clhs34);
+        const double clhs87 =     clhs13*clhs30 + clhs3*clhs86;
+        const double clhs88 =     clhs13*clhs39 + clhs3*clhs43;
+        const double clhs89 =     clhs13*clhs46 + clhs3*clhs50;
+        const double clhs90 =     clhs13*clhs53 + clhs3*clhs57;
+        const double clhs91 =     clhs13*clhs60 + clhs3*clhs64;
+        const double clhs92 =     clhs13*clhs67 + clhs3*clhs71;
+        const double clhs93 =     clhs13*clhs15 + clhs5*clhs83;
+        const double clhs94 =     clhs13*clhs24 + clhs27*clhs5;
+        const double clhs95 =     clhs13*clhs31 + clhs5*clhs86;
+        const double clhs96 =     clhs13*clhs40 + clhs43*clhs5;
+        const double clhs97 =     clhs13*clhs47 + clhs5*clhs50;
+        const double clhs98 =     clhs13*clhs54 + clhs5*clhs57;
+        const double clhs99 =     clhs13*clhs61 + clhs5*clhs64;
+        const double clhs100 =     clhs13*clhs68 + clhs5*clhs71;
     
-        lhs(0,0)=clhs24*normalslave(0,0);
-        lhs(0,1)=clhs35*normalslave(0,0);
-        lhs(0,2)=clhs47*normalslave(0,0);
-        lhs(0,3)=clhs58*normalslave(0,0);
-        lhs(0,4)=clhs65*normalslave(0,0);
-        lhs(0,5)=clhs72*normalslave(0,0);
-        lhs(0,6)=clhs79*normalslave(0,0);
-        lhs(0,7)=clhs86*normalslave(0,0);
-        lhs(0,8)=-clhs0*clhs87;
+        lhs(0,0)=clhs21*normalslave(0,0);
+        lhs(0,1)=clhs28*normalslave(0,0);
+        lhs(0,2)=clhs37*normalslave(0,0);
+        lhs(0,3)=clhs44*normalslave(0,0);
+        lhs(0,4)=clhs51*normalslave(0,0);
+        lhs(0,5)=clhs58*normalslave(0,0);
+        lhs(0,6)=clhs65*normalslave(0,0);
+        lhs(0,7)=clhs72*normalslave(0,0);
+        lhs(0,8)=clhs0*clhs73;
         lhs(0,9)=0;
-        lhs(1,0)=clhs24*normalslave(0,1);
-        lhs(1,1)=clhs35*normalslave(0,1);
-        lhs(1,2)=clhs47*normalslave(0,1);
-        lhs(1,3)=clhs58*normalslave(0,1);
-        lhs(1,4)=clhs65*normalslave(0,1);
-        lhs(1,5)=clhs72*normalslave(0,1);
-        lhs(1,6)=clhs79*normalslave(0,1);
-        lhs(1,7)=clhs86*normalslave(0,1);
-        lhs(1,8)=-clhs0*clhs88;
+        lhs(1,0)=clhs21*normalslave(0,1);
+        lhs(1,1)=clhs28*normalslave(0,1);
+        lhs(1,2)=clhs37*normalslave(0,1);
+        lhs(1,3)=clhs44*normalslave(0,1);
+        lhs(1,4)=clhs51*normalslave(0,1);
+        lhs(1,5)=clhs58*normalslave(0,1);
+        lhs(1,6)=clhs65*normalslave(0,1);
+        lhs(1,7)=clhs72*normalslave(0,1);
+        lhs(1,8)=clhs0*clhs74;
         lhs(1,9)=0;
-        lhs(2,0)=clhs89*normalslave(0,0);
-        lhs(2,1)=clhs90*normalslave(0,0);
-        lhs(2,2)=clhs91*normalslave(0,0);
-        lhs(2,3)=clhs92*normalslave(0,0);
-        lhs(2,4)=clhs93*normalslave(0,0);
-        lhs(2,5)=clhs94*normalslave(0,0);
-        lhs(2,6)=clhs95*normalslave(0,0);
-        lhs(2,7)=clhs96*normalslave(0,0);
-        lhs(2,8)=-clhs8*clhs87;
+        lhs(2,0)=clhs75*normalslave(0,0);
+        lhs(2,1)=clhs76*normalslave(0,0);
+        lhs(2,2)=clhs77*normalslave(0,0);
+        lhs(2,3)=clhs78*normalslave(0,0);
+        lhs(2,4)=clhs79*normalslave(0,0);
+        lhs(2,5)=clhs80*normalslave(0,0);
+        lhs(2,6)=clhs81*normalslave(0,0);
+        lhs(2,7)=clhs82*normalslave(0,0);
+        lhs(2,8)=clhs73*clhs8;
         lhs(2,9)=0;
-        lhs(3,0)=clhs89*normalslave(0,1);
-        lhs(3,1)=clhs90*normalslave(0,1);
-        lhs(3,2)=clhs91*normalslave(0,1);
-        lhs(3,3)=clhs92*normalslave(0,1);
-        lhs(3,4)=clhs93*normalslave(0,1);
-        lhs(3,5)=clhs94*normalslave(0,1);
-        lhs(3,6)=clhs95*normalslave(0,1);
-        lhs(3,7)=clhs96*normalslave(0,1);
-        lhs(3,8)=-clhs8*clhs88;
+        lhs(3,0)=clhs75*normalslave(0,1);
+        lhs(3,1)=clhs76*normalslave(0,1);
+        lhs(3,2)=clhs77*normalslave(0,1);
+        lhs(3,3)=clhs78*normalslave(0,1);
+        lhs(3,4)=clhs79*normalslave(0,1);
+        lhs(3,5)=clhs80*normalslave(0,1);
+        lhs(3,6)=clhs81*normalslave(0,1);
+        lhs(3,7)=clhs82*normalslave(0,1);
+        lhs(3,8)=clhs74*clhs8;
         lhs(3,9)=0;
-        lhs(4,0)=clhs97*normalslave(0,0);
-        lhs(4,1)=clhs98*normalslave(0,0);
-        lhs(4,2)=clhs99*normalslave(0,0);
-        lhs(4,3)=clhs100*normalslave(0,0);
-        lhs(4,4)=clhs101*normalslave(0,0);
-        lhs(4,5)=clhs102*normalslave(0,0);
-        lhs(4,6)=clhs103*normalslave(0,0);
-        lhs(4,7)=clhs104*normalslave(0,0);
-        lhs(4,8)=clhs3*clhs87;
+        lhs(4,0)=-clhs84*normalslave(0,0);
+        lhs(4,1)=-clhs85*normalslave(0,0);
+        lhs(4,2)=-clhs87*normalslave(0,0);
+        lhs(4,3)=-clhs88*normalslave(0,0);
+        lhs(4,4)=-clhs89*normalslave(0,0);
+        lhs(4,5)=-clhs90*normalslave(0,0);
+        lhs(4,6)=-clhs91*normalslave(0,0);
+        lhs(4,7)=-clhs92*normalslave(0,0);
+        lhs(4,8)=-clhs3*clhs73;
         lhs(4,9)=0;
-        lhs(5,0)=clhs97*normalslave(0,1);
-        lhs(5,1)=clhs98*normalslave(0,1);
-        lhs(5,2)=clhs99*normalslave(0,1);
-        lhs(5,3)=clhs100*normalslave(0,1);
-        lhs(5,4)=clhs101*normalslave(0,1);
-        lhs(5,5)=clhs102*normalslave(0,1);
-        lhs(5,6)=clhs103*normalslave(0,1);
-        lhs(5,7)=clhs104*normalslave(0,1);
-        lhs(5,8)=clhs3*clhs88;
+        lhs(5,0)=-clhs84*normalslave(0,1);
+        lhs(5,1)=-clhs85*normalslave(0,1);
+        lhs(5,2)=-clhs87*normalslave(0,1);
+        lhs(5,3)=-clhs88*normalslave(0,1);
+        lhs(5,4)=-clhs89*normalslave(0,1);
+        lhs(5,5)=-clhs90*normalslave(0,1);
+        lhs(5,6)=-clhs91*normalslave(0,1);
+        lhs(5,7)=-clhs92*normalslave(0,1);
+        lhs(5,8)=-clhs3*clhs74;
         lhs(5,9)=0;
-        lhs(6,0)=clhs105*normalslave(0,0);
-        lhs(6,1)=clhs106*normalslave(0,0);
-        lhs(6,2)=clhs107*normalslave(0,0);
-        lhs(6,3)=clhs108*normalslave(0,0);
-        lhs(6,4)=clhs109*normalslave(0,0);
-        lhs(6,5)=clhs110*normalslave(0,0);
-        lhs(6,6)=clhs111*normalslave(0,0);
-        lhs(6,7)=clhs112*normalslave(0,0);
-        lhs(6,8)=clhs5*clhs87;
+        lhs(6,0)=-clhs93*normalslave(0,0);
+        lhs(6,1)=-clhs94*normalslave(0,0);
+        lhs(6,2)=-clhs95*normalslave(0,0);
+        lhs(6,3)=-clhs96*normalslave(0,0);
+        lhs(6,4)=-clhs97*normalslave(0,0);
+        lhs(6,5)=-clhs98*normalslave(0,0);
+        lhs(6,6)=-clhs99*normalslave(0,0);
+        lhs(6,7)=-clhs100*normalslave(0,0);
+        lhs(6,8)=-clhs5*clhs73;
         lhs(6,9)=0;
-        lhs(7,0)=clhs105*normalslave(0,1);
-        lhs(7,1)=clhs106*normalslave(0,1);
-        lhs(7,2)=clhs107*normalslave(0,1);
-        lhs(7,3)=clhs108*normalslave(0,1);
-        lhs(7,4)=clhs109*normalslave(0,1);
-        lhs(7,5)=clhs110*normalslave(0,1);
-        lhs(7,6)=clhs111*normalslave(0,1);
-        lhs(7,7)=clhs112*normalslave(0,1);
-        lhs(7,8)=clhs5*clhs88;
+        lhs(7,0)=-clhs93*normalslave(0,1);
+        lhs(7,1)=-clhs94*normalslave(0,1);
+        lhs(7,2)=-clhs95*normalslave(0,1);
+        lhs(7,3)=-clhs96*normalslave(0,1);
+        lhs(7,4)=-clhs97*normalslave(0,1);
+        lhs(7,5)=-clhs98*normalslave(0,1);
+        lhs(7,6)=-clhs99*normalslave(0,1);
+        lhs(7,7)=-clhs100*normalslave(0,1);
+        lhs(7,8)=-clhs5*clhs74;
         lhs(7,9)=0;
-        lhs(8,0)=scale_factor*(clhs17 - normalslave(0,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22));
-        lhs(8,1)=scale_factor*(clhs29 - normalslave(0,1)*(clhs0 - clhs30 - clhs31 + clhs32 + clhs33));
-        lhs(8,2)=scale_factor*(clhs40 - normalslave(0,0)*(-clhs42 - clhs43 + clhs44 + clhs45 + clhs8));
-        lhs(8,3)=scale_factor*(clhs52 - normalslave(0,1)*(-clhs53 - clhs54 + clhs55 + clhs56 + clhs8));
-        lhs(8,4)=clhs63*scale_factor;
-        lhs(8,5)=clhs70*scale_factor;
-        lhs(8,6)=clhs77*scale_factor;
-        lhs(8,7)=clhs84*scale_factor;
+        lhs(8,0)=clhs19*scale_factor;
+        lhs(8,1)=-clhs26*scale_factor;
+        lhs(8,2)=clhs35*scale_factor;
+        lhs(8,3)=-clhs42*scale_factor;
+        lhs(8,4)=-clhs49*scale_factor;
+        lhs(8,5)=-clhs56*scale_factor;
+        lhs(8,6)=-clhs63*scale_factor;
+        lhs(8,7)=-clhs70*scale_factor;
         lhs(8,8)=0;
         lhs(8,9)=0;
         lhs(9,0)=0;
@@ -1740,274 +1819,250 @@ bounded_matrix<double, 10, 10> AugmentedLagrangianMethodFrictionlessMortarContac
         const double clhs10 =     X1(1,1) + u1(1,1);
         const double clhs11 =     X2(0,1) + u2(0,1);
         const double clhs12 =     X2(1,1) + u2(1,1);
-        const double clhs13 =     lmnormal[0]*scale_factor - penalty_parameter*(normalslave(0,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(0,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
+        const double clhs13 =     lmnormal[0]*scale_factor + penalty_parameter*(normalslave(0,0)*(-clhs0*clhs6 + clhs2*clhs3 + clhs4*clhs5 - clhs7*clhs8) + normalslave(0,1)*(-clhs0*clhs11 + clhs10*clhs5 - clhs12*clhs8 + clhs3*clhs9));
         const double clhs14 =     clhs13*normalslave(0,0);
         const double clhs15 =     MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs16 =     DeltaMOperator[4](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs17 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs18 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double clhs19 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
-        const double clhs20 =     lmnormal[1]*scale_factor - penalty_parameter*(normalslave(1,0)*(-clhs15*clhs6 + clhs17*clhs2 + clhs18*clhs4 - clhs19*clhs7) + normalslave(1,1)*(clhs10*clhs18 - clhs11*clhs15 - clhs12*clhs19 + clhs17*clhs9));
+        const double clhs20 =     lmnormal[1]*scale_factor + penalty_parameter*(normalslave(1,0)*(-clhs15*clhs6 + clhs17*clhs2 + clhs18*clhs4 - clhs19*clhs7) + normalslave(1,1)*(clhs10*clhs18 - clhs11*clhs15 - clhs12*clhs19 + clhs17*clhs9));
         const double clhs21 =     clhs20*normalslave(1,0);
         const double clhs22 =     DeltaDOperator[4](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs23 =     DeltaDOperator[4](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs24 =     DeltaMOperator[4](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
         const double clhs25 =     normalslave(0,1)*(-clhs1*clhs11 + clhs10*clhs23 - clhs12*clhs24 + clhs22*clhs9);
-        const double clhs26 =     -clhs0;
-        const double clhs27 =     clhs2*clhs22;
-        const double clhs28 =     clhs23*clhs4;
-        const double clhs29 =     clhs1*clhs6;
-        const double clhs30 =     clhs24*clhs7;
-        const double clhs31 =     clhs25 + normalslave(0,0)*(clhs26 + clhs27 + clhs28 - clhs29 - clhs30);
-        const double clhs32 =     clhs31*normalslave(0,0)*penalty_parameter;
-        const double clhs33 =     DeltaDOperator[4](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
-        const double clhs34 =     DeltaDOperator[4](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
-        const double clhs35 =     DeltaMOperator[4](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
-        const double clhs36 =     normalslave(1,1)*(clhs10*clhs34 - clhs11*clhs16 - clhs12*clhs35 + clhs33*clhs9);
-        const double clhs37 =     -clhs15;
-        const double clhs38 =     clhs2*clhs33;
-        const double clhs39 =     clhs34*clhs4;
-        const double clhs40 =     clhs16*clhs6;
-        const double clhs41 =     clhs35*clhs7;
-        const double clhs42 =     clhs36 + normalslave(1,0)*(clhs37 + clhs38 + clhs39 - clhs40 - clhs41);
-        const double clhs43 =     clhs42*normalslave(1,0)*penalty_parameter;
-        const double clhs44 =     DeltaMOperator[5](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs45 =     DeltaMOperator[5](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs46 =     DeltaDOperator[5](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs47 =     DeltaDOperator[5](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs48 =     DeltaMOperator[5](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs49 =     normalslave(0,0)*(clhs2*clhs46 + clhs4*clhs47 - clhs44*clhs6 - clhs48*clhs7);
-        const double clhs50 =     clhs46*clhs9;
-        const double clhs51 =     clhs10*clhs47;
-        const double clhs52 =     clhs11*clhs44;
-        const double clhs53 =     clhs12*clhs48;
-        const double clhs54 =     clhs49 + normalslave(0,1)*(clhs26 + clhs50 + clhs51 - clhs52 - clhs53);
-        const double clhs55 =     clhs54*normalslave(0,0)*penalty_parameter;
-        const double clhs56 =     DeltaDOperator[5](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs57 =     DeltaDOperator[5](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs58 =     DeltaMOperator[5](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
-        const double clhs59 =     normalslave(1,0)*(clhs2*clhs56 + clhs4*clhs57 - clhs45*clhs6 - clhs58*clhs7);
-        const double clhs60 =     clhs56*clhs9;
-        const double clhs61 =     clhs10*clhs57;
-        const double clhs62 =     clhs11*clhs45;
-        const double clhs63 =     clhs12*clhs58;
-        const double clhs64 =     clhs59 + normalslave(1,1)*(clhs37 + clhs60 + clhs61 - clhs62 - clhs63);
-        const double clhs65 =     clhs64*normalslave(1,0)*penalty_parameter;
-        const double clhs66 =     DeltaMOperator[6](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs67 =     DeltaMOperator[6](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs68 =     DeltaDOperator[6](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs69 =     DeltaDOperator[6](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs70 =     DeltaMOperator[6](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs71 =     normalslave(0,1)*(clhs10*clhs69 - clhs11*clhs66 - clhs12*clhs70 + clhs68*clhs9);
-        const double clhs72 =     -clhs8;
-        const double clhs73 =     clhs2*clhs68;
-        const double clhs74 =     clhs4*clhs69;
-        const double clhs75 =     clhs6*clhs66;
-        const double clhs76 =     clhs7*clhs70;
-        const double clhs77 =     clhs71 + normalslave(0,0)*(clhs72 + clhs73 + clhs74 - clhs75 - clhs76);
-        const double clhs78 =     clhs77*normalslave(0,0)*penalty_parameter;
-        const double clhs79 =     DeltaDOperator[6](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs80 =     DeltaDOperator[6](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs81 =     DeltaMOperator[6](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
-        const double clhs82 =     normalslave(1,1)*(clhs10*clhs80 - clhs11*clhs67 - clhs12*clhs81 + clhs79*clhs9);
-        const double clhs83 =     -clhs19;
-        const double clhs84 =     clhs2*clhs79;
-        const double clhs85 =     clhs4*clhs80;
-        const double clhs86 =     clhs6*clhs67;
-        const double clhs87 =     clhs7*clhs81;
-        const double clhs88 =     clhs82 + normalslave(1,0)*(clhs83 + clhs84 + clhs85 - clhs86 - clhs87);
-        const double clhs89 =     clhs88*normalslave(1,0)*penalty_parameter;
-        const double clhs90 =     DeltaMOperator[7](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs91 =     DeltaMOperator[7](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs92 =     DeltaDOperator[7](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs93 =     DeltaDOperator[7](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs94 =     DeltaMOperator[7](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs95 =     normalslave(0,0)*(clhs2*clhs92 + clhs4*clhs93 - clhs6*clhs90 - clhs7*clhs94);
-        const double clhs96 =     clhs9*clhs92;
-        const double clhs97 =     clhs10*clhs93;
-        const double clhs98 =     clhs11*clhs90;
-        const double clhs99 =     clhs12*clhs94;
-        const double clhs100 =     clhs95 + normalslave(0,1)*(clhs72 + clhs96 + clhs97 - clhs98 - clhs99);
-        const double clhs101 =     clhs100*normalslave(0,0)*penalty_parameter;
-        const double clhs102 =     DeltaDOperator[7](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs103 =     DeltaDOperator[7](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs104 =     DeltaMOperator[7](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
-        const double clhs105 =     normalslave(1,0)*(clhs102*clhs2 + clhs103*clhs4 - clhs104*clhs7 - clhs6*clhs91);
-        const double clhs106 =     clhs102*clhs9;
-        const double clhs107 =     clhs10*clhs103;
-        const double clhs108 =     clhs11*clhs91;
-        const double clhs109 =     clhs104*clhs12;
-        const double clhs110 =     clhs105 + normalslave(1,1)*(clhs106 + clhs107 - clhs108 - clhs109 + clhs83);
+        const double clhs26 =     normalslave(0,0)*(clhs0 + clhs1*clhs6 - clhs2*clhs22 - clhs23*clhs4 + clhs24*clhs7);
+        const double clhs27 =     -clhs25 + clhs26;
+        const double clhs28 =     clhs27*normalslave(0,0)*penalty_parameter;
+        const double clhs29 =     DeltaDOperator[4](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
+        const double clhs30 =     DeltaDOperator[4](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
+        const double clhs31 =     DeltaMOperator[4](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,0))
+        const double clhs32 =     normalslave(1,1)*(clhs10*clhs30 - clhs11*clhs16 - clhs12*clhs31 + clhs29*clhs9);
+        const double clhs33 =     normalslave(1,0)*(clhs15 + clhs16*clhs6 - clhs2*clhs29 - clhs30*clhs4 + clhs31*clhs7);
+        const double clhs34 =     -clhs32 + clhs33;
+        const double clhs35 =     clhs34*normalslave(1,0)*penalty_parameter;
+        const double clhs36 =     DeltaMOperator[5](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs37 =     DeltaMOperator[5](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs38 =     DeltaDOperator[5](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs39 =     DeltaDOperator[5](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs40 =     DeltaMOperator[5](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs41 =     normalslave(0,0)*(clhs2*clhs38 - clhs36*clhs6 + clhs39*clhs4 - clhs40*clhs7) - normalslave(0,1)*(clhs0 - clhs10*clhs39 + clhs11*clhs36 + clhs12*clhs40 - clhs38*clhs9);
+        const double clhs42 =     clhs41*normalslave(0,0)*penalty_parameter;
+        const double clhs43 =     DeltaDOperator[5](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs44 =     DeltaDOperator[5](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs45 =     DeltaMOperator[5](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(0,1))
+        const double clhs46 =     normalslave(1,0)*(clhs2*clhs43 - clhs37*clhs6 + clhs4*clhs44 - clhs45*clhs7) - normalslave(1,1)*(-clhs10*clhs44 + clhs11*clhs37 + clhs12*clhs45 + clhs15 - clhs43*clhs9);
+        const double clhs47 =     clhs46*normalslave(1,0)*penalty_parameter;
+        const double clhs48 =     DeltaMOperator[6](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs49 =     DeltaMOperator[6](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs50 =     DeltaDOperator[6](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs51 =     DeltaDOperator[6](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs52 =     DeltaMOperator[6](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs53 =     normalslave(0,1)*(clhs10*clhs51 - clhs11*clhs48 - clhs12*clhs52 + clhs50*clhs9);
+        const double clhs54 =     normalslave(0,0)*(-clhs2*clhs50 - clhs4*clhs51 + clhs48*clhs6 + clhs52*clhs7 + clhs8);
+        const double clhs55 =     -clhs53 + clhs54;
+        const double clhs56 =     clhs55*normalslave(0,0)*penalty_parameter;
+        const double clhs57 =     DeltaDOperator[6](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs58 =     DeltaDOperator[6](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs59 =     DeltaMOperator[6](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,0))
+        const double clhs60 =     normalslave(1,1)*(clhs10*clhs58 - clhs11*clhs49 - clhs12*clhs59 + clhs57*clhs9);
+        const double clhs61 =     normalslave(1,0)*(clhs19 - clhs2*clhs57 - clhs4*clhs58 + clhs49*clhs6 + clhs59*clhs7);
+        const double clhs62 =     -clhs60 + clhs61;
+        const double clhs63 =     clhs62*normalslave(1,0)*penalty_parameter;
+        const double clhs64 =     DeltaMOperator[7](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs65 =     DeltaMOperator[7](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs66 =     DeltaDOperator[7](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs67 =     DeltaDOperator[7](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs68 =     DeltaMOperator[7](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs69 =     normalslave(0,0)*(clhs2*clhs66 + clhs4*clhs67 - clhs6*clhs64 - clhs68*clhs7) - normalslave(0,1)*(-clhs10*clhs67 + clhs11*clhs64 + clhs12*clhs68 - clhs66*clhs9 + clhs8);
+        const double clhs70 =     clhs69*normalslave(0,0)*penalty_parameter;
+        const double clhs71 =     DeltaDOperator[7](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs72 =     DeltaDOperator[7](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs73 =     DeltaMOperator[7](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U2(1,1))
+        const double clhs74 =     normalslave(1,0)*(clhs2*clhs71 + clhs4*clhs72 - clhs6*clhs65 - clhs7*clhs73) - normalslave(1,1)*(-clhs10*clhs72 + clhs11*clhs65 + clhs12*clhs73 + clhs19 - clhs71*clhs9);
+        const double clhs75 =     clhs74*normalslave(1,0)*penalty_parameter;
+        const double clhs76 =     DeltaMOperator[0](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs77 =     DeltaMOperator[0](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs78 =     DeltaDOperator[0](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs79 =     DeltaDOperator[0](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs80 =     DeltaMOperator[0](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs81 =     normalslave(0,0)*(clhs2*clhs78 + clhs3 + clhs4*clhs79 - clhs6*clhs76 - clhs7*clhs80) + normalslave(0,1)*(clhs10*clhs79 - clhs11*clhs76 - clhs12*clhs80 + clhs78*clhs9);
+        const double clhs82 =     clhs81*normalslave(0,0)*penalty_parameter;
+        const double clhs83 =     DeltaDOperator[0](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs84 =     DeltaDOperator[0](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs85 =     DeltaMOperator[0](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
+        const double clhs86 =     normalslave(1,0)*(clhs17 + clhs2*clhs83 + clhs4*clhs84 - clhs6*clhs77 - clhs7*clhs85) + normalslave(1,1)*(clhs10*clhs84 - clhs11*clhs77 - clhs12*clhs85 + clhs83*clhs9);
+        const double clhs87 =     clhs86*normalslave(1,0)*penalty_parameter;
+        const double clhs88 =     DeltaMOperator[1](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs89 =     DeltaMOperator[1](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs90 =     DeltaDOperator[1](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs91 =     DeltaDOperator[1](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs92 =     DeltaMOperator[1](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs93 =     normalslave(0,0)*(clhs2*clhs90 + clhs4*clhs91 - clhs6*clhs88 - clhs7*clhs92) + normalslave(0,1)*(clhs10*clhs91 - clhs11*clhs88 - clhs12*clhs92 + clhs3 + clhs9*clhs90);
+        const double clhs94 =     clhs93*normalslave(0,0)*penalty_parameter;
+        const double clhs95 =     DeltaDOperator[1](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs96 =     DeltaDOperator[1](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs97 =     DeltaMOperator[1](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
+        const double clhs98 =     normalslave(1,0)*(clhs2*clhs95 + clhs4*clhs96 - clhs6*clhs89 - clhs7*clhs97) + normalslave(1,1)*(clhs10*clhs96 - clhs11*clhs89 - clhs12*clhs97 + clhs17 + clhs9*clhs95);
+        const double clhs99 =     clhs98*normalslave(1,0)*penalty_parameter;
+        const double clhs100 =     DeltaMOperator[2](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs101 =     DeltaMOperator[2](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs102 =     DeltaDOperator[2](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs103 =     DeltaDOperator[2](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs104 =     DeltaMOperator[2](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs105 =     normalslave(0,0)*(-clhs100*clhs6 + clhs102*clhs2 + clhs103*clhs4 - clhs104*clhs7 + clhs5) + normalslave(0,1)*(clhs10*clhs103 - clhs100*clhs11 + clhs102*clhs9 - clhs104*clhs12);
+        const double clhs106 =     clhs105*normalslave(0,0)*penalty_parameter;
+        const double clhs107 =     DeltaDOperator[2](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs108 =     DeltaDOperator[2](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs109 =     DeltaMOperator[2](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
+        const double clhs110 =     normalslave(1,0)*(-clhs101*clhs6 + clhs107*clhs2 + clhs108*clhs4 - clhs109*clhs7 + clhs18) + normalslave(1,1)*(clhs10*clhs108 - clhs101*clhs11 + clhs107*clhs9 - clhs109*clhs12);
         const double clhs111 =     clhs110*normalslave(1,0)*penalty_parameter;
-        const double clhs112 =     DeltaMOperator[0](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs113 =     DeltaMOperator[0](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs114 =     DeltaDOperator[0](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs115 =     DeltaDOperator[0](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs116 =     DeltaMOperator[0](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs117 =     normalslave(0,0)*(-clhs112*clhs6 + clhs114*clhs2 + clhs115*clhs4 - clhs116*clhs7 + clhs3) + normalslave(0,1)*(clhs10*clhs115 - clhs11*clhs112 + clhs114*clhs9 - clhs116*clhs12);
+        const double clhs112 =     DeltaMOperator[3](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs113 =     DeltaMOperator[3](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs114 =     DeltaDOperator[3](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs115 =     DeltaDOperator[3](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs116 =     DeltaMOperator[3](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs117 =     normalslave(0,0)*(-clhs112*clhs6 + clhs114*clhs2 + clhs115*clhs4 - clhs116*clhs7) + normalslave(0,1)*(clhs10*clhs115 - clhs11*clhs112 + clhs114*clhs9 - clhs116*clhs12 + clhs5);
         const double clhs118 =     clhs117*normalslave(0,0)*penalty_parameter;
-        const double clhs119 =     DeltaDOperator[0](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs120 =     DeltaDOperator[0](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs121 =     DeltaMOperator[0](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,0))
-        const double clhs122 =     normalslave(1,0)*(-clhs113*clhs6 + clhs119*clhs2 + clhs120*clhs4 - clhs121*clhs7 + clhs17) + normalslave(1,1)*(clhs10*clhs120 - clhs11*clhs113 + clhs119*clhs9 - clhs12*clhs121);
+        const double clhs119 =     DeltaDOperator[3](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs120 =     DeltaDOperator[3](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs121 =     DeltaMOperator[3](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
+        const double clhs122 =     normalslave(1,0)*(-clhs113*clhs6 + clhs119*clhs2 + clhs120*clhs4 - clhs121*clhs7) + normalslave(1,1)*(clhs10*clhs120 - clhs11*clhs113 + clhs119*clhs9 - clhs12*clhs121 + clhs18);
         const double clhs123 =     clhs122*normalslave(1,0)*penalty_parameter;
-        const double clhs124 =     DeltaMOperator[1](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs125 =     DeltaMOperator[1](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs126 =     DeltaDOperator[1](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs127 =     DeltaDOperator[1](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs128 =     DeltaMOperator[1](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs129 =     normalslave(0,0)*(-clhs124*clhs6 + clhs126*clhs2 + clhs127*clhs4 - clhs128*clhs7) + normalslave(0,1)*(clhs10*clhs127 - clhs11*clhs124 - clhs12*clhs128 + clhs126*clhs9 + clhs3);
-        const double clhs130 =     clhs129*normalslave(0,0)*penalty_parameter;
-        const double clhs131 =     DeltaDOperator[1](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs132 =     DeltaDOperator[1](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs133 =     DeltaMOperator[1](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(0,1))
-        const double clhs134 =     normalslave(1,0)*(-clhs125*clhs6 + clhs131*clhs2 + clhs132*clhs4 - clhs133*clhs7) + normalslave(1,1)*(clhs10*clhs132 - clhs11*clhs125 - clhs12*clhs133 + clhs131*clhs9 + clhs17);
-        const double clhs135 =     clhs134*normalslave(1,0)*penalty_parameter;
-        const double clhs136 =     DeltaMOperator[2](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs137 =     DeltaMOperator[2](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs138 =     DeltaDOperator[2](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs139 =     DeltaDOperator[2](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs140 =     DeltaMOperator[2](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs141 =     normalslave(0,0)*(-clhs136*clhs6 + clhs138*clhs2 + clhs139*clhs4 - clhs140*clhs7 + clhs5) + normalslave(0,1)*(clhs10*clhs139 - clhs11*clhs136 - clhs12*clhs140 + clhs138*clhs9);
-        const double clhs142 =     clhs141*normalslave(0,0)*penalty_parameter;
-        const double clhs143 =     DeltaDOperator[2](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs144 =     DeltaDOperator[2](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs145 =     DeltaMOperator[2](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,0))
-        const double clhs146 =     normalslave(1,0)*(-clhs137*clhs6 + clhs143*clhs2 + clhs144*clhs4 - clhs145*clhs7 + clhs18) + normalslave(1,1)*(clhs10*clhs144 - clhs11*clhs137 - clhs12*clhs145 + clhs143*clhs9);
-        const double clhs147 =     clhs146*normalslave(1,0)*penalty_parameter;
-        const double clhs148 =     DeltaMOperator[3](0,0); // DERIVATIVE(MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs149 =     DeltaMOperator[3](1,0); // DERIVATIVE(MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs150 =     DeltaDOperator[3](0,0); // DERIVATIVE(DOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs151 =     DeltaDOperator[3](0,1); // DERIVATIVE(DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs152 =     DeltaMOperator[3](0,1); // DERIVATIVE(MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs153 =     normalslave(0,0)*(-clhs148*clhs6 + clhs150*clhs2 + clhs151*clhs4 - clhs152*clhs7) + normalslave(0,1)*(clhs10*clhs151 - clhs11*clhs148 - clhs12*clhs152 + clhs150*clhs9 + clhs5);
-        const double clhs154 =     clhs153*normalslave(0,0)*penalty_parameter;
-        const double clhs155 =     DeltaDOperator[3](1,0); // DERIVATIVE(DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs156 =     DeltaDOperator[3](1,1); // DERIVATIVE(DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs157 =     DeltaMOperator[3](1,1); // DERIVATIVE(MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1)), U1(1,1))
-        const double clhs158 =     normalslave(1,0)*(-clhs149*clhs6 + clhs155*clhs2 + clhs156*clhs4 - clhs157*clhs7) + normalslave(1,1)*(clhs10*clhs156 - clhs11*clhs149 - clhs12*clhs157 + clhs155*clhs9 + clhs18);
-        const double clhs159 =     clhs158*normalslave(1,0)*penalty_parameter;
-        const double clhs160 =     normalslave(0,0)*scale_factor;
-        const double clhs161 =     normalslave(1,0)*scale_factor;
-        const double clhs162 =     clhs13*normalslave(0,1);
-        const double clhs163 =     clhs20*normalslave(1,1);
-        const double clhs164 =     clhs31*normalslave(0,1)*penalty_parameter;
-        const double clhs165 =     clhs42*normalslave(1,1)*penalty_parameter;
-        const double clhs166 =     clhs54*normalslave(0,1)*penalty_parameter;
-        const double clhs167 =     clhs64*normalslave(1,1)*penalty_parameter;
-        const double clhs168 =     clhs77*normalslave(0,1)*penalty_parameter;
-        const double clhs169 =     clhs88*normalslave(1,1)*penalty_parameter;
-        const double clhs170 =     clhs100*normalslave(0,1)*penalty_parameter;
-        const double clhs171 =     clhs110*normalslave(1,1)*penalty_parameter;
-        const double clhs172 =     clhs117*normalslave(0,1)*penalty_parameter;
-        const double clhs173 =     clhs122*normalslave(1,1)*penalty_parameter;
-        const double clhs174 =     clhs129*normalslave(0,1)*penalty_parameter;
-        const double clhs175 =     clhs134*normalslave(1,1)*penalty_parameter;
-        const double clhs176 =     clhs141*normalslave(0,1)*penalty_parameter;
-        const double clhs177 =     clhs146*normalslave(1,1)*penalty_parameter;
-        const double clhs178 =     clhs153*normalslave(0,1)*penalty_parameter;
-        const double clhs179 =     clhs158*normalslave(1,1)*penalty_parameter;
-        const double clhs180 =     normalslave(0,1)*scale_factor;
-        const double clhs181 =     normalslave(1,1)*scale_factor;
+        const double clhs124 =     normalslave(0,0)*scale_factor;
+        const double clhs125 =     normalslave(1,0)*scale_factor;
+        const double clhs126 =     clhs13*normalslave(0,1);
+        const double clhs127 =     clhs20*normalslave(1,1);
+        const double clhs128 =     clhs27*normalslave(0,1)*penalty_parameter;
+        const double clhs129 =     clhs34*normalslave(1,1)*penalty_parameter;
+        const double clhs130 =     clhs41*normalslave(0,1)*penalty_parameter;
+        const double clhs131 =     clhs46*normalslave(1,1)*penalty_parameter;
+        const double clhs132 =     clhs55*normalslave(0,1)*penalty_parameter;
+        const double clhs133 =     clhs62*normalslave(1,1)*penalty_parameter;
+        const double clhs134 =     clhs69*normalslave(0,1)*penalty_parameter;
+        const double clhs135 =     clhs74*normalslave(1,1)*penalty_parameter;
+        const double clhs136 =     clhs81*normalslave(0,1)*penalty_parameter;
+        const double clhs137 =     clhs86*normalslave(1,1)*penalty_parameter;
+        const double clhs138 =     clhs93*normalslave(0,1)*penalty_parameter;
+        const double clhs139 =     clhs98*normalslave(1,1)*penalty_parameter;
+        const double clhs140 =     clhs105*normalslave(0,1)*penalty_parameter;
+        const double clhs141 =     clhs110*normalslave(1,1)*penalty_parameter;
+        const double clhs142 =     clhs117*normalslave(0,1)*penalty_parameter;
+        const double clhs143 =     clhs122*normalslave(1,1)*penalty_parameter;
+        const double clhs144 =     normalslave(0,1)*scale_factor;
+        const double clhs145 =     normalslave(1,1)*scale_factor;
+        const double clhs146 =     clhs25 - clhs26;
+        const double clhs147 =     clhs146*normalslave(0,0)*penalty_parameter;
+        const double clhs148 =     clhs32 - clhs33;
+        const double clhs149 =     clhs148*normalslave(1,0)*penalty_parameter;
+        const double clhs150 =     clhs53 - clhs54;
+        const double clhs151 =     clhs150*normalslave(0,0)*penalty_parameter;
+        const double clhs152 =     clhs60 - clhs61;
+        const double clhs153 =     clhs152*normalslave(1,0)*penalty_parameter;
+        const double clhs154 =     clhs146*normalslave(0,1)*penalty_parameter;
+        const double clhs155 =     clhs148*normalslave(1,1)*penalty_parameter;
+        const double clhs156 =     clhs150*normalslave(0,1)*penalty_parameter;
+        const double clhs157 =     clhs152*normalslave(1,1)*penalty_parameter;
     
-        lhs(0,0)=clhs0*clhs32 - clhs1*clhs14 + clhs15*clhs43 - clhs16*clhs21;
-        lhs(0,1)=clhs0*clhs55 - clhs14*clhs44 + clhs15*clhs65 - clhs21*clhs45;
-        lhs(0,2)=clhs0*clhs78 - clhs14*clhs66 + clhs15*clhs89 - clhs21*clhs67;
-        lhs(0,3)=clhs0*clhs101 + clhs111*clhs15 - clhs14*clhs90 - clhs21*clhs91;
-        lhs(0,4)=clhs0*clhs118 - clhs112*clhs14 - clhs113*clhs21 + clhs123*clhs15;
-        lhs(0,5)=clhs0*clhs130 - clhs124*clhs14 - clhs125*clhs21 + clhs135*clhs15;
-        lhs(0,6)=clhs0*clhs142 - clhs136*clhs14 - clhs137*clhs21 + clhs147*clhs15;
-        lhs(0,7)=clhs0*clhs154 - clhs14*clhs148 - clhs149*clhs21 + clhs15*clhs159;
-        lhs(0,8)=-clhs0*clhs160;
-        lhs(0,9)=-clhs15*clhs161;
-        lhs(1,0)=clhs0*clhs164 - clhs1*clhs162 + clhs15*clhs165 - clhs16*clhs163;
-        lhs(1,1)=clhs0*clhs166 + clhs15*clhs167 - clhs162*clhs44 - clhs163*clhs45;
-        lhs(1,2)=clhs0*clhs168 + clhs15*clhs169 - clhs162*clhs66 - clhs163*clhs67;
-        lhs(1,3)=clhs0*clhs170 + clhs15*clhs171 - clhs162*clhs90 - clhs163*clhs91;
-        lhs(1,4)=clhs0*clhs172 - clhs112*clhs162 - clhs113*clhs163 + clhs15*clhs173;
-        lhs(1,5)=clhs0*clhs174 - clhs124*clhs162 - clhs125*clhs163 + clhs15*clhs175;
-        lhs(1,6)=clhs0*clhs176 - clhs136*clhs162 - clhs137*clhs163 + clhs15*clhs177;
-        lhs(1,7)=clhs0*clhs178 - clhs148*clhs162 - clhs149*clhs163 + clhs15*clhs179;
-        lhs(1,8)=-clhs0*clhs180;
-        lhs(1,9)=-clhs15*clhs181;
-        lhs(2,0)=-clhs14*clhs24 + clhs19*clhs43 - clhs21*clhs35 + clhs32*clhs8;
-        lhs(2,1)=-clhs14*clhs48 + clhs19*clhs65 - clhs21*clhs58 + clhs55*clhs8;
-        lhs(2,2)=-clhs14*clhs70 + clhs19*clhs89 - clhs21*clhs81 + clhs78*clhs8;
-        lhs(2,3)=clhs101*clhs8 - clhs104*clhs21 + clhs111*clhs19 - clhs14*clhs94;
-        lhs(2,4)=-clhs116*clhs14 + clhs118*clhs8 - clhs121*clhs21 + clhs123*clhs19;
-        lhs(2,5)=-clhs128*clhs14 + clhs130*clhs8 - clhs133*clhs21 + clhs135*clhs19;
-        lhs(2,6)=-clhs14*clhs140 + clhs142*clhs8 - clhs145*clhs21 + clhs147*clhs19;
-        lhs(2,7)=-clhs14*clhs152 + clhs154*clhs8 - clhs157*clhs21 + clhs159*clhs19;
-        lhs(2,8)=-clhs160*clhs8;
-        lhs(2,9)=-clhs161*clhs19;
-        lhs(3,0)=-clhs162*clhs24 - clhs163*clhs35 + clhs164*clhs8 + clhs165*clhs19;
-        lhs(3,1)=-clhs162*clhs48 - clhs163*clhs58 + clhs166*clhs8 + clhs167*clhs19;
-        lhs(3,2)=-clhs162*clhs70 - clhs163*clhs81 + clhs168*clhs8 + clhs169*clhs19;
-        lhs(3,3)=-clhs104*clhs163 - clhs162*clhs94 + clhs170*clhs8 + clhs171*clhs19;
-        lhs(3,4)=-clhs116*clhs162 - clhs121*clhs163 + clhs172*clhs8 + clhs173*clhs19;
-        lhs(3,5)=-clhs128*clhs162 - clhs133*clhs163 + clhs174*clhs8 + clhs175*clhs19;
-        lhs(3,6)=-clhs140*clhs162 - clhs145*clhs163 + clhs176*clhs8 + clhs177*clhs19;
-        lhs(3,7)=-clhs152*clhs162 - clhs157*clhs163 + clhs178*clhs8 + clhs179*clhs19;
-        lhs(3,8)=-clhs180*clhs8;
-        lhs(3,9)=-clhs181*clhs19;
-        lhs(4,0)=clhs14*clhs22 - clhs17*clhs43 + clhs21*clhs33 - clhs3*clhs32;
-        lhs(4,1)=clhs14*clhs46 - clhs17*clhs65 + clhs21*clhs56 - clhs3*clhs55;
-        lhs(4,2)=clhs14*clhs68 - clhs17*clhs89 + clhs21*clhs79 - clhs3*clhs78;
-        lhs(4,3)=-clhs101*clhs3 + clhs102*clhs21 - clhs111*clhs17 + clhs14*clhs92;
-        lhs(4,4)=clhs114*clhs14 - clhs118*clhs3 + clhs119*clhs21 - clhs123*clhs17;
-        lhs(4,5)=clhs126*clhs14 - clhs130*clhs3 + clhs131*clhs21 - clhs135*clhs17;
-        lhs(4,6)=clhs138*clhs14 - clhs142*clhs3 + clhs143*clhs21 - clhs147*clhs17;
-        lhs(4,7)=clhs14*clhs150 - clhs154*clhs3 + clhs155*clhs21 - clhs159*clhs17;
-        lhs(4,8)=clhs160*clhs3;
-        lhs(4,9)=clhs161*clhs17;
-        lhs(5,0)=clhs162*clhs22 + clhs163*clhs33 - clhs164*clhs3 - clhs165*clhs17;
-        lhs(5,1)=clhs162*clhs46 + clhs163*clhs56 - clhs166*clhs3 - clhs167*clhs17;
-        lhs(5,2)=clhs162*clhs68 + clhs163*clhs79 - clhs168*clhs3 - clhs169*clhs17;
-        lhs(5,3)=clhs102*clhs163 + clhs162*clhs92 - clhs17*clhs171 - clhs170*clhs3;
-        lhs(5,4)=clhs114*clhs162 + clhs119*clhs163 - clhs17*clhs173 - clhs172*clhs3;
-        lhs(5,5)=clhs126*clhs162 + clhs131*clhs163 - clhs17*clhs175 - clhs174*clhs3;
-        lhs(5,6)=clhs138*clhs162 + clhs143*clhs163 - clhs17*clhs177 - clhs176*clhs3;
-        lhs(5,7)=clhs150*clhs162 + clhs155*clhs163 - clhs17*clhs179 - clhs178*clhs3;
-        lhs(5,8)=clhs180*clhs3;
-        lhs(5,9)=clhs17*clhs181;
-        lhs(6,0)=clhs14*clhs23 - clhs18*clhs43 + clhs21*clhs34 - clhs32*clhs5;
-        lhs(6,1)=clhs14*clhs47 - clhs18*clhs65 + clhs21*clhs57 - clhs5*clhs55;
-        lhs(6,2)=clhs14*clhs69 - clhs18*clhs89 + clhs21*clhs80 - clhs5*clhs78;
-        lhs(6,3)=-clhs101*clhs5 + clhs103*clhs21 - clhs111*clhs18 + clhs14*clhs93;
-        lhs(6,4)=clhs115*clhs14 - clhs118*clhs5 + clhs120*clhs21 - clhs123*clhs18;
-        lhs(6,5)=clhs127*clhs14 - clhs130*clhs5 + clhs132*clhs21 - clhs135*clhs18;
-        lhs(6,6)=clhs139*clhs14 - clhs142*clhs5 + clhs144*clhs21 - clhs147*clhs18;
-        lhs(6,7)=clhs14*clhs151 - clhs154*clhs5 + clhs156*clhs21 - clhs159*clhs18;
-        lhs(6,8)=clhs160*clhs5;
-        lhs(6,9)=clhs161*clhs18;
-        lhs(7,0)=clhs162*clhs23 + clhs163*clhs34 - clhs164*clhs5 - clhs165*clhs18;
-        lhs(7,1)=clhs162*clhs47 + clhs163*clhs57 - clhs166*clhs5 - clhs167*clhs18;
-        lhs(7,2)=clhs162*clhs69 + clhs163*clhs80 - clhs168*clhs5 - clhs169*clhs18;
-        lhs(7,3)=clhs103*clhs163 + clhs162*clhs93 - clhs170*clhs5 - clhs171*clhs18;
-        lhs(7,4)=clhs115*clhs162 + clhs120*clhs163 - clhs172*clhs5 - clhs173*clhs18;
-        lhs(7,5)=clhs127*clhs162 + clhs132*clhs163 - clhs174*clhs5 - clhs175*clhs18;
-        lhs(7,6)=clhs139*clhs162 + clhs144*clhs163 - clhs176*clhs5 - clhs177*clhs18;
-        lhs(7,7)=clhs151*clhs162 + clhs156*clhs163 - clhs178*clhs5 - clhs179*clhs18;
-        lhs(7,8)=clhs180*clhs5;
-        lhs(7,9)=clhs18*clhs181;
-        lhs(8,0)=scale_factor*(clhs25 - normalslave(0,0)*(clhs0 - clhs27 - clhs28 + clhs29 + clhs30));
-        lhs(8,1)=scale_factor*(clhs49 - normalslave(0,1)*(clhs0 - clhs50 - clhs51 + clhs52 + clhs53));
-        lhs(8,2)=scale_factor*(clhs71 - normalslave(0,0)*(-clhs73 - clhs74 + clhs75 + clhs76 + clhs8));
-        lhs(8,3)=scale_factor*(clhs95 - normalslave(0,1)*(clhs8 - clhs96 - clhs97 + clhs98 + clhs99));
-        lhs(8,4)=clhs117*scale_factor;
-        lhs(8,5)=clhs129*scale_factor;
-        lhs(8,6)=clhs141*scale_factor;
-        lhs(8,7)=clhs153*scale_factor;
+        lhs(0,0)=-clhs0*clhs28 + clhs1*clhs14 - clhs15*clhs35 + clhs16*clhs21;
+        lhs(0,1)=clhs0*clhs42 + clhs14*clhs36 + clhs15*clhs47 + clhs21*clhs37;
+        lhs(0,2)=-clhs0*clhs56 + clhs14*clhs48 - clhs15*clhs63 + clhs21*clhs49;
+        lhs(0,3)=clhs0*clhs70 + clhs14*clhs64 + clhs15*clhs75 + clhs21*clhs65;
+        lhs(0,4)=clhs0*clhs82 + clhs14*clhs76 + clhs15*clhs87 + clhs21*clhs77;
+        lhs(0,5)=clhs0*clhs94 + clhs14*clhs88 + clhs15*clhs99 + clhs21*clhs89;
+        lhs(0,6)=clhs0*clhs106 + clhs100*clhs14 + clhs101*clhs21 + clhs111*clhs15;
+        lhs(0,7)=clhs0*clhs118 + clhs112*clhs14 + clhs113*clhs21 + clhs123*clhs15;
+        lhs(0,8)=clhs0*clhs124;
+        lhs(0,9)=clhs125*clhs15;
+        lhs(1,0)=-clhs0*clhs128 + clhs1*clhs126 + clhs127*clhs16 - clhs129*clhs15;
+        lhs(1,1)=clhs0*clhs130 + clhs126*clhs36 + clhs127*clhs37 + clhs131*clhs15;
+        lhs(1,2)=-clhs0*clhs132 + clhs126*clhs48 + clhs127*clhs49 - clhs133*clhs15;
+        lhs(1,3)=clhs0*clhs134 + clhs126*clhs64 + clhs127*clhs65 + clhs135*clhs15;
+        lhs(1,4)=clhs0*clhs136 + clhs126*clhs76 + clhs127*clhs77 + clhs137*clhs15;
+        lhs(1,5)=clhs0*clhs138 + clhs126*clhs88 + clhs127*clhs89 + clhs139*clhs15;
+        lhs(1,6)=clhs0*clhs140 + clhs100*clhs126 + clhs101*clhs127 + clhs141*clhs15;
+        lhs(1,7)=clhs0*clhs142 + clhs112*clhs126 + clhs113*clhs127 + clhs143*clhs15;
+        lhs(1,8)=clhs0*clhs144;
+        lhs(1,9)=clhs145*clhs15;
+        lhs(2,0)=clhs14*clhs24 - clhs19*clhs35 + clhs21*clhs31 - clhs28*clhs8;
+        lhs(2,1)=clhs14*clhs40 + clhs19*clhs47 + clhs21*clhs45 + clhs42*clhs8;
+        lhs(2,2)=clhs14*clhs52 - clhs19*clhs63 + clhs21*clhs59 - clhs56*clhs8;
+        lhs(2,3)=clhs14*clhs68 + clhs19*clhs75 + clhs21*clhs73 + clhs70*clhs8;
+        lhs(2,4)=clhs14*clhs80 + clhs19*clhs87 + clhs21*clhs85 + clhs8*clhs82;
+        lhs(2,5)=clhs14*clhs92 + clhs19*clhs99 + clhs21*clhs97 + clhs8*clhs94;
+        lhs(2,6)=clhs104*clhs14 + clhs106*clhs8 + clhs109*clhs21 + clhs111*clhs19;
+        lhs(2,7)=clhs116*clhs14 + clhs118*clhs8 + clhs121*clhs21 + clhs123*clhs19;
+        lhs(2,8)=clhs124*clhs8;
+        lhs(2,9)=clhs125*clhs19;
+        lhs(3,0)=clhs126*clhs24 + clhs127*clhs31 - clhs128*clhs8 - clhs129*clhs19;
+        lhs(3,1)=clhs126*clhs40 + clhs127*clhs45 + clhs130*clhs8 + clhs131*clhs19;
+        lhs(3,2)=clhs126*clhs52 + clhs127*clhs59 - clhs132*clhs8 - clhs133*clhs19;
+        lhs(3,3)=clhs126*clhs68 + clhs127*clhs73 + clhs134*clhs8 + clhs135*clhs19;
+        lhs(3,4)=clhs126*clhs80 + clhs127*clhs85 + clhs136*clhs8 + clhs137*clhs19;
+        lhs(3,5)=clhs126*clhs92 + clhs127*clhs97 + clhs138*clhs8 + clhs139*clhs19;
+        lhs(3,6)=clhs104*clhs126 + clhs109*clhs127 + clhs140*clhs8 + clhs141*clhs19;
+        lhs(3,7)=clhs116*clhs126 + clhs121*clhs127 + clhs142*clhs8 + clhs143*clhs19;
+        lhs(3,8)=clhs144*clhs8;
+        lhs(3,9)=clhs145*clhs19;
+        lhs(4,0)=-clhs14*clhs22 - clhs147*clhs3 - clhs149*clhs17 - clhs21*clhs29;
+        lhs(4,1)=-clhs14*clhs38 - clhs17*clhs47 - clhs21*clhs43 - clhs3*clhs42;
+        lhs(4,2)=-clhs14*clhs50 - clhs151*clhs3 - clhs153*clhs17 - clhs21*clhs57;
+        lhs(4,3)=-clhs14*clhs66 - clhs17*clhs75 - clhs21*clhs71 - clhs3*clhs70;
+        lhs(4,4)=-clhs14*clhs78 - clhs17*clhs87 - clhs21*clhs83 - clhs3*clhs82;
+        lhs(4,5)=-clhs14*clhs90 - clhs17*clhs99 - clhs21*clhs95 - clhs3*clhs94;
+        lhs(4,6)=-clhs102*clhs14 - clhs106*clhs3 - clhs107*clhs21 - clhs111*clhs17;
+        lhs(4,7)=-clhs114*clhs14 - clhs118*clhs3 - clhs119*clhs21 - clhs123*clhs17;
+        lhs(4,8)=-clhs124*clhs3;
+        lhs(4,9)=-clhs125*clhs17;
+        lhs(5,0)=-clhs126*clhs22 - clhs127*clhs29 - clhs154*clhs3 - clhs155*clhs17;
+        lhs(5,1)=-clhs126*clhs38 - clhs127*clhs43 - clhs130*clhs3 - clhs131*clhs17;
+        lhs(5,2)=-clhs126*clhs50 - clhs127*clhs57 - clhs156*clhs3 - clhs157*clhs17;
+        lhs(5,3)=-clhs126*clhs66 - clhs127*clhs71 - clhs134*clhs3 - clhs135*clhs17;
+        lhs(5,4)=-clhs126*clhs78 - clhs127*clhs83 - clhs136*clhs3 - clhs137*clhs17;
+        lhs(5,5)=-clhs126*clhs90 - clhs127*clhs95 - clhs138*clhs3 - clhs139*clhs17;
+        lhs(5,6)=-clhs102*clhs126 - clhs107*clhs127 - clhs140*clhs3 - clhs141*clhs17;
+        lhs(5,7)=-clhs114*clhs126 - clhs119*clhs127 - clhs142*clhs3 - clhs143*clhs17;
+        lhs(5,8)=-clhs144*clhs3;
+        lhs(5,9)=-clhs145*clhs17;
+        lhs(6,0)=-clhs14*clhs23 - clhs147*clhs5 - clhs149*clhs18 - clhs21*clhs30;
+        lhs(6,1)=-clhs14*clhs39 - clhs18*clhs47 - clhs21*clhs44 - clhs42*clhs5;
+        lhs(6,2)=-clhs14*clhs51 - clhs151*clhs5 - clhs153*clhs18 - clhs21*clhs58;
+        lhs(6,3)=-clhs14*clhs67 - clhs18*clhs75 - clhs21*clhs72 - clhs5*clhs70;
+        lhs(6,4)=-clhs14*clhs79 - clhs18*clhs87 - clhs21*clhs84 - clhs5*clhs82;
+        lhs(6,5)=-clhs14*clhs91 - clhs18*clhs99 - clhs21*clhs96 - clhs5*clhs94;
+        lhs(6,6)=-clhs103*clhs14 - clhs106*clhs5 - clhs108*clhs21 - clhs111*clhs18;
+        lhs(6,7)=-clhs115*clhs14 - clhs118*clhs5 - clhs120*clhs21 - clhs123*clhs18;
+        lhs(6,8)=-clhs124*clhs5;
+        lhs(6,9)=-clhs125*clhs18;
+        lhs(7,0)=-clhs126*clhs23 - clhs127*clhs30 - clhs154*clhs5 - clhs155*clhs18;
+        lhs(7,1)=-clhs126*clhs39 - clhs127*clhs44 - clhs130*clhs5 - clhs131*clhs18;
+        lhs(7,2)=-clhs126*clhs51 - clhs127*clhs58 - clhs156*clhs5 - clhs157*clhs18;
+        lhs(7,3)=-clhs126*clhs67 - clhs127*clhs72 - clhs134*clhs5 - clhs135*clhs18;
+        lhs(7,4)=-clhs126*clhs79 - clhs127*clhs84 - clhs136*clhs5 - clhs137*clhs18;
+        lhs(7,5)=-clhs126*clhs91 - clhs127*clhs96 - clhs138*clhs5 - clhs139*clhs18;
+        lhs(7,6)=-clhs103*clhs126 - clhs108*clhs127 - clhs140*clhs5 - clhs141*clhs18;
+        lhs(7,7)=-clhs115*clhs126 - clhs120*clhs127 - clhs142*clhs5 - clhs143*clhs18;
+        lhs(7,8)=-clhs144*clhs5;
+        lhs(7,9)=-clhs145*clhs18;
+        lhs(8,0)=clhs27*scale_factor;
+        lhs(8,1)=-clhs41*scale_factor;
+        lhs(8,2)=clhs55*scale_factor;
+        lhs(8,3)=-clhs69*scale_factor;
+        lhs(8,4)=-clhs81*scale_factor;
+        lhs(8,5)=-clhs93*scale_factor;
+        lhs(8,6)=-clhs105*scale_factor;
+        lhs(8,7)=-clhs117*scale_factor;
         lhs(8,8)=0;
         lhs(8,9)=0;
-        lhs(9,0)=scale_factor*(clhs36 - normalslave(1,0)*(clhs15 - clhs38 - clhs39 + clhs40 + clhs41));
-        lhs(9,1)=scale_factor*(clhs59 - normalslave(1,1)*(clhs15 - clhs60 - clhs61 + clhs62 + clhs63));
-        lhs(9,2)=scale_factor*(clhs82 - normalslave(1,0)*(clhs19 - clhs84 - clhs85 + clhs86 + clhs87));
-        lhs(9,3)=scale_factor*(clhs105 - normalslave(1,1)*(-clhs106 - clhs107 + clhs108 + clhs109 + clhs19));
-        lhs(9,4)=clhs122*scale_factor;
-        lhs(9,5)=clhs134*scale_factor;
-        lhs(9,6)=clhs146*scale_factor;
-        lhs(9,7)=clhs158*scale_factor;
+        lhs(9,0)=clhs34*scale_factor;
+        lhs(9,1)=-clhs46*scale_factor;
+        lhs(9,2)=clhs62*scale_factor;
+        lhs(9,3)=-clhs74*scale_factor;
+        lhs(9,4)=-clhs86*scale_factor;
+        lhs(9,5)=-clhs98*scale_factor;
+        lhs(9,6)=-clhs110*scale_factor;
+        lhs(9,7)=-clhs122*scale_factor;
         lhs(9,8)=0;
         lhs(9,9)=0;
     }
@@ -2241,20 +2296,20 @@ array_1d<double, 10> AugmentedLagrangianMethodFrictionlessMortarContactCondition
         const double crhs2 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs3 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs4 =     normalslave(1,0)*(-crhs0*(X2(0,0) + u2(0,0)) + crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) - crhs3*(X2(1,0) + u2(1,0))) + normalslave(1,1)*(-crhs0*(X2(0,1) + u2(0,1)) + crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) - crhs3*(X2(1,1) + u2(1,1)));
-        const double crhs5 =     -crhs4*penalty_parameter + lmnormal[1]*scale_factor;
+        const double crhs5 =     crhs4*penalty_parameter + lmnormal[1]*scale_factor;
         const double crhs6 =     crhs5*normalslave(1,0);
         const double crhs7 =     crhs5*normalslave(1,1);
     
-        rhs[0]=crhs0*crhs6;
-        rhs[1]=crhs0*crhs7;
-        rhs[2]=crhs3*crhs6;
-        rhs[3]=crhs3*crhs7;
-        rhs[4]=-crhs1*crhs6;
-        rhs[5]=-crhs1*crhs7;
-        rhs[6]=-crhs2*crhs6;
-        rhs[7]=-crhs2*crhs7;
+        rhs[0]=-crhs0*crhs6;
+        rhs[1]=-crhs0*crhs7;
+        rhs[2]=-crhs3*crhs6;
+        rhs[3]=-crhs3*crhs7;
+        rhs[4]=crhs1*crhs6;
+        rhs[5]=crhs1*crhs7;
+        rhs[6]=crhs2*crhs6;
+        rhs[7]=crhs2*crhs7;
         rhs[8]=-0.5*lmnormal[0]*std::pow(scale_factor, 2.0)/penalty_parameter;
-        rhs[9]=-crhs4*scale_factor;
+        rhs[9]=crhs4*scale_factor;
     }
     else if (rActiveInactive == 1 )
     {
@@ -2263,19 +2318,19 @@ array_1d<double, 10> AugmentedLagrangianMethodFrictionlessMortarContactCondition
         const double crhs2 =     DOperator(0,1); // DOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs3 =     MOperator(0,1); // MOPERATOR(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs4 =     normalslave(0,0)*(-crhs0*(X2(0,0) + u2(0,0)) + crhs1*(X1(0,0) + u1(0,0)) + crhs2*(X1(1,0) + u1(1,0)) - crhs3*(X2(1,0) + u2(1,0))) + normalslave(0,1)*(-crhs0*(X2(0,1) + u2(0,1)) + crhs1*(X1(0,1) + u1(0,1)) + crhs2*(X1(1,1) + u1(1,1)) - crhs3*(X2(1,1) + u2(1,1)));
-        const double crhs5 =     -crhs4*penalty_parameter + lmnormal[0]*scale_factor;
+        const double crhs5 =     crhs4*penalty_parameter + lmnormal[0]*scale_factor;
         const double crhs6 =     crhs5*normalslave(0,0);
         const double crhs7 =     crhs5*normalslave(0,1);
     
-        rhs[0]=crhs0*crhs6;
-        rhs[1]=crhs0*crhs7;
-        rhs[2]=crhs3*crhs6;
-        rhs[3]=crhs3*crhs7;
-        rhs[4]=-crhs1*crhs6;
-        rhs[5]=-crhs1*crhs7;
-        rhs[6]=-crhs2*crhs6;
-        rhs[7]=-crhs2*crhs7;
-        rhs[8]=-crhs4*scale_factor;
+        rhs[0]=-crhs0*crhs6;
+        rhs[1]=-crhs0*crhs7;
+        rhs[2]=-crhs3*crhs6;
+        rhs[3]=-crhs3*crhs7;
+        rhs[4]=crhs1*crhs6;
+        rhs[5]=crhs1*crhs7;
+        rhs[6]=crhs2*crhs6;
+        rhs[7]=crhs2*crhs7;
+        rhs[8]=crhs4*scale_factor;
         rhs[9]=-0.5*lmnormal[1]*std::pow(scale_factor, 2.0)/penalty_parameter;
     }
     else if (rActiveInactive == 3 )
@@ -2293,28 +2348,28 @@ array_1d<double, 10> AugmentedLagrangianMethodFrictionlessMortarContactCondition
         const double crhs10 =     X2(0,1) + u2(0,1);
         const double crhs11 =     X2(1,1) + u2(1,1);
         const double crhs12 =     normalslave(0,0)*(-crhs0*crhs5 + crhs1*crhs2 + crhs3*crhs4 - crhs6*crhs7) + normalslave(0,1)*(-crhs0*crhs10 - crhs11*crhs7 + crhs2*crhs8 + crhs4*crhs9);
-        const double crhs13 =     -crhs12*penalty_parameter + lmnormal[0]*scale_factor;
+        const double crhs13 =     crhs12*penalty_parameter + lmnormal[0]*scale_factor;
         const double crhs14 =     crhs13*normalslave(0,0);
         const double crhs15 =     MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs16 =     DOperator(1,0); // DOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs17 =     DOperator(1,1); // DOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs18 =     MOperator(1,1); // MOPERATOR(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
         const double crhs19 =     normalslave(1,0)*(crhs1*crhs16 - crhs15*crhs5 + crhs17*crhs3 - crhs18*crhs6) + normalslave(1,1)*(-crhs10*crhs15 - crhs11*crhs18 + crhs16*crhs8 + crhs17*crhs9);
-        const double crhs20 =     -crhs19*penalty_parameter + lmnormal[1]*scale_factor;
+        const double crhs20 =     crhs19*penalty_parameter + lmnormal[1]*scale_factor;
         const double crhs21 =     crhs20*normalslave(1,0);
         const double crhs22 =     crhs13*normalslave(0,1);
         const double crhs23 =     crhs20*normalslave(1,1);
     
-        rhs[0]=crhs0*crhs14 + crhs15*crhs21;
-        rhs[1]=crhs0*crhs22 + crhs15*crhs23;
-        rhs[2]=crhs14*crhs7 + crhs18*crhs21;
-        rhs[3]=crhs18*crhs23 + crhs22*crhs7;
-        rhs[4]=-crhs14*crhs2 - crhs16*crhs21;
-        rhs[5]=-crhs16*crhs23 - crhs2*crhs22;
-        rhs[6]=-crhs14*crhs4 - crhs17*crhs21;
-        rhs[7]=-crhs17*crhs23 - crhs22*crhs4;
-        rhs[8]=-crhs12*scale_factor;
-        rhs[9]=-crhs19*scale_factor;
+        rhs[0]=-crhs0*crhs14 - crhs15*crhs21;
+        rhs[1]=-crhs0*crhs22 - crhs15*crhs23;
+        rhs[2]=-crhs14*crhs7 - crhs18*crhs21;
+        rhs[3]=-crhs18*crhs23 - crhs22*crhs7;
+        rhs[4]=crhs14*crhs2 + crhs16*crhs21;
+        rhs[5]=crhs16*crhs23 + crhs2*crhs22;
+        rhs[6]=crhs14*crhs4 + crhs17*crhs21;
+        rhs[7]=crhs17*crhs23 + crhs22*crhs4;
+        rhs[8]=crhs12*scale_factor;
+        rhs[9]=crhs19*scale_factor;
     }
 
 

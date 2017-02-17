@@ -93,10 +93,13 @@ class ContactProcess(KratosMultiphysics.Process):
             elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
             
         mean_E = stat.mean(elem_E_values)
-            
+        
+        # Debug
         penalty = 0.0
-        #penalty = 10.0 * mean_E/mean_h
         scale_factor = 1.0
+        
+        ## Penalty and scalar factor
+        #penalty = 10.0 * mean_E/mean_h
         #scale_factor = 10.0 * mean_E/mean_h
         
         for prop in computing_model_part.GetProperties():
@@ -150,26 +153,26 @@ class ContactProcess(KratosMultiphysics.Process):
             for node in self.d_interface.Nodes:
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP, False)
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP,   False)
                 node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-                node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
-                node.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector)
+                node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
+                node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
                 #node.Set(KratosMultiphysics.SLAVE, True)
             del node
             
             # Setting the master conditions 
             for cond in self.o_interface.Nodes:
-                cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
                 #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
             del cond
             
             # Setting the slave conditions 
             for cond in self.d_interface.Nodes:
-                cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
             del cond
             

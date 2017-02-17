@@ -1007,7 +1007,7 @@ public:
                 {
                     itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
                 }
-                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+                itNode->GetValue(WEIGHTED_GAP) = 0.0;
             }
         }
     }

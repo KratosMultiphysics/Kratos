@@ -1201,6 +1201,12 @@ protected:
         DerivativeData& rDerivativeData,
         const double& rIntegrationWeight
     );
+
+    void CalculateMortarOperators(
+        MortarConditionMatrices& rThisMortarConditionMatrices,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight
+    );
     
     /*
      * Calculates the componets necessaries to compute the derivatives of Phi
