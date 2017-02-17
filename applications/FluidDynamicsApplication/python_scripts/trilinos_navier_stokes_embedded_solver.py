@@ -36,7 +36,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             },
             "maximum_iterations": 10,
             "dynamic_tau": 0.0,
-            "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
@@ -59,12 +58,14 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "move_mesh_strategy": 0,
+            "time_stepping": {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
             "periodic": "periodic",
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "move_mesh_flag": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -136,12 +137,15 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
 
     def Initialize(self):
-
         ## Construct the communicator
         self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
 
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
+
+        ## If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -185,7 +189,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                                                                    self.settings["maximum_iterations"].GetInt(),
                                                                    self.settings["compute_reactions"].GetBool(),
                                                                    self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                   self.settings["MoveMeshFlag"].GetBool())
+                                                                   self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
