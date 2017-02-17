@@ -301,7 +301,7 @@ private:
     /**
      * This converts the interpolation string to an enum
      * @param str: The string
-     * @param Interpolation: The equivalent enum
+     * @return Interpolation: The equivalent enum
      */
         
     Interpolation ConvertInter(const std::string& str)

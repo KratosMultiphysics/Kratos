@@ -121,6 +121,8 @@ namespace Kratos
     
     enum elem_geometries_3d {Tetrahedra = 0, Prism = 1};
     
+    enum Framework_euler_lagrange {Eulerian = 0, Lagrangian = 1};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -155,7 +157,8 @@ public:
     MmgUtility(
         ModelPart& rThisModelPart,
         const std::string Filename = "output_remesh",
-        const unsigned int echo_level = 3
+        const unsigned int echo_level = 3,
+        const std::string framework = "Eulerian"
         )
         :mThisModelPart(rThisModelPart),
         mStdStringFilename(Filename),
@@ -163,6 +166,8 @@ public:
     {       
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
+       
+       mFramework = ConvertFramework(framework);
        
        mpRefElement.resize(TDim - 1);
        mpRefCondition.resize(TDim - 1);
@@ -278,6 +283,9 @@ protected:
     char* mFilename;
     std::string mStdStringFilename;
     unsigned int mEchoLevel;
+    
+    // The framework
+    Framework_euler_lagrange mFramework;
     
     // The member variables related with the MMG library
     MMG5_pMesh mmgMesh;
@@ -1050,6 +1058,11 @@ protected:
             }
             else
             {
+                if (mFramework == Lagrangian)
+                {
+                    CalculateInitialCoordinates(*(itNode.base()), pElement, shape_functions);
+                }
+                
                 for(unsigned int step = 0; step < buffer_size; step++)
                 {
                     CalculateStepData(*(itNode.base()), pElement, shape_functions, step, step_data_size);
@@ -1057,6 +1070,19 @@ protected:
             }
         }
     }
+    
+    /**
+     * It calculates the initial coordiantes interpolated to the node
+     * @return itNode: The node pointer
+     * @param pElement: The element pointer
+     * @param shape_functions: The shape functions in the node
+     */
+    
+    void CalculateInitialCoordinates(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        );
     
     /**
      * It calculates the step data interpolated to the node
@@ -1659,6 +1685,28 @@ protected:
         const int node_id 
         );
     
+    /**
+     * This converts the framework string to an enum
+     * @param str: The string
+     * @return Framework_euler_lagrange: The equivalent enum
+     */
+        
+    Framework_euler_lagrange ConvertFramework(const std::string& str)
+    {
+        if(str == "Lagrangian") 
+        {
+            return Lagrangian;
+        }
+        else if(str == "Eulerian") 
+        {
+            return Eulerian;
+        }
+        else
+        {
+            return Eulerian;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -2244,6 +2292,68 @@ protected:
     /***********************************************************************************/
     
     template<>  
+    void MmgUtility<2>::CalculateInitialCoordinates(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        )
+    {
+        double& initial_coord_X = pNode->X0();
+        double& initial_coord_Y = pNode->Y0();
+        
+        const array_1d<double, 3>& node0_initial_coord = pElement->GetGeometry()[0].Coordinates() - pElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        const array_1d<double, 3>& node1_initial_coord = pElement->GetGeometry()[1].Coordinates() - pElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        const array_1d<double, 3>& node2_initial_coord = pElement->GetGeometry()[2].Coordinates() - pElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        
+        initial_coord_X = shape_functions[0] * node0_initial_coord[0]
+                        + shape_functions[1] * node1_initial_coord[0]
+                        + shape_functions[2] * node2_initial_coord[0];
+                        
+        initial_coord_Y = shape_functions[0] * node0_initial_coord[1]
+                        + shape_functions[1] * node1_initial_coord[1]
+                        + shape_functions[2] * node2_initial_coord[1];
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::CalculateInitialCoordinates(
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        )
+    {        
+        double& initial_coord_X = pNode->X0();
+        double& initial_coord_Y = pNode->Y0();
+        double& initial_coord_Z = pNode->Z0();
+        
+        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
+        const array_1d<double, 3>& node0_initial_coord = pElement->GetGeometry()[0].Coordinates() - pElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        const array_1d<double, 3>& node1_initial_coord = pElement->GetGeometry()[1].Coordinates() - pElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        const array_1d<double, 3>& node2_initial_coord = pElement->GetGeometry()[2].Coordinates() - pElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        const array_1d<double, 3>& node3_initial_coord = pElement->GetGeometry()[3].Coordinates() - pElement->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT, 0);
+        
+        initial_coord_X = shape_functions[0] * node0_initial_coord[0]
+                        + shape_functions[1] * node1_initial_coord[0]
+                        + shape_functions[2] * node2_initial_coord[0]
+                        + shape_functions[3] * node3_initial_coord[0];
+        
+        initial_coord_Y = shape_functions[0] * node0_initial_coord[1]
+                        + shape_functions[1] * node1_initial_coord[1]
+                        + shape_functions[2] * node2_initial_coord[1]
+                        + shape_functions[3] * node3_initial_coord[1];
+        
+        initial_coord_Z = shape_functions[0] * node0_initial_coord[2]
+                        + shape_functions[1] * node1_initial_coord[2]
+                        + shape_functions[2] * node2_initial_coord[2]
+                        + shape_functions[3] * node3_initial_coord[2];
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
     void MmgUtility<2>::CalculateStepData(
         NodeType::Pointer& pNode,
         const ElementType::Pointer& pElement,
@@ -2280,7 +2390,7 @@ protected:
     {
         double* step_data = pNode->SolutionStepData().Data(step);
         
-        // NOTE: This just works with tetrahedron (you are going to have poblems with anything else)
+        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
         double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
         double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
         double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
