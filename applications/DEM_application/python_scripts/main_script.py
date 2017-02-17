@@ -212,16 +212,22 @@ class Solution:
         time_old_print = 0.0
         
         while (time < DEM_parameters.FinalTime):
+            
+            self.InitlializeTimeStep()
 
             dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
             time  = time + dt
             step += 1
 
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, time,dt,step) 
+            
+            self.BeforeSolveOperations()
 
             #### SOLVE #########################################
             self.solver.Solve()
             ####################################################
+            
+            self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, time, dt)
 
@@ -253,6 +259,7 @@ class Solution:
                 self.PrintResultsForGid(time)                
                 time_old_print = time
                 
+            self.FinalizeTimeStep()
                 
     
     def PrintResultsForGid(self, time):
@@ -277,6 +284,22 @@ class Solution:
         os.chdir(self.main_path)
         
         
+    def InitlializeTimeStep(self):
+        pass
+    
+    
+    def BeforeSolveOperations(self):
+        pass
+    
+    
+    def AfterSolveOperations(self):
+        pass
+    
+    
+    def FinalizeTimeStep(self):
+        pass
+    
+    
     def Finalize(self):
         
         self.KRATOSprint("Finalizing execution...")
