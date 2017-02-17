@@ -1,0 +1,148 @@
+{
+    "problem_data"                             : {
+        "problem_name"    : "thermo-mechanic_solver_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "start_time":           0.0,
+        "end_time":             5.0,
+        "time_step":            1.0,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1,
+        "time_scale"      : "Hours"
+    },
+    "solver_settings": {
+            "solver_type": "dam_thermo_mechanic_solver",
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "thermo-mechanic_solver_test",
+                "input_file_label": 0
+            },
+            "echo_level": 1,
+            "buffer_size": 2,
+            "reference_temperature" : 10.0,
+            "processes_sub_model_part_list": ["DISPLACEMENT_Displacement_Auto1","INITIALTEMPERATURE_Initial_Temperature_Auto1","INITIALTEMPERATURE_Initial_Temperature_Auto2","THERMALPARAMETERS_Thermal_Parameters_Auto1"],
+            "thermal_solver_settings":{
+                "echo_level": 1,
+                "reform_dofs_at_each_step": false,
+                "clear_storage": false,
+                "compute_reactions": false,
+                "move_mesh_flag": true,
+                "compute_norm_dx_flag": false,
+                "theta_scheme": 1.0,
+                "block_builder": false,
+                "linear_solver_settings":{
+                    "solver_type": "SuperLUSolver"
+                },
+                "problem_domain_sub_model_part_list": ["Parts_Parts_Auto2"]
+            },
+            "mechanical_solver_settings":{
+                "echo_level": 1,
+                "reform_dofs_at_each_step": false,
+                "clear_storage": false,
+                "compute_reactions": false,
+                "move_mesh_flag": true,
+                "solution_type": "Quasi-Static",
+                "scheme_type": "Newmark",
+                "rayleigh_m": 0.0,
+                "rayleigh_k": 0.0,
+                "strategy_type": "Newton-Raphson",
+                "convergence_criterion": "And_criterion",
+                "displacement_relative_tolerance": 1.0e-4,
+                "displacement_absolute_tolerance": 1.0e-9,
+                "residual_relative_tolerance": 1.0e-4,
+                "residual_absolute_tolerance": 1.0e-9,
+                "max_iteration": 10,
+                "desired_iterations": 4,
+                "max_radius_factor": 20.0,
+                "min_radius_factor": 0.5,
+                "block_builder": false,
+                "nonlocal_damage": false,
+                "characteristic_length": 0.05,
+                "search_neighbours_step": false,
+                "linear_solver_settings":{
+                    "solver_type": "SuperLUSolver"
+                },
+                "problem_domain_sub_model_part_list": ["Parts_Parts_Auto1"],
+                "body_domain_sub_model_part_list": ["Parts_Parts_Auto1"],
+                "loads_sub_model_part_list": [],
+                "loads_variable_list": []
+            }
+    },
+    "output_configuration"                     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label":          "step",
+            "output_control_type": "step",
+            "output_frequency":    1,
+            "body_output":         true,
+            "node_output":         false,
+            "skin_output":         false,
+            "plane_output":        [],
+            "nodal_results"       : ["DISPLACEMENT","NODAL_CAUCHY_STRESS_TENSOR","TEMPERATURE"],
+            "gauss_point_results" : []
+        }
+    },
+    "constraints_process_list"      : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_X"      : true,
+            "is_fixed_Y"      : true,
+            "is_fixed_Z"      : true,
+            "value"           : [0.0,0.0,0.0],
+            "Value_X_Table"   : 0,
+            "Value_Y_Table"   : 0,
+            "Value_Z_Table"   : 0
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "INITIALTEMPERATURE_Initial_Temperature_Auto1",
+            "variable_name"   : "TEMPERATURE",
+            "is_fixed"        : false,
+            "value"           : 10,
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "INITIALTEMPERATURE_Initial_Temperature_Auto2",
+            "variable_name"   : "TEMPERATURE",
+            "is_fixed"        : true,
+            "value"           : 20,
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_thermal_parameters_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeThermalParametersScalarValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "THERMALPARAMETERS_Thermal_Parameters_Auto1",
+            "variable_name"   : "THERMAL_PARAMETERS",
+            "ThermalDensity"  : 2500,
+            "Conductivity"    : 1.0,
+            "SpecificHeat"    : 1000.0
+        }
+    }],
+    "loads_process_list"       : []
+}

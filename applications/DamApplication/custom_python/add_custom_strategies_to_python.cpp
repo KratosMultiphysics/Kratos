@@ -41,7 +41,6 @@
 //~ #include "custom_strategies/schemes/trilinos_dam_UP_scheme.hpp"
 
 //strategies
-#include "custom_strategies/strategies/dam_eulerian_convection_diffusion_strategy.hpp"
 
 
 namespace Kratos
@@ -57,8 +56,6 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     //custom scheme types
     typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType; 
@@ -67,9 +64,6 @@ void  AddCustomStrategiesToPython()
     typedef DamUPScheme< SparseSpaceType, LocalSpaceType >  DamUPSchemeType;
     typedef DamPScheme< SparseSpaceType, LocalSpaceType >  DamPSchemeType;
     
-    //custom strategies types
-    typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategyType;
-
     //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
     //~ typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
@@ -98,12 +92,6 @@ void  AddCustomStrategiesToPython()
 
 	//~ class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
         //~ init< double, double, double, double >());
-        
-
-    // Strategies       
-    class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
-        init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
-
 }
 
 }  // namespace Python.

@@ -166,8 +166,8 @@ class DamUPSolver:
             check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
             # Constitutive law import
-            import constitutive_law_utility
-            constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)       
+            import dam_constitutive_law_utility
+            dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)       
         else:
             raise Exception("other input options are not yet implemented")
         
