@@ -30,7 +30,7 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "dam_MPI_thermo_mechanic_solver",
+            "solver_type": "dam_MPI_UP_thermo_mechanic_solver",
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
@@ -66,7 +66,7 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
                 "clear_storage": false,
                 "compute_reactions": false,
                 "move_mesh_flag": true,
-                "solution_type": "Quasi-Static",
+                "solution_type": "Dynamic",
                 "scheme_type": "Newmark",
                 "rayleigh_m": 0.0,
                 "rayleigh_k": 0.0,
@@ -132,21 +132,16 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
             ## Fluid dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
-
-        for node in self.main_model_part.Nodes:
             ## Thermal dofs
             node.AddDof(KratosMultiphysics.TEMPERATURE)
-
-        if(self.settings["mechanical_solver_settings"]["solution_type"].GetString() == "Dynamic"):
-            for node in self.main_model_part.Nodes:
-                # adding VELOCITY as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X)
-                node.AddDof(KratosMultiphysics.VELOCITY_Y)
-                node.AddDof(KratosMultiphysics.VELOCITY_Z)
-                # adding ACCELERATION as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X)
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y)
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z)
+            # adding VELOCITY as dofs
+            node.AddDof(KratosMultiphysics.VELOCITY_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+            # adding ACCELERATION as dofs
+            node.AddDof(KratosMultiphysics.ACCELERATION_X)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
     #### Specific internal functions ####
 
@@ -157,6 +152,6 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
         
         beta=0.25
         gamma=0.5
-        scheme = KratosDam.TrilinosDamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)       
+        scheme = KratosDam.TrilinosDamUPScheme(beta,gamma,rayleigh_m,rayleigh_k)
         
         return scheme

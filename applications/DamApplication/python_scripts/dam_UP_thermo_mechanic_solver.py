@@ -27,7 +27,7 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "dam_MPI_thermo_mechanic_solver",
+            "solver_type": "dam_UP_thermo_mechanic_solver",
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
@@ -47,13 +47,15 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
                 "theta_scheme": 1.0,
                 "block_builder": true,
                 "linear_solver_settings":{
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "AMGCL",
                     "tolerance": 1.0e-6,
-                    "max_iteration": 200,
+                    "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "None",
-                    "krylov_type": "fgmres"
+                    "preconditioner_type": "ILU0Preconditioner",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation"
                 },
                 "problem_domain_sub_model_part_list": [""]
             },
@@ -63,7 +65,7 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
                 "clear_storage": false,
                 "compute_reactions": false,
                 "move_mesh_flag": true,
-                "solution_type": "Quasi-Static",
+                "solution_type": "Dynamic",
                 "scheme_type": "Newmark",
                 "rayleigh_m": 0.0,
                 "rayleigh_k": 0.0,
@@ -82,13 +84,15 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
                 "characteristic_length": 0.05,
                 "search_neighbours_step": false,
                 "linear_solver_settings":{
-                    "solver_type": "AmgclMPISolver",
+                    "solver_type": "AMGCL",
                     "tolerance": 1.0e-6,
-                    "max_iteration": 200,
+                    "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "None",
-                    "krylov_type": "fgmres"
+                    "preconditioner_type": "ILU0Preconditioner",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation"
                 },
                 "problem_domain_sub_model_part_list": [""],
                 "body_domain_sub_model_part_list": [],
@@ -129,21 +133,16 @@ class DamUPThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSolv
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
             ## Fluid dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
-
-        for node in self.main_model_part.Nodes:
             ## Thermal dofs
             node.AddDof(KratosMultiphysics.TEMPERATURE)
-
-        if(self.settings["mechanical_solver_settings"]["solution_type"].GetString() == "Dynamic"):
-            for node in self.main_model_part.Nodes:
-                # adding VELOCITY as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X)
-                node.AddDof(KratosMultiphysics.VELOCITY_Y)
-                node.AddDof(KratosMultiphysics.VELOCITY_Z)
-                # adding ACCELERATION as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X)
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y)
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z)
+            # adding VELOCITY as dofs
+            node.AddDof(KratosMultiphysics.VELOCITY_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+            # adding ACCELERATION as dofs
+            node.AddDof(KratosMultiphysics.ACCELERATION_X)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
     #### Specific internal functions ####
 

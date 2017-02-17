@@ -161,13 +161,12 @@ class DamThermoMechanicSolver(object):
 
     def AddDofs(self):
         
-        ## Solid dofs
         for node in self.main_model_part.Nodes:
+            ## Solid dofs
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y,KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
-        ## Thermal dofs
-        for node in self.main_model_part.Nodes:
+            ## Thermal dofs
             node.AddDof(KratosMultiphysics.TEMPERATURE)
 
         if(self.settings["mechanical_solver_settings"]["solution_type"].GetString() == "Dynamic"):

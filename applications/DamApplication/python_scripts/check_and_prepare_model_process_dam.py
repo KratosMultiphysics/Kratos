@@ -18,7 +18,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
         self.mechanical_domain_sub_model_part_list = Parameters["mechanical_domain_sub_model_part_list"]
-        #~ self.processes_sub_model_part_list = Parameters["processes_sub_model_part_list"]
         self.body_domain_sub_model_part_list = Parameters["body_domain_sub_model_part_list"]
         self.loads_sub_model_part_list = Parameters["loads_sub_model_part_list"]
 
@@ -50,9 +49,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         mechanical_parts = []
         for i in range(self.mechanical_domain_sub_model_part_list.size()):
             mechanical_parts.append(self.main_model_part.GetSubModelPart(self.mechanical_domain_sub_model_part_list[i].GetString()))
-        #~ processes_parts = []
-        #~ for i in range(self.processes_sub_model_part_list.size()):
-            #~ processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_sub_model_part_list[i].GetString()))
         self.main_model_part.CreateSubModelPart(self.mechanical_model_part_name)
         mechanical_model_part = self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
         mechanical_model_part.ProcessInfo = self.main_model_part.ProcessInfo
@@ -68,11 +64,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         mechanical_model_part.AddElements(list(list_of_ids))
         for cond in self.main_model_part.Conditions:
             mechanical_model_part.AddCondition(cond,0)
-        #~ list_of_ids = set()
-        #~ for part in processes_parts:
-            #~ for cond in part.Conditions:
-                #~ list_of_ids.add(cond.Id)
-        #~ mechanical_model_part.AddConditions(list(list_of_ids))
         # Sub sub model parts
         for i in range(self.body_domain_sub_model_part_list.size()):
             body_sub_model_part = self.main_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())

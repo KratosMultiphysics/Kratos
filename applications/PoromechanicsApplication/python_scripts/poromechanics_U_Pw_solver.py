@@ -245,13 +245,9 @@ class UPwSolver(object):
         
         self.computing_model_part_name = "porous_computing_domain"
         
-        #TODO: netejar el que esta comentat (borrar problem_domain_sub_model_part_list del projectparameters?)
-        
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
-        #~ aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        #~ aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
         import check_and_prepare_model_process_poro
