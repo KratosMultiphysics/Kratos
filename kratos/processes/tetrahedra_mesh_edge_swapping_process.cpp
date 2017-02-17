@@ -92,8 +92,10 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	KRATOS_WATCH(mEdges.size());
 
 	for (auto& edge : mEdges) {
-		if (edge.second.GetNumberOfShellPoints() == 3)
-			EdgeSwapping3(edge.second);
+		if (edge.second.IsClosed()) {
+			if (edge.second.GetNumberOfShellPoints() == 3)
+				EdgeSwapping3(edge.second);
+		}
 
 	}
 }
