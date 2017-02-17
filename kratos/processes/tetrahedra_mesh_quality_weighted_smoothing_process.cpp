@@ -52,7 +52,7 @@ namespace Kratos
 		for (std::size_t i = 0; i < size; i++)
 		{
 			CalculateElementOptimumPosition(rNode, r_neighbours[i].GetGeometry(), rOptimumPoints[i]);
-			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO));
+			auto quality = std::abs(r_neighbours[i].GetGeometry().Quality(Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH));
 			if (quality > 1e-6)
 				rWeights[i] = 1.00 / quality;
 			else
