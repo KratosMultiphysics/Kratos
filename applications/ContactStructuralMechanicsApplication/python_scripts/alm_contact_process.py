@@ -94,8 +94,10 @@ class ContactProcess(KratosMultiphysics.Process):
             
         mean_E = stat.mean(elem_E_values)
             
-        penalty = 10.0 * mean_E/mean_h
-        scale_factor = 10.0 * mean_E/mean_h
+        penalty = 0.0
+        #penalty = 10.0 * mean_E/mean_h
+        scale_factor = 1.0
+        #scale_factor = 10.0 * mean_E/mean_h
         
         for prop in computing_model_part.GetProperties():
             prop[KratosMultiphysics.ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty

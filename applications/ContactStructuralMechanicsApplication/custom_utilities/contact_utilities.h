@@ -912,6 +912,8 @@ public:
 //                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
                         }
                         
+                        std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << augmented_normal_presssure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+                        
                         CondGeometry[itNode].Set(VISITED, true);
                     }
                 }
