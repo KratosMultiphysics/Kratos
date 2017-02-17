@@ -103,8 +103,7 @@
             "model_part_name" : "MainModelPart",
             "domain_size"     : 2,
             "start_step"      : 0.0,
-            "end_time"        : 25.0,
-            "time_step"       : 0.1
+            "end_time"        : 25.0
         },
         "output_configuration"             : {
             "result_file_configuration" : {
@@ -143,10 +142,9 @@
             "oss_switch"                    : 0,
             "echo_level"                    : 0,
             "consider_periodic_conditions"  : false,
-            "time_order"                    : 2,
             "compute_reactions"             : false,
             "divergence_clearance_steps"    : 0,
-            "reform_dofs_at_each_step" : false,
+            "reform_dofs_at_each_step"      : false,
             "relative_velocity_tolerance"   : 1e-5,
             "absolute_velocity_tolerance"   : 1e-7,
             "relative_pressure_tolerance"   : 1e-5,
@@ -162,9 +160,13 @@
                 "scaling"             : true,
                 "verbosity"           : 0
             },
-            "volume_model_part_name"        : "Parts_Fluid",
-            "skin_parts"                    : ["Inlet2D_Inlet","Outlet2D_Outlet","Slip2D_Slip","NoSlip2D_No_slip","FluidNoSlipInterface2D_Interface"],
-            "no_skin_parts"                 : ["DISPLACEMENT_ALE_mesh_BC"]
+            "volume_model_part_name" : "Parts_Fluid",
+            "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","Slip2D_Slip","NoSlip2D_No_slip","FluidNoSlipInterface2D_Interface"],
+            "no_skin_parts"          : ["DISPLACEMENT_ALE_mesh_BC"],
+            "time_stepping"          : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.1
+            }
         },
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
@@ -269,13 +271,7 @@
             "mesh_solver"                : "mesh_solver_structural_similarity",
             "mesh_reform_dofs_each_step" : false,
             "structure_interfaces_list"  : ["Interface2D_Structure_interface"],
-            "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"],
-            "mappers_settings": [
-            {
-    	        "mapper_type": "NearestNeighbor",
-                "interface_submodel_part_origin": "FluidNoSlipInterface2D_Interface",
-                "interface_submodel_part_destination": "Interface2D_Structure_interface"
-        	}]
+            "fluid_interfaces_list"      : ["FluidNoSlipInterface2D_Interface"]
         }
     }
 }
