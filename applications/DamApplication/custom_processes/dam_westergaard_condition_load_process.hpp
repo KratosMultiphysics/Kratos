@@ -109,6 +109,7 @@ public:
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         int direction;
+        double pressure;
         
         if( mgravity_direction == "X")
             direction = 1;
@@ -141,10 +142,16 @@ public:
 					y_water=0.0;
 				}
                 
+                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
+                if(unit_acceleration<0.0)
+                {
                 // The first part is related to hydrostatic pressure 
-                double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
-                
-                KRATOS_WATCH(pressure)
+                     pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
+                }
+                else
+                {
+                     pressure = (mspecific*(y_water));
+                }
                 
                 if(pressure>0.0)
                 {
@@ -185,8 +192,8 @@ public:
         }
         
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        
         int direction;
+        double pressure;
         
         if( mgravity_direction == "X")
             direction = 1;
@@ -219,8 +226,16 @@ public:
 					y_water=0.0;
 				}
                 
+                // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
+                if(unit_acceleration<0.0)
+                {
                 // The first part is related to hydrostatic pressure 
-                double pressure = (mspecific*(y_water)) + 0.875*unit_acceleration*mspecific*sqrt(y_water*mwater_level);
+                    pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
+                }
+                else
+                {
+                    pressure = (mspecific*(y_water));
+                }
                 
                 if(pressure>0.0)
                 {

@@ -1,13 +1,26 @@
 # Compiled python
 *.pyc
 
-# CMake directory
+# Common build directory
 cmake_build/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
+packaging/*
+packaging_aux/KratosLoader.py
+packaging_aux/kratos.conf
+
+# Compile and install directories
+KratosMultiphysics/*
+libpython*
+libs/*
+runkratos
+script.py
 
 # Version
 kratos/includes/kratos_version.h
+
+# Times files
+*.time
 
 # Prerequisites
 *.d
@@ -33,3 +46,7 @@ kratos/includes/kratos_version.h
 *.la
 *.a
 *.lib
+
+# Output of tests of meshing application (MMG)
+*.o.sol
+*.o.mesh
