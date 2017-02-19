@@ -416,6 +416,64 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
+            
+    def test_rotated_system(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        #note that y and z are inverted in the rotated system
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_to_nodes_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignValueProcess",
+                        "Parameters"            : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "VISCOSITY",
+                            "interval"        : [0.0, 10.0],
+                            "constrained"     : false,
+                            "value"      : "x+100.0*y*t**2",
+                            "local_axes"               :{
+                                "origin" : [10.0, 0.0, 0.0],
+                                "axes"  : [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0] ]
+                            }
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        model_part.CloneTimeStep(3.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        t = model_part.ProcessInfo[TIME]
+        for node in model_part.Nodes:
+            x = node.X - 10.0
+            y = node.Z
+            z = node.Y
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), x+100.0*y*t**2)
+            self.assertFalse(node.IsFixed(VISCOSITY))
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        
 
 
     def test_find_nodal_h_process(self):

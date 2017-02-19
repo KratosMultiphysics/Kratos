@@ -51,7 +51,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         #admissible values for local axes, are "empty" or both xorigin and axes (rotation matrix), prescribed
         #"local_axes"               :{
-        #    "origin" : [0.0, 0.0, 0.0]
+        #    "origin" : [0.0, 0.0, 0.0],
         #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
         #    }
         self.non_trivial_local_system = False
