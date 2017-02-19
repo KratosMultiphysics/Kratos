@@ -20,6 +20,10 @@ def convert_active_inactive_int(list_active):
         count += 1
     return value
         
+## Debug
+#dim_combinations = [2]
+#nnodes_combinations = [2]
+
 dim_combinations = [2,3,3]
 nnodes_combinations = [2,3,4]
 
@@ -95,7 +99,7 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         Dx1Mx2 = DOperator * x1 - MOperator * x2
         Dw1Mw2 = DOperator * w1 - MOperator * w2
         for node in range(nnodes): 
-            gap[node]  = Dx1Mx2.row(node) * normalslave.row(node).transpose()
+            gap[node]  = Dx1Mx2.row(node) * - normalslave.row(node).transpose()
             wgap[node] = Dw1Mw2.row(node) * normalslave.row(node).transpose()
 
         # Define dofs & test function vector
@@ -130,9 +134,10 @@ for dim, nnodes in zip(dim_combinations, nnodes_combinations):
         for node in range(nnodes):
             active = active_inactive[node] 
             if (active == 1):
-                rv_galerkin += ((scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * wgap[node] + scale_factor * gap[node] * wlmnormal[node])
+                rv_galerkin += (scale_factor * lmnormal[node] + penalty_parameter * gap[node]) * wgap[node]
+                rv_galerkin +=  scale_factor * gap[node] * wlmnormal[node]
             else:
-                rv_galerkin += ( - 0.5/penalty_parameter * scale_factor**2.0 * lmnormal[node] * wlmnormal[node])
+                rv_galerkin += - 0.5/penalty_parameter * scale_factor**2.0 * lmnormal[node] * wlmnormal[node]
 
         if(do_simplifications):
             rv_galerkin = simplify(rv_galerkin)

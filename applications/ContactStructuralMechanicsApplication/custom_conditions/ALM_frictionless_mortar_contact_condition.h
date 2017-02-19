@@ -797,13 +797,13 @@ protected:
             KRATOS_WATCH(MOperator);
 //             LOG_MATRIX_PRETTY(MOperator);
             
-            for (unsigned int i = 0; i < TNumNodes * TDim; i++)
-            {
-                KRATOS_WATCH(DeltaDOperator[i]);
-//                 LOG_MATRIX_PRETTY(DeltaDOperator[i]);
-                KRATOS_WATCH(DeltaMOperator[i]);
-//                 LOG_MATRIX_PRETTY(DeltaMOperator[i]);
-            }
+//             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
+//             {
+//                 KRATOS_WATCH(DeltaDOperator[i]);
+// //                 LOG_MATRIX_PRETTY(DeltaDOperator[i]);
+//                 KRATOS_WATCH(DeltaMOperator[i]);
+// //                 LOG_MATRIX_PRETTY(DeltaMOperator[i]);
+//             }
         }
     };
     

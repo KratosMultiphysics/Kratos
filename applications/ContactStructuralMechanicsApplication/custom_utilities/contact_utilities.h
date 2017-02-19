@@ -895,12 +895,7 @@ public:
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0);      
-                        
-                        if (gn < 0.0) // NOTE: Penetration
-                        {
-                            augmented_normal_presssure += epsilon * gn;     
-                        }
+                        const double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) + epsilon * gn;     
                         
                         if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
@@ -912,7 +907,8 @@ public:
 //                             CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
                         }
                         
-                        std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << augmented_normal_presssure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+//                         // Debug 
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << augmented_normal_presssure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
                         
                         CondGeometry[itNode].Set(VISITED, true);
                     }
