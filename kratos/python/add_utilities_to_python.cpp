@@ -58,28 +58,62 @@ namespace Python
 class PythonGenericFunctionUtility
 {
     public:
-        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj): mrNodes(rNodes), mpy_obj(obj)
+        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj): mrNodes(rNodes), mpy_obj(obj), muse_local_system(false)
         {}
+        
+        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj, const Matrix& R, const Vector& xc): mrNodes(rNodes), mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
+        {
+            if(mR.size1() != 3 or mR.size2() != 3)
+                KRATOS_ERROR << "rotation matrix is expected to have size 3. The matrix given is " << mR;
+            if(mxc.size() != 3)
+                KRATOS_ERROR << "center position is expected to have size 3. The position given is " << mxc;
+        }
 
         void ApplyFunctionToScalar(const Variable<double>& rVariable, const double t)
         {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            if(muse_local_system == false)
             {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
+                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                    i->FastGetSolutionStepValue(rVariable) = value;
+                }
+            }
+            else
+            {
+                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = RotateAndCallFunction(i->X(), i->Y(), i->Z(), t);
+                    i->FastGetSolutionStepValue(rVariable) = value;
+                }
             }
         }
 
         void ApplyFunctionToComponent(const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, const double t)
         {
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            if(muse_local_system == false)
             {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                i->FastGetSolutionStepValue(rVariable) = value;
+                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                    i->FastGetSolutionStepValue(rVariable) = value;
+                }
+            }
+            else
+            {
+                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = RotateAndCallFunction(i->X(), i->Y(), i->Z(), t);
+                    i->FastGetSolutionStepValue(rVariable) = value;
+                }
             }
         }
 
@@ -87,12 +121,24 @@ class PythonGenericFunctionUtility
         {
             std::vector<double> values;
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            if(muse_local_system == false)
             {
-                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-                values.push_back(value);
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                    values.push_back(value);
+                }
             }
+            else
+            {
+                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                    const double value = RotateAndCallFunction(i->X(), i->Y(), i->Z(), t);
+                    values.push_back(value);
+                }
+            }                
 
             return values;
         }
@@ -100,7 +146,19 @@ class PythonGenericFunctionUtility
     private:
         ModelPart::NodesContainerType& mrNodes;
         PyObject* mpy_obj;
-
+        bool muse_local_system = false;
+        Matrix mR;
+        Vector mxc;
+        
+        double RotateAndCallFunction(const double x, const double y, const double z, const double t)
+        {
+            array_1d<double,3> xglobal;
+            xglobal[0] = x;
+            xglobal[1] = y;
+            xglobal[2] = z;
+            array_1d<double,3> xlocal = prod(mR, (xglobal - mxc) );
+            return CallFunction(xlocal[0],xlocal[1],xlocal[2],t);
+        }
 
         double CallFunction(const double x, const double y, const double z, const double t)
         {
@@ -126,6 +184,7 @@ void AddUtilitiesToPython()
     using namespace boost::python;
 
     class_<PythonGenericFunctionUtility >("PythonGenericFunctionUtility", init<ModelPart::NodesContainerType& , PyObject*>() )
+    .def(init<ModelPart::NodesContainerType& , PyObject*, const Matrix, const Vector>())
     .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToScalar)
     .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToComponent)
     .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
