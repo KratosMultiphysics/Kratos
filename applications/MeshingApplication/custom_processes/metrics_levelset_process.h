@@ -133,7 +133,7 @@ public:
             
             if ( itNode->SolutionStepsDataHas( mVariableGradient ) == false )
             {
-                KRATOS_THROW_ERROR( std::invalid_argument, "Missing gradient variable on node ", itNode->Id() )
+                KRATOS_ERROR << "Missing gradient variable on node " << itNode->Id() << std::endl;
             }
             
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0);
@@ -300,8 +300,8 @@ private:
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string
-     * @return Interpolation: The equivalent enum
+     * @param str: The string that you want to comvert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
     Interpolation ConvertInter(const std::string& str)

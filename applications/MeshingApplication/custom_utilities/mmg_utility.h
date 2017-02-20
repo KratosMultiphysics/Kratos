@@ -215,8 +215,7 @@ public:
            std::cout << "//---------------------------------------------------//" << std::endl;
            std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
            std::cout << "//---------------------------------------------------//" << std::endl;
-           std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
             
             KRATOS_WATCH(mThisModelPart);
         }
@@ -244,8 +243,7 @@ public:
            std::cout << "//---------------------------------------------------//" << std::endl;
            std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
            std::cout << "//---------------------------------------------------//" << std::endl;
-           std::cout << "//---------------------------------------------------//" << std::endl;
-            std::cout << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
             
             KRATOS_WATCH(mThisModelPart);
         }
@@ -1050,39 +1048,43 @@ protected:
             
             if (found == false)
             {
-                if (mEchoLevel > 0)
+                if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
                 {
                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                   if (mFramework == Lagrangian)
+                   {
+                       std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                   }
                 }
             }
             else
             {
-                if (mFramework == Lagrangian)
-                {
-                    CalculateInitialCoordinates(*(itNode.base()), pElement, shape_functions);
-                }
-                
                 for(unsigned int step = 0; step < buffer_size; step++)
                 {
                     CalculateStepData(*(itNode.base()), pElement, shape_functions, step, step_data_size);
+                }
+                
+                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
+                if (mFramework == Lagrangian)
+                {
+                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
+                    {
+                        KRATOS_ERROR << "Missing variable on node " << itNode->Id() << std::endl;
+                    }
+                    
+                    CalculateInitialCoordinates(*(itNode.base()));
                 }
             }
         }
     }
     
     /**
-     * It calculates the initial coordiantes interpolated to the node
+     * It calculates the initial coordinates interpolated to the node
      * @return itNode: The node pointer
-     * @param pElement: The element pointer
-     * @param shape_functions: The shape functions in the node
      */
     
-    void CalculateInitialCoordinates(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        );
+    void CalculateInitialCoordinates(NodeType::Pointer& pNode);
     
     /**
      * It calculates the step data interpolated to the node
@@ -2292,62 +2294,23 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    void MmgUtility<2>::CalculateInitialCoordinates(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        )
+    void MmgUtility<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
     {
-        double& initial_coord_X = pNode->X0();
-        double& initial_coord_Y = pNode->Y0();
-        
-        const array_1d<double, 3>& node0_initial_coord = pElement->GetGeometry()[0].Coordinates() - pElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        const array_1d<double, 3>& node1_initial_coord = pElement->GetGeometry()[1].Coordinates() - pElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        const array_1d<double, 3>& node2_initial_coord = pElement->GetGeometry()[2].Coordinates() - pElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        
-        initial_coord_X = shape_functions[0] * node0_initial_coord[0]
-                        + shape_functions[1] * node1_initial_coord[0]
-                        + shape_functions[2] * node2_initial_coord[0];
-                        
-        initial_coord_Y = shape_functions[0] * node0_initial_coord[1]
-                        + shape_functions[1] * node1_initial_coord[1]
-                        + shape_functions[2] * node2_initial_coord[1];
+        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
+        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
+        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
     }
     
     /***********************************************************************************/
     /***********************************************************************************/
     
     template<>  
-    void MmgUtility<3>::CalculateInitialCoordinates(
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        )
+    void MmgUtility<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
     {        
-        double& initial_coord_X = pNode->X0();
-        double& initial_coord_Y = pNode->Y0();
-        double& initial_coord_Z = pNode->Z0();
-        
-        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
-        const array_1d<double, 3>& node0_initial_coord = pElement->GetGeometry()[0].Coordinates() - pElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        const array_1d<double, 3>& node1_initial_coord = pElement->GetGeometry()[1].Coordinates() - pElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        const array_1d<double, 3>& node2_initial_coord = pElement->GetGeometry()[2].Coordinates() - pElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        const array_1d<double, 3>& node3_initial_coord = pElement->GetGeometry()[3].Coordinates() - pElement->GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT, 0);
-        
-        initial_coord_X = shape_functions[0] * node0_initial_coord[0]
-                        + shape_functions[1] * node1_initial_coord[0]
-                        + shape_functions[2] * node2_initial_coord[0]
-                        + shape_functions[3] * node3_initial_coord[0];
-        
-        initial_coord_Y = shape_functions[0] * node0_initial_coord[1]
-                        + shape_functions[1] * node1_initial_coord[1]
-                        + shape_functions[2] * node2_initial_coord[1]
-                        + shape_functions[3] * node3_initial_coord[1];
-        
-        initial_coord_Z = shape_functions[0] * node0_initial_coord[2]
-                        + shape_functions[1] * node1_initial_coord[2]
-                        + shape_functions[2] * node2_initial_coord[2]
-                        + shape_functions[3] * node3_initial_coord[2];
+        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
+        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
+        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
+        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
     }
     
     /***********************************************************************************/
@@ -2678,11 +2641,11 @@ protected:
 
         if ( ier == MMG5_STRONGFAILURE ) 
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
         }
         else if ( ier == MMG5_LOWFAILURE )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
         }
     }
     
@@ -2696,11 +2659,11 @@ protected:
 
         if ( ier == MMG5_STRONGFAILURE ) 
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
         }
         else if ( ier == MMG5_LOWFAILURE )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
         }
     }
     
@@ -2855,7 +2818,7 @@ protected:
         else
         {
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+            KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geom << std::endl;
         }
     }
     
@@ -2920,12 +2883,12 @@ protected:
 //                 const int id6 = Geom[8].Id(); // 8th node id
             
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY", size_geom);
+            KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geom << std::endl;
         }
         else
         {
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+            KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geom << std::endl;
         }
     }
 
