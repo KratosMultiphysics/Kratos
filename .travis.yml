@@ -2,6 +2,9 @@ language: cpp
 compiler: g++
 sudo: false
 
+git:
+  depth: 3
+
 cache:
   apt: true
   directories:
