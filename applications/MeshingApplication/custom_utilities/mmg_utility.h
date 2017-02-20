@@ -27,6 +27,8 @@
 #include "mmg/mmgs/libmmgs.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
+// // Include the nodal area process
+// #include "processes/calculate_nodal_area_process.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -463,7 +465,7 @@ protected:
         
         /* Elements */
         // We clone the first element of each type
-        if (TDim == 2)
+        if (TDim == 2 && numElements > 0)
         {
             const elem_geometries_2d index_geom0 = Triangle2D;
             mpRefElement[index_geom0] = pElements.begin()->Create(0, pElements.begin()->GetGeometry(), pElements.begin()->pGetProperties());
@@ -689,7 +691,6 @@ protected:
                 
                 if (pCondition != nullptr)
                 {
-                    pCondition->Initialize();
                     mThisModelPart.AddCondition(pCondition);
                                         
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -729,7 +730,6 @@ protected:
                     
                     if (pCondition != nullptr)
                     {
-                        pCondition->Initialize();
                         mThisModelPart.AddCondition(pCondition);
                                             
                         if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -771,7 +771,6 @@ protected:
                 
                 if (pElement != nullptr)
                 {
-                    pElement->Initialize();
                     mThisModelPart.AddElement(pElement);
                     
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -811,7 +810,6 @@ protected:
                     
                     if (pElement != nullptr)
                     {
-                        pElement->Initialize();
                         mThisModelPart.AddElement(pElement);
                         
                         if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -881,6 +879,9 @@ protected:
         
         /* We interpolate all the values */
         InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
+        
+        /* We initialize elements and conditions */
+        InitializeElementsAndConditions();
     }
     
     /**
@@ -914,6 +915,31 @@ protected:
         {
             auto itElement = pElement.begin() + i;
             itElement->SetId(i + 1);
+        }
+    }
+    
+    /**
+     * After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    
+    void InitializeElementsAndConditions()
+    {
+        ConditionsArrayType& pCondition = mThisModelPart.Conditions();
+        auto numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            itCondition->Initialize();
+        }
+
+        ElementsArrayType& pElement = mThisModelPart.Elements();
+        auto numElements = pElement.end() - pElement.begin();
+
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElement = pElement.begin() + i;
+            itElement->Initialize();
         }
     }
     
@@ -1096,15 +1122,113 @@ protected:
                 {
                     if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
                     {
-                        KRATOS_ERROR << "Missing variable on node " << itNode->Id() << std::endl;
+                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
                     }
                     
                     CalculateInitialCoordinates(*(itNode.base()));
-                    
-//                     InterpolateInternalVariables(*(itNode.base()), pElement, shape_functions); // TODO: Finish this!!!
                 }
             }
         }
+        
+//         if (mFramework == Lagrangian) // We interpolate the internal variables
+//         {
+//             // We get the process info from th mode
+//             const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
+//             
+// //             // We calculate the NODAL_AREA in both model parts
+// //             /* Old model part */
+// //             CalculateNodalAreaProcess NodalAreaCalculatorOld = CalculateNodalAreaProcess(rOldModelPart, TDim);
+// //             NodalAreaCalculatorOld.Execute();
+// //             
+// //             /* New model part */
+// //             CalculateNodalAreaProcess NodalAreaCalculatorNew = CalculateNodalAreaProcess(rThisModelPart, TDim);
+// //             NodalAreaCalculatorNew.Execute();
+//             
+//             // Iterate in the elements
+//             ElementsArrayType& pElem = mThisModelPart.Elements();
+//             auto numElements = pElem.end() - pElem.begin();
+//             
+//             // TODO: Put the input in the parameters (PK2_STRESS_TENSOR is for TL)
+//             Variable<Matrix> VariableTensor = PK2_STRESS_TENSOR; 
+//             Variable<Vector> VariableVector = PK2_STRESS_VECTOR;
+// //             Variable<double> PlasticVariable = PLASTIC_STRESS_LIKE; // TODO: Add plasticity variable
+//             bool DetF0Interpolation = true;
+//             
+// //             #pragma omp parallel for 
+//             for(unsigned int i = 0; i < numElements; i++) 
+//             {
+//                 auto itElem = pElem.begin() + i;
+//                 
+//                 std::vector<Matrix> ResultTensor;
+//                 std::vector<double> ResultJ; 
+//                 
+//                 // Initialize: We set to 0 (the tensor and Jacobian are right now, then getting the value we got 0)
+//                 itElem->GetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
+//                 itElem->GetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
+//                 
+//                 for (unsigned int i_node = 0; i_node < itElem->GetGeometry().size(); i_node++)
+//                 {
+//                     Vector shape_functions;
+//                     ElementType::Pointer pElement;
+//                 
+//                     const bool found = PointLocator.FindPointOnMeshSimplified(itElem->GetGeometry()[i_node].Coordinates(), shape_functions, pElement, MaxNumberOfResults);
+//                     
+//                     if (found == false)
+//                     {
+//                         if (mEchoLevel > 0)
+//                         {
+//                             std::cout << "WARNING: Node "<< itElem->GetGeometry()[i_node].Id() << " not found (interpolation not posible)" << std::endl;
+//                             std::cout << "\t X:"<< itElem->GetGeometry()[i_node].X() << "\t Y:"<< itElem->GetGeometry()[i_node].Y() << "\t Z:"<< itElem->GetGeometry()[i_node].Z() << std::endl;
+//                             std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+//                         }
+//                     }
+//                     else
+//                     {
+//                         // NOTE: Can we do a check of the internal variables?
+//                         
+//                         const double Volume = pElement->GetGeometry().Volume();
+// 
+//                         std::vector<Matrix> Tensor;
+//                         std::vector<double> J;         
+//                         
+//                         // We calculate the current state in the origin model part
+//                         pElement->GetValueOnIntegrationPoints( VariableTensor, Tensor, rCurrentProcessInfo);
+//                         pElement->GetValueOnIntegrationPoints( DETERMINANT_F, J, rCurrentProcessInfo);
+//                         
+//                         // We add to the previous values (we iterate over the vector)
+//                         for (unsigned int i = 0; i < Tensor.size(); i++)
+//                         {
+//                             ResultTensor[i] += Tensor[i] * Volume;
+//                         }
+//                         for (unsigned int j = 0; j < J.size(); j++)
+//                         {
+//                             ResultJ[j] += J[j] * Volume;
+//                         }
+//                     }
+//                 }
+//                 
+//                 // Finally we set the values
+//                 const double VolumeDestiny = itElem->GetGeometry().Volume();
+//                 
+//                 /* Iterating over the vector */
+//                 for (unsigned int i = 0; i < ResultTensor.size(); i++)
+//                 {
+//                     ResultTensor[i] = ResultTensor[i]/VolumeDestiny;
+//                 }
+//                     
+//                 itElem->SetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
+//                 if (DetF0Interpolation == true)
+//                 {
+//                     /* Iterating over the vector */
+//                     for (unsigned int j = 0; j < ResultJ.size(); j++)
+//                     {
+//                         ResultJ[j] = ResultJ[j]/VolumeDestiny;
+//                     }
+//                     
+//                     itElem->SetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
+//                 }
+//             }
+//         }
     }
     
     /**
@@ -1113,19 +1237,6 @@ protected:
      */
     
     void CalculateInitialCoordinates(NodeType::Pointer& pNode);
-    
-    /**
-     * It interpolates the internal variables (stress, strains, plasticity, etc...) for the solid and structural elements (Lagrangian Framework)
-     * @return itNode: The node pointer
-     * @param pElement: The element pointer
-     * @param shape_functions: The shape functions in the node
-     */
-    
-    void InterpolateInternalVariables(        
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        );
     
     /**
      * It calculates the step data interpolated to the node
@@ -2376,32 +2487,6 @@ protected:
         pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
         pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
         pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<2>::InterpolateInternalVariables(        
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        )
-    {
-        // TODO: Finish me!!!!
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    template<>  
-    void MmgUtility<3>::InterpolateInternalVariables(        
-        NodeType::Pointer& pNode,
-        const ElementType::Pointer& pElement,
-        const Vector shape_functions
-        )
-    {        
-        // TODO: Finish me!!!!
     }
     
     /***********************************************************************************/
