@@ -4,6 +4,8 @@ sudo: false
 
 cache:
   apt: true
+  directories:
+    - ${HOME}/cmake_build
 
 addons:
   apt:
