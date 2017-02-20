@@ -1,6 +1,8 @@
 language: cpp
 compiler: g++
-cache: apt
+
+cache:
+  apt: true
 
 addons:
   apt:
@@ -15,11 +17,6 @@ addons:
       - libboost1.55-all-dev
       - libblas-dev
       - liblapack-dev
-
-before_install:
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-- sudo add-apt-repository -y ppa:boost-latest/ppa
-- sudo apt-get update -qq
 
 install:
 - export CC="gcc-4.9"
