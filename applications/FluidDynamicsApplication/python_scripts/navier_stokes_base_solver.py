@@ -11,7 +11,7 @@ KratosMultiphysics.CheckForPreviousImport()
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesBaseSolver(main_model_part, custom_settings)
 
-class NavierStokesBaseSolver:
+class NavierStokesBaseSolver(object):
 
     def __init__(self, main_model_part, custom_settings):
 
