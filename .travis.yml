@@ -33,3 +33,5 @@ script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
+- cd ../kratos/python_scripts
+- python run_tests.py
