@@ -211,4 +211,4 @@ ${CMAKE_BIN} ${KRATOS_ROOT} "${CMAKE_BUILD[@]}" "${CMAKE_LIBS[@]}" "${CMAKE_APPL
 # Decomment this to compile after configuring
 #    -jN: Number of processors used during the compilation.
 #      for old machine, please take into account that this can use up to aprox 3*N GB of ram.
-make install -j1
+make install -j2
