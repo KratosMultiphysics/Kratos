@@ -1,5 +1,6 @@
 language: cpp
 compiler: g++
+sudo: false
 
 cache:
   apt: true
