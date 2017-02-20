@@ -16,7 +16,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Define the UblasSparseSpace to compute auxilar array operations.
-space = KratosMultiphysics.UblasSparseSpace()
+# space = KratosMultiphysics.UblasSparseSpace()
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -259,6 +259,13 @@ class PartitionedFSISolver:
 
 
     def Initialize(self):
+
+        # Get the domain size
+        self.domain_size = self._GetDomainSize()
+
+        # Get the partitioned FSI utilities
+        self.partitioned_fsi_utilities = self._GetPartitionedFSIUtilities()
+
         # Initialize structure solver
         self.structure_solver.Initialize()
 
@@ -278,9 +285,6 @@ class PartitionedFSISolver:
 
         # Mesh solver initialization
         self.mesh_solver.Initialize()
-
-        # Get the domain size
-        self.domain_size = self._GetDomainSize()
 
         # Construct the interface mapper
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
@@ -481,6 +485,14 @@ class PartitionedFSISolver:
         return fluid_domain_size
 
 
+    def _GetPartitionedFSIUtilities(self):
+
+        if (self.domain_size == 2):
+            return KratosFSI.PartitionedFSIUtilities2D(self._GetFluidInterfaceSubmodelPart(), self._GetStructureInterfaceSubmodelPart())
+        else:
+            return KratosFSI.PartitionedFSIUtilities3D(self._GetFluidInterfaceSubmodelPart(), self._GetStructureInterfaceSubmodelPart())
+
+
     def _SetStructureNeumannCondition(self):
 
         structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
@@ -579,34 +591,37 @@ class PartitionedFSISolver:
     def _ComputeDirichletNeumannResidual(self):
 
         # Fluid domain velocity imposition
-        i = 0
-        if self.domain_size == 2:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                velocity = KratosMultiphysics.Vector(3)
-                velocity[0] = self.iteration_value[i]
-                velocity[1] = self.iteration_value[i+1]
-                velocity[2] = 0.0
+        # i = 0
+        # if self.domain_size == 2:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         velocity = KratosMultiphysics.Vector(3)
+        #         velocity[0] = self.iteration_value[i]
+        #         velocity[1] = self.iteration_value[i+1]
+        #         velocity[2] = 0.0
+        #
+        #         node.Fix(KratosMultiphysics.VELOCITY_X)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Y)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Z)
+        #
+        #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
+        #         i+=2
+        #
+        # elif self.domain_size == 3:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         velocity = KratosMultiphysics.Vector(3)
+        #         velocity[0] = self.iteration_value[i]
+        #         velocity[1] = self.iteration_value[i+1]
+        #         velocity[2] = self.iteration_value[i+2]
+        #
+        #         node.Fix(KratosMultiphysics.VELOCITY_X)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Y)
+        #         node.Fix(KratosMultiphysics.VELOCITY_Z)
+        #
+        #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
+        #         i+=3
 
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
-                i+=2
-
-        elif self.domain_size == 3:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                velocity = KratosMultiphysics.Vector(3)
-                velocity[0] = self.iteration_value[i]
-                velocity[1] = self.iteration_value[i+1]
-                velocity[2] = self.iteration_value[i+2]
-
-                node.Fix(KratosMultiphysics.VELOCITY_X)
-                node.Fix(KratosMultiphysics.VELOCITY_Y)
-                node.Fix(KratosMultiphysics.VELOCITY_Z)
-
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
-                i+=3
+        # Fluid domain velocity imposition
+        self.partitioned_fsi_utilities.SetFluidInterfaceVelocity(self.iteration_value)
 
         # Solve fluid problem
         self.fluid_solver.SolverSolveSolutionStep()
@@ -630,30 +645,32 @@ class PartitionedFSISolver:
                                                          keep_sign,
                                                          distribute_load)
 
-        # Compute the fluid interface residual by means of the VECTOR_PROJECTED variable
-        vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
+        # # Compute the fluid interface residual by means of the VECTOR_PROJECTED variable
+        # vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
+        #
+        # i = 0
+        # if self.domain_size == 2:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
+        #
+        #         vel_residual[i] = vector_projected[0] - self.iteration_value[i]
+        #         vel_residual[i+1] = vector_projected[1] - self.iteration_value[i+1]
+        #         i+=2
+        #
+        # elif self.domain_size == 3:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
+        #
+        #         vel_residual[i] = vector_projected[0] - self.iteration_value[i]
+        #         vel_residual[i+1] = vector_projected[1] - self.iteration_value[i+1]
+        #         vel_residual[i+2] = vector_projected[2] - self.iteration_value[i+2]
+        #         i+=3
+        #
+        # # Compute the residual norm and store it in the ProcessInfo
+        # res_norm = space.TwoNorm(vel_residual)
+        # self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM] = res_norm
 
-        i = 0
-        if self.domain_size == 2:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
-
-                vel_residual[i] = vector_projected[0] - self.iteration_value[i]
-                vel_residual[i+1] = vector_projected[1] - self.iteration_value[i+1]
-                i+=2
-
-        elif self.domain_size == 3:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
-
-                vel_residual[i] = vector_projected[0] - self.iteration_value[i]
-                vel_residual[i+1] = vector_projected[1] - self.iteration_value[i+1]
-                vel_residual[i+2] = vector_projected[2] - self.iteration_value[i+2]
-                i+=3
-
-        # Compute the residual norm and store it in the ProcessInfo
-        res_norm = space.TwoNorm(vel_residual)
-        self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM] = res_norm
+        vel_residual = self.partitioned_fsi_utilities.ComputeFluidInterfaceVelocityResidual()
 
         return vel_residual
 
@@ -662,26 +679,29 @@ class PartitionedFSISolver:
     def _ComputeNeumannNeumannResidual(self):
 
         # Fluid domain interface flux imposition
-        i = 0
-        if self.domain_size == 2:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                force = KratosMultiphysics.Vector(3)
-                force[0] = self.iteration_value[i]
-                force[1] = self.iteration_value[i+1]
-                force[2] = 0.0
+        # i = 0
+        # if self.domain_size == 2:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         force = KratosMultiphysics.Vector(3)
+        #         force[0] = self.iteration_value[i]
+        #         force[1] = self.iteration_value[i+1]
+        #         force[2] = 0.0
+        #
+        #         node.SetSolutionStepValue(KratosMultiphysics.FORCE,0,force)
+        #         i+=2
+        #
+        # elif self.domain_size == 3:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         force = KratosMultiphysics.Vector(3)
+        #         force[0] = self.iteration_value[i]
+        #         force[1] = self.iteration_value[i+1]
+        #         force[2] = self.iteration_value[i+2]
+        #
+        #         node.SetSolutionStepValue(KratosMultiphysics.FORCE,0,force)
+        #         i+=3
 
-                node.SetSolutionStepValue(KratosMultiphysics.FORCE,0,force)
-                i+=2
-
-        elif self.domain_size == 3:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                force = KratosMultiphysics.Vector(3)
-                force[0] = self.iteration_value[i]
-                force[1] = self.iteration_value[i+1]
-                force[2] = self.iteration_value[i+2]
-
-                node.SetSolutionStepValue(KratosMultiphysics.FORCE,0,force)
-                i+=3
+        # Fluid domain interface flux imposition
+        self.partitioned_fsi_utilities.SetFluidInterfaceNodalFlux(self.iteration_value)
 
         # Solve the fluid problem
         self.fluid_solver.SolverSolveSolutionStep()
@@ -706,31 +726,33 @@ class PartitionedFSISolver:
                                                          distribute_load)
 
         # Compute the fluid interface residual by means of the VECTOR_PROJECTED variable
-        vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
+        # vel_residual = KratosMultiphysics.Vector(self.fluid_interface_residual_size)
+        #
+        # i = 0
+        # if self.domain_size == 2:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         velocity_fluid = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+        #         vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
+        #
+        #         vel_residual[i] = velocity_fluid[0] - vector_projected[0]
+        #         vel_residual[i+1] = velocity_fluid[1] - vector_projected[1]
+        #         i+=2
+        #
+        # elif self.domain_size == 3:
+        #     for node in self._GetFluidInterfaceSubmodelPart().Nodes:
+        #         velocity_fluid = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+        #         vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
+        #
+        #         vel_residual[i] = velocity_fluid[0] - vector_projected[0]
+        #         vel_residual[i+1] = velocity_fluid[1] - vector_projected[1]
+        #         vel_residual[i+2] = velocity_fluid[2] - vector_projected[2]
+        #         i+=3
+        #
+        # # Compute the residual norm and store it in the ProcessInfo
+        # res_norm = space.TwoNorm(vel_residual)
+        # self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM] = res_norm
 
-        i = 0
-        if self.domain_size == 2:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                velocity_fluid = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
-                vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
-
-                vel_residual[i] = velocity_fluid[0] - vector_projected[0]
-                vel_residual[i+1] = velocity_fluid[1] - vector_projected[1]
-                i+=2
-
-        elif self.domain_size == 3:
-            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
-                velocity_fluid = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
-                vector_projected = node.GetSolutionStepValue(KratosFSI.VECTOR_PROJECTED,0)
-
-                vel_residual[i] = velocity_fluid[0] - vector_projected[0]
-                vel_residual[i+1] = velocity_fluid[1] - vector_projected[1]
-                vel_residual[i+2] = velocity_fluid[2] - vector_projected[2]
-                i+=3
-
-        # Compute the residual norm and store it in the ProcessInfo
-        res_norm = space.TwoNorm(vel_residual)
-        self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM] = res_norm
+        vel_residual = self.partitioned_fsi_utilities.ComputeFluidInterfaceVelocityResidual()
 
         return vel_residual
 
