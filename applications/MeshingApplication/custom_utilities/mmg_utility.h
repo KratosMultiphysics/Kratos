@@ -421,7 +421,7 @@ protected:
         
         /* Conditions */
         // We clone the first condition of each type
-        if (TDim == 2)
+        if (TDim == 2 && numConditions > 0)
         {
             const cond_geometries_2d index_geom0 = Line;
             mpRefCondition[index_geom0] = pConditions.begin()->Create(0, pConditions.begin()->GetGeometry(), pConditions.begin()->pGetProperties());
@@ -646,12 +646,24 @@ protected:
         /* NODES */
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
-            NodeType::Pointer pNode = CreateNode(i_node);
+            int ref, isRequired;
+            NodeType::Pointer pNode = CreateNode(i_node, ref, isRequired);
             
             // Set the DOFs in the nodes 
             for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
             {
                 pNode->pAddDof(*i_dof);
+            }
+            
+            if (ref != 0) // NOTE: ref == 0 is the MainModelPart
+            {
+                std::vector<std::string> ColorList = mColors[ref];
+                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                {
+                    std::string SubModelPartName = ColorList[colors];
+                    ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                    SubModelPart.AddNode(pNode);
+                }
             }
         }
         
@@ -865,6 +877,18 @@ protected:
         FreeMemory();
         
         /* After that we reorder nodes, conditions and elements: */
+        ReorderAllIds();
+        
+        /* We interpolate all the values */
+        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
+    }
+    
+    /**
+     * This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     */
+    
+    void ReorderAllIds()
+    {
         NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
 
@@ -891,11 +915,7 @@ protected:
             auto itElement = pElement.begin() + i;
             itElement->SetId(i + 1);
         }
-        
-        /* We interpolate all the values */
-        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
-    
     
     /**
      * It checks if the nodes are repeated and remove the repeated ones
@@ -963,10 +983,16 @@ protected:
     /**
      * It creates the new node
      * @param i_node: The index of the new noode
+     * @param ref: The submodelpart id
+     * @param isRequired: MMG value (I don't know that it does)
      * @return pNode: The pointer to the new node created
      */
     
-    NodeType::Pointer CreateNode(unsigned int i_node);
+    NodeType::Pointer CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        );
     
     /**
      * It creates the new condition
@@ -1074,6 +1100,8 @@ protected:
                     }
                     
                     CalculateInitialCoordinates(*(itNode.base()));
+                    
+//                     InterpolateInternalVariables(*(itNode.base()), pElement, shape_functions); // TODO: Finish this!!!
                 }
             }
         }
@@ -1085,6 +1113,19 @@ protected:
      */
     
     void CalculateInitialCoordinates(NodeType::Pointer& pNode);
+    
+    /**
+     * It interpolates the internal variables (stress, strains, plasticity, etc...) for the solid and structural elements (Lagrangian Framework)
+     * @return itNode: The node pointer
+     * @param pElement: The element pointer
+     * @param shape_functions: The shape functions in the node
+     */
+    
+    void InterpolateInternalVariables(        
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        );
     
     /**
      * It calculates the step data interpolated to the node
@@ -2000,9 +2041,21 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<2>::CreateNode(unsigned int i_node)
+    NodeType::Pointer MmgUtility<2>::CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        )
     {
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+        double coord0, coord1;
+        int isCorner;
+        
+        if (MMG2D_Get_vertex(mmgMesh, &coord0, &coord1, &ref, &isCorner, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, coord0, coord1, 0.0);
         
         return pNode;
     }
@@ -2011,9 +2064,21 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<3>::CreateNode(unsigned int i_node)
+    NodeType::Pointer MmgUtility<3>::CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        )
     {
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+        double coord0, coord1, coord2;
+        int isCorner;
+        
+        if (MMG3D_Get_vertex(mmgMesh, &coord0, &coord1, &coord2, &ref, &isCorner, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, coord0, coord1, coord2);
         
         return pNode;
     }
@@ -2311,6 +2376,32 @@ protected:
         pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
         pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
         pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<2>::InterpolateInternalVariables(        
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        )
+    {
+        // TODO: Finish me!!!!
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::InterpolateInternalVariables(        
+        NodeType::Pointer& pNode,
+        const ElementType::Pointer& pElement,
+        const Vector shape_functions
+        )
+    {        
+        // TODO: Finish me!!!!
     }
     
     /***********************************************************************************/
