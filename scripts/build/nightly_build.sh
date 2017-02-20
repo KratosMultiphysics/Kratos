@@ -19,10 +19,11 @@ export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
-mkdir Kratos
 
+wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz
+tar xzf master.tar.gz
+mv ${HOME}/Kratos-master ${HOME}/Kratos
 cd ${HOME}/Kratos
-svn co https://svn.cimne.upc.edu/p/kratos/kratos .
 
 mkdir -p cmake_gcc
 mkdir -p cmake_clang

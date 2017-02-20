@@ -38,6 +38,12 @@ class NavierStokesBaseSolver:
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
+            "time_stepping": {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
             "alpha":-0.1,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
@@ -86,6 +92,7 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
@@ -99,15 +106,6 @@ class NavierStokesBaseSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
 
-        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
-        #~ if config is not None:
-            #~ if hasattr(config, "TurbulenceModel"):
-                #~ if config.TurbulenceModel == "Spalart-Allmaras":
-                    #~ model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
-                    #~ model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
-                    #~ model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-                    #~ model_part.AddNodalSolutionStepVariable(DISTANCE)
-
         print("Base class fluid solver variables added correctly")
 
     def ImportModelPart(self):
@@ -118,23 +116,19 @@ class NavierStokesBaseSolver:
         ## Set buffer size
         self._SetBufferSize()
 
-        # Adding C_SMAGORINSKY
-        for elem in self.main_model_part.Elements:
-            elem.SetValue(KratosMultiphysics.C_SMAGORINSKY, 0.0)
-
         print ("Base class model reading finished.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
         file.close()
-        # Model part writing
+
+        ## Model part writing
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def AddDofs(self):
-
+        ## Adding dofs
         for node in self.main_model_part.Nodes:
-            # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
             node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
@@ -142,15 +136,11 @@ class NavierStokesBaseSolver:
 
         print("Base class fluid solver DOFs added correctly.")
 
-        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
-        #~ if config is not None:
-            #~ if hasattr(config, "TurbulenceModel"):
-                #~ if config.TurbulenceModel == "Spalart-Allmaras":
-                    #~ for node in model_part.Nodes:
-                        #~ node.AddDof(TURBULENT_VISCOSITY)
+    def AdaptMesh(self):
+        pass
 
     def GetMinimumBufferSize(self):
-        return 3;
+        return 3
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
@@ -159,10 +149,29 @@ class NavierStokesBaseSolver:
         pass
 
     def ComputeDeltaTime(self):
-        pass
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
+        # User-defined delta time
+        else:
+            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return delta_time
+
+    def Initialize(self):
+        raise Exception("Calling the Navier-Stokes base solver. Please implement the custom Initialize() method of your solver.")
 
     def SaveRestart(self):
         pass #one should write the restart file here
+
+    def Clear(self):
+        (self.solver).Clear()
+
+    def Check(self):
+        (self.solver).Check()
+
+    def SetEchoLevel(self, level):
+        (self.solver).SetEchoLevel(level)
 
     def SolverInitialize(self):
         (self.solver).Initialize()
@@ -185,15 +194,6 @@ class NavierStokesBaseSolver:
         self.SolverPredict()
         self.SolverSolveSolutionStep()
         self.SolverFinalizeSolutionStep()
-
-    def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
-
-    def Clear(self):
-        (self.solver).Clear()
-
-    def Check(self):
-        (self.solver).Check()
 
     def _ModelPartReading(self):
         ## Model part reading
@@ -229,3 +229,13 @@ class NavierStokesBaseSolver:
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
+
+    def _GetAutomaticTimeSteppingUtility(self):
+        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+        else:
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+
+        return EstimateDeltaTimeUtility

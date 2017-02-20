@@ -131,7 +131,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part_io.WriteModelPart(model_part)
         
         import filecmp 
-        value = filecmp.cmp("test_model_part_io_write.mdpa", "test_model_part_io_write.out.mdpa")
+        value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertEqual(value, True)
         
     @KratosUnittest.expectedFailure
