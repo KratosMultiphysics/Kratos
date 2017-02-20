@@ -20,7 +20,7 @@ from sympy_fe_utilities import *
 ## Symbolic generation settings
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-linearisation = "FullNR"            # Linearisation type. Options: "Picard", "FullNR"
+linearisation = "Picard"            # Linearisation type. Options: "Picard", "FullNR"
 divide_by_rho = True                # Divide by density in mass conservation equation
 artificial_compressibility = True   # Consider an artificial compressibility
 mode = "c"                          # Output mode to a c++ file
