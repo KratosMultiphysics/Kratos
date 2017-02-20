@@ -10,6 +10,10 @@ cache:
   directories:
     - ${HOME}/cmake_build
 
+branches:
+  only:
+    - /^feature-.*$/
+
 addons:
   apt:
     sources:
