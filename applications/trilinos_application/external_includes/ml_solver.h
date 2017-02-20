@@ -155,6 +155,8 @@ public:
         mmax_iter = nit_max;
         mScalingType = LeftScaling;
 
+        mMLPrecIsInitialized = false;
+        mReformPrecAtEachStep = true;
     }
 
     /**
