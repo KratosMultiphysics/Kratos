@@ -1,5 +1,6 @@
 language: cpp
 compiler: g++
+dist: trusty
 sudo: false
 
 git:
