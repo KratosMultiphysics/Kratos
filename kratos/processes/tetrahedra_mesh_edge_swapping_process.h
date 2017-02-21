@@ -159,6 +159,7 @@ namespace Kratos
       ///@{
 
 	  void EdgeSwapping3(TetrahedraEdgeShell & EdgeShell);
+	  void EdgeSwapping4(TetrahedraEdgeShell & EdgeShell);
 
 
       ///@}

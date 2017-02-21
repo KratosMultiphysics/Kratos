@@ -95,6 +95,8 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 		if (edge.second.IsClosed()) {
 			if (edge.second.GetNumberOfShellPoints() == 3)
 				EdgeSwapping3(edge.second);
+			if (edge.second.GetNumberOfShellPoints() == 4)
+				EdgeSwapping4(edge.second);
 		}
 
 	}
@@ -118,7 +120,21 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 	Tetrahedra3D4<Node<3>> tetrahedra_1(EdgeShell.Point1(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(1), EdgeShell.ShellPoint(2));
 	Tetrahedra3D4<Node<3>> tetrahedra_2(EdgeShell.Point2(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(2), EdgeShell.ShellPoint(1));
 	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
-	
+
+	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
+	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
+	if (min_quality > original_min_quality) {
+		std::cout << min_quality << " is improved respect to " << original_min_quality << std::endl;
+	}
+	else
+		std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
+
+}
+void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & EdgeShell) {
+	Tetrahedra3D4<Node<3>> tetrahedra_1(EdgeShell.Point1(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(1), EdgeShell.ShellPoint(2));
+	Tetrahedra3D4<Node<3>> tetrahedra_2(EdgeShell.Point2(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(2), EdgeShell.ShellPoint(1));
+	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
+
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
 	if (min_quality > original_min_quality) {

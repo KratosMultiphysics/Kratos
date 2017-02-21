@@ -21,6 +21,7 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedra_mesh_edge_swapping_process.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/gid_io.h"
 
@@ -71,6 +72,35 @@ namespace Kratos {
 			// gid_io.InitializeMesh(1.00);
 			// gid_io.WriteMesh(model_part.GetMesh());
 			// gid_io.FinalizeMesh();
+
+
+
+		}
+		
+		KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3to2EdgeSwappingProcess, KratosCoreFastSuite)
+		{
+			ModelPart model_part("Test");
+
+			model_part.CreateNewNode(1, 0.00, 0.00, 0.00);
+			model_part.CreateNewNode(2, 10.00, 0.00, 0.00);
+			model_part.CreateNewNode(3, 10.00, 10.00, 0.00);
+			model_part.CreateNewNode(4, 1.00, 1.00, -10.00);
+			model_part.CreateNewNode(5, 1.00, 1.00, 10.00);
+
+			Properties::Pointer p_properties(new Properties(0));
+			model_part.CreateNewElement("Element3D4N", 1, { 4,5,3,1 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 2, { 4,5,2,3 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 3, { 5,4,2,1 }, p_properties);
+
+
+			FindNodalNeighboursProcess(model_part).Execute();
+
+			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+
+			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_3to2_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			 gid_io.InitializeMesh(0.00);
+			 gid_io.WriteMesh(model_part.GetMesh());
+			 gid_io.FinalizeMesh();
 
 
 
