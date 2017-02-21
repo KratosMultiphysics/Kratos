@@ -20,7 +20,8 @@ KRATOS_BUILD_TYPE=RelWithDebInfo
 #you may want to decomment this the first time you compile
 #rm CMakeCache.txt
 #rm *.cmake
-#rm -rf CMakeFiles                                                                      \
+#rm -rf CMakeFiles
+# just a comment                                                                   \
 source ~/.bashrc
 
 cmake ..  									            \
