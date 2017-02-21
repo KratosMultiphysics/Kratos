@@ -146,6 +146,7 @@ void AddCustomUtilitiesToPython()
     ("MmgUtility2D", init<ModelPart&>())
     .def(init<ModelPart&, const std::string>())
     .def(init<ModelPart&, const std::string, const unsigned int>())
+    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
     .def("RemeshModelPart", &MmgUtility<2>::RemeshModelPart)
     ;
     
@@ -154,6 +155,7 @@ void AddCustomUtilitiesToPython()
     ("MmgUtility3D", init<ModelPart&>())
     .def(init<ModelPart&, const std::string>())
     .def(init<ModelPart&, const std::string, const unsigned int>())
+    .def(init<ModelPart&, const std::string, const unsigned int, const std::string>())
     .def("RemeshModelPart", &MmgUtility<3>::RemeshModelPart)
     ;
 #endif  

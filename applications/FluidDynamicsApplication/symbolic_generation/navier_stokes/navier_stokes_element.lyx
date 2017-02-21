@@ -98,7 +98,7 @@ Pseudo-compressible Navier-Stokes element symbolic implementation
 \end_layout
 
 \begin_layout Author
-Riccardo, Guillermo and Rubén
+Riccardo and Rubén
 \end_layout
 
 \begin_layout Standard
@@ -163,7 +163,7 @@ status collapsed
 
 \end_inset
 
-Pseudo-compressible Navier-Stokes equations
+Pseudo-compressible Navier-Stokes formulation
 \begin_inset ERT
 status collapsed
 
@@ -310,30 +310,11 @@ where c is the sound velocity in the considered fluid.
 \end_layout
 
 \begin_layout Standard
-On the other hand, the local time derivative of the momentum conservation
- equation can be also developed as
-\end_layout
-
-\begin_layout Standard
+On the other hand, the density is considered to be time independent in the
+ momentum conservation equation, thus
 \begin_inset Formula 
 \[
-\frac{\partial\mathbf{\rho}}{\partial t}\mathbf{u}+\rho\frac{\partial\mathbf{u}}{\partial t}-\nabla\cdot\mathbf{\boldsymbol{\sigma}}+\rho\mathbf{a}\cdot\nabla\mathbf{u}=\rho\mathbf{f}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Substituting the previous state equation in the local time derivative of
- the density yields
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\frac{1}{c^{2}}\frac{\partial p}{\partial t}\mathbf{u}+\rho\frac{\partial\mathbf{u}}{\partial t}-\nabla\cdot\mathbf{\boldsymbol{\sigma}}+\rho\mathbf{a}\cdot\nabla\mathbf{u}=\rho\mathbf{f}
+\rho\frac{\partial\mathbf{u}}{\partial t}-\nabla\cdot\mathbf{\boldsymbol{\sigma}}+\rho\mathbf{a}\cdot\nabla\mathbf{u}=\rho\mathbf{f}
 \]
 
 \end_inset
@@ -361,6 +342,26 @@ In addition, the stress tensor
 \end_layout
 
 \begin_layout Standard
+Taking into account that no volumetric deformation is considered in the
+ momentum conservation equation, the stress tensor 
+\begin_inset Formula $\boldsymbol{\sigma}$
+\end_inset
+
+ to be considered turns to be
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\boldsymbol{\sigma}=-p\mathbf{I}+\boldsymbol{\tau}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 where 
 \begin_inset Formula $p$
 \end_inset
@@ -379,12 +380,6 @@ e tensor employed as
 \end_inset
 
  the symmetric gradient operator.
- Note that for the sake of pseudo compressibility the volumetric stress
- component 
-\begin_inset Formula $\rho(\nabla\cdot\mathbf{u})$
-\end_inset
-
- is kept.
  Substituting the stress tensor above, the linear momentum equation reads
  as follows
 \end_layout
@@ -392,7 +387,7 @@ e tensor employed as
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\frac{1}{c^{2}}\frac{\partial p}{\partial t}\mathbf{u}+\rho\frac{\partial\mathbf{u}}{\partial t}-\nabla\cdot\left(-p\mathbf{I}+\rho(\nabla\cdot\mathbf{u})\mathbf{I}+\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u}\right)+\rho\mathbf{a}\cdot\nabla\mathbf{u}=\rho\mathbf{f}
+\rho\frac{\partial\mathbf{u}}{\partial t}-\nabla\cdot\left(-p\mathbf{I}+\boldsymbol{\tau}\right)+\rho\mathbf{a}\cdot\nabla\mathbf{u}=\rho\mathbf{f}
 \]
 
 \end_inset
@@ -408,7 +403,7 @@ Once arrived to this point, one can define the linear momentum and mass
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbf{R}^{M}(\mathbf{u},p)=\rho\mathbf{f}-\frac{1}{c^{2}}\frac{\partial p}{\partial t}\mathbf{u}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}+\rho(\nabla\cdot\mathbf{u})\mathbf{I}+\boldsymbol{\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u}}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}
+\mathbf{R}^{M}(\mathbf{u},p)=\rho\mathbf{f}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}+\boldsymbol{\tau}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}
 \]
 
 \end_inset
@@ -451,7 +446,7 @@ status collapsed
 
 \end_inset
 
-Galerkin weak form and multiscale decomposition
+Galerkin weak form and ASGS stabilization
 \begin_inset ERT
 status collapsed
 
@@ -491,7 +486,7 @@ Considering the velocity test function
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left(\mathbf{w},\rho\mathbf{f}-\frac{1}{c^{2}}\frac{\partial p}{\partial t}\mathbf{u}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}+\rho(\nabla\cdot\mathbf{u})\mathbf{I}+\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}\right)_{\Omega}+\left(q,-\frac{1}{c^{2}}\frac{\partial p}{\partial t}-\rho\nabla\cdot\mathbf{u}\right)_{\Omega}=0
+\left(\mathbf{w},\rho\mathbf{f}-\rho\frac{\partial\mathbf{u}}{\partial t}+\nabla\cdot\left(-p\mathbf{I}+\boldsymbol{\tau}\right)-\rho\mathbf{a}\cdot\nabla\mathbf{u}\right)_{\Omega}+\left(q,-\frac{1}{c^{2}}\frac{\partial p}{\partial t}-\rho\nabla\cdot\mathbf{u}\right)_{\Omega}=0
 \]
 
 \end_inset
@@ -588,7 +583,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left(\mathbf{w},\rho\mathbf{f}-\frac{1}{c^{2}}\frac{\partial(p_{h}+p_{s})}{\partial t}(\mathbf{u_{h}}+\mathbf{u_{s}})-\rho\frac{\partial(\mathbf{u_{h}}+\mathbf{u_{s}})}{\partial t}+\nabla\cdot\left(-(p_{h}+p_{s})\mathbf{I}+\rho(\nabla\cdot(\mathbf{u_{h}}+\mathbf{u_{s}}))\mathbf{I}+\mathbb{\mathbb{C}}\text{\nabla}^{s}(\mathbf{u_{h}}+\mathbf{u_{s}})\right)-\rho\mathbf{a}\cdot\nabla(\mathbf{u_{h}}+\mathbf{u_{s}})\right)_{\Omega}+\left(q,-\frac{1}{c^{2}}\frac{\partial(p_{h}+p_{s})}{\partial t}-\rho\nabla\cdot(\mathbf{u_{h}}+\mathbf{u_{s}})\right)_{\Omega}=0
+\left(\mathbf{w},\rho\mathbf{f}-\rho\frac{\partial(\mathbf{u_{h}}+\mathbf{u_{s}})}{\partial t}+\nabla\cdot\left(-(p_{h}+p_{s})\mathbf{I}+\mathbb{\mathbb{C}}\text{\nabla}^{s}(\mathbf{u_{h}}+\mathbf{u_{s}})\right)-\rho\mathbf{a}\cdot\nabla(\mathbf{u_{h}}+\mathbf{u_{s}})\right)_{\Omega}+\left(q,-\frac{1}{c^{2}}\frac{\partial(p_{h}+p_{s})}{\partial t}-\rho\nabla\cdot(\mathbf{u_{h}}+\mathbf{u_{s}})\right)_{\Omega}=0
 \]
 
 \end_inset
@@ -624,18 +619,6 @@ Quasi-static subscales:
 Linear order finite elements (higher order derivatives are equal to 0)
 \end_layout
 
-\begin_layout Itemize
-The fluid is incompressible on the boundaries: 
-\begin_inset Formula $\nabla\cdot\mathbf{u_{h}}=0$
-\end_inset
-
- on 
-\begin_inset Formula $\Gamma$
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
 Developing terms in the decomposed Galerkin residual weak form considering
  the quasi-static nature of the subscales one obtains
@@ -644,7 +627,7 @@ Developing terms in the decomposed Galerkin residual weak form considering
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{h}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{s}\right)_{\Omega}+\left(\mathbf{w},\nabla\rho\left(\nabla\cdot\mathbf{u_{h}}\right)\right)_{\Omega}+\left(\mathbf{w},\nabla\rho\left(\nabla\cdot\mathbf{u_{s}}\right)\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}-\left(q,\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega} & =0
+\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{h}\right)_{\Omega}-\left(\mathbf{w},\nabla p_{s}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}-\left(q,\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega} & =0
 \end{align*}
 
 \end_inset
@@ -659,8 +642,8 @@ Integrating by parts the shear stress terms
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right) & = & -\left(\mathbf{\nabla w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}\right)\mathbf{\cdot n}\\
-\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right) & = & -\left(\mathbf{\nabla w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)
+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega} & = & -\left(\mathbf{\nabla w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}\right)\mathbf{\cdot n}\\
+\left(\mathbf{w},\nabla\cdot\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega} & = & -\left(\mathbf{\nabla w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}\right)\mathbf{\cdot n}\approx-\left(\mathbf{\nabla w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}
 \end{eqnarray*}
 
 \end_inset
@@ -675,24 +658,8 @@ Doing the same for the pressure terms
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\left(\mathbf{w},\nabla p_{h}\right) & = & -\left(\mathbf{\nabla\cdot w},p_{h}\right)+\int_{\Gamma}\left(p_{h}\mathbf{w}\right)\mathbf{\cdot n}\\
-\left(\mathbf{w},\nabla p_{s}\right) & = & -\left(\mathbf{\nabla\cdot w},p_{s}\right)
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-and for the volumetric stress terms
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-\left(\mathbf{w},\nabla\rho\left(\nabla\cdot\mathbf{u_{h}}\right)\right) & = & -\left(\mathbf{\nabla w},\rho\nabla\cdot\mathbf{u_{h}}\right)+\int_{\Gamma}\left(\mathbf{w\rho}\nabla\cdot\mathbf{u_{h}}\right)\mathbf{\cdot n}\approx-\left(\mathbf{\nabla w},\rho\nabla\cdot\mathbf{u_{h}}\right)\\
-\left(\mathbf{w},\nabla\rho\left(\nabla\cdot\mathbf{u_{s}}\right)\right) & = & -\left(\mathbf{\nabla w},\rho\nabla\cdot\mathbf{u_{s}}\right)
+\left(\mathbf{w},\nabla p_{h}\right)_{\Omega} & = & -\left(\mathbf{\nabla\cdot w},p_{h}\right)_{\Omega}+\int_{\Gamma}\left(p_{h}\mathbf{w}\right)\mathbf{\cdot n}\\
+\left(\mathbf{w},\nabla p_{s}\right)_{\Omega} & = & -\left(\mathbf{\nabla\cdot w},p_{s}\right)_{\Omega}+\int_{\Gamma}\left(p_{h}\mathbf{w}\right)\mathbf{\cdot n\approx}-\left(\mathbf{\nabla\cdot w},p_{s}\right)_{\Omega}
 \end{eqnarray*}
 
 \end_inset
@@ -708,7 +675,22 @@ Complementary, the subscales mass conservation term is also integrated by
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)=-\left(\nabla q,\rho\mathbf{u_{s}}\right)
+\left(q,\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega}=-\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}+\int_{\Gamma}\left(\rho q\mathbf{n}\right)\mathbf{\cdot u_{s}\approx}-\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+as well as the subscales convective term
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}=-\left((\rho(\nabla\cdot\mathbf{a})\mathbf{w}+\rho\mathbf{a}\cdot\nabla\mathbf{w}),\mathbf{u_{s}}\right)_{\Omega}+\int_{\Gamma}(\mathbf{n}\cdot(\mathbf{a}\otimes\mathbf{w}))\mathbf{\cdot u_{s}\approx}-\left((\rho(\nabla\cdot\mathbf{a})\mathbf{w}+\rho\mathbf{a}\cdot\nabla\mathbf{w}),\mathbf{u_{s}}\right)_{\Omega}
 \]
 
 \end_inset
@@ -779,7 +761,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{s}}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\nabla\cdot\mathbf{w},p_{h}\right)_{\Omega}-\left(\nabla\cdot\mathbf{w},p_{s}\right)_{\Omega}-\left(\nabla\cdot\mathbf{w},\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}+\left(\nabla\cdot\mathbf{w},\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}-p_{h}\mathbf{I}\right)\mathbf{\cdot n}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right)_{\Omega}-\left(q,\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}+\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}=0
+\left(\mathbf{w},\rho\mathbf{f}\right)_{\Omega}-\left(\mathbf{w},\rho\frac{\partial\mathbf{u_{h}}}{\partial t}\right)_{\Omega}-\left(\nabla\cdot\mathbf{w},p_{h}\right)_{\Omega}-\left(\nabla\cdot\mathbf{w},p_{s}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)_{\Omega}-\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}+\int_{\Gamma}\mathbf{w}\cdot\left(\mathbb{C}\text{\nabla}^{s}\mathbf{u}_{h}-p_{h}\mathbf{I}\right)\mathbf{\cdot n}-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}\right)_{\Omega}+\left(\rho(\nabla\cdot\mathbf{a})\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}+\left(\rho\mathbf{a}\cdot\nabla\mathbf{w},\mathbf{u_{s}}\right)_{\Omega}-\left(q,\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\right)_{\Omega}-\left(q,\rho\nabla\cdot\mathbf{u_{h}}\right)_{\Omega}+\left(\nabla q,\rho\mathbf{u_{s}}\right)_{\Omega}=0
 \]
 
 \end_inset
@@ -789,39 +771,11 @@ where
 
 \begin_layout Standard
 Note that the term 
-\begin_inset Formula $\left(\nabla\cdot\mathbf{w},\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega}$
+\begin_inset Formula $\left(\nabla\mathbf{w},\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{s}}\right)_{\Omega}$
 \end_inset
 
-vanishes if linear elements are used in both the test function and the subscale
- approximation.
- Thus, the stabilization terms are the next ones
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-\left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{s}}\right)_{\Omega} & = & \left(\mathbf{w},\frac{1}{c^{2}}\frac{\partial p_{h}}{\partial t}\mathbf{\tau_{1}}\left(\rho\mathbf{f}-\frac{1}{c\text{²}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{h}}-\rho\frac{\partial\mathbf{u_{h}}}{\partial t}-\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}-\nabla p_{h}\right)\right)_{\Omega}\\
-\left(\nabla\cdot\mathbf{w},\rho\nabla\cdot\mathbf{u_{s}}\right)_{\Omega} & = & 0\\
-\left(\nabla\cdot\mathbf{w},\tau_{2}\left(-\frac{1}{c\text{²}}\frac{\partial p_{h}}{\partial t}-\rho\nabla\cdot\mathbf{u}_{h}\right)\right)_{\Omega}\\
-\left(\mathbf{w},\rho\mathbf{a}\cdot\nabla\mathbf{u_{s}}\right) & = & -\left(\rho\nabla\mathbf{w}\cdot\mathbf{a},\mathbf{u_{s}}\right)=-\left(\rho\nabla\mathbf{w}\cdot\mathbf{a},\mathbf{\tau_{1}}\left(\rho\mathbf{f}-\frac{1}{c\text{²}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{h}}-\rho\frac{\partial\mathbf{u_{h}}}{\partial t}-\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}-\nabla p_{h}\right)\right)\\
-(\nabla q,\rho\mathbf{u_{s}}) & = & \left(\nabla q,\rho\mathbf{\tau_{1}}\left(\rho\mathbf{f}-\frac{1}{c\text{²}}\frac{\partial p_{h}}{\partial t}\mathbf{u_{h}}-\rho\frac{\partial\mathbf{u_{h}}}{\partial t}-\rho\mathbf{a}\cdot\nabla\mathbf{u_{h}}-\nabla p_{h}\right)\right)
-\end{eqnarray*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Note in the previous stabilization terms that components 
-\begin_inset Formula $\nabla\rho\left(\nabla\cdot\mathbf{u_{h}}\right)$
-\end_inset
-
-and 
-\begin_inset Formula $\nabla\cdot\left(\mathbb{\mathbb{C}}\text{\nabla}^{s}\mathbf{u_{h}}\right)$
-\end_inset
-
- vanish if linear elements are used.
+vanishes if linear elements are used in the subscale approximation.
+ 
 \end_layout
 
 \begin_layout Section*
@@ -944,6 +898,41 @@ Values on the gauss points are expressed in terms of such variables as
 \end_layout
 
 \begin_layout Itemize
+\begin_inset Formula $\mathbf{v\_gauss}:=\mathbf{v}^{T}\mathbf{N}$
+\end_inset
+
+ a 3x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{p\_gauss}:=\mathbf{p}^{T}\mathbf{N}$
+\end_inset
+
+ a 1x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{f\_gauss}:=\mathbf{f}^{T}\mathbf{N}$
+\end_inset
+
+ a 3x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{w\_gauss}:=\mathbf{w}^{T}\mathbf{N}$
+\end_inset
+
+ a 3x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{q\_gauss}:=\mathbf{q}^{T}\mathbf{N}$
+\end_inset
+
+ a 1x1 matrix
+\end_layout
+
+\begin_layout Itemize
 \begin_inset Formula $\mathbf{accel\_gauss}:=\left(BDF_{0}\mathbf{V}+BDF_{1}\mathbf{V}_{n}+BDF_{2}\mathbf{V}_{nn}\right)^{T}\mathbf{N}$
 \end_inset
 
@@ -954,7 +943,7 @@ Values on the gauss points are expressed in terms of such variables as
 \begin_inset Formula $\mathbf{pder\_gauss}:=\left(BDF_{0}p+BDF_{1}p_{n}+BDF_{2}p_{nn}\right)\mathbf{N}$
 \end_inset
 
- a 3x1 matrix
+ a 1x1 matrix
 \end_layout
 
 \begin_layout Itemize
@@ -986,6 +975,27 @@ Values on the gauss points are expressed in terms of such variables as
 \end_layout
 
 \begin_layout Itemize
+\begin_inset Formula $\mathbf{div\_p}:=\mathbf{\nabla\cdot p}$
+\end_inset
+
+ a 1x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{div\_v}:=\mathbf{\nabla\cdot v}$
+\end_inset
+
+ a 1x1 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{div\_vconv}:=\mathbf{\nabla\cdot vconv}$
+\end_inset
+
+ a 1x1 matrix
+\end_layout
+
+\begin_layout Itemize
 \begin_inset Formula $\mathbf{grad\_p}:=\mathbf{DN^{T}\cdot p}$
 \end_inset
 
@@ -994,6 +1004,13 @@ Values on the gauss points are expressed in terms of such variables as
 
 \begin_layout Itemize
 \begin_inset Formula $\mathbf{grad\_v}:=\mathbf{DN^{T}\cdot v}$
+\end_inset
+
+ a 3x3 matrix
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{grad\_vconv}:=\mathbf{DN^{T}\cdot vconv}$
 \end_inset
 
  a 3x3 matrix
@@ -1014,10 +1031,17 @@ Values on the gauss points are expressed in terms of such variables as
 \end_layout
 
 \begin_layout Itemize
-\begin_inset Formula $\boldsymbol{\varepsilon}:=\mathbf{grad\_sym\_vh}:=\sum\mathbf{\mathbf{B_{I}V_{I}}}$
+\begin_inset Formula $\mathbf{grad\_sym\_v}:=$
 \end_inset
 
- a 3x3 matrix (symmetric gradient in Voigt form)
+a 3x3 matrix (symmetric gradient in Voigt form)
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbf{grad\_sym\_w}:=$
+\end_inset
+
+a 3x3 matrix (symmetric gradient of the test function in Voigt form)
 \end_layout
 
 \begin_layout Itemize
@@ -1028,18 +1052,57 @@ Values on the gauss points are expressed in terms of such variables as
 \begin_inset Formula $\mathbf{a_{h}}$
 \end_inset
 
-is the convective velocity 
-\begin_inset Formula $\mathbf{v_{h}}-\mathbf{v_{mesh}}$
+is the convective velocity.
+ If the option 
+\begin_inset Quotes eld
 \end_inset
 
+Picard
+\begin_inset Quotes erd
+\end_inset
 
+ linearisation is set, the convective velocity is defined as a symbol 
+\begin_inset Formula $\mathbf{v_{conv}}$
+\end_inset
+
+ meaning that it is treated as a constant in the automatic differenctiation.
+ On the contrary, if the option 
+\begin_inset Quotes eld
+\end_inset
+
+FullNR
+\begin_inset Quotes erd
+\end_inset
+
+ linearisation is set, the convective velocity is defined as 
+\begin_inset Formula $(\mathbf{v_{h}}-\mathbf{v_{mesh}})$
+\end_inset
+
+ implying that 
+\begin_inset Formula $\mathbf{v_{h}}$
+\end_inset
+
+ is considered in the automatic differenctiation.
 \end_layout
 
 \begin_layout Itemize
 \begin_inset Formula $\mathbf{stress}:$
 \end_inset
 
- 6x1 shear stress vector coming from the constitutive law
+ 6x1 shear stress vector computed by constitutive law using the previous
+ iteration database.
+ This stress vector is considered in the computation of the RHS, which is
+ the residual of the previous iteration solution.
+ When computing the LHS (RHS derivative w.r.t.
+ the DOFs), the 
+\begin_inset Formula $\mathbf{stress}$
+\end_inset
+
+ is substituted by 
+\begin_inset Formula $\mathbf{C*grad\_sym\_v}$
+\end_inset
+
+ to consider the stress in the automatic differenctiation.
 \end_layout
 
 \begin_layout Section*
@@ -1094,21 +1157,16 @@ artificial_compressibility
  This is the functional used to compute the LHS and RHS elemental matrices.
 \end_layout
 
+\begin_layout Standard
+For the definition of the subscales, the residuals are splitted in
+\end_layout
+
 \begin_layout Itemize
 \begin_inset Formula $\mathbf{vel\_residual}$
 \end_inset
 
 : linear momentum conservation equation residual.
- If 
-\begin_inset Quotes eld
-\end_inset
-
-artificial_compressibility
-\begin_inset Quotes erd
-\end_inset
-
- is set as True, the artificial compressibility terms are also added to
- the residual.
+ 
 \end_layout
 
 \begin_layout Itemize
