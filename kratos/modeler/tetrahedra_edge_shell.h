@@ -117,6 +117,8 @@ namespace Kratos
 		  return mTetrahedraEdge.size();
 	  }
 
+
+
 	  bool IsClosed() const { return mIsClosed; }
 
 	  PointType::Pointer Point1() { return mpPoint1; }

@@ -124,7 +124,7 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
 	if (min_quality > original_min_quality) {
-		
+		// I need to have the element to mark it as TO_ERASE
 	}
 	//else
 	//	std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
