@@ -5,8 +5,10 @@ from math import *
 ############3 this is to define a callback that can be executed from c++
 class aux_object_cpp_callback:
     def __init__(self, function_string ):
-        #TODO: check python version
-        self.compiled_function = compile(function_string, '', 'eval', optimize=2)
+        if (sys.version_info > (3, 0)):
+            self.compiled_function = compile(function_string, '', 'eval', optimize=2)
+        else:
+            self.compiled_function = compile(function_string, '', 'eval')
 
     def f(self,x,y,z,t):
         return  eval(self.compiled_function) 
