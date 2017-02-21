@@ -831,7 +831,7 @@ protected:
                 }
                 else
                 {
-                     KRATOS_THROW_ERROR( std::logic_error,  " Collocation not defined. TNumNodes: ", TNumNodes );
+                     KRATOS_ERROR <<  " Collocation not defined. TNumNodes: " << TNumNodes  << std::endl;
                 }
             }
         }

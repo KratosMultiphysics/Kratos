@@ -55,6 +55,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+    // TODO: move this to utilities!!!!
     #if !defined(GETCOORDINATES)
     #define GETCOORDINATES
     static inline Matrix GetCoordinates(
@@ -887,7 +888,7 @@ protected:
                 }
                 else
                 {
-                     KRATOS_THROW_ERROR( std::logic_error,  " Collocation not defined. TNumNodes: ", TNumNodes );
+                     KRATOS_ERROR << " Collocation not defined. TNumNodes: " << TNumNodes << std::endl;
                 }
             }
         }

@@ -1218,7 +1218,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using quadratic (9 nodes) quadrilaterals ", "");
+                KRATOS_ERROR << "The geometry can not be divided using quadratic (9 nodes) quadrilaterals " << std::endl;
             }
         }
     }
@@ -1243,11 +1243,11 @@ public:
         // Check that we actually found something
         if( NodesCounter == 0)
         {
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned Is(INTERFACE) = true.","");
+            KRATOS_ERROR << "No interface nodes found. Please check that nodes on both sides of the interface have been assigned Is(INTERFACE) = true." << std::endl;
         }
         if( CondCounter == 0)
         {
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned Is(INTERFACE) = true and that the contact surfaces have been assigned conditions.","");
+            KRATOS_ERROR << "No interface conditions found. Please check that nodes on both sides of the interface have been assigned Is(INTERFACE) = true and that the contact surfaces have been assigned conditions." << std::endl;
         }
     }
     
@@ -1313,4 +1313,4 @@ private:
 }; // Class InterfacePreprocessCondition
 }
 
-#endif
+#endif  /* KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED defined */

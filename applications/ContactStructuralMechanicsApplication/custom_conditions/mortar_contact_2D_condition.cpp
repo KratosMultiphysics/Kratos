@@ -1309,7 +1309,7 @@ void MortarContact2DCondition::CalculateAndAddLHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rLeftHandSideVariables[i] );
+                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -1416,7 +1416,7 @@ void MortarContact2DCondition::CalculateAndAddRHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rRightHandSideVariables[i] );
+                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
             }
         }
     }

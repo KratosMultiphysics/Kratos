@@ -603,7 +603,7 @@ public:
                     }
                     else
                     {
-                        KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: ", num_nodes );
+                        KRATOS_ERROR << "DELTA_NORMAL is not yet defined for higher order 1D elements. Number of nodes: " << num_nodes << std::endl;
                     }
                 }
                 else if ( dimension == 3 )
@@ -675,7 +675,7 @@ public:
                         }
                         else
                         {
-                            KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: ", itCond->GetGeometry( ).PointsNumber() );
+                            KRATOS_ERROR << "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: " << itCond->GetGeometry( ).PointsNumber() << std::endl;
                         }
                         
                         itCond->GetGeometry( ).Jacobian( J, local_coords_j );
@@ -715,7 +715,7 @@ public:
                 }
                 else
                 {
-                    KRATOS_THROW_ERROR( std::logic_error, "Bad dimension provided to calculate DELTA_NORMAL. Dimension = ", dimension );
+                    KRATOS_ERROR << "Bad dimension provided to calculate DELTA_NORMAL. Dimension = " << dimension << std::endl;
                 }
             }
         }
@@ -756,7 +756,7 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR( std::logic_error, "Illegal local dimension for contact element. Dimension = ", J.size2( ) );
+            KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << J.size2( ) << std::endl;
         }
     }
     

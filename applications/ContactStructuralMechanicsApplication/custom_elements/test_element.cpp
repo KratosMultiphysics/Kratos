@@ -262,7 +262,7 @@ void TestElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "This test element  has just 2 DOF implemented. Dimension = ", dimension);
+        KRATOS_ERROR << "This test element  has just 2 DOF implemented. Dimension = " << dimension << std::endl;
     }
 }
 
@@ -294,7 +294,7 @@ void TestElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proces
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "This test element  has just 2 DOF implemented. Dimension = ", dimension);
+        KRATOS_ERROR << "This test element  has just 2 DOF implemented. Dimension = " << dimension << std::endl;
     }
 }
 
@@ -335,13 +335,13 @@ int TestElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     if ( DISPLACEMENT.Key() == 0 )
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered" <<std::endl;
     }
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( VOLUME_ACCELERATION ) == false )
 	{
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VOLUME_ACCELERATION on node ", this->GetGeometry()[i].Id() );
+            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << this->GetGeometry()[i].Id() << std::endl;
 	}
     }
 
@@ -350,12 +350,12 @@ int TestElement::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
 	{
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
+            KRATOS_ERROR << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
 	}
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
 	{
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
+            KRATOS_ERROR << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
 	}
     }
 

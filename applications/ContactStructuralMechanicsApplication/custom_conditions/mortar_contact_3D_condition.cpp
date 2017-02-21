@@ -712,7 +712,7 @@ const Vector MortarContact3DCondition::LagrangeMultiplierShapeFunctionValue(
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Higher order contact elements are not implemented in 3D.", "" )
+        KRATOS_ERROR << "Higher order contact elements are not implemented in 3D." << std::endl;
     }
         
     return Phi;
@@ -767,7 +767,7 @@ const Matrix MortarContact3DCondition::LagrangeMultiplierShapeFunctionLocalGradi
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Higher order contact elements are not implemented in 3D.", "" )
+        KRATOS_ERROR << "Higher order contact elements are not implemented in 3D." << std::endl;
     }
 
     return DPhi_De;
@@ -1333,7 +1333,7 @@ void MortarContact3DCondition::CalculateF( MatrixType& rF )
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Mortar condition is not implemented for higher order 2D contact elements. Number of nodes: ", num_slave_nodes );
+        KRATOS_ERROR << "Mortar condition is not implemented for higher order 2D contact elements. Number of nodes: " << num_slave_nodes << std::endl;
     }
     
     for (unsigned int iSlave = 0; iSlave < num_slave_nodes; iSlave++)
@@ -1404,7 +1404,7 @@ void MortarContact3DCondition::CalculateAndAddLHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rLeftHandSideVariables[i] );
+                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -1494,7 +1494,7 @@ void MortarContact3DCondition::CalculateAndAddRHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rRightHandSideVariables[i] );
+                KRATOS_ERROR << " CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
             }
         }
     }

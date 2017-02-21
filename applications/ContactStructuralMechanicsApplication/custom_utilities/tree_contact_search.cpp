@@ -708,7 +708,7 @@ void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, usin
 //         }
         else
         {
-            KRATOS_THROW_ERROR( std::logic_error, " The type search declared does not exist!!!!. type_search = ", type_search );
+            KRATOS_ERROR << " The type search declared does not exist!!!!. type_search = " << type_search << std::endl;
         }
         
         if (NumberPointsFound > 0)

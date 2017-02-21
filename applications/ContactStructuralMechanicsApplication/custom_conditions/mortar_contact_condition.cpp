@@ -1253,7 +1253,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rLeftHandSideVariables[i] );
+                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -1563,7 +1563,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
 
             if ( calculated == false )
             {
-                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rRightHandSideVariables[i] );
+                KRATOS_ERROR <<  " CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
             }
         }
     }
@@ -3468,7 +3468,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrati
 //             
 //             if(total_weight < 0.0)
 //             {
-//                 KRATOS_THROW_ERROR( std::logic_error, "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates", coor_aux);
+//                 KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates" << coor_aux << std::endl;
 //             }
 //             
 //             if (total_weight > tol)
