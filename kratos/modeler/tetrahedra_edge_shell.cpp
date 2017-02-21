@@ -33,6 +33,10 @@ namespace Kratos
 		mTetrahedraEdge.push_back(std::make_pair(pTheElement, EdgeIndex));
 	}
 
+	Element* TetrahedraEdgeShell::pGetElement(std::size_t ElementLocalIndex) {
+		return mTetrahedraEdge[ElementLocalIndex].first;
+	}
+
 	void TetrahedraEdgeShell::AddShellPoints() {
 		if (mTetrahedraEdge.empty())
 			return;

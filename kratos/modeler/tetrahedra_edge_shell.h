@@ -117,7 +117,7 @@ namespace Kratos
 		  return mTetrahedraEdge.size();
 	  }
 
-
+	  Element* pGetElement(std::size_t ElementLocalIndex);
 
 	  bool IsClosed() const { return mIsClosed; }
 

@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "processes/tetrahedra_mesh_edge_swapping_process.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "processes/element_erase_process.h"
 
 
 
@@ -100,6 +101,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 		}
 
 	}
+	ElementEraseProcess(mrModelPart).Execute();
 }
 
 std::string TetrahedraMeshEdgeSwappingProcess::Info() const{
@@ -124,7 +126,9 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
 	if (min_quality > original_min_quality) {
-		// I need to have the element to mark it as TO_ERASE
+		EdgeShell.pGetElement(0)->GetGeometry() = tetrahedra_1;
+		EdgeShell.pGetElement(1)->GetGeometry() = tetrahedra_2;
+		EdgeShell.pGetElement(2)->Set(TO_ERASE);
 	}
 	//else
 	//	std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
