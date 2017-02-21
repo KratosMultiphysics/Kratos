@@ -471,7 +471,7 @@ void ContactDomainCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentPro
 {
   //Calculte nodal contact forces
   CalculateNodalForces(CurrentProcessInfo);
-
+  
   //some other elements must need to know the nodal CONTACT_FORCE ie. Thermal Contact Element
   
 }
@@ -483,11 +483,7 @@ void ContactDomainCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentPro
 void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
   KRATOS_TRY
-
-  CalculateNodalForces(CurrentProcessInfo);
-
-  //-------------
-  
+    
   //Store historical variables
   MeshDataTransferUtilities::TransferParameters TransferVariables;
   TransferVariables.SetVariable(CAUCHY_STRESS_VECTOR);
@@ -532,11 +528,7 @@ void ContactDomainCondition::ClearNodalForces()
 void ContactDomainCondition::CalculateNodalForces(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
-
-    CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-    CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-    CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-
+   
     //--------------
   
     //set contact forces to nodes
