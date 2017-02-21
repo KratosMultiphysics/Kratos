@@ -394,7 +394,7 @@ public:
                 if(index >= mpvalue->size())
                     KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
 
-                    (*mpvalue)[index] = other_array_item.mpvalue;
+                    (*mpvalue)[index] = *other_array_item.mpvalue;
             }
     }
     Parameters operator[](unsigned int index)
@@ -434,13 +434,17 @@ public:
 
             bool type_coincides = false;
             auto value_defaults = (defaults[item_name]).GetUnderlyingStorage();
-            if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
-            if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+            if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
+            
+//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
             if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
 
+            //
+            //both must be bool to be acceptable
+            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
+                
             if(type_coincides == false)
             {
                 std::stringstream msg;
