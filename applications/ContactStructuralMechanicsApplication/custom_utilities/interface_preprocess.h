@@ -844,7 +844,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear lines ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
             }
         }
     }
@@ -888,7 +888,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear lines ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
             }
         }
     }
@@ -924,7 +924,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear lines ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
             }
         }
     }
@@ -960,7 +960,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear lines ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear lines " << std::endl;
             }
         }
     }
@@ -1052,7 +1052,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear triangles ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear triangles " << std::endl;
             }
         }
     }
@@ -1096,7 +1096,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using quadratic triangles ", "");
+                KRATOS_ERROR << "The geometry can not be divided using quadratic triangles " << std::endl;
             }
         }
     }
@@ -1145,7 +1145,7 @@ public:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using linear quadrilaterals ", "");
+                KRATOS_ERROR << "The geometry can not be divided using linear quadrilaterals " << std::endl;
             }
         }
     }
@@ -1177,11 +1177,11 @@ public:
         {
             if (it->GetGeometry().PointsNumber() == 8)
             {
-	      rQuadConds.push_back( rCondition.Create(QuadId++, it->GetGeometry(), it->pGetProperties()));
+                rQuadConds.push_back( rCondition.Create(QuadId++, it->GetGeometry(), it->pGetProperties()));
             }
             else
 	    {
-	      KRATOS_THROW_ERROR( std::logic_error, "The geometry can not be divided using quadratic (8 nodes) quadrilaterals ", "");
+                KRATOS_ERROR << "The geometry can not be divided using quadratic (8 nodes) quadrilaterals " << std::endl;
 	    }
         }
     }
