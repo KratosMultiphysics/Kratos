@@ -1,0 +1,19 @@
+Performing C SOURCE FILE Test C_SUPPORTS_DOLLAR succeded with the following output:
+Change Dir: /home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1003486539/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1003486539.dir/build.make CMakeFiles/cmTryCompileExec1003486539.dir/build
+make[1]: Entering directory `/home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/CMakeTmp'
+/usr/local/bin/cmake -E cmake_progress_report /home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1003486539.dir/src.c.o
+/usr/bin/gcc   -msse3 -Wno-unused-local-typedefs -funroll-loops -ffast-math -Wall -fopenmp -DC_SUPPORTS_DOLLAR   -o CMakeFiles/cmTryCompileExec1003486539.dir/src.c.o   -c /home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec1003486539
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1003486539.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -Wno-unused-local-typedefs -funroll-loops -ffast-math -Wall -fopenmp -DC_SUPPORTS_DOLLAR    CMakeFiles/cmTryCompileExec1003486539.dir/src.c.o  -o cmTryCompileExec1003486539 -rdynamic 
+make[1]: Leaving directory `/home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+extern int dollar$(void);
+int main() { return 0; }
+

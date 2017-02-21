@@ -1,0 +1,3 @@
+/home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/FortranCInterface.dir
+/home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/myfort.dir
+/home/gcasas/kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/symbols.dir
