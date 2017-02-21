@@ -2,13 +2,14 @@ import KratosMultiphysics
 import sys
 from math import *
 
-
+############3 this is to define a callback that can be executed from c++
 class aux_object_cpp_callback:
-    def __init__(self, compiled_function ):
-        self.compiled_function = compiled_function
+    def __init__(self, function_string ):
+        #TODO: check python version
+        self.compiled_function = compile(function_string, '', 'eval', optimize=2)
 
     def f(self,x,y,z,t):
-        return eval(self.compiled_function)
+        return  eval(self.compiled_function) 
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -83,21 +84,18 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            if (sys.version_info > (3, 0)):
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval', optimize=2))
+            if self.non_trivial_local_system == False:
+                self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(aux_object_cpp_callback(self.function_string))
             else:
-                self.aux_function = aux_object_cpp_callback(compile(self.function_string, '', 'eval'))
+                self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(aux_object_cpp_callback(self.function_string),self.R,self.xorigin)
 
             if(self.function_string.find("x") == -1 and
                self.function_string.find("y") == -1 and
                self.function_string.find("z") == -1): #depends on time alone!
                     self.is_time_function = True
             else:
-                if self.non_trivial_local_system == False: #function prescribed in the global system of coordinates
-                    self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.aux_function )
-                else:
-                    self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.aux_function, self.R, self.xorigin )
-
+                self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+                
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
 
@@ -113,7 +111,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
                 if self.is_time_function:
-                    self.value = self.aux_function.f(0.0,0.0,0.0,current_time)
+                    self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
