@@ -30,7 +30,7 @@ before_script:
 - export CC="gcc-4.9"
 - export CXX="g++-4.9"
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
-- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}\libs
+- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
 script:
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
