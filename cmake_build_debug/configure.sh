@@ -20,6 +20,7 @@ clear
 rm CMakeCache.txt
 rm *.cmake
 rm -rf CMakeFiles\
+# just a comment
 
 source ~/.bashrc
 
@@ -56,7 +57,7 @@ source ~/.bashrc
 -DSWIMMING_DEM_APPLICATION=ON                                           \
 -DSOLID_MECHANICS_APPLICATION=ON                                        \
 -DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                  \
--DINSTALL_EMBEDDED_PYTHON=OFF      
+-DINSTALL_EMBEDDED_PYTHON=OFF
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
 make -j6

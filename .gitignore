@@ -50,3 +50,7 @@ kratos/includes/kratos_version.h
 # Output of tests of meshing application (MMG)
 *.o.sol
 *.o.mesh
+
+cmake_build/
+
+cmake_build_debug/
