@@ -1,4 +1,3 @@
-#!/bin/bash
 # this is an example file...please DO NOT MODIFY if you don't want to do it for everyone
 #to use it, copy it to another file and run it
 
@@ -19,12 +18,12 @@ clear
 KRATOS_BUILD_TYPE=RelWithDebInfo
 
 #you may want to decomment this the first time you compile
-rm CMakeCache.txt
-rm *.cmake
-rm -rf CMakeFiles                                                                      \
+#rm CMakeCache.txt
+#rm *.cmake
+#rm -rf CMakeFiles                                                                      \
 source ~/.bashrc
 
-/usr/local/bin/cmake ..  									            \
+cmake ..  									            \
 -DCMAKE_C_COMPILER=/usr/bin/gcc							                \
 -DCMAKE_INSTALL_RPATH="/home/gcasas/kratos/libs"                        \
 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                \
