@@ -29,8 +29,8 @@ namespace Kratos
 
 	}
 
-	void TetrahedraEdgeShell::AddTetrahedron(GeomertyType* pTheTetrahedron, char EdgeIndex){
-		mTetrahedraEdge.push_back(std::make_pair(pTheTetrahedron, EdgeIndex));
+	void TetrahedraEdgeShell::AddElement(Element* pTheElement, char EdgeIndex) {
+		mTetrahedraEdge.push_back(std::make_pair(pTheElement, EdgeIndex));
 	}
 
 	void TetrahedraEdgeShell::AddShellPoints() {
@@ -42,7 +42,7 @@ namespace Kratos
 		constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 		constexpr int tetrahedra_edge_other_points[6][2] = { {2,3}, {0,3}, {1,3}, {1,2}, {2,0}, {0,1} };
 		auto& tetrahedra_edge = mTetrahedraEdge.begin();
-		auto& tetrahedra = *(mTetrahedraEdge[0]).first;
+		auto& tetrahedra = (mTetrahedraEdge[0]).first->GetGeometry();
 		auto edge_index = (mTetrahedraEdge[0]).second;
 		//std::cout << "    First two points are ";
 		if (tetrahedra(tetrahedra_edges[edge_index][0]) == mpPoint1) {
@@ -64,7 +64,7 @@ namespace Kratos
 			for (std::size_t j = 1; j < mTetrahedraEdge.size(); j++) {
 				//std::cout << "        j : " << j ;
 				if (is_inserted[j] == false) {
-					auto& tetrahedra = *(mTetrahedraEdge[j].first);
+					auto& tetrahedra = (mTetrahedraEdge[j].first->GetGeometry());
 					//std::cout << " [ ";
 					//for (int k = 0; k < 4; k++)
 					//	std::cout << tetrahedra[k].Id() << " ";
@@ -113,7 +113,7 @@ namespace Kratos
 
 		double min_quality = std::numeric_limits<double>::max();
 		for (auto i_tetraheron = mTetrahedraEdge.begin(); i_tetraheron != mTetrahedraEdge.end(); i_tetraheron++) {
-			min_quality = std::min(min_quality, (i_tetraheron->first)->Quality(QualityCriteria));
+			min_quality = std::min(min_quality, (i_tetraheron->first)->GetGeometry().Quality(QualityCriteria));
 		}
 
 		return min_quality;
@@ -134,7 +134,7 @@ namespace Kratos
 		for (auto i_tetrahedra = mTetrahedraEdge.begin(); i_tetrahedra != mTetrahedraEdge.end(); i_tetrahedra++) {
 			rOStream << " [ ";
 				for (int i = 0; i < 4; i++)
-					rOStream << (*i_tetrahedra->first)[i].Id() << " ";
+					rOStream << (i_tetrahedra->first->GetGeometry())[i].Id() << " ";
 				rOStream << "]";
 
 		}

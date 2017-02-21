@@ -50,7 +50,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 				//std::cout << "Before: edge " << i_edge->first.GetPoint1()->Id() << " -> " << i_edge->first.GetPoint2()->Id() << " has ";
 				//i_edge->second.PrintData(std::cout);
 				//std::cout << std::endl;
-				i_edge->second.AddTetrahedron(&element_geometry,i);
+				i_edge->second.AddElement((*i_element.base()).get(),i);
 				//std::cout << "After : edge " << i_edge->first.GetPoint1()->Id() << " -> " << i_edge->first.GetPoint2()->Id() << " has ";
 				//i_edge->second.PrintData(std::cout);
 				//std::cout << std::endl;

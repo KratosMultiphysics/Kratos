@@ -98,7 +98,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void AddTetrahedron(GeomertyType* TheTetrahedron, char EdgeIndex);
+      void AddElement(Element* pTheElement, char EdgeIndex);
 
 	  void AddShellPoints();
 
@@ -168,7 +168,7 @@ namespace Kratos
 		 PointType::Pointer mpPoint2;
 
 		 std::vector<PointType::Pointer> mShellPoints;
-		 std::vector<std::pair<GeomertyType*, char> > mTetrahedraEdge;
+		 std::vector<std::pair<Element*, char> > mTetrahedraEdge;
 		 bool mIsClosed;
 
 
