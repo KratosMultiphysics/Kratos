@@ -169,13 +169,15 @@ class ModelerUtility:
      
         mesh_id = 0
         for domain in self.meshing_domains:
-            domain.ComputeAverageMeshParameters()       
+            if(domain.Active()):
+                domain.ComputeAverageMeshParameters()       
 #
     def ComputeInitialAverageMeshParameters(self):
      
         mesh_id = 0
         for domain in self.meshing_domains:
-            domain.ComputeInitialAverageMeshParameters()       
+            if(domain.Active()):
+                domain.ComputeInitialAverageMeshParameters()       
 #
 
     def BuildMeshModelersNEW(self, meshing_domains ):

@@ -27,6 +27,8 @@
 #include "mmg/mmgs/libmmgs.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
+// // Include the nodal area process
+// #include "processes/calculate_nodal_area_process.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -121,6 +123,8 @@ namespace Kratos
     
     enum elem_geometries_3d {Tetrahedra = 0, Prism = 1};
     
+    enum Framework_euler_lagrange {Eulerian = 0, Lagrangian = 1};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -155,7 +159,8 @@ public:
     MmgUtility(
         ModelPart& rThisModelPart,
         const std::string Filename = "output_remesh",
-        const unsigned int echo_level = 3
+        const unsigned int echo_level = 3,
+        const std::string framework = "Eulerian"
         )
         :mThisModelPart(rThisModelPart),
         mStdStringFilename(Filename),
@@ -163,6 +168,8 @@ public:
     {       
        mFilename = new char [Filename.length() + 1];
        std::strcpy (mFilename, Filename.c_str());
+       
+       mFramework = ConvertFramework(framework);
        
        mpRefElement.resize(TDim - 1);
        mpRefCondition.resize(TDim - 1);
@@ -206,12 +213,20 @@ public:
         /* We print the original model part */
         if (mEchoLevel > 0)
         {
+<<<<<<< HEAD
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
+=======
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
+>>>>>>> master
             
             KRATOS_WATCH(mThisModelPart);
         }
@@ -235,12 +250,20 @@ public:
         /* We print the resulting model part */
         if (mEchoLevel > 0)
         {
+<<<<<<< HEAD
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << "//---------------------------------------------------//" << std::endl;
             std::cout << std::endl;
+=======
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl;
+           std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
+>>>>>>> master
             
             KRATOS_WATCH(mThisModelPart);
         }
@@ -278,6 +301,9 @@ protected:
     char* mFilename;
     std::string mStdStringFilename;
     unsigned int mEchoLevel;
+    
+    // The framework
+    Framework_euler_lagrange mFramework;
     
     // The member variables related with the MMG library
     MMG5_pMesh mmgMesh;
@@ -415,7 +441,7 @@ protected:
         
         /* Conditions */
         // We clone the first condition of each type
-        if (TDim == 2)
+        if (TDim == 2 && numConditions > 0)
         {
             const cond_geometries_2d index_geom0 = Line;
             mpRefCondition[index_geom0] = pConditions.begin()->Create(0, pConditions.begin()->GetGeometry(), pConditions.begin()->pGetProperties());
@@ -457,7 +483,7 @@ protected:
         
         /* Elements */
         // We clone the first element of each type
-        if (TDim == 2)
+        if (TDim == 2 && numElements > 0)
         {
             const elem_geometries_2d index_geom0 = Triangle2D;
             mpRefElement[index_geom0] = pElements.begin()->Create(0, pElements.begin()->GetGeometry(), pElements.begin()->pGetProperties());
@@ -640,12 +666,24 @@ protected:
         /* NODES */
         for (int unsigned i_node = 1; i_node <= nNodes; i_node++)
         {
-            NodeType::Pointer pNode = CreateNode(i_node);
+            int ref, isRequired;
+            NodeType::Pointer pNode = CreateNode(i_node, ref, isRequired);
             
             // Set the DOFs in the nodes 
             for (typename Node<3>::DofsContainerType::const_iterator i_dof = mDofs.begin(); i_dof != mDofs.end(); i_dof++)
             {
                 pNode->pAddDof(*i_dof);
+            }
+            
+            if (ref != 0) // NOTE: ref == 0 is the MainModelPart
+            {
+                std::vector<std::string> ColorList = mColors[ref];
+                for (unsigned int colors = 0; colors < ColorList.size(); colors++)
+                {
+                    std::string SubModelPartName = ColorList[colors];
+                    ModelPart& SubModelPart = mThisModelPart.GetSubModelPart(SubModelPartName);
+                    SubModelPart.AddNode(pNode);
+                }
             }
         }
         
@@ -671,7 +709,6 @@ protected:
                 
                 if (pCondition != nullptr)
                 {
-                    pCondition->Initialize();
                     mThisModelPart.AddCondition(pCondition);
                                         
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -711,7 +748,6 @@ protected:
                     
                     if (pCondition != nullptr)
                     {
-                        pCondition->Initialize();
                         mThisModelPart.AddCondition(pCondition);
                                             
                         if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -753,7 +789,6 @@ protected:
                 
                 if (pElement != nullptr)
                 {
-                    pElement->Initialize();
                     mThisModelPart.AddElement(pElement);
                     
                     if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -793,7 +828,6 @@ protected:
                     
                     if (pElement != nullptr)
                     {
-                        pElement->Initialize();
                         mThisModelPart.AddElement(pElement);
                         
                         if (prop_id != 0) // NOTE: prop_id == 0 is the MainModelPart
@@ -859,6 +893,21 @@ protected:
         FreeMemory();
         
         /* After that we reorder nodes, conditions and elements: */
+        ReorderAllIds();
+        
+        /* We interpolate all the values */
+        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
+        
+        /* We initialize elements and conditions */
+        InitializeElementsAndConditions();
+    }
+    
+    /**
+     * This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     */
+    
+    void ReorderAllIds()
+    {
         NodesArrayType& pNode = mThisModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
 
@@ -885,11 +934,32 @@ protected:
             auto itElement = pElement.begin() + i;
             itElement->SetId(i + 1);
         }
-        
-        /* We interpolate all the values */
-        InterpolateValues(rOldModelPart, MaxNumberOfResults, step_data_size, buffer_size);
     }
     
+    /**
+     * After we have transfer the information from the previous modelpart we initilize the elements and conditions
+     */
+    
+    void InitializeElementsAndConditions()
+    {
+        ConditionsArrayType& pCondition = mThisModelPart.Conditions();
+        auto numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            itCondition->Initialize();
+        }
+
+        ElementsArrayType& pElement = mThisModelPart.Elements();
+        auto numElements = pElement.end() - pElement.begin();
+
+        for(unsigned int i = 0; i < numElements; i++) 
+        {
+            auto itElement = pElement.begin() + i;
+            itElement->Initialize();
+        }
+    }
     
     /**
      * It checks if the nodes are repeated and remove the repeated ones
@@ -957,10 +1027,16 @@ protected:
     /**
      * It creates the new node
      * @param i_node: The index of the new noode
+     * @param ref: The submodelpart id
+     * @param isRequired: MMG value (I don't know that it does)
      * @return pNode: The pointer to the new node created
      */
     
-    NodeType::Pointer CreateNode(unsigned int i_node);
+    NodeType::Pointer CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        );
     
     /**
      * It creates the new condition
@@ -1042,10 +1118,14 @@ protected:
             
             if (found == false)
             {
-                if (mEchoLevel > 0)
+                if (mEchoLevel > 0 || mFramework == Lagrangian) // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
                 {
                    std::cout << "WARNING: Node "<< itNode->Id() << " not found (interpolation not posible)" << std::endl;
                    std::cout << "\t X:"<< itNode->X() << "\t Y:"<< itNode->Y() << "\t Z:"<< itNode->Z() << std::endl;
+                   if (mFramework == Lagrangian)
+                   {
+                       std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                   }
                 }
             }
             else
@@ -1054,9 +1134,127 @@ protected:
                 {
                     CalculateStepData(*(itNode.base()), pElement, shape_functions, step, step_data_size);
                 }
+                
+                // After we interpolate the DISPLACEMENT we interpolate the initial coordinates to ensure a functioning of the simulation
+                if (mFramework == Lagrangian)
+                {
+                    if ( itNode->SolutionStepsDataHas( DISPLACEMENT ) == false ) // Fisrt we check if we have the displacement variable
+                    {
+                        KRATOS_ERROR << "Missing DISPLACEMENT on node " << itNode->Id() << std::endl;
+                    }
+                    
+                    CalculateInitialCoordinates(*(itNode.base()));
+                }
             }
         }
+        
+//         if (mFramework == Lagrangian) // We interpolate the internal variables
+//         {
+//             // We get the process info from th mode
+//             const ProcessInfo& rCurrentProcessInfo = mThisModelPart.GetProcessInfo();
+//             
+// //             // We calculate the NODAL_AREA in both model parts
+// //             /* Old model part */
+// //             CalculateNodalAreaProcess NodalAreaCalculatorOld = CalculateNodalAreaProcess(rOldModelPart, TDim);
+// //             NodalAreaCalculatorOld.Execute();
+// //             
+// //             /* New model part */
+// //             CalculateNodalAreaProcess NodalAreaCalculatorNew = CalculateNodalAreaProcess(rThisModelPart, TDim);
+// //             NodalAreaCalculatorNew.Execute();
+//             
+//             // Iterate in the elements
+//             ElementsArrayType& pElem = mThisModelPart.Elements();
+//             auto numElements = pElem.end() - pElem.begin();
+//             
+//             // TODO: Put the input in the parameters (PK2_STRESS_TENSOR is for TL)
+//             Variable<Matrix> VariableTensor = PK2_STRESS_TENSOR; 
+//             Variable<Vector> VariableVector = PK2_STRESS_VECTOR;
+// //             Variable<double> PlasticVariable = PLASTIC_STRESS_LIKE; // TODO: Add plasticity variable
+//             bool DetF0Interpolation = true;
+//             
+// //             #pragma omp parallel for 
+//             for(unsigned int i = 0; i < numElements; i++) 
+//             {
+//                 auto itElem = pElem.begin() + i;
+//                 
+//                 std::vector<Matrix> ResultTensor;
+//                 std::vector<double> ResultJ; 
+//                 
+//                 // Initialize: We set to 0 (the tensor and Jacobian are right now, then getting the value we got 0)
+//                 itElem->GetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
+//                 itElem->GetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
+//                 
+//                 for (unsigned int i_node = 0; i_node < itElem->GetGeometry().size(); i_node++)
+//                 {
+//                     Vector shape_functions;
+//                     ElementType::Pointer pElement;
+//                 
+//                     const bool found = PointLocator.FindPointOnMeshSimplified(itElem->GetGeometry()[i_node].Coordinates(), shape_functions, pElement, MaxNumberOfResults);
+//                     
+//                     if (found == false)
+//                     {
+//                         if (mEchoLevel > 0)
+//                         {
+//                             std::cout << "WARNING: Node "<< itElem->GetGeometry()[i_node].Id() << " not found (interpolation not posible)" << std::endl;
+//                             std::cout << "\t X:"<< itElem->GetGeometry()[i_node].X() << "\t Y:"<< itElem->GetGeometry()[i_node].Y() << "\t Z:"<< itElem->GetGeometry()[i_node].Z() << std::endl;
+//                             std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+//                         }
+//                     }
+//                     else
+//                     {
+//                         // NOTE: Can we do a check of the internal variables?
+//                         
+//                         const double Volume = pElement->GetGeometry().Volume();
+// 
+//                         std::vector<Matrix> Tensor;
+//                         std::vector<double> J;         
+//                         
+//                         // We calculate the current state in the origin model part
+//                         pElement->GetValueOnIntegrationPoints( VariableTensor, Tensor, rCurrentProcessInfo);
+//                         pElement->GetValueOnIntegrationPoints( DETERMINANT_F, J, rCurrentProcessInfo);
+//                         
+//                         // We add to the previous values (we iterate over the vector)
+//                         for (unsigned int i = 0; i < Tensor.size(); i++)
+//                         {
+//                             ResultTensor[i] += Tensor[i] * Volume;
+//                         }
+//                         for (unsigned int j = 0; j < J.size(); j++)
+//                         {
+//                             ResultJ[j] += J[j] * Volume;
+//                         }
+//                     }
+//                 }
+//                 
+//                 // Finally we set the values
+//                 const double VolumeDestiny = itElem->GetGeometry().Volume();
+//                 
+//                 /* Iterating over the vector */
+//                 for (unsigned int i = 0; i < ResultTensor.size(); i++)
+//                 {
+//                     ResultTensor[i] = ResultTensor[i]/VolumeDestiny;
+//                 }
+//                     
+//                 itElem->SetValueOnIntegrationPoints( VariableTensor, ResultTensor, rCurrentProcessInfo);
+//                 if (DetF0Interpolation == true)
+//                 {
+//                     /* Iterating over the vector */
+//                     for (unsigned int j = 0; j < ResultJ.size(); j++)
+//                     {
+//                         ResultJ[j] = ResultJ[j]/VolumeDestiny;
+//                     }
+//                     
+//                     itElem->SetValueOnIntegrationPoints( DETERMINANT_F, ResultJ, rCurrentProcessInfo);
+//                 }
+//             }
+//         }
     }
+    
+    /**
+     * It calculates the initial coordinates interpolated to the node
+     * @return itNode: The node pointer
+     */
+    
+    void CalculateInitialCoordinates(NodeType::Pointer& pNode);
     
     /**
      * It calculates the step data interpolated to the node
@@ -1659,6 +1857,28 @@ protected:
         const int node_id 
         );
     
+    /**
+     * This converts the framework string to an enum
+     * @param str: The string
+     * @return Framework_euler_lagrange: The equivalent enum
+     */
+        
+    Framework_euler_lagrange ConvertFramework(const std::string& str)
+    {
+        if(str == "Lagrangian") 
+        {
+            return Lagrangian;
+        }
+        else if(str == "Eulerian") 
+        {
+            return Eulerian;
+        }
+        else
+        {
+            return Eulerian;
+        }
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1950,9 +2170,21 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<2>::CreateNode(unsigned int i_node)
+    NodeType::Pointer MmgUtility<2>::CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        )
     {
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], 0.0);
+        double coord0, coord1;
+        int isCorner;
+        
+        if (MMG2D_Get_vertex(mmgMesh, &coord0, &coord1, &ref, &isCorner, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, coord0, coord1, 0.0);
         
         return pNode;
     }
@@ -1961,9 +2193,21 @@ protected:
     /***********************************************************************************/
     
     template<>  
-    NodeType::Pointer MmgUtility<3>::CreateNode(unsigned int i_node)
+    NodeType::Pointer MmgUtility<3>::CreateNode(
+        unsigned int i_node,
+        int& ref, 
+        int& isRequired
+        )
     {
-        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, mmgMesh->point[i_node].c[0], mmgMesh->point[i_node].c[1], mmgMesh->point[i_node].c[2]);
+        double coord0, coord1, coord2;
+        int isCorner;
+        
+        if (MMG3D_Get_vertex(mmgMesh, &coord0, &coord1, &coord2, &ref, &isCorner, &isRequired) != 1 )
+        {
+            exit(EXIT_FAILURE);
+        }
+        
+        NodeType::Pointer pNode = mThisModelPart.CreateNewNode(i_node, coord0, coord1, coord2);
         
         return pNode;
     }
@@ -2244,6 +2488,29 @@ protected:
     /***********************************************************************************/
     
     template<>  
+    void MmgUtility<2>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
+    {
+        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
+        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
+        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
+    void MmgUtility<3>::CalculateInitialCoordinates(NodeType::Pointer& pNode)
+    {        
+        // We interpolate the initial coordinates (X = X0 + DISPLACEMENT), then X0 = X - DISPLACEMENT        
+        pNode->X0() = pNode->X() - pNode->FastGetSolutionStepValue(DISPLACEMENT_X);
+        pNode->Y0() = pNode->Y() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
+        pNode->Z0() = pNode->Z() - pNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    template<>  
     void MmgUtility<2>::CalculateStepData(
         NodeType::Pointer& pNode,
         const ElementType::Pointer& pElement,
@@ -2280,7 +2547,7 @@ protected:
     {
         double* step_data = pNode->SolutionStepData().Data(step);
         
-        // NOTE: This just works with tetrahedron (you are going to have poblems with anything else)
+        // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
         double* node0_data = pElement->GetGeometry()[0].SolutionStepData().Data(step);
         double* node1_data = pElement->GetGeometry()[1].SolutionStepData().Data(step);
         double* node2_data = pElement->GetGeometry()[2].SolutionStepData().Data(step);
@@ -2568,11 +2835,11 @@ protected:
 
         if ( ier == MMG5_STRONGFAILURE ) 
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
         }
         else if ( ier == MMG5_LOWFAILURE )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG2DLIB. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
         }
     }
     
@@ -2586,11 +2853,11 @@ protected:
 
         if ( ier == MMG5_STRONGFAILURE ) 
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
         }
         else if ( ier == MMG5_LOWFAILURE )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: BAD ENDING OF MMG3DLIB. ier: ", ier );
+            KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
         }
     }
     
@@ -2745,7 +3012,7 @@ protected:
         else
         {
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+            KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geom << std::endl;
         }
     }
     
@@ -2810,12 +3077,12 @@ protected:
 //                 const int id6 = Geom[8].Id(); // 8th node id
             
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY", size_geom);
+            KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geom << std::endl;
         }
         else
         {
             const unsigned int size_geom = Geom.size();
-            KRATOS_THROW_ERROR( std::logic_error, "WARNING: I DO NOT KNOW WHAT IS THIS. Size: ", size_geom );
+            KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geom << std::endl;
         }
     }
 
