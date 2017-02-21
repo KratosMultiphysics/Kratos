@@ -21,8 +21,8 @@ addons:
       - g++-4.9
       - gfortran
       - libboost1.55-dev
-      - libboost1.55-serialization-dev
-      - libboost1.55-python-dev
+      - libboost-serialization1.55-dev
+      - libboost-python1.55-dev
       - libblas-dev
       - liblapack-dev
 
