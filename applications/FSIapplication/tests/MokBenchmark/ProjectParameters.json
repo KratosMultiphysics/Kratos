@@ -160,7 +160,7 @@
             },
             "volume_model_part_name" : "Parts_Fluid",
             "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","Slip2D_Slip","NoSlip2D_No_slip","FluidNoSlipInterface2D_Interface"],
-            "no_skin_parts"          : ["DISPLACEMENT_ALE_mesh_BC"],
+            "no_skin_parts"          : ["DISPLACEMENT_ALE_mesh_BC","Control_Nodes"],
             "time_stepping"          : {
                 "automatic_time_step" : false,
                 "time_step"           : 0.1
@@ -222,22 +222,20 @@
                 "model_part_name" : "NoSlip2D_No_slip"
             }
         },{
-            "python_module" : "impose_vector_value_by_components_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "ImposeVectorValueByComponentsProcess",
-            "Parameters"    : {
+            "python_module"         : "experimental_assign_vector_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "ExperimentalAssignVectorProcess",
+            "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_ALE_mesh_BC",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : true,
-                "is_fixed_z"      : true,
-                "value"           : [0.0,0.0,0.0]
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0],
+                "constrained"     : [true,true,true]
             }
         },{
             "python_module"         : "set_interface_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
             "process_name"          : "SetInterfaceProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
@@ -245,13 +243,14 @@
                 "variable_name"   : "FLUID_INTERFACE"
             }
         },{
-            "python_module"         : "MokBenchmark_local_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
-            "process_name"          : "ApplyLocalProcess",
+            "python_module"         : "from_json_check_result_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "FluidNoSlipInterface2D_Interface"
+                "check_variables" : ["MESH_DISPLACEMENT_X","PRESSURE"],
+                "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
+                "model_part_name" : "Control_Nodes",
+                "time_frequency"  : 0.1
             }
         }],
         "gravity"                          : [{
