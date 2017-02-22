@@ -7,7 +7,6 @@
 //                                       license: structural_mechanics_application/license.txt
 //
 //  Main authors:  Vicente Mataix Ferrándiz
-//                 Mohamed Khalil
 //
 
 #if !defined(KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_CONDITION_H_INCLUDED )
@@ -559,29 +558,20 @@ protected:
             const GeometryType GeometryInput =  pCond->GetGeometry();
             MasterGeometry = GeometryInput; // Updating the geometry
             
-            Normal_m = ZeroMatrix(TNumNodes, TDim);
-            
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-            {
-    //             const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
-                array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
-
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
-                {
-                    Normal_m(iNode, iDof) = normal[iDof]; 
-                }
-            }
-            
-            // Displacements and velocities of the master
+            // Displacements, coordinates and normals of the master
             for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
                 const array_1d<double, 3> coord = MasterGeometry[iNode].Coordinates() - MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
                 const array_1d<double, 3> disp  = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
 
+//                 const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
+                const array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
+                
                 for (unsigned int iDof = 0; iDof < TDim; iDof++)
                 {
                     X2(iNode, iDof) = coord[iDof];
                     u2(iNode, iDof) = disp[iDof];
+                    Normal_m(iNode, iDof) = normal[iDof]; 
                 }
             }
             
