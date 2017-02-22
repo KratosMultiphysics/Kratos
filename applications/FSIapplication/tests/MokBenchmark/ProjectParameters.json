@@ -41,18 +41,16 @@
             "Custom1" : ["0.0","0.5"]
         },
         "constraints_process_list" : [{
-            "python_module"         : "impose_vector_value_by_components_process",
+            "python_module"         : "experimental_assign_vector_process",
             "kratos_module"         : "KratosMultiphysics",
-            "help"                  : "This process fixes the selected components of a given vector variable",
-            "process_name"          : "ImposeVectorValueByComponentsProcess",
+            "process_name"          : "ExperimentalAssignVectorProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_BC",
                 "variable_name"   : "DISPLACEMENT",
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : true,
-                "is_fixed_z"      : true,
-                "value"           : [0.0,0.0,0.0]
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0],
+                "constrained"     : [true,true,true]
             }
         }],
         "loads_process_list"       : [{
@@ -170,27 +168,42 @@
         },
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module"         : "impose_vector_value_by_direction_process",
+            "python_module"         : "experimental_assign_vector_by_direction_process",
             "kratos_module"         : "KratosMultiphysics",
-            "help"                  : "This process fixes all the components of a given vector variable",
-            "check"                 : "DirectorVectorNonZero direction",
-            "process_name"          : "ImposeVectorValueByDirectionProcess",
+            "process_name"          : "AssignAutomaticDirectionVectorProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Inlet2D_Inlet",
                 "variable_name"   : "VELOCITY",
-                "modulus"         : 1.0,
-                "direction"       : [1.0,0.0,0.0]
+                "modulus"         : "2*0.06067*(1-cos(pi*t/10))*y*(1-y)",
+                "constrained"     : true,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [0.0,10.0]
             }
         },{
-            "python_module"         : "impose_scalar_value_process",
-            "kratos_module"         : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"          : "ApplyOutletProcess",
+            "python_module"         : "experimental_assign_vector_by_direction_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "AssignAutomaticDirectionVectorProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Inlet2D_Inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : "4*0.06067*y*(1-y)",
+                "constrained"     : true,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [10.0,"End"]
+            }
+        },{
+            "python_module"         : "experimental_assign_value_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "ExperimentalAssignValueProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Outlet2D_Outlet",
                 "variable_name"   : "PRESSURE",
-                "value"           : 0
+                "interval"        : [0.0,"End"],
+                "constrained"     : true,
+                "value"           : 0.0
             }
         },{
             "python_module"         : "apply_slip_process",
@@ -211,7 +224,6 @@
         },{
             "python_module" : "impose_vector_value_by_components_process",
             "kratos_module" : "KratosMultiphysics",
-            "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "ImposeVectorValueByComponentsProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,

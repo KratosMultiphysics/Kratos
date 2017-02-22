@@ -120,25 +120,6 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
             time = time + Dt
             step = step + 1
 
-            # Custom velocity profile for Mok benchmark
-            # Note that this is not the original time variation. A linear one has been set to avoid to import Numpy.
-            if time <=10.0:
-                v_bar = 0.06067*(time/10.0)
-            elif time>10.0:
-                v_bar = 0.06067
-
-            for node in self.solver.fluid_solver.main_model_part.GetSubModelPart("Inlet2D_Inlet").Nodes:
-
-                vel = Vector(3)
-                vel[0] = 4*v_bar*node.Y*(1-node.Y)
-                vel[1] = 0.0
-                vel[2] = 0.0
-
-                node.SetSolutionStepValue(VELOCITY,0,vel)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                node.Fix(VELOCITY_Z)
-
             self.solver.SetTimeStep(step)
 
             self.structure_main_model_part.CloneTimeStep(time)
