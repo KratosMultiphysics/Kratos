@@ -28,7 +28,7 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 
-/* Logging format include */
+/* Utilities */
 #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos 
@@ -54,141 +54,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
-    // TODO: move this to utilities!!!!
-    #if !defined(GETCOORDINATES)
-    #define GETCOORDINATES
-    static inline Matrix GetCoordinates(
-        const GeometryType& nodes,
-        const bool current = true
-        )
-    {
-        /* DEFINITIONS */    
-        const unsigned int dimension = nodes.WorkingSpaceDimension();
-        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
-        
-        Matrix Coordinates(number_of_nodes, dimension);
-        
-        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
-        {
-            array_1d<double, 3> coord = nodes[iNode].Coordinates();
-            
-            if (current == false)
-            {
-                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, 0);
-            }
-
-            for (unsigned int iDof = 0; iDof < dimension; iDof++)
-            {
-                Coordinates(iNode, iDof) = coord[iDof];
-            }
-        }
-        
-        return Coordinates;
-    }
-    #endif
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    #if !defined(GETVARIABLESVECTOR)
-    #define GETVARIABLESVECTOR
-    static inline Vector GetVariableVector(
-        const GeometryType& nodes,
-        const Variable<double>& rVarName,
-        unsigned int step
-        )
-    {
-        /* DEFINITIONS */
-        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
-        
-        Vector VarVector(number_of_nodes);
-        
-        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
-        {
-            VarVector[iNode] = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
-        }
-        
-        return VarVector;
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    static inline Vector GetVariableVector(
-        const GeometryType& nodes,
-        const Variable<double>& rVarName
-        )
-    {
-        /* DEFINITIONS */
-        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
-        
-        Vector VarVector(number_of_nodes);
-        
-        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
-        {
-            VarVector[iNode] = nodes[iNode].GetValue(rVarName);
-        }
-        
-        return VarVector;
-    }
-    #endif
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    #if !defined(GETVARIABLESMATRIX)
-    #define GETVARIABLESMATRIX
-    static inline Matrix GetVariableMatrix(
-        const GeometryType& nodes,
-        const Variable<array_1d<double,3> >& rVarName,
-        unsigned int step
-        )
-    {
-        /* DEFINITIONS */
-        const unsigned int dimension = nodes.WorkingSpaceDimension();
-        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
-        
-        Matrix VarMatrix(number_of_nodes, dimension);
-        
-        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
-        {
-            const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
-            for (unsigned int iDof = 0; iDof < dimension; iDof++)
-            {
-                VarMatrix(iNode, iDof) = Value[iDof];
-            }
-        }
-        
-        return VarMatrix;
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    static inline Matrix GetVariableMatrix(
-        const GeometryType& nodes,
-        const Variable<array_1d<double,3> >& rVarName
-        )
-    {
-        /* DEFINITIONS */
-        const unsigned int dimension = nodes.WorkingSpaceDimension();
-        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
-        
-        Matrix VarMatrix(number_of_nodes, dimension);
-        
-        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
-        {
-            const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
-            for (unsigned int iDof = 0; iDof < dimension; iDof++)
-            {
-                VarMatrix(iNode, iDof) = Value[iDof];
-            }
-        }
-        
-        return VarMatrix;
-    }
-    #endif
     
 ///@}
 ///@name Kratos Classes
@@ -648,9 +513,18 @@ protected:
             // The normals of the nodes
             Normal_s = ZeroMatrix(TNumNodes, TDim);
             
-            // Displacements and velocities of the slave
-            X1 = GetCoordinates(GeometryInput, false);
-            u1 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+            // Displacements and velocities of the slave            
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            {
+                const array_1d<double, 3> coord = SlaveGeometry[iNode].Coordinates() - SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3> disp  = SlaveGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+
+                for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                {
+                    X1(iNode, iDof) = coord[iDof];
+                    u1(iNode, iDof) = disp[iDof];
+                }
+            }
             
             // Derivatives 
             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
@@ -699,8 +573,17 @@ protected:
             }
             
             // Displacements and velocities of the master
-            X2 = GetCoordinates(GeometryInput, false);
-            u2 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            {
+                const array_1d<double, 3> coord = MasterGeometry[iNode].Coordinates() - MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3> disp  = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+
+                for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                {
+                    X2(iNode, iDof) = coord[iDof];
+                    u2(iNode, iDof) = disp[iDof];
+                }
+            }
             
             // Derivative of master's normal
             for (unsigned int i = 0; i < TNumNodes * TDim; i++)

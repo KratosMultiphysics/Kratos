@@ -917,9 +917,6 @@ public:
         }
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * It resets the visited status in all the nodes
      * @param ModelPart: The model part to compute
@@ -1006,6 +1003,134 @@ public:
                 itNode->GetValue(WEIGHTED_GAP) = 0.0;
             }
         }
+    }
+    
+    /**
+     * It calculates the matrix of coordinates of a geometry
+     * @param nodes: The geometry to calculate
+     * @param current: If we calculate the current coordinates or the initial ones
+     * @return Coordinates: The matrix containing the coordinates of the geometry
+     */
+    
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+        const GeometryType& nodes,
+        const bool current = true
+        )
+    {
+        /* DEFINITIONS */            
+        bounded_matrix<double, TNumNodes, TDim> Coordinates;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            array_1d<double, 3> coord = nodes[iNode].Coordinates();
+            
+            if (current == false)
+            {
+                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, 0);
+            }
+
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                Coordinates(iNode, iDof) = coord[iDof];
+            }
+        }
+        
+        return Coordinates;
+    }
+
+    /**
+     * It calculates the vector of a variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @param step: The step where calculate
+     * @return VarVector: The vector containing the variables of the geometry
+     */
+    
+    template< unsigned int TNumNodes >
+    static inline array_1d<double, TNumNodes> GetVariableVector(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        array_1d<double, TNumNodes> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector[iNode] = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        }
+        
+        return VarVector;
+    }
+
+    template< unsigned int TNumNodes >
+    static inline array_1d<double, TNumNodes> GetVariableVector(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        array_1d<double, TNumNodes> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector[iNode] = nodes[iNode].GetValue(rVarName);
+        }
+        
+        return VarVector;
+    }
+    
+    /**
+     * It calculates the matrix of a variable of a geometry
+     * @param nodes: The geometry to calculate
+     * @param rVarName: The name of the variable to calculate
+     * @param step: The step where calculate
+     * @return VarMatrix: The matrix containing the variables of the geometry
+     */
+    
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
+    }
+
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
+            for (unsigned int iDof = 0; iDof < TDim; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
     }
     
 private:
