@@ -54,3 +54,5 @@ kratos/includes/kratos_version.h
 cmake_build/
 
 cmake_build_debug/
+
+*.user
