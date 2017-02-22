@@ -178,7 +178,7 @@ using namespace boost::python;
         ;
 
 
-    class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField",  init<>())
+    class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
