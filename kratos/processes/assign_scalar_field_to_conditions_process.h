@@ -60,7 +60,6 @@ public:
                 "mesh_id": 0,
                 "variable_name": "VARIABLE_NAME", 
                 "interval"        : [0.0, 1e30],
-                "spatially_varying": true, 
                 "value"           : "please give an expression in terms of the variable x, y, z, t",
                 "local_axes" : {}
             }  )" );
@@ -71,8 +70,6 @@ public:
 
         mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-
-        mIsSpatialField = rParameters["spatially_varying"].GetBool();
         
         mpfunction = PythonGenericFunctionUtility::Pointer( new PythonGenericFunctionUtility(rParameters["value"].GetString(),  rParameters["local_axes"]));
 
@@ -214,8 +211,6 @@ private:
     PythonGenericFunctionUtility::Pointer mpfunction;
     std::string mvariable_name;
 
-    bool mIsSpatialField = true;
-
     std::size_t mmesh_id;
 
     ///@}
@@ -279,7 +274,7 @@ private:
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).ConditionsBegin();
 
-            if(mIsSpatialField)
+            if(mpfunction->DependsOnSpace())
             {
                 if(mpfunction->UseLocalSystem())
                 {

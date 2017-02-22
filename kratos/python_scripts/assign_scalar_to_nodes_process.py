@@ -71,7 +71,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
-        self.is_time_function = False
+
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = settings["value"].GetDouble()
@@ -79,11 +79,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.function_string = settings["value"].GetString()
             self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
-            if(self.function_string.find("x") == -1 and
-               self.function_string.find("y") == -1 and
-               self.function_string.find("z") == -1): #depends on time alone!
-                    self.is_time_function = True
-            else:
+            if(self.aux_function.DependsOnSpace()):
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
                 
         #construct a variable_utils object to speedup fixing
@@ -93,7 +89,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(current_time >= self.interval[0] and  current_time<self.interval[1]):
+        eps = max(1e-14*self.interval[0], 1e-30) #WARNING: very experimental
+        if(current_time >= (self.interval[0]-eps) and  current_time< (self.interval[1]+eps) ): #WARNING: very experimental
             
             self.step_is_active = True
             
@@ -103,7 +100,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if self.value_is_numeric:
                 self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
             else:
-                if self.is_time_function:
+                if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time)
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
@@ -113,7 +110,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        #if(current_time >= self.interval[0] and  current_time<self.interval[1]):
         if(self.step_is_active):
             #here we free all of the nodes in the mesh
             if(self.is_fixed):

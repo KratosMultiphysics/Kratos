@@ -80,6 +80,7 @@ void AddUtilitiesToPython()
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
     .def(init<const std::string&, Parameters>())
     .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
+    .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
     ;
