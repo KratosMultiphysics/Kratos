@@ -269,7 +269,7 @@ public:
 
             NodesArrayType::iterator itNode = NodeBegin + i;
 
-            //Predicting: isplacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
+            //Predicting: NewDisplacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
 
             const array_1d<double, 3 > & PreviousAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
