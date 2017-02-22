@@ -25,9 +25,9 @@
 #include "custom_processes/transfer_entities_between_model_parts_process.h"
 #include "custom_processes/transfer_nodes_to_model_part_process.h"
 #include "custom_processes/assign_scalar_field_to_nodes_process.h"
-#include "custom_processes/assign_scalar_field_to_conditions_process.h"
+// #include "custom_processes/assign_scalar_field_to_conditions_process.h"
 #include "custom_processes/assign_scalar_variable_to_nodes_process.h"
-#include "custom_processes/assign_scalar_variable_to_conditions_process.h"
+// #include "custom_processes/assign_scalar_variable_to_conditions_process.h"
 #include "custom_processes/assign_vector_variable_to_conditions_process.h"
 #include "custom_processes/assign_vector_field_to_conditions_process.h"
 #include "custom_processes/fix_scalar_dof_process.h"
@@ -107,16 +107,16 @@ namespace Kratos
 
       	;
 
-      class_<AssignScalarVariableToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarToConditionsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def(init<ModelPart&, const Variable<double>&, double, std::size_t>())
-        .def(init<ModelPart&, const Variable<int>&, int, std::size_t>())
-        .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t>())
-        .def("Execute", &AssignScalarVariableToConditionsProcess::Execute)
-      	;
+//       class_<AssignScalarVariableToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
+//       	(
+//       	 "AssignScalarToConditionsProcess", init<ModelPart&, Parameters>()
+//       	)
+//         .def(init< ModelPart&, Parameters& >())
+//         .def(init<ModelPart&, const Variable<double>&, double, std::size_t>())
+//         .def(init<ModelPart&, const Variable<int>&, int, std::size_t>())
+//         .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t>())
+//         .def("Execute", &AssignScalarVariableToConditionsProcess::Execute)
+//       	;
 
       class_<AssignVectorVariableToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
@@ -127,14 +127,14 @@ namespace Kratos
         .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
       	;
 
-      class_<AssignScalarFieldToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignScalarFieldToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-        .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignScalarFieldToConditionsProcess::Execute)
-
-      	;
+//       class_<AssignScalarFieldToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
+//       	(
+//       	 "AssignScalarFieldToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
+//       	)
+//         .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
+//         .def("Execute", &AssignScalarFieldToConditionsProcess::Execute)
+// 
+//       	;
 
       class_<AssignVectorFieldToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(

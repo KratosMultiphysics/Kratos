@@ -361,7 +361,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ##verify the result
         t = model_part.ProcessInfo[TIME]
-        print("Checking time = ", t)
+        #print("Checking time = ", t)
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 10.0)
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
@@ -394,7 +394,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ##verify the result
         t = model_part.ProcessInfo[TIME]
-        print("Checking time = ", t)
+        #print("Checking time = ", t)
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 10.0) #previous value
             self.assertFalse(node.IsFixed(DISPLACEMENT_X)) #not fixed since set as null
@@ -474,8 +474,101 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteFinalizeSolutionStep()
 
         
+    def test_assign_scalar_value_to_conditions(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(NODAL_H)
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
 
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignValueProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "mesh_id": 0,
+                            "variable_name": "PRESSURE",
+                            "value" : 15.0
+                        }
+                    },
+                    {
+                        "python_module"   : "assign_scalar_to_conditions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignValueProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "mesh_id": 0,
+                            "variable_name": "VISCOSITY",
+                            "value" : 2
+                        }
+                    }
+                    ]
+                }
+            """
+            )
 
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        for cond in model_part.Conditions:
+            self.assertEqual(cond.GetValue(PRESSURE), 15.0)
+            self.assertEqual(cond.GetValue(VISCOSITY), 2)
+
+        
+    def test_assign_scalar_field_to_conditions(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(NODAL_H)
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_field_to_conditions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignValueProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "mesh_id": 0,
+                            "variable_name": "INITIAL_STRAIN",
+                            "value" : "x+y*t+z"
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+            
+        model_part.CloneTimeStep(5.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        t = model_part.ProcessInfo[TIME]
+        for cond in model_part.Conditions:
+            v = cond.GetValue(INITIAL_STRAIN)
+            
+            i = 0
+            for node in cond.GetNodes():
+                self.assertEqual(v[i],node.X+node.Y*t+node.Z)    
+                i=i+1
+            
     def test_find_nodal_h_process(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(NODAL_H)

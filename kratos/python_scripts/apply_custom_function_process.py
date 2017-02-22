@@ -74,8 +74,8 @@ class ApplyCustomFunctionProcess(KratosMultiphysics.Process):
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
         
-        self.tmp = aux_object_cpp_callback(self.compiled_function)
-        self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.tmp ) 
+        self.tmp = KratosMultiphysics.PythonGenericFunctionUtility(aux_object_cpp_callback(self.compiled_function))
+        self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.tmp ) 
             
         print("finished construction of ApplyCustomFunctionProcess Process")
     

@@ -48,6 +48,8 @@
 #include "utilities/connectivity_preserve_modeler.h"
 #include "utilities/cutting_utility.h"
 
+#include "utilities/python_function_callback_utility.h"
+
 namespace Kratos
 {
 
@@ -55,116 +57,6 @@ namespace Python
 {
 
 
-class PythonGenericFunctionUtility
-{
-    public:
-        KRATOS_CLASS_POINTER_DEFINITION(PythonGenericFunctionUtility);
-        
-        PythonGenericFunctionUtility(  boost::python::object obj )
-        {
-            mpy_obj = obj;
-            muse_local_system = false;
-        }
-        
-        PythonGenericFunctionUtility(  boost::python::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
-        {
-            if(mR.size1() != 3 or mR.size2() != 3)
-                KRATOS_ERROR << "rotation matrix is expected to have size 3. The matrix given is " << mR;
-            if(mxc.size() != 3)
-                KRATOS_ERROR << "center position is expected to have size 3. The position given is " << mxc;
-        }
-        
-        bool UseLocalSystem()
-        { return muse_local_system; }
-
-        
-        double RotateAndCallFunction(const double x, const double y, const double z, const double t)
-        {
-            array_1d<double,3> xglobal;
-            xglobal[0] = x;
-            xglobal[1] = y;
-            xglobal[2] = z;
-            array_1d<double,3> xlocal = prod(mR, (xglobal - mxc) );
-            return CallFunction(xlocal[0],xlocal[1],xlocal[2],t);
-        }
-
-        double CallFunction(const double x, const double y, const double z, const double t)
-        {
-            return boost::python::call_method<double>(mpy_obj.ptr(), "f", x,y,z,t);
-        }
-
-        
-    private:
-        boost::python::object mpy_obj;
-        bool muse_local_system = false;
-        Matrix mR;
-        Vector mxc;
-};
-
-class ApplyFunctionToNodesUtility
-{
-    public:
-        KRATOS_CLASS_POINTER_DEFINITION(ApplyFunctionToNodesUtility);
-        
-        ApplyFunctionToNodesUtility(  ModelPart::NodesContainerType& rNodes, PythonGenericFunctionUtility::Pointer pfunction): mrNodes(rNodes), mpfunction(pfunction)
-        {};
-
-        template < class TVarType >
-        void ApplyFunction(const TVarType& rVariable, const double t)
-        {
-            if(mpfunction->UseLocalSystem() == false)
-            {
-                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-                {
-                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                    const double value = mpfunction->CallFunction(i->X(), i->Y(), i->Z(), t);
-                    i->FastGetSolutionStepValue(rVariable) = value;
-                }
-            }
-            else
-            {
-                //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-                {
-                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                    const double value = mpfunction->RotateAndCallFunction(i->X(), i->Y(), i->Z(), t);
-                    i->FastGetSolutionStepValue(rVariable) = value;
-                }
-            }
-        }
-
-
-        std::vector <double> ReturnFunction(const double t)
-        {
-            std::vector<double> values;
-            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-            if(mpfunction->UseLocalSystem() == false)
-            {
-                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-                {
-                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                    const double value = mpfunction->CallFunction(i->X(), i->Y(), i->Z(), t);
-                    values.push_back(value);
-                }
-            }
-            else
-            {
-                for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
-                {
-                    ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-                    const double value = mpfunction->RotateAndCallFunction(i->X(), i->Y(), i->Z(), t);
-                    values.push_back(value);
-                }
-            }                
-
-            return values;
-        }
-
-    private:
-        ModelPart::NodesContainerType& mrNodes;
-        PythonGenericFunctionUtility::Pointer mpfunction;
-};
 
 
 void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
@@ -185,8 +77,8 @@ void AddUtilitiesToPython()
     using namespace boost::python;
 
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<boost::python::object >() )
-    .def(init<boost::python::object, const Matrix&, const Vector&>())
+    class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
+    .def(init<const std::string&, Parameters>())
     .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)

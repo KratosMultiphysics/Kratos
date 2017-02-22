@@ -2,14 +2,6 @@ import KratosMultiphysics
 import sys
 from math import *
 
-############3 this is to define a callback that can be executed from c++
-class aux_object_cpp_callback:
-    def __init__(self, function_string ):
-        #TODO: check python version
-        self.compiled_function = compile(function_string, '', 'eval', optimize=2)
-
-    def f(self,x,y,z,t):
-        return  eval(self.compiled_function) 
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -32,6 +24,11 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             }
             """
             )
+        #admissible values for local axes, are "empty" or both xorigin and axes (rotation matrix), prescribed. An example follows
+        #"local_axes"               :{
+        #    "origin" : [0.0, 0.0, 0.0],
+        #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+        #    }
 
         #detect "End" as a tag and replace it by a large number
         if(settings.Has("interval")):
@@ -50,20 +47,16 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        #admissible values for local axes, are "empty" or both xorigin and axes (rotation matrix), prescribed
-        #"local_axes"               :{
-        #    "origin" : [0.0, 0.0, 0.0],
-        #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
-        #    }
-        self.non_trivial_local_system = False
-        if(settings["local_axes"].Has("origin")): # not empty
-            self.non_trivial_local_system = True
-            self.R = KratosMultiphysics.Matrix(3,3)
-            self.xorigin = KratosMultiphysics.Vector(3)
-            for i in range(3):
-                self.xorigin[i] = settings["local_axes"]["origin"][i].GetDouble()                
-                for j in range(3):
-                    self.R[i,j] = settings["local_axes"]["axes"][i][j].GetDouble()
+        
+        #self.non_trivial_local_system = False
+        #if(settings["local_axes"].Has("origin")): # not empty
+            #self.non_trivial_local_system = True
+            #self.R = KratosMultiphysics.Matrix(3,3)
+            #self.xorigin = KratosMultiphysics.Vector(3)
+            #for i in range(3):
+                #self.xorigin[i] = settings["local_axes"]["origin"][i].GetDouble()                
+                #for j in range(3):
+                    #self.R[i,j] = settings["local_axes"]["axes"][i][j].GetDouble()
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if(type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable):
@@ -84,10 +77,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.value = settings["value"].GetDouble()
         else:
             self.function_string = settings["value"].GetString()
-            if self.non_trivial_local_system == False:
-                self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(aux_object_cpp_callback(self.function_string))
-            else:
-                self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(aux_object_cpp_callback(self.function_string),self.R,self.xorigin)
+            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if(self.function_string.find("x") == -1 and
                self.function_string.find("y") == -1 and
@@ -98,12 +88,15 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 
         #construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
+        self.step_is_active = False
 
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
-
+            
+            self.step_is_active = True
+            
             if(self.is_fixed):
                 self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
 
@@ -120,9 +113,11 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(current_time >= self.interval[0] and  current_time<self.interval[1]):
-            #print("Freeing variable", self.variable)
+        #if(current_time >= self.interval[0] and  current_time<self.interval[1]):
+        if(self.step_is_active):
             #here we free all of the nodes in the mesh
             if(self.is_fixed):
                 fixity_status  = False
                 self.variable_utils.ApplyFixity(self.variable, fixity_status, self.mesh.Nodes)
+
+        self.step_is_active = False

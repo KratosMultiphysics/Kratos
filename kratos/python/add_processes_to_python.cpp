@@ -45,10 +45,15 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
+#include "processes/assign_scalar_variable_to_conditions_process.h"
+#include "processes/assign_scalar_field_to_conditions_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+
+#include "utilities/python_function_callback_utility.h"
+
 
 namespace Kratos
 {
@@ -208,7 +213,15 @@ void  AddProcessesToPython()
     class_<ComputeNodalGradientProcess<3, component_type> , bases<Process>, boost::noncopyable >("ComputeNodalGradientProcessComp3D",
             init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
-    
+
+    class_<AssignScalarVariableToConditionsProcess, bases<Process>, boost::noncopyable >("AssignScalarVariableToConditionsProcess",
+            init<ModelPart&, Parameters >())
+    ;
+
+    class_<AssignScalarFieldToConditionsProcess , bases<Process>, boost::noncopyable >("AssignScalarFieldToConditionsProcess",
+            init<ModelPart&, Parameters >())
+    ;
+
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 

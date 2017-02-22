@@ -1,12 +1,15 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2016 $
-//   Revision:            $Revision:                  0.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-
+//  Main authors:    Josep Maria Carbonell
+//
 #if !defined(KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED )
 #define  KRATOS_ASSIGN_SCALAR_VARIABLE_TO_CONDITIONS_PROCESS_H_INCLUDED
 
@@ -82,56 +85,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-					    const Variable<double>& rVariable,
-					    const double double_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-	mvariable_name = rVariable.Name();
-
-	if( KratosComponents< Variable<double> >::Has( mvariable_name ) == false ) //case of array_1d variable
-	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
-
-        KRATOS_CATCH("");
-    }
-
-
-    AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-					    const Variable< int >& rVariable,
-					    const int int_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-
-	mvariable_name = rVariable.Name();
-
-	if( KratosComponents< Variable<int> >::Has( mvariable_name ) == false ) //case of double variable
-	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
-
-
-        KRATOS_CATCH("");
-    }
-
-    AssignScalarVariableToConditionsProcess(ModelPart& model_part,
-					    const Variable< bool >& rVariable,
-					    const bool bool_value,
-					    std::size_t mesh_id
-					    ) : Process() , mr_model_part(model_part), mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-	mvariable_name = rVariable.Name();
-
-	if( KratosComponents< Variable<bool> >::Has( mvariable_name ) == false ) //case of double variable
-	  KRATOS_THROW_ERROR(std::runtime_error,"trying to set a variable that is not in the model_part - variable name is ",mvariable_name);
-
-        KRATOS_CATCH("");
-    }
 
 
     /// Destructor.
@@ -155,7 +108,7 @@ public:
 
 
     /// Execute method is used to execute the AssignScalarVariableToConditionsProcess algorithms.
-    virtual void Execute() 
+    virtual void Execute() override
     {
 
         KRATOS_TRY;
@@ -180,48 +133,12 @@ public:
         KRATOS_CATCH("");
 
     }
-
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    
+    virtual void ExecuteInitializeSolutionStep() override
     {
+        Execute();
     }
 
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
 
 
     ///@}
