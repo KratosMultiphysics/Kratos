@@ -56,3 +56,7 @@ cmake_build/
 cmake_build_debug/
 
 *.user
+
+kratos\.files
+
+kratos\.includes
