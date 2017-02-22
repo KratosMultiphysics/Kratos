@@ -24,39 +24,18 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             }
             """
             )
-        #admissible values for local axes, are "empty" or both xorigin and axes (rotation matrix), prescribed. An example follows
-        #"local_axes"               :{
-        #    "origin" : [0.0, 0.0, 0.0],
-        #    "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
-        #    }
+        
+        #assign this here since it will change the "interval" prior to validation
+        a = settings["interval"]
 
-        #detect "End" as a tag and replace it by a large number
-        if(settings.Has("interval")):
-            if(settings["interval"][1].IsString() ):
-                if(settings["interval"][1].GetString() == "End"):
-                    settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
-                else:
-                    raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
-
+        self.interval = KratosMultiphysics.IntervalUtility(settings)
+        
         #here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):            
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
 
-
-
         settings.ValidateAndAssignDefaults(default_settings)
-
-        
-        #self.non_trivial_local_system = False
-        #if(settings["local_axes"].Has("origin")): # not empty
-            #self.non_trivial_local_system = True
-            #self.R = KratosMultiphysics.Matrix(3,3)
-            #self.xorigin = KratosMultiphysics.Vector(3)
-            #for i in range(3):
-                #self.xorigin[i] = settings["local_axes"]["origin"][i].GetDouble()                
-                #for j in range(3):
-                    #self.R[i,j] = settings["local_axes"]["axes"][i][j].GetDouble()
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if(type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable):
@@ -65,9 +44,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
-        self.interval = KratosMultiphysics.Vector(2)
-        self.interval[0] = settings["interval"][0].GetDouble()
-        self.interval[1] = settings["interval"][1].GetDouble()
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
@@ -89,8 +65,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        eps = max(1e-14*self.interval[0], 1e-30) #WARNING: very experimental
-        if(current_time >= (self.interval[0]-eps) and  current_time< (self.interval[1]+eps) ): #WARNING: very experimental
+        if(self.interval.IsInInterval(current_time)): 
             
             self.step_is_active = True
             

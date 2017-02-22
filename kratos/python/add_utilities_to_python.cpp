@@ -49,6 +49,7 @@
 #include "utilities/cutting_utility.h"
 
 #include "utilities/python_function_callback_utility.h"
+#include "utilities/interval_utility.h"
 
 namespace Kratos
 {
@@ -322,6 +323,12 @@ void AddUtilitiesToPython()
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
+    ;
+    
+    class_<IntervalUtility >("IntervalUtility", init<Parameters >())
+    .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
+    .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
+    .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
 }
 
