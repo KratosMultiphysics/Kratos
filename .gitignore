@@ -51,12 +51,4 @@ kratos/includes/kratos_version.h
 *.o.sol
 *.o.mesh
 
-cmake_build/
-
-cmake_build_debug/
-
-*.user
-
-kratos\.files
-
-kratos\.includes
+kratos\.creator\.user
