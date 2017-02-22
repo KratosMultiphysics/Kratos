@@ -22,7 +22,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stationary_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D_twofluid.cpp
-  
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -37,6 +36,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/herschel_bulkey_3d_law.cpp
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_navier_stokes_symbolic_element.cpp
 )
 
 ###############################################################
