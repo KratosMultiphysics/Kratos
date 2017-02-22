@@ -20,7 +20,6 @@ clear
 rm CMakeCache.txt
 rm *.cmake
 rm -rf CMakeFiles\
-# just a comment
 
 source ~/.bashrc
 
