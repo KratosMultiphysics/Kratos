@@ -95,10 +95,17 @@ namespace Kratos {
 
 			FindNodalNeighboursProcess(model_part).Execute();
 
+			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_3to2_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			gid_io.InitializeMesh(0.00);
+			gid_io.WriteMesh(model_part.GetMesh());
+			gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
-			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_3to2_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			 gid_io.InitializeMesh(0.00);
+			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 2);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
+
+			 gid_io.InitializeMesh(1.00);
 			 gid_io.WriteMesh(model_part.GetMesh());
 			 gid_io.FinalizeMesh();
 
