@@ -408,10 +408,10 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 0.0)
             self.assertTrue(node.IsFixed(VELOCITY_X))
 
-            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), (math.sqrt(abs(node.X*node.Y)))/math.sqrt(2))
+            self.assertAlmostEqual(node.GetSolutionStepValue(VELOCITY_Y), (math.sqrt(abs(node.X*node.Y)))/math.sqrt(2))
             self.assertTrue(node.IsFixed(VELOCITY_Y))
 
-            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), (math.sqrt(abs(node.X*node.Y)))/math.sqrt(2))
+            self.assertAlmostEqual(node.GetSolutionStepValue(VELOCITY_Z), (math.sqrt(abs(node.X*node.Y)))/math.sqrt(2))
             self.assertTrue(node.IsFixed(VELOCITY_Z))
 
         for process in list_of_processes:
