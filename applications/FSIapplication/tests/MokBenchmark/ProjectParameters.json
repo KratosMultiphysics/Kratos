@@ -247,10 +247,21 @@
             "kratos_module"         : "KratosMultiphysics",
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "check_variables" : ["MESH_DISPLACEMENT_X","PRESSURE"],
+                "check_variables" : ["MESH_DISPLACEMENT_X"],
                 "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
                 "model_part_name" : "Control_Nodes",
                 "tolerance"       : 1e-4,
+                "time_frequency"  : 0.1
+            }
+        },{
+            "python_module"         : "from_json_check_result_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables" : ["PRESSURE"],
+                "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
+                "model_part_name" : "Control_Nodes",
+                "tolerance"       : 5e-2,
                 "time_frequency"  : 0.1
             }
         }],
