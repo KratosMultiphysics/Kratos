@@ -27,10 +27,44 @@ namespace Kratos
 namespace Python
 {
 
+Parameters::iterator NonConstBegin(Parameters& el)
+{
+    return el.begin();
+}
+Parameters::iterator NonConstEnd(Parameters& el)
+{
+    return el.end();
+}
+
+boost::python::list items(Parameters const& self)
+{
+    boost::python::list t;
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
+        t.append( boost::python::make_tuple(it.name(), *it) );
+    return t;
+}
+
+boost::python::list keys(Parameters const& self)
+{
+    boost::python::list t;
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
+        t.append(it.name());
+    return t;
+}
+
+boost::python::list values(Parameters const& self)
+{
+    boost::python::list t;
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
+        t.append(*it);
+    return t;
+}
 
 void  AddKratosParametersToPython()
 {
     using namespace boost::python;
+    
+    class_<Parameters::iterator >("ParametersIterator", no_init);
 
     //init<rapidjson::Value& >())
     class_<Parameters, Parameters::Pointer >("Parameters", init<const std::string& >())
@@ -66,6 +100,10 @@ void  AddKratosParametersToPython()
     .def("__getitem__", &Parameters::GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", &Parameters::GetArrayItem)
+    .def("__iter__", range(&NonConstBegin, &NonConstEnd) )
+    .def("items", &items )
+    .def("keys", &keys )
+    .def("values", &values )
     .def(self_ns::str(self))
     ;
 
