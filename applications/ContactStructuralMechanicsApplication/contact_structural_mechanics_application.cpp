@@ -59,6 +59,7 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mMortarContactCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
     mMortarContactCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
+    // TODO: Clean this
     mMortarContactCondition2D2NDLM( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMortarContactCondition2D3NDLM( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
 //     mMortarContactCondition3D3NDLM( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -74,32 +75,54 @@ void KratosContactStructuralMechanicsApplication::Register()
     KratosApplication::Register();
 
     // CONDITIONS // TODO: Clean all this mesh
-    /* Mortar method */
+    /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
+    
+    /* The complementary values */
+    // NOTE: This will be eventually not necessary
     KRATOS_REGISTER_VARIABLE( NORMAL_AUGMENTATION_FACTOR )                      // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
     KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                     // The constant that is considered for the check if the node is slip/stick
+    
+    /* Weighted values */
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction employed in mortar formulation
+    
+    /* Matrix to store the derivatives of the normal */
     KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                    // Directional derivative of the normal
+    
+    /* Auxiliar booleans to store the change in active/inactive slip/stick */
     KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                                 // Auxiliar boolean to check if the node is active or not
     KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                                   // Auxiliar boolean to check if the node is stick or not        
+    
+    /* The GP values should be removed (to much information to store)*/
+    // NOTE: This should be removed
     KRATOS_REGISTER_VARIABLE( GAP_GP )                                          // A double storing the gap of the GP
     KRATOS_REGISTER_VARIABLE( SLIP_GP )                                         // A double storing the slip of the GP
-    KRATOS_REGISTER_VARIABLE( DOUBLE_LM_FACTOR )                                // The double LM parameter
-    KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
-    KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                    // The double LM
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                    // For getting the normal in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                   // For getting the tangent in the GP
+    
+    /* This is for doble Lagrange Multipliers */
+    // NOTE: This go out for sure
+    KRATOS_REGISTER_VARIABLE( DOUBLE_LM_FACTOR )                                // The double LM parameter
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                    // The double LM
+    
+    /* For ALM mortar condition */
+    KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
+    KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
+    
+//     /* For mesh tying mortar condition */
+//     KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE)                                   // The scale factor for the mesh tying 
+//     KRATOS_REGISTER_VARIABLE(COMPONENTS_VARIABLE)                               // The vector factor for the mesh tying 
 
     // Register the elements
+    // NOTE: This should be removed
     KRATOS_REGISTER_ELEMENT( "TestElement2D1N", mTestElement2D1N );
     
     // Register the conditions
@@ -118,6 +141,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D4N", mMortarContactCondition3D4N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D8N", mMortarContactCondition3D8N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D9N", mMortarContactCondition3D9N );
+    
+    // TODO: Clean this
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2NDLM", mMortarContactCondition2D2NDLM );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D3NDLM", mMortarContactCondition2D3NDLM );
 //     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D3NDLM", mMortarContactCondition3D3NDLM );

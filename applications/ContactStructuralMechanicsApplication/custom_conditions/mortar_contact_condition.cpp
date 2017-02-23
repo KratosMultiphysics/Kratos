@@ -2919,7 +2919,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
-    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
     mColocationIntegration.Initialize( integration_order);
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
@@ -3020,7 +3020,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateOnIntegrationPoi
     ContactData<TDim, TNumNodes> rContactData;
     
     // Reading integration points
-    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
     mColocationIntegration.Initialize( integration_order);
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
@@ -3361,7 +3361,7 @@ bounded_matrix<double, TDim, TDim> MortarContactCondition<TDim,TNumNodes,TDouble
 template< unsigned int TDim, unsigned int TNumNodes , bool TDoubleLM >
 void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex)
 {
-    const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+    const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
     mUseManualColocationIntegration = true;
     
     if (TDim == 2)
@@ -3547,7 +3547,7 @@ void MortarContactCondition<2, 2, false>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
             if (integration_order == 3)
             {
@@ -3590,7 +3590,7 @@ void MortarContactCondition<2, 3, false>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
             if (integration_order == 3)
             {
@@ -3633,7 +3633,7 @@ void MortarContactCondition<3, 3, false>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
 //         if (integration_order == 3)
 //         {
@@ -3658,7 +3658,7 @@ void MortarContactCondition<3, 4, false>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
 //         if (integration_order == )
 //         {
@@ -3684,7 +3684,7 @@ void MortarContactCondition<2, 2, true>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
             if (integration_order == 3)
             {
@@ -3727,7 +3727,7 @@ void MortarContactCondition<2, 3, true>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
             if (integration_order == 3)
             {
@@ -3770,7 +3770,7 @@ void MortarContactCondition<3, 3, true>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
 //         if (integration_order == 3)
 //         {
@@ -3795,7 +3795,7 @@ void MortarContactCondition<3, 4, true>::InitializeIntegrationMethod()
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        const unsigned int  integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
 //         if (integration_order == )
 //         {

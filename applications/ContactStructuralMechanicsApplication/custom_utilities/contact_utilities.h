@@ -89,8 +89,8 @@ public:
      */
 
     static inline bool ContactContainerFiller(
-            Geometry<Node<3> > & Geom1, // SLAVE
-            Geometry<Node<3> > & Geom2, // MASTER
+            GeometryType& Geom1, // SLAVE
+            GeometryType& Geom2, // MASTER
             const array_1d<double, 3> & contact_normal1, // SLAVE
             const array_1d<double, 3> & contact_normal2, // MASTER
             const double ActiveCheckFactor
@@ -169,7 +169,7 @@ public:
      */
 
     static inline void ProjectDirection(
-            const Geometry<Node<3> > & Geom,
+            const GeometryType& Geom,
             const Point<3>& PointDestiny,
             Point<3>& PointProjected,
             double& dist,
@@ -207,7 +207,7 @@ public:
     }
     
     static inline void ProjectCoordDirection(
-            const Geometry<Node<3> > & Geom,
+            const GeometryType& Geom,
             const GeometryType::CoordinatesArrayType& CoordDestiny,
             GeometryType::CoordinatesArrayType& CoordProjected,
             double& dist,
@@ -241,6 +241,61 @@ public:
             dist = 0.0;
             std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
         }
+    }
+    
+    /**
+     * Projects iteratively to get the coordinate
+     * @param GeomOrigin: The origin geometry
+     * @param PointDestiny: The destination point
+     * @return ResultingPoint: The distance between the point and the plane
+     * @return Inside: True is inside, false not
+     */
+    
+    static inline bool ProjectIterative(
+        GeometryType& GeomOrigin,
+        const GeometryType::CoordinatesArrayType& PointDestiny,
+        GeometryType::CoordinatesArrayType& ResultingPoint
+        )
+    {
+        Matrix J = ZeroMatrix( GeomOrigin.LocalSpaceDimension(), GeomOrigin.LocalSpaceDimension() );
+
+        ResultingPoint.clear();
+
+        Vector DeltaXi = ZeroVector( GeomOrigin.LocalSpaceDimension() );
+
+        GeometryType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+
+        Vector NOrigin;
+        
+        //Newton iteration:
+        double tol = 1.0e-8;
+
+        unsigned int maxiter = 30;
+
+        for ( unsigned int k = 0; k < maxiter; k++ )
+        {
+            GeomOrigin.ShapeFunctionsValues( NOrigin, ResultingPoint );
+            
+            const array_1d<double,3> normal_xi = GaussPointNormal(NOrigin, GeomOrigin);
+            
+            CurrentGlobalCoords = ZeroVector( 3 );
+            GeomOrigin.GlobalCoordinates( CurrentGlobalCoords, ResultingPoint );
+            
+            double dist;
+            ProjectCoordDirection(GeomOrigin, PointDestiny, CurrentGlobalCoords, dist, normal_xi);
+            
+            noalias( CurrentGlobalCoords ) = PointDestiny - CurrentGlobalCoords;
+            GeomOrigin.InverseOfJacobian( J, ResultingPoint );
+            noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
+            noalias( ResultingPoint ) += DeltaXi;
+
+            if ( norm_2( DeltaXi ) < tol )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
     
     /**
@@ -343,7 +398,7 @@ public:
 
     static inline array_1d<double,3> GaussPointNormal(
         const Vector N,
-        const Geometry<Node<3> > & Geom
+        const GeometryType & Geom
         )
     {
         array_1d<double,3> normal = ZeroVector(3);
@@ -366,7 +421,7 @@ public:
             array_1d<double,3> & Normal,
             array_1d<double,3> & TangentXi,
             array_1d<double,3> & TangentEta,
-            const Geometry<Node<3> > & Geom
+            const GeometryType & Geom
             )
     {
         noalias(Normal) = ZeroVector(3);
@@ -386,7 +441,7 @@ public:
         
     static inline void GeometryNormal(
             array_1d<double,3> & Normal,
-            const Geometry<Node<3> > & Geom
+            const GeometryType & Geom
             )
     {
         array_1d<double,3> TangentXi, TangentEta;
@@ -401,7 +456,7 @@ public:
     static inline void NodalTangents(
             array_1d<double,3> & t1,    // tangent in xi direction
             array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
-            const Geometry<Node<3> > & Geom,
+            const GeometryType & Geom,
             const unsigned int i_node
             )
     {
@@ -797,7 +852,7 @@ public:
                     ct = itCond->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
                 }
 
-                Geometry<Node<3> > & CondGeometry = itCond->GetGeometry();
+                GeometryType & CondGeometry = itCond->GetGeometry();
                 
                 for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
                 {
@@ -888,7 +943,7 @@ public:
                     k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
                 }
 
-                Geometry<Node<3> > & CondGeometry = itCond->GetGeometry();
+                GeometryType & CondGeometry = itCond->GetGeometry();
                 
                 for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
                 {

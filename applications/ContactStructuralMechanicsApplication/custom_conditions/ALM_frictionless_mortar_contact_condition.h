@@ -59,7 +59,7 @@ namespace Kratos
 ///@{
     
 /** \brief AugmentedLagrangianMethodFrictionlessMortarContactCondition
- * This is a contact condition which employes the mortar method with double lagrange multiplier 
+ * This is a contact condition which employes the mortar method with dual lagrange multiplier 
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */

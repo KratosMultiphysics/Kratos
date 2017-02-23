@@ -12,6 +12,8 @@
 #if !defined(KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
 
+// TODO: Clean all this!!!!!
+
 // System includes
 
 // External includes
@@ -61,6 +63,7 @@ struct contact_container
         rSerializer.load("active_pair", active_pair);
     }
 };
+
 // CONDITIONS
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions
@@ -68,24 +71,47 @@ KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                     
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                                                                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                                                                       // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                                                           // The factor employed to serach an active/inactive node
+
+/* The complementary values */
+// NOTE: This will be eventually not necessary
 KRATOS_DEFINE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                                                                    // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
 KRATOS_DEFINE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                                                                   // The constant that is considered for the check if the node is slip/stick
+
+/* Weighted values */
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                                                                  // The integrated gap employed in mortar formulation
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SLIP )                                                                                 // The integrated slip employed in mortar formulation
+// NOTE: I don't have clear about this
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_FRICTION )                                                                             // The integrated friction employed in mortar formulation
+
+/* Matrix to store the derivatives of the normal */
 KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                                                                  // Directional derivative of the normal
+
+/* Auxiliar booleans to store the change in active/inactive slip/stick */
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                                                                 // Auxiliar boolean to check if the node is active or not
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                                                                   // Auxiliar boolean to check if the node is stick or not
+
+/* The GP values should be removed (to much information to store)*/
+// NOTE: This should be removed
 KRATOS_DEFINE_VARIABLE( double, GAP_GP )                                                                                        // A double storing the gap of the GP
 KRATOS_DEFINE_VARIABLE( double, SLIP_GP )                                                                                       // A double storing the slip of the GP
-KRATOS_DEFINE_VARIABLE( double, DOUBLE_LM_FACTOR )                                                                              // The double LM parameter
-KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                                                                                // The penalty factor for the ALM
-KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                                                                  // The scale factor for the ALM
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, DOUBLE_LM )                    // The double LM
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_GP )                    // For getting the normal in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENT_GP )                   // For getting the tangent in the GP
+
+/* This is for doble Lagrange Multipliers */
+// NOTE: This go out for sure
+KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, DOUBLE_LM )                    // The double LM
+KRATOS_DEFINE_VARIABLE( double, DOUBLE_LM_FACTOR )                                                                              // The double LM parameter
+
+/* For ALM mortar condition */
+KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                                                                                // The penalty factor for the ALM
+KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                                                                  // The scale factor for the ALM
+
+// /* For mesh tying mortar condition */
+// KRATOS_DEFINE_VARIABLE( Variable<double>, SCALAR_VARIABLE )                                                                     // The scale factor for the mesh tying 
+// KRATOS_DEFINE_VARIABLE( Variable<Vector3>, COMPONENTS_VARIABLE )                                                                // The vector factor for the mesh tying
+
 }       
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

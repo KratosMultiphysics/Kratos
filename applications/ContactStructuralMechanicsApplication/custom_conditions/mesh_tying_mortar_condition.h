@@ -15,12 +15,11 @@
 // System includes
 
 // External includes
-#include "structural_mechanics_application.h"
-#include "structural_mechanics_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include <vector>
 
 // Project includes
+#include <contact_structural_mechanics_application_variables.h>
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/condition.h"
@@ -40,48 +39,38 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                  PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
+    typedef Point<3>                                             PointType;
+    typedef Node<3>                                               NodeType;
+    typedef Geometry<NodeType>                                GeometryType;
+    
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
     
 ///@}
 ///@name  Enum's
 ///@{
     
+    
+#if !defined(TENSOR_VALUE)
+#define TENSOR_VALUE
+    enum TensorValue {ScalarValue = 1, VectorValue = 3};
+#endif
+    
 ///@}
 ///@name  Functions
 ///@{
-    
-// // Example program
-// #include <iostream>
-// #include <string>
-// #include <typeinfo>
-// #include <typeindex>
-// 
-// int main()
-// {
-//   std::string name;
-//   int a = 3;
-//   int b = 3;
-//   if (std::type_index(typeid(a)) == std::type_index(typeid(b)))
-//   {
-//       std::cout << "Hello, " << "!\n";
-//   }
-// }
-
     
 ///@}
 ///@name Kratos Classes
 ///@{
     
 /** \brief MeshTyingMortarCondition
- * This is a contact condition which employes the mortar method with double lagrange multiplier 
+ * This is a mesh tying condition which employes the mortar method with dual lagrange multiplier 
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes, Variable TVar>
+
+template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
 class MeshTyingMortarCondition: public Condition 
 {
 public:
@@ -104,7 +93,7 @@ public:
     typedef typename BaseType::NodesArrayType                    NodesArrayType;
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
-    
+
     /**
      * Parameters to be used in the Condition as they are.
      */
@@ -120,11 +109,6 @@ public:
         VectorType N_Master;
         VectorType N_Slave;
         VectorType Phi_LagrangeMultipliers;
-
-        // Shape functions local derivatives for contact pair
-        MatrixType DN_De_Master;
-        MatrixType DN_De_Slave;
-//         MatrixType DPhi_De_LagrangeMultipliers;
 
         // Determinant of slave cell's jacobian
         double DetJSlave;
@@ -150,11 +134,6 @@ public:
             N_Master                = ZeroVector(TNumNodes);
             N_Slave                 = ZeroVector(TNumNodes);
             Phi_LagrangeMultipliers = ZeroVector(TNumNodes);
-
-            // Shape functions local derivatives
-            DN_De_Master                 = ZeroMatrix(TNumNodes, TDim - 1);
-            DN_De_Slave                  = ZeroMatrix(TNumNodes, TDim - 1);
-//             DPhi_De_LagrangeMultipliers  = ZeroMatrix(TNumNodes, TDim - 1);
             
             // Jacobian of slave
             DetJSlave = 0.0;
@@ -472,13 +451,8 @@ protected:
     public:
         
         // Auxiliar types
-        typedef array_1d<double, TNumNodes> Type1;
-        typedef bounded_matrix<double, TNumNodes, TDim> Type2;
-        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
-        
-        // Auxiliar sizes
-        static const unsigned int Size1 = (TNumNodes * TDim);
-        static const unsigned int Size2 = 2 * (TNumNodes * TDim);
+        typedef bounded_matrix<double, TNumNodes, TTensor>   Type1;
+        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type2;
         
         // Master and element geometries
         GeometryType SlaveGeometry;
@@ -488,11 +462,11 @@ protected:
         Type1 LagrangeMultipliers;
         
         // DoF
-        Type2 u1;
-        Type2 u2;
+        Type1 u1;
+        Type1 u2;
         
         // Ae
-        Type3 Ae;
+        Type2 Ae;
         
         // Default destructor
         ~DerivativeData(){}
@@ -505,16 +479,30 @@ protected:
             SlaveGeometry  = GeometryInput;
             
             // The current Lagrange Multipliers
-            LagrangeMultipliers = ZeroVector(TNumNodes);
+            LagrangeMultipliers = ZeroMatrix(TNumNodes, TTensor);
             
-            // DoF of the slave            
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            // DoF of the slave       
+            if (TTensor == ScalarValue)
             {
-                const array_1d<double, 3> var  = SlaveGeometry[iNode].FastGetSolutionStepValue(TVar);
-
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                Variable<double> VarType = this->GetValue(SCALAR_VARIABLE);
+                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
-                    u1(iNode, iDof) = disp[iDof];
+                    const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(VarType);
+
+                    u1(iNode, 0) = var;
+                }
+            }
+            else if (TTensor == VectorValue)
+            {
+                Variable<array_1d<double, 3>> VarType = this->GetValue(COMPONENTS_VARIABLE);
+                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+                {
+                    const array_1d<double, 3> var  = SlaveGeometry[iNode].FastGetSolutionStepValue(VarType);
+
+                    for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                    {
+                        u1(iNode, iDof) = var[iDof];
+                    }
                 }
             }
         }
@@ -535,27 +523,28 @@ protected:
             const GeometryType GeometryInput =  pCond->GetGeometry();
             MasterGeometry = GeometryInput; // Updating the geometry
             
-            Normal_m = ZeroMatrix(TNumNodes, TDim);
-            
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            // DoF of the master
+            if (TTensor == ScalarValue)
             {
-    //             const array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
-                array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
-
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                Variable<double> VarType = pCond->GetValue(SCALAR_VARIABLE);
+                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
-                    Normal_m(iNode, iDof) = normal[iDof]; 
+                    const double var  = MasterGeometry[iNode].FastGetSolutionStepValue(VarType);
+
+                    u2(iNode, 0) = var;
                 }
             }
-            
-            // DoF of the master
-            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+            else if (TTensor == VectorValue)
             {
-                const array_1d<double, 3> var  = MasterGeometry[iNode].FastGetSolutionStepValue(TVar);
-
-                for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                Variable<array_1d<double, 3>> VarType = pCond->GetValue(COMPONENTS_VARIABLE);
+                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
-                    u2(iNode, iDof) = var[iDof];
+                    const array_1d<double, 3> var  = MasterGeometry[iNode].FastGetSolutionStepValue(VarType);
+
+                    for (unsigned int iDof = 0; iDof < TDim; iDof++)
+                    {
+                        u2(iNode, iDof) = var[iDof];
+                    }
                 }
             }
         }
@@ -600,8 +589,6 @@ protected:
         * Struct Member Variables
         */
        
-        static const unsigned int Size2 = 2 * (TNumNodes * TDim);
-       
         // Mortar condition matrices - DOperator and MOperator
         bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
         bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
@@ -630,16 +617,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /* Integration points info  */
-    GeometryType::IntegrationPointsArrayType mIntegrationPoints;  // Integration order of the element
-    
     /* Pair info */
-    unsigned int mPairSize;                                       // The number of contact pairs
-    std::vector<Condition::Pointer> mThisMasterElements;          // Vector which contains the pointers to the master elements
-   
-    /* Typeid info */
-    std::type_info mTypeVar;                                      // Typeid of the variable of the template
+    unsigned int mPairSize;                                          // The number of contact pairs
+    std::vector<Condition::Pointer> mThisMasterConditions;           // Vector which contains the pointers to the master conditions
 
+    /* Integration points */
+    std::vector<IntegrationPointsType> mThisSlaveIntegrationPoints;  // The arrays containing the integration points of the slave side
+    /* Element info */
+    Element::Pointer mThisSlaveElement;                              // The slave element from which derives everything
+    std::vector<Element::Pointer> mThisMasterElements;               // Vector which contains the pointers to the master elements
     
     ///@}
     ///@name Protected Operators
@@ -911,24 +897,6 @@ protected:
      * Initializes the integration method
      */
     void InitializeIntegrationMethod();
-    
-    /*
-     * Returns a value depending of the active/inactive set
-     */
-    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const
-    {
-        unsigned int value = 0;
-        
-        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
-        {
-            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
-            {
-                value += std::pow(2, i_node);
-            }
-        }
-        
-        return value;
-    }
     
     ///@}
     ///@name Protected  Access
