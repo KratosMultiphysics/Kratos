@@ -132,7 +132,7 @@ public:
                          Element::Pointer& pelement,
                          ResultIteratorType result_begin,
                          const unsigned int MaxNumberOfResults,
-                         const double Tolerance = 1.0e-3
+                         const double Tolerance = 1.0e-5
                          )
     {
         typedef std::size_t SizeType;
@@ -172,7 +172,7 @@ public:
                                    Vector& N,
                                    Element::Pointer& pelement,
                                    const unsigned int MaxNumberOfResults = 1000,
-                                   const double Tolerance = 1.0e-3
+                                   const double Tolerance = 1.0e-5
                                    )
     {
         ResultContainerType results(MaxNumberOfResults);
@@ -202,7 +202,7 @@ public:
         const double yc, 
         const double zc,
         array_1d<double, 3 > & N,
-        const double Tolerance = 1.0e-3
+        const double Tolerance = 1.0e-5
         )
     {
         const double x0 = geom[0].X();
@@ -230,8 +230,8 @@ public:
         N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
 
-        if (N[0] >= -Tolerance && N[1] >= -Tolerance && N[2] >= -Tolerance && 
-            N[0] <= (1.0 + Tolerance) && N[1] <= (1.0 + Tolerance) && N[2] <= (1.0 + Tolerance)) //if the xc yc is inside the triangle return true
+        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) && 
+            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance))) //if the xc yc is inside the triangle return true
         {
             return true;
         }
@@ -248,7 +248,7 @@ public:
         const double yc, 
         const double zc,
         array_1d<double, 4 > & N,
-        const double Tolerance = 1.0e-3
+        const double Tolerance = 1.0e-5
         )
     {
 
@@ -287,8 +287,8 @@ public:
         N[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
 
 
-        if (N[0] >= -Tolerance && N[1] >= -Tolerance && N[2] >= -Tolerance && N[3] >= -Tolerance &&
-            N[0] <= (1.0 + Tolerance) && N[1] <= (1.0 + Tolerance) && N[2] <= (1.0 + Tolerance) && N[3] <= (1.0 + Tolerance))
+        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) && (N[3] >= -Tolerance) &&
+            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance)) && (N[3] <= (1.0 + Tolerance)))
             //if the xc yc zc is inside the tetrahedron return true
         {
             return true;
@@ -320,17 +320,17 @@ private:
                                const double x3, const double y3, const double z3
                               )
     {
-        double x10 = x1 - x0;
-        double y10 = y1 - y0;
-        double z10 = z1 - z0;
+        const double x10 = x1 - x0;
+        const double y10 = y1 - y0;
+        const double z10 = z1 - z0;
 
-        double x20 = x2 - x0;
-        double y20 = y2 - y0;
-        double z20 = z2 - z0;
+        const double x20 = x2 - x0;
+        const double y20 = y2 - y0;
+        const double z20 = z2 - z0;
 
-        double x30 = x3 - x0;
-        double y30 = y3 - y0;
-        double z30 = z3 - z0;
+        const double x30 = x3 - x0;
+        const double y30 = y3 - y0;
+        const double z30 = z3 - z0;
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
         return detJ * 0.1666666666666666666667;
