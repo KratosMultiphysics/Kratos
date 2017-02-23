@@ -16,7 +16,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Define the UblasSparseSpace to compute auxilar array operations.
-space = KratosMultiphysics.UblasSparseSpace()
+# space = KratosMultiphysics.UblasSparseSpace()
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
