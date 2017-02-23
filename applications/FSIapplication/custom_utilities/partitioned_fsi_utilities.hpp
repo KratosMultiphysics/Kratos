@@ -134,7 +134,7 @@ public:
 
         if (TDim == 2)
         {
-            for (ModelPart::NodesContainerType::iterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
+            for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
             {
                 array_1d<double,3> aux_velocity;
                 aux_velocity[0] = rFluidInterfaceVelocity[i];
@@ -151,7 +151,7 @@ public:
         }
         else
         {
-            for (ModelPart::NodesContainerType::iterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
+            for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
             {
                 array_1d<double,3> aux_velocity;
                 aux_velocity[0] = rFluidInterfaceVelocity[i];
@@ -175,7 +175,7 @@ public:
 
         if (TDim == 2)
         {
-            for (ModelPart::NodesContainerType::iterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
+            for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
             {
                 array_1d<double,3> aux_force;
                 aux_force[0] = rFluidInterfaceNodalForce[i];
@@ -192,7 +192,7 @@ public:
         }
         else
         {
-            for (ModelPart::NodesContainerType::iterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
+            for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
             {
                 array_1d<double,3> aux_force;
                 aux_force[0] = rFluidInterfaceNodalForce[i];
@@ -209,34 +209,34 @@ public:
         }
     };
 
-    // Compute fluid interface velocity residual
+    // Compute fluid interface velocity residual vector and store its norm in the ProcessInfo.
     VectorType ComputeFluidInterfaceVelocityResidual()
     {
         // Compute the residual
-        unsigned int residual_size = this->GetFluidInterfaceResidualSize();
-        double err_j = 0.0;
         double total_weight = 0.0;
         double fluid_interface_residual_norm = 0.0;
-        VectorType fluid_interface_residual(residual_size);
+        VectorType fluid_interface_residual(this->GetFluidInterfaceResidualSize());
 
         unsigned int i = 0;
 
-        for (ModelPart::NodesContainerType::iterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
+        for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node++)
         {
+            double err_j = 0.0;
             double err_node = 0.0;
-            array_1d<double,3> velocity_fluid = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double,3> velocity_fluid_projected = it_node->FastGetSolutionStepValue(VECTOR_PROJECTED);
+            array_1d<double, 3> velocity_fluid = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3> velocity_fluid_projected = it_node->FastGetSolutionStepValue(VECTOR_PROJECTED);
 
             for (int j=0; j<static_cast<int>(TDim); j++)
             {
-                err_j = velocity_fluid[j] - velocity_fluid_projected[j];
+                err_j = velocity_fluid_projected[j] - velocity_fluid[j];
                 fluid_interface_residual[i+j] = err_j;
-                err_node += std::pow(err_j,2);
+                err_node += std::pow(err_j, 2);
             }
 
-            double weight = it_node->GetValue(NODAL_AREA);
+            double weight = it_node->FastGetSolutionStepValue(NODAL_AREA);
             total_weight += weight;
-            fluid_interface_residual_norm += weight*err_j;
+            // fluid_interface_residual_norm += weight*err_node;
+            fluid_interface_residual_norm += err_node;
 
             i += TDim;
         }
@@ -245,10 +245,45 @@ public:
         mrFluidInterfaceModelPart.GetCommunicator().SumAll(fluid_interface_residual_norm);
 
         // Store its weighted L2 norm in the fluid process info
-        mrFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = fluid_interface_residual_norm/total_weight;
+        // mrFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = std::sqrt(fluid_interface_residual_norm/total_weight);
+        mrFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = std::sqrt(fluid_interface_residual_norm);
 
         return fluid_interface_residual;
     };
+
+    // Compute fluid interface mesh velocity residual norm
+    double ComputeFluidInterfaceMeshVelocityResidualNorm()
+    {
+
+        double total_weight = 0.0;
+        double fluid_mesh_interface_residual_norm = 0.0;
+
+        for (ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin(); it_node<mrFluidInterfaceModelPart.NodesEnd(); it_node ++)
+        {
+            double err_j = 0.0;
+            double err_node = 0.0;
+            array_1d<double, 3> velocity_fluid = it_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3> mesh_velocity_fluid = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+
+            for (int j=0; j<static_cast<int>(TDim); j++)
+            {
+                err_j = velocity_fluid[j] - mesh_velocity_fluid[j];
+                err_node += std::pow(err_j, 2);
+            }
+
+            double weight = it_node->FastGetSolutionStepValue(NODAL_AREA);
+            total_weight += weight;
+            // fluid_mesh_interface_residual_norm += weight*err_node;
+            fluid_mesh_interface_residual_norm += err_node;
+        }
+
+        mrFluidInterfaceModelPart.GetCommunicator().SumAll(total_weight);
+        mrFluidInterfaceModelPart.GetCommunicator().SumAll(fluid_mesh_interface_residual_norm);
+
+        // return std::sqrt(fluid_mesh_interface_residual_norm/total_weight);
+        return std::sqrt(fluid_mesh_interface_residual_norm);
+
+    }
 
     /*@} */
 
