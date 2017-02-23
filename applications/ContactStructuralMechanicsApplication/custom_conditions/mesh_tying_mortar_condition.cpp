@@ -32,44 +32,44 @@ namespace Kratos
  * Flags related to the condition computation 
  */
 // Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::Create( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodes,TTensor> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::Create(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodes,TTensor> >( NewId, pGeom, pProperties );
+    return boost::make_shared< MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::~MeshTyingMortarCondition( )
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::~MeshTyingMortarCondition( )
 {
 }
 
@@ -77,12 +77,15 @@ MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::~MeshTyingMortarCondition( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::Initialize( ) 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::Initialize( ) 
 {
     KRATOS_TRY;
     
-    // First populate of the vector of master elements (it is supposed to be constant)
+    // Pointer to the reference element 
+    mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
+    
+    // Populate of the vector of master elements (it is supposed to be constant)
     const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
     
     const unsigned int IntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
@@ -91,10 +94,37 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::Initialize( )
 //     mPairSize = all_containers->size();
 //     mThisMasterConditions.resize( mPairSize );
 //     
-//     for ( unsigned int i_cond = 0; i_cond < mPairSize; ++i_cond )
-//     {
-//         mThisMasterConditions[i_cond] = (*all_containers)[i_cond].condition;
-//     }
+    mPairSize = 0;
+    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
+    {
+        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
+        
+        IntegrationPointsType IntegrationPoints;
+        const bool is_inside = IntegrationUtility.GetExactIntegration(pCond->GetGeometry(), IntegrationPoints);
+        
+        if (is_inside == true)
+        {
+            mPairSize += 1;
+            mThisMasterConditions.push_back(pCond);
+            mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
+            mThisSlaveIntegrationPoints.push_back(IntegrationPoints);
+        }
+    }
+    
+    // Creation of the variables 
+    if (TTensor == ScalarValue)
+    {
+        mTyingVarScalar = KratosComponents<Variable<double>>::Get(GetProperties().GetValue(TYING_VARIABLE));
+    }
+    else
+    {
+        mTyingVarVector[0] = KratosComponents<Variable<array_1d_component_type>>::Get(GetProperties().GetValue(TYING_VARIABLE)+"_X");
+        mTyingVarVector[1] = KratosComponents<Variable<array_1d_component_type>>::Get(GetProperties().GetValue(TYING_VARIABLE)+"_Y");
+        if (TDim == 3)
+        {
+            mTyingVarVector[2] = KratosComponents<Variable<array_1d_component_type>>::Get(GetProperties().GetValue(TYING_VARIABLE)+"_Z");
+        }
+    }
 
     KRATOS_CATCH( "" );
 }
@@ -102,8 +132,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::Initialize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -115,8 +145,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSolutionStep( P
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -128,8 +158,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeNonLinearIterat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
     
@@ -141,8 +171,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::FinalizeSolutionStep( Pro
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
     
@@ -154,8 +184,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::FinalizeNonLinearIteratio
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLocalSystem( 
     std::vector<MatrixType>& rLeftHandSideMatrices,
     const std::vector<Variable<MatrixType> >& rLHSVariables,
     std::vector<VectorType>& rRightHandSideVectors,
@@ -164,14 +194,14 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
     )
 {    
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
     
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
+    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
+    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
 
     //Initialize sizes for the system components
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
@@ -184,21 +214,21 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
         rRightHandSideVectors.resize( rRHSVariables.size( ) );
     }
 
-    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, true);
+    LocalSystem.CalculationFlags.Set(MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true);
     for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
         // Note: rRightHandSideVectors.size() > 0
         this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
     }
 
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
     for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); i++ )
     {
         // Note: rLeftHandSideMatrices.size() > 0
         this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
     }
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
@@ -214,8 +244,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
@@ -224,14 +254,14 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
     KRATOS_TRY;
     
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
     
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true );
 
     // Initialize sizes for the system components:
     this->InitializeSystemMatrices<TMatrixSize>( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
@@ -249,20 +279,20 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLeftHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLeftHandSide( 
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
     
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true );
 
     VectorType RightHandSideVector = Vector( );
 
@@ -280,22 +310,22 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLeftHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLeftHandSide( 
     std::vector< MatrixType >& rLeftHandSideMatrices,
     const std::vector< Variable< MatrixType > >& rLHSVariables,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
     
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
     VectorType RightHandSideVector = Vector( );
 
@@ -315,20 +345,20 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateRightHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateRightHandSide( 
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
     
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR, true);
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true);
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
@@ -346,21 +376,21 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateRightHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateRightHandSide( 
     std::vector< VectorType >& rRightHandSideVectors,
     const std::vector< Variable< VectorType > >& rRHSVariables,
     ProcessInfo& rCurrentProcessInfo )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
         
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
@@ -381,9 +411,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize >
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSystemMatrices( 
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::InitializeSystemMatrices( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     Flags& rCalculationFlags 
@@ -392,7 +422,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSystemMatrices(
     const unsigned int condition_size = this->CalculateConditionSize<TMatrixSize>( );
     
     // Resizing as needed the LHS
-    if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
+    if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != condition_size )
         {
@@ -402,7 +432,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSystemMatrices(
     }
 
     // Resizing as needed the RHS
-    if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
+    if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != condition_size )
         {
@@ -415,8 +445,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeSystemMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateMassMatrix( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateMassMatrix( 
     MatrixType& rMassMatrix, 
     ProcessInfo& rCurrentProcessInfo
     )
@@ -431,8 +461,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateDampingMatrix( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateDampingMatrix( 
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -447,9 +477,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize >
-const unsigned int MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateConditionSize( )
+const unsigned int MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateConditionSize( )
 {
     const unsigned int condition_size = mPairSize * TMatrixSize;
     
@@ -459,7 +489,7 @@ const unsigned int MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateCo
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize>
 void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem( 
     LocalSystemComponents& rLocalSystem,
@@ -468,19 +498,40 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
 {
     KRATOS_TRY;
     
+//                 // DoF of the slave       
+//             if (TTensor == ScalarValue)
+//             {
+//                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+//                 {
+//                     const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarScalar);
+//                     u1(iNode, 0) = var;
+//                 }
+//             }
+//             else
+//             {
+//                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+//                 {
+//                     for (unsigned int iDof = 0; iDof < TDim; iDof++)
+//                     {
+//                         const double var = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarVector[iDof]);
+//                         u1(iNode, iDof) = var;
+//                     }
+//                 }
+//             }
+    
     // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;
     
     // Create the current contact data
-    DerivativeData rDerivativeData;
+    DofData rDofData;
     
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
                                                                                   
-    this->InitializeDerivativeData(rDerivativeData, rCurrentProcessInfo);
+    this->InitializeDofData(rDofData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-    this->CalculateAe(rDerivativeData, rVariables, rCurrentProcessInfo); 
+    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
     
     // Iterate over the master segments
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
@@ -493,7 +544,7 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
         // Update the contact data
-        this->UpdateDerivativeData(rDerivativeData, PairIndex);
+        this->UpdateDofData(rDofData, PairIndex);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
@@ -505,7 +556,7 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDerivativeData, PointNumber, integration_points );
+            this->CalculateKinematics( rVariables, rDofData, PointNumber, integration_points );
             
             this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationWeight);
         }
@@ -523,8 +574,8 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
             const unsigned int ActiveInactive = GetActiveInactiveValue(this->GetGeometry());
             
             // Assemble of the matrix is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
+                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
                 bounded_matrix<double, TMatrixSize, TMatrixSize> LHS_contact_pair = this->CalculateLocalLHS<TMatrixSize>( rThisMortarConditionMatrices, PairIndex, ActiveInactive);
@@ -538,8 +589,8 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
             }
 
             // Assemble of the vector is required
-            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR ) ||
-                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ||
+                    rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Calculate the local contribution
                 const array_1d<double, TMatrixSize> RHS_contact_pair = this->CalculateLocalRHS<TMatrixSize>( rThisMortarConditionMatrices, PairIndex, ActiveInactive);
@@ -560,8 +611,8 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeGeneralVariables(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::InitializeGeneralVariables(
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo,
     const unsigned int& rMasterElementIndex
@@ -580,9 +631,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeGeneralVariable
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAe(
-    DerivativeData& rDerivativeData,
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateAe(
+    DofData& rDofData,
     GeneralVariables& rVariables,
 //     const GeometryType::IntegrationPointsArrayType& integration_points,
     const ProcessInfo& rCurrentProcessInfo
@@ -594,7 +645,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAe(
     AeData rAeData;
     rAeData.Initialize();
     
-    rDerivativeData.InitializeAeComponents();
+    rDofData.InitializeAeComponents();
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Reading integration points
@@ -607,57 +658,57 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAe(
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
         // Update the contact data
-        this->UpdateDerivativeData(rDerivativeData, PairIndex);
+        this->UpdateDofData(rDofData, PairIndex);
             
         // Calculating the proportion between the integrated area and segment area
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDerivativeData, PointNumber, integration_points );
+            this->CalculateKinematics( rVariables, rDofData, PointNumber, integration_points );
             
             const double IntegrationWeight = integration_points[PointNumber].Weight();
             total_weight += IntegrationWeight;
-            this->CalculateAeComponents(rVariables, rDerivativeData, rAeData, IntegrationWeight);
+            this->CalculateAeComponents(rVariables, rDofData, rAeData, IntegrationWeight);
         }
     }
     
     // We can consider the pair if at least one of the collocation point is inside (TODO: Change this if collocation is not used)
     if (total_weight > 0.0)
     {
-        this->CalculateAe(rDerivativeData, rAeData);
+        this->CalculateAe(rDofData, rAeData);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::InitializeDerivativeData(
-    DerivativeData& rDerivativeData,
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::InitializeDofData(
+    DofData& rDofData,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Slave element info
-    rDerivativeData.Initialize(GetGeometry());
+    rDofData.Initialize(GetGeometry());
     
     /* LM */
-    rDerivativeData.LagrangeMultipliers = ContactUtilities::GetVariableVector<TNumNodes>(GetGeometry(), NORMAL_CONTACT_STRESS, 0); 
+    rDofData.LagrangeMultipliers = ContactUtilities::GetVariableVector<TNumNodes>(GetGeometry(), NORMAL_CONTACT_STRESS, 0); 
     
     /* NORMALS */
-    rDerivativeData.Normal_s = ContactUtilities::GetVariableMatrix<TDim,TNumNodes,TTensor>(GetGeometry(),  NORMAL); 
+    rDofData.Normal_s = ContactUtilities::GetVariableMatrix<TDim,TNumNodes,TNumNodesElem,TTensor>(GetGeometry(),  NORMAL); 
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::UpdateDerivativeData(
-    DerivativeData& rDerivativeData,
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::UpdateDofData(
+    DofData& rDofData,
     const unsigned int& rMasterElementIndex
     )
 {    
     // Slave element info
-    rDerivativeData.UpdateMasterPair(mThisMasterConditions[rMasterElementIndex] );
+    rDofData.UpdateMasterPair(mThisMasterConditions[rMasterElementIndex] );
     
     /* NORMALS */
     for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
@@ -670,10 +721,10 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::UpdateDerivativeData(
 /*********************************COMPUTE KINEMATICS*********************************/
 /************************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateKinematics( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateKinematics( 
     GeneralVariables& rVariables,
-    const DerivativeData rDerivativeData,
+    const DofData rDofData,
     const double& rPointNumber,
     const GeometryType::IntegrationPointsArrayType& integration_points
     )
@@ -687,7 +738,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateKinematics(
     
     // SHAPE FUNCTIONS 
     GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
-    rVariables.Phi_LagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.N_Slave);
+    rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
 //     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /// MASTER CONDITION ///
@@ -702,8 +753,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateKinematics(
 /*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-bool MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::MasterShapeFunctionValue(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+bool MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const PointType& local_point 
     )
@@ -731,8 +782,8 @@ bool MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::MasterShapeFunctionValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateMortarOperators(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateMortarOperators(
     MortarConditionMatrices& rThisMortarConditionMatrices,
     GeneralVariables& rVariables,
     const double& rIntegrationWeight
@@ -763,8 +814,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateMortarOperators(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::ComputeDe(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::ComputeDe(
         const array_1d<double, TNumNodes> N1, 
         const double detJ 
         )
@@ -788,8 +839,8 @@ bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumN
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::ComputeMe(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::ComputeMe(
         const array_1d<double, TNumNodes> N1, 
         const double detJ 
         )
@@ -810,9 +861,9 @@ bounded_matrix<double, TNumNodes, TNumNodes> MeshTyingMortarCondition<TDim,TNumN
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAe(
-    DerivativeData& rDerivativeData,
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateAe(
+    DofData& rDofData,
     AeData& rAeData
     )
 {        
@@ -831,15 +882,15 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAe(
         StructuralMechanicsMathUtilities::InvertMatrix(rAeData.Me, InvMe);
     }   
     
-    noalias(rDerivativeData.Ae) = prod(rAeData.De, InvMe);
+    noalias(rDofData.Ae) = prod(rAeData.De, InvMe);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize >
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAndAddLHS(
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateAndAddLHS(
     LocalSystemComponents& rLocalSystem,
     const bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
     const unsigned int rPairIndex
@@ -847,7 +898,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAndAddLHS(
 {
     /* DEFINITIONS */
 
-    if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE LHS MATRIX */
         const std::vector<Variable<MatrixType> >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables( );
@@ -885,9 +936,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAndAddLHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::AssembleContactPairLHSToConditionSystem(
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::AssembleContactPairLHSToConditionSystem(
     const bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
     MatrixType& rConditionLHS,
     const unsigned int rPairIndex
@@ -906,15 +957,15 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::AssembleContactPairLHSToC
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize >
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAndAddRHS(
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateAndAddRHS(
     LocalSystemComponents& rLocalSystem,
     const array_1d<double, TMatrixSize>& RHS_contact_pair,
     const unsigned int rPairIndex
     )
 {   
-    if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE RHS VECTOR */
         const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
@@ -953,9 +1004,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateAndAddRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 template< unsigned int TMatrixSize>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::AssembleContactPairRHSToConditionSystem(
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::AssembleContactPairRHSToConditionSystem(
     const array_1d<double, TMatrixSize>& rPairRHS,
     VectorType& rConditionRHS,
     const unsigned int rPairIndex
@@ -974,8 +1025,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::AssembleContactPairRHSToC
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::EquationIdVector(
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
     )
@@ -1031,7 +1082,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim, TNumNodes>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo 
@@ -1088,8 +1139,8 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::GetDofList(
 //******************************* GET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::GetValueOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1101,8 +1152,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoin
 //******************************* GET ARRAY_1D VALUE *******************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::GetValueOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1114,8 +1165,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoin
 //******************************* GET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::GetValueOnIntegrationPoints( 
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1127,8 +1178,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::GetValueOnIntegrationPoin
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo 
@@ -1140,7 +1191,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoi
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    DerivativeData rDerivativeData;
+    DofData rDofData;
     
         // Reading integration points
 //         this->ComputeSelectiveIntegrationMethod(PairIndex);
@@ -1163,8 +1214,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoi
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector< array_1d<double, 3 > >& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -1176,7 +1227,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoi
     GeneralVariables rVariables;
     
     // Initialize the current contact data
-    DerivativeData rDerivativeData;
+    DofData rDofData;
     
         // Reading integration points
 //         this->ComputeSelectiveIntegrationMethod(PairIndex);
@@ -1200,8 +1251,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoi
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
-void MeshTyingMortarCondition<TDim,TNumNodes,TTensor>::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateOnIntegrationPoints( 
     const Variable<Vector>& rVariable, 
     std::vector<Vector>& rOutput, 
     const ProcessInfo& rCurrentProcessInfo

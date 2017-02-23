@@ -43,8 +43,11 @@ namespace Kratos
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
     
-    ///Type definition for integration methods
+    // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
+    
+    // Type definition of the components of an array_1d 
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
     
 ///@}
 ///@name  Enum's
@@ -53,7 +56,7 @@ namespace Kratos
     
 #if !defined(TENSOR_VALUE)
 #define TENSOR_VALUE
-    enum TensorValue {ScalarValue = 1, VectorValue = 3};
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 #endif
     
 ///@}
@@ -70,7 +73,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 
-template< unsigned int TDim, unsigned int TNumNodes, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
 class MeshTyingMortarCondition: public Condition 
 {
 public:
@@ -446,7 +449,7 @@ protected:
     /** 
      * This data will be used to compute teh derivatives
      */ 
-    struct DerivativeData
+    struct DofData
     {
     public:
         
@@ -469,7 +472,7 @@ protected:
         Type2 Ae;
         
         // Default destructor
-        ~DerivativeData(){}
+        ~DofData(){}
         
         // Initializer method 
         void Initialize(      
@@ -479,32 +482,9 @@ protected:
             SlaveGeometry  = GeometryInput;
             
             // The current Lagrange Multipliers
+            u1 = ZeroMatrix(TNumNodes, TTensor);
+            u2 = ZeroMatrix(TNumNodes, TTensor);
             LagrangeMultipliers = ZeroMatrix(TNumNodes, TTensor);
-            
-            // DoF of the slave       
-            if (TTensor == ScalarValue)
-            {
-                Variable<double> VarType = this->GetValue(SCALAR_VARIABLE);
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(VarType);
-
-                    u1(iNode, 0) = var;
-                }
-            }
-            else if (TTensor == VectorValue)
-            {
-                Variable<array_1d<double, 3>> VarType = this->GetValue(COMPONENTS_VARIABLE);
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    const array_1d<double, 3> var  = SlaveGeometry[iNode].FastGetSolutionStepValue(VarType);
-
-                    for (unsigned int iDof = 0; iDof < TDim; iDof++)
-                    {
-                        u1(iNode, iDof) = var[iDof];
-                    }
-                }
-            }
         }
         
         // Initialize the Ae components
@@ -512,41 +492,6 @@ protected:
         {
             // Ae
             Ae = ZeroMatrix(TNumNodes, TNumNodes);
-        }
-    
-        // Updating the Master pair
-        void UpdateMasterPair(
-    //         const GeometryType& GeometryInput,          // The geometry of the current master
-            const Condition::Pointer& pCond          // The pointer of the current master
-        )
-        {
-            const GeometryType GeometryInput =  pCond->GetGeometry();
-            MasterGeometry = GeometryInput; // Updating the geometry
-            
-            // DoF of the master
-            if (TTensor == ScalarValue)
-            {
-                Variable<double> VarType = pCond->GetValue(SCALAR_VARIABLE);
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    const double var  = MasterGeometry[iNode].FastGetSolutionStepValue(VarType);
-
-                    u2(iNode, 0) = var;
-                }
-            }
-            else if (TTensor == VectorValue)
-            {
-                Variable<array_1d<double, 3>> VarType = pCond->GetValue(COMPONENTS_VARIABLE);
-                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-                {
-                    const array_1d<double, 3> var  = MasterGeometry[iNode].FastGetSolutionStepValue(VarType);
-
-                    for (unsigned int iDof = 0; iDof < TDim; iDof++)
-                    {
-                        u2(iNode, iDof) = var[iDof];
-                    }
-                }
-            }
         }
     };
     
@@ -575,7 +520,6 @@ protected:
             De = ZeroMatrix(TNumNodes, TNumNodes);
         }
     };
-    
     
    /*
     * Mortar condition matrices
@@ -618,14 +562,19 @@ protected:
     ///@{
 
     /* Pair info */
-    unsigned int mPairSize;                                          // The number of contact pairs
-    std::vector<Condition::Pointer> mThisMasterConditions;           // Vector which contains the pointers to the master conditions
+    unsigned int mPairSize;                                              // The number of contact pairs
+    std::vector<Condition::Pointer> mThisMasterConditions;               // Vector which contains the pointers to the master conditions
 
+    /* The list of variable to compute */
+    array_1d<Variable< array_1d_component_type>, TDim> mTyingVarVector;  // Variable considered in the mesh tying
+    Variable<double> mTyingVarScalar;                                    // Variable considered in the mesh tying
+    
     /* Integration points */
-    std::vector<IntegrationPointsType> mThisSlaveIntegrationPoints;  // The arrays containing the integration points of the slave side
+    std::vector<IntegrationPointsType> mThisSlaveIntegrationPoints;      // The arrays containing the integration points of the slave side
+    
     /* Element info */
-    Element::Pointer mThisSlaveElement;                              // The slave element from which derives everything
-    std::vector<Element::Pointer> mThisMasterElements;               // Vector which contains the pointers to the master elements
+    Element::Pointer mThisSlaveElement;                                  // The slave element from which derives everything
+    std::vector<Element::Pointer> mThisMasterElements;                   // Vector which contains the pointers to the master elements
     
     ///@}
     ///@name Protected Operators
@@ -739,8 +688,8 @@ protected:
     /**
      * Initialize Contact data
      */
-    void InitializeDerivativeData( 
-        DerivativeData& rDerivativeData,
+    void InitializeDofData( 
+        DofData& rDofData,
         const ProcessInfo& rCurrentProcessInfo
         );
     
@@ -748,7 +697,7 @@ protected:
      * Calculate Ae matrix
      */
     void CalculateAe( 
-        DerivativeData& rDerivativeData,
+        DofData& rDofData,
         GeneralVariables& rVariables,
 //         const GeometryType::IntegrationPointsArrayType& integration_points,
         const ProcessInfo& rCurrentProcessInfo
@@ -757,8 +706,8 @@ protected:
     /**
      * Initialize General Variables
      */
-    void UpdateDerivativeData( 
-        DerivativeData& rDerivativeData,
+    void UpdateDofData( 
+        DofData& rDofData,
         const unsigned int& rMasterElementIndex
         );
     
@@ -774,7 +723,7 @@ protected:
      */
     bool CalculateKinematics( 
         GeneralVariables& rVariables,
-        const DerivativeData rDerivativeData,
+        const DofData rDofData,
         const double& rPointNumber,
         const GeometryType::IntegrationPointsArrayType& integration_points
         );
@@ -880,7 +829,7 @@ protected:
      * Calculates the matrix Ae
      */
     void CalculateAe(
-        DerivativeData& rDerivativeData,
+        DofData& rDofData,
         AeData& rAeData
         );
     

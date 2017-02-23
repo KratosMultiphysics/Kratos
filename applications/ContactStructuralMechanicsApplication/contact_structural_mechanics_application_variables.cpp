@@ -60,7 +60,6 @@ KRATOS_CREATE_VARIABLE( double, DOUBLE_LM_FACTOR )                              
 KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )                                  // The penalty factor for the ALM
 KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )                                    // The scale factor for the ALM
 
-// /* For mesh tying mortar condition */
-// KRATOS_CREATE_VARIABLE( Variable<double>, SCALAR_VARIABLE )                       // The scale factor for the mesh tying 
-// KRATOS_CREATE_VARIABLE( Variable<Vector3>, COMPONENTS_VARIABLE )                  // The vector factor for the mesh tying
+/* For mesh tying mortar condition */
+KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                             // The variable name for the mesh tying 
 }
