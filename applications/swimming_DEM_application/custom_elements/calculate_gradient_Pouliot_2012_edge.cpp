@@ -10,7 +10,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::CalculateLocalSystem(Matri
                                   VectorType& rRightHandSideVector,
                                   ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int LocalSize(TDim);
+    const unsigned int LocalSize(TDim * TNumNodes);
 
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -23,6 +23,19 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::CalculateLocalSystem(Matri
             rLeftHandSideMatrix(i, j) = 0.0;
         }
         rRightHandSideVector(i) = 0.0;
+    }
+
+    const int current_component = rCurrentProcessInfo[CURRENT_COMPONENT];
+    if (current_component == 0){
+        mCurrentComponent = 'X';
+    }
+
+    else if (current_component == 1){
+        mCurrentComponent = 'Y';
+    }
+
+    else if (current_component == 2){
+        mCurrentComponent = 'Z';
     }
 
     AddPouliot2012LHS(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -75,16 +88,18 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType&
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-    const double epsilon = 1e-8;
+    KRATOS_TRY
+
     array_1d<double, 3> le; // vector from node 0 to node 1, normalized
     const GeometryType& rGeom = this->GetGeometry();
     noalias(le) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
     le *= h_edge_inv;
+    const double epsilon = 1e-8 / h_edge_inv;
 
-    for (unsigned int node_e = 0; node_e < 2; ++node_e){
+    for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
-            for (unsigned int node_f = 0; node_f < 2; ++node_f){
+            for (unsigned int node_f = 0; node_f < TNumNodes; ++node_f){
                 for (unsigned int j = 0; j < TDim; ++j){
                     double stab = 0.0;
                     if (i == j){
@@ -95,17 +110,21 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
             }
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorType& F, ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
     array_1d<double, 3> le; // vector from node 0 to node 1, normalized
     const GeometryType& rGeom = this->GetGeometry();
     noalias(le) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
     le *= h_edge_inv;
+
 
     double vel_component_variation_along_edge;
 
@@ -121,11 +140,12 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
         vel_component_variation_along_edge = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Z) - this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
     }
 
-    for (unsigned int node_e = 0; node_e < 2; ++node_e){
+    for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             F(TDim * node_e + i) += 2.0 * h_edge_inv * le[i] * vel_component_variation_along_edge;
         }
     }
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -137,7 +157,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    if(this->GetGeometry().size() != 2)
+    if(this->GetGeometry().size() != TNumNodes)
         KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
 
     if(VELOCITY_Z_GRADIENT.Key() == 0)

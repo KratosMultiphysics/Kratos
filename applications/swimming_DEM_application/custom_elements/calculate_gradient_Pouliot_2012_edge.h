@@ -114,7 +114,7 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     ComputeGradientPouliot2012Edge(IndexType NewId = 0) :
-        Element(NewId)
+        Element(NewId), mCurrentComponent('X')
     {}
 
     /// Constructor using an array of nodes.
@@ -123,7 +123,7 @@ public:
      * @param ThisNodes An array containing the nodes of the new element
      */
     ComputeGradientPouliot2012Edge(IndexType NewId, const NodesArrayType& ThisNodes) :
-        Element(NewId, ThisNodes)
+        Element(NewId, ThisNodes), mCurrentComponent('X')
     {}
 
     /// Constructor using a geometry object.
@@ -132,7 +132,7 @@ public:
      * @param pGeometry Pointer to a geometry object
      */
     ComputeGradientPouliot2012Edge(IndexType NewId, GeometryType::Pointer pGeometry) :
-        Element(NewId, pGeometry)
+        Element(NewId, pGeometry), mCurrentComponent('X')
     {}
 
     /// Constuctor using geometry and properties.
@@ -142,7 +142,7 @@ public:
      * @param pProperties Pointer to the element's properties
      */
     ComputeGradientPouliot2012Edge(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-        Element(NewId, pGeometry, pProperties)
+        Element(NewId, pGeometry, pProperties), mCurrentComponent('X')
     {}
 
     /// Destructor.
