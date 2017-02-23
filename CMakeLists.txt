@@ -318,15 +318,25 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
 message("boost python lib used = " ${Boost_PYTHON_LIBRARY_RELEASE})
-install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
-install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+# Replace .lib for .dll so it copies the files in windows automatically
+string(REPLACE ".lib" ".dll" BOOST_PYTHON_LIBS_TO_COPY "${Boost_PYTHON_LIBRARY_RELEASE}")
+string(REPLACE ".lib" ".dll" EXTRA_LIBS_TO_COPY "${EXTRA_INSTALL_LIBS}")
+
+# Install boost and extra libraires
+install(FILES ${BOOST_PYTHON_LIBS_TO_COPY} DESTINATION libs)
+install(FILES ${EXTRA_LIBS_TO_COPY} DESTINATION libs)
+message("installed libraries = " ${BLAS_LIBRARIES})
 
 # Install blas and lapack
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
+  string(REPLACE ".lib" ".dll" BLAS_LIBRARIES_TO_INSTALL "${BLAS_LIBRARIES}")
+  install(FILES ${BLAS_LIBRARIES_TO_INSTALL} DESTINATION libs)
 	message("installed blas = " ${BLAS_LIBRARIES})
-	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+
+  string(REPLACE ".lib" ".dll" LAPACK_LIBRARIES_TO_INSTALL "${LAPACK_LIBRARIES}")
+  install(FILES ${LAPACK_LIBRARIES_TO_INSTALL} DESTINATION libs)
 	message("installed lapack = " ${LAPACK_LIBRARIES})
-	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 # Kratos Testing
