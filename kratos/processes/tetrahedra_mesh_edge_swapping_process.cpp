@@ -134,7 +134,22 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 	//	std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
 
 }
+namespace Internals {
+	class EdgeSwappingCases {
+		int mNumberOfCases;
+	public:
+		EdgeSwappingCases() = delete;
+		EdgeSwappingCases(int NumberOfCases) : mNumberOfCases(NumberOfCases) {}
+		int GetNumberOfCases() { return mNumberOfCases; }
+	};
+
+	class EdgeSwappingCases3 : public EdgeSwappingCases {
+	public:
+		EdgeSwappingCases3() : EdgeSwappingCases(1) {}
+	};
+}
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & EdgeShell) {
+	Internals::EdgeSwappingCases3 SwappingCases;
 	Tetrahedra3D4<Node<3>> tetrahedra_1(EdgeShell.Point1(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(1), EdgeShell.ShellPoint(2));
 	Tetrahedra3D4<Node<3>> tetrahedra_2(EdgeShell.Point2(), EdgeShell.ShellPoint(0), EdgeShell.ShellPoint(2), EdgeShell.ShellPoint(1));
 	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
