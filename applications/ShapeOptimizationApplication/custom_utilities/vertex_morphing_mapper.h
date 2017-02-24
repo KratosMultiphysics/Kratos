@@ -94,6 +94,7 @@ namespace Kratos
 ///@{
     typedef boost::python::extract<double> extractDouble;
     typedef boost::python::extract<std::string> extractString;
+    typedef boost::python::extract<ModelPart&> extractModelPart;
 
 ///@}
 ///@name  Enum's
@@ -150,13 +151,13 @@ public:
                           std::string filter_function_type,
                           bool use_mesh_preserving_mapping_matrix,
                           double filter_size,
-                          bool perform_edge_damping,
-                          boost::python::list damped_edges )
+                          bool perform_damping,
+                          boost::python::list damping_regions )
         : mr_opt_model_part(model_part),
           m_filter_function_type(filter_function_type),
           m_use_mesh_preserving_mapping_matrix(use_mesh_preserving_mapping_matrix),
           m_filter_size(filter_size),
-          m_perform_edge_damping(perform_edge_damping),
+          m_perform_damping(perform_damping),
           m_number_of_design_variables(model_part.Nodes().size())
     {
         // Set precision for output
@@ -168,15 +169,15 @@ public:
             // Store local mapping matrix Id on the node
             node_i->SetValue(MAPPING_MATRIX_ID,i++);
 
-        // Initialize edge damping (By default damping factor is set to unity and hence has no influence)
+        // Initialize damping (By default damping factor is set to unity and hence has no influence)
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
             node_i->SetValue(DAMPING_FACTOR_X,1.0);    
             node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
             node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
         } 
-        if(perform_edge_damping)   
-            initialize_edge_damping(damped_edges);
+        if(perform_damping)   
+            initialize_damping(damping_regions);
     }
 
     /// Destructor.
@@ -195,9 +196,9 @@ public:
     ///@{
 
     // ==============================================================================
-    void initialize_edge_damping(boost::python::list damped_edges)
+    void initialize_damping(boost::python::list damping_regions)
     {
-        std::cout << "\n> Preparing edge damping for...\n" << std::endl;
+        std::cout << "\n\n> Starting to prepare damping..." << std::endl;
 
         // Creating an auxiliary list for the nodes to be searched on
         PointVector list_of_nodes;
@@ -221,68 +222,62 @@ public:
         // Compute tree with the node positions
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), max_nodes_affected);
 
-        // Loop over alle edges for which edge damping shall be performed
-        for (unsigned int edge_itr = 0; edge_itr < boost::python::len(damped_edges); edge_itr++)
+        // Loop over all regions for which damping is to be applied
+        for (unsigned int region_itr = 0; region_itr < boost::python::len(damping_regions); region_itr++)
         {
-            // Read settings for current edge
-            std::string edge_sub_model_part_name = extractString(damped_edges[edge_itr][0]);
-            KRATOS_WATCH(edge_sub_model_part_name);
-            bool damp_in_X = damped_edges[edge_itr][1];
-            bool damp_in_Y = damped_edges[edge_itr][2];
-            bool damp_in_Z = damped_edges[edge_itr][3];
-            std::string damping_function_type = extractString(damped_edges[edge_itr][4]);
-            double damping_radius = extractDouble(damped_edges[edge_itr][5]);
+            // Extract sub-model part for damping
+            ModelPart& damping_sub_mdpa = extractModelPart(damping_regions[region_itr][0]);
 
-            // Check if sub-model part collecting all edge nodes exist
-            if(!mr_opt_model_part.HasSubModelPart(edge_sub_model_part_name))
-                KRATOS_THROW_ERROR(std::invalid_argument, "Specified sub-model part for edge damping not found: ",edge_sub_model_part_name);
+            // Read settings for current edge
+            bool damp_in_X = damping_regions[region_itr][1];
+            bool damp_in_Y = damping_regions[region_itr][2];
+            bool damp_in_Z = damping_regions[region_itr][3];
+            std::string damping_function_type = extractString(damping_regions[region_itr][4]);
+            double damping_radius = extractDouble(damping_regions[region_itr][5]);
 
             // Prepare damping function
             DampingFunction damping_function( damping_function_type, damping_radius );
 
-            // Loop over all edge nodes specified in a dedicated sub-model part 
-            for ( ModelPart::NodeIterator node_itr = mr_opt_model_part.GetSubModelPart(edge_sub_model_part_name).NodesBegin(); 
-                  node_itr != mr_opt_model_part.GetSubModelPart(edge_sub_model_part_name).NodesEnd(); 
-                  ++node_itr )
+            // Loop over all nodes in specified damping sub-model part 
+            for ( ModelPart::NodeIterator node_itr = damping_sub_mdpa.NodesBegin(); node_itr != damping_sub_mdpa.NodesEnd(); ++node_itr )
             {
+                // Get node information
+                int i_ID = node_itr->Id();
+                ModelPart::NodeType& damping_node_i = mr_opt_model_part.Nodes()[i_ID];
+                array_3d i_coord = damping_node_i.Coordinates();
 
+                // Perform spatial search for current node
+                unsigned int number_of_nodes_affected;
+                number_of_nodes_affected = nodes_tree.SearchInRadius( damping_node_i, 
+                                                                        damping_radius, 
+                                                                        nodes_affected.begin(),
+                                                                        resulting_squared_distances.begin(), 
+                                                                        max_nodes_affected );    
+
+                // Loop over all nodes in radius (including node on damping region itself)
+                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
+                {
                     // Get node information
-                    int i_ID = node_itr->Id();
-                    ModelPart::NodeType& edge_node_i = mr_opt_model_part.Nodes()[i_ID];
-                    array_3d i_coord = edge_node_i.Coordinates();
+                    int j_ID = nodes_affected[j_itr]->Id();
+                    ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+                    array_3d j_coord = node_j.Coordinates();
 
-                    // Perform spatial search for current node
-                    unsigned int number_of_nodes_affected;
-                    number_of_nodes_affected = nodes_tree.SearchInRadius( edge_node_i, 
-                                                                          damping_radius, 
-                                                                          nodes_affected.begin(),
-                                                                          resulting_squared_distances.begin(), 
-                                                                          max_nodes_affected );    
+                    // Computation of damping factor
+                    double damping_factor = damping_function.compute_damping_factor(i_coord,j_coord);
 
-                    // Loop over all nodes in radius (including edge node itself)
-                    for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                    {
-                        // Get node information
-                        int j_ID = nodes_affected[j_itr]->Id();
-                        ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-                        array_3d j_coord = node_j.Coordinates();
-
-                        // Computation of damping factor
-                        double damping_factor = damping_function.compute_damping_factor(i_coord,j_coord);
-
-                        // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
-                        // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the edge
-                        if(damp_in_X == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_X))
-                            node_j.SetValue(DAMPING_FACTOR_X, damping_factor);     
-                        if(damp_in_Y == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Y))       
-                            node_j.SetValue(DAMPING_FACTOR_Y, damping_factor);   
-                        if(damp_in_Z == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Z))       
-                            node_j.SetValue(DAMPING_FACTOR_Z, damping_factor);                            
-                    }
+                    // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
+                    // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
+                    if(damp_in_X == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_X))
+                        node_j.SetValue(DAMPING_FACTOR_X, damping_factor);     
+                    if(damp_in_Y == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Y))       
+                        node_j.SetValue(DAMPING_FACTOR_Y, damping_factor);   
+                    if(damp_in_Z == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Z))       
+                        node_j.SetValue(DAMPING_FACTOR_Z, damping_factor);                            
+                }
             }
         }
 
-        std::cout << "\n> Finished preparing edge damping." << std::endl;
+        std::cout << "\n> Finished preparation of damping." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -528,7 +523,7 @@ public:
         std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
 
         // First we apply edge damping to the sensitivities if specified
-        if(m_perform_edge_damping)
+        if(m_perform_damping)
             for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
             {
                 node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY_X) *= node_i->GetValue(DAMPING_FACTOR_X);
@@ -717,7 +712,7 @@ public:
         }
 
         // Apply edge damping if specified
-        if(m_perform_edge_damping)
+        if(m_perform_damping)
             for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
             {   
                 node_i->FastGetSolutionStepValue(SHAPE_UPDATE_X) *= node_i->GetValue(DAMPING_FACTOR_X);
@@ -839,7 +834,7 @@ private:
     std::string m_filter_function_type;
     bool m_use_mesh_preserving_mapping_matrix;
     const double m_filter_size;
-    bool m_perform_edge_damping;
+    bool m_perform_damping;
     const unsigned int m_number_of_design_variables;
 
     // ==============================================================================
