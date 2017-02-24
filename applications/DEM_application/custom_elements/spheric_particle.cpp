@@ -825,8 +825,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         }
 
         array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
-
-        ComputeOtherBallToBallForces(other_ball_to_ball_forces);
+        ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
         // Transforming to global forces and adding up
         AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,

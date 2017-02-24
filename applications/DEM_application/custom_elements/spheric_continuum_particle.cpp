@@ -331,7 +331,7 @@ namespace Kratos {
             double equiv_visco_damp_coeff_tangential;
             double ElasticLocalRotationalMoment[3] = {0.0};
             double ViscoLocalRotationalMoment[3] = {0.0};
-
+            double cohesive_force =  0.0;
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
@@ -367,12 +367,15 @@ namespace Kratos {
                                                                    LocalRelVel,
                                                                    ViscoDampingLocalContactForce);
 
-            } else if (indentation > 0.0) {
-                double cohesive_force =  0.0;
+            } else if (indentation > 0.0) {                
                 const double previous_indentation = indentation + LocalDeltDisp[2];
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
                         LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
                         ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding, LocalCoordSystem);
+            } else { //Not bonded and no indentation
+                LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
+                ViscoDampingLocalContactForce[0] = 0.0; ViscoDampingLocalContactForce[1] = 0.0; ViscoDampingLocalContactForce[2] = 0.0;
+                cohesive_force= 0.0;
             }
 
             // Transforming to global forces and adding up
@@ -798,6 +801,8 @@ namespace Kratos {
             }
             return;
         }//CRITICAL DELTA CALCULATION
+        
+        SphericParticle::Calculate(rVariable, Output, r_process_info);
 
         KRATOS_CATCH("")
     }//Calculate
