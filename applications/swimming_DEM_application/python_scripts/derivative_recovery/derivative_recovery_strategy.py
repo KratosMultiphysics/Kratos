@@ -103,7 +103,8 @@ class DerivativeRecoveryStrategy:
             return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         if self.must_reconstruct_gradient:
             if self.mat_deriv_tool == 6:
-                return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
+                return pouliot_2012_edge_recoverer.Pouliot2012EdgeGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)                
+                # return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         else:

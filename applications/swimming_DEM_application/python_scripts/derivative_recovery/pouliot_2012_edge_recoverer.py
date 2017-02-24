@@ -21,13 +21,13 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.recovery_model_part.Nodes = self.model_part.Nodes
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
         for i, edge in enumerate(set_of_all_edges):
-            self.recovery_model_part.CreateNewElement(element_type, i, list(edge), self.model_part.GetProperties()[0])
+            self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
 
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
             for i, first_node in enumerate(elem.GetNodes()[: - 1]):
                 for j, second_node in enumerate(elem.GetNodes()[i + 1 :]):
-                    edge_ids = (first_node.Id, second_node.Id)
+                    edge_ids = tuple(sorted((first_node.Id, second_node.Id)))
                     set_of_all_edges.add(edge_ids)
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
@@ -36,7 +36,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.ILU0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-6
+        tolerance = 1e-10
         max_iterations = 1000
         verbosity = 1 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
