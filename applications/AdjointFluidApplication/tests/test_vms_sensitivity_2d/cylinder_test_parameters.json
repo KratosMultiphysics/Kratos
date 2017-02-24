@@ -47,7 +47,6 @@
         "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
-        "time_order"                   : 2,
         "compute_reactions"            : true,
         "divergence_clearance_steps"   : 0,
         "reform_dofs_at_each_step"     : false,
