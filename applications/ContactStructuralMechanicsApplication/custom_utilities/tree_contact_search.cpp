@@ -539,8 +539,7 @@ void TreeContactSearch::CreatePointListConditions(
     {
         const Condition::Pointer & pCond = (*cond_it.base());
         Point<3> Center;
-        double Radius;
-        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
+        double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
         PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, pCond, Radius));
         (PoinList).push_back(pPoint);
     }
@@ -584,8 +583,7 @@ void TreeContactSearch::UpdatePointListConditions(
     {
         const Condition::Pointer pCond = (*cond_it.base());
         Point<3> Center;
-        double Radius;
-        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
+        const double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
         PointItem::Pointer & pPoint = PoinList[index];
         pPoint->SetCondition(pCond);
         pPoint->SetRadius(Radius);
@@ -691,9 +689,7 @@ void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, usin
         if (type_search == 0)
         {
             Point<3> Center;
-            double SearchRadius;
-            ContactUtilities::CenterAndRadius(pCondOrigin, Center, SearchRadius, mdimension); 
-            SearchRadius *= SearchFactor;
+            const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius(pCondOrigin, Center);
 
             NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mallocation);
         }

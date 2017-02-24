@@ -90,10 +90,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::Initialize(
     
     const unsigned int IntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
     
-    ExactMortarIntegrationUtility<TDim,TNumNodes> IntegrationUtility = ExactMortarIntegrationUtility<TDim,TNumNodes>(GetGeometry(), IntegrationOrder);
-//     mPairSize = all_containers->size();
-//     mThisMasterConditions.resize( mPairSize );
-//     
+    ExactMortarIntegrationUtility<TDim,TNumNodes> IntegrationUtility = ExactMortarIntegrationUtility<TDim,TNumNodes>(GetGeometry(), GetGeometry().GetValue(NORMAL), IntegrationOrder);
+
     mPairSize = 0;
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
@@ -176,7 +174,39 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::FinalizeNon
 {
     KRATOS_TRY;
     
-    // TODO: Recalculate Lagrange multiplers
+    // TODO: Recalculate Lagrange multiplers and Slave DoF
+    
+    // Equation: $$ invD (-RHSslave - KSN Delta uElements - KSS DeltauS) $$
+    
+//     // DoF of the slave       // TODO: Add the values of the elements
+//     if (TTensor == ScalarValue)
+//     {
+//         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+//         {
+//             const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarScalar);
+//             u1(iNode, 0) = var;
+//         }
+//     }
+//     else
+//     {
+//         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+//         {
+//             for (unsigned int iDof = 0; iDof < TDim; iDof++)
+//             {
+//                 const double var = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarVector[iDof]);
+//                 u1(iNode, iDof) = var;
+//             }
+//         }
+//     }
+    
+//     if (TTensor == ScalarValue) // SCALAR_LAGRANGE_MULTIPLIER
+//     {
+// 
+//     }
+//     else // VECTOR_LAGRANGE_MULTIPLIER
+//     {
+//         
+//     }
     
     KRATOS_CATCH( "" );
 }
@@ -194,7 +224,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLo
     )
 {    
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2* TNumNodesElem - TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -254,7 +284,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLo
     KRATOS_TRY;
     
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2 * TNumNodesElem - TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -286,7 +316,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLe
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2 * TNumNodesElem - TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -318,7 +348,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateLe
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2 * TNumNodesElem - TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -352,7 +382,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateRi
     )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2 * TNumNodesElem - TNumNodes);
     
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -383,7 +413,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::CalculateRi
     ProcessInfo& rCurrentProcessInfo )
 {
     // Calculates the size of the system
-    constexpr unsigned int TMatrixSize = TDim * TNumNodesElem;
+    constexpr unsigned int TMatrixSize = TDim * (2 * TNumNodesElem - TNumNodes);
         
     // Create local system components
     LocalSystemComponents LocalSystem;
@@ -497,27 +527,6 @@ void MeshTyingMortarCondition<TDim, TNumNodes>::CalculateConditionSystem(
     )
 {
     KRATOS_TRY;
-    
-//                 // DoF of the slave       
-//             if (TTensor == ScalarValue)
-//             {
-//                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-//                 {
-//                     const double var  = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarScalar);
-//                     u1(iNode, 0) = var;
-//                 }
-//             }
-//             else
-//             {
-//                 for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
-//                 {
-//                     for (unsigned int iDof = 0; iDof < TDim; iDof++)
-//                     {
-//                         const double var = SlaveGeometry[iNode].FastGetSolutionStepValue(mTyingVarVector[iDof]);
-//                         u1(iNode, iDof) = var;
-//                     }
-//                 }
-//             }
     
     // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;

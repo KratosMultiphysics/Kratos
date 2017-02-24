@@ -1,4 +1,3 @@
- 
 // KRATOS  ___|  |                   |                   |
 //       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
 //             | |   |    |   | (    |   |   | |   (   | |
@@ -68,7 +67,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
     
     // General type definitions
     typedef Node<3>                                          NodeType;
@@ -76,8 +74,6 @@ public:
     typedef GeometryData::IntegrationMethod         IntegrationMethod;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-
-
 
     /**
      * This function fills the contact_container for the Mortar condition
@@ -315,11 +311,27 @@ public:
             const array_1d<double,3>& Normal
             )
     {
-         array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-         dist = inner_prod(vector_points, Normal); 
+        dist = inner_prod(vector_points, Normal); 
 
-         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+    }
+    
+    static inline Point<3> FastProject(
+            const Point<3>& PointOrigin,
+            const Point<3>& PointDestiny,
+            const array_1d<double,3>& Normal
+            )
+    {
+        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+
+        const double dist = inner_prod(vector_points, Normal); 
+        
+        Point<3> PointProjected;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+        
+        return PointProjected;
     }
     
     /**
@@ -347,14 +359,12 @@ public:
      * @return Radius: The radius of the condition
      */
 
-    static inline void CenterAndRadius(
+    static inline double CenterAndRadius(
             Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius,
-            const unsigned int dimension
+            Point<3>& Center
             )
     {
-        Radius = 0.0;
+        double Radius = 0.0;
         Center = pCond->GetGeometry().Center();
         
         // TODO: Add calculation of radius to geometry.h 
@@ -374,6 +384,8 @@ public:
         Radius = std::sqrt(Radius);
         
         ConditionNormal(pCond);
+        
+        return Radius;
     }
 
     /**
