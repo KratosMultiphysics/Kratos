@@ -8,8 +8,8 @@
 
 // Application includes
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_strategies/custom_schemes/adjoint_bossak_drag_scheme.h"
-#include "custom_strategies/custom_schemes/adjoint_steady_drag_scheme.h"
+#include "custom_schemes/adjoint_bossak_drag_scheme.h"
+#include "custom_schemes/adjoint_steady_drag_scheme.h"
 
 namespace Kratos
 {
