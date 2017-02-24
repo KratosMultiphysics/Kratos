@@ -112,6 +112,7 @@ namespace Kratos
 			integration_weight *= dArea;
 
 			direction = g3 / dArea;
+			//KRATOS_WATCH(direction)
 		}
 		else if (SURFACE_DEAD == 1)
 		{
@@ -145,13 +146,12 @@ namespace Kratos
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
 			const array_1d<double, 3> pload = GetGeometry()[i].FastGetSolutionStepValue(POINT_LOAD);
-			
 			int index = 3 * i;
 			fLoads[index]	  = - load * integration_weight * direction[0] * ShapeFunctionsN[i];
 			fLoads[index + 1] = - load * integration_weight * direction[1] * ShapeFunctionsN[i];
 			fLoads[index + 2] = - load * integration_weight * direction[2] * ShapeFunctionsN[i];
 		}
-
+		//KRATOS_WATCH(fLoads)
 		noalias(rRightHandSideVector) -= fLoads;
 		KRATOS_CATCH("")
 	}
