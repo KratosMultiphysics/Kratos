@@ -77,9 +77,8 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 	const double& Weighting = this->GetValue(INTEGRATION_WEIGHT);
 	const Vector& localTrimTangents = this->GetValue(TANGENTS);
 
+	//Shape functions: first master, second slave, third lambda of master, fourth 0
 	const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-	const Matrix& DN_DeMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
-
 
 	//For ROTATIONAL SUPPORT
 	Vector Phi_r = ZeroVector(number_of_points * 3);
@@ -90,7 +89,6 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 	
 	CaculateRotationalShapeFunctions(Phi_r, Phi_r_Lambda, Phi_rs, Diff_Phi);
 
-
 	//SHAPE_FUNCTION_VALUES has first the shape functions of the displacements, 
 	// then the shape functions of the Lagrange Multipliers
 	for (unsigned int i = number_of_points; i < 2*number_of_points; i++) //loop over Lagrange Multipliers
@@ -98,18 +96,30 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 		for (unsigned int j = 0; j < number_of_points; j++) // lopp over shape functions of displacements
 		{
 			double NN = ShapeFunctionsN[j] * ShapeFunctionsN[i];
+			
+			// Matrix in following shape:
+			// |0 H^T|
+			// |H 0  |
 			//lambda in X
-			rLeftHandSideMatrix(i * 3, 3 * j)         = NN + Phi_r_Lambda((i - number_of_points) * 3 )  * Phi_r(j * 3);//Phi_r_Lambda((i - number_of_points)*3)*Phi_r(j*3); ShapeFunctionsN[i] * Phi_r(j * 3);// 
+			rLeftHandSideMatrix(i * 3, 3 * j) = NN +Phi_r_Lambda((i - number_of_points) * 3)  * Phi_r(j * 3);//Phi_r_Lambda((i - number_of_points)*3)*Phi_r(j*3); ShapeFunctionsN[i] * Phi_r(j * 3);// 
 			//lambda in Y
 			rLeftHandSideMatrix(i * 3 + 1, 3 * j + 1) = NN + Phi_r_Lambda((i - number_of_points) * 3+1) * Phi_r(j * 3+1);
 			//lambda in Z;
 			rLeftHandSideMatrix(i * 3 + 2, 3 * j + 2) = NN + Phi_r_Lambda((i - number_of_points) * 3+2) * Phi_r(j * 3+2);
 			//lambda in X
-			rLeftHandSideMatrix(3 * j, i * 3)         = NN + Phi_r_Lambda((i - number_of_points) * 3 )  * Phi_r(j * 3);
+			rLeftHandSideMatrix(3 * j    , i * 3)     = NN + Phi_r_Lambda((i - number_of_points) * 3 )  * Phi_r(j * 3);
 			//lambda in Y
 			rLeftHandSideMatrix(3 * j + 1, i * 3 + 1) = NN + Phi_r_Lambda((i - number_of_points) * 3+1) * Phi_r(j * 3+1);
 			//lambda in Z;
 			rLeftHandSideMatrix(3 * j + 2, i * 3 + 2) = NN + Phi_r_Lambda((i - number_of_points) * 3+2) * Phi_r(j * 3+2);
+
+			//Depending on the solver if needed. 
+			//if (rLeftHandSideMatrix(3 * j, i * 3) <= 0.000001)
+			//	rLeftHandSideMatrix(i * 3, i * 3) = 1e-14;
+			//if (rLeftHandSideMatrix(3 * j + 1, i * 3 + 1) <= 0.000001)
+			//	rLeftHandSideMatrix(i * 3 + 1, i * 3 + 1) = 1e-14;
+			//if (rLeftHandSideMatrix(3 * j + 2, i * 3 + 2) <= 0.000001)
+			//	rLeftHandSideMatrix(i * 3 +2, i * 3 +2) = 1e-14;
 		}
 	}
 
@@ -132,20 +142,18 @@ void MeshlessLagrangeCouplingCondition::CalculateLocalSystem(MatrixType& rLeftHa
 		TDisplacementsLambda[index + 2] = LagrangeMultiplier[2];
 	}
 
-        array_1d<double,2> aux;
-        aux[0] = localTrimTangents[0];
-        aux[1] = localTrimTangents[1];
+	//MAPPING Geometry Space to Parameter Space
+	const Matrix& DN_DeMaster = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER);
 
-	double JGeometrictoParameter;
-	MappingGeometricToParameterMasterElement(DN_DeMaster, aux, JGeometrictoParameter);
+	array_1d<double, 2> localTrimTangentsMaster;
+	localTrimTangentsMaster[0] = localTrimTangents[0];
+	localTrimTangentsMaster[1] = localTrimTangents[1];
 
+	double JGeometrictoParameter = 1.0;
+	MappingGeometricToParameterMasterElement(DN_DeMaster, localTrimTangentsMaster, JGeometrictoParameter);
 	rLeftHandSideMatrix *= (Weighting * JGeometrictoParameter);
-
-
-	noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, TDisplacementsLambda);
-
-
-
+	noalias(rRightHandSideVector) += prod(rLeftHandSideMatrix, TDisplacementsLambda);
+	//rLeftHandSideMatrix *= (Weighting * JGeometrictoParameter);
 	KRATOS_CATCH("")
 } // MeshlessLagrangeCouplingCondition::MeshlessLagrangeCouplingCondition
 

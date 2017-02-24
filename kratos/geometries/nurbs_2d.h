@@ -984,9 +984,74 @@ public:
     Vector& ShapeFunctionsValues(Vector &rResult,
                                 const CoordinatesArrayType& rCoordinates) const
     {
-        const double& Xi = rCoordinates[0];
-        const double& Eta = rCoordinates[1];
+        double Xi = rCoordinates[0];
+        double Eta = rCoordinates[1];
         
+		if (Xi < mKnotsXi[0] && Xi < mKnotsXi[mKnotsXi.size() - 1])
+		{
+			if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+			{
+				std::cout << "Änderung" << std::endl;
+				Xi = mKnotsXi[0];
+			}
+			else
+			{
+				std::cout << "Änderung" << std::endl;
+				Xi = mKnotsXi[mKnotsXi.size() - 1];
+			}
+		}
+		if (Xi > mKnotsXi[0] && Xi > mKnotsXi[mKnotsXi.size() - 1])
+		{
+			if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+			{
+				std::cout << "Änderung" << std::endl;
+				Xi = mKnotsXi[mKnotsXi.size() - 1];
+			}
+			else
+			{
+				std::cout << "Änderung" << std::endl;
+				Xi = mKnotsXi[0];
+			}
+		}
+		//if (Xi > mKnotsXi[0] && Xi > mKnotsXi[mKnotsXi.size()-1]))
+		//{
+		//	if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+		//	{
+		//		Xi = mKnotsXi[0];
+		//	}
+		//	else
+		//	{
+		//		Xi = mKnotsXi[mKnotsXi.size() - 1];
+		//	}
+		//}
+
+		if (Eta < mKnotsEta[0] && Eta < mKnotsEta[mKnotsEta.size() - 1])
+		{
+			if (mKnotsEta[0] < mKnotsEta[mKnotsEta.size() - 1])
+			{
+				std::cout << "Änderung" << std::endl;
+				Eta = mKnotsEta[0];
+			}
+			else
+			{
+				std::cout << "Änderung" << std::endl;
+				Eta = mKnotsEta[mKnotsEta.size() - 1];
+			}
+		}
+		if (Eta > mKnotsEta[0] && Eta > mKnotsEta[mKnotsEta.size() - 1])
+		{
+			if (mKnotsEta[0] < mKnotsEta[mKnotsEta.size() - 1])
+			{
+				std::cout << "Änderung" << std::endl;
+				Eta = mKnotsEta[mKnotsEta.size() - 1];
+			}
+			else
+			{
+				std::cout << "Änderung" << std::endl;
+				Eta = mKnotsEta[0];
+			}
+		}
+
         rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1), false);
         rResult = ZeroVector((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
@@ -1255,8 +1320,72 @@ public:
 		const CoordinatesArrayType& rCoordinates) const
 	{
 		//std::cout<<"Vector& ShapeFunctionsValues (nurbs_2d.h)"<<std::endl;
-		const double& Xi = rCoordinates[0];
-		const double& Eta = rCoordinates[1];
+		double Xi = rCoordinates[0];
+		double Eta = rCoordinates[1];
+		if (Xi < mKnotsXi[0] && Xi < mKnotsXi[mKnotsXi.size()-1])
+		{
+			if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Xi = mKnotsXi[0];
+			}
+			else
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Xi = mKnotsXi[mKnotsXi.size() - 1];
+			}
+		}
+		if (Xi > mKnotsXi[0] && Xi > mKnotsXi[mKnotsXi.size() - 1])
+		{
+			if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Xi = mKnotsXi[mKnotsXi.size() - 1];
+			}
+			else
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Xi = mKnotsXi[0];
+			}
+		}
+		//if (Xi > mKnotsXi[0] && Xi > mKnotsXi[mKnotsXi.size()-1]))
+		//{
+		//	if (mKnotsXi[0] < mKnotsXi[mKnotsXi.size() - 1])
+		//	{
+		//		Xi = mKnotsXi[0];
+		//	}
+		//	else
+		//	{
+		//		Xi = mKnotsXi[mKnotsXi.size() - 1];
+		//	}
+		//}
+
+		if (Eta < mKnotsEta[0] && Eta < mKnotsEta[mKnotsEta.size() - 1])
+		{
+			if (mKnotsEta[0] < mKnotsEta[mKnotsEta.size() - 1])
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Eta = mKnotsEta[0];
+			}
+			else
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Eta = mKnotsEta[mKnotsEta.size() - 1];
+			}
+		}
+		if (Eta > mKnotsEta[0] && Eta > mKnotsEta[mKnotsEta.size() - 1])
+		{
+			if (mKnotsEta[0] < mKnotsEta[mKnotsEta.size() - 1])
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Eta = mKnotsEta[mKnotsEta.size() - 1];
+			}
+			else
+			{
+				std::cout<<"Änderung"<< std::endl;
+				Eta = mKnotsEta[0];
+			}
+		}
 
 		Matrix NurbsBasisFunctionDerivativesXi = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
 		Matrix NurbsBasisFunctionDerivativesEta = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
@@ -1274,6 +1403,8 @@ public:
 				rResult(i + (mPolynomialDegreeP + 1)*j,1) = NurbsBasisFunctionDerivativesEta(i, j);
 			}
 		}
+
+		//KRATOS_WATCH(rResult)
 		return rResult;
 	}
 
@@ -1925,6 +2056,10 @@ private:
 		ON_ShapeFunctionValue(mPolynomialDegreeQ + 1, &mKnotsEta[0], Eta, &dN_Eta(0,0));
 		Vector N_Xi(mPolynomialDegreeP + 1), N_Eta(mPolynomialDegreeQ + 1);
 
+		
+		//KRATOS_WATCH(dN_Xi)
+		//KRATOS_WATCH(dN_Eta)
+
 		for (int i = 0; i<mPolynomialDegreeP + 1; i++)
 		{
 			N_Xi[i] = dN_Xi(0,i);
@@ -1951,6 +2086,11 @@ private:
 
 		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeQ + 1, &mKnotsEta[0], der_count, &dN_Eta(0,0));
 		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeP + 1, &mKnotsXi[0], der_count, &dN_Xi(0,0));
+
+
+		//KRATOS_WATCH(dN_Xi)
+		//KRATOS_WATCH(dN_Eta)
+
 		Matrix Jacobian2D(2, 2);
 		Jacobian2D = ZeroMatrix(2, 2);
 
@@ -2089,7 +2229,7 @@ private:
 
 				NurbsBasisFunctionSecondDerivativesXi(i, j) = dN_Xi(2, i)*dN_Eta(0, j)*mWeights[i + (mPolynomialDegreeP + 1)*j] * invSumDenominator
 					- 2.0*dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi * invSumDenominatorXiEta
-					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumDenominatorSecondXiEta * invSumDenominatorXiEta
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorSecondXi * invSumDenominatorXiEta
 					+ 2.0 * dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi * SumNumeratorXi * invSumDenominatorXiEta2;
 
 

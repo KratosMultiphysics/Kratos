@@ -208,10 +208,8 @@ void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunction
 {
 	KRATOS_TRY
 
-		int number_of_points = ShapeFunctionDerivatives.size1();
-	array_1d<double, 3> g10;
-	array_1d<double, 3> g20;
-	array_1d<double, 3> g30;
+	int number_of_points = ShapeFunctionDerivatives.size1();
+	array_1d<double, 3> g10, g20, g30;
 
 	if (Master)
 	{
@@ -225,7 +223,6 @@ void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunction
 		g20 = mg2_0_slave;
 		g30 = mg3_0_slave;
 	}
-
 
 	Matrix J;
 	JacobianElement(ShapeFunctionDerivatives, J, Master);
@@ -268,7 +265,7 @@ void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunction
 	Omega(0) = asin(SinusOmega(0));
 	Omega(1) = asin(SinusOmega(1));
 
-	array_1d<double, 2> Phi;
+	//array_1d<double, 2> Phi;
 	Phi(0) = Omega(0);
 	Phi(1) = Omega(1);
 
@@ -375,6 +372,7 @@ void MeshlessBaseCouplingCondition::CaculateRotationalShapeFunctions(
 	array_1d<double, 2> Phi_Master;
 	array_1d<double, 2> localTrimTangentsMaster;
 	array_1d<double, 3> TrimTangentsMaster;
+	TrimTangentsMaster.clear();
 	localTrimTangentsMaster[0] = localTrimTangents[0];
 	localTrimTangentsMaster[1] = localTrimTangents[1];
 	CaculateRotation(ShapeFunctionDerivativesMaster, Phi_r_Master, Phi_rs_Master, Phi_Master, TrimTangentsMaster, localTrimTangentsMaster, true);
@@ -386,6 +384,7 @@ void MeshlessBaseCouplingCondition::CaculateRotationalShapeFunctions(
 	array_1d<double, 2> Phi_Slave;
 	array_1d<double, 2> localTrimTangentsSlave;
 	array_1d<double, 3> TrimTangentsSlave;
+	TrimTangentsSlave.clear();
 	localTrimTangentsSlave[0] = localTrimTangents[2];
 	localTrimTangentsSlave[1] = localTrimTangents[3];
 	CaculateRotation(ShapeFunctionDerivativesSlave, Phi_r_Slave, Phi_rs_Slave, Phi_Slave, TrimTangentsSlave, localTrimTangentsSlave, false);
