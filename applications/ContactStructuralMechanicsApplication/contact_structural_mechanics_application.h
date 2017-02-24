@@ -221,6 +221,8 @@ private:
 //     const MortarContactCondition<3, 8, false> mMortarContactCondition3D8N;
     const MortarContact3DCondition mMortarContactCondition3D9N;
 //     const MortarContactCondition<3, 9, false> mMortarContactCondition3D9N;
+    
+    // TODO: Remove this in the future
     const MortarContactCondition<2, 2, true> mMortarContactCondition2D2NDLM;
     const MortarContactCondition<2, 3, true> mMortarContactCondition2D3NDLM;
 //     const MortarContactCondition<3, 3, true> mMortarContactCondition3D3NDLM;
