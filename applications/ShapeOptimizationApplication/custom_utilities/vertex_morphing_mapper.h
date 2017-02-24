@@ -176,6 +176,7 @@ public:
             node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
             node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
         } 
+        
         if(perform_damping)   
             initialize_damping(damping_regions);
     }
