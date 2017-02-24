@@ -37,14 +37,14 @@ set( KRATOS_NURBS_BREP_APPLICATION_SOURCES
 )
 
 # define library Kratos which defines the basic python interface
-add_library(KratosNURBSBRepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
-target_link_libraries(KratosNURBSBRepApplication KratosStructuralMechanicsApplication KratosCore )
-set_target_properties(KratosNURBSBRepApplication PROPERTIES PREFIX "")
-install(TARGETS KratosNURBSBRepApplication DESTINATION libs )
+add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
+target_link_libraries(KratosNurbsBrepApplication KratosStructuralMechanicsApplication KratosCore )
+set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
+install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosNURBSBRepApplication PROPERTIES SUFFIX .pyd)
+	set_target_properties(KratosNurbsBrepApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)

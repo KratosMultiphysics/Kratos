@@ -2,10 +2,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-from KratosNURBSBRepApplication import *
+from KratosNurbsBrepApplication import *
 application = KratosNURBSBRepApplication()
-application_name = "KratosNURBSBRepApplication"
-application_folder = "NURBSBRepApplication"
+application_name = "KratosNurbsBrepApplication"
+application_folder = "NurbsBrepApplication"
 
 # The following lines are common for all applications
 from . import application_importer

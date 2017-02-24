@@ -25,7 +25,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/NURBSBrepModeler.h"
+#include "custom_utilities/NurbsBrepModeler.h"
 
 namespace Kratos
 {
@@ -43,8 +43,8 @@ namespace Python
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		class_<NURBSBrepModeler, boost::noncopyable>("NURBSBrepModeler", init<>())
-			.def("SetUp", &NURBSBrepModeler::SetUp)
+		class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<>())
+			.def("SetUp", &NurbsBrepModeler::SetUp)
 			;
 		//	.def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
 		//	.def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
