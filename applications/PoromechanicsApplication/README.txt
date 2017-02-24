@@ -33,16 +33,15 @@ Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLI
 
 //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
+
 //~ typedef TrilinosNewmarkQuasistaticUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkQuasistaticUPwSchemeType;
 //~ typedef TrilinosNewmarkQuasistaticDampedUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkQuasistaticDampedUPwSchemeType;
 //~ typedef TrilinosNewmarkDynamicUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkDynamicUPwSchemeType;
 
 //~ class_< TrilinosNewmarkQuasistaticUPwSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosNewmarkQuasistaticUPwScheme", 
     //~ init< double, double, double >() );
-
 //~ class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkQuasistaticDampedUPwScheme",
     //~ init<  double, double, double, double, double >());
-
 //~ class_< TrilinosNewmarkDynamicUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkDynamicUPwScheme",
     //~ init<  double, double, double, double, double >());
 

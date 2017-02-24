@@ -37,42 +37,47 @@ class DamMPIUPMechanicalSolver(dam_MPI_mechanical_solver.DamMPIMechanicalSolver)
             },
             "buffer_size": 2,
             "echo_level": 0,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": false,
-            "move_mesh_flag": true,
-            "solution_type": "Dynamic",
-            "scheme_type": "Newmark",
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
-            "convergence_criterion": "Displacement_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 15,
-            "desired_iterations": 4,
-            "max_radius_factor": 20.0,
-            "min_radius_factor": 0.5,
-            "block_builder": true,
-            "nonlocal_damage": false,
-            "characteristic_length": 0.05,
-            "search_neighbours_step": false,
-            "linear_solver_settings":{
-                "solver_type": "AmgclMPISolver",
-                "tolerance": 1.0e-6,
-                "max_iteration": 200,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "None",
-                "krylov_type": "fgmres"
-            },
-            "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "mechanical_solver_settings":{
+                "echo_level": 0,
+                "reform_dofs_at_each_step": false,
+                "clear_storage": false,
+                "compute_reactions": false,
+                "move_mesh_flag": true,
+                "solution_type": "Quasi-Static",
+                "scheme_type": "Newmark",
+                "rayleigh_m": 0.0,
+                "rayleigh_k": 0.0,
+                "strategy_type": "Newton-Raphson",
+                "convergence_criterion": "Displacement_criterion",
+                "displacement_relative_tolerance": 1.0e-4,
+                "displacement_absolute_tolerance": 1.0e-9,
+                "residual_relative_tolerance": 1.0e-4,
+                "residual_absolute_tolerance": 1.0e-9,
+                "max_iteration": 15,
+                "desired_iterations": 4,
+                "max_radius_factor": 20.0,
+                "min_radius_factor": 0.5,
+                "block_builder": true,
+                "nonlocal_damage": false,
+                "characteristic_length": 0.05,
+                "search_neighbours_step": false,
+                "linear_solver_settings":{
+                    "solver_type": "AMGCL",
+                    "tolerance": 1.0e-6,
+                    "max_iteration": 100,
+                    "scaling": false,
+                    "verbosity": 0,
+                    "preconditioner_type": "ILU0Preconditioner",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation"
+                },
+                "problem_domain_sub_model_part_list": [""],
+                "body_domain_sub_model_part_list": [],
+                "loads_sub_model_part_list": [],
+                "loads_variable_list": []
+            }
         }
         """)
 
@@ -82,7 +87,7 @@ class DamMPIUPMechanicalSolver(dam_MPI_mechanical_solver.DamMPIMechanicalSolver)
         
         # Construct the linear solver
         import trilinos_linear_solver_factory
-        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
         
         print("Construction of Dam_MPI_UPMechanicalSolver finished")
 
@@ -119,8 +124,8 @@ class DamMPIUPMechanicalSolver(dam_MPI_mechanical_solver.DamMPIMechanicalSolver)
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
-        rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-        rayleigh_k = self.settings["rayleigh_k"].GetDouble()  
+        rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
+        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()  
         
         beta=0.25
         gamma=0.5

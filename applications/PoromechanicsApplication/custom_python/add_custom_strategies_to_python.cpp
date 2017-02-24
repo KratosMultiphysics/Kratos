@@ -73,6 +73,7 @@ void  AddCustomStrategiesToPython()
     
     //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
+    
     //~ typedef TrilinosNewmarkQuasistaticUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkQuasistaticUPwSchemeType;
     //~ typedef TrilinosNewmarkQuasistaticDampedUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkQuasistaticDampedUPwSchemeType;
     //~ typedef TrilinosNewmarkDynamicUPwScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosNewmarkDynamicUPwSchemeType;
@@ -81,36 +82,28 @@ void  AddCustomStrategiesToPython()
     
     class_< NewmarkQuasistaticUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkQuasistaticUPwScheme",
         init<  double, double, double >());
-
     class_< NewmarkQuasistaticDampedUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkQuasistaticDampedUPwScheme",
         init<  double, double, double, double, double >());
-
     class_< NewmarkDynamicUPwSchemeType,bases< BaseSchemeType >, boost::noncopyable >("NewmarkDynamicUPwScheme",
         init<  double, double, double, double, double >());
 
     //~ class_< TrilinosNewmarkQuasistaticUPwSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosNewmarkQuasistaticUPwScheme", 
         //~ init< double, double, double >() );
-
     //~ class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkQuasistaticDampedUPwScheme",
         //~ init<  double, double, double, double, double >());
-
     //~ class_< TrilinosNewmarkDynamicUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkDynamicUPwScheme",
         //~ init<  double, double, double, double, double >());
-
 
     class_< PoromechanicsNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-                 
     class_< PoromechanicsRammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
         .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads);
-
     class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonNonlocalStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-                 
     class_< PoromechanicsRammArcLengthNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthNonlocalStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
@@ -119,4 +112,3 @@ void  AddCustomStrategiesToPython()
 
 }  // namespace Python.
 } // Namespace Kratos
-

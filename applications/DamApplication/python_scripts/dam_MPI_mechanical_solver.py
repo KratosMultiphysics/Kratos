@@ -37,42 +37,47 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
             },
             "buffer_size": 2,
             "echo_level": 0,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": false,
-            "move_mesh_flag": true,
-            "solution_type": "Quasi-Static",
-            "scheme_type": "Newmark",
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
-            "convergence_criterion": "Displacement_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 15,
-            "desired_iterations": 4,
-            "max_radius_factor": 20.0,
-            "min_radius_factor": 0.5,
-            "block_builder": true,
-            "nonlocal_damage": false,
-            "characteristic_length": 0.05,
-            "search_neighbours_step": false,
-            "linear_solver_settings":{
-                "solver_type": "AmgclMPISolver",
-                "tolerance": 1.0e-6,
-                "max_iteration": 200,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "None",
-                "krylov_type": "fgmres"
-            },
-            "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "mechanical_solver_settings":{
+                "echo_level": 0,
+                "reform_dofs_at_each_step": false,
+                "clear_storage": false,
+                "compute_reactions": false,
+                "move_mesh_flag": true,
+                "solution_type": "Quasi-Static",
+                "scheme_type": "Newmark",
+                "rayleigh_m": 0.0,
+                "rayleigh_k": 0.0,
+                "strategy_type": "Newton-Raphson",
+                "convergence_criterion": "Displacement_criterion",
+                "displacement_relative_tolerance": 1.0e-4,
+                "displacement_absolute_tolerance": 1.0e-9,
+                "residual_relative_tolerance": 1.0e-4,
+                "residual_absolute_tolerance": 1.0e-9,
+                "max_iteration": 15,
+                "desired_iterations": 4,
+                "max_radius_factor": 20.0,
+                "min_radius_factor": 0.5,
+                "block_builder": true,
+                "nonlocal_damage": false,
+                "characteristic_length": 0.05,
+                "search_neighbours_step": false,
+                "linear_solver_settings":{
+                    "solver_type": "AMGCL",
+                    "tolerance": 1.0e-6,
+                    "max_iteration": 100,
+                    "scaling": false,
+                    "verbosity": 0,
+                    "preconditioner_type": "ILU0Preconditioner",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation"
+                },
+                "problem_domain_sub_model_part_list": [""],
+                "body_domain_sub_model_part_list": [],
+                "loads_sub_model_part_list": [],
+                "loads_variable_list": []
+            }
         }
         """)
 
@@ -82,7 +87,7 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         
         # Construct the linear solver
         import trilinos_linear_solver_factory
-        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
         
         print("Construction of Dam_MPI_MechanicalSolver finished")
 
@@ -113,23 +118,23 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
         
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["mechanical_solver_settings"]["block_builder"].GetBool())
         
         # Solution scheme creation
-        scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                         self.settings["solution_type"].GetString())
+        scheme = self._ConstructScheme(self.settings["mechanical_solver_settings"]["scheme_type"].GetString(),
+                                         self.settings["mechanical_solver_settings"]["solution_type"].GetString())
                 
         # Get the convergence criterion
-        convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
+        convergence_criterion = self._ConstructConvergenceCriterion(self.settings["mechanical_solver_settings"]["convergence_criterion"].GetString())
                 
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
                                             scheme,
                                             convergence_criterion,
-                                            self.settings["strategy_type"].GetString())
+                                            self.settings["mechanical_solver_settings"]["strategy_type"].GetString())
 
         # Set echo_level
-        self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.Solver.SetEchoLevel(self.settings["mechanical_solver_settings"]["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
         self.Solver.Check()
@@ -180,11 +185,11 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
         
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
+        D_RT = self.settings["mechanical_solver_settings"]["displacement_relative_tolerance"].GetDouble()
+        D_AT = self.settings["mechanical_solver_settings"]["displacement_absolute_tolerance"].GetDouble()
+        R_RT = self.settings["mechanical_solver_settings"]["residual_relative_tolerance"].GetDouble()
+        R_AT = self.settings["mechanical_solver_settings"]["residual_absolute_tolerance"].GetDouble()
+        echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
         
         if(convergence_criterion == "Displacement_criterion"):
             convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT, self.EpetraCommunicator)
@@ -209,10 +214,10 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
     
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
         
-        max_iters = self.settings["max_iteration"].GetInt()
-        compute_reactions = self.settings["compute_reactions"].GetBool()
-        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
-        move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
+        max_iters = self.settings["mechanical_solver_settings"]["max_iteration"].GetInt()
+        compute_reactions = self.settings["mechanical_solver_settings"]["compute_reactions"].GetBool()
+        reform_step_dofs = self.settings["mechanical_solver_settings"]["reform_dofs_at_each_step"].GetBool()
+        move_mesh_flag = self.settings["mechanical_solver_settings"]["move_mesh_flag"].GetBool()
                 
         if strategy_type == "Newton-Raphson":
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)

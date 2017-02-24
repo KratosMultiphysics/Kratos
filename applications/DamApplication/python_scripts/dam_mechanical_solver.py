@@ -38,44 +38,47 @@ class DamMechanicalSolver(object):
             },
             "buffer_size": 2,
             "echo_level": 0,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": false,
-            "move_mesh_flag": true,
-            "solution_type": "Quasi-Static",
-            "scheme_type": "Newmark",
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
-            "convergence_criterion": "Displacement_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 15,
-            "desired_iterations": 4,
-            "max_radius_factor": 20.0,
-            "min_radius_factor": 0.5,
-            "block_builder": true,
-            "nonlocal_damage": false,
-            "characteristic_length": 0.05,
-            "search_neighbours_step": false,
-            "linear_solver_settings":{
-                "solver_type": "AMGCL",
-                "tolerance": 1.0e-6,
-                "max_iteration": 100,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
-                "smoother_type": "ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation"
-            },
-            "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "mechanical_solver_settings":{
+                "echo_level": 0,
+                "reform_dofs_at_each_step": false,
+                "clear_storage": false,
+                "compute_reactions": false,
+                "move_mesh_flag": true,
+                "solution_type": "Quasi-Static",
+                "scheme_type": "Newmark",
+                "rayleigh_m": 0.0,
+                "rayleigh_k": 0.0,
+                "strategy_type": "Newton-Raphson",
+                "convergence_criterion": "Displacement_criterion",
+                "displacement_relative_tolerance": 1.0e-4,
+                "displacement_absolute_tolerance": 1.0e-9,
+                "residual_relative_tolerance": 1.0e-4,
+                "residual_absolute_tolerance": 1.0e-9,
+                "max_iteration": 15,
+                "desired_iterations": 4,
+                "max_radius_factor": 20.0,
+                "min_radius_factor": 0.5,
+                "block_builder": true,
+                "nonlocal_damage": false,
+                "characteristic_length": 0.05,
+                "search_neighbours_step": false,
+                "linear_solver_settings":{
+                    "solver_type": "AMGCL",
+                    "tolerance": 1.0e-6,
+                    "max_iteration": 100,
+                    "scaling": false,
+                    "verbosity": 0,
+                    "preconditioner_type": "ILU0Preconditioner",
+                    "smoother_type": "ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation"
+                },
+                "problem_domain_sub_model_part_list": [""],
+                "body_domain_sub_model_part_list": [],
+                "loads_sub_model_part_list": [],
+                "loads_variable_list": []
+            }
         }
         """)
 
@@ -85,7 +88,7 @@ class DamMechanicalSolver(object):
         
         # Construct the linear solver
         import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
         
         print("Construction of DamMechanicalSolver finished")
     
@@ -127,7 +130,7 @@ class DamMechanicalSolver(object):
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y,KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
 
-        if(self.settings["solution_type"].GetString() == "Dynamic"):
+        if(self.settings["mechanical_solver_settings"]["solution_type"].GetString() == "Dynamic"):
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
                 node.AddDof(KratosMultiphysics.VELOCITY_X)
@@ -158,23 +161,23 @@ class DamMechanicalSolver(object):
     def Initialize(self):
                 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["mechanical_solver_settings"]["block_builder"].GetBool())
         
         # Solution scheme creation
-        scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                         self.settings["solution_type"].GetString())
+        scheme = self._ConstructScheme(self.settings["mechanical_solver_settings"]["scheme_type"].GetString(),
+                                         self.settings["mechanical_solver_settings"]["solution_type"].GetString())
 
         # Get the convergence criterion
-        convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
+        convergence_criterion = self._ConstructConvergenceCriterion(self.settings["mechanical_solver_settings"]["convergence_criterion"].GetString())
                 
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
                                             scheme,
                                             convergence_criterion,
-                                            self.settings["strategy_type"].GetString())
+                                            self.settings["mechanical_solver_settings"]["strategy_type"].GetString())
 
         # Set echo_level
-        self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.Solver.SetEchoLevel(self.settings["mechanical_solver_settings"]["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
         self.Solver.Check()
@@ -194,7 +197,7 @@ class DamMechanicalSolver(object):
         pass #one should write the restart file here
         
     def Solve(self):
-        if self.settings["clear_storage"].GetBool():
+        if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
             self.Clear()
         
         self.Solver.Solve()
@@ -202,7 +205,7 @@ class DamMechanicalSolver(object):
     # solve :: sequencial calls
     
     def InitializeStrategy(self):
-        if self.settings["clear_storage"].GetBool():
+        if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
             self.Clear()
         
         self.Solver.Initialize()
@@ -268,8 +271,8 @@ class DamMechanicalSolver(object):
         
     def _ConstructScheme(self, scheme_type, solution_type):
 
-        rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-        rayleigh_k = self.settings["rayleigh_k"].GetDouble()  
+        rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
+        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()  
         
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
@@ -287,11 +290,11 @@ class DamMechanicalSolver(object):
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
         
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-        echo_level = self.settings["echo_level"].GetInt()
+        D_RT = self.settings["mechanical_solver_settings"]["displacement_relative_tolerance"].GetDouble()
+        D_AT = self.settings["mechanical_solver_settings"]["displacement_absolute_tolerance"].GetDouble()
+        R_RT = self.settings["mechanical_solver_settings"]["residual_relative_tolerance"].GetDouble()
+        R_AT = self.settings["mechanical_solver_settings"]["residual_absolute_tolerance"].GetDouble()
+        echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
         
         if(convergence_criterion == "Displacement_criterion"):
             convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
@@ -316,20 +319,20 @@ class DamMechanicalSolver(object):
     
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
         
-        nonlocal_damage = self.settings["nonlocal_damage"].GetBool()
-        max_iters = self.settings["max_iteration"].GetInt()
-        compute_reactions = self.settings["compute_reactions"].GetBool()
-        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
-        move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
+        nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
+        max_iters = self.settings["mechanical_solver_settings"]["max_iteration"].GetInt()
+        compute_reactions = self.settings["mechanical_solver_settings"]["compute_reactions"].GetBool()
+        reform_step_dofs = self.settings["mechanical_solver_settings"]["reform_dofs_at_each_step"].GetBool()
+        move_mesh_flag = self.settings["mechanical_solver_settings"]["move_mesh_flag"].GetBool()
                 
         if strategy_type == "Newton-Raphson":
             if nonlocal_damage:
                 self.strategy_params = KratosMultiphysics.Parameters("{}")
-                self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-                self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
-                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
-                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
+                self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+                self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
                                                                                scheme,
                                                                                self.linear_solver,
@@ -354,15 +357,15 @@ class DamMechanicalSolver(object):
         else:
             # Arc-Length strategy
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            self.strategy_params.AddValue("desired_iterations",self.settings["mechanical_solver_settings"]["desired_iterations"])
+            self.strategy_params.AddValue("max_radius_factor",self.settings["mechanical_solver_settings"]["max_radius_factor"])
+            self.strategy_params.AddValue("min_radius_factor",self.settings["mechanical_solver_settings"]["min_radius_factor"])
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+            self.strategy_params.AddValue("loads_variable_list",self.settings["mechanical_solver_settings"]["loads_variable_list"])
             if nonlocal_damage:
-                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
-                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
-                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["mechanical_solver_settings"]["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["mechanical_solver_settings"]["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.main_model_part,
                                                                                scheme,
                                                                                self.linear_solver,
