@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from . import recoverer
 
+
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
     def __init__(self, pp, model_part, cplusplus_recovery_tool):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
@@ -17,11 +18,13 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
     def FillUpModelPart(self, element_type):
         set_of_all_edges = set()
-        self.FillSetOfAllEdges(set_of_all_edges)
+        #self.FillSetOfAllEdges(set_of_all_edges)
         self.recovery_model_part.Nodes = self.model_part.Nodes
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
-        for i, edge in enumerate(set_of_all_edges):
-            self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
+        self.meshing_tool = DerivativeRecoveryMeshingTools()
+        self.meshing_tool.FillUpEdgesModelPartFromTetrahedraModelPart(self.recovery_model_part, self.model_part, element_type)
+        # for i, edge in enumerate(set_of_all_edges):
+        #     self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
 
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
@@ -34,12 +37,12 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         #from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
         #linear_solver = SuperLUIterativeSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        amgcl_smoother = AMGCLSmoother.ILU0
-        amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-10
-        max_iterations = 1000
-        verbosity = 1 #0->shows no information, 1->some information, 2->all the information
-        gmres_size = 50
+        amgcl_smoother = AMGCLSmoother.SPAI0
+        amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
+        tolerance = 1e-11
+        max_iterations = 200
+        verbosity = 2 #0->shows no information, 1->some information, 2->all the information
+        gmres_size = 400
 
         if self.use_lumped_mass_matrix:
             linear_solver = CGSolver()
