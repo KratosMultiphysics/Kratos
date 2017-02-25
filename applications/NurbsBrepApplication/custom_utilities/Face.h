@@ -18,7 +18,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "ControlPoint.h"
+//#include "ControlPoint.h"
 #include "TrimmingCurve.h"
 
 // ==============================================================================
@@ -57,7 +57,7 @@ public:
 	///@name Type Definitions
 	///@{
 	typedef std::vector<double> DoubleVector;
-	typedef std::vector<ControlPoint> ControlPointVector;
+	typedef std::vector<int> IntVector;
 	typedef std::vector<std::vector<int>> TrimmingLoopVector;
 	typedef std::vector<TrimmingCurve> TrimmingCurveVector;
 	// For matrix vector operations
@@ -80,7 +80,7 @@ public:
 	Face(unsigned int brep_id, TrimmingCurveVector trimming_curves,
 		TrimmingLoopVector trimming_loops,
 		DoubleVector knot_vector_u, DoubleVector knot_vector_v,
-		int p, int q, ControlPointVector control_points)
+		int p, int q, IntVector control_point_ids)
 	: m_trimming_curves(trimming_curves),
 	  m_trimming_loops(trimming_loops),
 	  m_brep_id(brep_id),
@@ -88,12 +88,12 @@ public:
 	  m_knot_vector_v(knot_vector_v),
 	  m_p(p),
 	  m_q(q),
-	  m_control_points(control_points)
+	  m_control_points_ids(control_point_ids)
 	{
 		unsigned int m_n_u = m_knot_vector_u.size() - m_p - 1;
 		unsigned int m_n_v = m_knot_vector_v.size() - m_q - 1;
 
-		if (m_control_points.size() != m_n_u * m_n_v)
+		if (m_control_points_ids.size() != m_n_u * m_n_v)
 		{
 			std::cout << "Invalid Face" << std::endl;
 		}
@@ -137,7 +137,7 @@ private:
 	DoubleVector m_knot_vector_v;
 	unsigned int m_p;
 	unsigned int m_q;
-	ControlPointVector m_control_points;
+	IntVector m_control_points_ids;
 
 	// ==============================================================================
 	// General working arrays

@@ -13,7 +13,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "ControlPoint.h"
+#include "FaceTrim.h"
 //#include "b_spline_utilities.h"
 
 // ==============================================================================
@@ -53,7 +53,8 @@ public:
 	///@{
 	typedef std::vector<double> DoubleVector;
 	// For matrix / vector operations
-	typedef std::vector<ControlPoint> ControlPointVector;
+	typedef std::vector<FaceTrim> FaceTrimVector;
+	typedef std::vector<std::vector<double>> ParameterVector;
 
 	///@}
 
@@ -61,10 +62,10 @@ public:
 	//    KRATOS_CLASS_POINTER_DEFINITION[Edge];
 
 	/// Default constructor.
-	Edge(DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points) 
-	: m_knot_vector_u(knot_vector_u),
-	  m_p(p),
-	  m_control_points(control_points)
+	Edge(unsigned int edge_id, ParameterVector boundary_vertices, FaceTrimVector face_trims_vector)
+	: m_edge_id(edge_id),
+	  m_boundary_vertices(boundary_vertices),
+	  m_face_trims_vector(face_trims_vector)
 	{
 		//m_n_u = m_knot_vector_u.size() - m_p - 1;
 	}
@@ -72,12 +73,6 @@ public:
 	/// Destructor.
 	virtual ~Edge()
 	{
-	}
-
-	// --------------------------------------------------------------------------
-	ControlPointVector& GetControlPoints()
-	{
-		return m_control_points;
 	}
 
 	// ==============================================================================
@@ -105,9 +100,9 @@ private:
 	// ==============================================================================
 	// Initialized by class constructor
 	// ==============================================================================
-	DoubleVector m_knot_vector_u;
-	unsigned int m_p;
-	ControlPointVector m_control_points;
+	unsigned int m_edge_id;
+	ParameterVector m_boundary_vertices;
+	FaceTrimVector m_face_trims_vector;
 	//unsigned int m_n_u; // number of control points in u-direction
 	//double m_epsilon = 1e-10; // Tolerance value
 

@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosIGAStructuralMechanicsApplication ****")
+message("**** configuring KratosNurbBrepApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
@@ -24,7 +24,7 @@ set( KRATOS_NURBS_BREP_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/TrimmingCurve.h
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/BrepModel.h
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/Face.h	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/BrepModelGeometryReader.h
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/BrepModelGeometryReader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/ControlPoint.h		
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsBrepModeler.cpp
 		

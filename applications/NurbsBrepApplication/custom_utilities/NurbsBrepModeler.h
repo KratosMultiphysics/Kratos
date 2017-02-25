@@ -112,7 +112,7 @@ namespace Kratos
 		///@{ 
 
 		boost::python::dict m_cad_geometry;
-		BrepModelGeometryReader m_brep_model_geometry_reader;
+		//BrepModelGeometryReader m_brep_model_geometry_reader;
 		BrepModelVector m_brep_model_vector;
 
 		///@} 

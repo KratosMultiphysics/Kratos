@@ -53,7 +53,7 @@ public:
 
 	// For matrix / vector operations
 	typedef std::vector<double> DoubleVector;
-	typedef std::vector<ControlPoint> ControlPointVector;
+	typedef std::vector<int> IntVector;
 
 	///@}
 
@@ -61,11 +61,13 @@ public:
 	//    KRATOS_CLASS_POINTER_DEFINITION[TrimmingCurve];
 
 	/// Default constructor.
-	TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points)
+	TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, 
+		IntVector control_points, DoubleVector boundary_vertices)
 	: m_cp_id(cp_id),
 	  m_knot_vector_u(knot_vector_u),
 	  m_p(p),
-	  m_control_points(control_points)
+	  m_control_points(control_points),
+	  m_boundary_vertices(boundary_vertices)
 	{
 		//m_n_u = m_knot_vector_u.size() - m_p - 1;
 	}
@@ -76,7 +78,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	ControlPointVector& GetControlPoints()
+	IntVector& GetControlPoints()
 	{
 		return m_control_points;
 	}
@@ -109,7 +111,8 @@ private:
 	unsigned int m_cp_id;
 	DoubleVector m_knot_vector_u;
 	unsigned int m_p;
-	ControlPointVector m_control_points;
+	IntVector m_control_points;
+	DoubleVector m_boundary_vertices;
 	//unsigned int m_n_u; // number of control points in u-direction
 	//double m_epsilon = 1e-10; // Tolerance value
 

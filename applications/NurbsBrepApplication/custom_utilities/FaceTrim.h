@@ -13,7 +13,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "ControlPoint.h"
+//#include "ControlPoint.h"
 //#include "b_spline_utilities.h"
 
 // ==============================================================================
@@ -53,7 +53,7 @@ public:
 
 	// For matrix / vector operations
 	typedef std::vector<double> DoubleVector;
-	typedef std::vector<ControlPoint> ControlPointVector;
+	typedef std::vector<std::vector<double>> ParameterVector;
 
 	///@}
 
@@ -61,10 +61,12 @@ public:
 	//    KRATOS_CLASS_POINTER_DEFINITION[FaceTrim];
 
 	/// Default constructor.
-	FaceTrim(DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points) 
-	: m_knot_vector_u(knot_vector_u),
-	  m_p(p),
-	  m_control_points(control_points)
+	FaceTrim(unsigned int face_id, unsigned int trim_index, 
+		ParameterVector boundary_parameters, bool relative_direction)
+	: m_face_id(face_id),
+	  m_trim_index(trim_index),
+	  m_boundary_parameters(boundary_parameters),
+	  m_relative_direction(relative_direction)
 	{
 		//m_n_u = m_knot_vector_u.size() - m_p - 1;
 	}
@@ -72,12 +74,6 @@ public:
 	/// Destructor.
 	virtual ~FaceTrim()
 	{
-	}
-
-	// --------------------------------------------------------------------------
-	ControlPointVector& GetControlPoints()
-	{
-		return m_control_points;
 	}
 
 	// ==============================================================================
@@ -105,11 +101,10 @@ private:
 	// ==============================================================================
 	// Initialized by class constructor
 	// ==============================================================================
-	DoubleVector m_knot_vector_u;
-	unsigned int m_p;
-	ControlPointVector m_control_points;
-	//unsigned int m_n_u; // number of control points in u-direction
-	//double m_epsilon = 1e-10; // Tolerance value
+	unsigned int m_face_id;
+	unsigned int m_trim_index;
+	ParameterVector m_boundary_parameters;
+	bool m_relative_direction;
 
 	// ==============================================================================
 	// General working arrays
