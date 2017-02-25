@@ -49,6 +49,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/sets/space_time_set.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery_meshing_tools.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
 )
