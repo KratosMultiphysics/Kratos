@@ -28,6 +28,7 @@
 namespace Kratos {
 namespace Testing {
 
+    // FIXME: EXCPETION -> EXCEPTION
     // TODO: Move to 'include/checks.h' once is confirmed to work as intended
     #define KRATOS_CHECK_EXCPETION_RAISED(STATEMENT, EXCEPTION_TYPE)              \
       std::ofstream out("/dev/null");                                             \
