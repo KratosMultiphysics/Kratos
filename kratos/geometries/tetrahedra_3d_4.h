@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TETRAHEDRA_3D_4_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_3D_4_H_INCLUDED
 
@@ -191,9 +189,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                               "Invalid points number. Expected 4, given " ,
-                               this->PointsNumber());
+            KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -918,8 +914,7 @@ public:
         case 3:
             return( rPoint[2] );
         default:
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "Wrong index of shape function!" , *this);
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
         return 0;
     }
@@ -988,23 +983,22 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "This integration method is not supported" , *this);
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-        double x10 = this->Points()[1].X() - this->Points()[0].X();
-        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
-        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+        const double x10 = this->Points()[1].X() - this->Points()[0].X();
+        const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
 
-        double x20 = this->Points()[2].X() - this->Points()[0].X();
-        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
-        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+        const double x20 = this->Points()[2].X() - this->Points()[0].X();
+        const double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        const double z20 = this->Points()[2].Z() - this->Points()[0].Z();
 
-        double x30 = this->Points()[3].X() - this->Points()[0].X();
-        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
-        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+        const double x30 = this->Points()[3].X() - this->Points()[0].X();
+        const double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        const double z30 = this->Points()[3].Z() - this->Points()[0].Z();
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
         DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
         DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
@@ -1041,23 +1035,22 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "This integration method is not supported" , *this);
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-        double x10 = this->Points()[1].X() - this->Points()[0].X();
-        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
-        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+        const double x10 = this->Points()[1].X() - this->Points()[0].X();
+        const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
 
-        double x20 = this->Points()[2].X() - this->Points()[0].X();
-        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
-        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+        const double x20 = this->Points()[2].X() - this->Points()[0].X();
+        const double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        const double z20 = this->Points()[2].Z() - this->Points()[0].Z();
 
-        double x30 = this->Points()[3].X() - this->Points()[0].X();
-        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
-        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+        const double x30 = this->Points()[3].X() - this->Points()[0].X();
+        const double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        const double z30 = this->Points()[3].Z() - this->Points()[0].Z();
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
         DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
         DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;

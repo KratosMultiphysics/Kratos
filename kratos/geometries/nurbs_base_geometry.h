@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_NURBS_BASE_GEOMETRY_H_INCLUDED) //modified by Matthias
@@ -264,15 +272,13 @@ public:
      */
     virtual void DefineGeometries(std::vector< Geometry< Node<3> >::Pointer>& GeometryContainer)
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                      "Calling base class DefineGeometries method instead of drived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class DefineGeometries method instead of drived class one. Please check the definition of derived class." << *this << std::endl;
     }
 
 
     virtual int GeometryNumber()
     {
-        KRATOS_THROW_ERROR( std::logic_error,
-                      "Calling base class GeometryNumber method instead of drived class one. Please check the definition of derived class." , *this );
+        KRATOS_ERROR << "Calling base class GeometryNumber method instead of drived class one. Please check the definition of derived class." << *this << std::endl;
     return 0;
     }
 
