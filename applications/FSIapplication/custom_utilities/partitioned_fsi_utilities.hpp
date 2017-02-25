@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "includes/communicator.h"
 #include "includes/ublas_interface.h"
+#include "utilities/math_utils.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -66,9 +67,6 @@ public:
     /*@{ */
     typedef typename TSpace::VectorType                             VectorType;
     typedef typename TSpace::MatrixType                             MatrixType;
-
-    // typedef typename TSpace::VectorPointerType               VectorPointerType;
-    // typedef typename TSpace::MatrixPointerType               MatrixPointerType;
 
     //~ /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( PartitionedFSIUtilities );
@@ -259,12 +257,13 @@ public:
             const Condition::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
             const unsigned int NumGauss = IntegrationPoints.size();
             const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            VectorType JacGauss;
+            rGeom.DeterminantOfJacobian(JacGauss, GeometryData::GI_GAUSS_2);
 
             for (int g=0; g<static_cast<int>(NumGauss); ++g)
             {
                 const Kratos::Vector& N = row(NContainer,g);
-                const double DetJacGauss = rGeom.DeterminantOfJacobian(g, GeometryData::GI_GAUSS_2);
-                const double GaussWeight = DetJacGauss * IntegrationPoints[g].Weight();
+                const double GaussWeight = JacGauss[g] * IntegrationPoints[g].Weight();
 
                 unsigned int RowIndex = 0;
                 unsigned int ColIndex = 0;
@@ -299,7 +298,9 @@ public:
                     array_1d<double, 3> aux_val;
                     aux_val[0] += ConsResVect[i*BlockSize];
                     aux_val[1] += ConsResVect[i*BlockSize+1];
+                    it_cond->GetGeometry()[i].SetLock(); // So it is safe to write in the condition node in OpenMP
                     it_cond->GetGeometry()[i].FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL) += aux_val;
+                    it_cond->GetGeometry()[i].UnSetLock(); // Free the condition node for other threads
                 }
             }
             else
@@ -310,7 +311,9 @@ public:
                     aux_val[0] += ConsResVect[i*BlockSize];
                     aux_val[1] += ConsResVect[i*BlockSize+1];
                     aux_val[2] += ConsResVect[i*BlockSize+2];
+                    it_cond->GetGeometry()[i].SetLock(); // So it is safe to write in the condition node in OpenMP
                     it_cond->GetGeometry()[i].FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL) += aux_val;
+                    it_cond->GetGeometry()[i].UnSetLock(); // Free the condition node for other threads
                 }
             }
         }
