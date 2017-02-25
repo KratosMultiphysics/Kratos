@@ -55,8 +55,8 @@ class DerivativeRecoveryStrategy:
         elif self.mat_deriv_type == 5:
             return L2_projection_recoverer.L2ProjectionMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 6:
+            return pouliot_2012_edge_recoverer.Pouliot2012EdgeMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)            
             #return pouliot_2012_recoverer.Pouliot2012MaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool, self.do_pre_recovery)
-            return pouliot_2012_edge_recoverer.Pouliot2012EdgeMaterialAccelerationRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         elif self.mat_deriv_type == 7:
             if self.store_full_gradient:
                 return zhang_guo_recoverer.ZhangGuoMaterialAccelerationAndLaplacianRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
@@ -103,7 +103,7 @@ class DerivativeRecoveryStrategy:
             return recoverer.EmptyGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
         if self.must_reconstruct_gradient:
             if self.mat_deriv_tool == 6:
-                return pouliot_2012_edge_recoverer.Pouliot2012EdgeGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)                
+                return pouliot_2012_edge_recoverer.Pouliot2012EdgeGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
                 # return pouliot_2012_recoverer.Pouliot2012GradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
             else:
                 return L2_projection_recoverer.L2ProjectionGradientRecoverer(self.pp, self.fluid_model_part, self.derivative_recovery_tool)
