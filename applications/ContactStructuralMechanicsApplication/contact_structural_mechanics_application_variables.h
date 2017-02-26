@@ -99,11 +99,6 @@ KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHAN
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_GP )                    // For getting the normal in the GP
 KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENT_GP )                   // For getting the tangent in the GP
 
-/* This is for doble Lagrange Multipliers */
-// NOTE: This go out for sure
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, DOUBLE_LM )                    // The double LM
-KRATOS_DEFINE_VARIABLE( double, DOUBLE_LM_FACTOR )                                                                              // The double LM parameter
-
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                                                                                // The penalty factor for the ALM
 KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                                                                  // The scale factor for the ALM

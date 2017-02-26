@@ -51,11 +51,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP )       
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                            // For getting the normal in the GP
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                           // For getting the tangent in the GP
 
-/* This is for doble Lagrange Multipliers */
-// NOTE: This go out for sure
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                            // The double LM
-KRATOS_CREATE_VARIABLE( double, DOUBLE_LM_FACTOR )                                // The double LM parameter
-
 /* For ALM mortar condition */
 KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )                                  // The penalty factor for the ALM
 KRATOS_CREATE_VARIABLE( double, SCALE_FACTOR )                                    // The scale factor for the ALM

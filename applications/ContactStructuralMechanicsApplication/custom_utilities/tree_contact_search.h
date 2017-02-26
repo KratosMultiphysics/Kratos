@@ -353,16 +353,6 @@ public:
         const double rAugmentationTangent,
         const int rIntegrationOrder
         );
-    
-    /**
-     * This function initializes the mortar conditions already created (with double LM)
-     */
-    
-    void InitializeMortarConditionsDLM(
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
 
     /**
      * This function initializes the ALM frictionless mortar conditions already created 
@@ -390,18 +380,6 @@ public:
         const double rAugmentationTangent,
         const int rIntegrationOrder
         );
-    
-    /**
-     * This function initializes conditions (with double LM)
-     */
-    
-    void InitializeConditionsDLM(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const double rEpsilon,
-        const int rIntegrationOrder
-        );
-
     
     /**
      * This function initializes ALM frictionless conditions
