@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:     BSD License
+//           Kratos default license: kratos/license.txt
 //
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
@@ -57,23 +57,23 @@ namespace Kratos {
 ///@name Kratos Globals
 ///@{
 
-	//Variables definition
-	KRATOS_DEFINE_VARIABLE(double, CONTROL_POINT_WEIGHT)
+  //Variables definition
+  KRATOS_DEFINE_VARIABLE(double, CONTROL_POINT_WEIGHT)
 
-	//KRATOS_DEFINE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
-	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+  //KRATOS_DEFINE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
+  //KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES)
 
-	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
-	//KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
+  //KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
+  //KRATOS_DEFINE_VARIABLE(Matrix, SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
 
-	//KRATOS_DEFINE_VARIABLE(Vector, TANGENTS)
+  //KRATOS_DEFINE_VARIABLE(Vector, TANGENTS)
 
-	//KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
+  //KRATOS_DEFINE_VARIABLE(double, PENALTY_FACTOR)
 
-	//KRATOS_DEFINE_VARIABLE(int, DISPLACEMENT_ROTATION_FIX)
-	//KRATOS_DEFINE_VARIABLE(int, LOAD_TYPE)
-	////KRATOS_DEFINE_VARIABLE(std::string, CONDITION_TYPE_DEFINITION)
-	//KRATOS_DEFINE_VARIABLE(double, DISTRIBUTED_LOAD_FACTOR)
+  //KRATOS_DEFINE_VARIABLE(int, DISPLACEMENT_ROTATION_FIX)
+  //KRATOS_DEFINE_VARIABLE(int, LOAD_TYPE)
+  ////KRATOS_DEFINE_VARIABLE(std::string, CONDITION_TYPE_DEFINITION)
+  //KRATOS_DEFINE_VARIABLE(double, DISTRIBUTED_LOAD_FACTOR)
 
 ///@}
 ///@name Type Definitions
@@ -96,145 +96,145 @@ namespace Kratos {
 */
 class KratosNurbsBrepApplication : public KratosApplication {
 public:
-	///@name Type Definitions
-	///@{
-	
-	/// Pointer definition of KratosNurbsBrepApplication
-	KRATOS_CLASS_POINTER_DEFINITION(KratosNurbsBrepApplication);
+  ///@name Type Definitions
+  ///@{
+  
+  /// Pointer definition of KratosNurbsBrepApplication
+  KRATOS_CLASS_POINTER_DEFINITION(KratosNurbsBrepApplication);
 
-	///@}
-	///@name Life Cycle
-	///@{
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-	/// Default constructor.
-	KratosNurbsBrepApplication();
+  /// Default constructor.
+  KratosNurbsBrepApplication();
 
-	/// Destructor.
-	virtual ~KratosNurbsBrepApplication(){}
-	
-	///@}
-	///@name Operators
-	///@{
-	///@}
-	///@name Operations
-	///@{
+  /// Destructor.
+  virtual ~KratosNurbsBrepApplication(){}
+  
+  ///@}
+  ///@name Operators
+  ///@{
+  ///@}
+  ///@name Operations
+  ///@{
 
-	virtual void Register();
-	
-	///@}
-	///@name Access
-	///@{
-	///@}
-	///@name Inquiry
-	///@{
-	///@}
-	///@name Input and output
-	///@{
+  virtual void Register();
+  
+  ///@}
+  ///@name Access
+  ///@{
+  ///@}
+  ///@name Inquiry
+  ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
-	/// Turn back information as a string.
-	virtual std::string Info() const {
-		return "KratosNurbsBrepApplication";
-	}
+  /// Turn back information as a string.
+  virtual std::string Info() const {
+    return "KratosNurbsBrepApplication";
+  }
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
-		rOStream << Info();
-		PrintData(rOStream);
-	}
+  /// Print information about this object.
+  virtual void PrintInfo(std::ostream& rOStream) const {
+    rOStream << Info();
+    PrintData(rOStream);
+  }
 
-	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
-  		KRATOS_WATCH("in my application");
-  		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+  ///// Print object's data.
+  virtual void PrintData(std::ostream& rOStream) const {
+      KRATOS_WATCH("in my application");
+      KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
+    rOStream << "Variables:" << std::endl;
+    KratosComponents<VariableData>().PrintData(rOStream);
+    rOStream << std::endl;
+    rOStream << "Elements:" << std::endl;
+    KratosComponents<Element>().PrintData(rOStream);
+    rOStream << std::endl;
+    rOStream << "Conditions:" << std::endl;
+    KratosComponents<Condition>().PrintData(rOStream);
     }
 
 
-	///@}
-	///@name Friends
-	///@{
-	///@}
+  ///@}
+  ///@name Friends
+  ///@{
+  ///@}
 
 protected:
-	///@name Protected static Member Variables
-	///@{
-	///@}
-	///@name Protected member Variables
-	///@{
-	///@}
-	///@name Protected Operators
-	///@{
-	///@}
-	///@name Protected Operations
-	///@{
-	///@}
-	///@name Protected  Access
-	///@{
-	///@}
-	///@name Protected Inquiry
-	///@{
-	///@}
-	///@name Protected LifeCycle
-	///@{
-	///@}
+  ///@name Protected static Member Variables
+  ///@{
+  ///@}
+  ///@name Protected member Variables
+  ///@{
+  ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
 
 private:
-	///@name Static Member Variables
-	///@{
-	// static const ApplicationCondition  msApplicationCondition;
-	///@}
-	///@name Member Variables
-	///@{
-	// Meshless Elements
-	//const MeshlessBaseElement  mMeshlessElement;
-	//const MeshlessMembraneElement  mMeshlessMembraneElement;
-	//const MeshlessLaplaceElement  mMeshlessLaplaceElement;
-	//const MeshlessShellElement  mMeshlessShellElement;
+  ///@name Static Member Variables
+  ///@{
+  // static const ApplicationCondition  msApplicationCondition;
+  ///@}
+  ///@name Member Variables
+  ///@{
+  // Meshless Elements
+  //const MeshlessBaseElement  mMeshlessElement;
+  //const MeshlessMembraneElement  mMeshlessMembraneElement;
+  //const MeshlessLaplaceElement  mMeshlessLaplaceElement;
+  //const MeshlessShellElement  mMeshlessShellElement;
 
-	//// Outdated Conditions
-	//const LoadCondition mLoadCondition;
-	//const SupportCondition mSupportCondition;
-	//const ContinuityConditionLagrange mContinuityConditionLagrange;
-	//const ContinuityConditionPenalty mContinuityConditionPenalty;
+  //// Outdated Conditions
+  //const LoadCondition mLoadCondition;
+  //const SupportCondition mSupportCondition;
+  //const ContinuityConditionLagrange mContinuityConditionLagrange;
+  //const ContinuityConditionPenalty mContinuityConditionPenalty;
 
-	// Meshless Conditions
-	//const MeshlessSupportRotationCondition mMeshlessSupportRotationCondition;
-	//const MeshlessLoadCondition mMeshlessLoadCondition;
-	//const MeshlessLagrangeCouplingCondition mMeshlessLagrangeCouplingCondition;
-	//const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
-	///@}
+  // Meshless Conditions
+  //const MeshlessSupportRotationCondition mMeshlessSupportRotationCondition;
+  //const MeshlessLoadCondition mMeshlessLoadCondition;
+  //const MeshlessLagrangeCouplingCondition mMeshlessLagrangeCouplingCondition;
+  //const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
+  ///@}
 
-	///@name Private Operators
-	///@{
-	///@}
-	///@name Private Operations
-	///@{
-	///@}
-	///@name Private  Access
-	///@{
-	///@}
-	///@name Private Inquiry
-	///@{
-	///@}
-	///@name Un accessible methods
-	///@{
+  ///@name Private Operators
+  ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
+  ///@}
+  ///@name Private Inquiry
+  ///@{
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
-	/// Assignment operator.
-	KratosNurbsBrepApplication& operator=(KratosNurbsBrepApplication const& rOther);
+  /// Assignment operator.
+  KratosNurbsBrepApplication& operator=(KratosNurbsBrepApplication const& rOther);
 
-	/// Copy constructor.
-	KratosNurbsBrepApplication(KratosNurbsBrepApplication const& rOther);
+  /// Copy constructor.
+  KratosNurbsBrepApplication(KratosNurbsBrepApplication const& rOther);
 
 
-	///@}
+  ///@}
 
 }; // Class KratosNurbsBrepApplication
 
