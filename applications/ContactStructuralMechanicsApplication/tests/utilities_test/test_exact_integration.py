@@ -98,9 +98,13 @@ class TestModelPart(KratosUnittest.TestCase):
         
         MatrixSolution = KratosMultiphysics.Matrix()
         #ExactIntegration.TestGetExactIntegration(cond2, MatrixSolution)
+        
+        ## Debug
+        #if (solution == True):
+            #print("Integration accomplished", MatrixSolution)
 
     # QUADRILATERAL
-    def testTriangleExactIntegration(self):
+    def testQuadrilateralExactIntegration(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
@@ -142,6 +146,10 @@ class TestModelPart(KratosUnittest.TestCase):
         
         MatrixSolution = KratosMultiphysics.Matrix()
         #ExactIntegration.TestGetExactIntegration(cond2, MatrixSolution)
+        
+        ## Debug
+        #if (solution == True):
+            #print("Integration accomplished", MatrixSolution)
         
 if __name__ == '__main__':
     KratosUnittest.main()
