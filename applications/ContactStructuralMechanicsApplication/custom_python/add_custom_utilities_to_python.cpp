@@ -24,6 +24,7 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -63,6 +64,17 @@ void  AddCustomUtilitiesToPython()
     .def("UpdateNTSConditions",&TreeContactSearch::UpdateNTSConditions)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
+    ;
+    
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const GeometryType&, const array_1d<double, 3>&, const unsigned int>())
+    .def("GetExactIntegration",&ExactMortarIntegrationUtility<2,2>::GetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const GeometryType&, const array_1d<double, 3>&, const unsigned int>())
+    .def("GetExactIntegration",&ExactMortarIntegrationUtility<3,3>::GetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const GeometryType&, const array_1d<double, 3>&, const unsigned int>())
+    .def("GetExactIntegration",&ExactMortarIntegrationUtility<3,4>::GetExactIntegration)
     ;
   
 }
