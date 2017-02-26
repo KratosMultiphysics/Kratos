@@ -198,18 +198,54 @@ public:
         }
         else
         {
-            InputMatrixDet = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,1))
-                        + (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,2)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,2))
-                        + (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,3)) + (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,0))
-                        + (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,0))
-                        + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,1)) + (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,1))
-                        + (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,2)) + (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,0))
-                        - (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,2)) - (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,3))
-                        - (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,1)) - (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,3))
-                        - (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,0)) - (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,2))
-                        - (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,1)) - (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,3))
-                        - (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,0)) - (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,2))
-                        - (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,0)) - (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,1));
+            InputMatrixDet = (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2) *
+                            InputMatrix(3, 3)) +
+                            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3) *
+                            InputMatrix(3, 1)) +
+                            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) *
+                            InputMatrix(3, 2)) +
+                            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) *
+                            InputMatrix(3, 2)) +
+                            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) *
+                            InputMatrix(3, 3)) +
+                            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) *
+                            InputMatrix(3, 0)) +
+                            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1) *
+                            InputMatrix(3, 3)) +
+                            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3) *
+                            InputMatrix(3, 0)) +
+                            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0) *
+                            InputMatrix(3, 1)) +
+                            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2) *
+                            InputMatrix(3, 1)) +
+                            (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0) *
+                            InputMatrix(3, 2)) +
+                            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1) *
+                            InputMatrix(3, 0)) -
+                            (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3) *
+                            InputMatrix(3, 2)) -
+                            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) *
+                            InputMatrix(3, 3)) -
+                            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) *
+                            InputMatrix(3, 1)) -
+                            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) *
+                            InputMatrix(3, 3)) -
+                            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3) *
+                            InputMatrix(3, 0)) -
+                            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) *
+                            InputMatrix(3, 2)) -
+                            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3) *
+                            InputMatrix(3, 1)) -
+                            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0) *
+                            InputMatrix(3, 3)) -
+                            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1) *
+                            InputMatrix(3, 0)) -
+                            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1) *
+                            InputMatrix(3, 2)) -
+                            (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2) *
+                            InputMatrix(3, 0)) -
+                            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0) *
+                            InputMatrix(3, 1));
         }
         
         return InputMatrixDet;
@@ -268,35 +304,131 @@ public:
         else if (TDim == 4)
         {
             // First column
-            InvertedMatrix(0,0) = (InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,1))+ (InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,2))-(InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,2))-(InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,1));
-            
-            InvertedMatrix(1,0) = (InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,2)) + (InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,3))+ (InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,0))-(InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,3))-(InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,0))-(InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,2));
-            
-            InvertedMatrix(2,0) = (InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,3)) + (InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,0))+ (InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,1))-(InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,1))-(InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,0));
-            
-            InvertedMatrix(3,0) = (InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,1)) + (InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,2))+ (InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,0))-(InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,2))-(InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,0))-(InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,1));
-            
+            InvertedMatrix(0, 0) =
+            (InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 3)) +
+            (InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1)) +
+            (InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2)) -
+            (InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2)) -
+            (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 3)) -
+            (InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1));
+
+            InvertedMatrix(1, 0) =
+            (InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2)) +
+            (InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 3)) +
+            (InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0)) -
+            (InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 3)) -
+            (InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0)) -
+            (InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2));
+
+            InvertedMatrix(2, 0) =
+            (InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3)) +
+            (InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0)) +
+            (InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1)) -
+            (InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1)) -
+            (InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3)) -
+            (InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0));
+
+            InvertedMatrix(3, 0) =
+            (InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1)) +
+            (InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2)) +
+            (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0)) -
+            (InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) -
+            (InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0)) -
+            (InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1));
+
             // Second column
-            InvertedMatrix(0,1) = (InputMatrix(0,1)*InputMatrix(2,3)*InputMatrix(3,2)) + (InputMatrix(0,2)*InputMatrix(2,1)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(2,2)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(2,2)*InputMatrix(3,3))-(InputMatrix(0,2)*InputMatrix(2,3)*InputMatrix(3,1))-(InputMatrix(0,3)*InputMatrix(2,1)*InputMatrix(3,2));
-            InvertedMatrix(1,1) = (InputMatrix(0,0)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(2,3)*InputMatrix(3,0))+ (InputMatrix(0,3)*InputMatrix(2,0)*InputMatrix(3,2))-(InputMatrix(0,0)*InputMatrix(2,3)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(2,0)*InputMatrix(3,3))-(InputMatrix(0,3)*InputMatrix(2,2)*InputMatrix(3,0));
-            InvertedMatrix(2,1) = (InputMatrix(0,0)*InputMatrix(2,3)*InputMatrix(3,1)) + (InputMatrix(0,1)*InputMatrix(2,0)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(2,1)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(2,1)*InputMatrix(3,3))-(InputMatrix(0,1)*InputMatrix(2,3)*InputMatrix(3,0))-(InputMatrix(0,3)*InputMatrix(2,0)*InputMatrix(3,1));
-            InvertedMatrix(3,1) = (InputMatrix(0,0)*InputMatrix(2,1)*InputMatrix(3,2)) + (InputMatrix(0,1)*InputMatrix(2,2)*InputMatrix(3,0))+ (InputMatrix(0,2)*InputMatrix(2,0)*InputMatrix(3,1))-(InputMatrix(0,0)*InputMatrix(2,2)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(2,0)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(2,1)*InputMatrix(3,0));
+            InvertedMatrix(0, 1) =
+            (InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 2)) +
+            (InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 3)) -
+            (InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 2));
+            InvertedMatrix(1, 1) =
+            (InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 0)) +
+            (InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 3)) -
+            (InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 0));
+            InvertedMatrix(2, 1) =
+            (InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 1)) +
+            (InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 3)) -
+            (InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 1));
+            InvertedMatrix(3, 1) =
+            (InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) +
+            (InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 0)) +
+            (InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 0));
 
             // Third column
-            InvertedMatrix(0,2) = (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(3,1))+ (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(3,2))-(InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(3,3))-(InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(3,1));
-            
-            InvertedMatrix(1,2) = (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(3,2)) + (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(3,3))-(InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(3,0))-(InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(3,2));
-            
-            InvertedMatrix(2,2) = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(3,3)) + (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(3,0))+ (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(3,1))-(InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(1,1)*InputMatrix(3,0));
-            InvertedMatrix(3,2) = (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(3,1)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(3,2))+ (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(3,2))-(InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(3,0))-(InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(3,1));
+            InvertedMatrix(0, 2) =
+            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 1)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 3)) -
+            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 1));
+
+            InvertedMatrix(1, 2) =
+            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 2)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 3)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 2));
+
+            InvertedMatrix(2, 2) =
+            (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 3)) +
+            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 0)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 1)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 3)) -
+            (InputMatrix(1, 3) * InputMatrix(1, 1) * InputMatrix(3, 0));
+            InvertedMatrix(3, 2) =
+            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 1)) +
+            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 2)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 2)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 0)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 1));
 
             // Fourth column
-            InvertedMatrix(0,3) = (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,2)) + (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,3))+ (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,1))-(InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,3))-(InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,1))-(InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,2));
-            InvertedMatrix(1,3) = (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,3)) + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,0))+ (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,2))-(InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,2))-(InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,3))-(InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,0));
-            
-            InvertedMatrix(2,3) = (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,1)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,3))+ (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,0))-(InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,3))-(InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,0))-(InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,1));
-            
-            InvertedMatrix(3,3) = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,2)) + (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,0))+ (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,1))-(InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,1))-(InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,2))-(InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,0));
+            InvertedMatrix(0, 3) =
+            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1)) -
+            (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2));
+            InvertedMatrix(1, 3) =
+            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3)) -
+            (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0));
+
+            InvertedMatrix(2, 3) =
+            (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1)) +
+            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3)) +
+            (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0)) -
+            (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1));
+
+            InvertedMatrix(3, 3) =
+            (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)) +
+            (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0)) +
+            (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1)) -
+            (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1)) -
+            (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2)) -
+            (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0));
             
             InvertedMatrix /= InputMatrixDet;
         }
@@ -454,59 +586,191 @@ public:
     {
         KRATOS_TRY;
         
-        if(InvertedMatrix.size1() != 4 || InvertedMatrix.size2() != 4)
-        {
-            InvertedMatrix.resize(4, 4, false);
-        }
+    if (InvertedMatrix.size1() != 4 || InvertedMatrix.size2() != 4) 
+    {
+        InvertedMatrix.resize(4, 4, false);
+    }
 
-        // Filling the inverted matrix with the algebraic complements
-        // First column
-        InvertedMatrix(0,0) = (InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,1))+ (InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,2))-(InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,2))-(InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,1));
-        
-        InvertedMatrix(1,0) = (InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,2)) + (InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,3))+ (InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,0))-(InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,3))-(InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,0))-(InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,2));
-        
-        InvertedMatrix(2,0) = (InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,3)) + (InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,0))+ (InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,1))-(InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,1))-(InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,0));
-        
-        InvertedMatrix(3,0) = (InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,1)) + (InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,2))+ (InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,0))-(InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,2))-(InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,0))-(InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,1));
-        
-        // Second column
-        InvertedMatrix(0,1) = (InputMatrix(0,1)*InputMatrix(2,3)*InputMatrix(3,2)) + (InputMatrix(0,2)*InputMatrix(2,1)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(2,2)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(2,2)*InputMatrix(3,3))-(InputMatrix(0,2)*InputMatrix(2,3)*InputMatrix(3,1))-(InputMatrix(0,3)*InputMatrix(2,1)*InputMatrix(3,2));
-        InvertedMatrix(1,1) = (InputMatrix(0,0)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(2,3)*InputMatrix(3,0))+ (InputMatrix(0,3)*InputMatrix(2,0)*InputMatrix(3,2))-(InputMatrix(0,0)*InputMatrix(2,3)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(2,0)*InputMatrix(3,3))-(InputMatrix(0,3)*InputMatrix(2,2)*InputMatrix(3,0));
-        InvertedMatrix(2,1) = (InputMatrix(0,0)*InputMatrix(2,3)*InputMatrix(3,1)) + (InputMatrix(0,1)*InputMatrix(2,0)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(2,1)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(2,1)*InputMatrix(3,3))-(InputMatrix(0,1)*InputMatrix(2,3)*InputMatrix(3,0))-(InputMatrix(0,3)*InputMatrix(2,0)*InputMatrix(3,1));
-        InvertedMatrix(3,1) = (InputMatrix(0,0)*InputMatrix(2,1)*InputMatrix(3,2)) + (InputMatrix(0,1)*InputMatrix(2,2)*InputMatrix(3,0))+ (InputMatrix(0,2)*InputMatrix(2,0)*InputMatrix(3,1))-(InputMatrix(0,0)*InputMatrix(2,2)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(2,0)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(2,1)*InputMatrix(3,0));
+    // Filling the inverted matrix with the algebraic complements
+    // First column
+    InvertedMatrix(0, 0) =
+    (InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 3)) +
+    (InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 1)) +
+    (InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 2)) -
+    (InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 2)) -
+    (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 3)) -
+    (InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 1));
 
-        // Third column
-        InvertedMatrix(0,2) = (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(3,1))+ (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(3,2))-(InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(3,2))-(InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(3,3))-(InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(3,1));
-        
-        InvertedMatrix(1,2) = (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(3,2)) + (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(3,3))+ (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(3,3))-(InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(3,0))-(InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(3,2));
-        
-        InvertedMatrix(2,2) = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(3,3)) + (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(3,0))+ (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(3,1))-(InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(3,1))-(InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(3,3))-(InputMatrix(1,3)*InputMatrix(1,1)*InputMatrix(3,0));
-        InvertedMatrix(3,2) = (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(3,1)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(3,2))+ (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(3,0))-(InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(3,2))-(InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(3,0))-(InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(3,1));
+    InvertedMatrix(1, 0) =
+    (InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 2)) +
+    (InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 3)) +
+    (InputMatrix(1, 3) * InputMatrix(2, 2) * InputMatrix(3, 0)) -
+    (InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 3)) -
+    (InputMatrix(1, 2) * InputMatrix(2, 3) * InputMatrix(3, 0)) -
+    (InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 2));
 
-        // Fourth column
-        InvertedMatrix(0,3) = (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,2)) + (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,3))+ (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,1))-(InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,3))-(InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,1))-(InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,2));
-        InvertedMatrix(1,3) = (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,3)) + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,0))+ (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,2))-(InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,2))-(InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,3))-(InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,0));
-        
-        InvertedMatrix(2,3) = (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,1)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,3))+ (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,0))-(InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,3))-(InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,0))-(InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,1));
-        
-        InvertedMatrix(3,3) = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,2)) + (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,0))+ (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,1))-(InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,1))-(InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,2))-(InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,0));
+    InvertedMatrix(2, 0) =
+    (InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 3)) +
+    (InputMatrix(1, 1) * InputMatrix(2, 3) * InputMatrix(3, 0)) +
+    (InputMatrix(1, 3) * InputMatrix(2, 0) * InputMatrix(3, 1)) -
+    (InputMatrix(1, 0) * InputMatrix(2, 3) * InputMatrix(3, 1)) -
+    (InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 3)) -
+    (InputMatrix(1, 3) * InputMatrix(2, 1) * InputMatrix(3, 0));
 
-        // Calculation of determinant (of the input matrix)
-        InputMatrixDet = (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,3)) + (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,1))
-                        + (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,2)) + (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,2))
-                        + (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,3)) + (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,0))
-                        + (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,3)) + (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,0))
-                        + (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,1)) + (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,1))
-                        + (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,2)) + (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,0))
-                        - (InputMatrix(0,0)*InputMatrix(1,1)*InputMatrix(2,3)*InputMatrix(3,2)) - (InputMatrix(0,0)*InputMatrix(1,2)*InputMatrix(2,1)*InputMatrix(3,3))
-                        - (InputMatrix(0,0)*InputMatrix(1,3)*InputMatrix(2,2)*InputMatrix(3,1)) - (InputMatrix(0,1)*InputMatrix(1,0)*InputMatrix(2,2)*InputMatrix(3,3))
-                        - (InputMatrix(0,1)*InputMatrix(1,2)*InputMatrix(2,3)*InputMatrix(3,0)) - (InputMatrix(0,1)*InputMatrix(1,3)*InputMatrix(2,0)*InputMatrix(3,2))
-                        - (InputMatrix(0,2)*InputMatrix(1,0)*InputMatrix(2,3)*InputMatrix(3,1)) - (InputMatrix(0,2)*InputMatrix(1,1)*InputMatrix(2,0)*InputMatrix(3,3))
-                        - (InputMatrix(0,2)*InputMatrix(1,3)*InputMatrix(2,1)*InputMatrix(3,0)) - (InputMatrix(0,3)*InputMatrix(1,0)*InputMatrix(2,1)*InputMatrix(3,2))
-                        - (InputMatrix(0,3)*InputMatrix(1,1)*InputMatrix(2,2)*InputMatrix(3,0)) - (InputMatrix(0,3)*InputMatrix(1,2)*InputMatrix(2,0)*InputMatrix(3,1));
+    InvertedMatrix(3, 0) =
+    (InputMatrix(1, 0) * InputMatrix(2, 2) * InputMatrix(3, 1)) +
+    (InputMatrix(1, 1) * InputMatrix(2, 0) * InputMatrix(3, 2)) +
+    (InputMatrix(1, 2) * InputMatrix(2, 1) * InputMatrix(3, 0)) -
+    (InputMatrix(1, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) -
+    (InputMatrix(1, 1) * InputMatrix(2, 2) * InputMatrix(3, 0)) -
+    (InputMatrix(1, 2) * InputMatrix(2, 0) * InputMatrix(3, 1));
 
-        // Finalizing the calculation of the inverted matrix
-        InvertedMatrix /= InputMatrixDet;
+    // Second column
+    InvertedMatrix(0, 1) =
+    (InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 2)) +
+    (InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 3)) -
+    (InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 2));
+    InvertedMatrix(1, 1) =
+    (InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 2) * InputMatrix(2, 3) * InputMatrix(3, 0)) +
+    (InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 3)) -
+    (InputMatrix(0, 3) * InputMatrix(2, 2) * InputMatrix(3, 0));
+    InvertedMatrix(2, 1) =
+    (InputMatrix(0, 0) * InputMatrix(2, 3) * InputMatrix(3, 1)) +
+    (InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 3) * InputMatrix(2, 1) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 3)) -
+    (InputMatrix(0, 1) * InputMatrix(2, 3) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 3) * InputMatrix(2, 0) * InputMatrix(3, 1));
+    InvertedMatrix(3, 1) =
+    (InputMatrix(0, 0) * InputMatrix(2, 1) * InputMatrix(3, 2)) +
+    (InputMatrix(0, 1) * InputMatrix(2, 2) * InputMatrix(3, 0)) +
+    (InputMatrix(0, 2) * InputMatrix(2, 0) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 0) * InputMatrix(2, 2) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 1) * InputMatrix(2, 0) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 2) * InputMatrix(2, 1) * InputMatrix(3, 0));
+
+    // Third column
+    InvertedMatrix(0, 2) =
+    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 1)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 3)) -
+    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 1));
+
+    InvertedMatrix(1, 2) =
+    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 2)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 3)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 2));
+
+    InvertedMatrix(2, 2) =
+    (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 3)) +
+    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(3, 0)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(3, 1)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 3)) -
+    (InputMatrix(1, 3) * InputMatrix(1, 1) * InputMatrix(3, 0));
+    InvertedMatrix(3, 2) =
+    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(3, 1)) +
+    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(3, 2)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(3, 2)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(3, 0)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(3, 1));
+
+    // Fourth column
+    InvertedMatrix(0, 3) =
+    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1)) -
+    (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2));
+    InvertedMatrix(1, 3) =
+    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3)) -
+    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0));
+
+    InvertedMatrix(2, 3) =
+    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1)) +
+    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3)) +
+    (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0)) -
+    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1));
+
+    InvertedMatrix(3, 3) =
+    (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2)) +
+    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0)) +
+    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1)) -
+    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1)) -
+    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2)) -
+    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0));
+
+    // Calculation of determinant (of the input matrix)
+    InputMatrixDet = (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 2) *
+                    InputMatrix(3, 3)) +
+                    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 3) *
+                    InputMatrix(3, 1)) +
+                    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 1) *
+                    InputMatrix(3, 2)) +
+                    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 3) *
+                    InputMatrix(3, 2)) +
+                    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 0) *
+                    InputMatrix(3, 3)) +
+                    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 2) *
+                    InputMatrix(3, 0)) +
+                    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 1) *
+                    InputMatrix(3, 3)) +
+                    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 3) *
+                    InputMatrix(3, 0)) +
+                    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 0) *
+                    InputMatrix(3, 1)) +
+                    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 2) *
+                    InputMatrix(3, 1)) +
+                    (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 0) *
+                    InputMatrix(3, 2)) +
+                    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 1) *
+                    InputMatrix(3, 0)) -
+                    (InputMatrix(0, 0) * InputMatrix(1, 1) * InputMatrix(2, 3) *
+                    InputMatrix(3, 2)) -
+                    (InputMatrix(0, 0) * InputMatrix(1, 2) * InputMatrix(2, 1) *
+                    InputMatrix(3, 3)) -
+                    (InputMatrix(0, 0) * InputMatrix(1, 3) * InputMatrix(2, 2) *
+                    InputMatrix(3, 1)) -
+                    (InputMatrix(0, 1) * InputMatrix(1, 0) * InputMatrix(2, 2) *
+                    InputMatrix(3, 3)) -
+                    (InputMatrix(0, 1) * InputMatrix(1, 2) * InputMatrix(2, 3) *
+                    InputMatrix(3, 0)) -
+                    (InputMatrix(0, 1) * InputMatrix(1, 3) * InputMatrix(2, 0) *
+                    InputMatrix(3, 2)) -
+                    (InputMatrix(0, 2) * InputMatrix(1, 0) * InputMatrix(2, 3) *
+                    InputMatrix(3, 1)) -
+                    (InputMatrix(0, 2) * InputMatrix(1, 1) * InputMatrix(2, 0) *
+                    InputMatrix(3, 3)) -
+                    (InputMatrix(0, 2) * InputMatrix(1, 3) * InputMatrix(2, 1) *
+                    InputMatrix(3, 0)) -
+                    (InputMatrix(0, 3) * InputMatrix(1, 0) * InputMatrix(2, 1) *
+                    InputMatrix(3, 2)) -
+                    (InputMatrix(0, 3) * InputMatrix(1, 1) * InputMatrix(2, 2) *
+                    InputMatrix(3, 0)) -
+                    (InputMatrix(0, 3) * InputMatrix(1, 2) * InputMatrix(2, 0) *
+                    InputMatrix(3, 1));
+
+    // Finalizing the calculation of the inverted matrix
+    InvertedMatrix /= InputMatrixDet;
         
         KRATOS_CATCH("");
     }
@@ -636,15 +900,15 @@ public:
     
     static inline TDataType Norm3(Vector& a)
     {
-        TDataType temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
-        temp = sqrt(temp);
+        TDataType temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
+        temp = std::sqrt(temp);
         return temp;
     }
 
     static inline double Norm3(const array_1d<double, 3>& a)
     {
-        double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
-        temp = sqrt(temp);
+        double temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
+        temp = std::sqrt(temp);
         return temp;
     }
 
@@ -663,7 +927,7 @@ public:
             temp += (*i) * (*i);
             i++;
         }
-        return sqrt(temp);
+        return std::sqrt(temp);
     }
 
     /**
