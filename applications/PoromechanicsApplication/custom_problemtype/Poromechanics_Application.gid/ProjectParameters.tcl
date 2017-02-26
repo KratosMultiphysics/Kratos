@@ -277,14 +277,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"point_data_configuration\":  \[\]"
     puts $FileVar "    \},"
     
-    ## restart_options
-    puts $FileVar "    \"restart_options\": \{"
-    puts $FileVar "        \"SaveRestart\":      false,"
-    puts $FileVar "        \"RestartFrequency\": 0,"
-    puts $FileVar "        \"LoadRestart\":      false,"
-    puts $FileVar "        \"Restart_Step\":     0"
-    puts $FileVar "    \},"
-    
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
     set NumGroups [llength $Groups]
