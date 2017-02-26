@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/navier_stokes.h"
@@ -25,7 +26,8 @@
 namespace Kratos {
 	namespace Testing {
 
-		typedef ModelPart::IndexType	IndexType;
+		typedef typename ModelPart::IndexType										 IndexType;
+		typedef typename ModelPart::NodeIterator					          NodeIteratorType;
 
 	    /** Checks the NavierStokes2D3N element.
 	     * Checks the LHS and RHS computation using a small perturbation.
@@ -44,6 +46,61 @@ namespace Kratos {
 			Properties::Pointer pElemProp;
 
 			modelPart.CreateNewElement("NavierStokes2D3N", 1, elemNodes, pElemProp);
+
+			Element::Pointer pElement = modelPart.pGetElement(1);
+
+			// Define the nodal values
+			array_1d<double, 3> velocity_values;
+			velocity_values[0] = 1.0;
+			velocity_values[1] = 1.0;
+			velocity_values[2] = 1.0;
+			double pressure_value = 1.0;
+
+			// Define the first perturbed values
+			double perturbation = 1e-3;
+			array_1d<double, 3> velocity_values_perturbation_1;
+			velocity_values[0] = 1.0+perturbation;
+			velocity_values[1] = 1.0+perturbation;
+			velocity_values[2] = 1.0+perturbation;
+			double pressure_value_perturbation_1 = 1.0+perturbation;
+
+			// Set the perturbed nodal values
+			Vector perturbation_vector = ZeroVector(9);
+			for (unsigned int i=0; i<perturbation_vector.size(); ++i)
+			{
+				perturbation_vector[i] = perturbation;
+			}
+
+			// // Set the nodal values
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node)
+			{
+				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
+				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+			}
+
+			// Compute RHS and LHS
+			Vector RHS = ZeroVector(9);
+			Matrix LHS = ZeroMatrix(9,9);
+
+			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node)
+			{
+				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value_perturbation_1;
+				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values_perturbation_1;
+			}
+
+			// Compute perturbed RHS and LHS
+			Vector error_1 = ZeroVector(9);
+			Vector RHS_obtained = ZeroVector(9);
+			Vector RHS_perturbed_1 = ZeroVector(9);
+			Vector solution_increment = ZeroVector(9);
+
+			pElement->CalculateRightHandSide(RHS_perturbed_1, modelPart.GetProcessInfo());
+
+			Mult(LHS, perturbation_vector, solution_increment);
+			noalias(RHS_obtained) = RHS + solution_increment;
+			noalias(error_1) = RHS_perturbed_1 - RHS_obtained;
 
 			KRATOS_WATCH(modelPart);
 
@@ -67,6 +124,10 @@ namespace Kratos {
 			Properties::Pointer pElemProp;
 
 			modelPart.CreateNewElement("NavierStokes3D4N", 1, elemNodes, pElemProp);
+
+			Element::Pointer pElement = modelPart.pGetElement(1);
+
+
 
 			KRATOS_WATCH(modelPart);
 
