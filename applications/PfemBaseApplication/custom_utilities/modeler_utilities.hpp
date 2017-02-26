@@ -388,10 +388,12 @@ public:
 
       bool CheckGeometricalSmoothing(){
 
-	if( InsertedNodes > NumberOfNodes * 0.002 || RemovedNodes > NumberOfNodes * 0.002 ){
+	//std::cout<<" Inserted Nodes "<<InsertedNodes<<" NumNodes "<<NumberOfNodes<<" Removed "<<RemovedNodes<<std::endl;
+	
+	if( InsertedNodes > NumberOfNodes * 0.001 || RemovedNodes > NumberOfNodes * 0.001 ){
 	  GeometricalSmoothingRequired = true;
 	}
-	else if( (InsertedNodes + RemovedNodes) > NumberOfNodes * 0.004 ){
+	else if( (InsertedNodes + RemovedNodes) > NumberOfNodes * 0.002 ){
 	  GeometricalSmoothingRequired = true;
 	}
 	else{
