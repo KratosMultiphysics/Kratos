@@ -22,6 +22,8 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/navier_stokes.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -39,13 +41,20 @@ namespace Kratos {
 
 			ModelPart modelPart("Main");
 
+			modelPart.AddNodalSolutionStepVariable(VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(PRESSURE);
+
 			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
 			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
 			modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
 
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
 
-			Properties::Pointer pElemProp;
+			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			pElemProp->SetValue(DENSITY, 1.0);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
+			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
 			modelPart.CreateNewElement("NavierStokes2D3N", 1, elemNodes, pElemProp);
 
@@ -61,6 +70,7 @@ namespace Kratos {
 			// Set the nodal values
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node)
 			{
+				std::cout << *it_node << std::endl;
 				it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
 				it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
 			}
@@ -69,7 +79,11 @@ namespace Kratos {
 			Vector RHS = ZeroVector(9);
 			Matrix LHS = ZeroMatrix(9,9);
 
+			std::cout << "Before computing LHS(u) and RHS(u)..." << std::endl;
+
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
+
+			std::cout << "Computed LHS(u) and RHS(u)" << std::endl;
 
 			// Compute the error of the perturbation
 			double perturbation = 1e-3;
@@ -121,6 +135,9 @@ namespace Kratos {
 		{
 
 			ModelPart modelPart("Main");
+
+			modelPart.AddNodalSolutionStepVariable(VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 
 			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
 			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
