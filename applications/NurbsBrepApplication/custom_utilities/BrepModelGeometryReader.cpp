@@ -44,14 +44,14 @@ namespace Kratos
 
       std::string sub_model_part_face_name = "FACE_" + std::to_string(face_id);
       std::string sub_model_part_name = "FACE_" + std::to_string(face_id) + "_CPS";
-      std::string sub_model_part_name_internal = "FACE_" + std::to_string(face_id) + "_INTERNAL_CPS";
+      //std::string sub_model_part_name_internal = "FACE_" + std::to_string(face_id) + "_INTERNAL_CPS";
 
       std::cout << "Sub_model_part_name: " << sub_model_part_name << std::endl;
-      std::cout << "Sub_model_part_name_internal: " << sub_model_part_name_internal << std::endl;
+      //std::cout << "Sub_model_part_name_internal: " << sub_model_part_name_internal << std::endl;
 
       ModelPart& sub_model_part_face = model_part.CreateSubModelPart(sub_model_part_face_name);
       ModelPart& sub_model_part_face_cp = sub_model_part_face.CreateSubModelPart(sub_model_part_name);
-      ModelPart& sub_model_part_face_internal = sub_model_part_face.CreateSubModelPart(sub_model_part_name_internal);
+      //ModelPart& sub_model_part_face_internal = sub_model_part_face.CreateSubModelPart(sub_model_part_name_internal);
       
       std::cout << "> Reading face " << face_id << "..." << std::endl;
 
@@ -126,7 +126,7 @@ namespace Kratos
           // Variables needed later
           DoubleVector boundary_knot_vector_u;
           unsigned int boundary_p;
-          IntVector boundary_control_points;
+          std::vector<array_1d<double, 4>> boundary_control_points;
           DoubleVector boundary_vertices;
 
           // read and store knot_vector_u
@@ -142,22 +142,23 @@ namespace Kratos
           // read and store control_points
           for (int cp_idx = 0; cp_idx < boost::python::len(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"]); cp_idx++)
           {
-            unsigned int cp_id = extractInt(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
-            double x = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1][0]);
-            double y = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1][1]);
-            double z = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1][2]);
-            double w = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1][3]);
+            //unsigned int cp_id = extractInt(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
+            array_1d<double, 4> control_point;
+            control_point[0] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
+            control_point[1] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1]);
+            control_point[2] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][2]);
+            control_point[3] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][3]);
 
-            boundary_control_points.push_back(cp_id);
+            boundary_control_points.push_back(control_point);
 
-            sub_model_part_face_internal.CreateNewNode(cp_id, x, y, z);
-            sub_model_part_face_internal.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
+            //sub_model_part_face_internal.CreateNewNode(cp_id, x, y, z);
+            //sub_model_part_face_internal.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
           }
-          std::cout << "Test Point boundary vertices before" << std::endl;
-          boundary_vertices.push_back(extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][0]["parameter_value"]));
-          boundary_vertices.push_back(extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][1]["parameter_value"]));
 
-          std::cout << "Test Point boundary vertices" << std::endl;
+          boundary_vertices.push_back(extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][0]));
+          boundary_vertices.push_back(extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][1]));
+
+          //std::cout << "Test Point boundary vertices" << std::endl;
 
           // Create and store edge
           TrimmingCurve new_boundary_curve(curve_index, boundary_knot_vector_u, boundary_p, boundary_control_points, boundary_vertices);
@@ -189,13 +190,13 @@ namespace Kratos
       DoubleVector first_boundary_vertex;
       DoubleVector second_boundary_vertex;
       ParameterVector boundary_vertices;
-      std::cout << "Test Point boundary vertices 2" << std::endl;
+      //std::cout << "Test Point boundary vertices 2" << std::endl;
       for (int j = 0; j < 3; j++)
       {
-        first_boundary_vertex.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][0][0][j]));
+        first_boundary_vertex.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][0][j]));
 
-        std::cout << "Test Point boundary vertices 2.1" << first_boundary_vertex[0] << std::endl;
-        second_boundary_vertex.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][0][1][j]));
+        //std::cout << "Test Point boundary vertices 2.1" << first_boundary_vertex[0] << std::endl;
+        second_boundary_vertex.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][1][j]));
       }
       boundary_vertices.push_back(first_boundary_vertex);
       boundary_vertices.push_back(second_boundary_vertex);
@@ -205,23 +206,23 @@ namespace Kratos
         unsigned int face_id = extractInt(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["face_id"]);
         unsigned int trim_index = extractInt(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["trim_index"]);
 
-        DoubleVector first_boundary_parameter;
-        DoubleVector second_boundary_parameter;
-        ParameterVector boundary_parameters;
+        //DoubleVector first_boundary_parameter;
+        //DoubleVector second_boundary_parameter;
+        //ParameterVector boundary_parameters;
 
-        std::cout << "Test Point boundary vertices 3" << std::endl;
+        //std::cout << "Test Point boundary vertices 3" << std::endl;
 
-        for (int k = 0; k < 2; k++)
-        {
-          first_boundary_parameter.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["boundary_parameters"][0][0][k]));
-          second_boundary_parameter.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["boundary_parameters"][0][1][k]));
-        }
-        boundary_parameters.push_back(first_boundary_parameter);
-        boundary_parameters.push_back(second_boundary_parameter);
+        //for (int k = 0; k < 2; k++)
+        //{
+        //  first_boundary_parameter.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["boundary_parameters"][0][k]));
+        //  second_boundary_parameter.push_back(extractDouble(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["boundary_parameters"][1][k]));
+        //}
+        //boundary_parameters.push_back(first_boundary_parameter);
+        //boundary_parameters.push_back(second_boundary_parameter);
 
         bool relative_direction = extractBool(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["relative_direction"]);
         
-        FaceTrim trim(face_id, trim_index, boundary_parameters, relative_direction);
+        FaceTrim trim(face_id, trim_index, relative_direction);
         face_trims_vector.push_back(trim);
       }
       Edge edge(edge_id, boundary_vertices, face_trims_vector);

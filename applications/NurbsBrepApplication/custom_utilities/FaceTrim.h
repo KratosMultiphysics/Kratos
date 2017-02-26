@@ -53,7 +53,7 @@ public:
 
   // For matrix / vector operations
   typedef std::vector<double> DoubleVector;
-  typedef std::vector<std::vector<double>> ParameterVector;
+  //typedef std::vector<std::vector<double>> ParameterVector;
 
   ///@}
 
@@ -61,11 +61,10 @@ public:
   //    KRATOS_CLASS_POINTER_DEFINITION[FaceTrim];
 
   /// Default constructor.
-  FaceTrim(unsigned int face_id, unsigned int trim_index, 
-    ParameterVector boundary_parameters, bool relative_direction)
+  FaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
   : m_face_id(face_id),
     m_trim_index(trim_index),
-    m_boundary_parameters(boundary_parameters),
+    //m_boundary_parameters(boundary_parameters),
     m_relative_direction(relative_direction)
   {
     //m_n_u = m_knot_vector_u.size() - m_p - 1;
@@ -103,7 +102,6 @@ private:
   // ==============================================================================
   unsigned int m_face_id;
   unsigned int m_trim_index;
-  ParameterVector m_boundary_parameters;
   bool m_relative_direction;
 
   // ==============================================================================

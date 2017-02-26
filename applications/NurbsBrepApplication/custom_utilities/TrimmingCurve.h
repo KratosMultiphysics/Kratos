@@ -10,11 +10,18 @@
 #include <cmath>
 #include <math.h>
 
+//// ------------------------------------------------------------------------------
+//// External includes
+//// ------------------------------------------------------------------------------
+//#include <boost/python.hpp>
+//#include <boost/numeric/ublas/matrix.hpp>
+//#include <boost/numeric/ublas/vector.hpp>
+//#include <boost/numeric/ublas/io.hpp>
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "ControlPoint.h"
-//#include "b_spline_utilities.h"
+#include "nurbs_brep_application.h"
+#include "nurbs_brep_application_variables.h"
 
 // ==============================================================================
 
@@ -53,7 +60,7 @@ public:
 
   // For matrix / vector operations
   typedef std::vector<double> DoubleVector;
-  typedef std::vector<int> IntVector;
+  typedef std::vector<array_1d<double, 4>> ControlPointVector;
 
   ///@}
 
@@ -61,14 +68,14 @@ public:
   //    KRATOS_CLASS_POINTER_DEFINITION[TrimmingCurve];
 
   /// Default constructor.
-  TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, 
-    IntVector control_points, DoubleVector boundary_vertices)
+  TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points, DoubleVector boundary_vertices)
   : m_cp_id(cp_id),
     m_knot_vector_u(knot_vector_u),
     m_p(p),
     m_control_points(control_points),
     m_boundary_vertices(boundary_vertices)
   {
+    //array_1d<double, 4> m_control_points;
     //m_n_u = m_knot_vector_u.size() - m_p - 1;
   }
 
@@ -78,10 +85,10 @@ public:
   }
 
   // --------------------------------------------------------------------------
-  IntVector& GetControlPoints()
-  {
-    return m_control_points;
-  }
+  //ControlPointVector& GetControlPoints()
+  //{
+  //  return m_control_points;
+  //}
 
   // ==============================================================================
   /// Turn back information as a string.
@@ -111,7 +118,7 @@ private:
   unsigned int m_cp_id;
   DoubleVector m_knot_vector_u;
   unsigned int m_p;
-  IntVector m_control_points;
+  ControlPointVector m_control_points;
   DoubleVector m_boundary_vertices;
   //unsigned int m_n_u; // number of control points in u-direction
   //double m_epsilon = 1e-10; // Tolerance value
