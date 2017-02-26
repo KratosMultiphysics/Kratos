@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/NurbBrepApplication/license.txt
+//  License:     BSD License
+//           Kratos default license: kratos/NurbBrepApplication/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Riccardo Rossi
@@ -36,19 +36,19 @@ namespace Python
 
   void  AddCustomUtilitiesToPython()
   {
-	using namespace boost::python;
+  using namespace boost::python;
 
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<>())
-			.def("SetUp", &NurbsBrepModeler::SetUp)
-			;
-		//	.def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
-		//	.def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
-		//	;
+    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<>())
+      .def("SetUp", &NurbsBrepModeler::SetUp)
+      ;
+    //  .def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
+    //  .def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
+    //  ;
   }
 
 

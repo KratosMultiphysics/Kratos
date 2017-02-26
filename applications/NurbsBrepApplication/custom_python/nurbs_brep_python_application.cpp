@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/NurbsBrepApplication/license.txt
+//  License:     BSD License
+//           Kratos default license: kratos/NurbsBrepApplication/license.txt
 //
 //  Main authors:    Tobias Tescheamacher
 //                   Riccardo Rossi
@@ -39,33 +39,33 @@ namespace Python
   BOOST_PYTHON_MODULE(KratosNurbsBrepApplication)
   {
 
-	  class_<KratosNurbsBrepApplication,
-			  KratosNurbsBrepApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosNurbsBrepApplication")
-			;
+    class_<KratosNurbsBrepApplication,
+        KratosNurbsBrepApplication::Pointer,
+        bases<KratosApplication>, boost::noncopyable >("KratosNurbsBrepApplication")
+      ;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
+  AddCustomStrategiesToPython();
+  AddCustomUtilitiesToPython();
 
-	//registering variables in python
+  //registering variables in python
 
-	//To enhance weighting to nodes:
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONTROL_POINT_WEIGHT)
+  //To enhance weighting to nodes:
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONTROL_POINT_WEIGHT)
 
 
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_VALUES)
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES)
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_VALUES)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MASTER)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE)
 
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENTS)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENTS)
 
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(PENALTY_FACTOR)
-	//
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISPLACEMENT_ROTATION_FIX)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(PENALTY_FACTOR)
+  //
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISPLACEMENT_ROTATION_FIX)
 
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(LOAD_TYPE)
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISTRIBUTED_LOAD_FACTOR)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(LOAD_TYPE)
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISTRIBUTED_LOAD_FACTOR)
 
   }
 

@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-	//typedef std::vector<Vertex> VerticesVector;
+  //typedef std::vector<Vertex> VerticesVector;
 
 ///@}
 ///@name  Enum's
@@ -51,67 +51,67 @@ namespace Kratos
 class BrepModel
 {
 public:
-	///@name Type Definitions
-	///@{
-	typedef std::vector<Face> FacesVector;
-	typedef std::vector<Edge> EdgesVector;
+  ///@name Type Definitions
+  ///@{
+  typedef std::vector<Face> FacesVector;
+  typedef std::vector<Edge> EdgesVector;
 
 
 
-	///@}
+  ///@}
 
-	/// Pointer definition of BrepModel
-	//    KRATOS_CLASS_POINTER_DEFINITION[BrepModel];
+  /// Pointer definition of BrepModel
+  //    KRATOS_CLASS_POINTER_DEFINITION[BrepModel];
 
-	/// Default constructor.
-	BrepModel(FacesVector faces, EdgesVector edges)
-	: m_faces(faces),
-	  m_edges(edges)
-	{
-	}
+  /// Default constructor.
+  BrepModel(FacesVector faces, EdgesVector edges)
+  : m_faces(faces),
+    m_edges(edges)
+  {
+  }
 
-	/// Destructor.
-	virtual ~BrepModel()
-	{
-	}
+  /// Destructor.
+  virtual ~BrepModel()
+  {
+  }
 
-	// ==============================================================================
-	/// Turn back information as a string.
-	virtual std::string Info() const
-	{
-		return "BrepModel";
-	}
+  // ==============================================================================
+  /// Turn back information as a string.
+  virtual std::string Info() const
+  {
+    return "BrepModel";
+  }
 
-	// ==============================================================================
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
-	{
-		rOStream << "BrepModel";
-	}
+  // ==============================================================================
+  /// Print information about this object.
+  virtual void PrintInfo(std::ostream &rOStream) const
+  {
+    rOStream << "BrepModel";
+  }
 
-	// ==============================================================================
-	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
-	{
-	}
+  // ==============================================================================
+  /// Print object's data.
+  virtual void PrintData(std::ostream &rOStream) const
+  {
+  }
 
 
 private:
-	// ==============================================================================
-	// Initialized by class constructor
-	// ==============================================================================
-	FacesVector m_faces;
-	EdgesVector m_edges;
-	//VerticesVector m_vertices;
+  // ==============================================================================
+  // Initialized by class constructor
+  // ==============================================================================
+  FacesVector m_faces;
+  EdgesVector m_edges;
+  //VerticesVector m_vertices;
 
-	// ==============================================================================
-	// General working arrays
-	// ==============================================================================
-	/// Assignment operator.
-	//      BrepModel& operator=[BrepModel const& rOther];
+  // ==============================================================================
+  // General working arrays
+  // ==============================================================================
+  /// Assignment operator.
+  //      BrepModel& operator=[BrepModel const& rOther];
 
-	/// Copy constructor.
-	//      BrepModel[BrepModel const& rOther];
+  /// Copy constructor.
+  //      BrepModel[BrepModel const& rOther];
 
 }; // Class BrepModel
 

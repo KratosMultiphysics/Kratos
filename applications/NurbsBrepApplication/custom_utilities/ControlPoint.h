@@ -23,64 +23,64 @@ public:
     //typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     //typedef typename SparseSpaceType::VectorType VectorType;
     //typedef std::vector<double> DoubleVector;
-	typedef std::vector<double> DoubleVector;
+  typedef std::vector<double> DoubleVector;
     /// Pointer definition of ControlPoint
     //KRATOS_CLASS_POINTER_DEFINITION(ControlPoint);
 
     /// Default constructor.
     ControlPoint( double X, double Y, double Z, double W, unsigned int cp_id)
     {
-    	m_coordinates.push_back( X );
-    	m_coordinates.push_back( Y );
-    	m_coordinates.push_back( Z );
+      m_coordinates.push_back( X );
+      m_coordinates.push_back( Y );
+      m_coordinates.push_back( Z );
      //   m_displacements.push_back( 0.0 );
-    	//m_displacements.push_back( 0.0 );
-    	//m_displacements.push_back( 0.0 );
-		m_w = W;
+      //m_displacements.push_back( 0.0 );
+      //m_displacements.push_back( 0.0 );
+    m_w = W;
         m_cp_id = cp_id;
     }
 
     double getX()
     {
         //return (m_coordinates[0] + m_displacements[0]);
-		return m_coordinates[0];
+    return m_coordinates[0];
     }
 
     double getY()
     {
-     	//return (m_coordinates[1] + m_displacements[1]);
-		return m_coordinates[1];
+       //return (m_coordinates[1] + m_displacements[1]);
+    return m_coordinates[1];
     }
 
     double getZ()
     {
-    	//return (m_coordinates[2] + m_displacements[2]);
-		return m_coordinates[2];
+      //return (m_coordinates[2] + m_displacements[2]);
+    return m_coordinates[2];
     }
 
     //double getX0()
     //{
-    //	return m_coordinates[0];
+    //  return m_coordinates[0];
     //}
     //double getY0()
     //{
-    // 	return m_coordinates[1];
+    //   return m_coordinates[1];
     //}
     //double getZ0()
     //{
-    //	return m_coordinates[2];
+    //  return m_coordinates[2];
     //}   
     //double getdX()
     //{
-    //	return m_displacements[0];
+    //  return m_displacements[0];
     //}
     //double getdY()
     //{
-    // 	return m_displacements[1];
+    //   return m_displacements[1];
     //}
     //double getdZ()
     //{
-    //	return m_displacements[2];
+    //  return m_displacements[2];
     //}  
     //void setdX(double dX)
     //{
@@ -97,12 +97,12 @@ public:
 
     double getWeight()
     {
-    	return m_w;
+      return m_w;
     }
 
     int getCPId()
     {
-    	return m_cp_id;
+      return m_cp_id;
     }
 
     //void SetMappingMatrixId(unsigned int id)
@@ -113,15 +113,15 @@ public:
     //{
     //    if(m_mapping_matrix_id<0)
     //        KRATOS_THROW_ERROR(std::logic_error, "No mapping matrix ID specified for current control point", m_mapping_matrix_id);
-    //	return m_mapping_matrix_id;
+    //  return m_mapping_matrix_id;
     //}
     //void SetRelevantForMapping()
     //{
-    //	m_is_relevant_for_mapping = true;
+    //  m_is_relevant_for_mapping = true;
     //}   
     //bool IsRelevantForMapping()
     //{
-    //	return m_is_relevant_for_mapping;
+    //  return m_is_relevant_for_mapping;
     //}    
 
     /// Destructor.
