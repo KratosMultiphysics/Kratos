@@ -19,7 +19,9 @@
 
 
 /* External includes */
-
+#include <cmath>
+#include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 
 /* Project includes */
 
