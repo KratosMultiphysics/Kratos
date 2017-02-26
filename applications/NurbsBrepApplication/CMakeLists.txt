@@ -4,37 +4,13 @@ message("**** configuring KratosNurbBrepApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-#include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication ) 
-#include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
-#include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
-
 # generate variables with the sources
-set( KRATOS_NURBS_BREP_APPLICATION_SOURCES
-  ## MAIN FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/nurbs_brep_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/nurbs_brep_application_variables.cpp
-  
-  ## CUSTOM PYTHON
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/nurbs_brep_python_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  
-  ## UTILITIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/FaceTrim.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/Edge.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/TrimmingCurve.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/BrepModel.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/Face.h  
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/BrepModelGeometryReader.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/ControlPoint.h    
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsBrepModeler.cpp
-    
-  ##ELEMENTS
-  # Adding the meshless base element
-  #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
-    
-  ##CONDITIONS  ContinuityConditionPenalty
-  #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_condition.cpp
-)
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp")
 
 # define library Kratos which defines the basic python interface
 add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
