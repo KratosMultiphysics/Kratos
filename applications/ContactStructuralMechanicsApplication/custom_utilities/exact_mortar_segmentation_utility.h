@@ -79,10 +79,13 @@ public:
     ///@{
     
     /// Constructor
+    
     /**
      * @param SlaveGeometry: The geometry of the slave condition
+     * @param SlaveNormal: The normal of the slave condition
      * @param IntegrationOrder: The integration order to consider
      */
+    
     ExactMortarIntegrationUtility(
         const GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
@@ -91,6 +94,42 @@ public:
     :mSlaveGeometry(SlaveGeometry),
     mSlaveNormal(SlaveNormal),
     mIntegrationOrder(IntegrationOrder)
+    {
+        GetIntegartionMethod();
+    }
+    
+    /**
+     * @param SlaveCond: The slave condition
+     * @param IntegrationOrder: The integration order to consider
+     */
+    
+    ExactMortarIntegrationUtility(
+        const Condition::Pointer& SlaveCond,
+        const unsigned int IntegrationOrder = 0
+    )
+    :mSlaveGeometry(SlaveCond->GetGeometry()),
+    mSlaveNormal(SlaveCond->GetValue(NORMAL)),
+    mIntegrationOrder(IntegrationOrder)
+    {
+        GetIntegartionMethod();
+    }
+    
+    /// Destructor.
+    virtual ~ExactMortarIntegrationUtility() {}
+    
+    ///@}
+    ///@name Operators
+    ///@{
+    
+    ///@}
+    ///@name Operations
+    ///@{    
+    
+    /**
+     * Get the integration method to consider
+     */
+        
+    void GetIntegartionMethod()
     {
         // Setting the auxiliar integration points
         if (mIntegrationOrder == 1)
@@ -119,17 +158,6 @@ public:
         }
     }
     
-    /// Destructor.
-    virtual ~ExactMortarIntegrationUtility() {}
-    
-    ///@}
-    ///@name Operators
-    ///@{
-    
-    ///@}
-    ///@name Operations
-    ///@{    
-    
     /**
      * This utility computes the exact integration of the mortar condition
      * @param MasterGeometry: The geometry of the master condition
@@ -141,6 +169,46 @@ public:
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         );
+    
+    /**
+     * This utility computes the exact integration of the mortar condition
+     * @param MasterCond: The master condition
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    bool TestGetExactIntegration(         
+        Condition::Pointer& MasterCond,
+        Matrix& CustomSolution
+        )
+    {
+        IntegrationPointsType IntegrationPointsSlave;
+        
+        const bool solution = GetExactIntegration(MasterCond->GetGeometry(), IntegrationPointsSlave);
+        
+        CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
+        
+//         std::cout << "The Gauss Points obtained are: " << std::endl;
+        for (unsigned int GP = 0; GP < IntegrationPointsSlave.size(); GP++)
+        {
+//             // For debug
+//             KRATOS_WATCH(IntegrationPointsSlave[GP]);
+            
+            // Solution save:
+            CustomSolution(GP, 0) = IntegrationPointsSlave[GP].Coordinate(1);
+            if (TDim == 2)
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Weight();
+            }
+            else
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Coordinate(2);
+                CustomSolution(GP, 2) = IntegrationPointsSlave[GP].Weight();
+            }
+        }
+        
+        return solution;
+    }
     
     /**
      * This function rotates to align the projected points to a parallel plane to XY
@@ -413,8 +481,7 @@ private:
             std::vector<double> aux_xi;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
-                // NOTE: Check this!!!!
-                const bool inside = ContactUtilities::ProjectIterative(mSlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global);
+                const bool inside = ContactUtilities::ProjectIterativeLine2D(mSlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, mSlaveNormal);
                 
                 if (inside == true)
                 {
@@ -476,6 +543,8 @@ private:
         }
         else
         {
+            IntegrationPointsSlave.clear();
+//             IntegrationPointsSlave.resize(0, false);
             return false;
         }
         
