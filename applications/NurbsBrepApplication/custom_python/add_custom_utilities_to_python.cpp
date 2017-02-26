@@ -36,7 +36,7 @@ namespace Python
 
   void  AddCustomUtilitiesToPython()
   {
-  using namespace boost::python;
+    using namespace boost::python;
 
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
