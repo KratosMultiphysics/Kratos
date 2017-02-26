@@ -32,132 +32,132 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+  ///@name Kratos Globals
+  ///@{ 
 
-	// Variables definition 
+  // Variables definition 
 
 
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+  ///@} 
+  ///@name Type Definitions
+  ///@{ 
 /**
  * Typedefs for search
  */
-	///@}
-	///@name  Enum's
-	///@{
+  ///@}
+  ///@name  Enum's
+  ///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+  ///@}
+  ///@name  Functions 
+  ///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
+  /// Short class definition.
+  /** Detail class definition.
+  */
     class NurbsBrepModeler
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		typedef std::vector<BrepModel> BrepModelVector;
-		
-		/// Pointer definition of KratosNurbsTestcaseApplication
+  {
+  public:
+    ///@name Type Definitions
+    ///@{
+    typedef std::vector<BrepModel> BrepModelVector;
+    
+    /// Pointer definition of KratosNurbsTestcaseApplication
         KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
-		void SetUp(boost::python::dict cad_geometry, ModelPart& model_part);
+    ///@}
+    ///@name Life Cycle 
+    ///@{ 
+    void SetUp(boost::python::dict cad_geometry, ModelPart& model_part);
 
-		/// Default constructor.
-		NurbsBrepModeler();
+    /// Default constructor.
+    NurbsBrepModeler();
 
-		/// Destructor.
+    /// Destructor.
         virtual ~NurbsBrepModeler();
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{
-		///@} 
-		///@name Protected member Variables 
-		///@{
-		///@} 
-		///@name Protected Operators
-		///@{ 
-		///@} 
-		///@name Protected Operations
-		///@{ 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{
-		///@}
-	private:
-		///@name Static Member Variables 
-		///@{ 
-		//       static const ApplicationCondition  msApplicationCondition; 
-		///@} 
+  protected:
+    ///@name Protected static Member Variables 
+    ///@{
+    ///@} 
+    ///@name Protected member Variables 
+    ///@{
+    ///@} 
+    ///@name Protected Operators
+    ///@{ 
+    ///@} 
+    ///@name Protected Operations
+    ///@{ 
+    ///@} 
+    ///@name Protected  Access 
+    ///@{ 
+    ///@}      
+    ///@name Protected Inquiry 
+    ///@{ 
+    ///@}    
+    ///@name Protected LifeCycle 
+    ///@{
+    ///@}
+  private:
+    ///@name Static Member Variables 
+    ///@{ 
+    //       static const ApplicationCondition  msApplicationCondition; 
+    ///@} 
         ///@name Member Variables
-		///@{ 
+    ///@{ 
 
-		boost::python::dict m_cad_geometry;
-		//BrepModelGeometryReader m_brep_model_geometry_reader;
-		BrepModelVector m_brep_model_vector;
+    boost::python::dict m_cad_geometry;
+    //BrepModelGeometryReader m_brep_model_geometry_reader;
+    BrepModelVector m_brep_model_vector;
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@} 
+    ///@name Private Operators
+    ///@{ 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@} 
+    ///@name Private Operations
+    ///@{ 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@} 
+    ///@name Private  Access 
+    ///@{ 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}    
+    ///@name Private Inquiry 
+    ///@{ 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}    
+    ///@name Un accessible methods 
+    ///@{ 
 
-		/// Assignment operator.
-		NurbsBrepModeler& operator=(NurbsBrepModeler const& rOther);
+    /// Assignment operator.
+    NurbsBrepModeler& operator=(NurbsBrepModeler const& rOther);
 
-		/// Copy constructor.
-		NurbsBrepModeler(NurbsBrepModeler const& rOther);
-
-
-		///@}    
-
-	}; // Class NurbsBrepModeler 
-
-	///@} 
+    /// Copy constructor.
+    NurbsBrepModeler(NurbsBrepModeler const& rOther);
 
 
-	///@name Type Definitions       
-	///@{ 
+    ///@}    
+
+  }; // Class NurbsBrepModeler 
+
+  ///@} 
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+  ///@name Type Definitions       
+  ///@{ 
 
-	///@} 
+
+  ///@} 
+  ///@name Input and output 
+  ///@{ 
+
+  ///@} 
 
 
 }  // namespace Kratos.
