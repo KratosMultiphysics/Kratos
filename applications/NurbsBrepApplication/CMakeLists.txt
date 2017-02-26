@@ -14,7 +14,7 @@ file(GLOB KRATOS_NURBS_BREP_APPLICATION_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h
 
 # define library Kratos which defines the basic python interface
 add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
-target_link_libraries(KratosNurbsBrepApplication KratosStructuralMechanicsApplication KratosCore )
+target_link_libraries(KratosNurbsBrepApplication KratosCore )
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
 install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
 
