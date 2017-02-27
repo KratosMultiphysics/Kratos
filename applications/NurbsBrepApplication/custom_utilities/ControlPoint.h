@@ -12,6 +12,8 @@
 
 namespace Kratos
 {
+
+//TODO: use kratos Nodes for the control points. you can pass the weight using the set value function of the node -- that is -- remove this class
 class ControlPoint
 {
 public:

@@ -59,11 +59,13 @@ public:
 
 
   ///@}
+  //TODO: delete explicitly the copy constructor
 
   /// Pointer definition of BrepModel
   //    KRATOS_CLASS_POINTER_DEFINITION[BrepModel];
 
   /// Default constructor.
+//TODO: pass by reference not by value
   BrepModel(FacesVector faces, EdgesVector edges)
   : m_faces(faces),
     m_edges(edges)

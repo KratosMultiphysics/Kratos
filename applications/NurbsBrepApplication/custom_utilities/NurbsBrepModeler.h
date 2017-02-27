@@ -73,6 +73,8 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
+
+    //TODO: do this in the construction, and pass a "Parameters" object instead
     void SetUp(boost::python::dict cad_geometry, ModelPart& model_part);
 
     /// Default constructor.

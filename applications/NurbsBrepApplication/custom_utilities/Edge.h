@@ -62,6 +62,7 @@ public:
   //    KRATOS_CLASS_POINTER_DEFINITION[Edge];
 
   /// Default constructor.
+  //TODO: make it "public IndexedObject, public Flags"
   Edge(unsigned int edge_id, ParameterVector boundary_vertices, FaceTrimVector face_trims_vector)
   : m_edge_id(edge_id),
     m_boundary_vertices(boundary_vertices),
@@ -74,7 +75,7 @@ public:
   virtual ~Edge()
   {
   }
-
+//TODO: you need to give reading access to your internals through the Calculate function
   // ==============================================================================
   /// Turn back information as a string.
   virtual std::string Info() const

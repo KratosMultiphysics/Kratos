@@ -26,6 +26,7 @@
 
 namespace Kratos
 {
+//TODO: you should isolate this from python. In kratos the "Parameters" class gives you access to the json object.
   void BrepModelGeometryReader::ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part)
   {
     std::cout << "\n> Start reading CAD geometry..." << std::endl;

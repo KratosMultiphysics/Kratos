@@ -25,6 +25,8 @@
 
 namespace Kratos
 {
+
+//TODO: for testing in c++ use the testing mechanism of kratos
   void NurbsBrepModeler::SetUp(boost::python::dict cad_geometry, ModelPart& model_part)
   {
     std::cout << "Test 1" << std::endl;

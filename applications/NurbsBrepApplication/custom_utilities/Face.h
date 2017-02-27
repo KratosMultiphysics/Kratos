@@ -51,6 +51,7 @@ namespace Kratos
 
  */
 
+//TODO: make it public IndexedObject, public Flags
 class Face
 {
 public:
@@ -75,6 +76,7 @@ public:
 
   /// Pointer definition of Face
   //    KRATOS_CLASS_POINTER_DEFINITION[Face];
+
 
   /// Default constructor.
   Face(unsigned int brep_id, TrimmingCurveVector trimming_curves,
@@ -103,6 +105,8 @@ public:
   virtual ~Face()
   {
   }
+
+//TODO: you need to give reading access to your internals through the Calculate function
 
   // ==============================================================================
   /// Turn back information as a string.

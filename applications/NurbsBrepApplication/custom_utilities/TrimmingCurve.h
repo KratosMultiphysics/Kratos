@@ -52,6 +52,8 @@ namespace Kratos
 
  */
 
+//TODO: how is this different from an edge? shouldn't you derive it from edge?
+//TODO: make it "public IndexedObject, public Flags"
 class TrimmingCurve
 {
 public:
@@ -68,6 +70,9 @@ public:
   //    KRATOS_CLASS_POINTER_DEFINITION[TrimmingCurve];
 
   /// Default constructor.
+//TODO: pass by reference not by value
+//TODO: DoubleVector is called simply Vector
+//TODO: why control points have size 4??? pass them as kratos nodes
   TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points, DoubleVector boundary_vertices)
   : m_cp_id(cp_id),
     m_knot_vector_u(knot_vector_u),
@@ -83,6 +88,7 @@ public:
   virtual ~TrimmingCurve()
   {
   }
+//TODO: you need to give reading access to your internals through the Calculate function
 
   // --------------------------------------------------------------------------
   //ControlPointVector& GetControlPoints()
