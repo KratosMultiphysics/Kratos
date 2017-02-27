@@ -44,6 +44,7 @@ class FluidHDF5Loader:
                 self.times_str = np.array([key for key in f.keys() if key not in {'density', 'viscosity', 'nodes', 'number of nodes'}])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
+                # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
 
             self.times     = np.array([float(key) for key in self.times_str])
@@ -131,8 +132,8 @@ class FluidHDF5Loader:
         if must_load_future_values_from_database:
             with h5py.File(self.file_name, 'r') as f:
                 self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)[:]
-                for i in range(len(self.permutations)):
-                    self.future_data_array[i, variable_index_in_temp_array] = self.future_data_array[self.permutations[i], variable_index_in_temp_array]
+                for i, j in enumerate(self.permutations):
+                    self.future_data_array[i, variable_index_in_temp_array] = self.future_data_array[j, variable_index_in_temp_array]
 
         self.current_data_array[:, variable_index_in_temp_array] = alpha_old * self.old_data_array[:, variable_index_in_temp_array] + alpha_future * self.future_data_array[:, variable_index_in_temp_array]
 
