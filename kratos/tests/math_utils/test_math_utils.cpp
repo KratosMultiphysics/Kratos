@@ -12,6 +12,8 @@
 
 // System includes
 #include <limits>
+#include <stdlib.h>
+#include <time.h>
 
 // External includes
 
@@ -84,8 +86,8 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(max, 1.0);
         }
         
-        /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix 
-         * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix 
+        /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 2x2 matrix 
+         * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 2x2 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMatTest, KratosCoreMathUtilsFastSuite) 
@@ -125,185 +127,147 @@ namespace Kratos
             KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
         }
         
-        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
-         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
+        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
+         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreMathUtilsFastSuite) 
         {
-            boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
-            mat11(0,0) = 2.0;
+            srand (time(NULL));
+
+            boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11;
+            mat11(0,0) = rand() % 10 + 1;
             
             double det;
-            boost::numeric::ublas::bounded_matrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
-
-            KRATOS_CHECK_NEAR(inv11(0,0), 0.5, TOLERANCE);
+            const boost::numeric::ublas::bounded_matrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
+            const boost::numeric::ublas::bounded_matrix<double, 1, 1> I11 = prod(inv11, mat11);
             
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
-            mat22(0,0) = 1.0;
-            mat22(0,1) = 2.0;
-            mat22(1,0) = 3.0;
-            mat22(1,1) = 4.0;
+            KRATOS_CHECK_NEAR(I11(0,0), 1.0, TOLERANCE);
             
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
-
-            KRATOS_CHECK_NEAR(inv22(0,0), -2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(0,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(1,0),  1.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(1,1), -0.5, TOLERANCE);
+            boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22;
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                for (unsigned int j = 0; j < 2; j++)
+                {
+                    mat22(i, j)= rand() % 10 + 1;
+                }
+            }
             
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
-            mat33(0,0) = 1.0;
-            mat33(0,1) = 2.0;
-            mat33(0,2) = 2.0;
-            mat33(1,0) = 2.0;
-            mat33(1,1) = 2.0;
-            mat33(1,2) = 2.0;
-            mat33(2,0) = 2.0;
-            mat33(2,1) = 2.0;
-            mat33(2,2) = 3.0;
+            const boost::numeric::ublas::bounded_matrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
+            const boost::numeric::ublas::bounded_matrix<double, 2, 2> I22 = prod(inv22, mat22);
             
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
-
-            KRATOS_CHECK_NEAR(inv33(0,0), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(0,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(0,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,0),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,1),  0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,2), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,1), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,2),  1.0, TOLERANCE);
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                for (unsigned int j = 0; j < 2; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I22(i,j), 1.0, TOLERANCE);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I22(i,j), 0.0, TOLERANCE);
+                    }
+                }
+            }
             
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
-            mat44(0,0) = 1.0;
-            mat44(0,1) = 0.0;
-            mat44(0,2) = 0.0;
-            mat44(0,3) = 0.0;
-            mat44(1,0) = 0.0;
-            mat44(1,1) = 1.0;
-            mat44(1,2) = 1.0;
-            mat44(1,3) = 1.0;
-            mat44(2,0) = 0.0;
-            mat44(2,1) = 0.0;
-            mat44(2,2) = 2.0;
-            mat44(2,3) = 2.0;
-            mat44(3,0) = 0.0;
-            mat44(3,1) = 0.0;
-            mat44(3,2) = 0.0;
-            mat44(3,3) = 3.0;
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33;
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    mat33(i, j)= rand() % 10 + 1;
+                }
+            }
             
-            boost::numeric::ublas::bounded_matrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
-
-            KRATOS_CHECK_NEAR(inv44(0,0),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,3),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,2), -0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,3),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,2),  0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,3),  (-1.0/3.0), TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,3),  (1.0/3.0), TOLERANCE);
+            const boost::numeric::ublas::bounded_matrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
+            const boost::numeric::ublas::bounded_matrix<double, 3, 3> I33 = prod(inv33, mat33);
+            
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I33(i,j), 1.0, TOLERANCE);
+                    }
+                    else
+                    {
+                        KRATOS_CHECK_NEAR(I33(i,j), 0.0, TOLERANCE);
+                    }
+                }
+            }
+            
+            boost::numeric::ublas::bounded_matrix<double, 4, 4> mat44;
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                for (unsigned int j = 0; j < 4; j++)
+                {
+                    mat44(i, j)= rand() % 10 + 1;
+                }
+            }
+            
+            const boost::numeric::ublas::bounded_matrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
+            const boost::numeric::ublas::bounded_matrix<double, 4, 4> I44 = prod(inv44, mat44);
+            
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                for (unsigned int j = 0; j < 4; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I44(i,j), 1.0, TOLERANCE);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I44(i,j), 0.0, TOLERANCE);
+                    }
+                }
+            }
         }
         
-        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
-         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
+        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
+         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrixTest, KratosCoreMathUtilsFastSuite) 
         {
-            Matrix mat11 = ZeroMatrix(1, 1);
-            mat11(0,0) = 2.0;
+            srand (time(NULL));
             
-            double det;
-            Matrix inv11;
-            
-            MathUtils<double>::InvertMatrix(mat11,inv11, det);
-
-            KRATOS_CHECK_NEAR(inv11(0,0), 0.5, TOLERANCE);
-            
-            Matrix mat22 = ZeroMatrix(2, 2);
-            mat22(0,0) = 1.0;
-            mat22(0,1) = 2.0;
-            mat22(1,0) = 3.0;
-            mat22(1,1) = 4.0;
-            
-            Matrix inv22; 
-            MathUtils<double>::InvertMatrix(mat22, inv22, det);
-
-            KRATOS_CHECK_NEAR(inv22(0,0), -2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(0,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(1,0),  1.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv22(1,1), -0.5, TOLERANCE);
-            
-            Matrix mat33 = ZeroMatrix(3, 3);
-            mat33(0,0) = 1.0;
-            mat33(0,1) = 2.0;
-            mat33(0,2) = 2.0;
-            mat33(1,0) = 2.0;
-            mat33(1,1) = 2.0;
-            mat33(1,2) = 2.0;
-            mat33(2,0) = 2.0;
-            mat33(2,1) = 2.0;
-            mat33(2,2) = 3.0;
-            
-            Matrix inv33;
-            MathUtils<double>::InvertMatrix(mat33, inv33, det);
-
-            KRATOS_CHECK_NEAR(inv33(0,0), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(0,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(0,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,0),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,1),  0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(1,2), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,1), -1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv33(2,2),  1.0, TOLERANCE);
-            
-            Matrix mat44 = ZeroMatrix(4, 4);
-            mat44(0,0) = 1.0;
-            mat44(0,1) = 0.0;
-            mat44(0,2) = 0.0;
-            mat44(0,3) = 0.0;
-            mat44(1,0) = 0.0;
-            mat44(1,1) = 1.0;
-            mat44(1,2) = 1.0;
-            mat44(1,3) = 1.0;
-            mat44(2,0) = 0.0;
-            mat44(2,1) = 0.0;
-            mat44(2,2) = 2.0;
-            mat44(2,3) = 2.0;
-            mat44(3,0) = 0.0;
-            mat44(3,1) = 0.0;
-            mat44(3,2) = 0.0;
-            mat44(3,3) = 3.0;
-            
-            Matrix inv44;
-            MathUtils<double>::InvertMatrix(mat44, inv44, det);
-
-            KRATOS_CHECK_NEAR(inv44(0,0),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(0,3),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,2), -0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(1,3),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,2),  0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(2,3),  (-1.0/3.0), TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,2),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(inv44(3,3),  (1.0/3.0), TOLERANCE);
+            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+            {
+                Matrix mat = ZeroMatrix(i_dim, i_dim);
+                
+                for (unsigned int i = 0; i < i_dim; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim; j++)
+                    {
+                        mat(i, j)= rand() % 10 + 1;
+                    }
+                }
+                
+                double det;
+                Matrix inv;
+                
+                MathUtils<double>::InvertMatrix(mat,inv, det);
+                
+                const Matrix I = prod(inv, mat);
+                
+                for (unsigned int i = 0; i < i_dim; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim; j++)
+                    {
+                        if (i == j) 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 1.0, TOLERANCE);
+                        }
+                        else 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 0.0, TOLERANCE);
+                        }
+                    }
+                }
+            }
         }
         
         /** Checks if it calculates the sign function 
@@ -327,41 +291,138 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsEigenTest, KratosCoreMathUtilsFastSuite) 
         {
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> eigenmat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> vectormat33;
-            mat33(0,0) = 1.0;
-            mat33(0,1) = 0.0;
-            mat33(0,2) = 1.0;
-            mat33(1,0) = 0.0;
-            mat33(1,1) = 2.0;
-            mat33(1,2) = 0.0;
-            mat33(2,0) = 1.0;
-            mat33(2,1) = 0.0;
-            mat33(2,2) = 1.0;
+            
+            srand (time(NULL));
+            
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = i; j < 3; j++)
+                {
+                    mat33(i, j) = rand() % 10 + 1;
+                    mat33(j, i) = mat33(i, j);
+                }
+            }
             
             bool converged = MathUtils<double>::EigenSystem<3>(mat33, vectormat33, eigenmat33);
 
-            KRATOS_CHECK_NEAR(eigenmat33(0,0), 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(eigenmat33(1,1), 2.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(eigenmat33(2,2), 2.0, TOLERANCE);
+            boost::numeric::ublas::bounded_matrix<double, 3, 3> auxmat33 = prod(trans(vectormat33), eigenmat33);
+            auxmat33 = prod(auxmat33, vectormat33);
             
-            const double sqrt2o2 = std::sqrt(2.0)/2.0;
-            
-            KRATOS_CHECK_NEAR(vectormat33(0,0), sqrt2o2, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(0,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(0,2), -sqrt2o2, TOLERANCE);  
-
-            KRATOS_CHECK_NEAR(vectormat33(1,0),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(1,1),  1.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(1,2),  0.0, TOLERANCE);
- 
-            KRATOS_CHECK_NEAR(vectormat33(2,0),  sqrt2o2, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(2,1),  0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(vectormat33(2,2),  sqrt2o2, TOLERANCE);
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = i; j < 3; j++)
+                {
+                    KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), TOLERANCE);
+                }
+            }
             
             KRATOS_CHECK_EQUAL(converged, true);
             
+        }
+        
+        /** Checks if it calculates the dot product 
+         * Checks if it calculates the dot product 
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDotTest, KratosCoreMathUtilsFastSuite) 
+        {
+            Vector a = ZeroVector(3);
+            a[1] = 1.0;
+            Vector b = ZeroVector(3);
+            b[0] = 1.0;
+
+            const double c = MathUtils<double>::Dot3(a, b);
+            const double d = MathUtils<double>::Dot(a, b);
+            
+            KRATOS_CHECK_EQUAL(c, 0.0);
+            KRATOS_CHECK_EQUAL(d, 0.0);
+        }
+        
+        /** Checks if it calculates the norm of a vector
+         * Checks if it calculates the norm of a vector
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsNormTest, KratosCoreMathUtilsFastSuite) 
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            a[0] = 1.0;
+
+            const double b = MathUtils<double>::Norm3(a);
+            const double c = MathUtils<double>::Norm(a);
+            
+            KRATOS_CHECK_EQUAL(b, 1.0);
+            KRATOS_CHECK_EQUAL(c, 1.0);
+        }
+        
+        /** Checks if it calculates the cross product 
+         * Checks if it calculates the cross product 
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCrossTest, KratosCoreMathUtilsFastSuite) 
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            a[1] = 2.0;
+            array_1d<double, 3> b = ZeroVector(3);
+            b[0] = 1.0;
+
+            const array_1d<double, 3>  c = MathUtils<double>::CrossProduct(a, b);
+            const array_1d<double, 3>  d = MathUtils<double>::UnitCrossProduct(a, b);
+            
+            KRATOS_CHECK_EQUAL(c[2], 2.0);
+            KRATOS_CHECK_EQUAL(d[2], 1.0);
+        }
+        
+        /** Checks if it calculates the tensor product 
+         * Checks if it calculates the tensor product 
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsTensorTest, KratosCoreMathUtilsFastSuite) 
+        {
+            Vector a = ZeroVector(3);
+            a[1] = 2.0;
+            Vector b = ZeroVector(3);
+            b[0] = 1.0;
+
+            const Matrix c = MathUtils<double>::TensorProduct3(a, b);
+            
+            KRATOS_CHECK_EQUAL(c(0,0), 0.0);
+            KRATOS_CHECK_EQUAL(c(1,0), 2.0);
+            KRATOS_CHECK_EQUAL(c(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(c(1,1), 0.0);
+        }
+        
+        /** Checks if it calculates the  matrix operations
+         * Checks if it calculates the  matrix operations
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixOperationsTest, KratosCoreMathUtilsFastSuite) 
+        {
+            Matrix a = IdentityMatrix(3);
+            Matrix b = IdentityMatrix(3);
+
+            MathUtils<double>::AddMatrix(a, b, 0 ,0);
+            
+            KRATOS_CHECK_EQUAL(a(0,0), 2.0);
+            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
+            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(a(1,1), 2.0);
+            
+            MathUtils<double>::SubtractMatrix(a, b, 0 ,0);
+            
+            KRATOS_CHECK_EQUAL(a(0,0), 1.0);
+            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
+            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(a(1,1), 1.0);
+            
+            MathUtils<double>::WriteMatrix(a, b, 0 ,0);
+            
+            KRATOS_CHECK_EQUAL(a(0,0), 1.0);
+            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
+            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
+            KRATOS_CHECK_EQUAL(a(1,1), 1.0);
         }
         
     } // namespace Testing
