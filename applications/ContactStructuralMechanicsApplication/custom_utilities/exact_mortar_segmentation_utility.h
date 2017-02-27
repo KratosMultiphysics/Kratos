@@ -20,15 +20,14 @@
 // Project includes
 #include <map>
 #include <math.h> 
-#include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 // The geometry of the triangle for the "tessellation"
 #include "geometries/triangle_3d_3.h"
 
 /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
-#include "integration/line_gauss_legendre_IntegrationPoints.h"
-#include "integration/triangle_gauss_legendre_IntegrationPoints.h"
+#include "integration/line_gauss_legendre_integration_points.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -80,86 +79,39 @@ public:
     ///@{
     
     /// Constructor
+    
     /**
      * @param SlaveGeometry: The geometry of the slave condition
+     * @param SlaveNormal: The normal of the slave condition
      * @param IntegrationOrder: The integration order to consider
      */
+    
     ExactMortarIntegrationUtility(
         const GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        unsigned int IntegrationOrder = 0
+        const unsigned int IntegrationOrder = 0
     )
     :mSlaveGeometry(SlaveGeometry),
     mSlaveNormal(SlaveNormal),
     mIntegrationOrder(IntegrationOrder)
     {
-        // Setting the auxiliar integration points
-        if (mIntegrationOrder == 1)
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
-        else if (mIntegrationOrder == 2)
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
-        else if (mIntegrationOrder == 3)
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
-        else if (mIntegrationOrder == 4)
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
-        else if (mIntegrationOrder == 5)
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
-        else
-        {
-            if (TDim == 2)
-            {
-                mAuxIntegrationMethod = Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-            else
-            {
-                mAuxIntegrationMethod = Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            }
-        }
+        GetIntegartionMethod();
+    }
+    
+    /**
+     * @param SlaveCond: The slave condition
+     * @param IntegrationOrder: The integration order to consider
+     */
+    
+    ExactMortarIntegrationUtility(
+        const Condition::Pointer& SlaveCond,
+        const unsigned int IntegrationOrder = 0
+    )
+    :mSlaveGeometry(SlaveCond->GetGeometry()),
+    mSlaveNormal(SlaveCond->GetValue(NORMAL)),
+    mIntegrationOrder(IntegrationOrder)
+    {
+        GetIntegartionMethod();
     }
     
     /// Destructor.
@@ -174,6 +126,39 @@ public:
     ///@{    
     
     /**
+     * Get the integration method to consider
+     */
+        
+    void GetIntegartionMethod()
+    {
+        // Setting the auxiliar integration points
+        if (mIntegrationOrder == 1)
+        {
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_1;
+        }
+        else if (mIntegrationOrder == 2)
+        {
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+        }
+        else if (mIntegrationOrder == 3)
+        {
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_3;
+        }
+        else if (mIntegrationOrder == 4)
+        {
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_4;
+        }
+        else if (mIntegrationOrder == 5)
+        {
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            mAuxIntegrationMethod = mSlaveGeometry.GetDefaultIntegrationMethod();
+        }
+    }
+    
+    /**
      * This utility computes the exact integration of the mortar condition
      * @param MasterGeometry: The geometry of the master condition
      * @param IntegrationPointsSlave: The integrations points that belong to the slave
@@ -186,6 +171,46 @@ public:
         );
     
     /**
+     * This utility computes the exact integration of the mortar condition
+     * @param MasterCond: The master condition
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @return True if there is a common area (the geometries intersect), false otherwise
+     */
+    
+    bool TestGetExactIntegration(         
+        Condition::Pointer& MasterCond,
+        Matrix& CustomSolution
+        )
+    {
+        IntegrationPointsType IntegrationPointsSlave;
+        
+        const bool solution = GetExactIntegration(MasterCond->GetGeometry(), IntegrationPointsSlave);
+        
+        CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
+        
+//         std::cout << "The Gauss Points obtained are: " << std::endl;
+        for (unsigned int GP = 0; GP < IntegrationPointsSlave.size(); GP++)
+        {
+//             // For debug
+//             KRATOS_WATCH(IntegrationPointsSlave[GP]);
+            
+            // Solution save:
+            CustomSolution(GP, 0) = IntegrationPointsSlave[GP].Coordinate(1);
+            if (TDim == 2)
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Weight();
+            }
+            else
+            {
+                CustomSolution(GP, 1) = IntegrationPointsSlave[GP].Coordinate(2);
+                CustomSolution(GP, 2) = IntegrationPointsSlave[GP].Weight();
+            }
+        }
+        
+        return solution;
+    }
+    
+    /**
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
      * @param PointReferenceRotation: The center point used as reference to rotate
@@ -193,7 +218,7 @@ public:
      * @return PointRotated: The point rotated 
      */
     
-    void RotatePoint(
+    void RotatePoint( // TODO: Express this like a matrix operation
         Point<3>& PointToRotate,
         const Point<3> PointReferenceRotation,
         const bool Inversed
@@ -456,8 +481,7 @@ private:
             std::vector<double> aux_xi;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
-                // NOTE: Check this!!!!
-                const bool inside = ContactUtilities::ProjectIterative(mSlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global);
+                const bool inside = ContactUtilities::ProjectIterativeLine2D(mSlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, mSlaveNormal);
                 
                 if (inside == true)
                 {
@@ -519,8 +543,9 @@ private:
         }
         else
         {
-//                 IntegrationPointsSlave.resize(0); // An empty std::vector
-            IntegrationPointsSlave.clear(); // An empty std::vector
+            IntegrationPointsSlave.clear();
+//             IntegrationPointsSlave.resize(0, false);
+            return false;
         }
         
 //             if (IntegrationPointsSlave.size() > 0)
@@ -535,6 +560,8 @@ private:
 //                     KRATOS_WATCH( IntegrationPointsSlave[i_vec] );
 //                 }
 //             }
+
+        return true;
     }
     
     /***********************************************************************************/
@@ -551,6 +578,10 @@ private:
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = mSlaveGeometry.Center();
         
+        // We initialize the total area
+        const double TotalArea = mSlaveGeometry.Area();
+        
+        // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 3> SlaveProjectedPoint;
         array_1d<Point<3>, 3> MasterProjectedPoint;
         array_1d<bool, 3> AllInside;
@@ -560,10 +591,11 @@ private:
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, mSlaveNormal);
             
             GeometryType::CoordinatesArrayType ProjectedGPLocal;
-            
+        
             AllInside[i_node] = mSlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
         
+        // No point inside
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
             (AllInside[2] == false))
@@ -571,17 +603,58 @@ private:
             return false;
         }
         
+        // All the points inside
+        if ((AllInside[0] == true) &&
+            (AllInside[1] == true) &&
+            (AllInside[2] == true))
+        {
+            std::vector<Point<3>::Pointer> AllPointsArray (3);
+            for (unsigned int i_node = 0; i_node < 3; i_node++)
+            {
+                MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, mSlaveNormal);
+                AllPointsArray[i_node] = boost::make_shared<Point<3>>(MasterProjectedPoint[i_node]);
+            }
+            
+            Triangle3D3 <Point<3>> AllTriangle( AllPointsArray );
+            
+            const double LocalArea = AllTriangle.Area();
+            
+            // We initialize our auxiliar integration point vector
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = mSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            const size_t LocalIntegrationSize = IntegrationPoints.size();
+            
+            // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+            for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+            {                    
+                // We convert the local coordinates to global coordinates
+                Point<3> gp_local;
+                gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                Point<3> gp_global;
+                AllTriangle.GlobalCoordinates(gp_global, gp_local);
+                
+                // We recover this point to the triangle plane
+                RotatePoint(gp_global, SlaveCenter, true);
+                
+                // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
+                mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                
+                // We can cosntruct now the integration local triangle
+                IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+            }
+            
+            return true;
+        }
+        
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 3; i_node++)
         {
-            RotatePoint(mSlaveGeometry[i_node], SlaveProjectedPoint[i_node], false);
-            const Point<3> AuxPointMaster = MasterProjectedPoint[i_node];
-            RotatePoint(MasterProjectedPoint[i_node], AuxPointMaster, false);
+            RotatePoint(mSlaveGeometry[i_node], SlaveCenter, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, false);
         }
         
         // We find the intersection in each side
-        std::map<unsigned int, unsigned int> MapEdges;
         std::vector<Point<3>> PointList;
+        std::map<unsigned int, unsigned int> MapEdges;
         for (unsigned int i_edge = 0; i_edge < 3; i_edge++)
         {
             MapEdges.insert(std::make_pair(i_edge, 0));
@@ -609,6 +682,7 @@ private:
             }
         }
         
+        // No we check with edges are split just one time (which means that the corner belongs to the intersection)
         for (unsigned int i_node = 0; i_node < 3; i_node++)
         {
             unsigned int il_node = (i_node == 0) ? 2 : i_node - 1; // The first node is in edge 1 and 3
@@ -636,14 +710,11 @@ private:
             
             PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
             
-            // We initialize the total area
-            double TotalArea = 0.0;
-            
             // We initialize our auxiliar integration point vector
             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = mSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
-            IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize);
+            IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
            
             for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
@@ -656,30 +727,24 @@ private:
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                 const double LocalArea = triangle.Area();
-                TotalArea += LocalArea;
-                
-                // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates 
 
-                // TODO: Finish me
-                
+                // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                 for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                {
-                    const double weight = IntegrationPoints[PointNumber].Weight * LocalArea;
-                    double xi  = IntegrationPoints[PointNumber].Coordinate(1);
-                    double eta = IntegrationPoints[PointNumber].Coordinate(2);
+                {                    
+                    // We convert the local coordinates to global coordinates
+                    Point<3> gp_local;
+                    gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                    Point<3> gp_global;
+                    triangle.GlobalCoordinates(gp_global, gp_local);
                     
-                    // TODO: Convert coordinates
+                    // We recover this point to the triangle plane
+                    RotatePoint(gp_global, SlaveCenter, true);
                     
-                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( xi, eta, weight );
-                }
-            }
-            
-            // We repeat the loop to ajust the weights
-            for (unsigned int elem = 0; elem < ListSize - 2; elem++)
-            {
-                for ( unsigned int PointNumber = LocalIntegrationSize * elem; PointNumber < LocalIntegrationSize * (elem + 1); PointNumber++ )
-                {
-                    IntegrationPointsSlave[PointNumber].Weight() /= TotalArea;
+                    // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
+                    mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                    
+                    // We can cosntruct now the integration local triangle
+                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                 }
             }
         }
@@ -703,6 +768,9 @@ private:
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = mSlaveGeometry.Center();
         
+        // We initialize the total area
+        const double TotalArea = mSlaveGeometry.Area();
+        
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
         array_1d<Point<3>, 4> MasterProjectedPoint;
@@ -716,10 +784,8 @@ private:
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            const Point<3> AuxPointSlave = SlaveProjectedPoint[i_node];
-            RotatePoint(SlaveProjectedPoint[i_node], SlaveProjectedPoint[i_node], false);
-            const Point<3> AuxPointMaster = MasterProjectedPoint[i_node];
-            RotatePoint(MasterProjectedPoint[i_node], AuxPointMaster, false);
+            RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, false);
         }
         
         // We find the intersection in each side
@@ -762,11 +828,65 @@ private:
             }
         }
         
-        // We compose the triangles 
+        // We compose the triangles (TODO: Adapt for quadrilaterals)
         const unsigned int ListSize = PointList.size();
         if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
         {
+            // We reorder the nodes according with the angle they form with the first node
+            std::vector<double> Angles (ListSize - 1);
+            for (unsigned int elem = 1; elem < ListSize; elem++)
+            {
+                Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+            }
             
+            const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
+            
+            std::vector<Point<3>::Pointer> PointsArray (3);
+            
+            PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+            PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
+            PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
+            
+            Triangle3D3 <Point<3>> dummy_triangle( PointsArray );
+            
+            // We initialize our auxiliar integration point vector
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+            const size_t LocalIntegrationSize = IntegrationPoints.size();
+            
+            IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+           
+            for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
+            {
+                // NOTE: We add 1 because we removed from the list the fisrt point
+                PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+                PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
+                
+                // We create the triangle
+                Triangle3D3 <Point<3>> triangle( PointsArray );
+                
+                // Now we get the GP from this triangle (and weights, will be later with the total area summed)
+                const double LocalArea = triangle.Area();
+                
+                // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                {                    
+                    // We convert the local coordinates to global coordinates
+                    Point<3> gp_local;
+                    gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                    Point<3> gp_global;
+                    triangle.GlobalCoordinates(gp_global, gp_local);
+                    
+                    // We recover this point to the triangle plane
+                    RotatePoint(gp_global, SlaveCenter, true);
+                    
+                    // Now we project to the slave surface
+                    Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - mSlaveNormal); // We came back 
+                    mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                    
+                    // We can cosntruct now the integration local triangle
+                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                }
+            }
         }
         else // No intersection
         {

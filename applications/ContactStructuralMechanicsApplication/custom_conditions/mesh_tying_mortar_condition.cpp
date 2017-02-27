@@ -783,7 +783,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodes,TNumNodesElem,TTensor>::MasterShape
     master_seg.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
     
     // SHAPE FUNCTIONS 
-    master_seg.ShapeFunctionsValues(         rVariables.N_Master,     projected_gp_local );         
+    master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
     
     return inside;
 }

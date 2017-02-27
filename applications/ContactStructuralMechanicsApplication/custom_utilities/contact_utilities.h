@@ -216,7 +216,7 @@ public:
         
         GeometryNormal(Normal, Geom);
         
-        array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
+        const array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
 
         if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
         {
@@ -247,45 +247,64 @@ public:
      * @return Inside: True is inside, false not
      */
     
-    static inline bool ProjectIterative(
+    static inline bool ProjectIterativeLine2D(
         GeometryType& GeomOrigin,
         const GeometryType::CoordinatesArrayType& PointDestiny,
-        GeometryType::CoordinatesArrayType& ResultingPoint
+        GeometryType::CoordinatesArrayType& ResultingPoint,
+        const array_1d<double, 3> Normal
         )
     {
-        Matrix J = ZeroMatrix( GeomOrigin.LocalSpaceDimension(), GeomOrigin.LocalSpaceDimension() );
-
         ResultingPoint.clear();
-
-        Vector DeltaXi = ZeroVector( GeomOrigin.LocalSpaceDimension() );
+        
+        double DeltaXi = 0.5;
 
         GeometryType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
-
-        Vector NOrigin;
         
         //Newton iteration:
         double tol = 1.0e-8;
 
-        unsigned int maxiter = 30;
+        unsigned int maxiter = 10;
 
         for ( unsigned int k = 0; k < maxiter; k++ )
         {
-            GeomOrigin.ShapeFunctionsValues( NOrigin, ResultingPoint );
+            array_1d<double, 2> NOrigin;
+            NOrigin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
+            NOrigin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
-            const array_1d<double,3> normal_xi = GaussPointNormal(NOrigin, GeomOrigin);
+            array_1d<double,3> normal_xi = ZeroVector(3);
+            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            {
+                normal_xi += NOrigin[iNode] * GeomOrigin[iNode].GetValue(NORMAL); 
+            }
+            
+            normal_xi = normal_xi/norm_2(normal_xi); 
             
             CurrentGlobalCoords = ZeroVector( 3 );
-            GeomOrigin.GlobalCoordinates( CurrentGlobalCoords, ResultingPoint );
+            for( unsigned int iNode = 0; iNode < 2; ++iNode )
+            {
+                CurrentGlobalCoords += NOrigin[iNode] * GeomOrigin[iNode].Coordinates(); 
+            }
             
-            double dist;
-            ProjectCoordDirection(GeomOrigin, PointDestiny, CurrentGlobalCoords, dist, normal_xi);
+            const array_1d<double,3> vector_points = GeomOrigin.Center() - PointDestiny;
+            const double dist = inner_prod(vector_points, Normal)/inner_prod(-normal_xi, Normal); 
+            CurrentGlobalCoords = CurrentGlobalCoords + normal_xi * dist;
             
-            noalias( CurrentGlobalCoords ) = PointDestiny - CurrentGlobalCoords;
-            GeomOrigin.InverseOfJacobian( J, ResultingPoint );
-            noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
-            noalias( ResultingPoint ) += DeltaXi;
-
-            if ( norm_2( DeltaXi ) < tol )
+            const double RHS = norm_2(CurrentGlobalCoords);
+            const double DeltaRHS = - RHS/(DeltaXi + tol);
+            
+            DeltaXi = -RHS/DeltaRHS;
+            ResultingPoint[0] += DeltaXi;
+            
+            if (ResultingPoint[0] < -1.0)
+            {
+                ResultingPoint[0] = -1.0;
+            }
+            else if (ResultingPoint[0] > 1.0)
+            {
+                ResultingPoint[0] = 1.0;
+            }
+            
+            if ( RHS < tol )
             {
                 return true;
             }
@@ -810,6 +829,7 @@ public:
      * @param Jacobian: The element's jacobian
      * @return The determinant of the provided jacobian
      */
+    
     static inline const double ContactElementDetJacobian( const Matrix& J )
     {
         Matrix JTJ = prod( trans(J), J );
@@ -824,6 +844,33 @@ public:
         else
         {
             KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << J.size2( ) << std::endl;
+        }
+    }
+    
+    /**
+     * Calculates the inverse of the jacobian of the contact element  
+     * @param Jacobian: The element's jacobian
+     * @return The inverse of the provided jacobian
+     */
+    
+    template< unsigned int TDim, unsigned int TNumNodes>
+    static inline boost::numeric::ublas::bounded_matrix<double, TDim - 1, TNumNodes> ContactElementInvJacobian( boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim - 1> J )
+    {
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> JJT = prod( J, trans(J) );
+        if( TDim == 2 )
+        {
+            boost::numeric::ublas::bounded_matrix<double, 2, 2> InvJJT;
+            const double det = JJT(0, 0) * JJT(1, 1) - JJT(0, 1) * JJT(1, 0);
+            InvJJT(0, 0) =   JJT(1, 1) / det;
+            InvJJT(0, 1) = - JJT(0, 1) / det;
+            InvJJT(1, 0) = - JJT(1, 0) / det;
+            InvJJT(1, 1) =   JJT(0, 0) / det;
+            
+            return prod(trans(J), InvJJT);
+        }
+        else
+        {
+            KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << TDim - 1 << std::endl;
         }
     }
     
@@ -1018,8 +1065,6 @@ public:
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
-        const bool DLM = rModelPart.GetSubModelPart("Contact").Is(MODIFIED);
-        
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
@@ -1032,10 +1077,6 @@ public:
                 if (itNode->Is(ACTIVE) == false)
                 {
                     itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-                    if (DLM == true)
-                    {
-                        itNode->FastGetSolutionStepValue(DOUBLE_LM, 0) = ZeroVector(3);
-                    }
                 }
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
@@ -1080,13 +1121,13 @@ public:
      */
     
     template< unsigned int TDim, unsigned int TNumNodes>
-    static inline bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& nodes,
         const bool current = true
         )
     {
         /* DEFINITIONS */            
-        bounded_matrix<double, TNumNodes, TDim> Coordinates;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> Coordinates;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
@@ -1165,7 +1206,7 @@ public:
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
@@ -1186,7 +1227,7 @@ public:
         )
     {
         /* DEFINITIONS */        
-        bounded_matrix<double, TNumNodes, TDim> VarMatrix;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> VarMatrix;
         
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {

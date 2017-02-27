@@ -58,15 +58,7 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mMortarContactCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
     mMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mMortarContactCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
-    mMortarContactCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) ),
-    // TODO: Clean this
-    mMortarContactCondition2D2NDLM( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mMortarContactCondition2D3NDLM( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
-//     mMortarContactCondition3D3NDLM( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-//     mMortarContactCondition3D6NDLM( 0, Condition::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6 ) ) ) ),
-//     mMortarContactCondition3D4NDLM( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-//     mMortarContactCondition3D8NDLM( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8 ) ) ) ),
-//     mMortarContactCondition3D9NDLM( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) )
+    mMortarContactCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9 ) ) ) )
 {}
 
 void KratosContactStructuralMechanicsApplication::Register()
@@ -108,11 +100,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                    // For getting the normal in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                   // For getting the tangent in the GP
     
-    /* This is for doble Lagrange Multipliers */
-    // NOTE: This go out for sure
-    KRATOS_REGISTER_VARIABLE( DOUBLE_LM_FACTOR )                                // The double LM parameter
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DOUBLE_LM )                    // The double LM
-    
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM
     KRATOS_REGISTER_VARIABLE( SCALE_FACTOR )                                    // The scale factor for the ALM
@@ -140,15 +127,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D4N", mMortarContactCondition3D4N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D8N", mMortarContactCondition3D8N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D9N", mMortarContactCondition3D9N );
-    
-    // TODO: Clean this
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2NDLM", mMortarContactCondition2D2NDLM );
-    KRATOS_REGISTER_CONDITION( "MortarContactCondition2D3NDLM", mMortarContactCondition2D3NDLM );
-//     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D3NDLM", mMortarContactCondition3D3NDLM );
-//     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D6NDLM", mMortarContactCondition3D6NDLM );
-//     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D4NDLM", mMortarContactCondition3D4NDLM );
-//     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D8NDLM", mMortarContactCondition3D8NDLM );
-//     KRATOS_REGISTER_CONDITION( "MortarContactCondition3D9NDLM", mMortarContactCondition3D9NDLM );
 }
 
 }  // namespace Kratos.
