@@ -23,7 +23,11 @@
 #include "contact_structural_mechanics_application_variables.h"
 
 // The geometry of the triangle for the "tessellation"
+/* TRIANGLES */
+#include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
+/* QUADRILATERALS */
+#include "geometries/quadrilateral_2d_4.h"
 
 /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
 #include "integration/line_gauss_legendre_integration_points.h"
@@ -110,7 +114,7 @@ public:
     :mSlaveGeometry(SlaveCond->GetGeometry()),
     mSlaveNormal(SlaveCond->GetValue(NORMAL)),
     mIntegrationOrder(IntegrationOrder)
-    {
+    {        
         GetIntegartionMethod();
     }
     
@@ -501,7 +505,7 @@ private:
                 }
                 else
                 {
-                    KRATOS_WATCH("WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!");
+                    std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
                 }
             }
             else  if (aux_xi.size() == 2)
@@ -581,6 +585,8 @@ private:
         // We initialize the total area
         const double TotalArea = mSlaveGeometry.Area();
         
+        std::cout << "MESH" << std::endl;
+        
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 3> SlaveProjectedPoint;
         array_1d<Point<3>, 3> MasterProjectedPoint;
@@ -595,6 +601,7 @@ private:
             AllInside[i_node] = mSlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
         
+        // We create the pointlist
         std::vector<Point<3>> PointList;
         
         // No point inside
@@ -728,7 +735,7 @@ private:
                     PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
                     
                     // We create the triangle
-                    Triangle3D3 <Point<3>> triangle( PointsArray );
+                    Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                     const double LocalArea = triangle.Area();
@@ -782,6 +789,7 @@ private:
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
         array_1d<Point<3>, 4> MasterProjectedPoint; // TODO: Check the internal points too
+        array_1d<bool, 4> AllInside;
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
@@ -796,81 +804,68 @@ private:
             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, false);
         }
         
-        // We find the intersection in each side
-        std::map<unsigned int, unsigned int> MapEdges;
-        std::vector<Point<3>> PointList;
-        for (unsigned int i_edge = 0; i_edge < 4; i_edge++)
+        std::vector<Point<3>::Pointer> DummyPointsArray (4);
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            MapEdges.insert(std::make_pair(i_edge, 0));
-//             MapEdges [i_edge] = 0;
-            
-            unsigned int ip_edge = (i_edge == 3) ? 0 : i_edge + 1;
-            for (unsigned int j_edge = 0; j_edge < 4; j_edge++)
-            {
-                unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
-                
-                Point<3> IntersectedPoint;
-                const bool intersected = Clipping(
-                    IntersectedPoint,
-                    SlaveProjectedPoint[i_edge],
-                    SlaveProjectedPoint[ip_edge],
-                    MasterProjectedPoint[j_edge],
-                    MasterProjectedPoint[jp_edge]
-                    );
-                
-                if (intersected == true)
-                {
-                    PointList.push_back(IntersectedPoint);
-                    MapEdges[i_edge] += 1;
-                }
-            }
+            DummyPointsArray[i_node] = boost::make_shared<Point<3>>(SlaveProjectedPoint[i_node]);
         }
+        Quadrilateral2D4 <Point<3>> DummyQuadrilateral( DummyPointsArray );
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            unsigned int il_node = (i_node == 0) ? 3 : i_node - 1; // The first node is in edge 1 and 4
+            GeometryType::CoordinatesArrayType ProjectedGPLocal;
             
-            if ((MapEdges[i_node]  == 1) && (MapEdges[il_node] == 1))
-            {
-                PointList.push_back(SlaveProjectedPoint[i_node]);
-            }
+            AllInside[i_node] = DummyQuadrilateral.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
         
-        // We compose the triangles (TODO: Adapt for quadrilaterals)
-        const unsigned int ListSize = PointList.size();
-        if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
+        // We create the pointlist
+        std::vector<Point<3>> PointList;
+        
+        // No point inside
+        if ((AllInside[0] == false) &&
+            (AllInside[1] == false) &&
+            (AllInside[2] == false) &&
+            (AllInside[3] == false))
         {
+            return false;
+        }
+        // All the points inside
+        else if ((AllInside[0] == true) &&
+                 (AllInside[1] == true) &&
+                 (AllInside[2] == true) &&
+                 (AllInside[3] == true))
+        {            
             // We reorder the nodes according with the angle they form with the first node
-            std::vector<double> Angles (ListSize - 1);
-            for (unsigned int elem = 1; elem < ListSize; elem++)
+            std::vector<double> Angles (3);
+            for (unsigned int elem = 1; elem < 4; elem++)
             {
-                Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+                Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem]);
             }
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
             
             std::vector<Point<3>::Pointer> PointsArray (3);
             
-            PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-            PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
-            PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
+            PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+            PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[1]);
+            PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[2]);
             
-            Triangle3D3 <Point<3>> dummy_triangle( PointsArray );
+            Triangle2D3 <Point<3>> dummy_triangle( PointsArray ); // TODO: Look how to create the integration points without the dummy triangle 
             
             // We initialize our auxiliar integration point vector
             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
-            IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
-           
-            for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
+            IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
+        
+            for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 // NOTE: We add 1 because we removed from the list the fisrt point
-                PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
-                PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
+                PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
+                PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 2] + 1]);
                 
                 // We create the triangle
-                Triangle3D3 <Point<3>> triangle( PointsArray );
+                Triangle2D3 <Point<3>> triangle( PointsArray );
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                 const double LocalArea = triangle.Area();
@@ -895,10 +890,123 @@ private:
                     IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                 }
             }
+            
+            return true;
         }
-        else // No intersection
+        else
         {
-            return false;
+            // We add the internal nodes
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                if (AllInside[i_node] == true)
+                {
+                    PointList.push_back(MasterProjectedPoint[i_node]);
+                }
+            }
+            
+            // We find the intersection in each side
+            std::map<unsigned int, unsigned int> MapEdges;
+            for (unsigned int i_edge = 0; i_edge < 4; i_edge++)
+            {
+                MapEdges.insert(std::make_pair(i_edge, 0));
+    //             MapEdges [i_edge] = 0;
+                
+                unsigned int ip_edge = (i_edge == 3) ? 0 : i_edge + 1;
+                for (unsigned int j_edge = 0; j_edge < 4; j_edge++)
+                {
+                    unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
+                    
+                    Point<3> IntersectedPoint;
+                    const bool intersected = Clipping(
+                        IntersectedPoint,
+                        SlaveProjectedPoint[i_edge],
+                        SlaveProjectedPoint[ip_edge],
+                        MasterProjectedPoint[j_edge],
+                        MasterProjectedPoint[jp_edge]
+                        );
+                    
+                    if (intersected == true)
+                    {
+                        PointList.push_back(IntersectedPoint);
+                        MapEdges[i_edge] += 1;
+                    }
+                }
+            }
+            
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                unsigned int il_node = (i_node == 0) ? 3 : i_node - 1; // The first node is in edge 1 and 4
+                
+                if ((MapEdges[i_node]  == 1) && (MapEdges[il_node] == 1))
+                {
+                    PointList.push_back(SlaveProjectedPoint[i_node]);
+                }
+            }
+            
+            // We compose the triangles (TODO: Adapt for quadrilaterals)
+            const unsigned int ListSize = PointList.size();
+            if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
+            {
+                // We reorder the nodes according with the angle they form with the first node
+                std::vector<double> Angles (ListSize - 1);
+                for (unsigned int elem = 1; elem < ListSize; elem++)
+                {
+                    Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+                }
+                
+                const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
+                
+                std::vector<Point<3>::Pointer> PointsArray (3);
+                
+                PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+                PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
+                PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
+                
+                Triangle2D3 <Point<3>> dummy_triangle( PointsArray );
+                
+                // We initialize our auxiliar integration point vector
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+                const size_t LocalIntegrationSize = IntegrationPoints.size();
+                
+                IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+            
+                for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
+                {
+                    // NOTE: We add 1 because we removed from the list the fisrt point
+                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
+                    
+                    // We create the triangle
+                    Triangle2D3 <Point<3>> triangle( PointsArray );
+                    
+                    // Now we get the GP from this triangle (and weights, will be later with the total area summed)
+                    const double LocalArea = triangle.Area();
+                    
+                    // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                    for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                    {                    
+                        // We convert the local coordinates to global coordinates
+                        Point<3> gp_local;
+                        gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                        Point<3> gp_global;
+                        triangle.GlobalCoordinates(gp_global, gp_local);
+                        
+                        // We recover this point to the triangle plane
+                        RotatePoint(gp_global, SlaveCenter, true);
+                        
+                        // Now we project to the slave surface
+                        Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - mSlaveNormal); // We came back 
+                        mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                        
+                        // We can cosntruct now the integration local triangle
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    }
+                }
+            }
+            else // No intersection
+            {
+                return false;
+            }
         }
         
         return true;

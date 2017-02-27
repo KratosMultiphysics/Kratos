@@ -78,7 +78,7 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 0.00,1.00,0.00)
         model_part.GetNode(3).SetValue(KratosMultiphysics.NORMAL, normal)
         
-        cond1 = model_part.CreateNewCondition("Condition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
@@ -93,11 +93,11 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateNewNode(6, 1.00,1.00,0.01)
         model_part.GetNode(6).SetValue(KratosMultiphysics.NORMAL, normal)
         
-        cond2 = model_part.CreateNewCondition("Condition3D3N", 2, [4,5,6], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [4,5,6], model_part.GetProperties()[1])
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
-        #ExactIntegration.TestGetExactIntegration(cond2, MatrixSolution)
+        ExactIntegration.TestGetExactIntegration(cond2, MatrixSolution)
         
         ## Debug
         #if (solution == True):
