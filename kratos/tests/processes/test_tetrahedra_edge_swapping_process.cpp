@@ -140,15 +140,10 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
-			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 4);
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume())
-			//	KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
-			//KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
-			//KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 166.);
-			//KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 166.);
 
 			gid_io.InitializeMesh(1.00);
 			gid_io.WriteMesh(model_part.GetMesh());

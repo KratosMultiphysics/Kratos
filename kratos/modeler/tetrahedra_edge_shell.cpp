@@ -118,9 +118,6 @@ namespace Kratos
 		double min_quality = std::numeric_limits<double>::max();
 		for (auto i_tetraheron = mTetrahedraEdge.begin(); i_tetraheron != mTetrahedraEdge.end(); i_tetraheron++) {
 			min_quality = std::min(min_quality, (i_tetraheron->first)->GetGeometry().Quality(QualityCriteria));
-			KRATOS_WATCH((i_tetraheron->first)->GetGeometry())
-				KRATOS_WATCH((i_tetraheron->first)->GetGeometry().Quality(QualityCriteria))
-				KRATOS_WATCH(min_quality)
 		}
 
 		return min_quality;

@@ -200,7 +200,6 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & Edge
 	Internals::EdgeSwappingCases4 SwappingCases;
 	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
-	KRATOS_WATCH(original_min_quality)
 	Tetrahedra3D4<Node<3>> tetrahedra_1 = EdgeShell.pGetElement(0)->GetGeometry(); // This initialization is to avoid creating a dummy
 	Tetrahedra3D4<Node<3>> tetrahedra_2 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
 	std::size_t best_case = 0; 
@@ -219,21 +218,12 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & Edge
 			}
 		}
 	}
-	KRATOS_WATCH(max_cases_quality)
 	if (max_cases_quality > original_min_quality + std::numeric_limits<double>::epsilon()) {
-		Tetrahedra3D4<Node<3>> tetrahedra_3 = EdgeShell.pGetElement(0)->GetGeometry(); // This initialization is to avoid creating a dummy
-		Tetrahedra3D4<Node<3>> tetrahedra_4 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
-		SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case], 0, EdgeShell, tetrahedra_1, tetrahedra_2);
-		SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case], 1, EdgeShell, tetrahedra_3, tetrahedra_4);
-		EdgeShell.pGetElement(0)->GetGeometry() = tetrahedra_1;
-		EdgeShell.pGetElement(1)->GetGeometry() = tetrahedra_2;
-		EdgeShell.pGetElement(2)->GetGeometry() = tetrahedra_3;
-		EdgeShell.pGetElement(3)->GetGeometry() = tetrahedra_4;
-		//for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
-		//	SwappingCases.SetTetrahedraForCase(i, EdgeShell, tetrahedra_1, tetrahedra_2);
-		//	EdgeShell.pGetElement(2*i)->GetGeometry() = tetrahedra_1;
-		//	EdgeShell.pGetElement((2*i)+1)->GetGeometry() = tetrahedra_2;
-		//}
+		for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
+			SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case],i, EdgeShell, tetrahedra_1, tetrahedra_2);
+			EdgeShell.pGetElement(2*i)->GetGeometry() = tetrahedra_1;
+			EdgeShell.pGetElement((2*i)+1)->GetGeometry() = tetrahedra_2;
+		}
 	}
 }
 
