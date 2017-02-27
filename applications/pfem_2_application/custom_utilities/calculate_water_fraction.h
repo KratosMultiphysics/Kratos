@@ -377,7 +377,7 @@ namespace Kratos
 				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
 				{	
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-					if ((ielem->Is(ACTIVE)) //elements can be inactive to add temporary walls. fractional velocity is integrated by parts so walls are seen as having zero velocity without doing anything 
+					if (ielem->Is(ACTIVE)) //elements can be inactive to add temporary walls. fractional velocity is integrated by parts so walls are seen as having zero velocity without doing anything 
 					{					
 						//double Area;
 						Geometry<Node<3> >& geom = ielem->GetGeometry();
