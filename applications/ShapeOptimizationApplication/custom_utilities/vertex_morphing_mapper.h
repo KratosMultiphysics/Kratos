@@ -221,7 +221,8 @@ public:
         DistanceVector resulting_squared_distances(max_nodes_affected);
 
         // Compute tree with the node positions
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), max_nodes_affected);
+        unsigned int bucket_size = 100;
+        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int region_itr = 0; region_itr < boost::python::len(damping_regions); region_itr++)
@@ -243,24 +244,26 @@ public:
             for ( ModelPart::NodeIterator node_itr = damping_sub_mdpa.NodesBegin(); node_itr != damping_sub_mdpa.NodesEnd(); ++node_itr )
             {
                 // Get node information
-                int i_ID = node_itr->Id();
-                ModelPart::NodeType& damping_node_i = mr_opt_model_part.Nodes()[i_ID];
+                ModelPart::NodeType& damping_node_i = *node_itr;
                 array_3d i_coord = damping_node_i.Coordinates();
 
                 // Perform spatial search for current node
                 unsigned int number_of_nodes_affected;
                 number_of_nodes_affected = nodes_tree.SearchInRadius( damping_node_i, 
-                                                                        damping_radius, 
-                                                                        nodes_affected.begin(),
-                                                                        resulting_squared_distances.begin(), 
-                                                                        max_nodes_affected );    
+                                                                      damping_radius, 
+                                                                      nodes_affected.begin(),
+                                                                      resulting_squared_distances.begin(), 
+                                                                      max_nodes_affected ); 
+                
+                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
+                if(number_of_nodes_affected == max_nodes_affected)
+                    std::cout << "\n> WARNING!!!!! For node " << damping_node_i.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
 
                 // Loop over all nodes in radius (including node on damping region itself)
                 for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
                 {
                     // Get node information
-                    int j_ID = nodes_affected[j_itr]->Id();
-                    ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+                    ModelPart::NodeType& node_j = *nodes_affected[j_itr];
                     array_3d j_coord = node_j.Coordinates();
 
                     // Computation of damping factor
@@ -320,7 +323,8 @@ public:
             DistanceVector resulting_squared_distances(max_nodes_affected);
 
             // Compute tree with the node positions
-            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), max_nodes_affected);
+            unsigned int bucket_size = 100;
+            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
             // Prepare Weighting function to be used in the mapping
             FilterFunction filter_function( m_filter_function_type, m_filter_size );
@@ -329,8 +333,7 @@ public:
             for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
             {
                 // Get node information
-                int i_ID = node_itr->Id();
-                ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
+                ModelPart::NodeType& node_i = *node_itr;
                 array_3d i_coord = node_i.Coordinates();
 
                 // Get tID of the node in the mapping matrix
@@ -339,6 +342,11 @@ public:
                 // Perform spatial search for current node
                 unsigned int number_of_nodes_affected;
                 number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), max_nodes_affected);
+
+                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
+                if(number_of_nodes_affected == max_nodes_affected)
+                    std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
+
 
                 // Some lists to increase efficiency in the loop later
                 std::vector<double> list_of_weights(3*number_of_nodes_affected,0.0);
@@ -349,8 +357,7 @@ public:
                 for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
                 {
                     // Get node information
-                    int j_ID = nodes_affected[j_itr]->Id();
-                    ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+                    ModelPart::NodeType& node_j = *nodes_affected[j_itr];
                     array_3d j_coord = node_j.Coordinates();
 
                     // Get the id of the node in the mapping matrix
@@ -434,7 +441,8 @@ public:
             DistanceVector resulting_squared_distances(max_nodes_affected);
 
             // Compute tree with the node positions
-            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), max_nodes_affected);
+            unsigned int bucket_size = 100;
+            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
             // Prepare Weighting function to be used in the mapping
             FilterFunction filter_function( m_filter_function_type, m_filter_size );
@@ -442,9 +450,11 @@ public:
             // Loop over all design variables
             for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
             {
+                // Initialize list of affected nodes
+                nodes_affected.clear();
+
                 // Get node information
-                int i_ID = node_itr->Id();
-                ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
+                ModelPart::NodeType& node_i = *node_itr;
                 array_3d i_coord = node_i.Coordinates();
 
                 // Get tID of the node in the mapping matrix
@@ -453,6 +463,10 @@ public:
                 // Perform spatial search for current node
                 unsigned int number_of_nodes_affected;
                 number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), max_nodes_affected);
+
+                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
+                if(number_of_nodes_affected >= max_nodes_affected)
+                    std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
 
                 // Some lists to increase efficiency in the loop later
                 std::vector<double> list_of_weights(number_of_nodes_affected,0.0);
@@ -463,8 +477,7 @@ public:
                 for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
                 {
                     // Get node information
-                    int j_ID = nodes_affected[j_itr]->Id();
-                    ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+                    ModelPart::NodeType& node_j = *nodes_affected[j_itr];
                     array_3d j_coord = node_j.Coordinates();
 
                     // Get the id of the node in the mapping matrix
