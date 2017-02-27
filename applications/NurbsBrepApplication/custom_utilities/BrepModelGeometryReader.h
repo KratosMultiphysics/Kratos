@@ -24,7 +24,6 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "BrepModel.h"
-#include "ControlPoint.h"
 #include "TrimmingCurve.h"
 #include "BrepModel.h"
 #include "Face.h"
@@ -65,10 +64,9 @@ namespace Kratos
     typedef boost::python::extract<std::string> extractString;
     typedef boost::python::extract<bool> extractBool;
 
-    typedef std::vector<double> DoubleVector;
     typedef std::vector<int> IntVector;
 
-    typedef std::vector<std::vector<double>> ParameterVector;
+    typedef std::vector<Vector> ParameterVector;
 
     //Edge:
     typedef std::vector<FaceTrim> FaceTrimVector;
@@ -81,7 +79,6 @@ namespace Kratos
     typedef std::vector<Face> FacesVector;
     typedef std::vector<Edge> EdgesVector;
 
-    typedef std::vector<ControlPoint> ControlPointVector;
 
     
     /// Pointer definition of KratosNurbsTestcaseApplication

@@ -54,14 +54,14 @@ namespace Kratos
 
 //TODO: how is this different from an edge? shouldn't you derive it from edge?
 //TODO: make it "public IndexedObject, public Flags"
-class TrimmingCurve
+class TrimmingCurve : public IndexedObject, public Flags
 {
 public:
   ///@name Type Definitions
   ///@{
 
   // For matrix / vector operations
-  typedef std::vector<double> DoubleVector;
+  //typedef std::vector<double> DoubleVector;
   typedef std::vector<array_1d<double, 4>> ControlPointVector;
 
   ///@}
@@ -73,12 +73,14 @@ public:
 //TODO: pass by reference not by value
 //TODO: DoubleVector is called simply Vector
 //TODO: why control points have size 4??? pass them as kratos nodes
-  TrimmingCurve(unsigned int cp_id, DoubleVector knot_vector_u, unsigned int p, ControlPointVector control_points, DoubleVector boundary_vertices)
+  TrimmingCurve(unsigned int cp_id, Vector knot_vector_u, unsigned int p, ControlPointVector control_points, Vector boundary_vertices)
   : m_cp_id(cp_id),
     m_knot_vector_u(knot_vector_u),
     m_p(p),
     m_control_points(control_points),
-    m_boundary_vertices(boundary_vertices)
+    m_boundary_vertices(boundary_vertices),
+    IndexedObject(0),
+    Flags()
   {
     //array_1d<double, 4> m_control_points;
     //m_n_u = m_knot_vector_u.size() - m_p - 1;
@@ -122,10 +124,10 @@ private:
   // Initialized by class constructor
   // ==============================================================================
   unsigned int m_cp_id;
-  DoubleVector m_knot_vector_u;
+  Vector m_knot_vector_u;
   unsigned int m_p;
   ControlPointVector m_control_points;
-  DoubleVector m_boundary_vertices;
+  Vector m_boundary_vertices;
   //unsigned int m_n_u; // number of control points in u-direction
   //double m_epsilon = 1e-10; // Tolerance value
 

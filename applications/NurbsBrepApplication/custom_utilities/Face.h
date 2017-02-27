@@ -52,12 +52,12 @@ namespace Kratos
  */
 
 //TODO: make it public IndexedObject, public Flags
-class Face
+class Face : public IndexedObject, public Flags
 {
 public:
   ///@name Type Definitions
   ///@{
-  typedef std::vector<double> DoubleVector;
+  //typedef std::vector<double> Vector;
   typedef std::vector<int> IntVector;
   typedef std::vector<std::vector<int>> TrimmingLoopVector;
   typedef std::vector<TrimmingCurve> TrimmingCurveVector;
@@ -66,7 +66,7 @@ public:
   //typedef typename SparseSpaceType::MatrixType SparseMatrixType;
   //typedef typename SparseSpaceType::VectorType VectorType;
   //typedef std::vector<int> IntVector;
-  //typedef std::vector<double> DoubleVector;
+  //typedef std::vector<double> Vector;
   //typedef boost::python::extract<double> takeDouble;
   //typedef boost::python::extract<int> takeInt;
   //typedef boost::python::extract<bool> takeBool;
@@ -81,7 +81,7 @@ public:
   /// Default constructor.
   Face(unsigned int brep_id, TrimmingCurveVector trimming_curves,
     TrimmingLoopVector trimming_loops,
-    DoubleVector knot_vector_u, DoubleVector knot_vector_v,
+    Vector knot_vector_u, Vector knot_vector_v,
     int p, int q, IntVector control_point_ids)
   : m_trimming_curves(trimming_curves),
     m_trimming_loops(trimming_loops),
@@ -90,7 +90,9 @@ public:
     m_knot_vector_v(knot_vector_v),
     m_p(p),
     m_q(q),
-    m_control_points_ids(control_point_ids)
+    m_control_points_ids(control_point_ids),
+    IndexedObject(0),
+    Flags()
   {
     unsigned int m_n_u = m_knot_vector_u.size() - m_p - 1;
     unsigned int m_n_v = m_knot_vector_v.size() - m_q - 1;
@@ -137,8 +139,8 @@ private:
   unsigned int m_brep_id;
   TrimmingCurveVector m_trimming_curves;
   TrimmingLoopVector m_trimming_loops;
-  DoubleVector m_knot_vector_u;
-  DoubleVector m_knot_vector_v;
+  Vector m_knot_vector_u;
+  Vector m_knot_vector_v;
   unsigned int m_p;
   unsigned int m_q;
   IntVector m_control_points_ids;

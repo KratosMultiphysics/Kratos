@@ -45,14 +45,14 @@ namespace Kratos
 
  */
 
-class FaceTrim
+class FaceTrim : public IndexedObject, public Flags
 {
 public:
   ///@name Type Definitions
   ///@{
 
   // For matrix / vector operations
-  typedef std::vector<double> DoubleVector;
+  //typedef std::vector<double> Vector;
   //typedef std::vector<std::vector<double>> ParameterVector;
 
   ///@}
@@ -64,10 +64,10 @@ public:
   FaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
   : m_face_id(face_id),
     m_trim_index(trim_index),
-    //m_boundary_parameters(boundary_parameters),
-    m_relative_direction(relative_direction)
+    m_relative_direction(relative_direction),
+    IndexedObject(0),
+    Flags()
   {
-    //m_n_u = m_knot_vector_u.size() - m_p - 1;
   }
 
   /// Destructor.

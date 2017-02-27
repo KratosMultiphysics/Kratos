@@ -14,7 +14,6 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "FaceTrim.h"
-//#include "b_spline_utilities.h"
 
 // ==============================================================================
 
@@ -46,15 +45,15 @@ namespace Kratos
 
  */
 
-class Edge
+class Edge : public IndexedObject, public Flags
 {
 public:
   ///@name Type Definitions
   ///@{
-  typedef std::vector<double> DoubleVector;
+  //typedef std::vector<double> DoubleVector;
   // For matrix / vector operations
   typedef std::vector<FaceTrim> FaceTrimVector;
-  typedef std::vector<std::vector<double>> ParameterVector;
+  typedef std::vector<Vector> ParameterVector;
 
   ///@}
 
@@ -66,7 +65,9 @@ public:
   Edge(unsigned int edge_id, ParameterVector boundary_vertices, FaceTrimVector face_trims_vector)
   : m_edge_id(edge_id),
     m_boundary_vertices(boundary_vertices),
-    m_face_trims_vector(face_trims_vector)
+    m_face_trims_vector(face_trims_vector),
+    IndexedObject(0),
+    Flags()
   {
     //m_n_u = m_knot_vector_u.size() - m_p - 1;
   }
