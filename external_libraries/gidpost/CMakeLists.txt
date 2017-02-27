@@ -11,6 +11,7 @@ set( GIDPOST_SOURCES
      )
 ##gidpostfor.c gidpostforAPI.c
 
+add_definitions(-DNDEBUG)
 add_definitions( -DUSE_CONST )
 add_definitions( -w )
 
