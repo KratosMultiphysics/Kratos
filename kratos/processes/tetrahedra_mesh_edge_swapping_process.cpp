@@ -26,6 +26,87 @@
 
 namespace Kratos
 {
+	namespace Internals {
+		class EdgeSwappingCase {
+		public:
+			EdgeSwappingCase() {};
+			EdgeSwappingCase(std::vector<std::size_t> const&& TheTrianglesIndices) : mTriangleIndices(TheTrianglesIndices), mMinQuality(2.00) {}
+			std::size_t GetTringleIndex(std::size_t Index) const { return mTriangleIndices[Index]; }
+			double GetMinQuality() const { return mMinQuality; }
+			void SetMinQuality(double NewMinQuality) { mMinQuality = NewMinQuality; }
+		private:
+			std::vector<std::size_t> mTriangleIndices;
+			double mMinQuality;
+		};
+		template<std::size_t TNumberOfCases, std::size_t TNumberOfTriangles, std::size_t TNumberOfTrianglesPerCase>
+		class EdgeSwappingCases {
+		public:
+			using TriangleConnectivityType = std::array<std::size_t, 3>;
+			static std::size_t GetNumberOfCases() { return TNumberOfCases; }
+			static std::size_t NumberOfTriangles() { return TNumberOfTriangles; }
+			static std::size_t NumberOfTrianglesPerCase() { return TNumberOfTrianglesPerCase; }
+			std::array<EdgeSwappingCase, TNumberOfCases> const& GetCases() { return mCases; }
+			TriangleConnectivityType const& GetTriangleConectivity(std::size_t TheIndex) { return mTriangles[TheIndex]; }
+			void SetTetrahedraForCase(EdgeSwappingCase const& TheCase, std::size_t TriangleIndex, TetrahedraEdgeShell& EdgeShell, Tetrahedra3D4<Node<3>>& rTetrahedra1, Tetrahedra3D4<Node<3>>& rTetrahedra2) {
+				auto const& triangle = GetTriangleConectivity(TheCase.GetTringleIndex(TriangleIndex));
+				rTetrahedra1(0) = EdgeShell.Point1();
+				rTetrahedra1(1) = EdgeShell.ShellPoint(triangle[0]);
+				rTetrahedra1(2) = EdgeShell.ShellPoint(triangle[1]);
+				rTetrahedra1(3) = EdgeShell.ShellPoint(triangle[2]);
+
+				rTetrahedra2(0) = EdgeShell.Point2();
+				rTetrahedra2(1) = EdgeShell.ShellPoint(triangle[0]);
+				rTetrahedra2(2) = EdgeShell.ShellPoint(triangle[2]);
+				rTetrahedra2(3) = EdgeShell.ShellPoint(triangle[1]);
+			}
+		protected:
+			EdgeSwappingCases() {}
+			std::array<TriangleConnectivityType, TNumberOfTriangles> mTriangles;
+			std::array<EdgeSwappingCase, TNumberOfCases> mCases;
+		};
+
+		class EdgeSwappingCases3 : public EdgeSwappingCases<1, 1, 1> {
+		public:
+			EdgeSwappingCases3() : EdgeSwappingCases() {
+				mCases[0] = EdgeSwappingCase({ 0 });
+				mTriangles[0] = { 0,1,2 };
+			}
+		};
+
+		class EdgeSwappingCases4 : public EdgeSwappingCases<2, 4, 2> {
+		public:
+			EdgeSwappingCases4() : EdgeSwappingCases() {
+				mCases[0] = EdgeSwappingCase({ 0,1 });
+				mCases[1] = EdgeSwappingCase({ 2,3 });
+				mTriangles[0] = { 0,1,2 };
+				mTriangles[1] = { 0,2,3 };
+				mTriangles[2] = { 1,2,3 };
+				mTriangles[3] = { 0,1,3 };
+			}
+		};
+
+		class EdgeSwappingCases5 : public EdgeSwappingCases<5, 10, 3> {
+		public:
+			EdgeSwappingCases5() : EdgeSwappingCases() {
+				mCases[0] = EdgeSwappingCase({  0, 1, 2  });
+				mCases[1] = EdgeSwappingCase({  0, 3, 4  });
+				mCases[2] = EdgeSwappingCase({  5, 6, 2  });
+				mCases[3] = EdgeSwappingCase({  5, 7, 8  });
+				mCases[4] = EdgeSwappingCase({  3, 9, 8  });
+				mTriangles[0] = { 0, 1, 2 };
+				mTriangles[2] = { 0, 2, 3 };
+				mTriangles[3] = {  0, 3, 4  };
+				mTriangles[4] = {  2, 3, 4  };
+				mTriangles[5] = {  0, 2, 4  };
+				mTriangles[6] = {  1, 2, 3  };
+				mTriangles[7] = {  0, 1, 3  };
+				mTriangles[8] = {  1, 3, 4  };
+				mTriangles[9] = {  0, 1, 4  };
+				mTriangles[10] = {  1, 2, 4  };
+			}
+		};
+	}
+
 
 TetrahedraMeshEdgeSwappingProcess::TetrahedraMeshEdgeSwappingProcess(ModelPart & rModelPart): mrModelPart(rModelPart), mEdges(){
 
@@ -97,7 +178,9 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 			if (edge.second.GetNumberOfShellPoints() == 3)
 				EdgeSwapping3(edge.second);
 			if (edge.second.GetNumberOfShellPoints() == 4)
-				EdgeSwapping4(edge.second);
+				EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
+			if (edge.second.GetNumberOfShellPoints() == 5)
+				EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
 		}
 
 	}
@@ -116,65 +199,6 @@ void TetrahedraMeshEdgeSwappingProcess::PrintInfo(std::ostream& rOStream) const 
 /// Print object's data.
 void TetrahedraMeshEdgeSwappingProcess::PrintData(std::ostream& rOStream) const {
 
-}
-namespace Internals {
-	class EdgeSwappingCase {
-	public:
-		EdgeSwappingCase() {};
-		EdgeSwappingCase(std::vector<std::size_t> const&& TheTrianglesIndices) : mTriangleIndices(TheTrianglesIndices), mMinQuality(2.00){}
-		std::size_t GetTringleIndex(std::size_t Index) const { return mTriangleIndices[Index]; }
-		double GetMinQuality() const { return mMinQuality; }
-		void SetMinQuality(double NewMinQuality) { mMinQuality = NewMinQuality; }
-	private:
-		std::vector<std::size_t> mTriangleIndices;
-		double mMinQuality;
-	};
-	template<std::size_t TNumberOfCases, std::size_t TNumberOfTriangles, std::size_t TNumberOfTrianglesPerCase>
-	class EdgeSwappingCases {
-	public:
-		using TriangleConnectivityType = std::array<std::size_t, 3>;
-		static std::size_t GetNumberOfCases() { return TNumberOfCases; }
-		static std::size_t NumberOfTriangles() { return TNumberOfTriangles; }
-		static std::size_t NumberOfTrianglesPerCase() { return TNumberOfTrianglesPerCase; }
-		std::array<EdgeSwappingCase, TNumberOfCases> const& GetCases() { return mCases; }
-		TriangleConnectivityType const& GetTriangleConectivity(std::size_t TheIndex) { return mTriangles[TheIndex]; }
-		void SetTetrahedraForCase(EdgeSwappingCase const& TheCase,std::size_t TriangleIndex, TetrahedraEdgeShell& EdgeShell, Tetrahedra3D4<Node<3>>& rTetrahedra1, Tetrahedra3D4<Node<3>>& rTetrahedra2) {
-			auto const& triangle = GetTriangleConectivity(TheCase.GetTringleIndex(TriangleIndex));
-			rTetrahedra1(0) = EdgeShell.Point1();
-			rTetrahedra1(1) = EdgeShell.ShellPoint(triangle[0]);
-			rTetrahedra1(2) = EdgeShell.ShellPoint(triangle[1]);
-			rTetrahedra1(3) = EdgeShell.ShellPoint(triangle[2]);
-
-			rTetrahedra2(0) = EdgeShell.Point2();
-			rTetrahedra2(1) = EdgeShell.ShellPoint(triangle[0]);
-			rTetrahedra2(2) = EdgeShell.ShellPoint(triangle[2]);
-			rTetrahedra2(3) = EdgeShell.ShellPoint(triangle[1]);
-		}
-	protected:
-		EdgeSwappingCases() {}
-		std::array<TriangleConnectivityType, TNumberOfTriangles> mTriangles;
-		std::array<EdgeSwappingCase, TNumberOfCases> mCases;
-	};
-
-	class EdgeSwappingCases3 : public EdgeSwappingCases<1, 1, 1> {
-	public:
-		EdgeSwappingCases3() : EdgeSwappingCases() {
-			mCases[0] = EdgeSwappingCase({ 0 });
-			mTriangles[0] = { 0,1,2 };
-		}
-	};
-
-	class EdgeSwappingCases4 : public EdgeSwappingCases<2, 4, 2> {
-	public:
-		EdgeSwappingCases4() : EdgeSwappingCases() {
-			mCases[0] = EdgeSwappingCase({ 0,1 });
-			mCases[1] = EdgeSwappingCase({ 2,3 });
-			mTriangles[0] = { 0,1,2 };
-			mTriangles[1] = { 0,2,3 };
-			mTriangles[2] = { 1,2,3 };
-			mTriangles[3] = { 0,1,3 };
-		}
-	};
 }
 
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & EdgeShell) {
@@ -197,34 +221,7 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 }
 
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & EdgeShell) {
-	Internals::EdgeSwappingCases4 SwappingCases;
-	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
-	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
-	Tetrahedra3D4<Node<3>> tetrahedra_1 = EdgeShell.pGetElement(0)->GetGeometry(); // This initialization is to avoid creating a dummy
-	Tetrahedra3D4<Node<3>> tetrahedra_2 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
-	std::size_t best_case = 0; 
-	double max_cases_quality = original_min_quality; 
-
-	for (auto i_case = SwappingCases.GetCases().begin(); i_case != SwappingCases.GetCases().end(); i_case++) {
-		if (i_case->GetMinQuality() > original_min_quality) {// There are no previously calculated tetrahedra with worse quality
-			for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
-				SwappingCases.SetTetrahedraForCase(*i_case,i, EdgeShell, tetrahedra_1, tetrahedra_2);
-				double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
-				if (min_quality > max_cases_quality) {
-					best_case = i;
-					max_cases_quality = min_quality;
-					// Todo: break if apt quality reached.
-				}
-			}
-		}
-	}
-	if (max_cases_quality > original_min_quality + std::numeric_limits<double>::epsilon()) {
-		for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
-			SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case],i, EdgeShell, tetrahedra_1, tetrahedra_2);
-			EdgeShell.pGetElement(2*i)->GetGeometry() = tetrahedra_1;
-			EdgeShell.pGetElement((2*i)+1)->GetGeometry() = tetrahedra_2;
-		}
-	}
+	EdgeSwapping<Internals::EdgeSwappingCases4>(EdgeShell);
 }
 
 

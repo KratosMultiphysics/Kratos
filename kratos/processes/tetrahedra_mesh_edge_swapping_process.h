@@ -158,6 +158,37 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+	  template<typename TEdgeSwappingCasesType>
+	  void EdgeSwapping(TetrahedraEdgeShell & EdgeShell) {
+		  TEdgeSwappingCasesType SwappingCases;
+		  auto quality_criteria = Geometry<Node<3> >::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
+		  double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
+		  Tetrahedra3D4<Node<3>> tetrahedra_1 = EdgeShell.pGetElement(0)->GetGeometry(); // This initialization is to avoid creating a dummy
+		  Tetrahedra3D4<Node<3>> tetrahedra_2 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
+		  std::size_t best_case = 0;
+		  double max_cases_quality = original_min_quality;
+
+		  for (auto i_case = SwappingCases.GetCases().begin(); i_case != SwappingCases.GetCases().end(); i_case++) {
+			  if (i_case->GetMinQuality() > original_min_quality) {// There are no previously calculated tetrahedra with worse quality
+				  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
+					  SwappingCases.SetTetrahedraForCase(*i_case, i, EdgeShell, tetrahedra_1, tetrahedra_2);
+					  double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
+					  if (min_quality > max_cases_quality) {
+						  best_case = i;
+						  max_cases_quality = min_quality;
+						  // Todo: break if apt quality reached.
+					  }
+				  }
+			  }
+		  }
+		  if (max_cases_quality > original_min_quality + std::numeric_limits<double>::epsilon()) {
+			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
+				  SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case], i, EdgeShell, tetrahedra_1, tetrahedra_2);
+				  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
+				  EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
+			  }
+		  }
+	  }
 
 	  void EdgeSwapping3(TetrahedraEdgeShell & EdgeShell);
 	  void EdgeSwapping4(TetrahedraEdgeShell & EdgeShell);

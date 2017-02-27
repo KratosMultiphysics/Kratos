@@ -150,5 +150,50 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 		}
 
+		KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5to6EdgeSwappingProcess, KratosCoreFastSuite)
+		{
+			ModelPart model_part("Test");
+
+			model_part.CreateNewNode(1, 0.00, 0.00, 0.00);
+			model_part.CreateNewNode(2, 10.00, 0.00, 0.00);
+			model_part.CreateNewNode(3, 10.00, 10.00, 0.00);
+			model_part.CreateNewNode(4, 0.00, 10.00, 0.00); 
+			model_part.CreateNewNode(5, 5.00, 5.00, 0.00);
+
+			model_part.CreateNewNode(100, 1.00, 1.00, -10.00);
+			model_part.CreateNewNode(101, 1.00, 1.00, 10.00);
+
+			Properties::Pointer p_properties(new Properties(0));
+			model_part.CreateNewElement("Element3D4N", 1, { 100,101,3,4 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 2, { 100,101,2,3 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 3, { 101,100,2,1 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 4, { 101,100,5,4 }, p_properties);
+			model_part.CreateNewElement("Element3D4N", 5, { 101,100,1,5 }, p_properties);
+
+
+			FindNodalNeighboursProcess(model_part).Execute();
+
+			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_5to6_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			gid_io.InitializeMesh(0.00);
+			gid_io.WriteMesh(model_part.GetMesh());
+			gid_io.FinalizeMesh();
+			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+
+			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume())
+				KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume())
+				KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume())
+				KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume())
+				KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume())
+				KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 166.);
+
+			gid_io.InitializeMesh(1.00);
+			gid_io.WriteMesh(model_part.GetMesh());
+			gid_io.FinalizeMesh();
+		}
+
 	}
 }  // namespace Kratos.
