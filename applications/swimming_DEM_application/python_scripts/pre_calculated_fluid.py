@@ -515,7 +515,8 @@ fluid_volume = 10
 DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
-
+for node in spheres_model_part.Nodes:
+    node.Id += 1000000
 if DEM_parameters.coupling_level_type:
 
     if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
@@ -753,7 +754,6 @@ post_utils.Writeresults(time)
 
 import hdf5_io_tools
 fluid_loader = hdf5_io_tools.FluidHDF5Loader(fluid_model_part, pp, main_path)
-
 
 # gid_io.InitializeResults(mesh_name, (fluid_model_part).GetMesh())
 while (time <= final_time):

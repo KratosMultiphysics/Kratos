@@ -39,13 +39,23 @@ class FluidHDF5Loader:
         self.fluid_model_part = fluid_model_part
 
         if pp.CFD_DEM.fluid_already_calculated:
+
             with h5py.File(self.file_name, 'r') as f:
                 self.times_str = np.array([key for key in f.keys() if key not in {'density', 'viscosity', 'nodes', 'number of nodes'}])
+                nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
+                self.permutations = np.array(range(len(nodes_ids)))
+                self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
+
             self.times     = np.array([float(key) for key in self.times_str])
             self.old_data_array = np.zeros(self.extended_shape)
             self.future_data_array = np.zeros(self.extended_shape)
             self.old_time_index = 0
             self.future_time_index = 1
+            viscosity = 1e-6
+            density = 1000.
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(VISCOSITY, viscosity)
+                node.SetSolutionStepValue(DENSITY, density)
         else:
             self.compression_type = 'gzip'
             for node in self.fluid_model_part.Nodes:
@@ -120,7 +130,9 @@ class FluidHDF5Loader:
     def UpdateFluidVariable(self, name, variable, variable_index_in_temp_array, must_load_future_values_from_database, alpha_old, alpha_future):
         if must_load_future_values_from_database:
             with h5py.File(self.file_name, 'r') as f:
-                self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)
+                self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)[:]
+                for i in range(len(self.permutations)):
+                    self.future_data_array[i, variable_index_in_temp_array] = self.future_data_array[self.permutations[i], variable_index_in_temp_array]
 
         self.current_data_array[:, variable_index_in_temp_array] = alpha_old * self.old_data_array[:, variable_index_in_temp_array] + alpha_future * self.future_data_array[:, variable_index_in_temp_array]
 
