@@ -36,18 +36,36 @@ design_output_mode = "relative"
 #          "total"      - X is defined relative to initial design
 #          "absolute"   - X is defined as absolute values (coordinates)
 
+
+# ================================================================================================================
+# Case: design_control = "vertex_morphing"
+# ================================================================================================================
+
+model_input_filename = "3D_Shell_fine"
+design_surface_sub_model_name = "design_surface_fine"
 domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 
-# Case: design_control = "vertex_morphing"
-design_surface_name = "design_surface_fine"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
+filter_size = 3
+
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-filter_size = 3
+
+perform_damping = True
+# options: True    - damping is applied with the settings below
+#        : False   - no damping is applied, settings below can be ignored
+
+damping_regions = [ ["support_edges", False, True, True, "linear", 3 ],
+                    ["side_edges", False, False, True, "linear", 3 ] ]
+# damping_region = [ [sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    [sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    ... ]
+# options for damping function: "cosine"
+#                               "linear"
 
 # ================================================================================================================
 # Optimization algorithm 
@@ -90,6 +108,7 @@ nodal_results=[ "NORMALIZED_SURFACE_NORMAL",
                 "DESIGN_UPDATE",
                 "DESIGN_CHANGE_ABSOLUTE",
                 "SHAPE_UPDATE",
+                "SENSITIVITIES_DEACTIVATED",
                 "SHAPE_UPDATES_DEACTIVATED",
                 "SHAPE_CHANGE_ABSOLUTE"]
 VolumeOutput = True
