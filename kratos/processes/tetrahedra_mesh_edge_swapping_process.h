@@ -158,9 +158,11 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+
 	  void EdgeSwapping3(TetrahedraEdgeShell & EdgeShell);
 	  void EdgeSwapping4(TetrahedraEdgeShell & EdgeShell);
 
+	  double TetrahedraMeshEdgeSwappingProcess::CalculateMinimumQualityForAShellTriangle(TetrahedraEdgeShell & EdgeShell, std::array<std::size_t, 3> const& TriangleConnectivity);
 
       ///@}
       ///@name Private  Access
