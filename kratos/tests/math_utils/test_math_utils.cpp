@@ -28,26 +28,16 @@ namespace Kratos
 {
     namespace Testing 
     {
-        constexpr double EPSILON = std::numeric_limits<double>::epsilon();
-        constexpr double TOLERANCE = 1e-6;
-        
         /// Tests
-        
-//         /** It test the distance function
-//          * It test the distance function
-//          */
-//         
-//         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDistanceTest, KratosCoreMathUtilsFastSuite) 
-//         {
-//             // FIXME: I don't know what the Distnace function does
-//         }
-//         
+       
         /** Checks if the area of the triangle is calculated correctly using Heron equation.
          * Checks if the area of the triangle is calculated correctly using Heron equation.
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsHeronTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double TOLERANCE = 1e-6;
+            
             const double area = MathUtils<double>::Heron<false>(std::sqrt(2.0), 1.0, 1.0);
 
             KRATOS_CHECK_NEAR(area, 0.5, TOLERANCE);
@@ -92,6 +82,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMatTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double TOLERANCE = 1e-6;
+            
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
             
@@ -133,6 +125,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double TOLERANCE = 1e-6;
+            
             srand (time(NULL));
 
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11;
@@ -232,6 +226,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrixTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double TOLERANCE = 1e-6;
+            
             srand (time(NULL));
             
             for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
