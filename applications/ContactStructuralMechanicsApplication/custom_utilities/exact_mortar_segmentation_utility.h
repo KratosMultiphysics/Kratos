@@ -91,30 +91,10 @@ public:
      */
     
     ExactMortarIntegrationUtility(
-        const GeometryType& SlaveGeometry,
-        const array_1d<double, 3>& SlaveNormal,
         const unsigned int IntegrationOrder = 0
-    )
-    :mSlaveGeometry(SlaveGeometry),
-    mSlaveNormal(SlaveNormal),
-    mIntegrationOrder(IntegrationOrder)
+        )
+    :mIntegrationOrder(IntegrationOrder)
     {
-        GetIntegartionMethod();
-    }
-    
-    /**
-     * @param SlaveCond: The slave condition
-     * @param IntegrationOrder: The integration order to consider
-     */
-    
-    ExactMortarIntegrationUtility(
-        const Condition::Pointer& SlaveCond,
-        const unsigned int IntegrationOrder = 0
-    )
-    :mSlaveGeometry(SlaveCond->GetGeometry()),
-    mSlaveNormal(SlaveCond->GetValue(NORMAL)),
-    mIntegrationOrder(IntegrationOrder)
-    {        
         GetIntegartionMethod();
     }
     
@@ -158,7 +138,7 @@ public:
         }
         else
         {
-            mAuxIntegrationMethod = mSlaveGeometry.GetDefaultIntegrationMethod();
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_1;
         }
     }
     
@@ -169,7 +149,9 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    bool GetExactIntegration(         
+    bool GetExactIntegration(    
+        GeometryType& SlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         );
@@ -181,14 +163,15 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    bool TestGetExactIntegration(         
+    bool TestGetExactIntegration(     
+        Condition::Pointer& SlaveCond,
         Condition::Pointer& MasterCond,
         Matrix& CustomSolution
         )
     {
         IntegrationPointsType IntegrationPointsSlave;
         
-        const bool solution = GetExactIntegration(MasterCond->GetGeometry(), IntegrationPointsSlave);
+        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), IntegrationPointsSlave);
         
         CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
         
@@ -218,6 +201,7 @@ public:
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
      * @param PointReferenceRotation: The center point used as reference to rotate
+     * @param SlaveNormal: The normal of the slave condition
      * @param Inversed: If we rotate to the XY or we recover from XY
      * @return PointRotated: The point rotated 
      */
@@ -225,6 +209,7 @@ public:
     void RotatePoint( // TODO: Express this like a matrix operation
         Point<3>& PointToRotate,
         const Point<3> PointReferenceRotation,
+        const array_1d<double, 3> SlaveNormal,
         const bool Inversed
         )
     {
@@ -235,7 +220,7 @@ public:
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
         // We calculate the normal angle
-        double Phi0 = std::atan(mSlaveNormal[0]/mSlaveNormal[2]) + Tolerance;
+        double Phi0 = std::atan(SlaveNormal[0]/SlaveNormal[2]) + Tolerance;
         double Phi1 = M_PI/2.0;
         
         if (Inversed == true)
@@ -396,8 +381,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    GeometryType mSlaveGeometry;             // The geometry of the slave condition
-    array_1d<double, 3> mSlaveNormal;        // The normal of the slave condition
     unsigned int mIntegrationOrder;          // The integration order to consider
     IntegrationMethod mAuxIntegrationMethod; // The auxiliar list of Gauss Points taken from the geometry
     
@@ -432,6 +415,8 @@ private:
 
     template<>  
     bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
+        GeometryType& SlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
@@ -453,9 +438,9 @@ private:
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
         for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
         {
-            const array_1d<double, 3> normal = mSlaveGeometry[i_slave].GetValue(NORMAL);
+            const array_1d<double, 3> normal = SlaveGeometry[i_slave].GetValue(NORMAL);
             
-            ContactUtilities::ProjectDirection(MasterGeometry, mSlaveGeometry[i_slave].Coordinates(), projected_gp_global, aux_dist, -normal ); // The opposite direction
+            ContactUtilities::ProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, aux_dist, -normal ); // The opposite direction
             
             const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local );
             
@@ -485,7 +470,7 @@ private:
             std::vector<double> aux_xi;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
-                const bool inside = ContactUtilities::ProjectIterativeLine2D(mSlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, mSlaveNormal);
+                const bool inside = ContactUtilities::ProjectIterativeLine2D(SlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, SlaveNormal);
                 
                 if (inside == true)
                 {
@@ -534,7 +519,7 @@ private:
 //             if (total_weight > 0.0)
         {
             // With the proportion of the weigth you recalculate the integration weight. Change the coordinates of the integration to accomodate
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = mSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             IntegrationPointsSlave.resize(IntegrationPoints.size());
             for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
             {
@@ -572,7 +557,9 @@ private:
     /***********************************************************************************/
 
     template<>  
-    bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(         
+    bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
+        GeometryType& SlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
@@ -580,12 +567,10 @@ private:
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = mSlaveGeometry.Center();
+        const Point<3> SlaveCenter = SlaveGeometry.Center();
         
         // We initialize the total area
-        const double TotalArea = mSlaveGeometry.Area();
-        
-        std::cout << "MESH" << std::endl;
+        const double TotalArea = SlaveGeometry.Area();
         
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 3> SlaveProjectedPoint;
@@ -594,11 +579,11 @@ private:
         
         for (unsigned int i_node = 0; i_node < 3; i_node++)
         {
-            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, mSlaveNormal);
+            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, SlaveNormal);
             
             GeometryType::CoordinatesArrayType ProjectedGPLocal;
         
-            AllInside[i_node] = mSlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
+            AllInside[i_node] = SlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
         
         // We create the pointlist
@@ -627,7 +612,7 @@ private:
             const double LocalArea = AllTriangle.Area();
             
             // We initialize our auxiliar integration point vector
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = mSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
             // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
@@ -640,10 +625,10 @@ private:
                 AllTriangle.GlobalCoordinates(gp_global, gp_local);
                 
                 // We recover this point to the triangle plane
-                RotatePoint(gp_global, SlaveCenter, true);
+                RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                 
                 // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
-                mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                 
                 // We can cosntruct now the integration local triangle
                 IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
@@ -652,12 +637,12 @@ private:
             return true;
         }
         else
-        {
+        {            
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint(mSlaveGeometry[i_node], SlaveCenter, false);
-                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, false);
+                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
+                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
                 
                 if (AllInside[i_node] == true)
                 {
@@ -723,7 +708,7 @@ private:
                 PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
                 
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = mSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
@@ -750,10 +735,10 @@ private:
                         triangle.GlobalCoordinates(gp_global, gp_local);
                         
                         // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, true);
+                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
-                        mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                        SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                         
                         // We can cosntruct now the integration local triangle
                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
@@ -775,16 +760,18 @@ private:
     /***********************************************************************************/
 
     template<>  
-    bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(         
+    bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
+        GeometryType& SlaveGeometry,
+        const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = mSlaveGeometry.Center();
+        const Point<3> SlaveCenter = SlaveGeometry.Center();
         
         // We initialize the total area
-        const double TotalArea = mSlaveGeometry.Area();
+        const double TotalArea = SlaveGeometry.Area();
         
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
@@ -793,15 +780,15 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            SlaveProjectedPoint[i_node] = ContactUtilities::FastProject(mSlaveGeometry[i_node], SlaveCenter, mSlaveNormal);
-            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, mSlaveNormal);
+            SlaveProjectedPoint[i_node] = ContactUtilities::FastProject(SlaveGeometry[i_node], SlaveCenter, SlaveNormal);
+            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, SlaveNormal);
         }
         
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, false);
-            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, false);
+            RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
         }
         
         std::vector<Point<3>::Pointer> DummyPointsArray (4);
@@ -880,11 +867,11 @@ private:
                     triangle.GlobalCoordinates(gp_global, gp_local);
                     
                     // We recover this point to the triangle plane
-                    RotatePoint(gp_global, SlaveCenter, true);
+                    RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                     
                     // Now we project to the slave surface
-                    Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - mSlaveNormal); // We came back 
-                    mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                    Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - SlaveNormal); // We came back 
+                    SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     
                     // We can cosntruct now the integration local triangle
                     IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
@@ -992,11 +979,11 @@ private:
                         triangle.GlobalCoordinates(gp_global, gp_local);
                         
                         // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, true);
+                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - mSlaveNormal); // We came back 
-                        mSlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                        Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - SlaveNormal); // We came back 
+                        SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can cosntruct now the integration local triangle
                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
