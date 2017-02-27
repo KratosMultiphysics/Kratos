@@ -28,29 +28,19 @@ namespace Kratos
 {
     namespace Testing 
     {
-        constexpr double EPSILON = std::numeric_limits<double>::epsilon();
-        constexpr double TOLERANCE = 1e-6;
-        
         /// Tests
-        
-//         /** It test the distance function
-//          * It test the distance function
-//          */
-//         
-//         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDistanceTest, KratosCoreMathUtilsFastSuite) 
-//         {
-//             // FIXME: I don't know what the Distnace function does
-//         }
-//         
+       
         /** Checks if the area of the triangle is calculated correctly using Heron equation.
          * Checks if the area of the triangle is calculated correctly using Heron equation.
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsHeronTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double tolerance = 1e-6;
+            
             const double area = MathUtils<double>::Heron<false>(std::sqrt(2.0), 1.0, 1.0);
 
-            KRATOS_CHECK_NEAR(area, 0.5, TOLERANCE);
+            KRATOS_CHECK_NEAR(area, 0.5, tolerance);
         }
         
         /** Checks if it gives you the absolute value of a given value
@@ -92,12 +82,14 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMatTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double tolerance = 1e-6;
+            
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11 = ZeroMatrix(1, 1);
             mat11(0,0) = 1.0;
             
             double det = MathUtils<double>::DetMat<1>(mat11);
 
-            KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
             boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = 1.0;
@@ -105,7 +97,7 @@ namespace Kratos
             
             det = MathUtils<double>::DetMat<2>(mat22);
 
-            KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
             boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 1.0;
@@ -114,7 +106,7 @@ namespace Kratos
             
             det = MathUtils<double>::DetMat<3>(mat33);
 
-            KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
             
             boost::numeric::ublas::bounded_matrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
             mat44(0,0) = 1.0;
@@ -124,7 +116,7 @@ namespace Kratos
             
             det = MathUtils<double>::DetMat<4>(mat44);
 
-            KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
         }
         
         /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
@@ -133,6 +125,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double tolerance = 1e-6;
+            
             srand (time(NULL));
 
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11;
@@ -142,7 +136,7 @@ namespace Kratos
             const boost::numeric::ublas::bounded_matrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
             const boost::numeric::ublas::bounded_matrix<double, 1, 1> I11 = prod(inv11, mat11);
             
-            KRATOS_CHECK_NEAR(I11(0,0), 1.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
             
             boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22;
             for (unsigned int i = 0; i < 2; i++)
@@ -162,11 +156,11 @@ namespace Kratos
                 {
                     if (i == j) 
                     {
-                        KRATOS_CHECK_NEAR(I22(i,j), 1.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I22(i,j), 1.0, tolerance);
                     }
                     else 
                     {
-                        KRATOS_CHECK_NEAR(I22(i,j), 0.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I22(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -189,11 +183,11 @@ namespace Kratos
                 {
                     if (i == j) 
                     {
-                        KRATOS_CHECK_NEAR(I33(i,j), 1.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I33(i,j), 1.0, tolerance);
                     }
                     else
                     {
-                        KRATOS_CHECK_NEAR(I33(i,j), 0.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I33(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -216,11 +210,11 @@ namespace Kratos
                 {
                     if (i == j) 
                     {
-                        KRATOS_CHECK_NEAR(I44(i,j), 1.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I44(i,j), 1.0, tolerance);
                     }
                     else 
                     {
-                        KRATOS_CHECK_NEAR(I44(i,j), 0.0, TOLERANCE);
+                        KRATOS_CHECK_NEAR(I44(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -232,6 +226,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrixTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double tolerance = 1e-6;
+            
             srand (time(NULL));
             
             for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
@@ -259,11 +255,11 @@ namespace Kratos
                     {
                         if (i == j) 
                         {
-                            KRATOS_CHECK_NEAR(I(i,j), 1.0, TOLERANCE);
+                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
                         }
                         else 
                         {
-                            KRATOS_CHECK_NEAR(I(i,j), 0.0, TOLERANCE);
+                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                         }
                     }
                 }
@@ -291,6 +287,8 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsEigenTest, KratosCoreMathUtilsFastSuite) 
         {
+            constexpr double tolerance = 1e-6;
+            
             boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> eigenmat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> vectormat33;
@@ -315,7 +313,7 @@ namespace Kratos
             {
                 for (unsigned int j = i; j < 3; j++)
                 {
-                    KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), TOLERANCE);
+                    KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), tolerance);
                 }
             }
             
