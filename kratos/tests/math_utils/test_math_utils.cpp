@@ -86,8 +86,8 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(max, 1.0);
         }
         
-        /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 2x2 matrix 
-         * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 2x2 matrix 
+        /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix 
+         * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMatTest, KratosCoreMathUtilsFastSuite) 
@@ -127,8 +127,8 @@ namespace Kratos
             KRATOS_CHECK_NEAR(det, 1.0, TOLERANCE);
         }
         
-        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
-         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
+        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
+         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreMathUtilsFastSuite) 
@@ -226,8 +226,8 @@ namespace Kratos
             }
         }
         
-        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
-         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 2x2 matrix 
+        /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
+         * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
          */
         
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrixTest, KratosCoreMathUtilsFastSuite) 
@@ -278,11 +278,11 @@ namespace Kratos
         {
             int sign = MathUtils<double>::Sign(-1.0);
             
-            KRATOS_CHECK_EQUAL(sign, -1.0);
+            KRATOS_CHECK_EQUAL(sign, -1);
             
             sign = MathUtils<double>::Sign(1.0);
             
-            KRATOS_CHECK_EQUAL(sign, 1.0);
+            KRATOS_CHECK_EQUAL(sign, 1);
         }
         
         /** Checks if it calculates the eigen decomposition of a 3x3 system
