@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_LINE_2D_3_H_INCLUDED )
@@ -163,8 +171,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 3 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 3, given " , BaseType::PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 3, given " << BaseType::PointsNumber() << std::endl;
     }
 
     /** Copy constructor.
@@ -556,7 +563,7 @@ public:
      */
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** Determinant of jacobian in specific integration point of
@@ -579,7 +586,7 @@ public:
      */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -596,7 +603,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** Inverse of jacobians for given integration method. This method
@@ -615,7 +622,7 @@ public:
      */
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** Inverse of jacobian in specific integration point of given integration
@@ -638,7 +645,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -654,7 +661,7 @@ public:
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     /** EdgesNumber
@@ -690,9 +697,7 @@ public:
         case 2:
 	    return( 1.0 -rPoint[0]*rPoint[0] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -704,7 +709,7 @@ public:
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
