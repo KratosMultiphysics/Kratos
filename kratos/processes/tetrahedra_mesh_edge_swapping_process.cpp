@@ -105,6 +105,46 @@ namespace Kratos
 				mTriangles[9] = {  1, 2, 4  };
 			}
 		};
+
+		class  EdgeSwappingCases6 : public EdgeSwappingCases< 14, 20, 4 > {
+		public:
+			EdgeSwappingCases6() : EdgeSwappingCases() {
+				mCases[0] = EdgeSwappingCase({ 0, 1, 2, 3 });
+				mCases[1] = EdgeSwappingCase({ 0, 1, 4, 5 });
+				mCases[2] = EdgeSwappingCase({ 0, 6, 7, 3 });
+				mCases[3] = EdgeSwappingCase({ 0, 6, 8, 9 });
+				mCases[4] = EdgeSwappingCase({ 0, 4, 10, 9 });
+				mCases[5] = EdgeSwappingCase({ 11, 12, 2, 3 });
+				mCases[6] = EdgeSwappingCase({ 11, 12, 4, 5 });
+				mCases[7] = EdgeSwappingCase({ 11, 13, 14, 3 });
+				mCases[8] = EdgeSwappingCase({ 11, 13, 15, 16 });
+				mCases[9] = EdgeSwappingCase({ 11, 4, 17, 16 });
+				mCases[10] = EdgeSwappingCase({ 6, 18, 14, 3 });
+				mCases[11] = EdgeSwappingCase({ 6, 18, 15, 16 });
+				mCases[12] = EdgeSwappingCase({ 6, 8, 19, 16 });
+				mCases[13] = EdgeSwappingCase({ 4, 10, 19, 16 });
+				mTriangles[0] = { 0 , 1 , 2 };
+				mTriangles[1] = { 0 , 2 , 3 };
+				mTriangles[2] = { 0 , 3 , 4 };
+				mTriangles[3] = { 0 , 4 , 5 };
+				mTriangles[4] = { 3 , 4 , 5 };
+				mTriangles[5] = { 0 , 3 , 5 };
+				mTriangles[6] = { 2 , 3 , 4 };
+				mTriangles[7] = { 0 , 2 , 4 };
+				mTriangles[8] = { 2 , 4 , 5 };
+				mTriangles[9] = { 0 , 2 , 5 };
+				mTriangles[10] = { 2 , 3 , 5 };
+				mTriangles[11] = { 1 , 2 , 3 };
+				mTriangles[12] = { 0 , 1 , 3 };
+				mTriangles[13] = { 1 , 3 , 4 };
+				mTriangles[14] = { 0 , 1 , 4 };
+				mTriangles[15] = { 1 , 4 , 5 };
+				mTriangles[16] = { 0 , 1 , 5 };
+				mTriangles[17] = { 1 , 3 , 5 };
+				mTriangles[18] = { 1 , 2 , 4 };
+				mTriangles[19] = { 1 , 2 , 5 };
+			}
+		};
 	}
 
 
@@ -181,6 +221,8 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 				EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
 			if (edge.second.GetNumberOfShellPoints() == 5)
 				EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
+			if (edge.second.GetNumberOfShellPoints() == 6)
+				EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
 		}
 
 	}
