@@ -13,7 +13,7 @@ import os
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+#~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -144,10 +144,13 @@ for process in list_of_processes:
 ## Set results when they are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
-# Initialize streamlines_output_utility
-if (domain_size==3):
+# Initialize streamlines_output_utility 
+UseStreamlineUtility = False
+#~ TODO: use a proper bool defined in the GUI to activate or deactivate streamlines_output_utility
+if (parallel_type == "OpenMP" and domain_size==3):
+    UseStreamlineUtility = True
     import streamlines_output_utility
-    streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(domain_size)
+    streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(domain_size)    
 
 if (echo_level > 1):
     f = open("ProjectParametersOutput.json", 'w')
@@ -173,7 +176,7 @@ while( (time+tol) <= end_time ):
     solver.Solve()
 
     # streamlines_output_utility
-    if (domain_size==3):
+    if UseStreamlineUtility:
         streamline_utility.ComputeOutputStep( main_model_part ,domain_size)
     
     gid_output.ExecuteFinalizeSolutionStep()
