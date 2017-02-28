@@ -111,7 +111,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle2D3<Node<3>>();
 
-    KRATOS_CHECK_EXCPETION_RAISED(geom->Volume(), Exception);
+    KRATOS_CHECK_EXCEPTION_RAISED(geom->Volume(), Exception);
 	}
 
   /** Checks if the minimum edge length is calculated correctly.

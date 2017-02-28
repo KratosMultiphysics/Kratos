@@ -505,6 +505,13 @@ public:
      */
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+
+  
     /**
      * Called at the end of eahc solution step
      */
@@ -714,6 +721,13 @@ protected:
      */
     void ClearNodalForces ();
 
+
+    /**
+     * Calculate Nodal Forces
+     */
+    void CalculateNodalForces (ProcessInfo& CurrentProcessInfo);
+
+  
     /**
      * Clear Nodal Forces on Master Element
      */

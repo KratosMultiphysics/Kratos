@@ -36,25 +36,33 @@ design_output_mode = "relative"
 #          "total"      - X is defined relative to initial design
 #          "absolute"   - X is defined as absolute values (coordinates)
 
+
+# ================================================================================================================
+# Case: design_control = "vertex_morphing"
+# ================================================================================================================
+
+model_input_filename = "name_of_input_mdpa"
+design_surface_sub_model_name = "name_of_sub_model_part_to_be_used_for_optimization"
 domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 
-# Case: design_control = "vertex_morphing"
-design_surface_name = "path/to/your/mpda/some_mesh_name"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
 filter_size = 3
+
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-perform_edge_damping = True
-# options: True    - edge damping is applied with the settings below
-#        : False   - no edge damping is applied, settings below can be ignored
-damped_edges = []
-# damped_edges = [ [edge_sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
-#                  [edge_sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
-#                  ... ]
+
+perform_damping = False
+# options: True    - damping is applied with the settings below
+#        : False   - no damping is applied, settings below can be ignored
+
+damping_regions = [ ]
+# damping_region = [ [sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    [sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    ... ]
 # options for damping function: "cosine"
 #                               "linear"
 

@@ -36,26 +36,34 @@ design_output_mode = "relative"
 #          "total"      - X is defined relative to initial design
 #          "absolute"   - X is defined as absolute values (coordinates)
 
+
+# ================================================================================================================
+# Case: design_control = "vertex_morphing"
+# ================================================================================================================
+
+model_input_filename = "3D_Shell"
+design_surface_sub_model_name = "design_surface"
 domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 
-# Case: design_control = "vertex_morphing"
-design_surface_name = "design_surface"
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
 filter_size = 3
+
 use_mesh_preserving_filter_matrix = False
 # options: True    - surface normal information used in the filter matrix
 #        : False   - complete filter matrix is used
-perform_edge_damping = True
-# options: True    - edge damping is applied with the settings below
-#        : False   - no edge damping is applied, settings below can be ignored
-damped_edges = [ ["support_edges", False, True, True, "linear", 3 ],
-                 ["side_edges", False, False, True, "linear", 3 ] ]
-# damped_edges = [ [edge_sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
-#                  [edge_sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
-#                  ... ]
+
+perform_damping = True
+# options: True    - damping is applied with the settings below
+#        : False   - no damping is applied, settings below can be ignored
+
+damping_regions = [ ["support_edges", False, True, True, "linear", 3 ],
+                    ["side_edges", False, False, True, "linear", 3 ] ]
+# damping_region = [ [sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    [sub_model_part_name_2, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
+#                    ... ]
 # options for damping function: "cosine"
 #                               "linear"
 
