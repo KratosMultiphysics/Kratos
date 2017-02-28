@@ -74,9 +74,9 @@ namespace Kratos {
     GeometryPtrType GenerateRegularLen2Tetrahedra3D4() {
       return GeometryPtrType(new GeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(1.0, 0.0, 1.0),
-        GeneratePoint<PointType>(1.0, 1.0, 0.0)
+        GeneratePoint<PointType>(0.0, 2.0, 2.0),
+        GeneratePoint<PointType>(2.0, 0.0, 2.0),
+        GeneratePoint<PointType>(2.0, 2.0, 0.0)
       ));
     }
 
@@ -104,7 +104,7 @@ namespace Kratos {
       // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
       // that for planar geometries it also return the number of edges.
       KRATOS_CHECK_EQUAL(geomRegLen1->FacesNumber(), 4);
-      KRATOS_CHECK_EQUAL(geomRegLen1->FacesNumber(), 4);
+      KRATOS_CHECK_EQUAL(geomRegLen2->FacesNumber(), 4);
       KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 6);
     }
 
@@ -117,7 +117,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       KRATOS_CHECK_NEAR(geomRegLen1->Area(), 1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Area(), 2.0/3.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Area(), 2.0/3.0, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Area(), 1.0/6.0, TOLERANCE);
     }
 
@@ -131,7 +131,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       KRATOS_CHECK_NEAR(geomRegLen1->Volume(), 1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->Volume(), 2.0/3.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Volume(), 2.0/3.0, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Volume(), 1.0/6.0, TOLERANCE);
   	}
 
@@ -159,7 +159,7 @@ namespace Kratos {
 
       // Should be the same
       KRATOS_CHECK_NEAR(geomRegLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen1->MaxEdgeLength(), 2.828427, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->MaxEdgeLength(), 2.828427, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->MaxEdgeLength(), 1.414213, TOLERANCE);
     }
 
@@ -186,7 +186,7 @@ namespace Kratos {
 
       // Should be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen2->Circumradius(), 0.866025, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
     }
 
@@ -200,7 +200,7 @@ namespace Kratos {
 
       // Should NOT be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen2->Inradius(), 0.288675, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
     }
 
