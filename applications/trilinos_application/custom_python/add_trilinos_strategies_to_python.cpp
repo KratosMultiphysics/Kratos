@@ -60,7 +60,6 @@
 #include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 #include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
-#include "custom_strategies/strategies/trilinos_adjoint_fluid_strategy.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -230,6 +229,11 @@ void AddStrategies()
     .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
     .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
     ;
+
+    typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;
+    class_< TrilinosLinearStrategy , bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
+    ("TrilinosLinearStrategy", init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosBuilderAndSolverType::Pointer, bool, bool, bool, bool >())
+    ;
             
     typedef ResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosNewtonRaphsonStrategy;
     class_< TrilinosNewtonRaphsonStrategy , bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
@@ -255,14 +259,6 @@ void AddStrategies()
     ;
 
     //********************************************************************************************
-
-    class_< TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
-    ("TrilinosAdjointFluidStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int >())
-    .def("Solve", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve)
-    .def("SetDragForceDirection", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetDragForceDirection)
-    .def("ComputeSensitivity", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ComputeSensitivity)
-    ;
-
 }
 
 } // namespace Python.

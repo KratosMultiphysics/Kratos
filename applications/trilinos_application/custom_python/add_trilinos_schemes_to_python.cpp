@@ -59,6 +59,9 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
 #include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
+#include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_drag_scheme.h"
+#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_drag_scheme.h"
+
 //convergence criterias
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 // #include "solving_strategies/convergencecriterias/displacement_criteria.h"
@@ -244,6 +247,18 @@ void  AddSchemes()
             .def(init<>()) // constructor without a turbulence model
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
             ;
+
+    class_< AdjointBossakDragScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+    	    bases<TrilinosBaseSchemeType>, boost::noncopyable >
+        ( 
+            "TrilinosAdjointBossakDragScheme", init<double>()
+        );
+
+    class_< AdjointSteadyDragScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+          bases<TrilinosBaseSchemeType>, boost::noncopyable >
+        ( 
+            "TrilinosAdjointSteadyDragScheme", init<>() 
+        );
 }
 
 
