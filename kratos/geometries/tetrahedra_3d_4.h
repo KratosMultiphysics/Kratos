@@ -700,9 +700,9 @@ public:
      * @return [description]
      */
     virtual double VolumeToAverageEdgeLength() const {
-      constexpr double normFactor = 3.0 * 1.41421356237309504880;
+      constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
-      return normFactor * Volume() / AverageEdgeLength();
+      return normFactor * Volume() / std::pow(AverageEdgeLength(), 3);
     }
 
     /** Calculates the volume to average edge length quality metric.
