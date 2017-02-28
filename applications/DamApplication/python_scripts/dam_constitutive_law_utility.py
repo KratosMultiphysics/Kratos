@@ -10,7 +10,10 @@ def SetConstitutiveLaw(model_part):
     for prop in model_part.Properties:
         if prop.Has(CONSTITUTIVE_LAW_NAME):
             ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
-            mat = globals().get(ConstitutiveLawName)()
-            prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+            if (ConstitutiveLawName=="Newtonian"):
+                print("Newtonian Law is not used, we just need its parameters")
+            else:
+                mat = globals().get(ConstitutiveLawName)()
+                prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
         else:
             print("Property",prop.Id,"has no CONSTITUTIVE_LAW_NAME")
