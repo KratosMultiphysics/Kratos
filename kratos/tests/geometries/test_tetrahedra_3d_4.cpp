@@ -301,9 +301,9 @@ namespace Kratos {
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.839947, TOLERANCE);
     }
 
     /** Checks if the volume to average edge length quality metric is correctly calculated.
@@ -318,9 +318,9 @@ namespace Kratos {
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.804041, TOLERANCE);
     }
 
     /** Checks if the volume to RMS edge length quality metric is correctly calculated.
@@ -335,9 +335,9 @@ namespace Kratos {
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.839947, TOLERANCE);
     }
 
 
