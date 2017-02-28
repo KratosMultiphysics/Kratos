@@ -59,6 +59,16 @@ namespace Kratos
     enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 #endif
     
+// #if !defined(ELEMENT_TYPE)
+// #define ELEMENT_TYPE
+//     enum ElementType {Triangle = 3, Quadrilateral = 4, Tetrahedron = 4, Hexahedron = 6};
+// #endif
+//     
+// #if !defined(CONDITION_TYPE)
+// #define CONDITION_TYPE
+//     enum ConditionType {Line = 2,Triangle = 3, Quadrilateral = 4};
+// #endif
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -454,8 +464,8 @@ protected:
     public:
         
         // Auxiliar types
-        typedef bounded_matrix<double, TNumNodes, TTensor>   Type1;
-        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type2;
+        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TTensor>   Type1;
+        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Type2;
         
         // Master and element geometries
         GeometryType SlaveGeometry;
@@ -503,7 +513,7 @@ protected:
     public:
         
         // Auxiliar types
-        typedef bounded_matrix<double, TNumNodes, TNumNodes> Type3;
+        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Type3;
         
         // Matrices
         Type3 Me;
@@ -534,8 +544,8 @@ protected:
         */
        
         // Mortar condition matrices - DOperator and MOperator
-        bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
-        bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
 
        /*
         * Struct Methods
@@ -738,7 +748,7 @@ protected:
     template<unsigned int TMatrixSize>
     void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
-        const bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
+        const boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
         );
 
@@ -747,7 +757,7 @@ protected:
      */
     template<unsigned int TMatrixSize>
     void AssembleContactPairLHSToConditionSystem( 
-        const bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
+        const boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
         MatrixType& rConditionLHS,
         const unsigned int rPairIndex
         );
@@ -756,7 +766,7 @@ protected:
      * Calculates the local contibution of the LHS
      */
     template<unsigned int TMatrixSize>
-    bounded_matrix<double, TMatrixSize, TMatrixSize> CalculateLocalLHS(
+    boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const unsigned int& rMasterElementIndex,
         const unsigned int& rActiveInactive
@@ -812,7 +822,7 @@ protected:
     /*
      * Calculates the matrix De
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
         const array_1d<double, TNumNodes> N1, 
         const double detJ 
         );
@@ -820,7 +830,7 @@ protected:
     /*
      * Calculates the matrix De
      */
-    bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
+    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
         const array_1d<double, TNumNodes> N1, 
         const double detJ 
         );

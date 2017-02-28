@@ -539,6 +539,8 @@ private:
                 
                 IntegrationPointsSlave[PointNumber] = IntegrationPoint<2>( xi, weight );
             }
+            
+            return true;
         }
         else
         {
@@ -560,7 +562,7 @@ private:
 //                 }
 //             }
 
-        return true;
+        return false;
     }
     
     /***********************************************************************************/
@@ -603,6 +605,8 @@ private:
             (AllInside[1] == false) &&
             (AllInside[2] == false))
         {
+            IntegrationPointsSlave.clear();
+//             IntegrationPointsSlave.resize(0, false);
             return false;
         }
         // All the points inside
@@ -793,6 +797,8 @@ private:
             }
             else // No intersection
             {
+                IntegrationPointsSlave.clear();
+//                 IntegrationPointsSlave.resize(0, false);
                 return false;
             }
         }
@@ -859,6 +865,8 @@ private:
             (AllInside[2] == false) &&
             (AllInside[3] == false))
         {
+            IntegrationPointsSlave.clear();
+//             IntegrationPointsSlave.resize(0, false);
             return false;
         }
         // All the points inside
@@ -1067,14 +1075,18 @@ private:
                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
                     }
                 }
+                
+                return true;
             }
             else // No intersection
             {
+                IntegrationPointsSlave.clear();
+//                 IntegrationPointsSlave.resize(0, false);
                 return false;
             }
         }
         
-        return true;
+        return false;
     }
 }
 
