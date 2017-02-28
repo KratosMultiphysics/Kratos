@@ -83,7 +83,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 
-template< unsigned int TDim, unsigned int TNumNodes, unsigned int TNumNodesElem, TensorValue TTensor>
+template< unsigned int TDim, unsigned int NumNodesElem, TensorValue TTensor>
 class MeshTyingMortarCondition: public Condition 
 {
 public:
@@ -107,6 +107,8 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
+    constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : NumNodesElem == 4 ? 3 : 4;
+    
     /**
      * Parameters to be used in the Condition as they are.
      */
@@ -144,9 +146,9 @@ public:
             mMasterElementIndex = 0;
 
             // Shape functions
-            N_Master                = ZeroVector(TNumNodes);
-            N_Slave                 = ZeroVector(TNumNodes);
-            Phi_LagrangeMultipliers = ZeroVector(TNumNodes);
+            N_Master                = ZeroVector(NumNodes);
+            N_Slave                 = ZeroVector(NumNodes);
+            Phi_LagrangeMultipliers = ZeroVector(NumNodes);
             
             // Jacobian of slave
             DetJSlave = 0.0;
@@ -464,8 +466,8 @@ protected:
     public:
         
         // Auxiliar types
-        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TTensor>   Type1;
-        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Type2;
+        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, TTensor>   Type1;
+        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Type2;
         
         // Master and element geometries
         GeometryType SlaveGeometry;
@@ -492,16 +494,16 @@ protected:
             SlaveGeometry  = GeometryInput;
             
             // The current Lagrange Multipliers
-            u1 = ZeroMatrix(TNumNodes, TTensor);
-            u2 = ZeroMatrix(TNumNodes, TTensor);
-            LagrangeMultipliers = ZeroMatrix(TNumNodes, TTensor);
+            u1 = ZeroMatrix(NumNodes, TTensor);
+            u2 = ZeroMatrix(NumNodes, TTensor);
+            LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
         }
         
         // Initialize the Ae components
         void InitializeAeComponents()
         {
             // Ae
-            Ae = ZeroMatrix(TNumNodes, TNumNodes);
+            Ae = ZeroMatrix(NumNodes, NumNodes);
         }
     };
     
@@ -513,7 +515,7 @@ protected:
     public:
         
         // Auxiliar types
-        typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Type3;
+        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Type3;
         
         // Matrices
         Type3 Me;
@@ -526,8 +528,8 @@ protected:
         void Initialize()
         {
             // Matrices
-            Me = ZeroMatrix(TNumNodes, TNumNodes);
-            De = ZeroMatrix(TNumNodes, TNumNodes);
+            Me = ZeroMatrix(NumNodes, NumNodes);
+            De = ZeroMatrix(NumNodes, NumNodes);
         }
     };
     
@@ -544,8 +546,8 @@ protected:
         */
        
         // Mortar condition matrices - DOperator and MOperator
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> DOperator;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> MOperator;
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> DOperator;
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> MOperator;
 
        /*
         * Struct Methods
@@ -554,8 +556,8 @@ protected:
         void Initialize()
         {
             // We initialize the D and M operators
-            DOperator = ZeroMatrix(TNumNodes, TNumNodes);
-            MOperator = ZeroMatrix(TNumNodes, TNumNodes);
+            DOperator = ZeroMatrix(NumNodes, NumNodes);
+            MOperator = ZeroMatrix(NumNodes, NumNodes);
         }
         
         void print() 
@@ -822,16 +824,16 @@ protected:
     /*
      * Calculates the matrix De
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeDe(        
-        const array_1d<double, TNumNodes> N1, 
+    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeDe(        
+        const array_1d<double, NumNodes> N1, 
         const double detJ 
         );
     
     /*
      * Calculates the matrix De
      */
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> ComputeMe(        
-        const array_1d<double, TNumNodes> N1, 
+    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeMe(        
+        const array_1d<double, NumNodes> N1, 
         const double detJ 
         );
     
