@@ -213,6 +213,39 @@ namespace Kratos {
 
         KRATOS_TRY       
         
+        /*
+        if ((element1->GetGeometry()[0].Coordinates()[0] > -0.006) && (element1->GetGeometry()[0].Coordinates()[0] < -0.005) &&
+            (element1->GetGeometry()[0].Coordinates()[1] > 0.3) && (element1->GetGeometry()[0].Coordinates()[1] < 0.306) && 
+            (element2->GetGeometry()[0].Coordinates()[0] > 0.0) && (element2->GetGeometry()[0].Coordinates()[0] < 0.006) &&
+            (element2->GetGeometry()[0].Coordinates()[1] > 0.3) && (element2->GetGeometry()[0].Coordinates()[1] < 0.306)) {
+            
+            KRATOS_WATCH(element1->Id())
+            KRATOS_WATCH(element2->Id())
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+            //KRATOS_WATCH("It happened!")
+        }
+        
+        if ((element1->GetGeometry()[0].Coordinates()[0] > 0.33) && (element1->GetGeometry()[0].Coordinates()[0] < 0.35) &&
+            (element1->GetGeometry()[0].Coordinates()[1] > 0.3) && (element1->GetGeometry()[0].Coordinates()[1] < 0.306) && 
+            (element2->GetGeometry()[0].Coordinates()[0] > 0.35) && (element2->GetGeometry()[0].Coordinates()[0] < 0.36) &&
+            (element2->GetGeometry()[0].Coordinates()[1] > 0.3) && (element2->GetGeometry()[0].Coordinates()[1] < 0.306)) {
+            
+            KRATOS_WATCH(element1->Id())
+            KRATOS_WATCH(element2->Id())
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+            //KRATOS_WATCH("It happened!")
+        }
+                
+        if ((element1->Id() == 502 && element2->Id() == 493) || (element1->Id() == 493 && element2->Id() == 502) || 
+            (element1->Id() == 168 && element2->Id() == 192) || (element1->Id() == 192 && element2->Id() == 168)) {
+        
+            LocalElasticContactForce[2] = 0.0;
+            element1->mIniNeighbourFailureId[i_neighbour_count] = 4;
+            
+            return;
+        }
+        */  
+                
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;  
         }
@@ -231,6 +264,7 @@ namespace Kratos {
                 LocalElasticContactForce[2] = 0.0; 
             }
         }
+        
         KRATOS_CATCH("")      
     }
 
