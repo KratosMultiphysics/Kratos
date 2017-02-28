@@ -19,6 +19,7 @@
 
 // Project includes
 #include <map>
+#include <set>
 #include <math.h> 
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -138,7 +139,7 @@ public:
         }
         else
         {
-            mAuxIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
         }
     }
     
@@ -213,14 +214,14 @@ public:
         const bool Inversed
         )
     {
-        const double Tolerance = 1.0e-8;
+        const double Tolerance = 1.0e-16;
         
         // We move to the (0,0,0)
         Point<3> AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
         // We calculate the normal angle
-        double Phi0 = std::atan(SlaveNormal[0]/SlaveNormal[2]) + Tolerance;
+        double Phi0 = std::atan(SlaveNormal[2]/(SlaveNormal[0] + Tolerance));
         double Phi1 = M_PI/2.0;
         
         if (Inversed == true)
@@ -229,8 +230,11 @@ public:
             Phi1 = Phi0;
         }
         
-        AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/std::sin(Phi0);
-        AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/std::sin(Phi0);
+//         // Debug
+//         std::cout << Phi0 << " " << Phi1 << std::endl;
+        
+        AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
+        AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
         if (Inversed == false)
         {
             AuxPointToRotate.Coordinate(3) = 0.0;
@@ -267,6 +271,12 @@ public:
         
         const double Denom = SOrig1Orig2X * SDest1Dest2Y - SDest1Dest2X * SOrig1Orig2Y;
         
+//         // Debug
+//         KRATOS_WATCH(PointOrig1);
+//         KRATOS_WATCH(PointOrig2);
+//         KRATOS_WATCH(PointDest1);
+//         KRATOS_WATCH(PointDest2);
+        
         if (Denom == 0.0) // NOTE: Collinear
         {
             return false;
@@ -274,8 +284,8 @@ public:
         
         const bool DenomPositive = (Denom > 0.0);
         
-        const double SOrig1Dest1X = PointOrig2.Coordinate(1) - PointDest1.Coordinate(1);
-        const double SOrig1Dest1Y = PointOrig2.Coordinate(2) - PointDest1.Coordinate(2);
+        const double SOrig1Dest1X = PointOrig1.Coordinate(1) - PointDest1.Coordinate(1);
+        const double SOrig1Dest1Y = PointOrig1.Coordinate(2) - PointDest1.Coordinate(2);
         
         const double SNumer = SOrig1Orig2X * SOrig1Dest1Y - SOrig1Orig2Y * SOrig1Dest1X;
         
@@ -573,13 +583,12 @@ private:
         const double TotalArea = SlaveGeometry.Area();
         
         // No we project both nodes from the slave side and the master side
-        array_1d<Point<3>, 3> SlaveProjectedPoint;
         array_1d<Point<3>, 3> MasterProjectedPoint;
         array_1d<bool, 3> AllInside;
         
         for (unsigned int i_node = 0; i_node < 3; i_node++)
         {
-            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, SlaveNormal);
+            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(SlaveCenter, MasterGeometry[i_node], SlaveNormal);
             
             GeometryType::CoordinatesArrayType ProjectedGPLocal;
         
@@ -615,6 +624,8 @@ private:
             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
+            IntegrationPointsSlave.resize(LocalIntegrationSize, false);
+            
             // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
             for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
             {                    
@@ -631,7 +642,7 @@ private:
                 SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                 
                 // We can cosntruct now the integration local triangle
-                IntegrationPointsSlave[PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
             }
             
             return true;
@@ -657,24 +668,37 @@ private:
                 MapEdges.insert(std::make_pair(i_edge, 0));
 //                 MapEdges [i_edge] = 0;
                 
-                unsigned int ip_edge = (i_edge == 2) ? 0 : i_edge + 1;
+                const unsigned int ip_edge = (i_edge == 2) ? 0 : i_edge + 1;
                 for (unsigned int j_edge = 0; j_edge < 3; j_edge++)
                 {
-                    unsigned int jp_edge = (j_edge == 2) ? 0 : j_edge + 1;
+                    const unsigned int jp_edge = (j_edge == 2) ? 0 : j_edge + 1;
                     
                     Point<3> IntersectedPoint;
                     const bool intersected = Clipping(
                         IntersectedPoint,
-                        SlaveProjectedPoint[i_edge],
-                        SlaveProjectedPoint[ip_edge],
+                        SlaveGeometry[i_edge],
+                        SlaveGeometry[ip_edge],
                         MasterProjectedPoint[j_edge],
                         MasterProjectedPoint[jp_edge]
                         );
                     
                     if (intersected == true)
                     {
-                        PointList.push_back(IntersectedPoint);
-                        MapEdges[i_edge] += 1;
+                        bool AddPoint = true;
+                        for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                        {
+                            Point<3> AuxPoint = IntersectedPoint;
+                            if (AuxPoint == PointList[iter])
+                            {
+                                AddPoint = false;
+                            }
+                        }
+                        
+                        if (AddPoint == true) 
+                        {
+                            PointList.push_back(IntersectedPoint);
+                            MapEdges[i_edge] += 1;
+                        }
                     }
                 }
             }
@@ -686,9 +710,29 @@ private:
                 
                 if ((MapEdges[i_node]  == 1) && (MapEdges[il_node] == 1))
                 {
-                    PointList.push_back(SlaveProjectedPoint[i_node]);
+                    bool AddPoint = true;
+                    for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                    {
+                        Point<3> AuxPoint = SlaveGeometry[i_node];
+                        if (AuxPoint == PointList[iter])
+                        {
+                            AddPoint = false;
+                        }
+                    }
+                    
+                    if (AddPoint == true) 
+                    {
+                        PointList.push_back(SlaveGeometry[i_node]);
+                    }
                 }
             }
+            
+//             // Debug 
+//             KRATOS_WATCH(PointList.size());
+//             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
+//             {
+//                 KRATOS_WATCH(PointList[i_list]);
+//             }
             
             // We compose the triangles 
             const unsigned int ListSize = PointList.size();
@@ -716,8 +760,8 @@ private:
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
-                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -741,7 +785,7 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                         
                         // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                     }
                 }
                 
@@ -780,8 +824,8 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            SlaveProjectedPoint[i_node] = ContactUtilities::FastProject(SlaveGeometry[i_node], SlaveCenter, SlaveNormal);
-            MasterProjectedPoint[i_node] = ContactUtilities::FastProject(MasterGeometry[i_node], SlaveCenter, SlaveNormal);
+            SlaveProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, SlaveGeometry[i_node], SlaveNormal);
+            MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
         // Before clipping we rotate to a XY plane
@@ -870,11 +914,11 @@ private:
                     RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                     
                     // Now we project to the slave surface
-                    Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - SlaveNormal); // We came back 
+                    Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     
                     // We can cosntruct now the integration local triangle
-                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                 }
             }
             
@@ -898,10 +942,10 @@ private:
                 MapEdges.insert(std::make_pair(i_edge, 0));
     //             MapEdges [i_edge] = 0;
                 
-                unsigned int ip_edge = (i_edge == 3) ? 0 : i_edge + 1;
+                const unsigned int ip_edge = (i_edge == 3) ? 0 : i_edge + 1;
                 for (unsigned int j_edge = 0; j_edge < 4; j_edge++)
                 {
-                    unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
+                    const unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
                     
                     Point<3> IntersectedPoint;
                     const bool intersected = Clipping(
@@ -930,7 +974,14 @@ private:
                 }
             }
             
-            // We compose the triangles (TODO: Adapt for quadrilaterals)
+            // Debug 
+            KRATOS_WATCH(PointList.size());
+            for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
+            {
+                KRATOS_WATCH(PointList[i_list]);
+            }
+            
+            // We compose the triangles
             const unsigned int ListSize = PointList.size();
             if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
             {
@@ -982,11 +1033,11 @@ private:
                         RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj = ContactUtilities::FastProject(gp_global, SlaveCenter, - SlaveNormal); // We came back 
+                        Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                     }
                 }
             }
