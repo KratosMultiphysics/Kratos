@@ -33,11 +33,7 @@ else:
 class Solution:
     
     def __init__(self):
-        pass
-
-
-    def Run(self):        
-
+        
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
         if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
@@ -56,21 +52,13 @@ class Solution:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
             
         self.solver_strategy = SolverStrategy
-        
-        self.Initialize()        
-        
-        self.RunMainTemporalLoop()
 
-        self.Finalize()        
-
-
-        
-    def Initialize(self):
-        
+        self.creator_destructor = ParticleCreatorDestructor()
+        self.dem_fem_search = DEM_FEM_Search()
         self.procedures    = DEM_procedures.Procedures(DEM_parameters)
         self.procedures.CheckInputParameters(DEM_parameters)
-
-        # Creating necessary directories
+        
+        # Creating necessary directories:
         self.main_path = os.getcwd()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
 
@@ -78,10 +66,23 @@ class Solution:
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
+        self.scheme = self.procedures.SetScheme()
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
+        
 
+    def Run(self):        
+    
+        self.Initialize()        
+        
+        self.RunMainTemporalLoop()
+
+        self.Finalize()        
+
+        
+    def Initialize(self):                
+        
         # Prepare modelparts
         self.spheres_model_part    = ModelPart("SpheresPart")
         self.rigid_face_model_part = ModelPart("RigidFacePart")
@@ -90,55 +91,12 @@ class Solution:
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
         self.all_model_parts = DEM_procedures.SetOfModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.mapping_model_part, self.contact_model_part)
+                
+        self.solver = self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
-        # Constructing a utilities objects
-        self.creator_destructor = ParticleCreatorDestructor()
-        self.dem_fem_search = DEM_FEM_Search()
-
-        scheme = self.procedures.SetScheme()
-        self.solver = self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, scheme, DEM_parameters, self.procedures)
-
-        self.procedures.AddAllVariablesInAllModelParts(self.solver, scheme, self.all_model_parts, DEM_parameters)
-
-        os.chdir(self.main_path)
-        # Reading the model_part
-        spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
-        model_part_io_spheres = model_part_reader(spheres_mp_filename)
-
-        if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
-            pass
-        else:
-            self.parallelutils.PerformInitialPartition(model_part_io_spheres)
-
-        os.chdir(self.main_path)
-        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-
-        model_part_io_spheres.ReadModelPart(self.spheres_model_part)
-
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
-        old_max_elem_Id_spheres = max_elem_Id
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
-        rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-        model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
-        model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
-
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
-        clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
-        model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
-        model_part_io_clusters.ReadModelPart(self.cluster_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
-        if (max_elem_Id != old_max_elem_Id_spheres):
-            self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_Id)
-
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
-        DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
-        model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
-        model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+        self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
+        
+        self.ReadModelParts()        
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -203,7 +161,49 @@ class Solution:
         self.report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         
-    
+        
+    def ReadModelParts(self):
+        
+        os.chdir(self.main_path)
+        # Reading the model_part
+        spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
+        model_part_io_spheres = model_part_reader(spheres_mp_filename)
+
+        if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+            pass
+        else:
+            self.parallelutils.PerformInitialPartition(model_part_io_spheres)
+
+        os.chdir(self.main_path)
+        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+        
+        model_part_io_spheres.ReadModelPart(self.spheres_model_part)
+
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+        old_max_elem_Id_spheres = max_elem_Id
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
+        rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+        model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
+
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
+        clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+        model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_clusters.ReadModelPart(self.cluster_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+        if (max_elem_Id != old_max_elem_Id_spheres):
+            self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_Id)
+
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
+        DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
+        model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+        
     
     def RunMainTemporalLoop(self):
         
@@ -212,16 +212,22 @@ class Solution:
         time_old_print = 0.0
         
         while (time < DEM_parameters.FinalTime):
+            
+            self.InitlializeTimeStep()
 
             dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
             time  = time + dt
             step += 1
 
             self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, time,dt,step) 
+            
+            self.BeforeSolveOperations()
 
             #### SOLVE #########################################
             self.solver.Solve()
             ####################################################
+            
+            self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, time, dt)
 
@@ -249,28 +255,50 @@ class Solution:
             time_to_print = time - time_old_print
 
             if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
-
-                if self.solver.poisson_ratio_option:
-                    self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
-
-                if DEM_parameters.PostEulerAngles:
-                    self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
-
-                self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
-
-                os.chdir(self.data_and_results)
-                self.demio.PrintMultifileLists(time, self.post_path)
-                os.chdir(self.post_path)
-
-                self.solver.PrepareElementsForPrinting()
-                if (DEM_parameters.ContactMeshOption == "ON"):
-                    self.solver.PrepareContactElementsForPrinting()
-
-                self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
-                os.chdir(self.main_path)
-
+                
+                self.PrintResultsForGid(time)                
                 time_old_print = time
                 
+            self.FinalizeTimeStep()
+                
+    
+    def PrintResultsForGid(self, time):
+        
+        if self.solver.poisson_ratio_option:
+            self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
+
+        if DEM_parameters.PostEulerAngles:
+            self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
+
+        self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
+
+        os.chdir(self.data_and_results)
+        self.demio.PrintMultifileLists(time, self.post_path)
+        os.chdir(self.post_path)
+
+        self.solver.PrepareElementsForPrinting()
+        if (DEM_parameters.ContactMeshOption == "ON"):
+            self.solver.PrepareContactElementsForPrinting()
+
+        self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+        os.chdir(self.main_path)
+        
+        
+    def InitlializeTimeStep(self):
+        pass
+    
+    
+    def BeforeSolveOperations(self):
+        pass
+    
+    
+    def AfterSolveOperations(self):
+        pass
+    
+    
+    def FinalizeTimeStep(self):
+        pass
+    
     
     def Finalize(self):
         
