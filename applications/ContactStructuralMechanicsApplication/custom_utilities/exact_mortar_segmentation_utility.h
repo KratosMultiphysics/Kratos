@@ -631,7 +631,7 @@ private:
                 SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                 
                 // We can cosntruct now the integration local triangle
-                IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                IntegrationPointsSlave[PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
             }
             
             return true;
@@ -741,7 +741,7 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                         
                         // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                     }
                 }
                 
@@ -874,7 +874,7 @@ private:
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     
                     // We can cosntruct now the integration local triangle
-                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                 }
             }
             
@@ -986,7 +986,7 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<2>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
                     }
                 }
             }
