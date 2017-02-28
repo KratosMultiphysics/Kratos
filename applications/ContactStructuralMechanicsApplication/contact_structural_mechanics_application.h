@@ -34,8 +34,6 @@
 
 // OLD Mortar conditions 
 #include "custom_conditions/mortar_contact_condition.h"
-#include "custom_conditions/mortar_contact_2D_condition.hpp"
-#include "custom_conditions/mortar_contact_3D_condition.hpp"
 
 namespace Kratos
 {
@@ -207,20 +205,10 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4> mALMFrictionlessMortarContactCondition3D4N;
     
     // OLD Mortar conditions
-//     const MortarContact2DCondition mMortarContactCondition2D2N;
     const MortarContactCondition<2, 2> mMortarContactCondition2D2N;
-//     const MortarContact2DCondition mMortarContactCondition2D3N;
     const MortarContactCondition<2, 3> mMortarContactCondition2D3N;
-//     const MortarContact3DCondition mMortarContactCondition3D3N;
     const MortarContactCondition<3, 3> mMortarContactCondition3D3N;
-    const MortarContact3DCondition mMortarContactCondition3D6N;
-//     const MortarContactCondition<3, 6> mMortarContactCondition3D6N;
-//     const MortarContact3DCondition mMortarContactCondition3D4N;
     const MortarContactCondition<3, 4> mMortarContactCondition3D4N;
-    const MortarContact3DCondition mMortarContactCondition3D8N;
-//     const MortarContactCondition<3, 8> mMortarContactCondition3D8N;
-    const MortarContact3DCondition mMortarContactCondition3D9N;
-//     const MortarContactCondition<3, 9> mMortarContactCondition3D9N;
     
     ///@}
     ///@name Private Operators

@@ -6,15 +6,11 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-class TestModelPart(KratosUnittest.TestCase):
     
-    #def __init__(self):
-        ## TODO: Add if necessary
-    
-    ## Test exact integration in 2D
-    # LINE
-    def testLineExactIntegration(self):
+## Test exact integration in 2D
+# LINE
+class TestLineExactIntegration(KratosUnittest.TestCase):
+    def test_execution(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
@@ -57,10 +53,11 @@ class TestModelPart(KratosUnittest.TestCase):
         ## Debug
         #if (solution == True):
             #print("Integration accomplished", MatrixSolution)
-        
-    ## Test exact integration in 3D
-    # TRIANGLE
-    def testTriangleExactIntegration(self):
+    
+## Test exact integration in 3D
+# TRIANGLE
+class TestTriangleExactIntegration(KratosUnittest.TestCase):
+    def test_execution(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
@@ -108,8 +105,9 @@ class TestModelPart(KratosUnittest.TestCase):
         #if (solution == True):
             #print("Integration accomplished", MatrixSolution)
 
-    # QUADRILATERAL
-    def testQuadrilateralExactIntegration(self):
+# QUADRILATERAL
+class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
+    def test_execution(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
@@ -163,7 +161,4 @@ class TestModelPart(KratosUnittest.TestCase):
         ## Debug
         #if (solution == True):
             #print("Integration accomplished", MatrixSolution)
-        
-if __name__ == '__main__':
-    KratosUnittest.main()
         
