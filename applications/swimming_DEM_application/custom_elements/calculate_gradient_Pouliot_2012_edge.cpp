@@ -121,7 +121,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012RHS(VectorTy
     array_1d<double, 3> le; // vector from node 0 to node 1, normalized
     const GeometryType& rGeom = this->GetGeometry();
     noalias(le) = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
+    //const double h_edge_inv = 1.0 / std::sqrt(le[0] * le[0] + le[1] * le[1] + le[2] * le[2]);
     //le *= h_edge_inv;
 
     double vel_component_variation_along_edge;
