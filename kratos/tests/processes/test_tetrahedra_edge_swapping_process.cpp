@@ -32,14 +32,14 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite)
 		{
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(10.00, 0.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point5(new Point<3>(0.00, 0.00, 10.00));
-			Point<3>::Pointer p_point6(new Point<3>(10.00, 0.00, 10.00));
+			Point<3>::Pointer p_point1(new Point<3>(-10.00, -10.00, -10.00));
+			Point<3>::Pointer p_point2(new Point<3>(10.00, -10.00, -10.00));
+			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, -10.00));
+			Point<3>::Pointer p_point4(new Point<3>(-10.00, 10.00, -10.00));
+			Point<3>::Pointer p_point5(new Point<3>(-10.00, -10.00, 10.00));
+			Point<3>::Pointer p_point6(new Point<3>(10.00, -10.00, 10.00));
 			Point<3>::Pointer p_point7(new Point<3>(10.00, 10.00, 10.00));
-			Point<3>::Pointer p_point8(new Point<3>(0.00, 10.00, 10.00));
+			Point<3>::Pointer p_point8(new Point<3>(-10.00, 10.00, 10.00));
 
 			Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
@@ -69,10 +69,37 @@ namespace Kratos {
 
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
-			// gid_io.InitializeMesh(1.00);
-			// gid_io.WriteMesh(model_part.GetMesh());
-			// gid_io.FinalizeMesh();
+			 gid_io.InitializeMesh(1.00);
+			 gid_io.WriteMesh(model_part.GetMesh());
+			 gid_io.FinalizeMesh();
 
+			 std::vector<Node<3>*> moving_nodes; // Is not the way to store nodes outside the test!
+			 for (auto& node : model_part.Nodes())
+			 {
+				 double distance = norm_2(node);
+				 if (distance < 5. && node.Z() < 4.5 && node.Z() > -4.50)
+					 moving_nodes.push_back(&node);
+			 }
+			 constexpr double pi = 3.141592653589793238462643383279;
+			 for (int i = 30; i < 180; i+=30) {
+				 const double alpha = 10.00 * pi / 180.00;
+				 const double s = sin(alpha);
+				 const double c = cos(alpha);
+				 for (auto p_node : moving_nodes) {
+					 p_node->X() = p_node->X()*c - p_node->Y()*s;
+					 p_node->Y() = p_node->X()*s + p_node->Y()*c;
+				 }
+
+				 FindNodalNeighboursProcess(model_part).Execute();
+
+				 TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+
+
+				 gid_io.InitializeMesh(i);
+				 gid_io.WriteMesh(model_part.GetMesh());
+				 gid_io.FinalizeMesh();
+
+			 }
 
 
 		}
