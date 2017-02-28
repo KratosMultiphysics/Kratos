@@ -228,8 +228,7 @@ namespace Kratos
 		{
 			// creating the regex pattern replacing * with ".*"
 
-#if defined(__GNUC__) &&( __GNUC__ < 4 || \
-              (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
+#if __cplusplus <= 199711L
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
 #else
 			 std::regex replace_star("\\*");
