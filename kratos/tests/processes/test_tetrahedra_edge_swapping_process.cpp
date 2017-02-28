@@ -140,6 +140,7 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
+			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 4);
 			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 166.);
@@ -158,7 +159,7 @@ namespace Kratos {
 			model_part.CreateNewNode(2, 10.00, 0.00, 0.00);
 			model_part.CreateNewNode(3, 10.00, 10.00, 0.00);
 			model_part.CreateNewNode(4, 0.00, 10.00, 0.00); 
-			model_part.CreateNewNode(5, 5.00, 5.00, 0.00);
+			model_part.CreateNewNode(5, 4.00, 6.00, 0.00);
 
 			model_part.CreateNewNode(100, 1.00, 1.00, -10.00);
 			model_part.CreateNewNode(101, 1.00, 1.00, 10.00);
@@ -179,16 +180,13 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume())
-				KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume())
-				KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 6);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 166.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 166.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 166.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 66.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 66.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 33.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 33.);
 
 			gid_io.InitializeMesh(1.00);
 			gid_io.WriteMesh(model_part.GetMesh());

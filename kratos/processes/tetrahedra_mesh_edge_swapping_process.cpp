@@ -94,15 +94,15 @@ namespace Kratos
 				mCases[3] = EdgeSwappingCase({  5, 7, 8  });
 				mCases[4] = EdgeSwappingCase({  3, 9, 8  });
 				mTriangles[0] = { 0, 1, 2 };
-				mTriangles[2] = { 0, 2, 3 };
-				mTriangles[3] = {  0, 3, 4  };
-				mTriangles[4] = {  2, 3, 4  };
-				mTriangles[5] = {  0, 2, 4  };
-				mTriangles[6] = {  1, 2, 3  };
-				mTriangles[7] = {  0, 1, 3  };
-				mTriangles[8] = {  1, 3, 4  };
-				mTriangles[9] = {  0, 1, 4  };
-				mTriangles[10] = {  1, 2, 4  };
+				mTriangles[1] = { 0, 2, 3 };
+				mTriangles[2] = {  0, 3, 4  };
+				mTriangles[3] = {  2, 3, 4  };
+				mTriangles[4] = {  0, 2, 4  };
+				mTriangles[5] = {  1, 2, 3  };
+				mTriangles[6] = {  0, 1, 3  };
+				mTriangles[7] = {  1, 3, 4  };
+				mTriangles[8] = {  0, 1, 4  };
+				mTriangles[9] = {  1, 2, 4  };
 			}
 		};
 	}

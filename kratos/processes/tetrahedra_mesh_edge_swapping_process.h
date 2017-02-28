@@ -182,10 +182,17 @@ namespace Kratos
 			  }
 		  }
 		  if (max_cases_quality > original_min_quality + std::numeric_limits<double>::epsilon()) {
+			  
 			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 				  SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case], i, EdgeShell, tetrahedra_1, tetrahedra_2);
-				  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
-				  EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
+				  if (2 * i < EdgeShell.GetNumberOfTetrahedra())
+					  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
+				  else
+					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements()+1, tetrahedra_1));
+				  if ((2 * i) + 1 < EdgeShell.GetNumberOfTetrahedra())
+					EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
+				  else
+					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements()+1, tetrahedra_2));
 			  }
 		  }
 	  }
