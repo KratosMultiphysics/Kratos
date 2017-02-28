@@ -186,7 +186,7 @@ namespace Kratos {
 
       // Should be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen2->Circumradius(), 0.866025, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Circumradius(), 1.732050, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
     }
 
@@ -200,7 +200,7 @@ namespace Kratos {
 
       // Should NOT be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
-      // KRATOS_CHECK_NEAR(geomRegLen2->Inradius(), 0.288675, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Inradius(), 0.577350, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
     }
 
@@ -267,9 +267,13 @@ namespace Kratos {
 
       auto criteria = GeometryType::QualityCriteria::REGULARITY;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+
+      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
     }
 
     /** Checks if the volume to surface area quality metric is correctly calculated.
@@ -284,9 +288,13 @@ namespace Kratos {
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
+
+      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
+      KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
     }
 
     /** Checks if the volume to edge length quality metric is correctly calculated.
