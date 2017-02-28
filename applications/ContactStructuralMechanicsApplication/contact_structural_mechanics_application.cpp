@@ -33,8 +33,6 @@
 namespace Kratos
 {
 KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication():
-    /* ELEMENTS */
-    mTestElement2D1N( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1 ) ) ) ),
     /* CONDITIONS */
     // Contact mortar conditions
     mALMFrictionlessMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
@@ -98,10 +96,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                  // The variable name for the mesh tying 
 
-    // Register the elements
-    // NOTE: This should be removed
-    KRATOS_REGISTER_ELEMENT( "TestElement2D1N", mTestElement2D1N );
-    
     // Register the conditions
     // Mortar contact condition
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessMortarContactCondition2D2N", mALMFrictionlessMortarContactCondition2D2N );

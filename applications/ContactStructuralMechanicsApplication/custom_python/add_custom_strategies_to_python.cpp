@@ -26,7 +26,6 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
-// #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_accelerated_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -43,9 +42,6 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
-
-// Convergence accelerators
-// #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -65,11 +61,9 @@ void  AddCustomStrategiesToPython()
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-//     typedef ConvergenceAccelerator< LocalSpaceType > ConvergenceAcceleratorType;
         
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
-//     typedef ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactAcceleratedStrategyType;
     
     // Custom scheme types
     typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
@@ -96,16 +90,6 @@ void  AddCustomStrategiesToPython()
             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
             ;
             
-//     // Residual Based Newton Raphson Contact Accelerated Strategy      
-//     class_< ResidualBasedNewtonRaphsonContactAcceleratedStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-//             ("ResidualBasedNewtonRaphsonContactAcceleratedStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer >())
-//             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer>())
-//             .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-//             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-//             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-//             .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-//             ;
-             
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
