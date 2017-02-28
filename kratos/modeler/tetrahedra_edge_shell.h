@@ -133,6 +133,7 @@ namespace Kratos
       ///@name Inquiry
       ///@{
 
+	  bool IsModified();
 
       ///@}
       ///@name Input and output

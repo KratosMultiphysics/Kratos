@@ -161,7 +161,7 @@ namespace Kratos
 	  template<typename TEdgeSwappingCasesType>
 	  void EdgeSwapping(TetrahedraEdgeShell & EdgeShell) {
 		  TEdgeSwappingCasesType SwappingCases;
-		  auto quality_criteria = Geometry<Node<3> >::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
+		  auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 		  double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 		  Tetrahedra3D4<Node<3>> tetrahedra_1 = EdgeShell.pGetElement(0)->GetGeometry(); // This initialization is to avoid creating a dummy
 		  Tetrahedra3D4<Node<3>> tetrahedra_2 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
@@ -185,12 +185,16 @@ namespace Kratos
 			  
 			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 				  SwappingCases.SetTetrahedraForCase(SwappingCases.GetCases()[best_case], i, EdgeShell, tetrahedra_1, tetrahedra_2);
-				  if (2 * i < EdgeShell.GetNumberOfTetrahedra())
+				  if (2 * i < EdgeShell.GetNumberOfTetrahedra()) {
 					  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
+					  EdgeShell.pGetElement(2 * i)->Set(MODIFIED);
+				  }
 				  else
 					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements()+1, tetrahedra_1));
-				  if ((2 * i) + 1 < EdgeShell.GetNumberOfTetrahedra())
+				  if ((2 * i) + 1 < EdgeShell.GetNumberOfTetrahedra()){
 					EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
+					EdgeShell.pGetElement((2 * i) + 1)->Set(MODIFIED);
+				  }
 				  else
 					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements()+1, tetrahedra_2));
 			  }

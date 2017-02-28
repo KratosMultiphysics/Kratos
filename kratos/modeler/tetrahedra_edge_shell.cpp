@@ -18,6 +18,7 @@
 // Project includes
 #include "modeler/tetrahedra_edge_shell.h"
 #include "includes/element.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -121,6 +122,15 @@ namespace Kratos
 		}
 
 		return min_quality;
+	}
+
+	bool  TetrahedraEdgeShell::IsModified() {
+		bool IsModified = false;
+		for (auto i_tetraheron = mTetrahedraEdge.begin(); i_tetraheron != mTetrahedraEdge.end(); i_tetraheron++) {
+			if (i_tetraheron->first->Is(MODIFIED))
+				IsModified = true;
+		}
+		return IsModified;
 	}
 
 	std::string TetrahedraEdgeShell::Info() const {

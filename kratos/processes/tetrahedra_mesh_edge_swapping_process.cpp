@@ -493,16 +493,18 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 
 	for (auto& edge : mEdges) {
 		if (edge.second.IsClosed()) {
-			if (edge.second.GetNumberOfShellPoints() == 3)
-				EdgeSwapping3(edge.second);
-			if (edge.second.GetNumberOfShellPoints() == 4)
-				EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
-			if (edge.second.GetNumberOfShellPoints() == 5)
-				EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
-			if (edge.second.GetNumberOfShellPoints() == 6)
-				EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
-			if (edge.second.GetNumberOfShellPoints() == 7)
-				EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
+			if (!(edge.second.IsModified())) {
+				if (edge.second.GetNumberOfShellPoints() == 3)
+					EdgeSwapping3(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 4)
+					EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 5)
+					EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 6)
+					EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 7)
+					EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
+			}
 		}
 
 	}
@@ -529,7 +531,7 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 	auto const& triangle = SwappingCases.GetTriangleConectivity(swapping_case.GetTringleIndex(0));
 	Tetrahedra3D4<Node<3>> tetrahedra_1(EdgeShell.Point1(), EdgeShell.ShellPoint(triangle[0]), EdgeShell.ShellPoint(triangle[1]), EdgeShell.ShellPoint(triangle[2]));
 	Tetrahedra3D4<Node<3>> tetrahedra_2(EdgeShell.Point2(), EdgeShell.ShellPoint(triangle[0]), EdgeShell.ShellPoint(triangle[2]), EdgeShell.ShellPoint(triangle[1]));
-	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
+	auto quality_criteria = Geometry<Node<3> >::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
