@@ -145,6 +145,90 @@ namespace Kratos
 				mTriangles[19] = { 1 , 2 , 5 };
 			}
 		};
+
+		class  EdgeSwappingCases7 : public EdgeSwappingCases< 42, 35, 5 > {
+		public:
+			EdgeSwappingCases7() : EdgeSwappingCases() {
+				mCases[0] = EdgeSwappingCase({ 0, 1, 2, 3, 4 });
+				mCases[1] = EdgeSwappingCase({ 0, 1, 2, 5, 6 });
+				mCases[2] = EdgeSwappingCase({ 0, 1, 7, 8, 4 });
+				mCases[3] = EdgeSwappingCase({ 0, 1, 7, 9, 10 });
+				mCases[4] = EdgeSwappingCase({ 0, 1, 5, 11, 10 });
+				mCases[5] = EdgeSwappingCase({ 0, 12, 13, 3, 4 });
+				mCases[6] = EdgeSwappingCase({ 0, 12, 13, 5, 6 });
+				mCases[7] = EdgeSwappingCase({ 0, 12, 14, 15, 4 });
+				mCases[8] = EdgeSwappingCase({ 0, 12, 14, 16, 17 });
+				mCases[9] = EdgeSwappingCase({ 0, 12, 5, 18, 17 });
+				mCases[10] = EdgeSwappingCase({ 0, 7, 19, 15, 4 });
+				mCases[11] = EdgeSwappingCase({ 0, 7, 19, 16, 17 });
+				mCases[12] = EdgeSwappingCase({ 0, 7, 9, 20, 17 });
+				mCases[13] = EdgeSwappingCase({ 0, 5, 11, 20, 17 });
+				mCases[14] = EdgeSwappingCase({ 21, 22, 2, 3, 4 });
+				mCases[15] = EdgeSwappingCase({ 21, 22, 2, 5, 6 });
+				mCases[16] = EdgeSwappingCase({ 21, 22, 7, 8, 4 });
+				mCases[17] = EdgeSwappingCase({ 21, 22, 7, 9, 10 });
+				mCases[18] = EdgeSwappingCase({ 21, 22, 5, 11, 10 });
+				mCases[19] = EdgeSwappingCase({ 21, 23, 24, 3, 4 });
+				mCases[20] = EdgeSwappingCase({ 21, 23, 24, 5, 6 });
+				mCases[21] = EdgeSwappingCase({ 21, 23, 25, 26, 4 });
+				mCases[22] = EdgeSwappingCase({ 21, 23, 25, 27, 28 });
+				mCases[23] = EdgeSwappingCase({ 21, 23, 5, 29, 28 });
+				mCases[24] = EdgeSwappingCase({ 21, 7, 30, 26, 4 });
+				mCases[25] = EdgeSwappingCase({ 21, 7, 30, 27, 28 });
+				mCases[26] = EdgeSwappingCase({ 21, 7, 9, 31, 28 });
+				mCases[27] = EdgeSwappingCase({ 21, 5, 11, 31, 28 });
+				mCases[28] = EdgeSwappingCase({ 12, 32, 24, 3, 4 });
+				mCases[29] = EdgeSwappingCase({ 12, 32, 24, 5, 6 });
+				mCases[30] = EdgeSwappingCase({ 12, 32, 25, 26, 4 });
+				mCases[31] = EdgeSwappingCase({ 12, 32, 25, 27, 28 });
+				mCases[32] = EdgeSwappingCase({ 12, 32, 5, 29, 28 });
+				mCases[33] = EdgeSwappingCase({ 12, 14, 33, 26, 4 });
+				mCases[34] = EdgeSwappingCase({ 12, 14, 33, 27, 28 });
+				mCases[35] = EdgeSwappingCase({ 12, 14, 16, 34, 28 });
+				mCases[36] = EdgeSwappingCase({ 12, 5, 18, 34, 28 });
+				mCases[37] = EdgeSwappingCase({ 7, 19, 33, 26, 4 });
+				mCases[38] = EdgeSwappingCase({ 7, 19, 33, 27, 28 });
+				mCases[39] = EdgeSwappingCase({ 7, 19, 16, 34, 28 });
+				mCases[40] = EdgeSwappingCase({ 7, 9, 20, 34, 28 });
+				mCases[41] = EdgeSwappingCase({ 5, 11, 20, 34, 28 });
+				mTriangles[0] = { 0 , 1 , 2 };
+				mTriangles[1] = { 0 , 2 , 3 };
+				mTriangles[2] = { 0 , 3 , 4 };
+				mTriangles[3] = { 0 , 4 , 5 };
+				mTriangles[4] = { 0 , 5 , 6 };
+				mTriangles[5] = { 4 , 5 , 6 };
+				mTriangles[6] = { 0 , 4 , 6 };
+				mTriangles[7] = { 3 , 4 , 5 };
+				mTriangles[8] = { 0 , 3 , 5 };
+				mTriangles[9] = { 3 , 5 , 6 };
+				mTriangles[10] = { 0 , 3 , 6 };
+				mTriangles[11] = { 3 , 4 , 6 };
+				mTriangles[12] = { 2 , 3 , 4 };
+				mTriangles[13] = { 0 , 2 , 4 };
+				mTriangles[14] = { 2 , 4 , 5 };
+				mTriangles[15] = { 0 , 2 , 5 };
+				mTriangles[16] = { 2 , 5 , 6 };
+				mTriangles[17] = { 0 , 2 , 6 };
+				mTriangles[18] = { 2 , 4 , 6 };
+				mTriangles[19] = { 2 , 3 , 5 };
+				mTriangles[20] = { 2 , 3 , 6 };
+				mTriangles[21] = { 1 , 2 , 3 };
+				mTriangles[22] = { 0 , 1 , 3 };
+				mTriangles[23] = { 1 , 3 , 4 };
+				mTriangles[24] = { 0 , 1 , 4 };
+				mTriangles[25] = { 1 , 4 , 5 };
+				mTriangles[26] = { 0 , 1 , 5 };
+				mTriangles[27] = { 1 , 5 , 6 };
+				mTriangles[28] = { 0 , 1 , 6 };
+				mTriangles[29] = { 1 , 4 , 6 };
+				mTriangles[30] = { 1 , 3 , 5 };
+				mTriangles[31] = { 1 , 3 , 6 };
+				mTriangles[32] = { 1 , 2 , 4 };
+				mTriangles[33] = { 1 , 2 , 5 };
+				mTriangles[34] = { 1 , 2 , 6 };
+			}
+		};
+
 	}
 
 
@@ -223,6 +307,8 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 				EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
 			if (edge.second.GetNumberOfShellPoints() == 6)
 				EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
+			if (edge.second.GetNumberOfShellPoints() == 7)
+				EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
 		}
 
 	}

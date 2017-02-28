@@ -241,13 +241,13 @@ namespace Kratos {
 		{
 			ModelPart model_part("Test");
 
-			model_part.CreateNewNode(1, 0.00, 0.00, 2.00);
+			model_part.CreateNewNode(1, 0.00, 0.00, 1.00);
 			model_part.CreateNewNode(2, 10.00, 0.00, 0.00);
-			model_part.CreateNewNode(3, 10.00, 10.00, 2.00);
-			model_part.CreateNewNode(4, 0.00, 10.00, 0.00);
-			model_part.CreateNewNode(5, -2.00, 8.00, 2.00);
-			model_part.CreateNewNode(6, -2.00, 5.00, 0.00);
-			model_part.CreateNewNode(7, -2.00, 2.00, 2.00);
+			model_part.CreateNewNode(3, 10.00, 10.00, 5.00);
+			model_part.CreateNewNode(4, 0.00, 10.00, 1.00);
+			model_part.CreateNewNode(5, -2.00, 8.00, 1.00);
+			model_part.CreateNewNode(6, -4.00, 5.00, 1.00);
+			model_part.CreateNewNode(7, -2.00, 2.00, 1.00);
 
 			model_part.CreateNewNode(100, 1.00, 1.00, -10.00);
 			model_part.CreateNewNode(101, 1.00, 1.00, 10.00);
@@ -283,7 +283,9 @@ namespace Kratos {
 			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume());
 			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().Volume());
 			KRATOS_WATCH(model_part.GetElement(7).GetGeometry().Volume());
-			//KRATOS_WATCH(model_part.GetElement(8).GetGeometry().Volume());
+			KRATOS_WATCH(model_part.GetElement(8).GetGeometry().Volume());
+			KRATOS_WATCH(model_part.GetElement(9).GetGeometry().Volume());
+			KRATOS_WATCH(model_part.GetElement(10).GetGeometry().Volume());
 			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 8);
 			//KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 199.);
 			//KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 133.);
