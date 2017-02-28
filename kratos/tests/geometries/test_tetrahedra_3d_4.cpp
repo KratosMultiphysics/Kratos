@@ -167,9 +167,13 @@ namespace Kratos {
      * Checks if the average edge length is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AverageEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geom = GenerateTriRectangularTetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
+      auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.207106, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->AverageEdgeLength(), 2.828427, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->AverageEdgeLength(), 1.207106, TOLERANCE);
     }
 
     /** Checks if the circumradius is calculated correctly.
@@ -182,6 +186,7 @@ namespace Kratos {
 
       // Should be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
     }
 
@@ -195,6 +200,7 @@ namespace Kratos {
 
       // Should NOT be the same
       KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
+      // KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
     }
 
