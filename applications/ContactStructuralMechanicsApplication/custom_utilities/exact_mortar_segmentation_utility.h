@@ -221,7 +221,7 @@ public:
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
         // We calculate the normal angle
-        double Phi0 = std::atan(SlaveNormal[2]/(SlaveNormal[0] + Tolerance));
+        double Phi0 = std::atan(SlaveNormal[2]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance));
         double Phi1 = M_PI/2.0;
         
         if (Inversed == true)
@@ -814,9 +814,6 @@ private:
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
         
-        // We initialize the total area
-        const double TotalArea = SlaveGeometry.Area();
-        
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
         array_1d<Point<3>, 4> MasterProjectedPoint; // TODO: Check the internal points too
@@ -840,6 +837,7 @@ private:
         {
             DummyPointsArray[i_node] = boost::make_shared<Point<3>>(SlaveProjectedPoint[i_node]);
         }
+        
         Quadrilateral2D4 <Point<3>> DummyQuadrilateral( DummyPointsArray );
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -848,6 +846,9 @@ private:
             
             AllInside[i_node] = DummyQuadrilateral.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
+        
+        // We initialize the total area
+        const double TotalArea = DummyQuadrilateral.Area();
         
         // We create the pointlist
         std::vector<Point<3>> PointList;
@@ -892,8 +893,8 @@ private:
             for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 // NOTE: We add 1 because we removed from the list the fisrt point
-                PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
-                PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 2] + 1]);
+                PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
+                PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
                 
                 // We create the triangle
                 Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -918,7 +919,7 @@ private:
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     
                     // We can cosntruct now the integration local triangle
-                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
                 }
             }
             
@@ -958,8 +959,21 @@ private:
                     
                     if (intersected == true)
                     {
-                        PointList.push_back(IntersectedPoint);
-                        MapEdges[i_edge] += 1;
+                        bool AddPoint = true;
+                        for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                        {
+                            Point<3> AuxPoint = IntersectedPoint;
+                            if (AuxPoint == PointList[iter])
+                            {
+                                AddPoint = false;
+                            }
+                        }
+                        
+                        if (AddPoint == true) 
+                        {
+                            PointList.push_back(IntersectedPoint);
+                            MapEdges[i_edge] += 1;
+                        }
                     }
                 }
             }
@@ -970,16 +984,29 @@ private:
                 
                 if ((MapEdges[i_node]  == 1) && (MapEdges[il_node] == 1))
                 {
-                    PointList.push_back(SlaveProjectedPoint[i_node]);
+                    bool AddPoint = true;
+                    for (unsigned int iter = 0; iter < PointList.size(); iter++)
+                    {
+                        Point<3> AuxPoint = SlaveProjectedPoint[i_node];
+                        if (AuxPoint == PointList[iter])
+                        {
+                            AddPoint = false;
+                        }
+                    }
+                    
+                    if (AddPoint == true) 
+                    {
+                        PointList.push_back(SlaveProjectedPoint[i_node]);
+                    }
                 }
             }
             
-            // Debug 
-            KRATOS_WATCH(PointList.size());
-            for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
-            {
-                KRATOS_WATCH(PointList[i_list]);
-            }
+//             // Debug 
+//             KRATOS_WATCH(PointList.size());
+//             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
+//             {
+//                 KRATOS_WATCH(PointList[i_list]);
+//             }
             
             // We compose the triangles
             const unsigned int ListSize = PointList.size();
@@ -1011,8 +1038,8 @@ private:
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
-                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 2] + 1]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1037,7 +1064,7 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
                     }
                 }
             }

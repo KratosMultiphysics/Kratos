@@ -133,7 +133,7 @@ class TestModelPart(KratosUnittest.TestCase):
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N()
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(1)
 
         # Quadrilateral 2
         normal[2] = -1.0
@@ -150,7 +150,15 @@ class TestModelPart(KratosUnittest.TestCase):
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         
         MatrixSolution = KratosMultiphysics.Matrix()
-        #ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
+        solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
+        
+        self.assertTrue(solution)
+        self.assertAlmostEqual(MatrixSolution[0,0], 2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[0,2], 0.5)
+        self.assertAlmostEqual(MatrixSolution[1,0], 1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[1,1], 2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[1,2], 0.5)
         
         ## Debug
         #if (solution == True):
