@@ -105,7 +105,7 @@ namespace Kratos {
       // that for planar geometries it also return the number of edges.
       KRATOS_CHECK_EQUAL(geomRegLen1->FacesNumber(), 4);
       KRATOS_CHECK_EQUAL(geomRegLen2->FacesNumber(), 4);
-      KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 6);
+      KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 4);
     }
 
     /** Checks if the area of the triangle is calculated correctly.
@@ -117,7 +117,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       KRATOS_CHECK_NEAR(geomRegLen1->Area(), 1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Area(), 2.0/3.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Area(), 8.0/3.0, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Area(), 1.0/6.0, TOLERANCE);
     }
 
@@ -131,7 +131,7 @@ namespace Kratos {
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       KRATOS_CHECK_NEAR(geomRegLen1->Volume(), 1.0/3.0, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Volume(), 2.0/3.0, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Volume(), 8.0/3.0, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Volume(), 1.0/6.0, TOLERANCE);
   	}
 
