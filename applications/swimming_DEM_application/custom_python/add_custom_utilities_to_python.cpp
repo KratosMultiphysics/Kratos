@@ -71,8 +71,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
+#include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/basset_force_tools.h"
 #include "custom_utilities/statistics/sampling_tool.h"
+#include "custom_utilities/derivative_recovery_meshing_tools.h"
 
 namespace Kratos{
 
@@ -174,6 +176,10 @@ using namespace boost::python;
         ;
 
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
+        ;
+
+
+    class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
@@ -398,6 +404,10 @@ using namespace boost::python;
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
+        ;
+
+    class_<DerivativeRecoveryMeshingTools> ("DerivativeRecoveryMeshingTools", init<>())
+        .def("FillUpEdgesModelPartFromTetrahedraModelPart", &DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart)
         ;
 
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())

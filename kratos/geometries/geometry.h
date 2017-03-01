@@ -16,7 +16,6 @@
 //                   Carlos Roig
 //
 
-
 #if !defined(KRATOS_GEOMETRY_H_INCLUDED )
 #define  KRATOS_GEOMETRY_H_INCLUDED
 
@@ -964,9 +963,8 @@ public:
     // Commented for possible change in Edge interface of geometry. Pooyan.
 //       virtual Pointer Edge(const PointsArrayType& EdgePoints)
 //  {
-//    KRATOS_THROW_ERROR(std::logic_error,
-//          "Calling base class Edge method instead of derived class one. Please check the definition of derived class." , *this);
-
+//    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
+// 
 //  }
 
     /**
@@ -1022,8 +1020,7 @@ public:
     // Commented for possible change in Edge interface of geometry. Pooyan.
 //       virtual Pointer Edge(IndexType EdgeIndex)
 //  {
-//    KRATOS_THROW_ERROR(std::logic_error,
-//          "Calling base class Edge method instead of derived class one. Please check the definition of derived class." , *this);
+//    KRATOS_ERROR << "Calling base class Edge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
 
 //  }
 
@@ -1036,8 +1033,7 @@ public:
     // Commented for possible change in Edge interface of geometry. Pooyan.
 //       virtual NormalType NormalEdge(const PointsArrayType& EdgePoints)
 //  {
-//    KRATOS_THROW_ERROR(std::logic_error,
-//          "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." , *this);
+//    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl
 
 //    return NormalType();
 //  }
@@ -1052,8 +1048,7 @@ public:
     // Commented for possible change in Edge interface of geometry. Pooyan.
 //       virtual NormalType NormalEdge(IndexType EdgeIndex)
 //  {
-//    KRATOS_THROW_ERROR(std::logic_error,
-//          "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." , *this);
+//    KRATOS_ERROR << "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." << *this << std::endl;
 
 //    return NormalType();
 //  }

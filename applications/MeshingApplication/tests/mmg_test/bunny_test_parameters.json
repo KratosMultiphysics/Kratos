@@ -41,9 +41,7 @@
             "input_filename" : "mmg_test/bunny_test"
         },
         "maximum_iterations"           : 10,
-        "oss_switch"                   : 0,
         "echo_level"                   : 0,
-        "consider_periodic_conditions" : false,
         "time_order"                   : 2,
         "dynamic_tau"                  : 0.01,
         "compute_reactions"            : false,
