@@ -39,6 +39,51 @@ proc AddBodySurfaceToFracturesDict {FracturesDict FractureId BodySurfacesDict} {
     dict set MyFracturesDict $FractureId BodySurfaces $BodySurfaces
 }
 
+#-------------------------------------------------------------------------------
+
+proc CheckJonintOrientation {FracturesDict FractureId} {
+    upvar $FracturesDict MyFracturesDict
+    
+    set Tip(0) [lindex [dict get $MyFracturesDict $FractureId TipPoint Coordinates] 0]
+    set Tip(1) [lindex [dict get $MyFracturesDict $FractureId TipPoint Coordinates] 1]
+
+    set Top(0) [lindex [dict get $MyFracturesDict $FractureId TopPoint Coordinates] 0]
+    set Top(1) [lindex [dict get $MyFracturesDict $FractureId TopPoint Coordinates] 1]
+
+    set Bot(0) [lindex [dict get $MyFracturesDict $FractureId BotPoint Coordinates] 0]
+    set Bot(1) [lindex [dict get $MyFracturesDict $FractureId BotPoint Coordinates] 1]
+    
+    set Mid(0) [expr {($Top(0)+$Bot(0))*0.5}]
+    set Mid(1) [expr {($Top(1)+$Bot(1))*0.5}]
+    
+    set Vx(0) [expr {$Tip(0)-$Mid(0)}]
+    set Vx(1) [expr {$Tip(1)-$Mid(1)}]
+    
+    set Vy(0) [expr {$Top(0)-$Mid(0)}]
+    set Vy(1) [expr {$Top(1)-$Mid(1)}]
+    
+    # Component 2 of the cross product between Vx and Vy
+    set Vz2 [expr {$Vx(0)*$Vy(1)-$Vx(1)*$Vy(0)}]
+    
+    # If Vz2 is negative, we must change the orientation of the joint
+    if {$Vz2 < 0.0} {
+        set TopPointId [dict get $MyFracturesDict $FractureId TopPoint Id]
+        set TopPointCoord [dict get $MyFracturesDict $FractureId TopPoint Coordinates]
+        set TopLineId [dict get $MyFracturesDict $FractureId TopLine Id]
+
+        set BotPointId [dict get $MyFracturesDict $FractureId BotPoint Id]
+        set BotPointCoord [dict get $MyFracturesDict $FractureId BotPoint Coordinates]
+        set BotLineId [dict get $MyFracturesDict $FractureId BotLine Id]
+        
+        dict set MyFracturesDict $FractureId TopPoint Id $BotPointId
+        dict set MyFracturesDict $FractureId TopPoint Coordinates $BotPointCoord
+        dict set MyFracturesDict $FractureId TopLine Id $BotLineId
+
+        dict set MyFracturesDict $FractureId BotPoint Id $TopPointId
+        dict set MyFracturesDict $FractureId BotPoint Coordinates $TopPointCoord
+        dict set MyFracturesDict $FractureId BotLine Id $TopLineId
+    }
+}
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -59,6 +59,9 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
                     AddBodySurfaceToFracturesDict FracturesDict $FractureId $BodySurfacesDict
+
+                    # We need to check that the cross product between the vector in local x and the vector in local y points towards (0,0,1)
+                    CheckJonintOrientation FracturesDict $FractureId
                     
                 } elseif {([lindex $BotLine 2] eq [lindex $TopLine 3]) || ([lindex $BotLine 3] eq [lindex $TopLine 3])} {
                     # Define new fracture
@@ -85,6 +88,9 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
                     AddBodySurfaceToFracturesDict FracturesDict $FractureId $BodySurfacesDict
+
+                    # We need to check that the cross product between the vector in local x and the vector in local y points towards (0,0,1)
+                    CheckJonintOrientation FracturesDict $FractureId
                 }
             }
         }
