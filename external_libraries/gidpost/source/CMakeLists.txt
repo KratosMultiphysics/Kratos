@@ -4,6 +4,7 @@ set (gidpost_source
   gidpostHash.c hashtab.c recycle.c lookupa.c)
 
 add_definitions(-DNDEBUG)
+message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 
 find_package(HDF5)
 if (HDF5_FOUND)
