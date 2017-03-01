@@ -301,10 +301,6 @@ protected:
         }
 
         //perform final update
-        KRATOS_WATCH(ro);
-        KRATOS_WATCH(rh);
-        KRATOS_WATCH(rf);
-        KRATOS_WATCH(xmax);
         TSparseSpace::Assign(aux,-(1.0-xmax), Dx);
         BaseType::UpdateDatabase(A,aux,b,MoveMesh);
     }
