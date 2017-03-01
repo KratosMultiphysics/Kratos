@@ -194,9 +194,6 @@ namespace Kratos {
             aux_pointer = &(props_it->GetValue(MAX_STRESS));
             vector_of_proxies[properties_counter].SetParticleMaxStressFromProperties(aux_pointer);
             
-            aux_pointer = &(props_it->GetValue(ALPHA));
-            vector_of_proxies[properties_counter].SetParticleAlphaFromProperties(aux_pointer);
-            
             aux_pointer = &(props_it->GetValue(GAMMA));
             vector_of_proxies[properties_counter].SetParticleGammaFromProperties(aux_pointer);
             
