@@ -19,6 +19,7 @@
 #include <vector>
 
 // Project includes
+// #include <contact_structural_mechanics_application.h>
 #include <contact_structural_mechanics_application_variables.h>
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
@@ -53,21 +54,10 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    
 #if !defined(TENSOR_VALUE)
 #define TENSOR_VALUE
     enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 #endif
-    
-// #if !defined(ELEMENT_TYPE)
-// #define ELEMENT_TYPE
-//     enum ElementType {Triangle = 3, Quadrilateral = 4, Tetrahedron = 4, Hexahedron = 6};
-// #endif
-//     
-// #if !defined(CONDITION_TYPE)
-// #define CONDITION_TYPE
-//     enum ConditionType {Line = 2,Triangle = 3, Quadrilateral = 4};
-// #endif
     
 ///@}
 ///@name  Functions
@@ -83,7 +73,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 
-template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
+template< const unsigned int TDim, const unsigned int TNumNodesElem, TensorValue TTensor>
 class MeshTyingMortarCondition: public Condition 
 {
 public:
@@ -108,10 +98,11 @@ public:
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
     static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
+
+//     static constexpr unsigned int MatrixSize = TTensor * (2* TNumNodesElem - NumNodes);
+    static constexpr unsigned int MatrixSize = TTensor * (2 * NumNodes);
     
-    static constexpr unsigned int MatrixSize = TTensor * (2* TNumNodesElem - NumNodes);
-    
-    static constexpr unsigned int DimensionLocalElem = TTensor * TNumNodesElem;
+//     static constexpr unsigned int DimensionLocalElem = TTensor * TNumNodesElem;
     
     /**
      * Parameters to be used in the Condition as they are.
@@ -208,10 +199,7 @@ public:
     MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry){}
     
     // Constructor 2
-    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties )
-    {
-        InitializeIntegrationMethod(); 
-    }
+    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties ){}
 
     ///Copy constructor
     MeshTyingMortarCondition( MeshTyingMortarCondition const& rOther){}
@@ -252,14 +240,6 @@ public:
     * Called at the end of each iteration
     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    IntegrationMethod GetIntegrationMethod();
-    
-    IntegrationMethod GetIntegrationMethod(const unsigned int integration_order, );
     
     /**
     * Initialize System Matrices
@@ -580,16 +560,16 @@ protected:
     unsigned int mPairSize;                                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterConditions;               // Vector which contains the pointers to the master conditions
 
-    /* The list of variable to compute */
-    array_1d<Variable< array_1d_component_type>, TDim> mTyingVarVector;  // Variable considered in the mesh tying
-    Variable<double> mTyingVarScalar;                                    // Variable considered in the mesh tying
+//     /* The list of variable to compute */
+//     array_1d<Variable< array_1d_component_type>, TDim> mTyingVarVector;  // Variable considered in the mesh tying
+//     Variable<double> mTyingVarScalar;                                    // Variable considered in the mesh tying
     
     /* Integration points */
     std::vector<IntegrationPointsType> mThisSlaveIntegrationPoints;      // The arrays containing the integration points of the slave side
     
-    /* Element info */
-    Element::Pointer mThisSlaveElement;                                  // The slave element from which derives everything
-    std::vector<Element::Pointer> mThisMasterElements;                   // Vector which contains the pointers to the master elements
+//     /* Element info */
+//     Element::Pointer mThisSlaveElement;                                  // The slave element from which derives everything
+//     std::vector<Element::Pointer> mThisMasterElements;                   // Vector which contains the pointers to the master elements
     
     ///@}
     ///@name Protected Operators
@@ -725,7 +705,7 @@ protected:
     /**
      * Calculate condition kinematics
      */
-    bool CalculateKinematics( 
+    void CalculateKinematics( 
         GeneralVariables& rVariables,
         const DofData rDofData,
         const double& rPointNumber,
@@ -739,28 +719,62 @@ protected:
     /*
      * Calculation and addition of the matrices of the LHS of a contact pair
      */
+    
     void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
         const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
-        );
+        )
+    {
+        if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+        {
+            /* COMPONENT-WISE LHS MATRIX */
+            const std::vector<Variable<MatrixType> >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables( );
+
+            for ( unsigned int i = 0; i < rLeftHandSideVariables.size( ); i++ )
+            {
+                MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
+                
+                // Assemble in the correct position
+                this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+            }
+        }
+        else 
+        {   
+            /* SINGLE LHS MATRIX */
+            MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
+            
+            // Assemble in the correct position
+            this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+        }
+    }
 
     /*
      * Assembles the contact pair LHS block into the condition's LHS
      */
+    
     void AssembleContactPairLHSToConditionSystem( 
         const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         MatrixType& rConditionLHS,
         const unsigned int rPairIndex
-        );
+        )
+    {
+        // Find location of the pair's master DOFs in ConditionRHS
+        const unsigned int index_begin = rPairIndex * MatrixSize;
+        const unsigned int index_end  = index_begin + MatrixSize;
+        
+        subrange( rConditionLHS, index_begin, index_end, index_begin, index_end) += rPairLHS;
+    }
 
     /*
      * Calculates the local contibution of the LHS
      */
+    
+    template< unsigned int MatrixSize >
     boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
-        const Element::EquationIdVectorType& EquationIdSlaveElem,
+//         const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
+//         const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int& rMasterElementIndex,
         const ProcessInfo& rCurrentProcessInfo
         );
@@ -768,11 +782,35 @@ protected:
     /*
      * Calculation and addition fo the vectors of the RHS of a contact pair
      */
+
     void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
         const array_1d<double, MatrixSize>& RHS_contact_pair, 
         const unsigned int rPairIndex
-        );
+        )
+    {
+        if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+        {
+            /* COMPONENT-WISE RHS VECTOR */
+            const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
+
+            for ( unsigned int i = 0; i < rRightHandSideVariables.size( ); i++ )
+            {
+                VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
+
+                // Assemble
+                this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+            }
+        }
+        else 
+        {
+            /* SINGLE RHS VECTOR */
+            VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+            
+            // Assemble
+            this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+        }
+    }
     
     /*
      * Assembles the contact pair RHS block into the condition's RHS
@@ -781,14 +819,23 @@ protected:
         const array_1d<double, MatrixSize>& rPairRHS,
         VectorType& rConditionRHS,
         const unsigned int rPairIndex
-        );
+        )
+    {
+        // Find location of the pair's master DOFs in ConditionRHS
+        const unsigned int index_begin = rPairIndex * MatrixSize;
+        const unsigned int index_end  = index_begin + MatrixSize;
+        
+        subrange( rConditionRHS, index_begin, index_end) += rPairRHS;
+    }
     
     /*
      * Calculates the local contibution of the LHS
      */
+    template< unsigned int MatrixSize >
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
-        array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution,
+//         array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution,
+//         const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int& rMasterElementIndex,
         const ProcessInfo& rCurrentProcessInfo
         );
@@ -800,7 +847,7 @@ protected:
     /*
      * Calculates the values of the shape functions for the master element
      */
-    bool MasterShapeFunctionValue(
+    void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
         const PointType& local_point 
     );
@@ -829,7 +876,23 @@ protected:
     boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeDe(        
         const array_1d<double, NumNodes> N1, 
         const double detJ 
-        );
+        )
+    {
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> De;
+    
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            for (unsigned int j = 0; j < NumNodes; j++)
+            {
+                if (i == j)
+                {
+                    De(i,i) = detJ * N1[i];
+                }
+            }
+        }
+        
+        return De;
+    }
     
     /*
      * Calculates the matrix De
@@ -837,7 +900,20 @@ protected:
     boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputeMe(        
         const array_1d<double, NumNodes> N1, 
         const double detJ 
-        );
+        )
+    {
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>  Me;
+    
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            for (unsigned int j = 0; j < NumNodes; j++)
+            {
+                Me(i,j) = detJ * N1[i] * N1[j];
+            }
+        }
+        
+        return Me;
+    }
     
     /*
      * Calculates the matrix Ae
@@ -854,7 +930,18 @@ protected:
     /*
      * It calculates the POperator (Inverse(D x M))
      */
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputePOperator(const MortarConditionMatrices& rMortarConditionMatrices);
+    template< unsigned int NumNodes >
+    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputePOperator(const MortarConditionMatrices& rMortarConditionMatrices)
+    {
+        // We calculate the inverse of D operator
+        double auxdet;
+        const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvDOperator = MathUtils<double>::InvertMatrix<TDim>(rMortarConditionMatrices.DOperator, auxdet);
+        
+        // We calculate the P operator
+        const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> POperator = prod(InvDOperator, rMortarConditionMatrices.MOperator);
+        
+        return POperator;
+    }
     
     ///@}
     ///@name Protected  Access
