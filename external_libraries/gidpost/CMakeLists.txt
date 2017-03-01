@@ -12,6 +12,7 @@ set( GIDPOST_SOURCES
 ##gidpostfor.c gidpostforAPI.c
 
 add_definitions(-DNDEBUG)
+message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 add_definitions( -DUSE_CONST )
 add_definitions( -w )
 
