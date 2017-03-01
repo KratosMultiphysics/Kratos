@@ -79,7 +79,6 @@ class AssignValueProcess(KratosMultiphysics.Process):
 
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        # self.variable = getattr(KratosMultiphysics, settings["variable_name"].GetString())
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.interval = KratosMultiphysics.Vector(2)
