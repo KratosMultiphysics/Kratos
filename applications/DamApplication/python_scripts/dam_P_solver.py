@@ -19,89 +19,46 @@ class DamUPSolver:
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "general_data"                        : {
-                "problem_name"    : "pruebas",
-                "model_part_name" : "MainModelPart",
-                "domain_size"     : 2,
-                "NumberofThreads" : 1,
-                "type_of_problem" : "Thermo-Mechanical",
-                "time_scale"      : "Seconds",
-                "delta_time"      : 1,
-                "ending_time"     : 10
+            "solver_type"                   : "dam_P_solver",
+            "model_import_settings"         : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "unknown_name",
+                "input_file_label" : 0
             },
-            "diffusion_settings"                  : {
-                "variables"             : {
-                    "unknown_variable"       : "KratosMultiphysics.TEMPERATURE",
-                    "difussion_variable"     : "KratosMultiphysics.CONDUCTIVITY",
-                    "specific_heat_variable" : "KratosMultiphysics.SPECIFIC_HEAT",
-                    "density_variable"       : "KratosMultiphysics.DENSITY"
-                },
-                "temporal_scheme"       : "Backward-Euler",
-                "reference_temperature" : "Reservoir_Information"
-            },
-            "mechanical_settings"                 : {
-                "solver_type"                     : "dam_new_mechanical_solver",
-                "model_import_settings"           : {
-                    "input_type"     : "mdpa",
-                    "input_filename" : "pruebas"
-                },
-                "solution_type"                   : "Quasi-Static",
-                "analysis_type"                   : "Linear",
-                "strategy_type"                   : "Newton-Raphson",
-                "scheme_type"                     : "Newmark",
-                "convergence_criterion"           : "Residual_criterion",
-                "displacement_relative_tolerance" : 0.0001,
-                "displacement_absolute_tolerance" : 1e-9,
-                "residual_relative_tolerance"     : 0.0001,
-                "residual_absolute_tolerance"     : 1e-9,
-                "max_iteration"                   : 10,
-                "max_radius_factor"               : 5.0,
-                "min_radius_factor"               : 0.5,
-                "max_iteration"                   : 10,
-                "echo_level"                      : 0,
-                "buffer_size"                     : 2,
-                "compute_reactions"               : true,
-                "reform_step_dofs"                : false,
-                "move_mesh_flag"                  : true,
-                "type_of_builder"                 : "Elimination",
-                "type_of_solver"                  : "Iterative",
-                "solver_class"                    : "AMGCL"
-            },
-            "problem_domain_sub_model_part_list"  : [""],
-            "problem_domain_body_sub_model_part_list"  : [""],
-            "problem_domain_joint_sub_model_part_list" : [""],
-            "processes_sub_model_part_list"       : [""],
-            "nodal_processes_sub_model_part_list" : [""],
-            "load_processes_sub_model_part_list"  : [""],
-            "loads_sub_model_part_list": [""],
-            "loads_variable_list": [""],
-            "output_configuration"                : {
-                "result_file_configuration" : {
-                    "gidpost_flags"       : {
-                        "GiDPostMode"           : "GiD_PostBinary",
-                        "WriteDeformedMeshFlag" : "WriteDeformed",
-                        "WriteConditionsFlag"   : "WriteConditions",
-                        "MultiFileFlag"         : "SingleFile"
-                    },
-                    "output_frequency"    : 1.0,
-                    "nodal_results"       : [""],
-                    "gauss_point_results" : [""]
-                }
+            "echo_level"                    : 1,
+            "buffer_size"                   : 2,
+            "processes_sub_model_part_list" : [""],
+            "acoustic_solver_settings"      : {
+                "strategy_type"               : "Newton-Raphson",
+                "scheme_type"                 : "Newmark",
+                "convergence_criterion"       : "Residual_criterion",
+                "residual_relative_tolerance" : 0.0001,
+                "residual_absolute_tolerance" : 1e-9,
+                "max_iteration"               : 10,
+                "move_mesh_flag"              : false,
+                "echo_level"                  : 0,
+                "linear_solver_settings"      : {
+                    "solver_type"   : "AMGCL",
+                    "max_iteration" : 200,
+                    "tolerance"     : 1e-7,
+                    "verbosity"     : 0,
+                    "GMRES_size"    : 50
+                    }
             }
-        }""")
-        
-               
+         }""")
         
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-               
+        
+        ## Definition of the linear solver       
         amgcl_smoother = KratosMultiphysics.AMGCLSmoother.ILU0
         amgcl_krylov_type = KratosMultiphysics.AMGCLIterativeSolverType.BICGSTAB
-        tolerance = 1e-5
-        max_iterations = 1000
-        verbosity = 0 #0->shows no information, 1->some information, 2->all the information
-        gmres_size = 50
+        tolerance = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["tolerance"].GetDouble()
+        max_iterations = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["max_iteration"].GetInt()
+        verbosity = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["verbosity"].GetInt()
+        gmres_size = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["GMRES_size"].GetInt()
+        
         self.linear_solver =  KratosMultiphysics.AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
  
 
@@ -112,7 +69,7 @@ class DamUPSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt2_PRESSURE)
         
-        print("P variables correctly added")
+        print("Variables correctly added")
         
         
     def AddDofs(self):
@@ -123,14 +80,21 @@ class DamUPSolver:
         print("P DOFs correctly added")
         
     def Initialize(self):
-        beta=0.25
-        gamma=0.5
+        
+        if (self.settings["acoustic_solver_settings"]["scheme_type"].GetString() == "Newmark"):
+            beta=0.25
+            gamma=0.5
+        else:
+            raise Exception("Please use the Newmark Scheme, it is the only one available")
+            
+        move_mesh_flag = self.settings["acoustic_solver_settings"]["move_mesh_flag"].GetBool()
+        max_iterations = self.settings["acoustic_solver_settings"]["max_iteration"].GetInt()
+        res_rel_tol = self.settings["acoustic_solver_settings"]["residual_relative_tolerance"].GetDouble()
+        res_abs_tol = self.settings["acoustic_solver_settings"]["residual_absolute_tolerance"].GetDouble()
+        
         time_scheme = KratosDam.DamPScheme(beta,gamma)
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-        
-        conv_criteria = KratosMultiphysics.ResidualCriteria(1e-5,1e-9)
-        max_iterations = 10
-        
+        conv_criteria = KratosMultiphysics.ResidualCriteria(res_rel_tol,res_abs_tol)
+    
         self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
             self.main_model_part, 
             time_scheme, 
@@ -142,40 +106,22 @@ class DamUPSolver:
             move_mesh_flag)
                                                                                    
 
-        (self.solver).SetEchoLevel(self.settings["mechanical_settings"]["echo_level"].GetInt())
+        (self.solver).SetEchoLevel(self.settings["acoustic_solver_settings"]["echo_level"].GetInt())
         
-        print ("Initialization P Solver finished")
+        print ("Initialization Solver finished")
         
     def ImportModelPart(self):
         
-        if(self.settings["mechanical_settings"]["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
             # Here it would be the place to import restart data if required
-            KratosMultiphysics.ModelPartIO(self.settings["mechanical_settings"]["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            print("    Import input model part.")
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
-            self.computing_model_part_name = "acoustic_computing_domain"
-            ## Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-            aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
-            aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-            aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+            # Create computing_model_part, set constitutive law and buffer size
+            self._ExecuteAfterReading()
             
-            ## CheckAndPrepareModelProcess creates the solid_computational_model_part
-            import check_and_prepare_model_process_poro
-            check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
-            
-            # Constitutive law import
-            import dam_constitutive_law_utility
-            dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)       
         else:
             raise Exception("other input options are not yet implemented")
-        
-        self.main_model_part.SetBufferSize( self.settings["mechanical_settings"]["buffer_size"].GetInt() )
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
                 
         print ("model reading finished")     
    
@@ -195,4 +141,27 @@ class DamUPSolver:
     def Clear(self):
         (self.solver).Clear()
 
+
+    #### Specific internal functions ####
+
+    def _ExecuteAfterReading(self):
+        
+        self.computing_model_part_name = "acoustic_computing_domain"
+        
+        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
+        aux_params = KratosMultiphysics.Parameters("{}")
+        aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+
+        # CheckAndPrepareModelProcess creates the solid_computational_model_part
+        import check_and_prepare_model_process_poro
+        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+
+        # Constitutive law import
+        import dam_constitutive_law_utility
+        dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)
+
+        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
+        minimum_buffer_size = self.GetMinimumBufferSize()
+        if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
+            self.main_model_part.SetBufferSize( minimum_buffer_size )
 
