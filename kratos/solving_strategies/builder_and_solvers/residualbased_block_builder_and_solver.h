@@ -219,60 +219,64 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
-        for (int k = 0; k < nelements; k++)
+        #pragma omp parallel firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
         {
-            ModelPart::ElementsContainerType::iterator it = el_begin + k;
-
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                element_is_active = (it)->Is(ACTIVE);
-
-            if (element_is_active)
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++)
             {
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-                //assemble the elemental contribution
-#ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    element_is_active = (it)->Is(ACTIVE);
+
+                if (element_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+    #ifdef _OPENMP
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+    #else
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+    #endif
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
+
             }
 
-        }
 
-
-        #pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
-        for (int k = 0; k < nconditions; k++)
-        {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
-
-            if (condition_is_active)
+            //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
+            #pragma omp parallel for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++)
             {
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-                //assemble the elemental contribution
-#ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                if (condition_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+    #ifdef _OPENMP
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+    #else
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+    #endif
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
             }
         }
 
@@ -1290,51 +1294,55 @@ private:
         // assemble all elements
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
-        int nelements = static_cast<int>(pElements.size());
-        #pragma omp parallel for firstprivate(nelements, RHS_Contribution, EquationId)
-        for(int i=0; i<nelements; i++)
+        const int nelements = static_cast<int>(pElements.size());
+        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId) 
         {
-            typename ElementsArrayType::iterator it = pElements.begin() + i;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if( (it)->IsDefined(ACTIVE) )
-                element_is_active = (it)->Is(ACTIVE);
-
-            if(element_is_active)
+            #pragma omp for schedule(guided, 512) nowait
+            for(int i=0; i<nelements; i++)
             {
-                //calculate elemental Right Hand Side Contribution
-                pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (it)->IsDefined(ACTIVE) )
+                    element_is_active = (it)->Is(ACTIVE);
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
+                if(element_is_active)
+                {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
             }
-        }
 
-        LHS_Contribution.resize(0, 0, false);
-        RHS_Contribution.resize(0, false);
+            LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
 
-        // assemble all conditions
-        //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        int nconditions = static_cast<int>(ConditionsArray.size());
-        #pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId)
-        for (int i = 0; i<nconditions; i++)
-        {
-            auto it = ConditionsArray.begin() + i;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if( (it)->IsDefined(ACTIVE) )
-                condition_is_active = (it)->Is(ACTIVE);
-
-            if(condition_is_active)
+            // assemble all conditions
+            //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            //#pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId) schedule(dynamic, 1024)
+            #pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++)
             {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (it)->IsDefined(ACTIVE) )
+                    condition_is_active = (it)->Is(ACTIVE);
 
-                //calculate elemental contribution
-                pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                if(condition_is_active)
+                {
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
             }
         }
 
