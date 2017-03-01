@@ -1172,6 +1172,24 @@ public:
         
         return VarVector;
     }
+    
+    template< unsigned int TNumNodes >
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector(iNode, 0) = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        }
+        
+        return VarVector;
+    }
 
     template< unsigned int TNumNodes >
     static inline array_1d<double, TNumNodes> GetVariableVector(
@@ -1185,6 +1203,23 @@ public:
         for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
         {
             VarVector[iNode] = nodes[iNode].GetValue(rVarName);
+        }
+        
+        return VarVector;
+    }
+    
+    template< unsigned int TNumNodes >
+    static inline boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> GetVariableVectorMatrix(
+        const GeometryType& nodes,
+        const Variable<double>& rVarName
+        )
+    {
+        /* DEFINITIONS */        
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, 1> VarVector;
+        
+        for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
+        {
+            VarVector(iNode, 0) = nodes[iNode].GetValue(rVarName);
         }
         
         return VarVector;

@@ -83,7 +83,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 
-template< unsigned int TDim, unsigned int NumNodesElem, TensorValue TTensor>
+template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 class MeshTyingMortarCondition: public Condition 
 {
 public:
@@ -107,7 +107,11 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
-    constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : NumNodesElem == 4 ? 3 : 4;
+    static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
+    
+    static constexpr unsigned int MatrixSize = TTensor * (2* TNumNodesElem - NumNodes);
+    
+    static constexpr unsigned int DimensionLocalElem = TTensor * TNumNodesElem;
     
     /**
      * Parameters to be used in the Condition as they are.
@@ -260,7 +264,6 @@ public:
     /**
     * Initialize System Matrices
     */
-    template<unsigned int TMatrixSize>
     void InitializeSystemMatrices( 
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -466,7 +469,7 @@ protected:
     public:
         
         // Auxiliar types
-        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, TTensor>   Type1;
+        typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, TTensor>  Type1;
         typedef boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Type2;
         
         // Master and element geometries
@@ -682,7 +685,6 @@ protected:
     /**
      * Calculates the condition contribution
      */
-    template<unsigned int TMatrixSize>
     void CalculateConditionSystem( 
         LocalSystemComponents& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
@@ -711,23 +713,13 @@ protected:
     void CalculateAe( 
         DofData& rDofData,
         GeneralVariables& rVariables,
-//         const GeometryType::IntegrationPointsArrayType& integration_points,
         const ProcessInfo& rCurrentProcessInfo
-        );
-    
-    /**
-     * Initialize General Variables
-     */
-    void UpdateDofData( 
-        DofData& rDofData,
-        const unsigned int& rMasterElementIndex
         );
     
     /**
      * This function loops over all conditions and calculates the overall number of DOFs
      * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
      */
-    template<unsigned int TMatrixSize>
     const unsigned int CalculateConditionSize( );
     
     /**
@@ -737,7 +729,7 @@ protected:
         GeneralVariables& rVariables,
         const DofData rDofData,
         const double& rPointNumber,
-        const GeometryType::IntegrationPointsArrayType& integration_points
+        const IntegrationPointsType& IntegrationPointsSlave
         );
 
     /********************************************************************************/
@@ -747,19 +739,17 @@ protected:
     /*
      * Calculation and addition of the matrices of the LHS of a contact pair
      */
-    template<unsigned int TMatrixSize>
     void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
-        const boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize>& LHS_contact_pair, 
+        const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
         const unsigned int rPairIndex
         );
 
     /*
      * Assembles the contact pair LHS block into the condition's LHS
      */
-    template<unsigned int TMatrixSize>
     void AssembleContactPairLHSToConditionSystem( 
-        const boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize>& rPairLHS,
+        const boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
         MatrixType& rConditionLHS,
         const unsigned int rPairIndex
         );
@@ -767,29 +757,28 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    template<unsigned int TMatrixSize>
-    boost::numeric::ublas::bounded_matrix<double, TMatrixSize, TMatrixSize> CalculateLocalLHS(
+    boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
+        const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
+        const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int& rMasterElementIndex,
-        const unsigned int& rActiveInactive
+        const ProcessInfo& rCurrentProcessInfo
         );
     
     /*
      * Calculation and addition fo the vectors of the RHS of a contact pair
      */
-    template<unsigned int TMatrixSize>
     void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
-        const array_1d<double, TMatrixSize>& RHS_contact_pair, 
+        const array_1d<double, MatrixSize>& RHS_contact_pair, 
         const unsigned int rPairIndex
         );
     
     /*
      * Assembles the contact pair RHS block into the condition's RHS
      */
-    template<unsigned int TMatrixSize>
     void AssembleContactPairRHSToConditionSystem( 
-        const array_1d<double, TMatrixSize>& rPairRHS,
+        const array_1d<double, MatrixSize>& rPairRHS,
         VectorType& rConditionRHS,
         const unsigned int rPairIndex
         );
@@ -797,11 +786,11 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    template<unsigned int TMatrixSize>
-    array_1d<double, TMatrixSize> CalculateLocalRHS(
+    array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
+        array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution,
         const unsigned int& rMasterElementIndex,
-        const unsigned int& rActiveInactive
+        const ProcessInfo& rCurrentProcessInfo
         );
     
     /***********************************************************************************/
@@ -816,11 +805,24 @@ protected:
         const PointType& local_point 
     );
 
+    /*
+     * Calculates the mortar operators (D and M)
+     */
     void CalculateMortarOperators(
         MortarConditionMatrices& rThisMortarConditionMatrices,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight
     );
+    
+    /*
+     * Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shpae functions
+     */
+    void CalculateAeComponents(
+        GeneralVariables& rVariables,
+        AeData& rAeData,
+        const double& rIntegrationWeight
+    );
+    
     /*
      * Calculates the matrix De
      */
@@ -850,14 +852,9 @@ protected:
     /******************************************************************/
     
     /*
-     * Computes the selective integration method
+     * It calculates the POperator (Inverse(D x M))
      */
-    void ComputeSelectiveIntegrationMethod(const unsigned int rPairIndex);
-    
-    /*
-     * Initializes the integration method
-     */
-    void InitializeIntegrationMethod();
+    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> ComputePOperator(const MortarConditionMatrices& rMortarConditionMatrices);
     
     ///@}
     ///@name Protected  Access
