@@ -11,7 +11,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 import time as timer
 
 # ======================================================================================================================================
-# Kratos CSM part
+# Solver preparation
 # ======================================================================================================================================
 
 #### PARSING THE PARAMETERS ####
@@ -41,11 +41,20 @@ CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solv
 CSM_solver.AddVariables()
 
 # --------------------------------------------------------------------------
+import optimization_settings
+
+# # Initalize model_part here to have it available for further use in this main script
+# main_model_part = ModelPart(optimization_settings.model_input_filename)
+
+# Create an optimizer 
+# Note that internally variables related to the optimizer are added to the model part
+import optimizer_factory
+optimizer = optimizer_factory.CreateOptimizer( main_model_part, optimization_settings )
+
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
-import optimization_settings as opt_settings
 import response_function_factory
-response_function_solver = response_function_factory.CreateSolver( main_model_part, opt_settings )
+response_function_solver = response_function_factory.CreateSolver( main_model_part, optimization_settings )
 
 # --------------------------------------------------------------------------
 #read model_part (note: the buffer_size is set here) (restart can be read here)
@@ -179,11 +188,8 @@ def FinalizeKSMProcess():
 # Optimization part
 # ======================================================================================================================================
 
-# Import kratos shape tools
-import optimizer_factory
-
 # --------------------------------------------------------------------------
-def analyzer(X, controls, opt_itr, response):
+def analyzeDesignAndRespondToOptimizer(X, controls, opt_itr, response):
 
     # Compute primals
     print("\n> Starting calculation of response values")
@@ -237,22 +243,20 @@ def analyzer(X, controls, opt_itr, response):
     print("> Time needed for calculating gradients = ",round(stop_time - start_time,2),"s")
 
 # --------------------------------------------------------------------------
-
-# Create an optimizer object 
-optimizer = optimizer_factory.CreateOptimizer(opt_settings,analyzer)
+optimizer.getAnalyzer().setAnalyzeFunction( analyzeDesignAndRespondToOptimizer )
+optimizer.readInputModelPart()
+optimizer.prepareOptimization()
 
 print("\n> ==============================================================================================================")
 print("> Starting optimization")
 print("> ==============================================================================================================\n")
 
-# Call the solve function in the optimizer
 optimizer.optimize()
 
 print("\n> ==============================================================================================================")
 print("> Finished shape optimization!")
 print("> ==============================================================================================================\n")
 
-# Finish output of CSM
 FinalizeKSMProcess()
 
 # ======================================================================================================================================

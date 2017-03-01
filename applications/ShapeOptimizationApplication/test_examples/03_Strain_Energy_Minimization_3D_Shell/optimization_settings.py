@@ -41,8 +41,8 @@ design_output_mode = "relative"
 # Case: design_control = "vertex_morphing"
 # ================================================================================================================
 
-model_input_filename = "3D_Shell"
-design_surface_sub_model_name = "design_surface"
+input_model_part_name = "3D_Shell"
+design_surface_submodel_part_name = "design_surface"
 domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
 

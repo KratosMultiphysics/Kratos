@@ -850,6 +850,24 @@ class Controller:
     # --------------------------------------------------------------------------
 
 # ==============================================================================
+class Analyzer:
+
+    # --------------------------------------------------------------------------
+    def __init__( self ):
+
+        # Initialize placeholder for function for design analysis
+        self.FunctionForDesignAnalysis = None
+
+    # --------------------------------------------------------------------------
+    def importFunctionForDesignAnalysis( self, FunctionForDesignAnalysis ):  
+        self.FunctionForDesignAnalysis = FunctionForDesignAnalysis
+
+    # --------------------------------------------------------------------------
+    def analyze( self, X, controls, opt_itr, response):
+        self.FunctionForDesignAnalysis( X, controls, opt_itr, response )
+
+
+# ==============================================================================
 def CreateOptimizer( config, analyzer ):
 
     # Create folder where all functions includig the optimizer may store their design history in
