@@ -502,12 +502,60 @@ public:
         {
             Det = Det2(A);
         }
-        else
+        else if (A.size1() == 3)
         {
             Det = Det3(A);
         }
+        else if (A.size1() == 4)
+        {
+            Det = Det4(A);
+        }
+        else
+        {
+            using namespace boost::numeric::ublas;
+            typedef permutation_matrix<std::size_t> pmatrix;
+            Matrix Aux(A);
+            pmatrix pm(Aux.size1());
+            bool singular = lu_factorize(Aux,pm);
+            
+            if (singular == true)
+            {
+                return 0.0;
+            }
+            
+            Det = 1.0;
+            
+            for (unsigned int i = 0; i < Aux.size1();i++)
+            {
+                unsigned int ki = pm[i] == i ? 0 : 1;
+                Det *= std::pow(-1.0, ki) * Aux(i,i);
+            }
+        }
 
         return Det;
+    }
+    
+    /**
+     * Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
+     * @param A: Is the input matrix
+     * @return The determinant of the 2x2 matrix
+     */
+        
+    static inline TDataType GeneralizedDet(const MatrixType& A)
+    {
+        TDataType Determinant;
+        
+        if (A.size1() == A.size2())
+        {
+            Determinant = Det(A);
+        }
+        else 
+        {
+            Matrix ATA = prod( trans(A), A );
+            Determinant = std::sqrt(Det(ATA));
+        }
+        
+        return Determinant;
     }
     
     /**
@@ -530,11 +578,25 @@ public:
     static inline TDataType Det3(const MatrixType& A)
     {
         // Calculating the algebraic complements to the first line
-        double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
-        double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
-        double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
+        const double a = A(1,1)*A(2,2) - A(1,2)*A(2,1);
+        const double b = A(1,0)*A(2,2) - A(1,2)*A(2,0);
+        const double c = A(1,0)*A(2,1) - A(1,1)*A(2,0);
 
         return A(0,0)*a - A(0,1)*b + A(0,2)*c;
+    }
+    
+    /**
+     * Calculates the determinant of a matrix of dimension 4*4 (no check performed on matrix size)
+     * @param A: Is the input matrix
+     * @return The determinant of the 4x4 matrix
+     */
+    
+    static inline TDataType Det4(const MatrixType& A)
+    {
+        const double Det = A(0,1)*A(1,3)*A(2,2)*A(3,0)-A(0,1)*A(1,2)*A(2,3)*A(3,0)-A(0,0)*A(1,3)*A(2,2)*A(3,1)+A(0,0)*A(1,2)*A(2,3)*A(3,1)   
+                          -A(0,1)*A(1,3)*A(2,0)*A(3,2)+A(0,0)*A(1,3)*A(2,1)*A(3,2)+A(0,1)*A(1,0)*A(2,3)*A(3,2)-A(0,0)*A(1,1)*A(2,3)*A(3,2)+A(0,3)*(A(1,2)*A(2,1)*A(3,0)-A(1,1)*A(2,2)*A(3,0)-A(1,2)*A(2,0)*A(3,1)+A(1,0)*A(2,2)*A(3,1)+A(1,1)*A(2,0)*A(3,2)
+                          -A(1,0)*A(2,1)*A(3,2))+(A(0,1)*A(1,2)*A(2,0)-A(0,0)*A(1,2)*A(2,1)-A(0,1)*A(1,0)*A(2,2)+A(0,0)*A(1,1)*A(2,2))*A(3,3)+A(0,2)*(-(A(1,3)*A(2,1)*A(3,0))+A(1,1)*A(2,3)*A(3,0)+A(1,3)*A(2,0)*A(3,1)-A(1,0)*A(2,3)*A(3,1)-A(1,1)*A(2,0)*A(3,3)+A(1,0)*A(2,1)*A(3,3));
+        return Det;
     }
 
     /**
