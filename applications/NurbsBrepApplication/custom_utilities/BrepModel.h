@@ -66,7 +66,7 @@ public:
 
   /// Default constructor.
 //TODO: pass by reference not by value
-  BrepModel(FacesVector faces, EdgesVector edges)
+  BrepModel(FacesVector& faces, EdgesVector& edges)
   : m_faces(faces),
     m_edges(edges)
   {
@@ -102,8 +102,8 @@ private:
   // ==============================================================================
   // Initialized by class constructor
   // ==============================================================================
-  FacesVector m_faces;
-  EdgesVector m_edges;
+  FacesVector& m_faces;
+  EdgesVector& m_edges;
   //VerticesVector m_vertices;
 
   // ==============================================================================

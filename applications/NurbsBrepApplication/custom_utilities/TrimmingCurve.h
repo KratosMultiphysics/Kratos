@@ -71,15 +71,15 @@ public:
 
   /// Default constructor.
 //TODO: pass by reference not by value
-//TODO: DoubleVector is called simply Vector
 //TODO: why control points have size 4??? pass them as kratos nodes
-  TrimmingCurve(unsigned int cp_id, Vector knot_vector_u, unsigned int p, ControlPointVector control_points, Vector boundary_vertices)
-  : m_cp_id(cp_id),
-    m_knot_vector_u(knot_vector_u),
+  TrimmingCurve(unsigned int trim_index, Vector& knot_vector_u, 
+    unsigned int p, ControlPointVector& control_points, 
+    Vector& boundary_vertices)
+  : m_knot_vector_u(knot_vector_u),
     m_p(p),
     m_control_points(control_points),
     m_boundary_vertices(boundary_vertices),
-    IndexedObject(0),
+    IndexedObject(trim_index),
     Flags()
   {
     //array_1d<double, 4> m_control_points;
@@ -123,7 +123,7 @@ private:
   // ==============================================================================
   // Initialized by class constructor
   // ==============================================================================
-  unsigned int m_cp_id;
+  //unsigned int m_cp_id;
   Vector m_knot_vector_u;
   unsigned int m_p;
   ControlPointVector m_control_points;

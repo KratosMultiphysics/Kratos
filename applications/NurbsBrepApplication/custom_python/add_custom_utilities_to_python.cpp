@@ -43,9 +43,9 @@ namespace Python
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<>())
-      .def("SetUp", &NurbsBrepModeler::SetUp)
-      ;
+    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<Parameters&, ModelPart&>());
+      //.def("SetUp", &NurbsBrepModeler::SetUp)
+      //;
     //  .def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
     //  .def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
     //  ;

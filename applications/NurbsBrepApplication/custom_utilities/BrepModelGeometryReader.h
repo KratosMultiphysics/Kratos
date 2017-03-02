@@ -15,7 +15,7 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -30,6 +30,7 @@
 #include "Edge.h"
 #include "FaceTrim.h"
 
+#include "includes/kratos_parameters.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/node.h"
 
@@ -59,10 +60,6 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
     typedef std::vector<BrepModel> BrepModelVector;
-    typedef boost::python::extract<double> extractDouble;
-    typedef boost::python::extract<int> extractInt;
-    typedef boost::python::extract<std::string> extractString;
-    typedef boost::python::extract<bool> extractBool;
 
     typedef std::vector<int> IntVector;
 
@@ -90,7 +87,7 @@ namespace Kratos
     void ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part);
 
     /// Constructor.
-    BrepModelGeometryReader(boost::python::dict cad_geometry_in_json);
+    BrepModelGeometryReader(Parameters& cad_geometry_in_json);
 
     /// Destructor.
     virtual ~BrepModelGeometryReader();
@@ -125,7 +122,7 @@ namespace Kratos
         ///@name Member Variables
     ///@{ 
 
-    boost::python::dict m_cad_geometry_in_json;
+    Parameters m_cad_geometry_in_json;
 
     ///@} 
     ///@name Private Operators

@@ -45,7 +45,7 @@ namespace Kratos
 
  */
 
-class FaceTrim : public IndexedObject, public Flags
+class FaceTrim
 {
 public:
   ///@name Type Definitions
@@ -64,9 +64,7 @@ public:
   FaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
   : m_face_id(face_id),
     m_trim_index(trim_index),
-    m_relative_direction(relative_direction),
-    IndexedObject(0),
-    Flags()
+    m_relative_direction(relative_direction)
   {
   }
 

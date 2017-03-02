@@ -35,13 +35,13 @@ namespace Kratos
     EdgesVector edges_vector;
 
     // loop over faces
-    for (int i = 0; i < boost::python::len(m_cad_geometry_in_json["faces"]); i++)
+    for (int i = 0; i < m_cad_geometry_in_json["faces"].size(); i++)
     {
       
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // 1. Step: faces
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      unsigned int face_id = extractInt(m_cad_geometry_in_json["faces"][i]["brep_id"]);
+      unsigned int face_id = m_cad_geometry_in_json["faces"][i]["brep_id"].GetInt();
 
       std::string sub_model_part_face_name = "FACE_" + std::to_string(face_id);
       std::string sub_model_part_name = "FACE_" + std::to_string(face_id) + "_CPS";
@@ -57,8 +57,8 @@ namespace Kratos
       std::cout << "> Reading face " << face_id << "..." << std::endl;
 
       // Variables needed later
-      unsigned int length_u_vector = boost::python::len(m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0]);
-      unsigned int length_v_vector = boost::python::len(m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1]);
+      unsigned int length_u_vector = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0].size();
+      unsigned int length_v_vector = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1].size();
       Vector knot_vector_u = ZeroVector(length_u_vector);
       Vector knot_vector_v = ZeroVector(length_v_vector);
       int p;
@@ -68,32 +68,32 @@ namespace Kratos
       // read and store knot_vector_u
       for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
       {
-        knot_vector_u(u_idx) = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0][u_idx]);
+        knot_vector_u(u_idx) = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0][u_idx].GetDouble();
         //knot_vector_u.insert_element(-1, knot);
       }
 
       // read and store knot_vector_v
       for (int v_idx = 0; v_idx < length_v_vector; v_idx++)
       {
-        knot_vector_v(v_idx) = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1][v_idx]);
+        knot_vector_v(v_idx) = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1][v_idx].GetDouble();
         //knot_vector_v.insert_element(-1, knot);
       }
 
       // read and store polynamial degree p and q
-      p = extractInt(m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][0]);
-      q = extractInt(m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][1]);
+      p = m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][0].GetInt();
+      q = m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][1].GetInt();
 
     // read and store control_points
       // Control points in each patch get a global as well as a mapping matrix id
       // brep Id: Unique Id for each control point (given by json-file)
       // mapping matrix id: specifies position in global mapping matrix (given by numbering of control points)
-      for (int cp_idx = 0; cp_idx < boost::python::len(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"]); cp_idx++)
+      for (int cp_idx = 0; cp_idx < m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"].size(); cp_idx++)
       {
-        unsigned int cp_id = extractInt(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][0]);
-        double x = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][0]);
-        double y = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][1]);
-        double z = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][2]);
-        double w = extractDouble(m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][3]);
+        unsigned int cp_id = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][0].GetInt();
+        double x = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][0].GetDouble();
+        double y = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][1].GetDouble();
+        double z = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][2].GetDouble();
+        double w = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][3].GetDouble();
 
         control_points_ids.push_back(cp_id);
 
@@ -112,22 +112,22 @@ namespace Kratos
       TrimmingCurveVector trimming_curves;
 
       // For better reading
-      boost::python::list boundary_dict(m_cad_geometry_in_json["faces"][i]["boundary_loops"]);
+      Parameters boundary_dict(m_cad_geometry_in_json["faces"][i]["boundary_loops"]);
 
       // Loop over all boundary loops
-      for (int loop_idx = 0; loop_idx < boost::python::len(boundary_dict); loop_idx++)
+      for (int loop_idx = 0; loop_idx < boundary_dict.size(); loop_idx++)
       {
         IntVector loop;
 
         // Loop over all curves
-        for (int edge_idx = 0; edge_idx < boost::python::len(boundary_dict[loop_idx]["trimming_curves"]); edge_idx++)
+        for (int edge_idx = 0; edge_idx < boundary_dict[loop_idx]["trimming_curves"].size(); edge_idx++)
         {
-          unsigned curve_index = extractInt(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["trim_index"]);
+          unsigned int curve_index = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["trim_index"].GetInt();
 
           loop.push_back(curve_index);
 
           // Variables needed later
-          unsigned int length_u_vector = boost::python::len(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"]);
+          unsigned int length_u_vector = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"].size();
           Vector boundary_knot_vector_u = ZeroVector(length_u_vector);
           unsigned int boundary_p;
           std::vector<array_1d<double, 4>> boundary_control_points;
@@ -136,22 +136,22 @@ namespace Kratos
           // read and store knot_vector_u
           for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
           {
-            boundary_knot_vector_u(u_idx) = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][u_idx]);
+            boundary_knot_vector_u(u_idx) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][u_idx].GetDouble();
             //boundary_knot_vector_u.insert_element(-1, knot);
           }
 
           // read and store polynamial degree p and q
-          boundary_p = extractInt(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["degrees"]);
+          boundary_p = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["degrees"].GetInt();
 
           // read and store control_points
-          for (int cp_idx = 0; cp_idx < boost::python::len(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"]); cp_idx++)
+          for (int cp_idx = 0; cp_idx < boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"].size(); cp_idx++)
           {
             //unsigned int cp_id = extractInt(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
             array_1d<double, 4> control_point;
-            control_point[0] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
-            control_point[1] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1]);
-            control_point[2] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][2]);
-            control_point[3] = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][3]);
+            control_point[0] = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0].GetDouble();
+            control_point[1] = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][1].GetDouble();
+            control_point[2] = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][2].GetDouble();
+            control_point[3] = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][3].GetDouble();
 
             boundary_control_points.push_back(control_point);
 
@@ -159,8 +159,8 @@ namespace Kratos
             //sub_model_part_face_internal.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
           }
 
-          boundary_vertices(0) = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][0]);
-          boundary_vertices(1) = extractDouble(boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][1]);
+          boundary_vertices(0) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][0].GetDouble();
+          boundary_vertices(1) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][1].GetDouble();
 
           //std::cout << "Test Point boundary vertices" << std::endl;
 
@@ -186,29 +186,29 @@ namespace Kratos
     }
 
     // loop over edges
-    for (int i = 0; i < boost::python::len(m_cad_geometry_in_json["edges"]); i++)
+    for (int i = 0; i < m_cad_geometry_in_json["edges"].size(); i++)
     {
       FaceTrimVector face_trims_vector;
 
-      unsigned int edge_id = extractInt(m_cad_geometry_in_json["edges"][i]["brep_id"]);
+      unsigned int edge_id = m_cad_geometry_in_json["edges"][i]["brep_id"].GetInt();
       Vector first_boundary_vertex = ZeroVector(3);
       Vector second_boundary_vertex = ZeroVector(3);
       ParameterVector boundary_vertices;
       //std::cout << "Test Point boundary vertices 2" << std::endl;
       for (int j = 0; j < 3; j++)
       {
-        first_boundary_vertex(j) = extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][0][j]);
+        first_boundary_vertex(j) = m_cad_geometry_in_json["edges"][i]["boundary_vertices"][0][j].GetDouble();
 
         //std::cout << "Test Point boundary vertices 2.1" << first_boundary_vertex[0] << std::endl;
-        second_boundary_vertex(j) = extractDouble(m_cad_geometry_in_json["edges"][i]["boundary_vertices"][1][j]);
+        second_boundary_vertex(j) = m_cad_geometry_in_json["edges"][i]["boundary_vertices"][1][j].GetDouble();
       }
       boundary_vertices.push_back(first_boundary_vertex);
       boundary_vertices.push_back(second_boundary_vertex);
 
-      for (int j = 0; j < boost::python::len(m_cad_geometry_in_json["edges"][i]["face_trims"]); j++)
+      for (int j = 0; j < m_cad_geometry_in_json["edges"][i]["face_trims"].size(); j++)
       {
-        unsigned int face_id = extractInt(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["face_id"]);
-        unsigned int trim_index = extractInt(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["trim_index"]);
+        unsigned int face_id = m_cad_geometry_in_json["edges"][i]["face_trims"][j]["face_id"].GetInt();
+        unsigned int trim_index = m_cad_geometry_in_json["edges"][i]["face_trims"][j]["trim_index"].GetInt();
 
         //Vector first_boundary_parameter;
         //Vector second_boundary_parameter;
@@ -224,7 +224,7 @@ namespace Kratos
         //boundary_parameters.push_back(first_boundary_parameter);
         //boundary_parameters.push_back(second_boundary_parameter);
 
-        bool relative_direction = extractBool(m_cad_geometry_in_json["edges"][i]["face_trims"][j]["relative_direction"]);
+        bool relative_direction = m_cad_geometry_in_json["edges"][i]["face_trims"][j]["relative_direction"].GetBool();
         
         FaceTrim trim(face_id, trim_index, relative_direction);
         face_trims_vector.push_back(trim);
@@ -244,7 +244,7 @@ namespace Kratos
 // --------------------------------------------------------------------------
 
 //Constructor
-BrepModelGeometryReader::BrepModelGeometryReader(boost::python::dict cad_geometry_in_json)
+BrepModelGeometryReader::BrepModelGeometryReader(Parameters& cad_geometry_in_json)
   : m_cad_geometry_in_json(cad_geometry_in_json)
 {
 }
