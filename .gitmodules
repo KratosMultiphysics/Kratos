@@ -1,0 +1,3 @@
+[submodule "external_libraries/amgcl"]
+	path = external_libraries/amgcl
+	url = https://github.com/ddemidov/amgcl
