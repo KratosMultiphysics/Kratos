@@ -57,8 +57,8 @@ namespace Kratos
       std::cout << "> Reading face " << face_id << "..." << std::endl;
 
       // Variables needed later
-      unsigned int length_u_vector = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0].size();
-      unsigned int length_v_vector = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1].size();
+      unsigned int length_u_vector = m_cad_geometry_in_json["faces"][i]["surface"]["knot_vectors"][0].size();
+      unsigned int length_v_vector = m_cad_geometry_in_json["faces"][i]["surface"]["knot_vectors"][1].size();
       Vector knot_vector_u = ZeroVector(length_u_vector);
       Vector knot_vector_v = ZeroVector(length_v_vector);
       int p;
@@ -68,32 +68,33 @@ namespace Kratos
       // read and store knot_vector_u
       for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
       {
-        knot_vector_u(u_idx) = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][0][u_idx].GetDouble();
+        knot_vector_u(u_idx) = m_cad_geometry_in_json["faces"][i]["surface"]["knot_vectors"][0][u_idx].GetDouble();
         //knot_vector_u.insert_element(-1, knot);
       }
 
       // read and store knot_vector_v
       for (int v_idx = 0; v_idx < length_v_vector; v_idx++)
       {
-        knot_vector_v(v_idx) = m_cad_geometry_in_json["faces"][i]["surface"][0]["knot_vectors"][1][v_idx].GetDouble();
+        knot_vector_v(v_idx) = m_cad_geometry_in_json["faces"][i]["surface"]["knot_vectors"][1][v_idx].GetDouble();
         //knot_vector_v.insert_element(-1, knot);
       }
 
       // read and store polynamial degree p and q
-      p = m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][0].GetInt();
-      q = m_cad_geometry_in_json["faces"][i]["surface"][0]["degrees"][1].GetInt();
+      p = m_cad_geometry_in_json["faces"][i]["surface"]["degrees"][0].GetInt();
+      q = m_cad_geometry_in_json["faces"][i]["surface"]["degrees"][1].GetInt();
+
 
     // read and store control_points
       // Control points in each patch get a global as well as a mapping matrix id
       // brep Id: Unique Id for each control point (given by json-file)
       // mapping matrix id: specifies position in global mapping matrix (given by numbering of control points)
-      for (int cp_idx = 0; cp_idx < m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"].size(); cp_idx++)
+      for (int cp_idx = 0; cp_idx < m_cad_geometry_in_json["faces"][i]["surface"]["control_points"].size(); cp_idx++)
       {
-        unsigned int cp_id = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][0].GetInt();
-        double x = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][0].GetDouble();
-        double y = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][1].GetDouble();
-        double z = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][2].GetDouble();
-        double w = m_cad_geometry_in_json["faces"][i]["surface"][0]["control_points"][cp_idx][1][3].GetDouble();
+        unsigned int cp_id = m_cad_geometry_in_json["faces"][i]["surface"]["control_points"][cp_idx][0].GetInt();
+        double x = m_cad_geometry_in_json["faces"][i]["surface"]["control_points"][cp_idx][1][0].GetDouble();
+        double y = m_cad_geometry_in_json["faces"][i]["surface"]["control_points"][cp_idx][1][1].GetDouble();
+        double z = m_cad_geometry_in_json["faces"][i]["surface"]["control_points"][cp_idx][1][2].GetDouble();
+        double w = m_cad_geometry_in_json["faces"][i]["surface"]["control_points"][cp_idx][1][3].GetDouble();
 
         control_points_ids.push_back(cp_id);
 
@@ -123,15 +124,15 @@ namespace Kratos
         for (int edge_idx = 0; edge_idx < boundary_dict[loop_idx]["trimming_curves"].size(); edge_idx++)
         {
           unsigned int curve_index = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["trim_index"].GetInt();
-
           loop.push_back(curve_index);
 
+          bool curve_direction = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["curve_direction"].GetBool();
           // Variables needed later
           unsigned int length_u_vector = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"].size();
           Vector boundary_knot_vector_u = ZeroVector(length_u_vector);
           unsigned int boundary_p;
           std::vector<array_1d<double, 4>> boundary_control_points;
-          Vector boundary_vertices = ZeroVector(2);
+          Vector active_range = ZeroVector(2);
 
           // read and store knot_vector_u
           for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
@@ -159,13 +160,13 @@ namespace Kratos
             //sub_model_part_face_internal.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
           }
 
-          boundary_vertices(0) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][0].GetDouble();
-          boundary_vertices(1) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["boundary_vertices"][1].GetDouble();
+          active_range(0) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["active_range"][0].GetDouble();
+          active_range(1) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["active_range"][1].GetDouble();
 
           //std::cout << "Test Point boundary vertices" << std::endl;
 
           // Create and store edge
-          TrimmingCurve new_boundary_curve(curve_index, boundary_knot_vector_u, boundary_p, boundary_control_points, boundary_vertices);
+          TrimmingCurve new_boundary_curve(curve_index, curve_direction, boundary_knot_vector_u, boundary_p, boundary_control_points, active_range);
           trimming_curves.push_back(new_boundary_curve);
         }
 

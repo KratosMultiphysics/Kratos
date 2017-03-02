@@ -93,13 +93,13 @@ public:
     IndexedObject(brep_id),
     Flags()
   {
-    unsigned int m_n_u = m_knot_vector_u.size() - m_p - 1;
-    unsigned int m_n_v = m_knot_vector_v.size() - m_q - 1;
+    //unsigned int m_n_u = m_knot_vector_u.size() - m_p - 1;
+    //unsigned int m_n_v = m_knot_vector_v.size() - m_q - 1;
 
-    if (m_control_points_ids.size() != m_n_u * m_n_v)
-    {
-      std::cout << "Invalid Face" << std::endl;
-    }
+    //if (m_control_points_ids.size() != m_n_u * m_n_v)
+    //{
+    //  std::cout << "Invalid Face" << std::endl;
+    //}
   }
 
   /// Destructor.
