@@ -26,7 +26,7 @@
 
 /* CONDITIONS */
 // Mortar conditions
-// #include "custom_conditions/mesh_tying_mortar_condition.h"
+#include "custom_conditions/mesh_tying_mortar_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
 
 // OLD Mortar conditions 
@@ -48,18 +48,8 @@ namespace Kratos
 
 #if !defined(TENSOR_VALUE)
 #define TENSOR_VALUE
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
 #endif
-    
-// #if !defined(ELEMENT_TYPE)
-// #define ELEMENT_TYPE
-//     enum ElementType {Triangle = 3, Quadrilateral = 4, Tetrahedron = 4, Hexahedron = 6};
-// #endif
-//     
-// #if !defined(CONDITION_TYPE)
-// #define CONDITION_TYPE
-//     enum ConditionType {Line = 2,Triangle = 3, Quadrilateral = 4};
-// #endif
     
 ///@}
 ///@name  Functions
@@ -209,14 +199,14 @@ private:
     
     /* CONDITIONS*/
     // Mesh tying mortar condition    
-//     const MeshTyingMortarCondition<2, 3, ScalarValue>   mMeshTyingMortarCondition2DTriangleScalar;   // 2DLine/Triangle for scalar variables
-//     const MeshTyingMortarCondition<2, 4, ScalarValue>   mMeshTyingMortarCondition2DQuadrilateralScalar;   // 2DLine/Quadrilateral for scalar variables
-//     const MeshTyingMortarCondition<2, 3, Vector2DValue> mMeshTyingMortarCondition2DTriangleComponents; // 2DLine/Triangle for components variables
-//     const MeshTyingMortarCondition<2, 4, Vector2DValue> mMeshTyingMortarCondition2DQuadrilateralComponents; // 2DLine/Quadrilateral for scalar variables
-//     const MeshTyingMortarCondition<3, 4, ScalarValue>   mMeshTyingMortarCondition3DTetrahedronScalar;   // 3D Triangle/Tetrahedron for scalar variables
-//     const MeshTyingMortarCondition<3, 6, ScalarValue>   mMeshTyingMortarCondition3DHexahedronScalar;   // 3D Quadrilateral/Hexahedra for scalar variables
-//     const MeshTyingMortarCondition<3, 4, Vector3DValue> mMeshTyingMortarCondition3DTetrahedronComponents; // 3D Triangle/Tetrahedron for components variables
-//     const MeshTyingMortarCondition<3, 6, Vector3DValue> mMeshTyingMortarCondition3DHexahedronComponents; // 3D Quadrilateral/Hexahedra for components variables
+    const MeshTyingMortarCondition<2, 3, ScalarValue> mMeshTyingMortarCondition2DTriangleScalar;            // 2DLine/Triangle for scalar variables
+    const MeshTyingMortarCondition<2, 4, ScalarValue> mMeshTyingMortarCondition2DQuadrilateralScalar;       // 2DLine/Quadrilateral for scalar variables
+    const MeshTyingMortarCondition<2, 3, Vector2DValue> mMeshTyingMortarCondition2DTriangleComponents;      // 2DLine/Triangle for components variables
+    const MeshTyingMortarCondition<2, 4, Vector2DValue> mMeshTyingMortarCondition2DQuadrilateralComponents; // 2DLine/Quadrilateral for scalar variables
+    const MeshTyingMortarCondition<3, 4, ScalarValue> mMeshTyingMortarCondition3DTetrahedronScalar;         // 3D Triangle/Tetrahedron for scalar variables
+    const MeshTyingMortarCondition<3, 6, ScalarValue> mMeshTyingMortarCondition3DHexahedronScalar;          // 3D Quadrilateral/Hexahedra for scalar variables
+    const MeshTyingMortarCondition<3, 4, Vector3DValue> mMeshTyingMortarCondition3DTetrahedronComponents;   // 3D Triangle/Tetrahedron for components variables
+    const MeshTyingMortarCondition<3, 6, Vector3DValue> mMeshTyingMortarCondition3DHexahedronComponents;    // 3D Quadrilateral/Hexahedra for components variables
     
     // ALM Mortar contact conditions
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2> mALMFrictionlessMortarContactCondition2D2N;

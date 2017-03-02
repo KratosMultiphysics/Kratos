@@ -8,8 +8,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
-# TODO: Finish me!!!!!
-
 def CalculateLastIdCondition(model_part):
     cond_id = 0
     for condition in model_part.Conditions:
@@ -20,9 +18,9 @@ def CalculateLastIdCondition(model_part):
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return ALMContactProcess(Model, settings["Parameters"])
+    return MeshTyingProcess(Model, settings["Parameters"])
 
-class ALMContactProcess(KratosMultiphysics.Process):
+class MeshTyingProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
         
@@ -32,15 +30,13 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "model_part_name"             : "",
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
-            "contact_type"                : "Frictionless",
+            "type_variable"               : "Components",
+            "geometry_element"            : "Components",
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
-            "simplify_geometry"           : false,
-            "normal_variation"            : false,
             "type_search"                 : "InRadius",
-            "integration_type"            : "Collocation",
-            "integration_order"           : 5
+            "integration_order"           : 1
         }
         """)
 
@@ -59,9 +55,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
         self.max_number_results       = self.params["max_number_results"].GetInt() 
-        self.simplify_geometry        = self.params["simplify_geometry"].GetBool()
-        self.normal_variation         = self.params["normal_variation"].GetBool()
-        self.integration_type         = self.params["integration_type"].GetString() 
+
+        self.type_variable            = self.params["type_variable"].GetString() 
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -70,41 +65,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         # Appending the conditions created to the computing_model_part
         computing_model_part = self.main_model_part.GetSubModelPart("computing_domain")
-        computing_model_part.CreateSubModelPart("Contact")
-        interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
-
-        if (self.normal_variation == True):
-            computing_model_part.Set(KratosMultiphysics.INTERACTION, True)
-
-        # Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
-        find_nodal_h.Execute()
-
-        import statistics as stat
-        nodal_h_values = []
-        for node in computing_model_part.Nodes:
-            nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
-            
-        mean_h = stat.mean(nodal_h_values)
-            
-        elem_E_values = []
-        for elem in computing_model_part.Elements:
-            prop = elem.Properties
-            elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
-            
-        mean_E = stat.mean(elem_E_values)
-        
-        ## Debug
-        #penalty = 0.0
-        #scale_factor = 1.0
-        
-        # Penalty and scalar factor
-        penalty = 10.0 * mean_E/mean_h
-        scale_factor = 10.0 * mean_E/mean_h
-        
-        for prop in computing_model_part.GetProperties():
-            prop[KratosMultiphysics.ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
-            prop[KratosMultiphysics.ContactStructuralMechanicsApplication.SCALE_FACTOR] = scale_factor
+        computing_model_part.CreateSubModelPart("MeshTying")
+        interface_computing_model_part = computing_model_part.GetSubModelPart("MeshTying")
             
         for node in self.o_interface.Nodes:
             interface_computing_model_part.AddNode(node, 0)  
@@ -118,17 +80,16 @@ class ALMContactProcess(KratosMultiphysics.Process):
         
         self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
         
-        if self.params["contact_type"].GetString() == "Frictionless":
-            condition_name = "ALMFrictionlessMortarContact"
+        condition_name = "MeshTyingMortar"
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, "", self.simplify_geometry) 
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, "", False) 
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, "", self.simplify_geometry) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, "", False) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)

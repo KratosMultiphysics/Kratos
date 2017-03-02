@@ -26,7 +26,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   
   ## CONDITIONS
   # Mortar condition
-#   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp
   # OLD Mortar condtions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_condition.cpp

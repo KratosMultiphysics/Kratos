@@ -30,9 +30,9 @@
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_2d_4.h"
 
-/* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
-#include "integration/line_gauss_legendre_integration_points.h"
-#include "integration/triangle_gauss_legendre_integration_points.h"
+// /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
+// #include "integration/line_gauss_legendre_integration_points.h"
+// #include "integration/triangle_gauss_legendre_integration_points.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -52,6 +52,7 @@ namespace Kratos
     typedef Geometry<NodeType>                                GeometryType;
     
     ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod              IntegrationMethod;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
     
 ///@}

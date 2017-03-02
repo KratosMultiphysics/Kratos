@@ -23,9 +23,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "solid_mechanics_application.h"
-#include "structural_mechanics_application.h"
-#include "contact_structural_mechanics_application.h"
 
 namespace Kratos
 {

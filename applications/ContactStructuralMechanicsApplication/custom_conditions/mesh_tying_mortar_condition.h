@@ -19,8 +19,8 @@
 #include <vector>
 
 // Project includes
-// #include <contact_structural_mechanics_application.h>
-#include <contact_structural_mechanics_application_variables.h>
+// #include "contact_structural_mechanics_application.h"
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/condition.h"
@@ -56,7 +56,7 @@ namespace Kratos
     
 #if !defined(TENSOR_VALUE)
 #define TENSOR_VALUE
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
 #endif
     
 ///@}
@@ -456,12 +456,12 @@ protected:
         GeometryType SlaveGeometry;
         GeometryType MasterGeometry;
         
-        // The current Lagrange Multipliers
-        Type1 LagrangeMultipliers;
-        
-        // DoF
-        Type1 u1;
-        Type1 u2;
+//         // The current Lagrange Multipliers
+//         Type1 LagrangeMultipliers;
+//         
+//         // DoF
+//         Type1 u1;
+//         Type1 u2;
         
         // Ae
         Type2 Ae;
@@ -476,10 +476,10 @@ protected:
         {
             SlaveGeometry  = GeometryInput;
             
-            // The current Lagrange Multipliers
-            u1 = ZeroMatrix(NumNodes, TTensor);
-            u2 = ZeroMatrix(NumNodes, TTensor);
-            LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
+//             // The current Lagrange Multipliers
+//             u1 = ZeroMatrix(NumNodes, TTensor);
+//             u2 = ZeroMatrix(NumNodes, TTensor);
+//             LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
         }
         
         // Initialize the Ae components

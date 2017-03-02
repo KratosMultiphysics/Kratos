@@ -672,15 +672,15 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeDofData(
     // Slave element info
     rDofData.Initialize(GetGeometry());
     
-    /* LM */
-    if (TTensor == 1)
-    {
-        rDofData.LagrangeMultipliers = ContactUtilities::GetVariableVectorMatrix<NumNodes>(GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
-    }
-    else
-    {
-        rDofData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix<TDim,TNumNodesElem>(GetGeometry(),  VECTOR_LAGRANGE_MULTIPLIER, 0); 
-    }
+//     /* LM */ // NOTE: Not used right now
+//     if (TTensor == 1)
+//     {
+//         rDofData.LagrangeMultipliers = ContactUtilities::GetVariableVectorMatrix<NumNodes>(GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
+//     }
+//     else
+//     {
+//         rDofData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix<TDim,TNumNodesElem>(GetGeometry(),  VECTOR_LAGRANGE_MULTIPLIER, 0); 
+//     }
 }
 
 /*********************************COMPUTE KINEMATICS*********************************/
@@ -936,17 +936,23 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::EquationIdVector(
 //                 rResult[index++] = master_node.GetDof( mTyingVarScalar ).EquationId( );
             }
         }
-//         else
-//         {
-//             for ( unsigned int i_master = 0; i_master < NumNodes; i_master++ ) 
-//             {
-//                 NodeType& master_node = current_master[i_master];
+        else
+        {
+            for ( unsigned int i_master = 0; i_master < NumNodes; i_master++ ) 
+            {
+                NodeType& master_node = current_master[i_master];
+                rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
+                rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+                if (TDim == 3)
+                {
+                    rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+                }
 //                 for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
 //                 {
 //                     rResult[index++] = master_node.GetDof( mTyingVarVector[i_dof] ).EquationId( );
 //                 }
-//             }
-//         }
+            }
+        }
         
         // Slave Nodes DoF Equation IDs
         if (TTensor == ScalarValue)
@@ -958,17 +964,23 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::EquationIdVector(
 //                 rResult[index++] = slave_node.GetDof( mTyingVarScalar ).EquationId( );
             }
         }
-//         else
-//         {
-//             for ( unsigned int i_slave = 0; i_slave < NumNodes; i_slave++ ) 
-//             {
-//                 NodeType& slave_node = this->GetGeometry()[i_slave];
+        else
+        {
+            for ( unsigned int i_slave = 0; i_slave < NumNodes; i_slave++ ) 
+            {
+                NodeType& slave_node = this->GetGeometry()[i_slave];
+                rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
+                rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+                if (TDim == 3)
+                {
+                    rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+                }
 //                 for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
 //                 {
 //                     rResult[index++] = slave_node.GetDof( mTyingVarVector[i_dof] ).EquationId( );
 //                 }
-//             }
-//         }
+            }
+        }
         
         // Slave Nodes LM Equation IDs
         if (TTensor == ScalarValue)
@@ -1035,17 +1047,23 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::GetDofList(
 //                 rConditionalDofList[index++] = master_node.pGetDof( mTyingVarScalar );
             }
         }
-//         else
-//         {
-//             for ( unsigned int i_master = 0; i_master < NumNodes; i_master++ ) 
-//             {
-//                 NodeType& master_node = current_master[i_master];
+        else
+        {
+            for ( unsigned int i_master = 0; i_master < NumNodes; i_master++ ) 
+            {
+                NodeType& master_node = current_master[i_master];
+                rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
+                rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
+                if (TDim == 3)
+                {
+                    rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
+                }
 //                 for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
 //                 {
 //                     rConditionalDofList[index++] = master_node.pGetDof( mTyingVarVector[i_dof] );
 //                 }
-//             }
-//         }
+            }
+        }
         
         // Slave Nodes DoF Equation IDs
         if (TTensor == ScalarValue)
@@ -1057,17 +1075,23 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::GetDofList(
 //                 rConditionalDofList[index++] = slave_node.pGetDof( mTyingVarScalar );
             }
         }
-//         else
-//         {
-//             for ( unsigned int i_slave = 0; i_slave < NumNodes; i_slave++ ) 
-//             {
-//                 NodeType& slave_node = this->GetGeometry()[i_slave];
+        else
+        {
+            for ( unsigned int i_slave = 0; i_slave < NumNodes; i_slave++ ) 
+            {
+                NodeType& slave_node = this->GetGeometry()[i_slave];
+                rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
+                rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
+                if (TDim == 3)
+                {
+                    rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
+                }
 //                 for (unsigned int i_dof = 0; i_dof < TDim; i_dof++)
 //                 {
 //                     rConditionalDofList[index++] = slave_node.pGetDof( mTyingVarVector[i_dof] );
 //                 }
-//             }
-//         }
+            }
+        }
         
         // Slave Nodes LM Equation IDs
         if (TTensor == ScalarValue)
@@ -1223,13 +1247,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateOnIntegratio
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template class MeshTyingMortarCondition<2, 3, ScalarValue>;   // 2DLine/Triangle for scalar variables
-// template class MeshTyingMortarCondition<2, 4, ScalarValue>;   // 2DLine/Quadrilateral for scalar variables
-// template class MeshTyingMortarCondition<2, 3, Vector2DValue>; // 2DLine/Triangle for components variables
-// template class MeshTyingMortarCondition<2, 4, Vector2DValue>; // 2DLine/Quadrilateral for scalar variables
-// template class MeshTyingMortarCondition<3, 4, ScalarValue>;   // 3D Triangle/Tetrahedron for scalar variables
-// template class MeshTyingMortarCondition<3, 4, Vector3DValue>; // 3D Triangle/Tetrahedron for components variables
-// template class MeshTyingMortarCondition<3, 6, ScalarValue>;   // 3D Quadrilateral/Hexahedra for scalar variables
-// template class MeshTyingMortarCondition<3, 6, Vector3DValue>; // 3D Quadrilateral/Hexahedra for components variables
+template class MeshTyingMortarCondition<2, 3, ScalarValue>;   // 2DLine/Triangle for scalar variables
+template class MeshTyingMortarCondition<2, 4, ScalarValue>;   // 2DLine/Quadrilateral for scalar variables
+template class MeshTyingMortarCondition<2, 3, Vector2DValue>; // 2DLine/Triangle for components variables
+template class MeshTyingMortarCondition<2, 4, Vector2DValue>; // 2DLine/Quadrilateral for scalar variables
+template class MeshTyingMortarCondition<3, 4, ScalarValue>;   // 3D Triangle/Tetrahedron for scalar variables
+template class MeshTyingMortarCondition<3, 4, Vector3DValue>; // 3D Triangle/Tetrahedron for components variables
+template class MeshTyingMortarCondition<3, 6, ScalarValue>;   // 3D Quadrilateral/Hexahedra for scalar variables
+template class MeshTyingMortarCondition<3, 6, Vector3DValue>; // 3D Quadrilateral/Hexahedra for components variables
 
 } // Namespace Kratos
