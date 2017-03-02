@@ -31,7 +31,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
             "type_variable"               : "Components",
-            "geometry_element"            : "Components",
+            "geometry_element"            : "Quadrilateral",
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
@@ -57,6 +57,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         self.max_number_results       = self.params["max_number_results"].GetInt() 
 
         self.type_variable            = self.params["type_variable"].GetString() 
+        self.geometry_element         = self.params["geometry_element"].GetString() 
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -87,9 +88,9 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, "", False) 
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, "", False) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
@@ -104,53 +105,50 @@ class MeshTyingProcess(KratosMultiphysics.Process):
 
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
-        if self.params["contact_type"].GetString() == "Frictionless":
-            ZeroVector = KratosMultiphysics.Vector(3) 
-            ZeroVector[0] = 0.0
-            ZeroVector[1] = 0.0
-            ZeroVector[2] = 0.0
-            
-            # Initilialize weighted variables and LM
-            for node in self.d_interface.Nodes:
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP,   False)
-                node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
-                node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
-                node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
-                node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
-                #node.Set(KratosMultiphysics.SLAVE, True)
-            del node
-            
-            # Setting the master conditions 
-            for cond in self.o_interface.Nodes:
-                cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-                #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
-            del cond
-            
-            # Setting the slave conditions 
-            for cond in self.d_interface.Nodes:
-                cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
-                cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-            del cond
-            
-            self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeALMFrictionlessMortarConditions(self.active_check_factor, self.integration_order)
+        ZeroVector = KratosMultiphysics.Vector(3) 
+        ZeroVector[0] = 0.0
+        ZeroVector[1] = 0.0
+        ZeroVector[2] = 0.0
+        
+        # Initilialize weighted variables and LM
+        for node in self.d_interface.Nodes:
+            node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
+            node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
+            node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
+            node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
+            #node.Set(KratosMultiphysics.SLAVE, True)
+        del node
+        
+        # Setting the master conditions 
+        for cond in self.o_interface.Nodes:
+            cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
+            cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
+            cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
+            #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
+        del cond
+        
+        # Setting the slave conditions 
+        for cond in self.d_interface.Nodes:
+            cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
+            cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
+            cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
+        del cond
+        
+        self.contact_search.CreatePointListMortar()
+        self.contact_search.InitializeMeshTyingMortarConditions(self.active_check_factor, self.integration_order)
         
     def ExecuteBeforeSolutionLoop(self):
-        if self.params["contact_type"].GetString() == "Frictionless":  
-            self.contact_search.TotalClearALMFrictionlessMortarConditions();
+        if (self.type_variable == "Scalar"):
+            self.contact_search.TotalClearMeshTyingScalarMortarConditions()
+        else:
+            self.contact_search.TotalClearMeshTyingComponentsMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
-        if self.params["contact_type"].GetString() == "Frictionless":    
-            self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
-            #self.contact_search.CheckMortarConditions()
+        self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
+        #self.contact_search.CheckMortarConditions()
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))
@@ -162,9 +160,11 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
-        if self.params["contact_type"].GetString() == "Frictionless":
-            self.contact_search.UpdatePointListMortar()
-            self.contact_search.PartialClearALMFrictionlessMortarConditions()
+        self.contact_search.UpdatePointListMortar()
+        if (self.type_variable == "Scalar"):
+            self.contact_search.PartialClearMeshTyingMortarScalarConditions()
+        else:
+            self.contact_search.PartialClearMeshTyingMortarComponentsConditions()
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))

@@ -364,6 +364,15 @@ public:
         );
     
     /**
+     * This function initializes the Mesh Tying mortar conditions already created 
+     */
+    
+    void InitializeMeshTyingMortarConditions(
+        const double rActiveCheckFactor,
+        const int rIntegrationOrder
+        );
+    
+    /**
      * This function initializes nodes 
      */
     
@@ -386,6 +395,17 @@ public:
      */
         
     void InitializeALMFrictionlessConditions(
+        ModelPart & rModelPart, 
+        const double rActiveCheckFactor,
+        const int rIntegrationOrder
+        );
+    
+    
+    /**
+     * This function initializes Mesh Tying conditions
+     */
+        
+    void InitializeMeshTyingConditions(
         ModelPart & rModelPart, 
         const double rActiveCheckFactor,
         const int rIntegrationOrder
@@ -421,6 +441,8 @@ public:
     
     void TotalClearMortarConditions();
     void TotalClearALMFrictionlessMortarConditions();
+    void TotalClearMeshTyingMortarScalarConditions();
+    void TotalClearMeshTyingMortarComponentsConditions();
     
     /**
      * This function clears the mortar conditions already created 
@@ -428,6 +450,8 @@ public:
     
     void PartialClearMortarConditions();
     void PartialClearALMFrictionlessMortarConditions();
+    void PartialClearMeshTyingMortarScalarConditions();
+    void PartialClearMeshTyingMortarComponentsConditions();
     
     /**
      * This function clears conditions already created 
@@ -435,6 +459,8 @@ public:
     
     void TotalClearConditions(ModelPart & rModelPart);
     void TotalClearALMFrictionlessConditions(ModelPart & rModelPart);
+    void TotalClearMeshTyingScalarConditions(ModelPart & rModelPart);
+    void TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart);
     
     /**
      * This function clears partially the conditions already created 
@@ -442,6 +468,8 @@ public:
     
     void PartialClearConditions(ModelPart & rModelPart);
     void PartialClearALMFrictionlessConditions(ModelPart & rModelPart);
+    void PartialClearMeshTyingScalarConditions(ModelPart & rModelPart);
+    void PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart);
     
     /**
      * This function creates a lists  points ready for the NTN method

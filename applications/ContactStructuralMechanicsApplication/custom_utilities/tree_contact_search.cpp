@@ -162,6 +162,21 @@ void TreeContactSearch::InitializeALMFrictionlessMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TreeContactSearch::InitializeMeshTyingMortarConditions(
+    const double rActiveCheckFactor,
+    const int rIntegrationOrder
+    )
+{
+    // Destination model part
+    InitializeMeshTyingConditions(mrDestinationModelPart, rActiveCheckFactor, rIntegrationOrder);
+    
+    // Origin model part
+    InitializeMeshTyingConditions(mrOriginModelPart, rActiveCheckFactor, rIntegrationOrder);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 {
     // TODO: Add this in the future
@@ -200,6 +215,31 @@ void TreeContactSearch::InitializeConditions(
 /***********************************************************************************/
 
 void TreeContactSearch::InitializeALMFrictionlessConditions(
+    ModelPart & rModelPart,
+    const double rActiveCheckFactor,
+    const int rIntegrationOrder
+    )
+{   
+    ConditionsArrayType& pCond  = rModelPart.Conditions();
+    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
+    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+//     
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    {
+        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+//         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
+        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
+        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
+        {
+            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::InitializeMeshTyingConditions(
     ModelPart & rModelPart,
     const double rActiveCheckFactor,
     const int rIntegrationOrder
@@ -275,6 +315,24 @@ void TreeContactSearch::TotalClearALMFrictionlessMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TreeContactSearch::TotalClearMeshTyingMortarScalarConditions()
+{
+    // Destination model part
+    TotalClearMeshTyingScalarConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearMeshTyingMortarComponentsConditions()
+{
+    // Destination model part
+    TotalClearMeshTyingComponentsConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TreeContactSearch::PartialClearMortarConditions()
 {
     // Destination model part
@@ -288,6 +346,24 @@ void TreeContactSearch::PartialClearALMFrictionlessMortarConditions()
 {
     // Destination model part
     PartialClearALMFrictionlessConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearMeshTyingMortarScalarConditions()
+{
+    // Destination model part
+    PartialClearMeshTyingScalarConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
+{
+    // Destination model part
+    PartialClearMeshTyingComponentsConditions(mrDestinationModelPart);
 }
 
 /***********************************************************************************/
@@ -393,6 +469,106 @@ void TreeContactSearch::TotalClearALMFrictionlessConditions(ModelPart & rModelPa
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPart)
+{
+    ConditionsArrayType& pCond = rModelPart.Conditions();
+    
+    auto numConditions = pCond.end() - pCond.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numConditions; i++) 
+    {
+        auto itCond = pCond.begin() + i;
+        if (itCond->Is(ACTIVE) == true)
+        {
+            itCond->Set(ACTIVE, false);
+            
+            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+            
+            if (ConditionPointers != NULL)
+            {
+                for (unsigned int i = 0; i < ConditionPointers->size();i++)
+                {
+                    (*ConditionPointers)[i].clear();
+                } 
+                
+                ConditionPointers->clear();
+    //             ConditionPointers->reserve(mallocation); 
+            }
+//             delete ConditionPointers;
+//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+        }
+    }
+    
+    NodesArrayType& pNode = rModelPart.Nodes();
+    
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == true)
+        {
+            itNode->Set( ACTIVE, false );
+            itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER, 0) = 0.0;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart)
+{
+    ConditionsArrayType& pCond = rModelPart.Conditions();
+    
+    auto numConditions = pCond.end() - pCond.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numConditions; i++) 
+    {
+        auto itCond = pCond.begin() + i;
+        if (itCond->Is(ACTIVE) == true)
+        {
+            itCond->Set(ACTIVE, false);
+            
+            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+            
+            if (ConditionPointers != NULL)
+            {
+                for (unsigned int i = 0; i < ConditionPointers->size();i++)
+                {
+                    (*ConditionPointers)[i].clear();
+                } 
+                
+                ConditionPointers->clear();
+    //             ConditionPointers->reserve(mallocation); 
+            }
+//             delete ConditionPointers;
+//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+        }
+    }
+    
+    NodesArrayType& pNode = rModelPart.Nodes();
+    
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == true)
+        {
+            itNode->Set( ACTIVE, false );
+            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
 {
     NodesArrayType& pNode = rModelPart.Nodes();
@@ -426,6 +602,46 @@ void TreeContactSearch::PartialClearALMFrictionlessConditions(ModelPart & rModel
         if (itNode->Is(ACTIVE) == false)
         {
             itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearMeshTyingScalarConditions(ModelPart & rModelPart)
+{
+    NodesArrayType& pNode = rModelPart.Nodes();
+    
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == false)
+        {
+            itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER, 0) = 0.0;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart)
+{
+    NodesArrayType& pNode = rModelPart.Nodes();
+    
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == false)
+        {
+            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
         }
     }
 }
