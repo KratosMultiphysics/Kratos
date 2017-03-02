@@ -90,8 +90,8 @@ class KratosExecuteManufacturedSolutionTest(KratosUnittest.TestCase):
             plt.savefig('l2_norm_convergence.png')
 
         # Check obtained solution
-        expected_velocity_errors = [0.01706550571356133, 0.005364433691261979, 0.0013141419421569228, 0.00032206099110687196, 8.037669382387794e-05]
-        expected_pressure_errors = [44.01578250153334, 4.878615035259396, 0.8951491517247935, 0.22004911463579638, 0.06668136422074873]
+        expected_velocity_errors = [0.020910246816825257, 0.0062279017039999045, 0.0014846307453335115, 0.0003540805601027302, 8.621417044815537e-05]
+        expected_pressure_errors = [46.48407227368183, 4.678777003089299, 0.8570316463968392, 0.2160365355817885, 0.06642008924417026]
 
         for i in range(len(self.meshes_list)):
             self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
