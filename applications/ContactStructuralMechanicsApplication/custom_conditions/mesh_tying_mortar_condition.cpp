@@ -944,9 +944,9 @@ array_1d<double, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor
     {
         for (unsigned int itensor = 0; itensor < TTensor; itensor++)
         {
-            PairRHS[(0 * NumNodes + inode) * TTensor + itensor] = inner_prod(row(trans(-MOperator), inode), column(rDofData.LagrangeMultipliers,  itensor));
-            PairRHS[(1 * NumNodes + inode) * TTensor + itensor] = inner_prod(row(trans( DOperator), inode), column(rDofData.LagrangeMultipliers,  itensor));
-            PairRHS[(2 * NumNodes + inode) * TTensor + itensor] = inner_prod(row(DOperator, inode), column(rDofData.u1,  itensor)) - inner_prod(row(MOperator, inode), column(rDofData.u2, itensor));
+            PairRHS[(0 * NumNodes + inode) * TTensor + itensor] = - inner_prod(row(trans(-MOperator), inode), column(rDofData.LagrangeMultipliers,  itensor));
+            PairRHS[(1 * NumNodes + inode) * TTensor + itensor] = - inner_prod(row(trans( DOperator), inode), column(rDofData.LagrangeMultipliers,  itensor));
+            PairRHS[(2 * NumNodes + inode) * TTensor + itensor] = - inner_prod(row(DOperator, inode), column(rDofData.u1,  itensor)) + inner_prod(row(MOperator, inode), column(rDofData.u2, itensor));
         }
     }
     
