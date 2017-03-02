@@ -3,17 +3,27 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosNurbBrepApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# generate variables with the sources
-file(GLOB KRATOS_NURBS_BREP_APPLICATION_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES 
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp")
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES 
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp")
+file(GLOB KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+#groups
+#source_group("Main" FILES ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES})
+#source_group("Python" FILES ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES})
+#source_group("Brep" FILES ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
+
 
 # define library Kratos which defines the basic python interface
-add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
+add_library(KratosNurbsBrepApplication SHARED ${KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES}
+                                              ${KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES}
+                                              ${KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES})
 target_link_libraries(KratosNurbsBrepApplication KratosCore )
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
 install(TARGETS KratosNurbsBrepApplication DESTINATION libs )
