@@ -100,7 +100,7 @@ public:
     static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
 //     static constexpr unsigned int MatrixSize = TTensor * (2* TNumNodesElem - NumNodes);
-    static constexpr unsigned int MatrixSize = TTensor * (2 * NumNodes);
+    static constexpr unsigned int MatrixSize = TTensor * (3 * NumNodes);
     
 //     static constexpr unsigned int DimensionLocalElem = TTensor * TNumNodesElem;
     
@@ -456,12 +456,12 @@ protected:
         GeometryType SlaveGeometry;
         GeometryType MasterGeometry;
         
-//         // The current Lagrange Multipliers
-//         Type1 LagrangeMultipliers;
-//         
-//         // DoF
-//         Type1 u1;
-//         Type1 u2;
+        // The current Lagrange Multipliers
+        Type1 LagrangeMultipliers;
+        
+        // DoF
+        Type1 u1;
+        Type1 u2;
         
         // Ae
         Type2 Ae;
@@ -476,10 +476,10 @@ protected:
         {
             SlaveGeometry  = GeometryInput;
             
-//             // The current Lagrange Multipliers
-//             u1 = ZeroMatrix(NumNodes, TTensor);
-//             u2 = ZeroMatrix(NumNodes, TTensor);
-//             LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
+            // The current Lagrange Multipliers
+            u1 = ZeroMatrix(NumNodes, TTensor);
+            u2 = ZeroMatrix(NumNodes, TTensor);
+            LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
         }
         
         // Initialize the Ae components
@@ -488,6 +488,38 @@ protected:
             // Ae
             Ae = ZeroMatrix(NumNodes, NumNodes);
         }
+        
+        // Updating the Master pair
+        void UpdateMasterPair(
+//         const GeometryType& GeometryInput,          // The geometry of the current master
+            const Condition::Pointer& pCond          // The pointer of the current master
+        )
+        {
+            const GeometryType GeometryInput =  pCond->GetGeometry();
+            MasterGeometry = GeometryInput; // Updating the geometry
+            
+            /* DoF */
+            if (TTensor == 1)
+            {
+                for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+                {
+                    const double Value = MasterGeometry[iNode].FastGetSolutionStepValue(TEMPERATURE);
+                    u2(iNode, 0) = Value;
+                }
+            }
+            else
+            {
+                for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+                {
+                    const array_1d<double, 3> Value = MasterGeometry[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                    for (unsigned int iDof = 0; iDof < TTensor; iDof++)
+                    {
+                        u2(iNode, iDof) = Value[iDof];
+                    }
+                }
+            }
+        }
+
     };
     
     /** 
@@ -556,6 +588,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /* Integration order */
+    unsigned int mIntegrationOrder;                                      // The integration order considered
+    
     /* Pair info */
     unsigned int mPairSize;                                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterConditions;               // Vector which contains the pointers to the master conditions
@@ -563,9 +598,6 @@ protected:
 //     /* The list of variable to compute */
 //     array_1d<Variable< array_1d_component_type>, TDim> mTyingVarVector;  // Variable considered in the mesh tying
 //     Variable<double> mTyingVarScalar;                                    // Variable considered in the mesh tying
-    
-    /* Integration points */
-    std::vector<IntegrationPointsType> mThisSlaveIntegrationPoints;      // The arrays containing the integration points of the slave side
     
 //     /* Element info */
 //     Element::Pointer mThisSlaveElement;                                  // The slave element from which derives everything
@@ -773,6 +805,7 @@ protected:
     template< unsigned int MatrixSize >
     boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
+        DofData& rDofData,
 //         const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
 //         const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int& rMasterElementIndex,
@@ -834,6 +867,7 @@ protected:
     template< unsigned int MatrixSize >
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
+        DofData& rDofData,
 //         array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution,
 //         const Element::EquationIdVectorType& EquationIdSlaveElem,
         const unsigned int& rMasterElementIndex,

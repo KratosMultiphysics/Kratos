@@ -540,6 +540,17 @@ private:
                 
                 IntegrationPointsSlave[PointNumber] = IntegrationPoint<2>( xi, weight );
             }
+
+//             // Debug
+//             std::cout <<  SlaveGeometry[0].X() << " " << SlaveGeometry[0].Y() << " " << SlaveGeometry[1].X() << " " << SlaveGeometry[1].Y() << std::endl;
+//             std::cout <<  MasterGeometry[0].X() << " " << MasterGeometry[0].Y() << " " << MasterGeometry[1].X() << " " << MasterGeometry[1].Y() << std::endl;
+//             KRATOS_WATCH(coor_aux);
+// 
+//             std::cout << "IntegrationPoints : " << IntegrationPointsSlave.size( ) << std::endl;
+//             for ( unsigned int i_vec = 0; i_vec < IntegrationPointsSlave.size( ); ++i_vec )
+//             {
+//                 KRATOS_WATCH( IntegrationPointsSlave[i_vec] );
+//             }
             
             return true;
         }
@@ -549,20 +560,8 @@ private:
 //             IntegrationPointsSlave.resize(0, false);
             return false;
         }
-        
-//             if (IntegrationPointsSlave.size() > 0)
-//             {
-//                 std::cout <<  GetGeometry()[0].X() << " " << GetGeometry()[0].Y() << " " << GetGeometry()[1].X() << " " << GetGeometry()[1].Y() << std::endl;
-//                 std::cout <<  MasterGeometry[0].X() << " " << MasterGeometry[0].Y() << " " << MasterGeometry[1].X() << " " << MasterGeometry[1].Y() << std::endl;
-//                 KRATOS_WATCH(coor_aux);
-
-//                 std::cout << "IntegrationPoints : " << IntegrationPointsSlave.size( ) << std::endl;
-//                 for ( unsigned int i_vec = 0; i_vec < IntegrationPointsSlave.size( ); ++i_vec )
-//                 {
-//                     KRATOS_WATCH( IntegrationPointsSlave[i_vec] );
-//                 }
-//             }
-
+    
+        IntegrationPointsSlave.clear();
         return false;
     }
     
@@ -804,6 +803,7 @@ private:
             }
         }
         
+        IntegrationPointsSlave.clear();
         return false;
     }
     
@@ -1087,6 +1087,7 @@ private:
             }
         }
         
+        IntegrationPointsSlave.clear();
         return false;
     }
 }
