@@ -101,6 +101,8 @@ public:
 //                 mMeshFileName += ".post.msh";
         SetUpMeshContainers();
         SetUpGaussPointContainers();
+        
+        GiD_PostInit();
     }
 
     ///Destructor.
@@ -113,6 +115,8 @@ public:
             GiD_fClosePostResultFile( mResultFile );
             mResultFileOpen = false;
         }
+        
+        GiD_PostDone();
     }
 
     ///initialization functions
@@ -1090,7 +1094,7 @@ public:
                     mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                     mResultFileOpen = true;
                 }
-				mMeshFile = mResultFile;
+                mMeshFile = mResultFile;
             }
         }
         if ( mUseMultiFile == SingleFile )
@@ -1099,8 +1103,8 @@ public:
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
-		         //KRATOS_WATCH(file_name.str())
-		        mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+                //KRATOS_WATCH(file_name.str())
+                mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
@@ -1108,7 +1112,7 @@ public:
                     KRATOS_THROW_ERROR(std::runtime_error, buffer.str(), "");
                 }
                 mResultFileOpen = true;
-				mMeshFile = mResultFile;
+                mMeshFile = mResultFile;
             }
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
@@ -1117,7 +1121,6 @@ public:
                 mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }
-
         }
     }
 
@@ -1165,7 +1168,7 @@ public:
                 GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
-                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+                KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
         }
         GiD_fEndCoordinates(mMeshFile);
         int nodes_id[1];
@@ -1210,7 +1213,7 @@ public:
                 GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
-                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+                KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
         }
         GiD_fEndCoordinates( mMeshFile );
 
@@ -1259,7 +1262,7 @@ void WriteCircleMesh( MeshType& rThisMesh )
                 GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
-                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+                KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
         }
         GiD_fEndCoordinates( mMeshFile );
         int nodes_id[1];
@@ -1301,7 +1304,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
-                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+                KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
         }
         GiD_fEndCoordinates( mMeshFile );
 
@@ -1376,7 +1379,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
             else if ( mWriteDeformed == WriteUndeformed )
                 it->WriteMesh(mMeshFile,false);
             else
-                KRATOS_THROW_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
+                KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
 
             ModelPart::NodesContainerType tempNodes = it->GetMeshNodes();
             for( ModelPart::NodesContainerType::iterator iter = tempNodes.begin(); iter != tempNodes.end(); iter++ )
