@@ -142,12 +142,15 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearMeshTyingScalarMortarConditions()
         else:
             self.contact_search.TotalClearMeshTyingComponentsMortarConditions()
+            
+        self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
     
     def ExecuteInitializeSolutionStep(self):
+        pass
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
-        self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
+        #self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
         #self.contact_search.CheckMortarConditions()
             
         #for cond in self.d_interface.Conditions:
@@ -160,11 +163,12 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteAfterOutputStep(self):
-        self.contact_search.UpdatePointListMortar()
-        if (self.type_variable == "Scalar"):
-            self.contact_search.PartialClearMeshTyingMortarScalarConditions()
-        else:
-            self.contact_search.PartialClearMeshTyingMortarComponentsConditions()
+        pass
+        #self.contact_search.UpdatePointListMortar()
+        #if (self.type_variable == "Scalar"):
+            #self.contact_search.PartialClearMeshTyingMortarScalarConditions()
+        #else:
+            #self.contact_search.PartialClearMeshTyingMortarComponentsConditions()
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))

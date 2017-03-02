@@ -321,7 +321,7 @@ public:
         const bool rMaster
         ); 
     
-    virtual ~TreeContactSearch();
+    virtual ~TreeContactSearch(){};
 
     ///@}
     ///@name Operators
@@ -331,18 +331,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * This function initializes the NTN conditions already created 
-     */
-        
-    void InitializeNTNConditions();
-    
-    /**
-     * This function initializes the NTS conditions already created 
-     */
-    
-    void InitializeNTSConditions();
-    
     /**
      * This function initializes the mortar conditions already created 
      */
@@ -412,30 +400,6 @@ public:
         );
     
     /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void TotalClearNTNConditions();
-    
-    /**
-     * This function clears the NTN conditions already created 
-     */
-        
-    void PartialClearNTNConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void TotalClearNTSConditions();
-    
-    /**
-     * This function clears the NTS conditions already created 
-     */
-    
-    void PartialClearNTSConditions();
-    
-    /**
      * This function clears the mortar conditions already created 
      */
     
@@ -470,18 +434,6 @@ public:
     void PartialClearALMFrictionlessConditions(ModelPart & rModelPart);
     void PartialClearMeshTyingScalarConditions(ModelPart & rModelPart);
     void PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart);
-    
-    /**
-     * This function creates a lists  points ready for the NTN method
-     */
-    
-    void CreatePointListNTN();
-    
-    /**
-     * This function creates a lists  points ready for the NTS method
-     */
-    
-    void CreatePointListNTS();
       
     /**
      * This function creates a lists  points ready for the Mortar method
@@ -533,38 +485,6 @@ public:
         );
     
     /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTNConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    /**
-     * This function 
-     * @param 
-     * @return 
-     */
-        
-    void CreateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    void UpdateNTSConditions(
-        const double SearchFactor,
-        const int type_search
-    );
-    
-    /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
      * @param type_search: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
@@ -590,26 +510,23 @@ public:
     );
     
     /**
-     * 
-     * @param 
-     * @return 
+     * It checks the current mortar conditions
      */
     
     void CheckMortarConditions();
     
     /**
-     * 
-     * @param 
-     * @return 
+     * It clears all the inactive pairs
+     * @param rModelPart: The modelpart to clear
      */
     
     void ClearAllInactivePairs(ModelPart & rModelPart);
     
     /**
-     * 
-     * @param 
-     * @param 
-     * @return 
+     * It check the conditions if they are correctly detected
+     * @return ConditionPointers: A vector containing the pointers to the conditions 
+     * @param pCondDestination: The pointer to the condition in the destination model part
+     * @param pCondOrigin: The pointer to the condition in the destination model part  
      */
     
     bool CheckCondition(
@@ -619,10 +536,11 @@ public:
         );
     
     /**
-     * Fills
-     * @param 
+     * Fills the contact container variable
+     * @param pCond_1: The origin condition
+     * @param pCond_2: The potential condition to be in contact
      * @param ActiveCheckFactor: The proportion of the length of the geometry that is going to be taking into account to chechk if the node is active or inactive
-     * @return 
+     * @return ConditionPointers: The vector containing the pointer to the conditions of interest
      */
     
     void MortarContainerFiller(
@@ -686,6 +604,39 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    void ResetContactOperators(ModelPart & rModelPart)
+    {
+        ConditionsArrayType& pCond = rModelPart.Conditions();
+    
+        auto numConditions = pCond.end() - pCond.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCond = pCond.begin() + i;
+            if (itCond->Is(ACTIVE) == true)
+            {
+                itCond->Set(ACTIVE, false);
+                
+                std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+                
+                if (ConditionPointers != NULL)
+                {
+                    for (unsigned int i = 0; i < ConditionPointers->size();i++)
+                    {
+                        (*ConditionPointers)[i].clear();
+                    } 
+                    
+                    ConditionPointers->clear();
+//                     ConditionPointers->reserve(mallocation); 
+                }
+//                 delete ConditionPointers;
+//                 itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+            }
+        }   
+    }
+    
+    
     ///@}
     ///@name Protected Operations
     ///@{

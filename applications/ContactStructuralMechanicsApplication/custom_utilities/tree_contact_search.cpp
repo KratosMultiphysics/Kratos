@@ -105,28 +105,6 @@ void TreeContactSearch::ModelPartSetter(
     }
 }
 
-/************************************* DESTRUCTOR **********************************/
-/***********************************************************************************/
-
-TreeContactSearch::~TreeContactSearch() {}
-
-
-/************************************* OPERATIONS **********************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeNTNConditions()
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -261,39 +239,6 @@ void TreeContactSearch::InitializeMeshTyingConditions(
     }
 }
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearNTNConditions()
-{    
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearNTNConditions()
-{    
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearNTSConditions()
-{
-    // TODO: Add this in the future
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -371,34 +316,7 @@ void TreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
 
 void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
 {
-    ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-    auto numConditions = pCond.end() - pCond.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
-    {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {
-            itCond->Set(ACTIVE, false);
-            
-            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-            
-            if (ConditionPointers != NULL)
-            {
-                for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                {
-                    (*ConditionPointers)[i].clear();
-                } 
-                
-                ConditionPointers->clear();
-    //             ConditionPointers->reserve(mallocation); 
-            }
-//             delete ConditionPointers;
-//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-        }
-    }
+    ResetContactOperators(rModelPart);
     
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -421,34 +339,7 @@ void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
 
 void TreeContactSearch::TotalClearALMFrictionlessConditions(ModelPart & rModelPart)
 {
-    ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-    auto numConditions = pCond.end() - pCond.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
-    {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {
-            itCond->Set(ACTIVE, false);
-            
-            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-            
-            if (ConditionPointers != NULL)
-            {
-                for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                {
-                    (*ConditionPointers)[i].clear();
-                } 
-                
-                ConditionPointers->clear();
-    //             ConditionPointers->reserve(mallocation); 
-            }
-//             delete ConditionPointers;
-//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-        }
-    }
+    ResetContactOperators(rModelPart);
     
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -471,34 +362,7 @@ void TreeContactSearch::TotalClearALMFrictionlessConditions(ModelPart & rModelPa
 
 void TreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPart)
 {
-    ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-    auto numConditions = pCond.end() - pCond.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
-    {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {
-            itCond->Set(ACTIVE, false);
-            
-            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-            
-            if (ConditionPointers != NULL)
-            {
-                for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                {
-                    (*ConditionPointers)[i].clear();
-                } 
-                
-                ConditionPointers->clear();
-    //             ConditionPointers->reserve(mallocation); 
-            }
-//             delete ConditionPointers;
-//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-        }
-    }
+    ResetContactOperators(rModelPart);
     
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -521,34 +385,7 @@ void TreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPa
 
 void TreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart)
 {
-    ConditionsArrayType& pCond = rModelPart.Conditions();
-    
-    auto numConditions = pCond.end() - pCond.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numConditions; i++) 
-    {
-        auto itCond = pCond.begin() + i;
-        if (itCond->Is(ACTIVE) == true)
-        {
-            itCond->Set(ACTIVE, false);
-            
-            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
-            
-            if (ConditionPointers != NULL)
-            {
-                for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                {
-                    (*ConditionPointers)[i].clear();
-                } 
-                
-                ConditionPointers->clear();
-    //             ConditionPointers->reserve(mallocation); 
-            }
-//             delete ConditionPointers;
-//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-        }
-    }
+    ResetContactOperators(rModelPart);
     
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -644,24 +481,6 @@ void TreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rM
             itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
         }
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListNTN()
-{
-    // Destination model part
-    CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreatePointListNTS()
-{
-    // Destination model part
-    CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
 }
 
 /***********************************************************************************/
@@ -763,50 +582,6 @@ void TreeContactSearch::UpdatePointListConditions(
         pPoint->SetPoint(Center);
         index += 1;
      }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreateNTNConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateNTNConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CreateNTSConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateNTSConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    // TODO: Add this in the future
 }
 
 /***********************************************************************************/
