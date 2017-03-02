@@ -144,35 +144,17 @@ protected:
         ModelPart& OriginModelPart,
         ModelPart& DestinationModelPart)
     {
-        KRATOS_WATCH(OriginModelPart)
-        KRATOS_WATCH(DestinationModelPart)
-        std::vector<ModelPart::NodeType::SizeType > ids;
         for(auto part=OriginModelPart.SubModelPartsBegin(); part!=OriginModelPart.SubModelPartsEnd(); part++)
         {
-            KRATOS_WATCH(part->Name())
-            
-            
             auto& destination_part = DestinationModelPart.CreateSubModelPart(part->Name());
             
-            //add nodes
-            ids.reserve(part->Nodes().size());
-            for(auto it=part->NodesBegin(); it!=part->NodesEnd(); ++it)
-                ids.push_back(it->Id());
-            destination_part.AddNodes(ids);
+            destination_part.AddNodes(part->NodesBegin(), part->NodesEnd());
 
             //add conditions
-            ids.clear();
-            ids.reserve(part->Conditions().size());
-            for(auto it=part->ElementsBegin(); it!=part->ElementsEnd(); ++it)
-                ids.push_back(it->Id());
-            destination_part.AddElements(ids);
+            destination_part.AddElements(part->ElementsBegin(), part->ElementsEnd());
             
             //add conditions
-            ids.clear();
-            ids.reserve(part->Conditions().size());
-            for(auto it=part->ConditionsBegin(); it!=part->ConditionsEnd(); ++it)
-                ids.push_back(it->Id());
-            destination_part.AddConditions(ids);   
+            destination_part.AddConditions(part->ConditionsBegin(),part->ConditionsEnd());   
             
             //now recursively call this same function
             PopulateSubModelParts(*part, destination_part);
