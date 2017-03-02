@@ -24,7 +24,7 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
-// #include "custom_utilities/exact_mortar_segmentation_utility.h"
+#include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
 {
@@ -65,23 +65,20 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;
     
-//     // Exact integration (for testing)
-//     class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const unsigned int>())
-//     .def(init< >())
-//     .def("GetExactIntegration",&ExactMortarIntegrationUtility<2,2>::GetExactIntegration)
-//     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
-//     ;
-//     class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const unsigned int>())
-//     .def(init< >())
-//     .def("GetExactIntegration",&ExactMortarIntegrationUtility<3,3>::GetExactIntegration)
-//     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
-//     ;
-//     class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const unsigned int>())
-//     .def(init< >())
-//     .def("GetExactIntegration",&ExactMortarIntegrationUtility<3,4>::GetExactIntegration)
-//     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
-//     ;
-//   
+    // Exact integration (for testing)
+    class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
+    ;
+    class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<const unsigned int>())
+    .def(init< >())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
+    ;
+  
 }
 
 }  // namespace Python.

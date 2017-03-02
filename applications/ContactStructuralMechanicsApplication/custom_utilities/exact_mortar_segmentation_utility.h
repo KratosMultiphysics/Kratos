@@ -151,7 +151,7 @@ public:
      * @return True if there is a common area (the geometries intersect), false otherwise
      */
     
-    bool GetExactIntegration(    
+    inline bool GetExactIntegration(    
         GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
@@ -425,7 +425,7 @@ private:
 ///@{
 
     template<>  
-    bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
+    inline bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
         GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
@@ -570,7 +570,7 @@ private:
     /***********************************************************************************/
 
     template<>  
-    bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
+    inline bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
         GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
@@ -811,7 +811,7 @@ private:
     /***********************************************************************************/
 
     template<>  
-    bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
+    inline bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
         GeometryType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryType& MasterGeometry,
