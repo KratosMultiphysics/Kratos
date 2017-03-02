@@ -318,7 +318,7 @@ public:
 	NumberOfNewConditions = 0;
 
 	InsertedNodes = 0;
-	RemovedNodes  = 0;
+	// RemovedNodes  = 0;
 
 	InsertedBoundaryNodes = 0;
 	InsertedBoundaryConditions = 0;
