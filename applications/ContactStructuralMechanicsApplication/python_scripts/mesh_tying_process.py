@@ -139,9 +139,9 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         
     def ExecuteBeforeSolutionLoop(self):
         if (self.type_variable == "Scalar"):
-            self.contact_search.TotalClearMeshTyingScalarMortarConditions()
+            self.contact_search.TotalClearMeshTyingMortarScalarConditions()
         else:
-            self.contact_search.TotalClearMeshTyingComponentsMortarConditions()
+            self.contact_search.TotalClearMeshTyingMortarComponentsConditions()
             
         self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
     
