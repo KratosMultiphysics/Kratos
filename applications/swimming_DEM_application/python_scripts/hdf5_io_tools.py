@@ -120,20 +120,20 @@ class FluidHDF5Loader:
 
     def ConvertComponent(self, f, component_name):
         if '/vx' in component_name:
-            return np.array(f[component_name.replace('/vx', '/VELOCITY')][:, 0])
+            read_values = f[component_name.replace('/vx', '/VELOCITY')][:, 0]
         elif '/vy' in component_name:
-            return np.array(f[component_name.replace('/vy', '/VELOCITY')][:, 1])
+            read_values = f[component_name.replace('/vy', '/VELOCITY')][:, 1]
         elif '/vz' in component_name:
-            return np.array(f[component_name.replace('/vz', '/VELOCITY')][:, 2])
+            read_values = f[component_name.replace('/vz', '/VELOCITY')][:, 2]
         else:
-            return np.transpose(f[component_name.replace('/p', '/PRESSURE')])
+            read_values = f[component_name.replace('/p', '/PRESSURE')][:, 0]
+
+        return read_values[self.permutations]
 
     def UpdateFluidVariable(self, name, variable, variable_index_in_temp_array, must_load_future_values_from_database, alpha_old, alpha_future):
         if must_load_future_values_from_database:
             with h5py.File(self.file_name, 'r') as f:
-                self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)[:]
-                for i, j in enumerate(self.permutations):
-                    self.future_data_array[i, variable_index_in_temp_array] = self.future_data_array[j, variable_index_in_temp_array]
+                self.future_data_array[:, variable_index_in_temp_array] = self.ConvertComponent(f, name)
 
         self.current_data_array[:, variable_index_in_temp_array] = alpha_old * self.old_data_array[:, variable_index_in_temp_array] + alpha_future * self.future_data_array[:, variable_index_in_temp_array]
 
