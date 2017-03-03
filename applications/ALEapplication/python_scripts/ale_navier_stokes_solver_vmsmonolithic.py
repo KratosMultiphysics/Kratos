@@ -21,10 +21,10 @@ class ALENavierStokesSolverVMSMonolithic(navier_stokes_solver_vmsmonolithic.Navi
         i_end = settings.find("\n",i_start+1)
         settings = settings[:i_start] + settings[i_end:]
         # call navier stokes constructor
-        super().__init__(model_part, custom_settings)
+        super().__init__(model_part, Parameters(settings))
         # create ale solver
         ale_solver_module = __import__(self.ale_solver_type)
-        ale_settings = Parameters("") # for now use default settings
+        ale_settings = Parameters("{}") # for now use default settings
         self.ale_solver = ale_solver_module.CreateSolver(self.main_model_part, ale_settings)
         print("Construction of ALENavierStokesSolverVMSMonolithic finished")
 
