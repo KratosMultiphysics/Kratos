@@ -17,12 +17,6 @@
 #include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
-//Trilinos includes
-//~ #include "mpi.h"
-//~ #include "Epetra_FECrsMatrix.h"
-//~ #include "Epetra_FEVector.h"
-//~ #include "trilinos_space.h"
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -37,8 +31,6 @@
 #include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
 #include "custom_strategies/schemes/dam_UP_scheme.hpp"
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
-//~ #include "custom_strategies/schemes/trilinos_incrementalupdate_static_damped_scheme.hpp"
-//~ #include "custom_strategies/schemes/trilinos_dam_UP_scheme.hpp"
 
 //strategies
 
@@ -63,11 +55,6 @@ void  AddCustomStrategiesToPython()
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     typedef DamUPScheme< SparseSpaceType, LocalSpaceType >  DamUPSchemeType;
     typedef DamPScheme< SparseSpaceType, LocalSpaceType >  DamPSchemeType;
-    
-    //~ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    //~ typedef Scheme< TrilinosSparseSpaceType, LocalSpaceType > TrilinosBaseSchemeType;
-    //~ typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
-    //~ typedef TrilinosDamUPScheme<TrilinosSparseSpaceType, LocalSpaceType> TrilinosDamUPSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,12 +73,6 @@ void  AddCustomStrategiesToPython()
     
     class_< DamPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamPScheme",
         init< double, double >());
-
-    //~ class_< TrilinosIncrementalUpdateStaticDampedSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosIncrementalUpdateStaticDampedScheme", 
-        //~ init< double >() );
-
-	//~ class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
-        //~ init< double, double, double, double >());
 }
 
 }  // namespace Python.
