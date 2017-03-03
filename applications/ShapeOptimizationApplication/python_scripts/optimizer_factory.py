@@ -280,7 +280,7 @@ class VertexMorphingMethod:
             self.analyzer( X, self.controller.get_controls(), iterator, response )
 
             # Store gradients on the nodes of the model_part
-            self.store_grads_on_nodes( response[only_F_id]["gradient"] )
+            self.store_gradients_on_nodes( response[only_F_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -464,7 +464,7 @@ class VertexMorphingMethod:
                 l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
 
                 # Store gradients on the nodes of the model_part
-                self.store_grads_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
+                self.store_gradients_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
                 # Compute unit surface normals at each node of current design
                 self.geom_utils.compute_unit_surface_normals()
@@ -649,7 +649,7 @@ class VertexMorphingMethod:
                 break
 
             # Store gradients on the nodes of the model_part
-            self.store_grads_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
+            self.store_gradients_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -747,7 +747,7 @@ class VertexMorphingMethod:
                 initial_f = response[only_F_id]["value"]            
 
     # --------------------------------------------------------------------------
-    def store_grads_on_nodes(self,objective_grads,constraint_grads={}):
+    def store_gradients_on_nodes(self,objective_grads,constraint_grads={}):
 
         # Read objective gradients
         eucledian_norm_obj_sens = 0.0
@@ -804,6 +804,9 @@ class VertexMorphingMethod:
         return X
 
     # --------------------------------------------------------------------------
+    def get_analyzer(self):
+        return self.analyzer
+    # --------------------------------------------------------------------------
 
 # ==============================================================================
 class Controller:
@@ -816,14 +819,7 @@ class Controller:
         for func_id in config.objectives:
             self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}
         for func_id in config.constraints:
-            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}     
-
-        # Initialize response container to provide storage for any response
-        self.response_container = {}       
-        for func_id in config.objectives:
-            self.response_container[func_id] = {}
-        for func_id in config.constraints:
-            self.response_container[func_id] = {}          
+            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}            
 
     # --------------------------------------------------------------------------
     def initialize_controls( self ):
@@ -838,16 +834,6 @@ class Controller:
         return self.controls
 
     # --------------------------------------------------------------------------
-    def create_response_container( self ):
-
-        # Create and initialize container to store any response defined 
-        for func_id in self.response_container:
-            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
-
-        # Return container
-        return self.response_container      
-
-    # --------------------------------------------------------------------------
 
 # ==============================================================================
 class Analyzer:
@@ -858,14 +844,32 @@ class Analyzer:
         # Initialize placeholder for function for design analysis
         self.FunctionForDesignAnalysis = None
 
+        # Initialize response container to provide storage for any response
+        self.response_container = {}       
+        for func_id in config.objectives:
+            self.response_container[func_id] = {}
+        for func_id in config.constraints:
+            self.response_container[func_id] = {}           
+
     # --------------------------------------------------------------------------
     def importFunctionForDesignAnalysis( self, FunctionForDesignAnalysis ):  
         self.FunctionForDesignAnalysis = FunctionForDesignAnalysis
 
     # --------------------------------------------------------------------------
-    def analyze( self, X, controls, opt_itr, response):
-        self.FunctionForDesignAnalysis( X, controls, opt_itr, response )
+    def create_response_container( self ):
 
+        # Create and initialize container to store any response defined 
+        for func_id in self.response_container:
+            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
+
+        # Return container
+        return self.response_container      
+
+    # --------------------------------------------------------------------------
+    def analyze( self, X, opt_itr, controls, response):
+        self.FunctionForDesignAnalysis( X, controls, opt_itr, response )
+        
+    # -------------------------------------------------------------------------
 
 # ==============================================================================
 def CreateOptimizer( config, analyzer ):
@@ -876,7 +880,7 @@ def CreateOptimizer( config, analyzer ):
 
     # Creat optimizer according to selected optimization method
     if( config.design_control == "vertex_morphing" ):
-        optimizer = VertexMorphingMethod( config, analyzer )
+        optimizer = VertexMorphingMethod( config )
         return optimizer
 
     else:
