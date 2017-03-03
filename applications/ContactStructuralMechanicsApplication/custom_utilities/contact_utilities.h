@@ -438,7 +438,12 @@ public:
             normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
         }
         
-        normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+        const double tol = 1.0e-14;
+        
+        if (norm_2(normal) > tol)
+        {
+            normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+        }
         
         return normal;
     }
@@ -465,9 +470,14 @@ public:
             Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
         }
         
-        Normal     /= norm_2( Normal );
-        TangentXi  /= norm_2( TangentXi );
-        TangentEta /= norm_2( TangentEta );
+        const double tol = 1.0e-14;
+        
+        if (norm_2( Normal ) > tol)
+        {
+            Normal /= norm_2( Normal );
+            TangentXi /= norm_2( TangentXi );
+            TangentEta /= norm_2( TangentEta );
+        }
     }
         
     static inline void GeometryNormal(
@@ -579,10 +589,13 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            const double total_area        = itNode->GetValue(NODAL_AREA);
-            itNode->GetValue(NORMAL)      /= total_area;
-            itNode->GetValue(TANGENT_XI)  /= total_area;
-            itNode->GetValue(TANGENT_ETA) /= total_area;
+            const double total_area = itNode->GetValue(NODAL_AREA);
+            if (total_area > tol)
+            {
+                itNode->GetValue(NORMAL)      /= total_area;
+                itNode->GetValue(TANGENT_XI)  /= total_area;
+                itNode->GetValue(TANGENT_ETA) /= total_area;
+            }
         }
         
 //         // Applied laziness - MUST be calculated BEFORE normalizing the normals
