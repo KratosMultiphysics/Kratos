@@ -203,24 +203,72 @@ public:
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
      * @param PointReferenceRotation: The center point used as reference to rotate
+     * @param SlaveTangentXi: The first tangent vector of the slave condition
+     * @param SlaveTangentEta: The second tangent vector of the slave condition
+     * @param Inversed: If we rotate to the XY or we recover from XY
+     * @return PointRotated: The point rotated 
+     */
+    
+    void RotatePoint( 
+        Point<3>& PointToRotate,
+        const Point<3> PointReferenceRotation,
+        const array_1d<double, 3> SlaveTangentXi,
+        const array_1d<double, 3> SlaveTangentEta,
+        const bool Inversed
+        )
+    {        
+        // We move to the (0,0,0)
+        Point<3> AuxPointToRotate;
+        AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = ZeroMatrix(3, 3);
+        
+        if (Inversed == false)
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                RotationMatrix(0, i) = SlaveTangentXi[i];
+                RotationMatrix(1, i) = SlaveTangentEta[i];
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                RotationMatrix(i, 0) = SlaveTangentXi[i];
+                RotationMatrix(i, 1) = SlaveTangentEta[i];
+            }
+        }
+        
+        PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
+    }
+    
+    /**
+     * This function rotates to align the projected points to a parallel plane to XY
+     * @param PointToRotate: The points from the origin geometry
+     * @param PointReferenceRotation: The center point used as reference to rotate
      * @param SlaveNormal: The normal of the slave condition
      * @param Inversed: If we rotate to the XY or we recover from XY
      * @return PointRotated: The point rotated 
      */
     
-    void RotatePoint( // TODO: Express this like a matrix operation
+    void RotatePoint( 
         Point<3>& PointToRotate,
         const Point<3> PointReferenceRotation,
         const array_1d<double, 3> SlaveNormal,
         const bool Inversed
         )
-    {
-        const double Tolerance = 1.0e-16;
-        
+    {        
         // We move to the (0,0,0)
         Point<3> AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
+//         const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed);
+//         
+//         PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
+        
+        const double Tolerance = 1.0e-16;
+    
         // We calculate the normal angle
         double Phi0 = std::atan(SlaveNormal[2]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance));
         double Phi1 = M_PI/2.0;
@@ -232,7 +280,9 @@ public:
         }
         
 //         // Debug
+//         KRATOS_WATCH(SlaveNormal);
 //         std::cout << Phi0 << " " << Phi1 << std::endl;
+//         KRATOS_WATCH(PointToRotate.Coordinates());
         
         AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
         AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
@@ -247,6 +297,61 @@ public:
         }
         
         PointToRotate.Coordinates() = AuxPointToRotate.Coordinates() + PointReferenceRotation.Coordinates();
+        
+//         // Debug
+//         KRATOS_WATCH(PointToRotate.Coordinates());
+    }
+    
+    /**
+     * This function calculates the rotation matrix
+     * @param SlaveNormal: The normal used as reference to calculate the rotation
+     * @param Inversed: If we rotate to the XY or we recover from XY
+     * @return RotationMatrix: The corresponding rotation matrix
+     */
+    
+    boost::numeric::ublas::bounded_matrix<double, 3, 3> GetRotationMatrix(
+        const array_1d<double, 3> SlaveNormal,
+        const bool Inversed
+        )
+    {
+        const double Tolerance = 1.0e-16;
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        
+        const double angle1 = std::pow(-1, Inversed) * std::acos(SlaveNormal[1]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance)); 
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rot1 = ZeroMatrix(3, 3);
+        if (SlaveNormal[0] >= 0.0)
+        {
+            Rot1(0, 0) =   std::cos(-angle1);
+            Rot1(0, 1) = - std::sin(-angle1);
+            Rot1(1, 0) =   std::sin(-angle1);
+            Rot1(1, 1) =   std::cos(-angle1);
+        }
+        else
+        {
+            Rot1(0, 0) =   std::cos(-angle1);
+            Rot1(0, 1) =   std::sin(-angle1);
+            Rot1(1, 0) = - std::sin(-angle1);
+            Rot1(1, 1) =   std::cos(-angle1); 
+        }
+        
+        Rot1(2, 2) = 1.0;
+        
+        const array_1d<double, 3> RotSlaveNormal = prod(Rot1, SlaveNormal);
+        
+        const double angle2 = std::pow(-1, Inversed) * std::acos(RotSlaveNormal[2]/(std::sqrt(RotSlaveNormal[1] * RotSlaveNormal[1] + RotSlaveNormal[2] * RotSlaveNormal[2]) + Tolerance)); 
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rot2 = ZeroMatrix(3, 3);
+        Rot2(0, 0) =   1.0;
+        Rot2(1, 1) =   std::cos(-angle2);
+        Rot2(1, 2) = - std::sin(-angle2);
+        Rot2(2, 1) =   std::sin(-angle2);
+        Rot2(2, 2) =   std::cos(-angle2);
+        
+        RotationMatrix = prod(Rot2, Rot1);
+        
+        return RotationMatrix;
     }
     
     /**
@@ -318,8 +423,8 @@ public:
     
     /**
      * This function calculates in 2D the angle between two points
-     * @param PointOrig: The points from the origin geometry
-     * @param PointDest: The points in the destination geometry
+     * @param PointOrig1: The points from the origin geometry
+     * @param PointOrig2: The points in the destination geometry
      * @return angle: The angle formed
      */
     
@@ -335,6 +440,48 @@ public:
         const double angle = std::atan(y/x);
         
         return angle;
+    }
+    
+    /**
+     * This function calculates the area of triangle using Heron's formula
+     * @param PointOrig1: The first point
+     * @param PointOrig2: The second point
+     * @param PointOrig3: The third point
+     * @return Area: The area of the triangle
+     */
+    
+    double HeronArea(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2,
+        const Point<3> PointOrig3
+        )
+    {
+        const double a = norm_2(PointOrig2.Coordinates() - PointOrig1.Coordinates());
+        const double b = norm_2(PointOrig3.Coordinates() - PointOrig2.Coordinates());
+        const double c = norm_2(PointOrig1.Coordinates() - PointOrig3.Coordinates());
+        
+        const double Area = MathUtils<double>::Heron<false>(a,b,c);
+        
+        return Area;
+    }
+    
+    /**
+     * This function checks in 2D if two nodes are the same one
+     * @param PointOrig: The points from the origin geometry
+     * @param PointDest: The points in the destination geometry
+     * @return check: The check done
+     */
+    
+    bool CheckPoints2D(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2
+        )
+    {
+        const double Tolerance = 1.0e-8; 
+        const bool x = (std::abs(PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1)) < Tolerance) ? true : false;
+        const bool y = (std::abs(PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2)) < Tolerance) ? true : false;
+        
+        return (x&&y);
     }
     
     /**
@@ -578,8 +725,15 @@ private:
     {
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         
+        // We define the tolerance
+        const double Tolerance = 1.0e-8;
+        
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
+        
+        // We define the condition tangents
+        const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates());
+        const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // We initialize the total area
         const double TotalArea = SlaveGeometry.Area();
@@ -621,43 +775,56 @@ private:
             }
             
             Triangle3D3 <Point<3>> AllTriangle( AllPointsArray );
+        
+//             const double LocalArea = AllTriangle.Area();
             
-            const double LocalArea = AllTriangle.Area();
+            const double LocalArea = HeronArea(MasterProjectedPoint[0],MasterProjectedPoint[1],MasterProjectedPoint[2]);
             
-            // We initialize our auxiliar integration point vector
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
-            const size_t LocalIntegrationSize = IntegrationPoints.size();
-            
-            IntegrationPointsSlave.resize(LocalIntegrationSize, false);
-            
-            // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
-            for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-            {                    
-                // We convert the local coordinates to global coordinates
-                Point<3> gp_local;
-                gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                Point<3> gp_global;
-                AllTriangle.GlobalCoordinates(gp_global, gp_local);
+            if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
+            {
+                // We initialize our auxiliar integration point vector
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+                const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
-                // We recover this point to the triangle plane
-                RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+                IntegrationPointsSlave.resize(LocalIntegrationSize, false);
                 
-                // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
-                SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                {                    
+                    // We convert the local coordinates to global coordinates
+                    Point<3> gp_local;
+                    gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                    Point<3> gp_global;
+                    AllTriangle.GlobalCoordinates(gp_global, gp_local);
+                    
+                    // We recover this point to the triangle plane
+                    RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+    //                 RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+                    
+                    // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
+                    SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                    
+                    // We can cosntruct now the integration local triangle
+                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                }
                 
-                // We can cosntruct now the integration local triangle
-                IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                return true;
             }
-            
-            return true;
+            else
+            {
+                IntegrationPointsSlave.clear();
+                return false;
+            }
         }
         else
         {            
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
-                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
+                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+//                 RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
+//                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
                 
                 if (AllInside[i_node] == true)
                 {
@@ -665,6 +832,9 @@ private:
                 }
             }
         
+            // We consider the Z coordinate constant
+            const double ZRef = MasterProjectedPoint[0].Coordinate(3);
+            
             // We find the intersection in each side
             std::map<unsigned int, unsigned int> MapEdges;
             for (unsigned int i_edge = 0; i_edge < 3; i_edge++)
@@ -692,7 +862,7 @@ private:
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
                             Point<3> AuxPoint = IntersectedPoint;
-                            if (AuxPoint == PointList[iter])
+                            if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
                             }
@@ -700,6 +870,7 @@ private:
                         
                         if (AddPoint == true) 
                         {
+                            IntersectedPoint.Coordinate(3) = ZRef;
                             PointList.push_back(IntersectedPoint);
                             MapEdges[i_edge] += 1;
                         }
@@ -718,7 +889,7 @@ private:
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
                         Point<3> AuxPoint = SlaveGeometry[i_node];
-                        if (AuxPoint == PointList[iter])
+                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                         {
                             AddPoint = false;
                         }
@@ -759,7 +930,8 @@ private:
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
-                IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+//                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+                IntegrationPointsSlave.clear();
             
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
@@ -771,29 +943,42 @@ private:
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                    const double LocalArea = triangle.Area();
+                    const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
+//                     const double LocalArea = triangle.Area();
 
-                    // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
-                    for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                    {                    
-                        // We convert the local coordinates to global coordinates
-                        Point<3> gp_local;
-                        gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                        Point<3> gp_global;
-                        triangle.GlobalCoordinates(gp_global, gp_local);
-                        
-                        // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
-                        
-                        // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
-                        SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
-                        
-                        // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
+                    {
+                        // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                        for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                        {                    
+                            // We convert the local coordinates to global coordinates
+                            Point<3> gp_local;
+                            gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                            Point<3> gp_global;
+                            triangle.GlobalCoordinates(gp_global, gp_local);
+                            
+                            // We recover this point to the triangle plane
+                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+                            
+                            // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
+                            SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
+                            
+                            // We can cosntruct now the integration local triangle
+                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea ));
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                        }
                     }
                 }
                 
-                return true;
+                if (IntegrationPointsSlave.size() > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else // No intersection
             {
@@ -818,8 +1003,15 @@ private:
         IntegrationPointsType& IntegrationPointsSlave
         )
     {
+        // We define the tolerance
+        const double Tolerance = 1.0e-8;
+        
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
+        
+        // We define the condition tangents
+        const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates());
+        const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
@@ -828,15 +1020,17 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            SlaveProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, SlaveGeometry[i_node], SlaveNormal);
+            SlaveProjectedPoint[i_node]  = ContactUtilities::FastProject( SlaveCenter, SlaveGeometry[i_node],  SlaveNormal);
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
-            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
+            RotatePoint(SlaveProjectedPoint[i_node],  SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+//             RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
+//             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
         }
         
         std::vector<Point<3>::Pointer> DummyPointsArray (4);
@@ -859,6 +1053,16 @@ private:
         
         // We create the pointlist
         std::vector<Point<3>> PointList;
+        
+//         // Debug
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << "Node slave projected " << i_node << std::endl;
+//             KRATOS_WATCH(SlaveProjectedPoint[i_node]);
+//             std::cout << "Node master projected " << i_node << std::endl;
+//             KRATOS_WATCH(MasterProjectedPoint[i_node]);
+//         }
+//         std::cout << "We have the following points inside: " << AllInside[0] << " " << AllInside[1] << " " << AllInside[2] << " " << AllInside[3] << std::endl;
         
         // No point inside
         if ((AllInside[0] == false) &&
@@ -897,7 +1101,8 @@ private:
             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
-            IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
+//             IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
+            IntegrationPointsSlave.clear();
         
             for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
@@ -909,30 +1114,43 @@ private:
                 Triangle2D3 <Point<3>> triangle( PointsArray );
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                const double LocalArea = triangle.Area();
+                const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
+//                 const double LocalArea = triangle.Area();
                 
-                // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
-                for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                {                    
-                    // We convert the local coordinates to global coordinates
-                    Point<3> gp_local;
-                    gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                    Point<3> gp_global;
-                    triangle.GlobalCoordinates(gp_global, gp_local);
-                    
-                    // We recover this point to the triangle plane
-                    RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
-                    
-                    // Now we project to the slave surface
-                    Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
-                    SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
-                    
-                    // We can cosntruct now the integration local triangle
-                    IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                if (LocalArea > Tolerance)
+                {
+                    // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                    for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                    {                    
+                        // We convert the local coordinates to global coordinates
+                        Point<3> gp_local;
+                        gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                        Point<3> gp_global;
+                        triangle.GlobalCoordinates(gp_global, gp_local);
+                        
+                        // We recover this point to the triangle plane
+                        RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+    //                     RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+                        
+                        // Now we project to the slave surface
+                        Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
+                        SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                        
+                        // We can cosntruct now the integration local triangle
+                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea )); // NOTE: The weight of the triangle is 8 times smaller
+    //                     IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                    }
                 }
             }
             
-            return true;
+            if (IntegrationPointsSlave.size() > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -944,6 +1162,9 @@ private:
                     PointList.push_back(MasterProjectedPoint[i_node]);
                 }
             }
+            
+            // We consider the Z coordinate constant
+            const double ZRef = MasterProjectedPoint[0].Coordinate(3);
             
             // We find the intersection in each side
             std::map<unsigned int, unsigned int> MapEdges;
@@ -972,7 +1193,7 @@ private:
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
                             Point<3> AuxPoint = IntersectedPoint;
-                            if (AuxPoint == PointList[iter])
+                            if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
                             }
@@ -980,6 +1201,7 @@ private:
                         
                         if (AddPoint == true) 
                         {
+                            IntersectedPoint.Coordinate(3) = ZRef;
                             PointList.push_back(IntersectedPoint);
                             MapEdges[i_edge] += 1;
                         }
@@ -997,7 +1219,7 @@ private:
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
                         Point<3> AuxPoint = SlaveProjectedPoint[i_node];
-                        if (AuxPoint == PointList[iter])
+                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true) // FIXME: Modafoca
                         {
                             AddPoint = false;
                         }
@@ -1016,7 +1238,7 @@ private:
 //             {
 //                 KRATOS_WATCH(PointList[i_list]);
 //             }
-            
+
             // We compose the triangles
             const unsigned int ListSize = PointList.size();
             if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
@@ -1042,7 +1264,14 @@ private:
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
-                IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+//                 // Debug
+//                 for (unsigned int i = 0; i < IndexVector.size(); i++)
+//                 {
+//                     std::cout << IndexVector[i] << std::endl;
+//                 }
+                
+//                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
+                IntegrationPointsSlave.clear();
             
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
@@ -1054,30 +1283,55 @@ private:
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                    const double LocalArea = triangle.Area();
+                    const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]); // FIXME: The nodes are not in correct order
+//                     const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
                     
-                    // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
-                    for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                    {                    
-                        // We convert the local coordinates to global coordinates
-                        Point<3> gp_local;
-                        gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                        Point<3> gp_global;
-                        triangle.GlobalCoordinates(gp_global, gp_local);
-                        
-                        // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
-                        
-                        // Now we project to the slave surface
-                        Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
-                        SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
-                        
-                        // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                    if (LocalArea > Tolerance)
+                    {
+                        // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
+                        for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
+                        {                    
+                            // We convert the local coordinates to global coordinates
+                            Point<3> gp_local;
+                            gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
+                            Point<3> gp_global;
+                            triangle.GlobalCoordinates(gp_global, gp_local);
+                            
+                            // We recover this point to the triangle plane
+                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+                            
+                            // Now we project to the slave surface
+                            Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
+                            SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
+                            
+                            // We can cosntruct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
+                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea )); // NOTE: The weight of the triangle is 8 times smaller
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                        }
+                    }
+                    // Debug
+                    else // FIXME: This is because the nodes are not in correct order, look how to do that
+                    {
+                        KRATOS_WATCH(LocalArea);
+                        KRATOS_WATCH(HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]));
+                        for (unsigned int i = 0; i < 3; i++)
+                        {
+                            KRATOS_WATCH(PointList[0]);
+                            KRATOS_WATCH(PointList[IndexVector[elem + 0] + 1]);
+                            KRATOS_WATCH(PointList[IndexVector[elem + 1] + 1]);
+                        }
                     }
                 }
                 
-                return true;
+                if (IntegrationPointsSlave.size() > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else // No intersection
             {

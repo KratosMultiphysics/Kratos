@@ -101,6 +101,12 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
         
         if (IsInside == true)
         {
+            KRATOS_WATCH(IntegrationPointsSlave.size());
+            for (unsigned int i = 0; i < IntegrationPointsSlave.size(); i++)
+            {
+                KRATOS_WATCH(IntegrationPointsSlave[i]);
+            }
+            
             mPairSize += 1;
             mThisMasterConditions.push_back(pCond);
 //             mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
