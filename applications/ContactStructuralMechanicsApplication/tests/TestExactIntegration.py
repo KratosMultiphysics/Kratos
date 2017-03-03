@@ -46,13 +46,13 @@ class TestLineExactIntegration(KratosUnittest.TestCase):
         
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
         
-        self.assertTrue(solution)
-        self.assertEqual(MatrixSolution[0,0], 0.5)
-        self.assertEqual(MatrixSolution[0,1], 1)
-        
         ## Debug
         #if (solution == True):
             #print("Integration accomplished", MatrixSolution)
+        
+        self.assertTrue(solution)
+        self.assertEqual(MatrixSolution[0,0], 0.5)
+        self.assertEqual(MatrixSolution[0,1], 1)
     
 ## Test exact integration in 3D
 # TRIANGLE
@@ -96,14 +96,14 @@ class TestTriangleExactIntegration(KratosUnittest.TestCase):
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
         
+        ## Debug
+        #if (solution == True):
+            #print("Integration accomplished", MatrixSolution)
+        
         self.assertTrue(solution)
         self.assertAlmostEqual(MatrixSolution[0,0], 0.5)
         self.assertAlmostEqual(MatrixSolution[0,1], 1.0/6.0)
         self.assertAlmostEqual(MatrixSolution[0,2], 0.25)
-        
-        ## Debug
-        #if (solution == True):
-            #print("Integration accomplished", MatrixSolution)
 
 # QUADRILATERAL
 class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
@@ -150,6 +150,10 @@ class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
         MatrixSolution = KratosMultiphysics.Matrix()
         solution = ExactIntegration.TestGetExactIntegration(cond1, cond2, MatrixSolution)
         
+        ## Debug
+        #if (solution == True):
+            #print("Integration accomplished", MatrixSolution)
+        
         self.assertTrue(solution)
         self.assertAlmostEqual(MatrixSolution[0,0], 2.0/3.0)
         self.assertAlmostEqual(MatrixSolution[0,1], 1.0/3.0)
@@ -157,8 +161,9 @@ class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(MatrixSolution[1,0], 1.0/3.0)
         self.assertAlmostEqual(MatrixSolution[1,1], 2.0/3.0)
         self.assertAlmostEqual(MatrixSolution[1,2], 0.5)
-        
-        ## Debug
-        #if (solution == True):
-            #print("Integration accomplished", MatrixSolution)
+            
+if __name__ == '__main__':
+   TestLineExactIntegration().test_execution()
+   TestTriangleExactIntegration().test_execution()
+   TestQuadrilateralExactIntegration().test_execution()
         
