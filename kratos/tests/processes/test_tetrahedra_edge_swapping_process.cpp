@@ -47,7 +47,7 @@ namespace Kratos {
 
 			Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":10,
+                "number_of_divisions":2,
                 "element_name": "Element3D4N"
             }  )");
 
@@ -67,7 +67,7 @@ namespace Kratos {
 
 			FindNodalNeighboursProcess(model_part).Execute();
 
-			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+			//TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
 			 gid_io.InitializeMesh(1.00);
 			 gid_io.WriteMesh(model_part.GetMesh());
@@ -80,21 +80,38 @@ namespace Kratos {
 				 if (distance < 5. && node.Z() < 4.5 && node.Z() > -4.50)
 					 moving_nodes.push_back(&node);
 			 }
+			 int inverted_element_counter = 0;
+			 for (auto& element : model_part.Elements()) {
+				 if (element.GetGeometry().Volume() < 0.00/*std::numeric_limits<double>::epsilon()*/)
+					 inverted_element_counter++;
+			 }
+			 
+			 KRATOS_WATCH(inverted_element_counter);
+
+
 			 constexpr double pi = 3.141592653589793238462643383279;
-			 for (int i = 30; i < 180; i+=30) {
+			 for (int i = 10; i < 180; i+=10) {
 				 const double alpha = 10.00 * pi / 180.00;
 				 const double s = sin(alpha);
 				 const double c = cos(alpha);
 				 for (auto p_node : moving_nodes) {
-					 p_node->X() = p_node->X()*c - p_node->Y()*s;
-					 p_node->Y() = p_node->X()*s + p_node->Y()*c;
+					 double new_x = p_node->X()*c - p_node->Y()*s;
+					 double new_y = p_node->X()*s + p_node->Y()*c;
+					 //p_node->X() = new_x;
+					 //p_node->Y() = new_y;
 				 }
 
 				 FindNodalNeighboursProcess(model_part).Execute();
 
 				 TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
+				 int inverted_element_counter = 0;
+				 for (auto& element : model_part.Elements()) {
+					 if (element.GetGeometry().Volume() < std::numeric_limits<double>::epsilon())
+						 inverted_element_counter++;
+				 }
 
+				 KRATOS_WATCH(inverted_element_counter);
 				 gid_io.InitializeMesh(i);
 				 gid_io.WriteMesh(model_part.GetMesh());
 				 gid_io.FinalizeMesh();
