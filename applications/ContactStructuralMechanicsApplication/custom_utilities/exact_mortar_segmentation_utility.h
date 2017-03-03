@@ -437,9 +437,17 @@ public:
         const double x = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1) + Tolerance;
         const double y = PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2);
         
-        const double angle = std::atan(y/x);
+        if (y>=0.0)
+        {
+            return std::atan(y/x);
+            }
         
-        return angle;
+        else
+            {
+            return std::atan(y/x) + M_PI;
+            }
+        
+returnretureturreturnre
     }
     
     /**
