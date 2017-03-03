@@ -145,7 +145,7 @@ private:
 
 	array_1d<double, 3> mV1;
 	array_1d<double, 3> mV2;
-	Matrix              mG_Vector;
+	Matrix              mQ; //Transformation Matrix
 
 	array_1d<double, 3> mGab0;
 	array_1d<double, 3> mCurvature0;
@@ -180,7 +180,7 @@ private:
 		boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
 		Matrix& msG);
 
-	void CalculateMetricDeformed(Matrix DN_De,
+	void CalculateMetricDeformed(const Matrix& DN_De,
 		array_1d<double, 3>& gab,
 		array_1d<double, 3>& curvature_coefficient,
 		array_1d<double, 3>& g1,
@@ -248,7 +248,7 @@ private:
 		rSerializer.save("Thickness0", mThickness0);
 		rSerializer.save("V1", mV1);
 		rSerializer.save("V2", mV2);
-		rSerializer.save("G_Vector", mG_Vector);
+		rSerializer.save("G_Vector", mQ);
 		rSerializer.save("Gab0", mGab0);
 		rSerializer.save("Curvature0", mCurvature0);
 	}
@@ -269,7 +269,7 @@ private:
 		rSerializer.load("Thickness0", mThickness0);
 		rSerializer.load("V1", mV1);
 		rSerializer.load("V2", mV2);
-		rSerializer.load("G_Vector", mG_Vector);
+		rSerializer.load("G_Vector", mQ);
 		rSerializer.load("Gab0", mGab0);
 		rSerializer.load("Curvature0", mCurvature0);
 	}

@@ -244,7 +244,7 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 		{
 			for (unsigned int m = 0; m < number_of_points*3; m++)
 			{
-				rLeftHandSideMatrix(n,m) += (Phi_r(n)*Phi_r(m) + Phi(0)*Phi_rs(n,m));
+				rLeftHandSideMatrix(n, m) += (Phi_r(n)*Phi_r(m) +Phi(0)*Phi_rs(n, m));
 			}
 			rRightHandSideVector(n) -= Phi(0)*Phi_r(n);
 		}

@@ -62,11 +62,6 @@ public:
     )
     {
         KRATOS_TRY;
-
-        //TODO: do this better, with the remove function
-//         DestinationModelPart.Nodes().clear();
-//         DestinationModelPart.Conditions().clear();
-//         DestinationModelPart.Elements().clear();
         
         for(auto it = DestinationModelPart.NodesBegin(); it != DestinationModelPart.NodesEnd(); it++)
             it->Set(TO_ERASE);
@@ -129,14 +124,59 @@ public:
         }
         DestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
         
+        //ensure that the submodelparts are correctly filled
+        PopulateSubModelParts(OriginModelPart, DestinationModelPart);
+        
         //generating tables
 	DestinationModelPart.Tables() = OriginModelPart.Tables();
 
-
+        
+        
         Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
         DestinationModelPart.SetCommunicator(pComm);
 
         KRATOS_CATCH("");
+    }
+    
+protected:
+    
+    void PopulateSubModelParts(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart)
+    {
+        KRATOS_WATCH(OriginModelPart)
+        KRATOS_WATCH(DestinationModelPart)
+        std::vector<ModelPart::NodeType::SizeType > ids;
+        for(auto part=OriginModelPart.SubModelPartsBegin(); part!=OriginModelPart.SubModelPartsEnd(); part++)
+        {
+            KRATOS_WATCH(part->Name())
+            
+            
+            auto& destination_part = DestinationModelPart.CreateSubModelPart(part->Name());
+            
+            //add nodes
+            ids.reserve(part->Nodes().size());
+            for(auto it=part->NodesBegin(); it!=part->NodesEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddNodes(ids);
+
+            //add conditions
+            ids.clear();
+            ids.reserve(part->Conditions().size());
+            for(auto it=part->ElementsBegin(); it!=part->ElementsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddElements(ids);
+            
+            //add conditions
+            ids.clear();
+            ids.reserve(part->Conditions().size());
+            for(auto it=part->ConditionsBegin(); it!=part->ConditionsEnd(); ++it)
+                ids.push_back(it->Id());
+            destination_part.AddConditions(ids);   
+            
+            //now recursively call this same function
+            PopulateSubModelParts(*part, destination_part);
+        }
     }
 
 
