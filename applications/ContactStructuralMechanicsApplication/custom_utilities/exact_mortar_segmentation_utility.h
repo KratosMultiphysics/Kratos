@@ -440,14 +440,14 @@ public:
         if (y>=0.0)
         {
             return std::atan(y/x);
-            }
-        
+        }
+
         else
             {
             return std::atan(y/x) + M_PI;
             }
         
-returnretureturreturnre
+
     }
     
     /**
