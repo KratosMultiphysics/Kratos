@@ -1,0 +1,135 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "rectangle_2D3N_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "MPI",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "ale_trilinos_navier_stokes_solver_vmsmonolithic",
+        "ale_solver_type"              : "trilinos_mesh_solver_structural_similarity",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"
+        },
+        "echo_level"                   : 0,
+        "compute_reactions"            : false,
+        "consider_periodic_conditions" : false,
+        "reform_dofs_at_each_step"     : false,
+        "alpha"                        : -0.3,
+        "dynamic_tau"                  : 0.001,
+        "oss_switch"                   : 0,
+        "maximum_iterations"           : 10,
+        "relative_velocity_tolerance"  : 0.001,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 0.001,
+        "absolute_pressure_tolerance"  : 1e-5,
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_FixedBoundary",
+	    "variable_name"   : "MESH_DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0, 0.0, 0.0]
+        }
+    },{
+        "python_module" : "impose_ale_rectangle_test_motion_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ImposeALERectangleTestMotionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_MovingBoundary"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ApplyConstantVectorValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "auxiliar_process_list" : [{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["MESH_DISPLACEMENT_X","MESH_DISPLACEMENT_Y"],
+            "input_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_results.json",
+            "model_part_name" : "Parts_Fluid",
+            "time_frequency"   : 0.25
+        }
+    }],
+    "print_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["MESH_DISPLACEMENT_X","MESH_DISPLACEMENT_Y"],
+            "output_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_results.json",
+            "model_part_name"  : "Parts_Fluid",
+            "time_frequency"   : 0.25
+        }
+    }],
+    "check_json_results_process" : [{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["MESH_DISPLACEMENT_X","MESH_DISPLACEMENT_Y"],
+            "input_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_results.json",
+            "model_part_name" : "Parts_Fluid",
+            "time_frequency"   : 0.25
+        }
+    }]
+}
