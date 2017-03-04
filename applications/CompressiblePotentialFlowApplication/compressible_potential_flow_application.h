@@ -180,7 +180,7 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-        const CompressiblePotentialFlowElement mCompressiblePotentialFlowElement2D3N;
+        const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
 
 
 	///@}
