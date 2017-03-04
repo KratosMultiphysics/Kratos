@@ -18,12 +18,10 @@ class ALETrilinosNavierStokesSolverVMSMonolithic(trilinos_navier_stokes_solver_v
         # get ale solver type
         self.ale_solver_type = custom_settings["ale_solver_type"].GetString()
         # remove the ale solver type from settings so we can reuse the navier stokes constructor
-        settings = custom_settings.PrettyPrintJsonString()
-        i_start = settings[:settings.find('"ale_solver_type"')].rfind("\n")
-        i_end = settings.find("\n",i_start+1)
-        settings = settings[:i_start] + settings[i_end:]
+        navier_stokes_settings = custom_settings
+        navier_stokes_settings.RemoveValue("ale_solver_type")
         # call navier stokes constructor
-        super().__init__(model_part, Parameters(settings))
+        super().__init__(model_part, navier_stokes_settings)
         # create ale solver
         ale_solver_module = __import__(self.ale_solver_type)
         ale_settings = Parameters("{}") # for now use default settings
