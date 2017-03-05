@@ -63,10 +63,9 @@ public:
   /// Default constructor.
   //TODO: make it "public IndexedObject, public Flags"
   Edge(unsigned int edge_id, ParameterVector boundary_vertices, FaceTrimVector face_trims_vector)
-  : m_edge_id(edge_id),
-    m_boundary_vertices(boundary_vertices),
+  : m_boundary_vertices(boundary_vertices),
     m_face_trims_vector(face_trims_vector),
-    IndexedObject(0),
+    IndexedObject(edge_id),
     Flags()
   {
     //m_n_u = m_knot_vector_u.size() - m_p - 1;
@@ -102,7 +101,7 @@ private:
   // ==============================================================================
   // Initialized by class constructor
   // ==============================================================================
-  unsigned int m_edge_id;
+  //unsigned int m_edge_id;
   ParameterVector m_boundary_vertices;
   FaceTrimVector m_face_trims_vector;
   //unsigned int m_n_u; // number of control points in u-direction

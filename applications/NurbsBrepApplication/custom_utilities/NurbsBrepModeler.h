@@ -18,14 +18,14 @@
 #include <ctime>
 
 // External includes 
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "geometries/nurbs_base_geometry.h"
-#include "spatial_containers/spatial_containers.h"
+#include "includes/kratos_parameters.h"
+
 #include "BrepModelGeometryReader.h"
 #include "BrepModel.h"
 
@@ -60,7 +60,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-    class NurbsBrepModeler
+  class NurbsBrepModeler
   {
   public:
     ///@name Type Definitions
@@ -73,13 +73,12 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
+        
+   
+    /// Constructor.
+        NurbsBrepModeler(Parameters& cad_geometry, ModelPart& model_part);
 
-    //TODO: do this in the construction, and pass a "Parameters" object instead
-    void SetUp(boost::python::dict cad_geometry, ModelPart& model_part);
-
-    /// Default constructor.
-    NurbsBrepModeler();
-
+        //NurbsBrepModeler();
     /// Destructor.
         virtual ~NurbsBrepModeler();
 
@@ -113,7 +112,8 @@ namespace Kratos
         ///@name Member Variables
     ///@{ 
 
-    boost::python::dict m_cad_geometry;
+    Parameters& m_cad_geometry;
+    ModelPart& m_model_part;
     //BrepModelGeometryReader m_brep_model_geometry_reader;
     BrepModelVector m_brep_model_vector;
 
