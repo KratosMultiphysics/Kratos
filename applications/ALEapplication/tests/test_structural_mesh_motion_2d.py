@@ -19,6 +19,10 @@ class TestCase(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
+    def removeFile(self, filepath):
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+
     def createTest(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
             project_parameters = Parameters(parameter_file.read())
@@ -34,6 +38,10 @@ class TestCase(KratosUnittest.TestCase):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             test = self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
             test.Solve()
+            # remove files
+            self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test.time")
+            self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat")
+            self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat")
 
     def tearDown(self):
         pass

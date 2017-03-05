@@ -171,11 +171,6 @@ public:
     {
         KRATOS_TRY;
 
-        if (true)
-        {
-            return;
-        }
-
         double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
         if (DeltaTime <= 0.0)
