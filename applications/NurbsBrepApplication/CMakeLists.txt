@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosNurbBrepApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES 
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
