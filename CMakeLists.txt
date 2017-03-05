@@ -147,6 +147,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 ##*****************************
 # Finding and including PYTHON
+find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
