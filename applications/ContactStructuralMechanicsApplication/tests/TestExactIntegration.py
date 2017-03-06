@@ -131,7 +131,7 @@ class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(1)
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N()
 
         # Quadrilateral 2
         normal[2] = -1.0
@@ -155,12 +155,24 @@ class TestQuadrilateralExactIntegration(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertAlmostEqual(MatrixSolution[0,0], 2.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[0,2], 0.5)
-        self.assertAlmostEqual(MatrixSolution[1,0], 1.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[1,1], 2.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[1,2], 0.5)
+        self.assertAlmostEqual(MatrixSolution[0,0], 2.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[0,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,0], 5.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,1], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,0], 5.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,1], 4.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[3,0], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[3,1], 2.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[3,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[4,0], 4.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[4,1], 5.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[4,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[5,0], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[5,1], 5.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[5,2], 1.0/6.0)
             
 if __name__ == '__main__':
    TestLineExactIntegration().test_execution()

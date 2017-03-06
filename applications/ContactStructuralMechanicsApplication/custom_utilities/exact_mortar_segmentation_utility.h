@@ -32,7 +32,7 @@
 
 // /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
 // #include "integration/line_gauss_legendre_integration_points.h"
-// #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
 
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -433,18 +433,43 @@ public:
         const Point<3> PointOrig2
         )
     {
-        const double Tolerance = 1.0e-8; // Avoid division by zero
-        const double x = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1) + Tolerance;
-        const double y = PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2);
+        const array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
         
-        if ( y >= 0.0)
-        {
-            return std::atan(y/x);
-        }
-        else
-        {
-            return std::atan(y/x) + M_PI;
-        }
+        const double xi  = local_edge[0];
+        const double eta = local_edge[1];
+        
+//         // Debug
+//         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
+        
+        return (std::atan2(eta, xi));
+    }
+    
+    /**
+     * This function calculates in 2D the angle between two points
+     * @param PointOrig1: The points from the origin geometry
+     * @param PointOrig2: The points in the destination geometry
+     * @param axis_1: The axis respect the angle is calculated
+     * @param axis_2: The normal to the previous axis
+     * @return angle: The angle formed
+     */
+    
+    double AnglePoints(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2,
+        const array_1d<double, 3> axis_1,
+        const array_1d<double, 3> axis_2
+        )
+    {
+        array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
+        local_edge /= norm_2(local_edge);
+        
+        const double xi  = inner_prod(local_edge, axis_1);
+        const double eta = inner_prod(axis_2,     axis_1);
+        
+//         // Debug
+//         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
+        
+        return (std::atan2(eta, xi));
     }
     
     /**
@@ -487,6 +512,96 @@ public:
         const bool y = (std::abs(PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2)) < Tolerance) ? true : false;
         
         return (x&&y);
+    }
+    
+    
+    /**
+     * This functions recovers if the nodes are inside a Quadrilateral conformed with Point<3>, instead of Nodes<3> (The input ones)
+     * @param SlaveGeometry: The quadrilateral of interest
+     * @param rPoint: The point to study if is inside
+     * @return True if the point is inside the geometry
+     */
+    
+    bool FasIsInsideQuadrilateral2D(
+        Quadrilateral2D4 <Point<3>>& SlaveGeometry,
+        const GeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        
+        GeometryType::CoordinatesArrayType rResult;
+        
+        Matrix J;
+
+        rResult.clear();
+        
+        Vector DeltaXi = ZeroVector( 3 );
+        
+        GeometryType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+
+        //Newton iteration:
+
+        const unsigned int maxiter = 20;
+
+        for ( unsigned int k = 0; k < maxiter; k++ )
+        {
+            CurrentGlobalCoords = ZeroVector( 3 );
+            SlaveGeometry.GlobalCoordinates( CurrentGlobalCoords, rResult );
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+            SlaveGeometry.InverseOfJacobian( J, rResult );
+            Matrix Jaux = ZeroMatrix(3, 3);
+            subrange(Jaux, 0, 2, 0, 2) = J;
+            noalias( DeltaXi ) = prod( Jaux, CurrentGlobalCoords );
+            noalias( rResult ) += DeltaXi;
+
+            if ( norm_2( DeltaXi ) > 30 )
+            {
+                break;
+            }
+
+            if ( norm_2( DeltaXi ) <  1.0e-8 )
+            {
+                break;
+            }
+        }
+        
+        if ( std::abs(rResult[0]) <= (1.0 + Tolerance) )
+        {
+            if ( std::abs(rResult[1]) <= (1.0 + Tolerance) )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * This functions calculates the determinant of a 2D triangle (using points) to check if invert the order
+     * @param PointOrig1: First point
+     * @param PointOrig2: Second point
+     * @param PointOrig3: Third point
+     * @return The DetJ
+     */
+    
+    double FasTriagleCheck2D(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2,
+        const Point<3> PointOrig3
+        )
+    {
+        const double x10 = PointOrig2.X() - PointOrig1.X();
+        const double y10 = PointOrig2.Y() - PointOrig1.Y();
+
+        const double x20 = PointOrig3.X() - PointOrig1.X();
+        const double y20 = PointOrig3.Y() - PointOrig1.Y();
+
+        //Jacobian is calculated:
+        //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
+        //J=|	        |=	|	      |
+        //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
+        
+        return x10 * y20 - y10 * x20;
     }
     
     /**
@@ -781,9 +896,8 @@ private:
             
             Triangle3D3 <Point<3>> AllTriangle( AllPointsArray );
         
-//             const double LocalArea = AllTriangle.Area();
-            
-            const double LocalArea = HeronArea(MasterProjectedPoint[0],MasterProjectedPoint[1],MasterProjectedPoint[2]);
+            const double LocalArea = AllTriangle.Area();
+//             const double LocalArea = HeronArea(MasterProjectedPoint[0],MasterProjectedPoint[1],MasterProjectedPoint[2]);
             
             if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
             {
@@ -867,6 +981,7 @@ private:
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
                             Point<3> AuxPoint = IntersectedPoint;
+//                             if (AuxPoint == PointList[iter])
                             if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
@@ -894,6 +1009,7 @@ private:
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
                         Point<3> AuxPoint = SlaveGeometry[i_node];
+//                         if (AuxPoint == PointList[iter])
                         if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                         {
                             AddPoint = false;
@@ -920,16 +1036,22 @@ private:
             {
                 // We reorder the nodes according with the angle they form with the first node
                 std::vector<double> Angles (ListSize - 1);
+//                 array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+//                 v /= norm_2(v);
+//                 array_1d<double, 3> n;
+//                 n[0] = - v[1];
+//                 n[1] =   v[0];
+//                 n[2] =    0.0;
+                
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                 }
                 
                 const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
                 
                 std::vector<Point<3>::Pointer> PointsArray (3);
-                
-                PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
                 
                 // We initialize our auxiliar integration point vector
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
@@ -941,15 +1063,31 @@ private:
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
-                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                    if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                    {
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                    }
+                    else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                    {
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
+                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                    }
+                    else
+                    {
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+                    }
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                    const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
-//                     const double LocalArea = triangle.Area();
+//                     const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
+                    const double LocalArea = triangle.Area();
 
                     if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
                     {
@@ -1025,14 +1163,14 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            SlaveProjectedPoint[i_node]  = ContactUtilities::FastProject( SlaveCenter, SlaveGeometry[i_node],  SlaveNormal);
+            SlaveProjectedPoint[i_node]  = ContactUtilities::FastProject( SlaveCenter,  SlaveGeometry[i_node], SlaveNormal);
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint(SlaveProjectedPoint[i_node],  SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint( SlaveProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
 //             RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
 //             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
@@ -1048,9 +1186,11 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            GeometryType::CoordinatesArrayType ProjectedGPLocal;
+//             GeometryType::CoordinatesArrayType ProjectedGPLocal;
+//             
+//             AllInside[i_node] = DummyQuadrilateral.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
             
-            AllInside[i_node] = DummyQuadrilateral.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
+            AllInside[i_node] = FasIsInsideQuadrilateral2D( DummyQuadrilateral, MasterProjectedPoint[i_node].Coordinates( ) ) ;
         }
         
         // We initialize the total area
@@ -1087,23 +1227,32 @@ private:
         {            
             // We reorder the nodes according with the angle they form with the first node
             std::vector<double> Angles (3);
+//             array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+//             v /= norm_2(v);
+//             array_1d<double, 3> n;
+//             n[0] = - v[1];
+//             n[1] =   v[0];
+//             n[2] =    0.0;
+            
             for (unsigned int elem = 1; elem < 4; elem++)
             {
                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem]);
+//                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem], v, n);
             }
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
             
             std::vector<Point<3>::Pointer> PointsArray (3);
             
-            PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-            PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[1]);
-            PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[2]);
-            
-            Triangle2D3 <Point<3>> dummy_triangle( PointsArray ); // TODO: Look how to create the integration points without the dummy triangle 
-            
+//             PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+//             PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[1]);
+//             PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[2]);
+//             
+//             Triangle2D3 <Point<3>> dummy_triangle( PointsArray ); // TODO: Look how to create the integration points without the dummy triangle 
+//             
             // We initialize our auxiliar integration point vector
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+//             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
 //             IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
@@ -1112,15 +1261,31 @@ private:
             for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 // NOTE: We add 1 because we removed from the list the fisrt point
-                PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
-                PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                {
+                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
+                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                }
+                else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                {
+                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                }
+                else
+                {
+                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
+                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+                }
                 
                 // We create the triangle
                 Triangle2D3 <Point<3>> triangle( PointsArray );
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
-//                 const double LocalArea = triangle.Area();
+//                 const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
+                const double LocalArea = triangle.Area();
                 
                 if (LocalArea > Tolerance)
                 {
@@ -1198,6 +1363,7 @@ private:
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
                             Point<3> AuxPoint = IntersectedPoint;
+//                             if (AuxPoint == PointList[iter])
                             if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
@@ -1224,7 +1390,8 @@ private:
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
                         Point<3> AuxPoint = SlaveProjectedPoint[i_node];
-                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true) // FIXME: Modafoca
+//                         if (AuxPoint == PointList[iter])
+                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true) 
                         {
                             AddPoint = false;
                         }
@@ -1250,35 +1417,39 @@ private:
             {
                 // We reorder the nodes according with the angle they form with the first node
                 std::vector<double> Angles (ListSize - 1);
+//                 array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+//                 v /= norm_2(v);
+//                 array_1d<double, 3> n;
+//                 n[0] = - v[1];
+//                 n[1] =   v[0];
+//                 n[2] =    0.0;
+                
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                 }
                 
                 const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
                 
                 std::vector<Point<3>::Pointer> PointsArray (3);
                 
-                PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-                PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
-                PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
-                
-                Triangle2D3 <Point<3>> dummy_triangle( PointsArray );
+//                 PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+//                 PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
+//                 PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
+//                 
+//                 Triangle2D3 <Point<3>> dummy_triangle( PointsArray );
                 
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+//                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
-                for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ ) // FIXME: The number of nodes and weight look wrong!!!
-                {
-                    KRATOS_WATCH(IntegrationPoints[PointNumber].Coordinates())
-                    KRATOS_WATCH(IntegrationPoints[PointNumber].Weight())
-                }
-                
 //                 // Debug
-//                 for (unsigned int i = 0; i < IndexVector.size(); i++)
+//                 for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ ) // FIXME: The number of nodes and weight look wrong!!!
 //                 {
-//                     std::cout << IndexVector[i] << std::endl;
+//                     KRATOS_WATCH(IntegrationPoints[PointNumber].Coordinates())
+//                     KRATOS_WATCH(IntegrationPoints[PointNumber].Weight())
 //                 }
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
@@ -1286,29 +1457,50 @@ private:
             
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
+                    if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
+                    {
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                    }
+                    else
+                    {
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+                    }
                     // NOTE: We add 1 because we removed from the list the fisrt point
-                    PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+//                     if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+//                     }
+//                     else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+//                     }
+//                     else
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+//                     }
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-                    const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]); // FIXME: The nodes are not in correct order
-//                     const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
+//                     const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]); // FIXME: The nodes are not in correct order
+                    const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
                     
                     if (LocalArea > Tolerance)
                     {
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                        {
-                            if (IntegrationPoints[PointNumber].Weight() < 0.0)
-                            {
-                                KRATOS_WATCH(PointNumber )
-                                KRATOS_WATCH(LocalIntegrationSize )
-                                KRATOS_WATCH(IntegrationPoints[PointNumber].Weight() )
-                            }
-                            
+                        {                            
                             // We convert the local coordinates to global coordinates
                             Point<3> gp_local;
                             gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
@@ -1333,12 +1525,13 @@ private:
                     {
                         KRATOS_WATCH(LocalArea);
                         KRATOS_WATCH(HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]));
-                        for (unsigned int i = 0; i < 3; i++)
-                        {
-                            KRATOS_WATCH(PointList[0]);
-                            KRATOS_WATCH(PointList[IndexVector[elem + 0] + 1]);
-                            KRATOS_WATCH(PointList[IndexVector[elem + 1] + 1]);
-                        }
+                        KRATOS_WATCH(PointList[0]);
+                        KRATOS_WATCH(PointList[IndexVector[elem + 0] + 1]);
+                        KRATOS_WATCH(Angles[IndexVector[elem + 0]]);
+                        KRATOS_WATCH(PointList[IndexVector[elem + 1] + 1]);
+                        KRATOS_WATCH(Angles[IndexVector[elem + 1]]);
+                        
+                        KRATOS_ERROR;
                     }
                 }
                 
