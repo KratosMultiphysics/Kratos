@@ -334,6 +334,8 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
+virtual void ApplyGlobalDampingToContactForces();
+
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
@@ -343,6 +345,7 @@ PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
 DEMIntegrationScheme* mpIntegrationScheme;
+double mGlobalDamping;
 
 private:
 

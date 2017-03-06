@@ -62,11 +62,6 @@ public:
     )
     {
         KRATOS_TRY;
-
-        //TODO: do this better, with the remove function
-//         DestinationModelPart.Nodes().clear();
-//         DestinationModelPart.Conditions().clear();
-//         DestinationModelPart.Elements().clear();
         
         for(auto it = DestinationModelPart.NodesBegin(); it != DestinationModelPart.NodesEnd(); it++)
             it->Set(TO_ERASE);
@@ -129,14 +124,41 @@ public:
         }
         DestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
         
+        //ensure that the submodelparts are correctly filled
+        PopulateSubModelParts(OriginModelPart, DestinationModelPart);
+        
         //generating tables
 	DestinationModelPart.Tables() = OriginModelPart.Tables();
 
-
+        
+        
         Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
         DestinationModelPart.SetCommunicator(pComm);
 
         KRATOS_CATCH("");
+    }
+    
+protected:
+    
+    void PopulateSubModelParts(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart)
+    {
+        for(auto part=OriginModelPart.SubModelPartsBegin(); part!=OriginModelPart.SubModelPartsEnd(); part++)
+        {
+            auto& destination_part = DestinationModelPart.CreateSubModelPart(part->Name());
+            
+            destination_part.AddNodes(part->NodesBegin(), part->NodesEnd());
+
+            //add conditions
+            destination_part.AddElements(part->ElementsBegin(), part->ElementsEnd());
+            
+            //add conditions
+            destination_part.AddConditions(part->ConditionsBegin(),part->ConditionsEnd());   
+            
+            //now recursively call this same function
+            PopulateSubModelParts(*part, destination_part);
+        }
     }
 
 
