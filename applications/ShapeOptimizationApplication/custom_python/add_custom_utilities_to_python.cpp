@@ -78,9 +78,9 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> CompressedSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<CompressedSpaceType, DenseSpaceType > SparseLinearSolverType;
+    //typedef UblasSpace<double, CompressedMatrix, Vector> CompressedSpaceType;
+    //typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    //typedef LinearSolver<CompressedSpaceType, DenseSpaceType > SparseLinearSolverType;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
