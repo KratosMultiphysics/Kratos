@@ -72,11 +72,12 @@ def Usage():
 
     lines = [
         'Usage:',
-        '\t python kratos_run_tests [-l level] [-v vervosity]',
+        '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t -v, --verbose: Vervosty level: 0, 1 (Default), 2'
+        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
     ]
 
     for l in lines:
@@ -85,7 +86,7 @@ def Usage():
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    level_values = ['all', 'small', 'nightly', 'validation','mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
 
     verbosity = 1
     level = 'all'
@@ -136,5 +137,9 @@ KratosSuites = {
     'small': TestSuite(),
     'nightly': TestSuite(),
     'all': TestSuite(),
-    'validation': TestSuite()
+    'validation': TestSuite(),
+    'mpi_small': TestSuite(),
+    'mpi_nightly': TestSuite(),
+    'mpi_all': TestSuite(),
+    'mpi_validation': TestSuite(),
 }
