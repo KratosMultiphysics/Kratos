@@ -42,6 +42,7 @@ namespace Kratos
 		class EdgeSwappingCases {
 		public:
 			using TriangleConnectivityType = std::array<std::size_t, 3>;
+			using EdgeSwappingCaseType = EdgeSwappingCase;
 			static std::size_t GetNumberOfCases() { return TNumberOfCases; }
 			static std::size_t NumberOfTriangles() { return TNumberOfTriangles; }
 			static std::size_t NumberOfTrianglesPerCase() { return TNumberOfTrianglesPerCase; }

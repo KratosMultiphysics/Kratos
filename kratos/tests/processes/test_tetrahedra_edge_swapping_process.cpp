@@ -90,7 +90,7 @@ namespace Kratos {
 
 
 			 constexpr double pi = 3.141592653589793238462643383279;
-			 for (int i = 10; i < 180; i+=10) {
+			 for (int i = 10; i < 180; i+=180) {
 				 const double alpha = 10.00 * pi / 180.00;
 				 const double s = sin(alpha);
 				 const double c = cos(alpha);
