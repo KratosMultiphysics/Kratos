@@ -33,7 +33,7 @@ Begin Properties 3
     CONSTITUTIVE_LAW_NAME LinearElasticPlaneStress2DLaw 
 End Properties
 
-Begin Table 1 TIME VALUE
+Begin Table 1 TIME POINT_LOAD
 0.0 	0.0
 5.0 	-2.0	
 55.0	-2.0

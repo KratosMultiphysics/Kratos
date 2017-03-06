@@ -30,7 +30,7 @@ Begin Properties 3
     CONSTITUTIVE_LAW_NAME Newtonian 
 End Properties
 
-Begin Table 1 // ./x_daño.csv
+Begin Table 1 TIME VOLUME_ACCELERATION
 0	0.00000000
 0.1	0.00646170
 0.2	0.01223031

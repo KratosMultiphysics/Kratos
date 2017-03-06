@@ -20,7 +20,7 @@ Begin Properties 2
     CONSTITUTIVE_LAW_NAME ThermalLinearElastic2DPlaneStrain 
 End Properties
 
-Begin Table 1 // ./nivel.csv
+Begin Table 1 TIME WATER_LEVEL
 0.0 	40
 1.0 	40
 2.0 	35
@@ -37,7 +37,7 @@ Begin Table 1 // ./nivel.csv
 
 End Table
 
-Begin Table 2 // ./temp.csv
+Begin Table 2 TIME TEMPERATURE
 0.0 	5
 1.0 	7
 2.0 	10
@@ -54,7 +54,7 @@ Begin Table 2 // ./temp.csv
 
 End Table
 
-Begin Table 3 // ./meses.csv
+Begin Table 3 TIME MONTH
 0.0 	1
 1.0 	1
 2.0 	2
