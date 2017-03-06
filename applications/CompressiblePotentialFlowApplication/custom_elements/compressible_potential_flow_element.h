@@ -294,6 +294,15 @@ public:
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
         }
         GetWakeDistances(data.distances);
+        
+        //TEST:
+        bool kutta_element = false;
+        for(unsigned int i=0; i<NumNodes; ++i)
+            if(GetGeometry()[i].Is(STRUCTURE))
+            {
+                kutta_element = true;
+                break;
+            }
 
         if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
@@ -305,50 +314,6 @@ public:
 
             ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
             
-//             for(unsigned int i=0; i<NumNodes; i++)
-//             {
-//                 if(GetGeometry()[i].Is(STRUCTURE))
-//                 {
-//                     
-//                     
-// //                     Matrix H(NumNodes,NumNodes);
-// //                     H.clear();
-// //                     
-// //                     unsigned int n=0;
-// //                     for(unsigned int k=0; k<NumNodes-1; ++k)
-// //                     {
-// //                         for(unsigned int l=k+1; l<NumNodes; ++l)
-// //                         {
-// //                             H(n,k) = 1.0;
-// //                             H(n,l) = -1.0;
-// //                             n+= 1;
-// //                         }
-// //                     }
-// //                     
-// //                     KRATOS_WATCH(H)
-// //                     rLeftHandSideMatrix = (1e1*data.vol)*prod(trans(H),H);
-//                     
-// //                     array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-// //                     vinfinity /= norm_2(vinfinity);
-// //                     
-// //                     for(unsigned int k=0; k<Dim; ++k)
-// //                         data.DN_DX(i,k) = 0.0;
-// //                     
-// //                     array_1d<double,3> n;
-// //                     n[0] = -vinfinity[1]; //TODO: make this so that it can work in the 3D case
-// //                     n[1] = vinfinity[0];
-// //                     n[2] = 0.0;
-// //                     Vector H = prod(data.DN_DX, n);
-// //                     KRATOS_WATCH(H);
-// //                     rLeftHandSideMatrix += (1e9*data.vol)*outer_prod(H,H);
-//                     
-//                     
-//                     
-// //                     rLeftHandSideMatrix(i,i) = 1.0;
-//                     
-//                     break;
-//                 }
-//             }
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             
         }
@@ -382,38 +347,78 @@ public:
                 }
             }
 #else
+
             //also next version works - NON SYMMETRIC - but it does not require a penalty
-            for(unsigned int i=0; i<NumNodes; ++i)
-            {
-                for(unsigned int j=0; j<NumNodes; ++j)
+                array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
+                n /= norm_2(n);
+                bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
+                bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
+                bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
+                                
+//                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
+//                 noalias(tmp) = prod(data.DN_DX,P);
+//                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = 1e3*data.vol*prod(tmp, trans(data.DN_DX));
+                
+                if(kutta_element == true)
                 {
-                    rLeftHandSideMatrix(i,j)                   =  lhs(i,j);
-                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j);
-                }
-            }
-            //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
-            for(unsigned int i=0; i<NumNodes; ++i)
-            {
-                if(data.distances[i]<0)
-                {
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j+NumNodes)          = -lhs(i,j);
+                            rLeftHandSideMatrix(i,j)                   =  lhs(i,j); 
+                            rLeftHandSideMatrix(i,j+NumNodes)                   =  -constraint(i,j); // -tangent_constraint(i,j); 
+                            
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j)                   =  -constraint(i,j); // -tangent_constraint(i,j); 
                         }
+                    }
                 }
-            }
-            
-            //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
-            for(unsigned int i=0; i<NumNodes; ++i)
-            {                            
-                if(data.distances[i]>0)
-                {   
-                    for(unsigned int j=0; j<NumNodes; ++j)
+                else
+                {
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {
+                        for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i+NumNodes,j) = -lhs(i,j);
+                            rLeftHandSideMatrix(i,j)                   =  lhs(i,j); 
+                            rLeftHandSideMatrix(i,j+NumNodes)                   =  0.0; 
+                            
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j)                   =  0.0; 
                         }
+                    }
+                    
+                
+                    //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {
+                        if(data.distances[i]<0)
+                        {
+                                for(unsigned int j=0; j<NumNodes; ++j)
+                                {
+                                    rLeftHandSideMatrix(i,j)          = lhs(i,j); 
+                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs(i,j); 
+                                }
+                        }
+                    }
+                    
+                    //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {                            
+                        if(data.distances[i]>0)
+                        {   
+                            for(unsigned int j=0; j<NumNodes; ++j)
+                                {
+                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs(i,j);
+                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs(i,j); 
+                                }
+                        }
+                    }
                 }
-            }
+                
+                
+                
+            
+            
 #endif
             
             Vector split_element_values(NumNodes*2);

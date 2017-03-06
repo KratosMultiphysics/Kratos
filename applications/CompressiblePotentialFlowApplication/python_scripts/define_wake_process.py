@@ -32,6 +32,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[0] /= dnorm
         self.direction[1] /= dnorm
         self.direction[2] /= dnorm
+        print(self.direction)
         
         self.epsilon = settings["epsilon"].GetDouble()
 
@@ -42,15 +43,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:
             node.Set(KratosMultiphysics.STRUCTURE)
-            node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            
-        for elem in self.fluid_model_part.Elements:
-            for node in elem.GetNodes():
-                if node.Is(KratosMultiphysics.STRUCTURE):
-                    elem.Set(KratosMultiphysics.ACTIVE,False)
-                    
-                    break
-
+            #node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
 
         #compute the distances of the elements of the wake, and decide which ones are wak    
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): #2D case
@@ -60,7 +53,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.n = KratosMultiphysics.Vector(3)
             self.n[0] = -self.direction[1]
             self.n[1] = self.direction[0]
-            self.n[0] = 0.0
+            self.n[2] = 0.0
+            print("normal =",self.n)
             
             for node in self.kutta_model_part.Nodes:
                 x0 = node.X
@@ -76,9 +70,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         xn[1] = elnode.Y - y0
                         xn[2] = 0.0
                         dx = xn[0]*self.direction[0] + xn[1]*self.direction[1]
-                        if(dx > 0):
+                        if(dx > 0): 
                             potentially_active_portion = True
                             break
+                        if(elnode.Is(KratosMultiphysics.STRUCTURE)): ##all nodes that touch the kutta nodes are potentiallyactive
+                            potentially_active_portion = True
+                            break
+                        
                         
                     if(potentially_active_portion):                   
                         distances = KratosMultiphysics.Vector(len(elem.GetNodes()))
@@ -110,6 +108,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                 elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
                                 counter+=1
                             #elem.SetValue(ELEMENTAL_DISTANCE,distances)
+                            
+                            #for elnode in elem.GetNodes():
+                                #if elnode.Is(KratosMultiphysics.STRUCTURE):
+                                    #elem.Set(KratosMultiphysics.ACTIVE,False)
+                                    #elem.Set(KratosMultiphysics.MARKER,False)
+                                    
+
                             
         else: #3D case
             raise Exception("wake detection not yet implemented in 3D")
