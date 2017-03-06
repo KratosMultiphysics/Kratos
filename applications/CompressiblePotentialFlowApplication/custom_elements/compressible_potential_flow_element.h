@@ -13,6 +13,7 @@
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
 #define KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
 
+// #define SYMMETRIC_CONSTRAINT_APPLICATION
 
 // System includes
 #include <string>
@@ -192,10 +193,8 @@ public:
             if (rResult.size() != 2*NumNodes)
                 rResult.resize(2*NumNodes, false);
 
-//     array_1d<double,NumNodes> distances = this->GetValue(ELEMENTAL_DISTANCES);
             array_1d<double,NumNodes> distances;
-            for(unsigned int i = 0; i<NumNodes; i++)
-                distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+            GetWakeDistances(distances);
 
             //positive part
             for (unsigned int i = 0; i < NumNodes; i++)
@@ -240,10 +239,8 @@ public:
             if (rElementalDofList.size() != 2*NumNodes)
                 rElementalDofList.resize(2*NumNodes);
 
-//     const array_1d<double,NumNodes>& distances = this->GetValue(ELEMENTAL_DISTANCES);
             array_1d<double,NumNodes> distances;
-            for(unsigned int i = 0; i<NumNodes; i++)
-                distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+            GetWakeDistances(distances);
 
             //positive part
             for (unsigned int i = 0; i < NumNodes; i++)
@@ -295,20 +292,65 @@ public:
         for(unsigned int i=0; i<NumNodes; i++)
         {
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-            data.distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         }
+        GetWakeDistances(data.distances);
 
-        if(this->IsNot(MARKER))//normal element (non-wake)
+        if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
             if(rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
                 rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
             if(rRightHandSideVector.size() != NumNodes)
                 rRightHandSideVector.resize(NumNodes,false);
             rLeftHandSideMatrix.clear();
-            rRightHandSideVector.clear();
 
             ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-            ComputeRHSGaussPointContribution(data.vol,rRightHandSideVector,data);
+            
+//             for(unsigned int i=0; i<NumNodes; i++)
+//             {
+//                 if(GetGeometry()[i].Is(STRUCTURE))
+//                 {
+//                     
+//                     
+// //                     Matrix H(NumNodes,NumNodes);
+// //                     H.clear();
+// //                     
+// //                     unsigned int n=0;
+// //                     for(unsigned int k=0; k<NumNodes-1; ++k)
+// //                     {
+// //                         for(unsigned int l=k+1; l<NumNodes; ++l)
+// //                         {
+// //                             H(n,k) = 1.0;
+// //                             H(n,l) = -1.0;
+// //                             n+= 1;
+// //                         }
+// //                     }
+// //                     
+// //                     KRATOS_WATCH(H)
+// //                     rLeftHandSideMatrix = (1e1*data.vol)*prod(trans(H),H);
+//                     
+// //                     array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+// //                     vinfinity /= norm_2(vinfinity);
+// //                     
+// //                     for(unsigned int k=0; k<Dim; ++k)
+// //                         data.DN_DX(i,k) = 0.0;
+// //                     
+// //                     array_1d<double,3> n;
+// //                     n[0] = -vinfinity[1]; //TODO: make this so that it can work in the 3D case
+// //                     n[1] = vinfinity[0];
+// //                     n[2] = 0.0;
+// //                     Vector H = prod(data.DN_DX, n);
+// //                     KRATOS_WATCH(H);
+// //                     rLeftHandSideMatrix += (1e9*data.vol)*outer_prod(H,H);
+//                     
+//                     
+//                     
+// //                     rLeftHandSideMatrix(i,i) = 1.0;
+//                     
+//                     break;
+//                 }
+//             }
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+            
         }
         else //it is a wake element
         {
@@ -326,7 +368,9 @@ public:
             ComputeLHSGaussPointContribution(weight,lhs,data);
 
             //here impose the wake constraint
-            const double k=1.0e4; //a value of 1000 here should be good enough
+#ifdef SYMMETRIC_CONSTRAINT_APPLICATION
+            const double k=1.0e4; //a value of 10000 here should be good enough
+            //THIS VERSION WORKS AND IS SYMMETRIC - however it depends on a penalty factor k
             for(unsigned int i=0; i<NumNodes; ++i)
             {
                 for(unsigned int j=0; j<NumNodes; ++j)
@@ -337,12 +381,45 @@ public:
                     rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0+k)*lhs(i,j);
                 }
             }
+#else
+            //also next version works - NON SYMMETRIC - but it does not require a penalty
+            for(unsigned int i=0; i<NumNodes; ++i)
+            {
+                for(unsigned int j=0; j<NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i,j)                   =  lhs(i,j);
+                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j);
+                }
+            }
+            //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+            for(unsigned int i=0; i<NumNodes; ++i)
+            {
+                if(data.distances[i]<0)
+                {
+                        for(unsigned int j=0; j<NumNodes; ++j)
+                        {
+                            rLeftHandSideMatrix(i,j+NumNodes)          = -lhs(i,j);
+                        }
+                }
+            }
+            
+            //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+            for(unsigned int i=0; i<NumNodes; ++i)
+            {                            
+                if(data.distances[i]>0)
+                {   
+                    for(unsigned int j=0; j<NumNodes; ++j)
+                        {
+                            rLeftHandSideMatrix(i+NumNodes,j) = -lhs(i,j);
+                        }
+                }
+            }
+#endif
+            
             Vector split_element_values(NumNodes*2);
-            GetValuesOnSplitElement(split_element_values);
+            GetValuesOnSplitElement(split_element_values, data.distances);
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
         }
-
-//      KRATOS_WATCH(rLeftHandSideMatrix)
     }
 
 
@@ -450,10 +527,8 @@ public:
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
 
-            array_1d<double,3> v;
-            if(this->Is(MARKER) || active==false)
-                v.clear();
-            else
+            array_1d<double,3> v = ZeroVector();
+            if(this->IsNot(MARKER) && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
 
@@ -467,9 +542,8 @@ public:
                 }
 
                 array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
-                v[0] = vaux[0];
-                v[1] = vaux[1];
-                v[2] = 0.0;
+                
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
 
 
@@ -535,6 +609,13 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    void GetWakeDistances(array_1d<double,NumNodes>& distances)
+    {
+        for(unsigned int i = 0; i<NumNodes; i++)
+            distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+    }
+    
+    
     void ComputeLHSGaussPointContribution(
         const double weight,
         Matrix& lhs,
@@ -553,11 +634,8 @@ protected:
     }
 
 
-    void GetValuesOnSplitElement(Vector& split_element_values )
+    void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances )
     {
-        array_1d<double,NumNodes> distances;
-        for(unsigned int i = 0; i<NumNodes; i++)
-            distances[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
 
         for (unsigned int i = 0; i < NumNodes; i++)
         {
