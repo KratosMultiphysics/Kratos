@@ -28,7 +28,6 @@ class TestProcesses(KratosUnittest.TestCase):
                         "help"                  : "This process imposes the value by reading it from f(x,y,z,t) field",
                         "process_name"          : "ApplyCustomFunctionProcess",
                         "Parameters"            : {
-                            "mesh_id"         : 0,
                             "model_part_name" : "Main",
                             "variable_name"   : "VISCOSITY",
                             "interval"        : [0.0, 10.0],
@@ -43,7 +42,6 @@ class TestProcesses(KratosUnittest.TestCase):
                         "help"                  : "This process imposes the value by reading it from f(x,y,z,t) field",
                         "process_name"          : "ApplyCustomFunctionProcess",
                         "Parameters"            : {
-                            "mesh_id"         : 0,
                             "model_part_name" : "Main",
                             "variable_name"   : "DISPLACEMENT_X",
                             "interval"        : [0.0, 5.0],
@@ -487,10 +485,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
-                            "mesh_id": 0,
                             "variable_name": "PRESSURE",
                             "value" : 15.0
                         }
@@ -498,10 +495,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarVariableToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
-                            "mesh_id": 0,
                             "variable_name": "VISCOSITY",
                             "value" : 2
                         }
@@ -526,7 +522,6 @@ class TestProcesses(KratosUnittest.TestCase):
         
     def test_assign_scalar_field_to_conditions(self):
         model_part = ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(NODAL_H)
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -537,10 +532,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module"   : "assign_scalar_field_to_conditions_process",
                         "kratos_module" : "KratosMultiphysics",
-                        "process_name"          : "AssignValueProcess",
+                        "process_name"          : "AssignScalarFieldToConditionsProcess",
                         "Parameters"            : {
                             "model_part_name":"Main",
-                            "mesh_id": 0,
                             "variable_name": "INITIAL_STRAIN",
                             "value" : "x+y*t+z"
                         }
