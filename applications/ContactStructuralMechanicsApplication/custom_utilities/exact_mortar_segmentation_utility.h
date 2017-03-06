@@ -437,17 +437,14 @@ public:
         const double x = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1) + Tolerance;
         const double y = PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2);
         
-        if (y>=0.0)
+        if ( y >= 0.0)
         {
             return std::atan(y/x);
         }
-
         else
-            {
+        {
             return std::atan(y/x) + M_PI;
-            }
-        
-
+        }
     }
     
     /**
@@ -1272,6 +1269,12 @@ private:
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
+                for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ ) // FIXME: The number of nodes and weight look wrong!!!
+                {
+                    KRATOS_WATCH(IntegrationPoints[PointNumber].Coordinates())
+                    KRATOS_WATCH(IntegrationPoints[PointNumber].Weight())
+                }
+                
 //                 // Debug
 //                 for (unsigned int i = 0; i < IndexVector.size(); i++)
 //                 {
@@ -1298,7 +1301,14 @@ private:
                     {
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
-                        {                    
+                        {
+                            if (IntegrationPoints[PointNumber].Weight() < 0.0)
+                            {
+                                KRATOS_WATCH(PointNumber )
+                                KRATOS_WATCH(LocalIntegrationSize )
+                                KRATOS_WATCH(IntegrationPoints[PointNumber].Weight() )
+                            }
+                            
                             // We convert the local coordinates to global coordinates
                             Point<3> gp_local;
                             gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
