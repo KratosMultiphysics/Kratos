@@ -189,13 +189,13 @@ def FinalizeKSMProcess():
 # ======================================================================================================================================
 
 # --------------------------------------------------------------------------
-def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, control_table, response_contrainer):
+def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, controller ):
 
     # Compute primals
     print("\n> Starting calculation of response values")
     start_time = timer.time()
 
-    if(control_table["strain_energy"]["calc_value"]):
+    if(controller.requestsFunctionValueOf("strain_energy")):
 
         # Advance time iterator of main_model_part
         step = float(optimization_iteration)
@@ -226,7 +226,7 @@ def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, c
     print("\n> Start calculation of gradients")
     start_time = timer.time()
 
-    if(control_table["strain_energy"]["calc_gradient"]):        
+     if(controller.requestsGradientOf("strain_energy")):       
 
         response_function_solver["strain_energy"].calculate_gradient()
         dFdX = response_function_solver["strain_energy"].get_gradient()
@@ -246,14 +246,13 @@ def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, c
     return response_contrainer
 
 # --------------------------------------------------------------------------
-optimizer.getAnalyzer().setAnalyzeFunction( analyzeDesignAndRespondToOptimizer )
-optimizer.importModelPart()
-optimizer.prepareOptimization()
 
 print("\n> ==============================================================================================================")
 print("> Starting optimization")
 print("> ==============================================================================================================\n")
 
+# optimizer.importModelPart()
+optimizer.importFunctionForDesignAnalysis( analyzeDesignAndRespondToOptimizer )
 optimizer.optimize()
 
 print("\n> ==============================================================================================================")

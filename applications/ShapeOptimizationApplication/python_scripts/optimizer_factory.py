@@ -68,91 +68,87 @@ import time
 class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self,config,analyzer):
+    def __init__(self, inputModelPart, optimizationSettings):
 
-        # For GID output
-        self.gid_io = GiDOutput(config.design_surface_sub_model_name,
-                                config.VolumeOutput,
-                                config.GiDPostMode,
-                                config.GiDMultiFileFlag,
-                                config.GiDWriteMeshFlag,
-                                config.GiDWriteConditionsFlag)
+        self.gidIO = GiDOutput(optimizationSettings.design_surface_submodel_part_name,
+                                optimizationSettings.VolumeOutput,
+                                optimizationSettings.GiDPostMode,
+                                optimizationSettings.GiDMultiFileFlag,
+                                optimizationSettings.GiDWriteMeshFlag,
+                                optimizationSettings.GiDWriteConditionsFlag)
 
-        # Initalize model parts
-        input_model_part = ModelPart(config.model_input_filename)
+        self.inputModelPart = inputModelPart
+        self.optimizationSettings = optimizationSettings
+        self.objectives = optimizationSettings.objectives
+        self.constraints = optimizationSettings.constraints
 
-        # Add variables needed for shape optimization
-        input_model_part.AddNodalSolutionStepVariable(NORMAL)
-        input_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        input_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        input_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        input_model_part.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        input_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        input_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        input_model_part.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        input_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        input_model_part.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
-        input_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        input_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        input_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        input_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        input_model_part.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        input_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        input_model_part.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
-        
-        # Read model input
+        self.addVariablesNeededForOptimization()
+
+        self.outputInformationAboutResponseFunctions()
+
+    # --------------------------------------------------------------------------
+    def importModelPart(self):
+        model_part_io = ModelPartIO( self.optimizationSettings.inputModelPart_name )
+        model_part_io.ReadModelPart( self.inputModelPart )
         buffer_size = 1
-        model_part_io = ModelPartIO(config.model_input_filename)
-        model_part_io.ReadModelPart(input_model_part)
-        input_model_part.SetBufferSize(buffer_size)
-        input_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,config.domain_size)
+        self.inputModelPart.SetBufferSize( buffer_size )
+        self.inputModelPart.ProcessInfo.SetValue(DOMAIN_SIZE,self.optimizationSettings.domain_size)
+
+    # --------------------------------------------------------------------------
+    def importFunctionForDesignAnalysis( self, FunctionForDesignAnalysis ): 
+        self.analyzer = Analyzer( FunctionForDesignAnalysis, self.optimizationSettings ) 
+
+    # --------------------------------------------------------------------------
+    def optimize(self):
+        
+        print("\n> ==============================================================================================================")
+        print("> Starting optimization using the following algorithm: ",self.optimizationSettings.optimization_algorithm)
+        print("> ==============================================================================================================\n")
+
+        print(time.ctime())
+        
+        self.timeAtStartOfOptimization = time.time()
+
+        self.prepareOptimization()
+
+        iteratorForInitialDesign = 0
+        self.gidIO.initialize_results(self.optimizationModelPart)
+        self.gidIO.write_results(iteratorForInitialDesign, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
+
+        self.runOptimizationAlgorithmSpecifiedInTheOptimizationSettings()
+
+        self.gidIO.finalize_results()
+
+        timeAtEndOfOptimization = time.time()
+
+        print("\n> ==============================================================================================================")
+        print("> Finished optimization in ",round(timeAtEndOfOptimization - self.timeAtStartOfOptimization,2)," s!")
+        print("> ==============================================================================================================\n")
+
+    # --------------------------------------------------------------------------
+    def prepareOptimization(self):
 
         # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
-        if( input_model_part.HasSubModelPart(config.design_surface_sub_model_name) ):
-            self.opt_model_part = input_model_part.GetSubModelPart(config.design_surface_sub_model_name)
-            print("\nThe following design surface was defined:\n\n",self.opt_model_part)
+        if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
+            self.optimizationModelPart = self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
+            print("\nThe following design surface was defined:\n\n",self.optimizationModelPart)
         else:
             raise RuntimeError("Sub-model part specified for optimization does not exist!")
 
-        # Set configurations
-        self.config = config
-
-        # Set analyzer
-        self.analyzer = analyzer
-
-        # Set response functions 
-        self.objectives = config.objectives
-        self.constraints = config.constraints
-
-        # Print information about response functions
-        print("> The following objectives are defined:\n")
-        for func_id in config.objectives:
-            print(func_id,":",config.objectives[func_id],"\n")
-
-        if( len(config.constraints)!=0 ):
-            print("> The following constraints are defined:\n")
-            for func_id in config.constraints:
-                print(func_id,":",config.constraints[func_id],"\n")
-        else:
-            print("> No constraints defined.\n")
-
-        # Create controller object
-        self.controller = Controller( config ); 
-
         # Identify possible damping regions and if necessary list corresponding sub-model parts and settings
         damping_regions = []
-        if(self.config.perform_damping):
+        if(self.optimizationSettings.perform_damping):
             print("\n> The following damping regions are defined: \n")
-            for region in self.config.damping_regions:
+            for region in self.optimizationSettings.damping_regions:
                 sub_mdpa_name = region[0]
                 damp_in_X = region[1]
                 damp_in_Y = region[2]
                 damp_in_Z = region[3]
                 damping_function = region[4]
                 damping_radius = region[5]
-                if( input_model_part.HasSubModelPart(sub_mdpa_name) ):
+                if( self.inputModelPart.HasSubModelPart(sub_mdpa_name) ):
                     print(region)
-                    damping_regions.append( [ input_model_part.GetSubModelPart(sub_mdpa_name), 
+                    damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
                                             damp_in_X, 
                                             damp_in_Y, 
                                             damp_in_Z, 
@@ -161,66 +157,40 @@ class VertexMorphingMethod:
                 else:
                     raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)
 
+        # Create controller object
+        self.controller = Controller( self.optimizationSettings );                     
+
         # Create mapper to map between geometry and design space 
-        self.mapper = VertexMorphingMapper( self.opt_model_part,
-                                            self.config.filter_function,
-                                            self.config.use_mesh_preserving_filter_matrix,
-                                            self.config.filter_size,
-                                            self.config.perform_damping,
+        self.mapper = VertexMorphingMapper( self.optimizationModelPart,
+                                            self.optimizationSettings.filter_function,
+                                            self.optimizationSettings.use_mesh_preserving_filter_matrix,
+                                            self.optimizationSettings.filter_size,
+                                            self.optimizationSettings.perform_damping,
                                             damping_regions )
         
         # Toolbox to perform optimization
-        self.opt_utils = OptimizationUtilities( self.opt_model_part,
+        self.opt_utils = OptimizationUtilities( self.optimizationModelPart,
                                                 self.objectives,
                                                 self.constraints,
-                                                self.config.step_size,
-                                                self.config.normalize_search_direction )
+                                                self.optimizationSettings.step_size,
+                                                self.optimizationSettings.normalize_search_direction )
 
         # Toolbox to pre & post process geometry data
-        self.geom_utils = GeometryUtilities( self.opt_model_part )
+        self.geom_utils = GeometryUtilities( self.optimizationModelPart )
 
     # --------------------------------------------------------------------------
-    def optimize(self):
-
-        print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.config.optimization_algorithm)
-        print("> ==============================================================================================================\n")
-
-         # Print time stamp
-        print(time.ctime())
-
-        # Start timer and assign to object such that total time of opt may be measured at each step
-        self.opt_start_time = time.time()
-
-        # Initialize design output in GID Format and print baseline design
-        self.gid_io.initialize_results(self.opt_model_part)
-        self.gid_io.write_results(0, self.opt_model_part, self.config.nodal_results, [])   
-
-        # Call for for specified optimization algorithm
-        if(self.config.optimization_algorithm == "steepest_descent"):
-           self.start_steepest_descent()
-
-        elif(self.config.optimization_algorithm == "augmented_lagrange"):
-           self.start_augmented_lagrange()
-
-        elif(self.config.optimization_algorithm == "penalized_projection"):
-           self.start_penalized_projection()           
-
+    def runOptimizationAlgorithmSpecifiedInTheOptimizationSettings(self):
+        if(self.optimizationSettings.optimization_algorithm == "steepest_descent"):
+           self.runSteepestDescentAlgorithm()
+        elif(self.optimizationSettings.optimization_algorithm == "augmented_lagrange"):
+           self.runAugmentedLagrangeAlgorithm()
+        elif(self.optimizationSettings.optimization_algorithm == "penalized_projection"):
+           self.runPenalizedProjectionAlgorithm()           
         else:
             sys.exit("Specified optimization_algorithm not implemented!")
 
-        # Finalize design output in GID formad
-        self.gid_io.finalize_results()
-
-        # Stop timer
-        opt_end_time = time.time()
-
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,2)," s!")
-        print("> ==============================================================================================================\n")
-
     # --------------------------------------------------------------------------
-    def start_steepest_descent(self):
+    def runSteepestDescentAlgorithm(self):
 
         # Flags to trigger proper function calls
         constraints_given = False
@@ -232,7 +202,7 @@ class VertexMorphingMethod:
             break
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
+        with open(self.optimizationSettings.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -247,7 +217,7 @@ class VertexMorphingMethod:
         # Define initial design (initial design corresponds to a zero shape update)
         # Note that we assume an incremental design variable in vertex morphing
         X = {}
-        for node in self.opt_model_part.Nodes:
+        for node in self.optimizationModelPart.Nodes:
             X[node.Id] = [0.,0.,0.]
 
         # Miscellaneous working variables for data management
@@ -255,32 +225,28 @@ class VertexMorphingMethod:
         previous_f = 0.0
 
         # Start optimization loop
-        for opt_itr in range(1,self.config.max_opt_iterations+1):
+        for opt_itr in range(1,self.optimizationSettings.max_opt_iterations+1):
 
             # Some output
             print("\n>===================================================================")
             print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
             print(">===================================================================\n")
 
-            # Start measuring time needed for current optimization step
-            start_time = time.time()
+            timeAtStartOfCurrentOptimizationStep = time.time()
 
-            # Set controller to evaluate objective
-            self.controller.initialize_controls()
-            self.controller.get_controls()[only_F_id]["calc_value"] = 1
-
-            # Set to evaluate objective gradient
-            self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
+            self.controller.deactivateAllRequests()
+            self.controller.setRequestForFunctionValueOf( only_F_id )
+            self.controller.setRequestForGradientOf( only_F_id )
 
             # Initialize response container
             response = self.controller.create_response_container()          
 
             # Start analyzer according to specified controls
             iterator = str(opt_itr) + ".0"
-            self.analyzer( X, self.controller.get_controls(), iterator, response )
+            self.analyzer( X, self.controller.getControls(), iterator, response )
 
             # Store gradients on the nodes of the model_part
-            self.store_gradients_on_nodes( response[only_F_id]["gradient"] )
+            self.storeGradientsOnNodes( response[only_F_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -299,7 +265,7 @@ class VertexMorphingMethod:
 
             # # Adjustment of step size
             # if( opt_itr > 1 and response[only_F_id]["value"]>previous_f):
-            #     self.config.step_size = self.config.step_size/2
+            #     self.optimizationSettings.step_size = self.optimizationSettings.step_size/2
 
             # Compute design variable update (do one step in the optimization algorithm)
             self.opt_utils.compute_design_update()
@@ -318,24 +284,24 @@ class VertexMorphingMethod:
                 print("> Relative change of objective function = ",round(delta_f_relative,6)," [%]")            
 
             # Take time needed for current optimization step
-            end_time = time.time()
-            time_current_step = round(end_time - start_time,2)
-            time_optimization = round(end_time - self.opt_start_time,2)
+            timeAtEndOfCurrentOptimizationStep = time.time()
+            time_current_step = round(timeAtEndOfCurrentOptimizationStep - timeAtStartOfCurrentOptimizationStep,2)
+            time_optimization = round(timeAtEndOfCurrentOptimizationStep - self.timeAtStartOfOptimization,2)
             print("\n> Time needed for current optimization step = ",time_current_step,"s")
             print("> Time needed for total optimization so far = ",time_optimization,"s")     
             
             # Write design in GID format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
+            self.gidIO.write_results(opt_itr, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
 
             # Write design history to file
-            with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
+            with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(opt_itr)+"\t")
                 row.append("\t"+str("%.12f"%(response[only_F_id]["value"]))+"\t")
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
-                row.append("\t"+str(self.config.step_size)+"\t")
+                row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
                 row.append("\t"+str("%.1f"%(time_optimization)))
                 historyWriter.writerow(row)              
@@ -344,13 +310,13 @@ class VertexMorphingMethod:
             if(opt_itr>1):
 
                 # Check if maximum iterations were reached
-                if(opt_itr==self.config.max_opt_iterations):
+                if(opt_itr==self.optimizationSettings.max_opt_iterations):
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if(abs(delta_f_relative)<self.config.relative_tolerance_objective):
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,"%.")
+                if(abs(delta_f_relative)<self.optimizationSettings.relative_tolerance_objective):
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
                     break
 
                 # Check if value of objective increases
@@ -359,7 +325,7 @@ class VertexMorphingMethod:
                     break
 
             # Update design
-            X = self.get_design()
+            X = self.getDesign()
 
             # Store values of for next iteration
             previous_f = response[only_F_id]["value"]
@@ -369,7 +335,7 @@ class VertexMorphingMethod:
                 initial_f = response[only_F_id]["value"]
 
     # --------------------------------------------------------------------------
-    def start_augmented_lagrange(self):
+    def runAugmentedLagrangeAlgorithm(self):
 
         # README!!!
         # Note that the current implementation assumes that only one scalar objective & constraint is present
@@ -391,13 +357,13 @@ class VertexMorphingMethod:
 
         # Initialize the optimization algorithm
         self.vm_utils.initialize_augmented_lagrange( self.constraints, 
-                                                     self.config.penalty_fac_0, 
-                                                     self.config.gamma, 
-                                                     self.config.penalty_fac_max, 
-                                                     self.config.lambda_0 )
+                                                     self.optimizationSettings.penalty_fac_0, 
+                                                     self.optimizationSettings.gamma, 
+                                                     self.optimizationSettings.penalty_fac_max, 
+                                                     self.optimizationSettings.lambda_0 )
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
+        with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -414,7 +380,7 @@ class VertexMorphingMethod:
         # Define initial design (initial design corresponds to a zero shape update)
         # Note that we assume an incremental design variable in vertex morphing
         X = {}
-        for node in self.opt_model_part.Nodes:
+        for node in self.optimizationModelPart.Nodes:
             X[node.Id] = [0.,0.,0.]   
 
         # Miscellaneous working variables for data management
@@ -423,18 +389,17 @@ class VertexMorphingMethod:
         previous_l = 0.0         
 
         # Start primary optimization loop
-        for opt_itr in range(1,self.config.max_opt_iterations+1):
+        for opt_itr in range(1,self.optimizationSettings.max_opt_iterations+1):
 
             # Some output
             print("\n>===================================================================")
             print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
             print(">===================================================================\n")
 
-            # Start measuring time needed for current optimization step
-            start_time = time.time()
+            timeAtStartOfCurrentOptimizationStep = time.time()
 
             # Solve optimization subproblem
-            for sub_opt_itr in range(1,self.config.max_sub_opt_iterations+1):
+            for sub_opt_itr in range(1,self.optimizationSettings.max_sub_opt_iterations+1):
 
                 # Some output
                 print("\n>===============================================")
@@ -445,26 +410,26 @@ class VertexMorphingMethod:
                 subopt_start_time = time.time()
 
                 # Set controller to evaluate objective and constraint
-                self.controller.initialize_controls()
-                self.controller.get_controls()[only_F_id]["calc_value"] = 1
-                self.controller.get_controls()[only_C_id]["calc_value"] = 1
+                self.controller.initializeControls()
+                self.controller.getControls()[only_F_id]["calculateValue"] = 1
+                self.controller.getControls()[only_C_id]["calculateValue"] = 1
 
                 # Set controller to evaluate objective and constraint gradient
-                self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
-                self.controller.get_controls()[only_C_id]["calc_gradient"] = 1                
+                self.controller.getControls()[only_F_id]["calculateGradient"] = 1
+                self.controller.getControls()[only_C_id]["calculateGradient"] = 1                
 
                 # Initialize response container
                 response = self.controller.create_response_container()          
 
                 # Start analyzer according to specified controls
                 iterator = str(opt_itr) + "." + str(sub_opt_itr)
-                self.analyzer( X, self.controller.get_controls(), iterator, response )
+                self.analyzer( X, self.controller.getControls(), iterator, response )
 
                 # Evaluate Lagrange function
                 l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
 
                 # Store gradients on the nodes of the model_part
-                self.store_gradients_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
+                self.storeGradientsOnNodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
                 # Compute unit surface normals at each node of current design
                 self.geom_utils.compute_unit_surface_normals()
@@ -497,7 +462,7 @@ class VertexMorphingMethod:
                     print("\n> Relative change of Lagrange function = ",round(delta_l_relative,6)," [%]")
 
                 # We write every major and every suboptimization iteration in design history
-                with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
+                with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
                    historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                    row = []
                    row.append(str(opt_itr)+"\t")
@@ -513,19 +478,19 @@ class VertexMorphingMethod:
 
                 # Write design in GID format
                 write_itr = float(iterator)
-                self.gid_io.write_results(write_itr, self.opt_model_part, self.config.nodal_results, [])
+                self.gidIO.write_results(write_itr, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])
 
                 # Check convergence (We ensure that at least 2 subiterations are done)
                 if(sub_opt_itr>3):
 
                     # Check if maximum iterations were reached
-                    if(sub_opt_itr==self.config.max_sub_opt_iterations): 
+                    if(sub_opt_itr==self.optimizationSettings.max_sub_opt_iterations): 
                         print("\n> Maximal iterations of supoptimization problem reached!")
                         break
 
                     # Check for relative tolerance
-                    if(abs(delta_l_relative)<self.config.relative_tolerance_sub_opt): 
-                        print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.config.relative_tolerance_sub_opt,"%.")
+                    if(abs(delta_l_relative)<self.optimizationSettings.relative_tolerance_sub_opt): 
+                        print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_sub_opt,"%.")
                         break
 
                     # Check if value of lagrangian increases
@@ -534,7 +499,7 @@ class VertexMorphingMethod:
                         break
 
                 # Update design
-                X = self.get_design()   
+                X = self.getDesign()   
 
                 # Store value of Lagrange function for next iteration
                 previous_l = l
@@ -547,12 +512,12 @@ class VertexMorphingMethod:
                 # Take time needed for current suboptimization step as well as for the overall opt so far
                 subopt_end_time = time.time()
                 print("\n> Time needed for current suboptimization step = ",round(subopt_end_time - subopt_start_time,2),"s")
-                print("\n> Time needed for total optimization so far = ",round(subopt_end_time - self.opt_start_time,2),"s")
+                print("\n> Time needed for total optimization so far = ",round(subopt_end_time - self.timeAtStartOfOptimization,2),"s")
 
             # Check Convergence (More convergence criterion for major optimization iteration to be implemented!)
 
             # Check if maximum iterations were reached
-            if(opt_itr==self.config.max_opt_iterations):
+            if(opt_itr==self.optimizationSettings.max_opt_iterations):
                 print("\n> Maximal iterations of optimization problem reached!")
                 break
             
@@ -560,11 +525,11 @@ class VertexMorphingMethod:
             self.vm_utils.udpate_augmented_lagrange_parameters( self.constraints, response )  
 
             # Take time needed for current optimization step
-            end_time = time.time()
-            print("\n> Time needed for current optimization step = ",round(end_time - start_time,2),"s")
+            timeAtEndOfCurrentOptimizationStep = time.time()
+            print("\n> Time needed for current optimization step = ",round(timeAtEndOfCurrentOptimizationStep - timeAtStartOfCurrentOptimizationStep,2),"s")
 
     # --------------------------------------------------------------------------
-    def start_penalized_projection(self):
+    def runPenalizedProjectionAlgorithm(self):
 
         # README!!!
         # Note that the current implementation assumes that only one scalar objective & constraint is present
@@ -585,7 +550,7 @@ class VertexMorphingMethod:
             break            
 
         # Initialize file where design evolution is recorded
-        with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'w') as csvfile:
+        with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -603,7 +568,7 @@ class VertexMorphingMethod:
         # Define initial design (initial design corresponds to a zero shape update)
         # Note that we assume an incremental design variable in vertex morphing
         X = {}
-        for node in self.opt_model_part.Nodes:
+        for node in self.optimizationModelPart.Nodes:
             X[node.Id] = [0.,0.,0.]
 
         # Miscellaneous working variables for data management
@@ -612,35 +577,34 @@ class VertexMorphingMethod:
         previous_c = 0.0        
 
         # Start optimization loop
-        for opt_itr in range(1,self.config.max_opt_iterations+1):
+        for opt_itr in range(1,self.optimizationSettings.max_opt_iterations+1):
 
             # Some output
             print("\n>===================================================================")
             print("> ",time.ctime(),": Starting optimization iteration ",opt_itr)
             print(">===================================================================\n")
 
-            # Start measuring time needed for current optimization step
-            start_time = time.time()
+            timeAtStartOfCurrentOptimizationStep = time.time()
 
             # Set controller to evaluate objective and constraint
-            self.controller.initialize_controls()
-            self.controller.get_controls()[only_F_id]["calc_value"] = 1
-            self.controller.get_controls()[only_C_id]["calc_value"] = 1
+            self.controller.initializeControls()
+            self.controller.getControls()[only_F_id]["calculateValue"] = 1
+            self.controller.getControls()[only_C_id]["calculateValue"] = 1
 
             # Set controller to evaluate objective and constraint gradient
-            self.controller.get_controls()[only_F_id]["calc_gradient"] = 1
-            self.controller.get_controls()[only_C_id]["calc_gradient"] = 1                
+            self.controller.getControls()[only_F_id]["calculateGradient"] = 1
+            self.controller.getControls()[only_C_id]["calculateGradient"] = 1                
 
             # Initialize response container
             response = self.controller.create_response_container()          
 
             # Start analyzer according to specified controls
             iterator = str(opt_itr) + ".0"
-            self.analyzer( X, self.controller.get_controls(), iterator, response )
+            self.analyzer( X, self.controller.getControls(), iterator, response )
 
             # Check if constraint is active
-            for func_id in self.config.constraints:
-                if(self.config.constraints[func_id]["type"] == "eq"):
+            for func_id in self.optimizationSettings.constraints:
+                if(self.optimizationSettings.constraints[func_id]["type"] == "eq"):
                     constraints_given = True
                 elif(response[func_id]["value"]>0):
                     constraints_given = True
@@ -649,7 +613,7 @@ class VertexMorphingMethod:
                 break
 
             # Store gradients on the nodes of the model_part
-            self.store_gradients_on_nodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
+            self.storeGradientsOnNodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
@@ -665,7 +629,7 @@ class VertexMorphingMethod:
 
             # # Adjustment of step size
             # if( opt_itr > 1 and response[only_F_id]["value"]>previous_f):
-            #     self.config.step_size = self.config.step_size/2
+            #     self.optimizationSettings.step_size = self.optimizationSettings.step_size/2
 
             correction_scaling = [False] 
             if(constraints_given):
@@ -693,17 +657,17 @@ class VertexMorphingMethod:
             print("\n> Current value of constraint function = ",round(response[only_C_id]["value"],12))
 
             # Take time needed for current optimization step
-            end_time = time.time()
-            time_current_step = round(end_time - start_time,2)
-            time_optimization = round(end_time - self.opt_start_time,2)
+            timeAtEndOfCurrentOptimizationStep = time.time()
+            time_current_step = round(timeAtEndOfCurrentOptimizationStep - timeAtStartOfCurrentOptimizationStep,2)
+            time_optimization = round(timeAtEndOfCurrentOptimizationStep - self.timeAtStartOfOptimization,2)
             print("\n> Time needed for current optimization step = ",time_current_step,"s")
             print("\n> Time needed for total optimization so far = ",time_optimization,"s")     
             
             # Write design in GID format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
+            self.gidIO.write_results(opt_itr, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
 
             # Write design history to file
-            with open(self.config.design_history_directory+"/"+self.config.design_history_file, 'a') as csvfile:
+            with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(opt_itr)+"\t")
@@ -717,7 +681,7 @@ class VertexMorphingMethod:
                     percentage_of_reference = 100*(response[only_C_id]["value"]/response[only_C_id]["reference_value"])
                     row.append("\t"+str("%.6f"%(percentage_of_reference)))
                 row.append("\t"+str("%.12f"%(correction_scaling[0]))+"\t")
-                row.append("\t"+str(self.config.step_size)+"\t")
+                row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(time_current_step))+"\t")
                 row.append("\t"+str("%.1f"%(time_optimization)))
                 historyWriter.writerow(row)       
@@ -726,17 +690,17 @@ class VertexMorphingMethod:
             if(opt_itr>1):
 
                 # Check if maximum iterations were reached
-                if(opt_itr==self.config.max_opt_iterations):
+                if(opt_itr==self.optimizationSettings.max_opt_iterations):
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if(abs(delta_f_relative)<self.config.relative_tolerance_objective):
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,"%.")
+                if(abs(delta_f_relative)<self.optimizationSettings.relative_tolerance_objective):
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
                     break
 
             # Update design
-            X = self.get_design()
+            X = self.getDesign()
 
             # Store values of for next iteration
             previous_f = response[only_F_id]["value"]
@@ -745,16 +709,15 @@ class VertexMorphingMethod:
             # Store initial objective value
             if(opt_itr==1):
                 initial_f = response[only_F_id]["value"]            
-
     # --------------------------------------------------------------------------
-    def store_gradients_on_nodes(self,objective_grads,constraint_grads={}):
+    def storeGradientsOnNodes(self,objective_grads,constraint_grads={}):
 
         # Read objective gradients
         eucledian_norm_obj_sens = 0.0
         for node_Id in objective_grads:
 
             # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-            if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+            if(self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
                 continue
 
             # If not deactivated, nodal sensitivities will be assigned
@@ -762,7 +725,7 @@ class VertexMorphingMethod:
             sens_i[0] = objective_grads[node_Id][0]
             sens_i[1] = objective_grads[node_Id][1]
             sens_i[2] = objective_grads[node_Id][2]           
-            self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
+            self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
 
         # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
         if(bool(constraint_grads)):
@@ -770,7 +733,7 @@ class VertexMorphingMethod:
             for node_Id in constraint_grads:
 
                 # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-                if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+                if(self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
                     continue
 
                 # If not deactivated, nodal sensitivities will be assigned
@@ -778,24 +741,53 @@ class VertexMorphingMethod:
                 sens_i[0] = constraint_grads[node_Id][0]
                 sens_i[1] = constraint_grads[node_Id][1]
                 sens_i[2] = constraint_grads[node_Id][2]           
-                self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
+                self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
 
     # --------------------------------------------------------------------------
-    def get_design(self):
+    def addVariablesNeededForOptimization(self):
+        self.inputModelPart.AddNodalSolutionStepVariable(NORMAL)
+        self.inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        self.inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
+        self.inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
+        self.inputModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
+        self.inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
+        self.inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
+        self.inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
+        self.inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
+        self.inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
+        self.inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
+        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
+        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+        self.inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
+        self.inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
+        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
+        self.inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
+        
+    # --------------------------------------------------------------------------
+    def outputInformationAboutResponseFunctions(self):
+        print("> The following objectives are defined:\n")
+        for func_id in self.optimizationSettings.objectives:
+            print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
+
+        if( len(self.optimizationSettings.constraints)!=0 ):
+            print("> The following constraints are defined:\n")
+            for func_id in self.optimizationSettings.constraints:
+                print(func_id,":",self.optimizationSettings.constraints[func_id],"\n")
+        else:
+            print("> No constraints defined.\n")
+
+    # --------------------------------------------------------------------------
+    def getDesign(self):
 
         # Read and return the current design in the corresponding mode
         X = {}
 
-        if(self.config.design_output_mode=="relative"):
-            for node in self.opt_model_part.Nodes:
-                X[node.Id] = node.GetSolutionStepValue(SHAPE_UPDATE)
-
-        elif(self.config.design_output_mode=="total"):
-            for node in self.opt_model_part.Nodes:
+        if(self.optimizationSettings.design_output_mode=="relative"):
+            for node in self.optimizationModelPart.Nodes:
                 X[node.Id] = node.GetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)
 
-        elif(self.config.design_output_mode=="absolute"):
-            for node in self.opt_model_part.Nodes:
+        elif(self.optimizationSettings.design_output_mode=="absolute"):
+            for node in self.optimizationModelPart.Nodes:
                 X[node.Id] = [node.X,node.Y,node.Z]
 
         else:
@@ -804,32 +796,40 @@ class VertexMorphingMethod:
         return X
 
     # --------------------------------------------------------------------------
-    def get_analyzer(self):
-        return self.analyzer
-    # --------------------------------------------------------------------------
 
 # ==============================================================================
 class Controller:
 
     # --------------------------------------------------------------------------
-    def __init__( self, config ):
-
-        # Create and initialize controler
+    def __init__( self, optimizationSettings ):
         self.controls = {}
-        for func_id in config.objectives:
-            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}
-        for func_id in config.constraints:
-            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}            
+        for functionId in optimizationSettings.objectives:
+            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}
+        for functionId in optimizationSettings.constraints:
+            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}            
 
     # --------------------------------------------------------------------------
-    def initialize_controls( self ):
-
-        # Sets 
-        for func_id in self.controls:
-            self.controls[func_id] = {"calc_value": 0, "calc_gradient": 0}
+    def deactivateAllControls( self ):
+        for functionId in self.controls:
+            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    def get_controls( self ):
+    def setRequestForFunctionValueOf( functionId ):
+            self.controls[functionId]["calculateValue"] = True
+
+    # --------------------------------------------------------------------------
+    def setRequestForGradientOf( functionId ):
+            self.controls[functionId]["calculateGradient"] = True
+    # --------------------------------------------------------------------------
+    def requestsFunctionValueOf( functionId ):
+            return self.controls[functionId]["calculateValue"]
+
+    # --------------------------------------------------------------------------
+    def requestsGradientOf( functionId ):
+            return self.controls[functionId]["calculateGradient"]
+
+    # --------------------------------------------------------------------------
+    def getControls( self ):
 
         return self.controls
 
@@ -839,48 +839,23 @@ class Controller:
 class Analyzer:
 
     # --------------------------------------------------------------------------
-    def __init__( self ):
+    def __init__( self, FunctionForDesignAnalysis, optimizationSettings ):
 
-        # Initialize placeholder for function for design analysis
-        self.FunctionForDesignAnalysis = None
+        self.optimizationSettings = optimizationSettings
+        self.analyzeDesignAndRespondToOptimizer = FunctionForDesignAnalysis
 
-        # Initialize response container to provide storage for any response
-        self.response_container = {}       
-        for func_id in config.objectives:
-            self.response_container[func_id] = {}
-        for func_id in config.constraints:
-            self.response_container[func_id] = {}           
-
-    # --------------------------------------------------------------------------
-    def importFunctionForDesignAnalysis( self, FunctionForDesignAnalysis ):  
-        self.FunctionForDesignAnalysis = FunctionForDesignAnalysis
-
-    # --------------------------------------------------------------------------
-    def create_response_container( self ):
-
-        # Create and initialize container to store any response defined 
-        for func_id in self.response_container:
-            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}
-
-        # Return container
-        return self.response_container      
-
-    # --------------------------------------------------------------------------
-    def analyze( self, X, opt_itr, controls, response):
-        self.FunctionForDesignAnalysis( X, controls, opt_itr, response )
-        
     # -------------------------------------------------------------------------
 
 # ==============================================================================
-def CreateOptimizer( config, analyzer ):
+def CreateOptimizer( inputModelPart, optimizationSettings ):
 
     # Create folder where all functions includig the optimizer may store their design history in
-    os.system( "rm -rf " + config.design_history_directory )
-    os.system( "mkdir -p " + config.design_history_directory )
+    os.system( "rm -rf " + optimizationSettings.design_history_directory )
+    os.system( "mkdir -p " + optimizationSettings.design_history_directory )
 
-    # Creat optimizer according to selected optimization method
-    if( config.design_control == "vertex_morphing" ):
-        optimizer = VertexMorphingMethod( config )
+    # Create optimizer according to selected optimization method
+    if( optimizationSettings.design_control == "vertex_morphing" ):
+        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
 
     else:
