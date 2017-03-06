@@ -144,9 +144,7 @@ gid_output.ExecuteBeforeSolutionLoop()
 
 # --------------------------------------------------------------------------
 # Call function to solve structure for the given state
-def solve_structure(optimization_iteration): 
-
-    print("Solving structure for step, ",optimization_iteration)
+def solveStructure(): 
 
     # processes to be executed at the begining of the solution step
     for process in list_of_processes:
@@ -179,6 +177,14 @@ def solve_structure(optimization_iteration):
         process.ExecuteAfterOutputStep()            
 
 # --------------------------------------------------------------------------
+def updateMeshOfMainModelPart(current_design):
+    for node_id in current_design.keys():
+    node = main_model_part.Nodes[node_id]
+    node.X0 = node.X0 + current_design[node_id][0]
+    node.Y0 = node.Y0 + current_design[node_id][1]
+    node.Z0 = node.Z0 + current_design[node_id][2]
+
+# --------------------------------------------------------------------------
 def FinalizeKSMProcess():
     for process in list_of_processes:
         process.ExecuteFinalize()
@@ -189,7 +195,7 @@ def FinalizeKSMProcess():
 # ======================================================================================================================================
 
 # --------------------------------------------------------------------------
-def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, controller ):
+def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, controller):
 
     # Compute primals
     print("\n> Starting calculation of response values")
@@ -201,19 +207,14 @@ def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, c
         step = float(optimization_iteration)
         main_model_part.CloneTimeStep(step)
 
-        # Udate mesh coordinates of main_model_part
-        for node_id in current_design.keys():
-            node = main_model_part.Nodes[node_id]
-            node.X0 = node.X0 + current_design[node_id][0]
-            node.Y0 = node.Y0 + current_design[node_id][1]
-            node.Z0 = node.Z0 + current_design[node_id][2]
+        updateMeshOfMainModelPart(current_design)
 
         interim_time = timer.time()
         print("> Time needed for updating the mesh = ",round(interim_time - start_time,2),"s")
 
         # Solve structural problem
         print("\n> Start SolidMechanicsApplication to solve structure")
-        solve_structure(optimization_iteration)
+        solveStructure()
 
         stop_time = timer.time()
         print("> Time needed for calculating structural response = ",round(stop_time - interim_time,2),"s")        

@@ -78,9 +78,6 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> CompressedSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
