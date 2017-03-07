@@ -382,19 +382,20 @@ public:
         const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
         const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-        double x10 = rP1[0] - rP0[0];
-        double y10 = rP1[1] - rP0[1];
-        double z10 = rP1[2] - rP0[2];
+        const double x21 = rP1[0] - rP0[0];
+        const double y23 = rP1[1] - rP2[1];
+        const double z34 = rP2[2] - rP3[2];
 
-        double x20 = rP2[0] - rP0[0];
-        double y20 = rP2[1] - rP0[1];
-        double z20 = rP2[2] - rP0[2];
+        const double x32 = rP2[0] - rP1[0];
+        const double y34 = rP2[1] - rP3[1];
+        const double z23 = rP1[2] - rP2[2];
 
-        double x30 = rP3[0] - rP0[0];
-        double y30 = rP3[1] - rP0[1];
-        double z30 = rP3[2] - rP0[2];
+        const double x43 = rP3[0] - rP2[0];
+        const double y12 = rP0[1] - rP1[1];
+        const double z12 = rP0[2] - rP1[2];
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x21 * (y23 * z34 - y34 * z23) + x32 * (y34 * z12 - y12 * z34)+ x43 *(y12 * z23 - y23 * z12);
+        
         return  detJ*onesixth;
     }
 

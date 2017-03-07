@@ -1,49 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:34 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Pooyan Dadvand
 //
-
 
 #if !defined(KRATOS_GEOMETRY_UTILITIES_INCLUDED )
 #define  KRATOS_GEOMETRY_UTILITIES_INCLUDED
@@ -127,20 +93,28 @@ public:
     static inline double CalculateVolume3D(
         Element::GeometryType& geom)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
-        double z10 = geom[1].Z() - geom[0].Z();
+        const double onesixth = 1.0/6.0;
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
-        double z20 = geom[2].Z() - geom[0].Z();
+        const array_1d<double,3>& rP0 = geom[0].Coordinates();
+        const array_1d<double,3>& rP1 = geom[1].Coordinates();
+        const array_1d<double,3>& rP2 = geom[2].Coordinates();
+        const array_1d<double,3>& rP3 = geom[3].Coordinates();
 
-        double x30 = geom[3].X() - geom[0].X();
-        double y30 = geom[3].Y() - geom[0].Y();
-        double z30 = geom[3].Z() - geom[0].Z();
+        const double x21 = rP1[0] - rP0[0];
+        const double y23 = rP1[1] - rP2[1];
+        const double z34 = rP2[2] - rP3[2];
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        return  detJ*0.1666666666666666666667;
+        const double x32 = rP2[0] - rP1[0];
+        const double y34 = rP2[1] - rP3[1];
+        const double z23 = rP1[2] - rP2[2];
+
+        const double x43 = rP3[0] - rP2[0];
+        const double y12 = rP0[1] - rP1[1];
+        const double z12 = rP0[2] - rP1[2];
+
+        const double detJ = x21 * (y23 * z34 - y34 * z23) + x32 * (y34 * z12 - y12 * z34)+ x43 *(y12 * z23 - y23 * z12);
+        
+        return detJ*onesixth;
     }
 
     //********************************************************************************
