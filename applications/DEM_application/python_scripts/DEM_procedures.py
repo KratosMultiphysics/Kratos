@@ -840,7 +840,8 @@ class DEMFEMProcedures(object):
                 if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                     identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
                     self.particle_graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
-                    self.particle_graph_forces[identifier].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
+                    self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) +
+                    " " + str("total_force_z").rjust(13) + "\n")
 
         def evaluate_computation_of_fem_results():
 
@@ -1005,7 +1006,11 @@ class DEMFEMProcedures(object):
                         PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
 
                         identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
-                        self.graph_forces[identifier].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
+                        
+                        self.graph_forces[identifier].write(str("%.8g"%time).rjust(12) +
+                        " " + str("%.6g"%total_force[0]).rjust(13) + " " + str("%.6g"%total_force[1]).rjust(13) +
+                        " " + str("%.6g"%total_force[2]).rjust(13) + " " + str("%.6g"%total_moment[0]).rjust(13) +
+                        " " + str("%.6g"%total_moment[1]).rjust(13) + " " + str("%.6g"%total_moment[2]).rjust(13) + "\n")
                         self.graph_forces[identifier].flush()
 
             self.graph_counter += 1
@@ -1024,34 +1029,19 @@ class DEMFEMProcedures(object):
 
                 for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
 
-                    if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
-                        self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-                        self.total_force_x = 0.0
-                        self.total_force_y = 0.0
-                        self.total_force_z = 0.0
-                        self.total_disp_x = 0.0
-                        self.total_disp_y = 0.0
-                        self.total_disp_z = 0.0
+                    if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                        mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+                        
+                        total_force = Array3()
+                        total_force[0] = 0.0
+                        total_force[1] = 0.0
+                        total_force[2] = 0.0
 
-                        for node in self.mesh_nodes:
-                            force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                            force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                            disp_node_x = node.GetSolutionStepValue(DISPLACEMENT)[0]
-                            disp_node_y = node.GetSolutionStepValue(DISPLACEMENT)[1]
-                            disp_node_z = node.GetSolutionStepValue(DISPLACEMENT)[2]
-                            self.total_force_x += force_node_x
-                            self.total_force_y += force_node_y
-                            self.total_force_z += force_node_z
-                            self.total_disp_x += disp_node_x
-                            self.total_disp_y += disp_node_y
-                            self.total_disp_z += disp_node_z
+                        PostUtilities().IntegrationOfElasticForces(mesh_nodes, total_force)
 
                         identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
-                        self.particle_graph_forces[identifier].write(str("%.8g"%time).rjust(12)+
-                        " " + str("%.6g"%self.total_force_x).rjust(13) + " " + str("%.6g"%self.total_force_y).rjust(13)+
-                        " " + str("%.6g"%self.total_force_z).rjust(13) + " " + str("%.6g"%self.total_disp_y).rjust(13)+
-                        " " + str("%.6g"%self.total_disp_y).rjust(13)  + " " + str("%.6g"%self.total_disp_z).rjust(13) + "\n")
+                        self.particle_graph_forces[identifier].write(str("%.8g"%time).rjust(12) + " " + str("%.6g"%total_force[0]).rjust(13) + " " + 
+                                                                     str("%.6g"%total_force[1]).rjust(13) + " " + str("%.6g"%total_force[2]).rjust(13) + "\n")
                         self.particle_graph_forces[identifier].flush()
 
             self.balls_graph_counter += 1

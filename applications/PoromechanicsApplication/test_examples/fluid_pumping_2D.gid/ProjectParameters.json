@@ -54,10 +54,8 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1","Interface_Part-auto-2"],
-        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
-        "loads_sub_model_part_list":          ["Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
-        "loads_variable_list":                ["NORMAL_FLUID_FLUX","NORMAL_FLUID_FLUX"]
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "output_configuration": {
         "result_file_configuration": {

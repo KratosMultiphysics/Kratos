@@ -349,10 +349,6 @@ namespace Kratos
    {
       KRATOS_TRY
 	
-      rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-      rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-      rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-
       ClearNodalForces();
       
       KRATOS_CATCH( "" )
@@ -372,10 +368,6 @@ namespace Kratos
    {
       KRATOS_TRY
 	
-      // CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-      // CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-      // CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-
       KRATOS_CATCH( "" )
    }
    //***********************************************************************************
@@ -481,9 +473,8 @@ namespace Kratos
 	   }
 	
          if( Variables.Options.Is(ACTIVE) ){
-	   rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
+
 	   noalias(mContactStressVector) = Variables.ContactStressVector;
-	   //   std::cout<<" ACTIVE_CONTACTS "<<rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS]<<std::endl;
 	   //   std::cout<<" RHS "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 	   // }
 	   // else{
