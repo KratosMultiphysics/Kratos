@@ -236,6 +236,7 @@ public:
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
      * @param PointReferenceRotation: The center point used as reference to rotate
+     * @param SlaveNormal: The normal vector of the slave condition
      * @param SlaveTangentXi: The first tangent vector of the slave condition
      * @param SlaveTangentEta: The second tangent vector of the slave condition
      * @param Inversed: If we rotate to the XY or we recover from XY
@@ -245,6 +246,7 @@ public:
     void RotatePoint( 
         Point<3>& PointToRotate,
         const Point<3> PointReferenceRotation,
+        const array_1d<double, 3> SlaveNormal,
         const array_1d<double, 3> SlaveTangentXi,
         const array_1d<double, 3> SlaveTangentEta,
         const bool Inversed
@@ -262,6 +264,7 @@ public:
             {
                 RotationMatrix(0, i) = SlaveTangentXi[i];
                 RotationMatrix(1, i) = SlaveTangentEta[i];
+//                 RotationMatrix(2, i) = SlaveNormal[i];
             }
         }
         else
@@ -270,10 +273,63 @@ public:
             {
                 RotationMatrix(i, 0) = SlaveTangentXi[i];
                 RotationMatrix(i, 1) = SlaveTangentEta[i];
+//                 RotationMatrix(i, 2) = SlaveNormal[i];
             }
         }
         
         PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
+        
+//         KRATOS_WATCH(PointToRotate.Coordinates())
+        KRATOS_WATCH(RotationMatrix)
+        
+        RotationMatrix = GetRotationMatrix(SlaveNormal, SlaveTangentXi, SlaveTangentEta, Inversed);
+        
+        KRATOS_WATCH(RotationMatrix)
+//         KRATOS_WATCH(prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates())
+    }
+    
+    /**
+     * This function recovers the Euler angles from an orthogonal base (Local Coordinate System)
+     * @param Normal: The normal vector
+     * @param TangentXi: The first tangent vector
+     * @param TangentEta: The second tangent vector
+     * @param angles[0]: (pre) precession rotation
+     * @param angles[1]: (nut) nutation rotation
+     * @param angles[2]: (rot) intrinsic rotation
+     */
+    
+    array_1d<double, 3> LCS2Euler(
+        const array_1d<double, 3> Normal,
+        const array_1d<double, 3> TangentXi,
+        const array_1d<double, 3> TangentEta,
+        const bool Inversed
+        ) 
+    {
+        const double TangentEtaxy = std::sqrt(TangentEta[0] * TangentEta[0] + TangentEta[1] * TangentEta[1]);
+        
+        array_1d<double, 3> angles;
+        
+        if (TangentEtaxy > std::numeric_limits<double>::epsilon()) 
+        {
+            angles[0] = std::atan2(TangentXi[0] * TangentEta[1] - TangentXi[1]*TangentEta[0], Normal[0] * TangentEta[1] - Normal[1] * TangentEta[0]);
+            angles[1] = std::atan2(TangentEtaxy, TangentEta[2]);
+            angles[2] = -std::atan2(-TangentEta[0], TangentEta[1]);
+        }
+        else 
+        {
+            angles[0] = 0.0;
+            angles[1] = (TangentEta[2] > 0.0) ? 0.0 : M_PI;
+            angles[2] = -std::atan2(Normal[1], Normal[0]);
+        }
+        
+        if (Inversed == false)
+        {
+            return angles;
+        }
+        else
+        {
+            return -angles;
+        }
     }
     
     /**
@@ -388,6 +444,66 @@ public:
     }
     
     /**
+     * This function calculates the rotation matrix
+     * @param SlaveNormal: The normal used as reference to calculate the rotation
+     * @param Inversed: If we rotate to the XY or we recover from XY
+     * @param SlaveTangentXi: The first tangent vector of the slave condition
+     * @param SlaveTangentEta: The second tangent vector of the slave condition
+     * @return RotationMatrix: The corresponding rotation matrix
+     */
+    
+    boost::numeric::ublas::bounded_matrix<double, 3, 3> GetRotationMatrix(
+        const array_1d<double, 3> SlaveNormal,
+        const array_1d<double, 3> SlaveTangentXi,
+        const array_1d<double, 3> SlaveTangentEta,
+        const bool Inversed
+        )
+    {
+        const array_1d<double, 3> theta = LCS2Euler(SlaveNormal, SlaveTangentXi, SlaveTangentEta, Inversed);
+        
+        // Calculate rotation about x axis
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rx;
+        Rx(0, 0) = 1.0;
+        Rx(0, 1) = 0.0;
+        Rx(0, 2) = 0.0;
+        Rx(1, 0) = 0.0;
+        Rx(1, 1) = std::cos(theta[0]);
+        Rx(1, 2) = -std::sin(theta[0]);
+        Rx(2, 0) = 0.0;
+        Rx(2, 1) = std::sin(theta[0]);
+        Rx(2, 2) = std::cos(theta[0]);
+        
+        // Calculate rotation about y axis
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> Ry;
+        Ry(0, 0) = std::cos(theta[1]);
+        Ry(0, 1) = 0.0;
+        Ry(0, 2) = std::sin(theta[1]);
+        Ry(1, 0) = 0.0;
+        Ry(1, 1) = 1.0;
+        Ry(1, 2) = 0.0;
+        Ry(2, 0) = -std::sin(theta[1]);
+        Ry(2, 1) = 0.0;
+        Ry(2, 2) = std::cos(theta[1]);
+        
+        // Calculate rotation about z axis
+        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rz;
+        Rz(0, 0) = std::cos(theta[2]);
+        Rz(0, 1) = -std::sin(theta[2]);
+        Rz(0, 2) = 0.0;
+        Rz(1, 0) = std::sin(theta[2]);
+        Rz(1, 1) = std::cos(theta[2]);
+        Rz(1, 2) = 0.0;
+        Rz(2, 0) = 0.0;
+        Rz(2, 1) = 0.0;
+        Rz(2, 2) = 1.0;
+
+        // Combined rotation matrix
+        typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> temp_type;
+        
+        return prod(Rz, prod<temp_type>(Ry, Rz));
+    }
+    
+    /**
      * This function intersects two lines in a 2D plane
      * @param PointOrig: The points from the origin geometry
      * @param PointDest: The points in the destination geometry
@@ -395,7 +511,7 @@ public:
      * @return True if there is a intersection point, false otherwise
      */
     
-    bool Clipping(
+    bool Clipping2D(
         Point<3>& PointIntersection, 
         const Point<3> PointOrig1,
         const Point<3> PointOrig2,
@@ -494,12 +610,18 @@ public:
         )
     {
         array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
-        local_edge /= norm_2(local_edge);
+        if (norm_2(local_edge) > 0.0)
+        {
+            local_edge /= norm_2(local_edge);
+        }
         
         const double xi  = inner_prod(local_edge, axis_1);
         const double eta = inner_prod(axis_2,     axis_1);
         
 //         // Debug
+//         KRATOS_WATCH(local_edge);
+//         KRATOS_WATCH(axis_1);
+//         KRATOS_WATCH(axis_2);
 //         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
         
         return (std::atan2(eta, xi));
@@ -547,6 +669,25 @@ public:
         return (x&&y);
     }
     
+    /**
+     * This function checks in 2D if two nodes are the same one
+     * @param PointOrig: The points from the origin geometry
+     * @param PointDest: The points in the destination geometry
+     * @return check: The check done
+     */
+    
+    bool CheckPoints3D(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2
+        )
+    {
+        const double Tolerance = 1.0e-8; 
+        const bool x = (std::abs(PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1)) < Tolerance) ? true : false;
+        const bool y = (std::abs(PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2)) < Tolerance) ? true : false;
+        const bool z = (std::abs(PointOrig2.Coordinate(3) - PointOrig1.Coordinate(3)) < Tolerance) ? true : false;
+        
+        return (x&&y&&z);
+    }
     
     /**
      * This functions recovers if the nodes are inside a Quadrilateral conformed with Point<3>, instead of Nodes<3> (The input ones)
@@ -950,7 +1091,7 @@ private:
                     AllTriangle.GlobalCoordinates(gp_global, gp_local);
                     
                     // We recover this point to the triangle plane
-                    RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
     //                 RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                     
                     // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
@@ -973,8 +1114,8 @@ private:
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
 //                 RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
 //                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
                 
@@ -1000,7 +1141,7 @@ private:
                     const unsigned int jp_edge = (j_edge == 2) ? 0 : j_edge + 1;
                     
                     Point<3> IntersectedPoint;
-                    const bool intersected = Clipping(
+                    const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveGeometry[i_edge],
                         SlaveGeometry[ip_edge],
@@ -1108,24 +1249,6 @@ private:
                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
                     }
-//                     if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-//                     }
-//                     else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-//                     }
-//                     else
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
-//                     }
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1146,7 +1269,7 @@ private:
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
-                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                            RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
 //                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
@@ -1212,40 +1335,42 @@ private:
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
-//         // Debug
-//         std::cout << "Before rotate: " << std::endl;
-//         for (unsigned int i_node = 0; i_node < 4; i_node++)
-//         {
-//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Z() << "\t" << SlaveProjectedPoint[i_node].Y() << std::endl;
-//         }
-//         std::cout << std::endl;
-//         for (unsigned int i_node = 0; i_node < 4; i_node++)
-//         {
-//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Z() << "\t" << MasterProjectedPoint[i_node].Y() << std::endl;
-//         }
-//         std::cout << std::endl;
+        // Debug
+        std::cout << "Before rotate: " << std::endl;
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
+        }
+        std::cout << std::endl;
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
+        }
+        std::cout << std::endl;
         
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint( SlaveProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint( SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
 //             RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
 //             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
         }
         
-//         // Debug
-//         std::cout << "After rotate: " << std::endl;
-//         for (unsigned int i_node = 0; i_node < 4; i_node++)
-//         {
-//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
-//         }
-//         std::cout << std::endl;
-//         for (unsigned int i_node = 0; i_node < 4; i_node++)
-//         {
-//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
-//         }
-//         std::cout << std::endl;
+        // Debug
+        std::cout << "After rotate: " << std::endl;
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
+        }
+        std::cout << std::endl;
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
+        }
+        std::cout << std::endl;
+        
+        KRATOS_ERROR;
         
         std::vector<Point<3>::Pointer> DummyPointsArray (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1257,6 +1382,7 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
+            GeometryType::CoordinatesArrayType rResult;
             AllInside[i_node] = FasIsInsideQuadrilateral2D( DummyQuadrilateral, MasterProjectedPoint[i_node].Coordinates( ) ) ;
         }
         
@@ -1294,12 +1420,11 @@ private:
         {            
             // We reorder the nodes according with the angle they form with the first node
             std::vector<double> Angles (3);
-//             array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
-//             v /= norm_2(v);
-//             array_1d<double, 3> n;
-//             n[0] = - v[1];
-//             n[1] =   v[0];
-//             n[2] =    0.0;
+            array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+            array_1d<double, 3> n;
+            n[0] = - v[1];
+            n[1] =   v[0];
+            n[2] =    0.0;
             
             for (unsigned int elem = 1; elem < 4; elem++)
             {
@@ -1333,24 +1458,6 @@ private:
                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
                 }
-//                 if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                 {
-//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
-//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
-//                 }
-//                 else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                 {
-//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
-//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
-//                 }
-//                 else
-//                 {
-//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
-//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
-//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-//                 }
                 
                 // We create the triangle
                 Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1371,7 +1478,7 @@ private:
                         triangle.GlobalCoordinates(gp_global, gp_local);
                         
                         // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
 //                         RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
@@ -1421,7 +1528,7 @@ private:
                     const unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
                     
                     Point<3> IntersectedPoint;
-                    const bool intersected = Clipping(
+                    const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveProjectedPoint[i_edge],
                         SlaveProjectedPoint[ip_edge],
@@ -1476,12 +1583,12 @@ private:
                 }
             }
             
-//             // Debug 
-// //             KRATOS_WATCH(PointList.size());
+            // Debug 
+//             KRATOS_WATCH(PointList.size());
 //             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
 //             {
 // //                 KRATOS_WATCH(PointList[i_list]);
-//                 std::cout << PointList[i_list].X() << "\t" << PointList[i_list].Y() << std::endl;
+//                 std::cout << PointList[i_list].X() << "\t" << PointList[i_list].Y() << "\t" << PointList[i_list].Z() << std::endl;
 //             }
 //             std::cout << std::endl;
 
@@ -1491,12 +1598,11 @@ private:
             {
                 // We reorder the nodes according with the angle they form with the first node
                 std::vector<double> Angles (ListSize - 1);
-//                 array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
-//                 v /= norm_2(v);
-//                 array_1d<double, 3> n;
-//                 n[0] = - v[1];
-//                 n[1] =   v[0];
-//                 n[2] =    0.0;
+                array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
+                array_1d<double, 3> n;
+                n[0] = - v[1];
+                n[1] =   v[0];
+                n[2] =    0.0;
                 
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
@@ -1537,24 +1643,6 @@ private:
                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
                     }
-//                     if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-//                     }
-//                     else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-//                     }
-//                     else
-//                     {
-//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
-//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
-//                     }
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1575,7 +1663,7 @@ private:
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
-                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                            RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
 //                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we project to the slave surface
