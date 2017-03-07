@@ -80,7 +80,9 @@ public:
         {
             const double magnitude = norm_2(mDragDirection);
             if (magnitude == 0.0)
-                KRATOS_THROW_ERROR(std::runtime_error, "drag_direction is not properly defined.", "")
+                KRATOS_THROW_ERROR(std::runtime_error,
+                                   "drag_direction is not properly defined.",
+                                   "")
 
             std::cout
                 << "WARNING: non unit vector detected in \"drag_direction\": "
@@ -109,35 +111,43 @@ public:
     {
         if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "invalid parameters \"structure_model_part_name\": ", mStructureModelPartName)
+            KRATOS_THROW_ERROR(
+                std::runtime_error,
+                "invalid parameters \"structure_model_part_name\": ",
+                mStructureModelPartName)
         }
 
         if (rModelPart.HasSubModelPart(mBoundaryModelPartName) == false)
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "invalid parameters \"boundary_model_part_name\": ", mBoundaryModelPartName)
+            KRATOS_THROW_ERROR(
+                std::runtime_error,
+                "invalid parameters \"boundary_model_part_name\": ",
+                mBoundaryModelPartName)
         }
 
-        // initialize the variables to zero.
-        #pragma omp parallel
+// initialize the variables to zero.
+#pragma omp parallel
         {
-          ModelPart::NodeIterator NodesBegin;
-          ModelPart::NodeIterator NodesEnd;
-          OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
+            ModelPart::NodeIterator NodesBegin;
+            ModelPart::NodeIterator NodesEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
 
-          for (auto it = NodesBegin; it != NodesEnd; ++it)
-          {
-              it->Set(STRUCTURE,false);
-              it->Set(BOUNDARY,false);
-          }
+            for (auto it = NodesBegin; it != NodesEnd; ++it)
+            {
+                it->Set(STRUCTURE, false);
+                it->Set(BOUNDARY, false);
+            }
         }
 
         ModelPart& rStructureModelPart = rModelPart.GetSubModelPart(mStructureModelPartName);
-        for (auto it = rStructureModelPart.NodesBegin(); it != rStructureModelPart.NodesEnd(); ++it)
-            it->Set(STRUCTURE,true);
+        for (auto it = rStructureModelPart.NodesBegin();
+             it != rStructureModelPart.NodesEnd();
+             ++it)
+            it->Set(STRUCTURE, true);
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
         for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
-            it->Set(BOUNDARY,true);
+            it->Set(BOUNDARY, true);
 
         // allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
