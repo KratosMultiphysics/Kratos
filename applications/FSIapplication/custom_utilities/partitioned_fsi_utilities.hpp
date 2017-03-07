@@ -221,102 +221,13 @@ public:
     // TODO: MPI parallelization
     VectorType ComputeFluidInterfaceVelocityResidual()
     {
-
         VectorType fluid_interface_residual = ZeroVector(this->GetFluidInterfaceResidualSize());
 
-        // Initialize the interface residual
-        VariableUtils().SetToZero_VectorVar(FSI_INTERFACE_RESIDUAL, mrFluidInterfaceModelPart.Nodes());
+        // Compute node-by-node residual
+        this->ComputeNodeByNodeResidual();
 
-        // Compute the consistent residual TODO: Separate the condition consistent residual computation in a private method
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(mrFluidInterfaceModelPart.NumberOfConditions()); ++k)
-        {
-            ModelPart::ConditionIterator it_cond = mrFluidInterfaceModelPart.ConditionsBegin()+k;
-
-            const Condition::GeometryType& rGeom = it_cond->GetGeometry();
-            const unsigned int BlockSize = TDim;
-            const unsigned int NumNodes = rGeom.PointsNumber();
-
-            // Set the nodal values residual vector
-            VectorType ResVect = ZeroVector(BlockSize*TDim);
-
-            for (int j = 0; j < static_cast<int>(NumNodes); ++j)
-            {
-                array_1d<double, 3> velocity_fluid = rGeom[j].FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3> velocity_fluid_projected = rGeom[j].FastGetSolutionStepValue(VECTOR_PROJECTED);
-
-                for (k = 0; k < static_cast<int>(TDim); ++k)
-                {
-                    ResVect[j*BlockSize+k] = velocity_fluid[k] - velocity_fluid_projected[k];
-                }
-            }
-
-            // Compute the condition mass matrix
-            MatrixType MassMat = ZeroMatrix(BlockSize*TDim, BlockSize*TDim);
-
-            const Condition::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const unsigned int NumGauss = IntegrationPoints.size();
-            const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-            VectorType JacGauss;
-            rGeom.DeterminantOfJacobian(JacGauss, GeometryData::GI_GAUSS_2);
-
-            for (int g=0; g<static_cast<int>(NumGauss); ++g)
-            {
-                const Kratos::Vector& N = row(NContainer,g);
-                const double GaussWeight = JacGauss[g] * IntegrationPoints[g].Weight();
-
-                unsigned int RowIndex = 0;
-                unsigned int ColIndex = 0;
-
-                for (unsigned int i=0; i<NumNodes; ++i)
-                {
-                    for (unsigned int j=0; j<NumNodes; ++j)
-                    {
-                        double Mij = GaussWeight * N[i] * N[j];
-
-                        for (unsigned int d=0; d<TDim; d++)
-                        {
-                            MassMat(RowIndex+d,ColIndex+d) += Mij;
-                        }
-
-                        ColIndex += BlockSize;
-                    }
-
-                    RowIndex += BlockSize;
-                    ColIndex = 0;
-                }
-            }
-
-            // Accumulate the obtained consistent residual values
-            VectorType ConsResVect(BlockSize*TDim);
-            TSpace::Mult(MassMat, ResVect, ConsResVect);
-
-            if (TDim == 2)
-            {
-                for (int i=0; i<static_cast<int>(NumNodes); ++i)
-                {
-                    array_1d<double, 3> aux_val;
-                    aux_val[0] += ConsResVect[i*BlockSize];
-                    aux_val[1] += ConsResVect[i*BlockSize+1];
-                    it_cond->GetGeometry()[i].SetLock(); // So it is safe to write in the condition node in OpenMP
-                    it_cond->GetGeometry()[i].FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL) += aux_val;
-                    it_cond->GetGeometry()[i].UnSetLock(); // Free the condition node for other threads
-                }
-            }
-            else
-            {
-                for (int i=0; i<static_cast<int>(NumNodes); ++i)
-                {
-                    array_1d<double, 3> aux_val;
-                    aux_val[0] += ConsResVect[i*BlockSize];
-                    aux_val[1] += ConsResVect[i*BlockSize+1];
-                    aux_val[2] += ConsResVect[i*BlockSize+2];
-                    it_cond->GetGeometry()[i].SetLock(); // So it is safe to write in the condition node in OpenMP
-                    it_cond->GetGeometry()[i].FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL) += aux_val;
-                    it_cond->GetGeometry()[i].UnSetLock(); // Free the condition node for other threads
-                }
-            }
-        }
+        // // Compute consitent residual
+        // this->ComputeConsistentResidual();
 
         // Assemble the final consistent residual values
         if (TDim == 2)
@@ -327,7 +238,7 @@ public:
                 ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin()+k;
                 unsigned int base_i = k*TDim;
 
-                fluid_interface_residual[base_i] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_X);
+                fluid_interface_residual[base_i]   = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_X);
                 fluid_interface_residual[base_i+1] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Y);
             }
         }
@@ -339,9 +250,9 @@ public:
                 ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin()+k;
                 unsigned int base_i = k*TDim;
 
-                fluid_interface_residual[base_i] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_X);
+                fluid_interface_residual[base_i]   = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_X);
                 fluid_interface_residual[base_i+1] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Y);
-                fluid_interface_residual[base_i+2] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Y);
+                fluid_interface_residual[base_i+2] = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Z);
             }
         }
 
@@ -433,10 +344,6 @@ private:
     /**@name Member Variables */
     /*@{ */
 
-    //~ ModelPart& mr_model_part;
-
-    //~ bool mMoveMeshFlag;
-
 
     /*@} */
     /**@name Private Operators*/
@@ -447,6 +354,110 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
+    void ComputeNodeByNodeResidual()
+    {
+        // Initialize the interface residual variable
+        VariableUtils().SetToZero_VectorVar(FSI_INTERFACE_RESIDUAL, mrFluidInterfaceModelPart.Nodes());
+
+        #pragma omp parallel for
+        for(int k=0; k<static_cast<int>(mrFluidInterfaceModelPart.NumberOfNodes()); ++k)
+        {
+            ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin()+k;
+            double& res_x = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_X);
+            double& res_y = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Y);
+            double& res_z = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL_Z);
+
+            const array_1d<double, 3>& velocity_fluid = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& velocity_fluid_projected = it_node->FastGetSolutionStepValue(VECTOR_PROJECTED);
+
+            res_x = velocity_fluid[0] - velocity_fluid_projected[0];
+            res_y = velocity_fluid[1] - velocity_fluid_projected[1];
+            res_z = velocity_fluid[2] - velocity_fluid_projected[2];
+        }
+    }
+
+    void ComputeConsistentResidual()
+    {
+        // Initialize the interface residual variable
+        VariableUtils().SetToZero_VectorVar(FSI_INTERFACE_RESIDUAL, mrFluidInterfaceModelPart.Nodes());
+
+        #pragma omp parallel for
+        for(int k=0; k<static_cast<int>(mrFluidInterfaceModelPart.NumberOfConditions()); ++k)
+        {
+            ModelPart::ConditionIterator it_cond = mrFluidInterfaceModelPart.ConditionsBegin()+k;
+
+            const Condition::GeometryType& rGeom = it_cond->GetGeometry();
+            const unsigned int BlockSize = TDim;
+            const unsigned int NumNodes = rGeom.PointsNumber();
+
+            // Set the nodal values residual vector
+            VectorType ResVect = ZeroVector(BlockSize*NumNodes);
+            for (int jj = 0; jj < static_cast<int>(NumNodes); ++jj)
+            {
+                const array_1d<double, 3>& velocity_fluid = rGeom[jj].FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double, 3>& velocity_fluid_projected = rGeom[jj].FastGetSolutionStepValue(VECTOR_PROJECTED);
+
+                for (int kk = 0; kk < static_cast<int>(TDim); ++kk)
+                {
+                    ResVect[jj*BlockSize+kk] = velocity_fluid[kk] - velocity_fluid_projected[kk];
+                }
+            }
+
+            // Compute the condition mass matrix
+            MatrixType MassMat = ZeroMatrix(BlockSize*NumNodes, BlockSize*NumNodes);
+            const Condition::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const unsigned int NumGauss = IntegrationPoints.size();
+            const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            VectorType JacGauss;
+            rGeom.DeterminantOfJacobian(JacGauss, GeometryData::GI_GAUSS_2);
+
+            for (int g=0; g<static_cast<int>(NumGauss); ++g)
+            {
+                const Kratos::Vector& N = row(NContainer,g);
+                const double GaussWeight = JacGauss[g] * IntegrationPoints[g].Weight();
+
+                unsigned int RowIndex = 0;
+                unsigned int ColIndex = 0;
+
+                for (unsigned int i=0; i<NumNodes; ++i)
+                {
+                    for (unsigned int j=0; j<NumNodes; ++j)
+                    {
+                        double Mij = GaussWeight * N[i] * N[j];
+
+                        for (unsigned int d=0; d<TDim; d++)
+                        {
+                            MassMat(RowIndex+d,ColIndex+d) += Mij;
+                        }
+
+                        ColIndex += BlockSize;
+                    }
+
+                    RowIndex += BlockSize;
+                    ColIndex = 0;
+                }
+            }
+
+            // Accumulate the obtained consistent residual values
+            VectorType ConsResVect(BlockSize*NumNodes);
+            TSpace::Mult(MassMat, ResVect, ConsResVect);
+
+            for (int ii=0; ii<static_cast<int>(NumNodes); ++ii)
+            {
+                array_1d<double, 3> aux_val;
+                aux_val[0] = 0.0;
+                aux_val[1] = 0.0;
+                aux_val[2] = 0.0;
+                for (unsigned int jj=0; jj<TDim; ++jj)
+                {
+                    aux_val[jj] = ConsResVect[ii*BlockSize+jj];
+                }
+                it_cond->GetGeometry()[ii].SetLock(); // So it is safe to write in the condition node in OpenMP
+                it_cond->GetGeometry()[ii].FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL) += aux_val;
+                it_cond->GetGeometry()[ii].UnSetLock(); // Free the condition node for other threads
+            }
+        }
+    }
 
     /*@} */
     /**@name Private  Access */

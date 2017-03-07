@@ -238,6 +238,7 @@ class PartitionedFSISolver:
         ## FSIApplication variables addition
         NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.FSI_INTERFACE_RESIDUAL)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosFSI.VECTOR_PROJECTED)
 
 
@@ -585,7 +586,6 @@ class PartitionedFSISolver:
             self.mesh_solver.Solve()
 
             print("Mesh prediction computed.")
-
 
     ### RESIDUALS ###
 
