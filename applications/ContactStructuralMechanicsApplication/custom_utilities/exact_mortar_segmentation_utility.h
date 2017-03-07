@@ -97,7 +97,7 @@ public:
         )
     :mIntegrationOrder(IntegrationOrder)
     {
-        GetIntegartionMethod();
+        GetIntegrationMethod();
     }
     
     /// Destructor.
@@ -115,7 +115,7 @@ public:
      * Get the integration method to consider
      */
         
-    void GetIntegartionMethod()
+    void GetIntegrationMethod()
     {
         // Setting the auxiliar integration points
         if (mIntegrationOrder == 1)
@@ -141,6 +141,39 @@ public:
         else
         {
             mAuxIntegrationMethod = GeometryData::GI_GAUSS_2;
+        }
+    }
+    
+    /**
+     * Get the integration method to consider
+     */
+        
+    GeometryType::IntegrationPointsArrayType GetIntegrationTriangle()
+    {
+        // Setting the auxiliar integration points
+        if (mIntegrationOrder == 1)
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        }
+        else if (mIntegrationOrder == 2)
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        }
+        else if (mIntegrationOrder == 3)
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        }
+        else if (mIntegrationOrder == 4)
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        }
+        else if (mIntegrationOrder == 5)
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+        }
+        else
+        {
+            return Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
         }
     }
     
@@ -263,43 +296,43 @@ public:
         Point<3> AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
-//         const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed);
+        const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed);
+        
+        PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
+        
+//         const double Tolerance = 1.0e-16;
+//     
+//         // We calculate the normal angle
+//         double Phi0 = std::atan(SlaveNormal[2]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance));
+//         double Phi1 = M_PI/2.0;
 //         
-//         PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
-        
-        const double Tolerance = 1.0e-16;
-    
-        // We calculate the normal angle
-        double Phi0 = std::atan(SlaveNormal[2]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance));
-        double Phi1 = M_PI/2.0;
-        
-        if (Inversed == true)
-        {
-            Phi0 = Phi1;
-            Phi1 = Phi0;
-        }
-        
-//         // Debug
-//         KRATOS_WATCH(SlaveNormal);
-//         std::cout << Phi0 << " " << Phi1 << std::endl;
-//         KRATOS_WATCH(PointToRotate.Coordinates());
-        
-        AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
-        AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
-        if (Inversed == false)
-        {
-            AuxPointToRotate.Coordinate(3) = 0.0;
-        }
-        else
-        {
-            const double Radio = std::sqrt(AuxPointToRotate.Coordinate(1) * AuxPointToRotate.Coordinate(1) + AuxPointToRotate.Coordinate(2) * AuxPointToRotate.Coordinate(2));
-            AuxPointToRotate.Coordinate(3) = Radio * std::cos(Phi1);
-        }
-        
-        PointToRotate.Coordinates() = AuxPointToRotate.Coordinates() + PointReferenceRotation.Coordinates();
-        
-//         // Debug
-//         KRATOS_WATCH(PointToRotate.Coordinates());
+//         if (Inversed == true)
+//         {
+//             Phi0 = Phi1;
+//             Phi1 = Phi0;
+//         }
+//         
+// //         // Debug
+// //         KRATOS_WATCH(SlaveNormal);
+// //         std::cout << Phi0 << " " << Phi1 << std::endl;
+// //         KRATOS_WATCH(PointToRotate.Coordinates());
+//         
+//         AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
+//         AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
+//         if (Inversed == false)
+//         {
+//             AuxPointToRotate.Coordinate(3) = 0.0;
+//         }
+//         else
+//         {
+//             const double Radio = std::sqrt(AuxPointToRotate.Coordinate(1) * AuxPointToRotate.Coordinate(1) + AuxPointToRotate.Coordinate(2) * AuxPointToRotate.Coordinate(2));
+//             AuxPointToRotate.Coordinate(3) = Radio * std::cos(Phi1);
+//         }
+//         
+//         PointToRotate.Coordinates() = AuxPointToRotate.Coordinates() + PointReferenceRotation.Coordinates();
+//         
+// //         // Debug
+// //         KRATOS_WATCH(PointToRotate.Coordinates());
     }
     
     /**
@@ -1063,24 +1096,36 @@ private:
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
-                    if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                    if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
                     {
                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
                     }
-                    else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-                    {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
-                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-                    }
                     else
                     {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
                     }
+//                     if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+//                     }
+//                     else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[0]);
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+//                     }
+//                     else
+//                     {
+//                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]);
+//                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]); 
+//                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+//                     }
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1167,6 +1212,19 @@ private:
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
+//         // Debug
+//         std::cout << "Before rotate: " << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Z() << "\t" << SlaveProjectedPoint[i_node].Y() << std::endl;
+//         }
+//         std::cout << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Z() << "\t" << MasterProjectedPoint[i_node].Y() << std::endl;
+//         }
+//         std::cout << std::endl;
+        
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
@@ -1175,6 +1233,19 @@ private:
 //             RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
 //             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
         }
+        
+//         // Debug
+//         std::cout << "After rotate: " << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
         
         std::vector<Point<3>::Pointer> DummyPointsArray (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1186,10 +1257,6 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-//             GeometryType::CoordinatesArrayType ProjectedGPLocal;
-//             
-//             AllInside[i_node] = DummyQuadrilateral.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
-            
             AllInside[i_node] = FasIsInsideQuadrilateral2D( DummyQuadrilateral, MasterProjectedPoint[i_node].Coordinates( ) ) ;
         }
         
@@ -1243,16 +1310,9 @@ private:
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
             
             std::vector<Point<3>::Pointer> PointsArray (3);
-            
-//             PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-//             PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[1]);
-//             PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[2]);
-//             
-//             Triangle2D3 <Point<3>> dummy_triangle( PointsArray ); // TODO: Look how to create the integration points without the dummy triangle 
 //             
             // We initialize our auxiliar integration point vector
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-//             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
 //             IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
@@ -1261,24 +1321,36 @@ private:
             for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 // NOTE: We add 1 because we removed from the list the fisrt point
-                if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+                if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                 {
                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
                 }
-                else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
-                {
-                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
-                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
-                }
                 else
                 {
-                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
-                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
+                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
                 }
+//                 if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                 {
+//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
+//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+//                 }
+//                 else if (Angles[IndexVector[elem + 0]] < 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
+//                 {
+//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
+//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+//                 }
+//                 else
+//                 {
+//                     PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]);
+//                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]); 
+//                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+//                 }
                 
                 // We create the triangle
                 Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1300,7 +1372,7 @@ private:
                         
                         // We recover this point to the triangle plane
                         RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-    //                     RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
+//                         RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
                         Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
@@ -1405,11 +1477,13 @@ private:
             }
             
 //             // Debug 
-//             KRATOS_WATCH(PointList.size());
+// //             KRATOS_WATCH(PointList.size());
 //             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
 //             {
-//                 KRATOS_WATCH(PointList[i_list]);
+// //                 KRATOS_WATCH(PointList[i_list]);
+//                 std::cout << PointList[i_list].X() << "\t" << PointList[i_list].Y() << std::endl;
 //             }
+//             std::cout << std::endl;
 
             // We compose the triangles
             const unsigned int ListSize = PointList.size();
@@ -1434,15 +1508,8 @@ private:
                 
                 std::vector<Point<3>::Pointer> PointsArray (3);
                 
-//                 PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-//                 PointsArray[1] = boost::make_shared<Point<3>>(PointList[1]);
-//                 PointsArray[2] = boost::make_shared<Point<3>>(PointList[2]);
-//                 
-//                 Triangle2D3 <Point<3>> dummy_triangle( PointsArray );
-                
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-//                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = dummy_triangle.IntegrationPoints(mAuxIntegrationMethod);
+                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
 //                 // Debug
@@ -1457,6 +1524,7 @@ private:
             
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
+                    // NOTE: We add 1 because we removed from the list the fisrt point
                     if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
                     {
                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
@@ -1469,7 +1537,6 @@ private:
                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
                     }
-                    // NOTE: We add 1 because we removed from the list the fisrt point
 //                     if (Angles[IndexVector[elem + 0]] > 0.0 && Angles[IndexVector[elem + 1]] > 0.0)
 //                     {
 //                         PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
