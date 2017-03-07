@@ -179,7 +179,7 @@ namespace Kratos
 					  }
 				  }
 				  if (case_min_quality > max_cases_quality) {
-					  if (mrModelPart.NumberOfElements() == 56)
+					  if (mrModelPart.NumberOfElements() == 5)
 					  {
 						  KRATOS_WATCH(tetrahedra_1);
 						  KRATOS_WATCH(tetrahedra_2);
@@ -199,6 +199,8 @@ namespace Kratos
 			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 				  SwappingCases.SetTetrahedraForCase(*p_best_case, i, EdgeShell, tetrahedra_1, tetrahedra_2);
 				  if (2 * i < EdgeShell.GetNumberOfTetrahedra()) {
+					  if(i == 3)
+						KRATOS_WATCH(tetrahedra_1);
 					  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
 					  EdgeShell.pGetElement(2 * i)->Set(MODIFIED);
 				  }

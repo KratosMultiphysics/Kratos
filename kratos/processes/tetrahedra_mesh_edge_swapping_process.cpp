@@ -1013,20 +1013,20 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	for (auto& edge : mEdges) {
 		if (edge.second.IsClosed()) {
 			if (!(edge.second.IsModified())) {
-				if (edge.second.GetNumberOfShellPoints() == 3)
-					EdgeSwapping3(edge.second);
-				if (edge.second.GetNumberOfShellPoints() == 4)
-					EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 3)
+				//	EdgeSwapping3(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 4)
+				//	EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
 				if (edge.second.GetNumberOfShellPoints() == 5)
 					EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
-				if (edge.second.GetNumberOfShellPoints() == 6)
-					EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
-				if (edge.second.GetNumberOfShellPoints() == 7)
-					EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
-				if (edge.second.GetNumberOfShellPoints() == 8)
-					EdgeSwapping<Internals::EdgeSwappingCases8>(edge.second);
-				if (edge.second.GetNumberOfShellPoints() == 9)
-					EdgeSwapping<Internals::EdgeSwappingCases9>(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 6)
+				//	EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 7)
+				//	EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 8)
+				//	EdgeSwapping<Internals::EdgeSwappingCases8>(edge.second);
+				//if (edge.second.GetNumberOfShellPoints() == 9)
+				//	EdgeSwapping<Internals::EdgeSwappingCases9>(edge.second);
 			}
 		}
 
