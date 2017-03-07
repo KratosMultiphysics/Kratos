@@ -262,11 +262,11 @@ public:
 
 
     /// Execute method is used to execute the ApplyConstantScalarValueProcess algorithms.
-    virtual void Execute() {}
+    virtual void Execute() override {}
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    virtual void ExecuteInitialize() override
     {
         KRATOS_TRY;
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
@@ -299,37 +299,37 @@ public:
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    virtual void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    virtual void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    virtual void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    virtual void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    virtual void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    virtual void ExecuteFinalize() override
     {
     }
 
@@ -349,19 +349,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "ApplyConstantScalarValueProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyConstantScalarValueProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
