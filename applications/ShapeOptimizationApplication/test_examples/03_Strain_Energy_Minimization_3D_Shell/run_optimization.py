@@ -54,7 +54,7 @@ optimizer = optimizer_factory.CreateOptimizer( main_model_part, optimization_set
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
 import response_function_factory
-response_function_solver = response_function_factory.CreateSolver( main_model_part, optimization_settings )
+responseFunctionSolver = response_function_factory.CreateSolver( main_model_part, optimization_settings )
 
 # --------------------------------------------------------------------------
 #read model_part (note: the buffer_size is set here) (restart can be read here)
@@ -131,8 +131,8 @@ CSM_solver.SetEchoLevel(echo_level)
 
 # --------------------------------------------------------------------------
 # Initialize response function solvers
-for response_id in response_function_solver:
-    response_function_solver[response_id].initialize()
+for response_id in responseFunctionSolver:
+    responseFunctionSolver[response_id].initialize()
 
 # --------------------------------------------------------------------------
 
@@ -142,8 +142,19 @@ for process in list_of_processes:
 ## Set results when are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
+# ======================================================================================================================================
+# Optimization part
+# ======================================================================================================================================
+
 # --------------------------------------------------------------------------
-# Call function to solve structure for the given state
+def updateMeshOfMainModelPart(currentDesign):
+    for node_id in currentDesign.keys():
+        node = main_model_part.Nodes[node_id]
+        node.X0 = node.X0 + currentDesign[node_id][0]
+        node.Y0 = node.Y0 + currentDesign[node_id][1]
+        node.Z0 = node.Z0 + currentDesign[node_id][2]
+
+# --------------------------------------------------------------------------
 def solveStructure(): 
 
     # processes to be executed at the begining of the solution step
@@ -177,74 +188,53 @@ def solveStructure():
         process.ExecuteAfterOutputStep()            
 
 # --------------------------------------------------------------------------
-def updateMeshOfMainModelPart(current_design):
-    for node_id in current_design.keys():
-    node = main_model_part.Nodes[node_id]
-    node.X0 = node.X0 + current_design[node_id][0]
-    node.Y0 = node.Y0 + current_design[node_id][1]
-    node.Z0 = node.Z0 + current_design[node_id][2]
-
-# --------------------------------------------------------------------------
-def FinalizeKSMProcess():
+def finalizeStructureAnalysis():
     for process in list_of_processes:
         process.ExecuteFinalize()
     gid_output.ExecuteFinalize()
 
-# ======================================================================================================================================
-# Optimization part
-# ======================================================================================================================================
-
 # --------------------------------------------------------------------------
-def analyzeDesignAndRespondToOptimizer(current_design, optimization_iteration, controller):
+def analyzeDesignAndReportToCommunicator(currentDesign, optimizationIteration, communicator):
 
-    # Compute primals
-    print("\n> Starting calculation of response values")
-    start_time = timer.time()
+    # Calculation of primals
+    if(communicator.isRrequestingFunctionValueOf("strain_energy")):
 
-    if(controller.requestsFunctionValueOf("strain_energy")):
+        print("\n> Starting calculation of response value")
+        startTime = timer.time()        
 
         # Advance time iterator of main_model_part
-        step = float(optimization_iteration)
-        main_model_part.CloneTimeStep(step)
+        main_model_part.CloneTimeStep(optimizationIteration)
 
-        updateMeshOfMainModelPart(current_design)
+        updateMeshOfMainModelPart( currentDesign )
 
-        interim_time = timer.time()
-        print("> Time needed for updating the mesh = ",round(interim_time - start_time,2),"s")
-
-        # Solve structural problem
+        print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
         print("\n> Start SolidMechanicsApplication to solve structure")
+        startTime = timer.time()
+
         solveStructure()
 
-        stop_time = timer.time()
-        print("> Time needed for calculating structural response = ",round(stop_time - interim_time,2),"s")        
+        responseFunctionSolver["strain_energy"].calculate_value()
 
-        # Calculate objective function value of current design and store in response container
-        response_function_solver["strain_energy"].calculate_value()
-        response_contrainer["strain_energy"]["value"] = response_function_solver["strain_energy"].get_value()
+        communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())
 
-    # Compute gradients
-    print("\n> Start calculation of gradients")
-    start_time = timer.time()
+        print("> Time needed for calculating structural response = ",round(timer.time() - startTime,2),"s")        
 
-     if(controller.requestsGradientOf("strain_energy")):       
+    # Calculation of gradients
+    if(communicator.isRequestingGradientOf("strain_energy")): 
 
-        response_function_solver["strain_energy"].calculate_gradient()
-        dFdX = response_function_solver["strain_energy"].get_gradient()
+        print("\n> Starting calculation of gradients")
+        startTime = timer.time()               
 
-        # Get gradient information on design surface
-        dFdXs = {}
-        for node_id in X.keys():
-            dFdXs[node_id] = dFdX[node_id]
+        responseFunctionSolver["strain_energy"].calculate_gradient()
+        gradientForCompleteModelPart = responseFunctionSolver["strain_energy"].get_gradient()
 
-        # Store gradient in response container
-        response_contrainer["strain_energy"]["gradient"] = dFdXs
+        gradientOnDesignSurface = {}
+        for node_id in currentDesign.keys():
+            gradientOnDesignSurface[node_id] = gradientForCompleteModelPart[node_id]
 
-    stop_time = timer.time()
-    print("> Time needed for calculating gradients = ",round(stop_time - start_time,2),"s")
+        communicator.reportGradient("strain_energy", gradientOnDesignSurface)
 
-    # Answer the optimizer
-    return response_contrainer
+        print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
 
 # --------------------------------------------------------------------------
 
@@ -253,13 +243,13 @@ print("> Starting optimization")
 print("> ==============================================================================================================\n")
 
 # optimizer.importModelPart()
-optimizer.importFunctionForDesignAnalysis( analyzeDesignAndRespondToOptimizer )
+optimizer.importFunctionForDesignAnalysis( analyzeDesignAndReportToCommunicator )
 optimizer.optimize()
 
 print("\n> ==============================================================================================================")
 print("> Finished shape optimization!")
 print("> ==============================================================================================================\n")
 
-FinalizeKSMProcess()
+finalizeStructureAnalysis()
 
 # ======================================================================================================================================

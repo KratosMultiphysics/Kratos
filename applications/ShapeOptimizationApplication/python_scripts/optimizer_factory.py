@@ -68,9 +68,9 @@ import time
 class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self, inputModelPart, optimizationSettings):
+    def __init__( self, inputModelPart, optimizationSettings ):
 
-        self.gidIO = GiDOutput(optimizationSettings.design_surface_submodel_part_name,
+        self.gidIO = GiDOutput( optimizationSettings.design_surface_submodel_part_name,
                                 optimizationSettings.VolumeOutput,
                                 optimizationSettings.GiDPostMode,
                                 optimizationSettings.GiDMultiFileFlag,
@@ -87,7 +87,7 @@ class VertexMorphingMethod:
         self.outputInformationAboutResponseFunctions()
 
     # --------------------------------------------------------------------------
-    def importModelPart(self):
+    def importModelPart( self ):
         model_part_io = ModelPartIO( self.optimizationSettings.inputModelPart_name )
         model_part_io.ReadModelPart( self.inputModelPart )
         buffer_size = 1
@@ -95,11 +95,11 @@ class VertexMorphingMethod:
         self.inputModelPart.ProcessInfo.SetValue(DOMAIN_SIZE,self.optimizationSettings.domain_size)
 
     # --------------------------------------------------------------------------
-    def importFunctionForDesignAnalysis( self, FunctionForDesignAnalysis ): 
-        self.analyzer = Analyzer( FunctionForDesignAnalysis, self.optimizationSettings ) 
+    def importFunctionForDesignAnalysis( self, importedFunctionForDesignAnalysis ): 
+        self.analyzer = Analyzer( importedFunctionForDesignAnalysis, self.optimizationSettings ) 
 
     # --------------------------------------------------------------------------
-    def optimize(self):
+    def optimize( self ):
         
         print("\n> ==============================================================================================================")
         print("> Starting optimization using the following algorithm: ",self.optimizationSettings.optimization_algorithm)
@@ -126,7 +126,7 @@ class VertexMorphingMethod:
         print("> ==============================================================================================================\n")
 
     # --------------------------------------------------------------------------
-    def prepareOptimization(self):
+    def prepareOptimization( self ):
 
         # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
         if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
@@ -157,29 +157,29 @@ class VertexMorphingMethod:
                 else:
                     raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)
 
-        # Create controller object
-        self.controller = Controller( self.optimizationSettings );                     
+        # Create communicator object
+        self.communicator = Communicator(self.optimizationSettings);                     
 
         # Create mapper to map between geometry and design space 
-        self.mapper = VertexMorphingMapper( self.optimizationModelPart,
-                                            self.optimizationSettings.filter_function,
-                                            self.optimizationSettings.use_mesh_preserving_filter_matrix,
-                                            self.optimizationSettings.filter_size,
-                                            self.optimizationSettings.perform_damping,
-                                            damping_regions )
+        self.mapper = VertexMorphingMapper(self.optimizationModelPart,
+                                           self.optimizationSettings.filter_function,
+                                           self.optimizationSettings.use_mesh_preserving_filter_matrix,
+                                           self.optimizationSettings.filter_size,
+                                           self.optimizationSettings.perform_damping,
+                                           damping_regions)
         
         # Toolbox to perform optimization
-        self.opt_utils = OptimizationUtilities( self.optimizationModelPart,
-                                                self.objectives,
-                                                self.constraints,
-                                                self.optimizationSettings.step_size,
-                                                self.optimizationSettings.normalize_search_direction )
+        self.opt_utils = OptimizationUtilities(self.optimizationModelPart,
+                                               self.objectives,
+                                               self.constraints,
+                                               self.optimizationSettings.step_size,
+                                               self.optimizationSettings.normalize_search_direction)
 
         # Toolbox to pre & post process geometry data
-        self.geom_utils = GeometryUtilities( self.optimizationModelPart )
+        self.geom_utils = GeometryUtilities(self.optimizationModelPart)
 
     # --------------------------------------------------------------------------
-    def runOptimizationAlgorithmSpecifiedInTheOptimizationSettings(self):
+    def runOptimizationAlgorithmSpecifiedInTheOptimizationSettings( self ):
         if(self.optimizationSettings.optimization_algorithm == "steepest_descent"):
            self.runSteepestDescentAlgorithm()
         elif(self.optimizationSettings.optimization_algorithm == "augmented_lagrange"):
@@ -190,7 +190,7 @@ class VertexMorphingMethod:
             sys.exit("Specified optimization_algorithm not implemented!")
 
     # --------------------------------------------------------------------------
-    def runSteepestDescentAlgorithm(self):
+    def runSteepestDescentAlgorithm( self ):
 
         # Flags to trigger proper function calls
         constraints_given = False
@@ -234,21 +234,15 @@ class VertexMorphingMethod:
 
             timeAtStartOfCurrentOptimizationStep = time.time()
 
-            self.controller.deactivateAllRequests()
-            self.controller.setRequestForFunctionValueOf( only_F_id )
-            self.controller.setRequestForGradientOf( only_F_id )
+            self.communicator.deleteAllRequests()
+            self.communicator.requestFunctionValueOf(only_F_id)
+            self.communicator.requestGradientOf(only_F_id)   
 
-            # Initialize response container
-            response = self.controller.create_response_container()          
-
-            # Start analyzer according to specified controls
             iterator = str(opt_itr) + ".0"
-            self.analyzer( X, self.controller.getControls(), iterator, response )
+            self.analyzer(X, self.communicator.getControls(), iterator, response)
 
-            # Store gradients on the nodes of the model_part
-            self.storeGradientsOnNodes( response[only_F_id]["gradient"] )
+            self.storeGradientsOnNodes( self.communicator.getReportedGradientOf[only_F_id] )
 
-            # Compute unit surface normals at each node of current design
             self.geom_utils.compute_unit_surface_normals()
 
             # Project received gradients on unit surface normal at each node to obtain normal gradients
@@ -335,7 +329,7 @@ class VertexMorphingMethod:
                 initial_f = response[only_F_id]["value"]
 
     # --------------------------------------------------------------------------
-    def runAugmentedLagrangeAlgorithm(self):
+    def runAugmentedLagrangeAlgorithm( self ):
 
         # README!!!
         # Note that the current implementation assumes that only one scalar objective & constraint is present
@@ -409,21 +403,21 @@ class VertexMorphingMethod:
                 # Start measuring time needed for current suboptimization step
                 subopt_start_time = time.time()
 
-                # Set controller to evaluate objective and constraint
-                self.controller.initializeControls()
-                self.controller.getControls()[only_F_id]["calculateValue"] = 1
-                self.controller.getControls()[only_C_id]["calculateValue"] = 1
+                # Set communicator to evaluate objective and constraint
+                self.communicator.initializeControls()
+                self.communicator.getControls()[only_F_id]["calculateValue"] = 1
+                self.communicator.getControls()[only_C_id]["calculateValue"] = 1
 
-                # Set controller to evaluate objective and constraint gradient
-                self.controller.getControls()[only_F_id]["calculateGradient"] = 1
-                self.controller.getControls()[only_C_id]["calculateGradient"] = 1                
+                # Set communicator to evaluate objective and constraint gradient
+                self.communicator.getControls()[only_F_id]["calculateGradient"] = 1
+                self.communicator.getControls()[only_C_id]["calculateGradient"] = 1                
 
                 # Initialize response container
-                response = self.controller.create_response_container()          
+                response = self.communicator.create_response_container()          
 
                 # Start analyzer according to specified controls
                 iterator = str(opt_itr) + "." + str(sub_opt_itr)
-                self.analyzer( X, self.controller.getControls(), iterator, response )
+                self.analyzer( X, self.communicator.getControls(), iterator, response )
 
                 # Evaluate Lagrange function
                 l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
@@ -529,7 +523,7 @@ class VertexMorphingMethod:
             print("\n> Time needed for current optimization step = ",round(timeAtEndOfCurrentOptimizationStep - timeAtStartOfCurrentOptimizationStep,2),"s")
 
     # --------------------------------------------------------------------------
-    def runPenalizedProjectionAlgorithm(self):
+    def runPenalizedProjectionAlgorithm( self ):
 
         # README!!!
         # Note that the current implementation assumes that only one scalar objective & constraint is present
@@ -586,21 +580,21 @@ class VertexMorphingMethod:
 
             timeAtStartOfCurrentOptimizationStep = time.time()
 
-            # Set controller to evaluate objective and constraint
-            self.controller.initializeControls()
-            self.controller.getControls()[only_F_id]["calculateValue"] = 1
-            self.controller.getControls()[only_C_id]["calculateValue"] = 1
+            # Set communicator to evaluate objective and constraint
+            self.communicator.initializeControls()
+            self.communicator.getControls()[only_F_id]["calculateValue"] = 1
+            self.communicator.getControls()[only_C_id]["calculateValue"] = 1
 
-            # Set controller to evaluate objective and constraint gradient
-            self.controller.getControls()[only_F_id]["calculateGradient"] = 1
-            self.controller.getControls()[only_C_id]["calculateGradient"] = 1                
+            # Set communicator to evaluate objective and constraint gradient
+            self.communicator.getControls()[only_F_id]["calculateGradient"] = 1
+            self.communicator.getControls()[only_C_id]["calculateGradient"] = 1                
 
             # Initialize response container
-            response = self.controller.create_response_container()          
+            response = self.communicator.create_response_container()          
 
             # Start analyzer according to specified controls
             iterator = str(opt_itr) + ".0"
-            self.analyzer( X, self.controller.getControls(), iterator, response )
+            self.analyzer( X, self.communicator.getControls(), iterator, response )
 
             # Check if constraint is active
             for func_id in self.optimizationSettings.constraints:
@@ -710,7 +704,7 @@ class VertexMorphingMethod:
             if(opt_itr==1):
                 initial_f = response[only_F_id]["value"]            
     # --------------------------------------------------------------------------
-    def storeGradientsOnNodes(self,objective_grads,constraint_grads={}):
+    def storeGradientsOnNodes( self,objective_grads,constraint_grads={} ):
 
         # Read objective gradients
         eucledian_norm_obj_sens = 0.0
@@ -744,7 +738,7 @@ class VertexMorphingMethod:
                 self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
 
     # --------------------------------------------------------------------------
-    def addVariablesNeededForOptimization(self):
+    def addVariablesNeededForOptimization( self ):
         self.inputModelPart.AddNodalSolutionStepVariable(NORMAL)
         self.inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
         self.inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
@@ -764,7 +758,7 @@ class VertexMorphingMethod:
         self.inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
         
     # --------------------------------------------------------------------------
-    def outputInformationAboutResponseFunctions(self):
+    def outputInformationAboutResponseFunctions( self ):
         print("> The following objectives are defined:\n")
         for func_id in self.optimizationSettings.objectives:
             print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
@@ -777,7 +771,7 @@ class VertexMorphingMethod:
             print("> No constraints defined.\n")
 
     # --------------------------------------------------------------------------
-    def getDesign(self):
+    def getDesign( self ):
 
         # Read and return the current design in the corresponding mode
         X = {}
@@ -798,40 +792,66 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
 
 # ==============================================================================
-class Controller:
+class Communicator:
 
     # --------------------------------------------------------------------------
     def __init__( self, optimizationSettings ):
-        self.controls = {}
+        self.initializeListOfRequests( optimizationSettings )
+        self.initializeListOfResponses( optimizationSettings )
+
+    # --------------------------------------------------------------------------
+    def initializeListOfRequests( self, optimizationSettings ):
+        self.listOfRequests = {}
         for functionId in optimizationSettings.objectives:
-            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}
+            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
         for functionId in optimizationSettings.constraints:
-            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}            
+            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    def deactivateAllControls( self ):
-        for functionId in self.controls:
-            self.controls[functionId] = {"calculateValue": False, "calculateGradient": False}
+    def initializeListOfResponses( self, optimizationSettings ):
+        self.response_container = {}       
+        for func_id in optimizationSettings.objectives:
+            self.response_container[func_id] = {}
+        for func_id in optimizationSettings.constraints:
+            self.response_container[func_id] = {}          
+        for func_id in self.response_container:
+            self.response_container[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+    
+    # --------------------------------------------------------------------------
+    def deleteAllRequests( self ):
+        for functionId in self.listOfRequests:
+            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    def setRequestForFunctionValueOf( functionId ):
-            self.controls[functionId]["calculateValue"] = True
+    def requestFunctionValueOf( self, functionId ):
+        self.listOfRequests[functionId]["calculateValue"] = True
 
     # --------------------------------------------------------------------------
-    def setRequestForGradientOf( functionId ):
-            self.controls[functionId]["calculateGradient"] = True
+    def requestGradientOf( self, functionId ):
+        self.listOfRequests[functionId]["calculateGradient"] = True
     # --------------------------------------------------------------------------
-    def requestsFunctionValueOf( functionId ):
-            return self.controls[functionId]["calculateValue"]
+    def isRrequestingFunctionValueOf( self, functionId ):
+        return self.listOfRequests[functionId]["calculateValue"]
 
     # --------------------------------------------------------------------------
-    def requestsGradientOf( functionId ):
-            return self.controls[functionId]["calculateGradient"]
+    def isRrequestingGradientOf( self, functionId ):
+        return self.listOfRequests[functionId]["calculateGradient"]
 
     # --------------------------------------------------------------------------
-    def getControls( self ):
+    def reportFunctionValue( self, functionId, functionValue ):
+        self.response_container[func_id]["value"] = functionValue
 
-        return self.controls
+    # --------------------------------------------------------------------------
+    def reportGradient( self, functionId, gradient ):
+        self.response_container[func_id]["gradient"] = gradient
+
+    # --------------------------------------------------------------------------
+    def getReportedFunctionValueOf( functionId ):
+        return self.response_container[func_id]["value"]
+
+    # --------------------------------------------------------------------------
+    def getReportedGradientOf( functionId ):
+        return self.response_container[func_id]["gradient"]
 
     # --------------------------------------------------------------------------
 
@@ -839,10 +859,12 @@ class Controller:
 class Analyzer:
 
     # --------------------------------------------------------------------------
-    def __init__( self, FunctionForDesignAnalysis, optimizationSettings ):
-
+    def __init__( self, importedFunctionForDesignAnalysis, optimizationSettings ):
         self.optimizationSettings = optimizationSettings
-        self.analyzeDesignAndRespondToOptimizer = FunctionForDesignAnalysis
+        self.importedFunctionForDesignAnalysis = importedFunctionForDesignAnalysis
+
+    def analyzeDesignAndReportToCommunicator( currentDesign, optimizationIteration, communicator )
+        self.importedFunctionForDesignAnalysis( currentDesign, optimizationIteration, communicator )
 
     # -------------------------------------------------------------------------
 
