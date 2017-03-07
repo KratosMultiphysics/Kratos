@@ -44,7 +44,7 @@ CSM_solver.AddVariables()
 import optimization_settings
 
 # # Initalize model_part here to have it available for further use in this main script
-# main_model_part = ModelPart(optimization_settings.input_model_part_name)
+# input_model_part = ModelPart(optimization_settings.input_model_part_name)
 
 # Create an optimizer 
 # Note that internally variables related to the optimizer are added to the model part
@@ -147,6 +147,45 @@ gid_output.ExecuteBeforeSolutionLoop()
 # ======================================================================================================================================
 
 # --------------------------------------------------------------------------
+class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+
+        # Calculation of primals
+        if(communicator.isRequestingFunctionValueOf("strain_energy")):
+
+            print("\n> Starting to update the mesh")
+            startTime = timer.time()
+            updateMeshOfMainModelPart( currentDesign )
+            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+
+            print("\n> Starting SolidMechanicsApplication to solve structure")
+            startTime = timer.time()
+            solveStructure( optimizationIteration )
+            print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
+
+            print("\n> Starting calculation of response value")
+            startTime = timer.time()                    
+            responseFunctionSolver["strain_energy"].calculate_value()
+            print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
+
+            communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())    
+
+        # Calculation of gradients
+        if(communicator.isRequestingGradientOf("strain_energy")): 
+
+            print("\n> Starting calculation of gradients")
+            startTime = timer.time()               
+            responseFunctionSolver["strain_energy"].calculate_gradient()
+            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+            
+            gradientForCompleteModelPart = responseFunctionSolver["strain_energy"].get_gradient()
+            gradientOnDesignSurface = {}
+            for node_id in currentDesign.keys():
+                gradientOnDesignSurface[node_id] = gradientForCompleteModelPart[node_id]
+
+            communicator.reportGradient("strain_energy", gradientOnDesignSurface)
+
+# --------------------------------------------------------------------------
 def updateMeshOfMainModelPart( currentDesign ):
     for node_id in currentDesign.keys():
         node = main_model_part.Nodes[node_id]
@@ -197,64 +236,11 @@ def finalizeStructureAnalysis():
     gid_output.ExecuteFinalize()
 
 # --------------------------------------------------------------------------
-class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
-        # Calculation of primals
-        if(communicator.isRequestingFunctionValueOf("strain_energy")):
-
-            print("\n> Starting calculation of response value")
-            
-            startTime = timer.time()        
-
-            updateMeshOfMainModelPart( currentDesign )
-
-            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
-            print("\n> Start SolidMechanicsApplication to solve structure")
-
-            startTime = timer.time()
-
-            solveStructure( optimizationIteration )
-
-            responseFunctionSolver["strain_energy"].calculate_value()
-
-            communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())
-
-            print("> Time needed for calculating structural response = ",round(timer.time() - startTime,2),"s")        
-
-        # Calculation of gradients
-        if(communicator.isRequestingGradientOf("strain_energy")): 
-
-            print("\n> Starting calculation of gradients")
-            startTime = timer.time()               
-
-            responseFunctionSolver["strain_energy"].calculate_gradient()
-            
-            gradientForCompleteModelPart = responseFunctionSolver["strain_energy"].get_gradient()
-            gradientOnDesignSurface = {}
-            for node_id in currentDesign.keys():
-                gradientOnDesignSurface[node_id] = gradientForCompleteModelPart[node_id]
-
-            communicator.reportGradient("strain_energy", gradientOnDesignSurface)
-
-            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
-
-# --------------------------------------------------------------------------
-
-newAnalyzer = kratosCSMAnalyzer()
-
-print("\n> ==============================================================================================================")
-print("> Starting optimization")
-print("> ==============================================================================================================\n")
-
+structureAnalyzer = kratosCSMAnalyzer()
+optimizer.importAnalyzer( structureAnalyzer )
 # optimizer.importModelPart()
-optimizer.importAnalyzer( newAnalyzer )
 optimizer.optimize()
-
-print("\n> ==============================================================================================================")
-print("> Finished shape optimization!")
-print("> ==============================================================================================================\n")
-
 finalizeStructureAnalysis()
 
 # ======================================================================================================================================

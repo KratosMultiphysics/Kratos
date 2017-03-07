@@ -66,16 +66,9 @@ import time
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-
-    # Create folder where all functions includig the optimizer may store their design history in
-    os.system( "rm -rf " + optimizationSettings.design_history_directory )
-    os.system( "mkdir -p " + optimizationSettings.design_history_directory )
-
-    # Create optimizer according to selected optimization method
     if( optimizationSettings.design_control == "vertex_morphing" ):
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
-
     else:
         sys.exit( "Specified design_control not implemented" )
 
@@ -100,8 +93,6 @@ class VertexMorphingMethod:
 
         self.addVariablesNeededForOptimization()
 
-        self.outputInformationAboutResponseFunctions()
-
     # --------------------------------------------------------------------------
     def addVariablesNeededForOptimization( self ):
         self.inputModelPart.AddNodalSolutionStepVariable(NORMAL)
@@ -121,19 +112,6 @@ class VertexMorphingMethod:
         self.inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
         self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
         self.inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
-        
-    # --------------------------------------------------------------------------
-    def outputInformationAboutResponseFunctions( self ):
-        print("> The following objectives are defined:\n")
-        for func_id in self.optimizationSettings.objectives:
-            print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
-
-        if( len(self.optimizationSettings.constraints)!=0 ):
-            print("> The following constraints are defined:\n")
-            for func_id in self.optimizationSettings.constraints:
-                print(func_id,":",self.optimizationSettings.constraints[func_id],"\n")
-        else:
-            print("> No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
@@ -176,6 +154,12 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def prepareOptimization( self ):
+
+        self.outputInformationAboutResponseFunctions()
+
+        # Create folder where all functions includig the optimizer may store their design history in
+        os.system( "rm -rf " + self.optimizationSettings.design_history_directory )
+        os.system( "mkdir -p " + self.optimizationSettings.design_history_directory )
 
         # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
         if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
@@ -223,6 +207,19 @@ class VertexMorphingMethod:
 
         # Toolbox to pre & post process geometry data
         self.geom_utils = GeometryUtilities(self.optimizationModelPart)
+        
+    # --------------------------------------------------------------------------
+    def outputInformationAboutResponseFunctions( self ):
+        print("> The following objectives are defined:\n")
+        for func_id in self.optimizationSettings.objectives:
+            print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
+
+        if( len(self.optimizationSettings.constraints)!=0 ):
+            print("> The following constraints are defined:\n")
+            for func_id in self.optimizationSettings.constraints:
+                print(func_id,":",self.optimizationSettings.constraints[func_id],"\n")
+        else:
+            print("> No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
@@ -295,17 +292,13 @@ class VertexMorphingMethod:
 
             self.geom_utils.compute_unit_surface_normals()
 
-            # self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
+            self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
 
             self.mapper.compute_mapping_matrix()
 
             self.mapper.map_sensitivities_to_design_space( constraints_given )
 
             self.opt_utils.compute_search_direction_steepest_descent()
-
-            # # Adjustment of step size
-            # if( optItr > 1 and valueOfObjectiveFunction>previousValueOfObjectiveFunction):
-            #     self.optimizationSettings.step_size = self.optimizationSettings.step_size/2
 
             self.opt_utils.compute_design_update()
 
@@ -352,15 +345,15 @@ class VertexMorphingMethod:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
-                # # Check for relative tolerance
-                # if( abs(delta_f_relative) < self.optimizationSettings.relative_tolerance_objective ):
-                #     print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
-                #     break
+                # Check for relative tolerance
+                if( abs(delta_f_relative) < self.optimizationSettings.relative_tolerance_objective ):
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
+                    break
 
-                # # Check if value of objective increases
-                # if( valueOfObjectiveFunction > previousValueOfObjectiveFunction ):
-                #     print("\n> Value of objective function increased!")
-                #     break
+                # Check if value of objective increases
+                if( valueOfObjectiveFunction > previousValueOfObjectiveFunction ):
+                    print("\n> Value of objective function increased!")
+                    break
 
             # Update design
             currentDesign = self.getDesign()
@@ -789,10 +782,14 @@ class VertexMorphingMethod:
 
         if(self.optimizationSettings.design_output_mode=="relative"):
             for node in self.optimizationModelPart.Nodes:
+                currentDesign[node.Id] = node.GetSolutionStepValue(SHAPE_UPDATE)
+
+        elif(self.optimizationSettings.design_output_mode=="total"):
+            for node in self.opt_model_part.Nodes:
                 currentDesign[node.Id] = node.GetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)
 
         elif(self.optimizationSettings.design_output_mode=="absolute"):
-            for node in self.optimizationModelPart.Nodes:
+            for node in self.opt_model_part.Nodes:
                 currentDesign[node.Id] = [node.X,node.Y,node.Z]
 
         else:
