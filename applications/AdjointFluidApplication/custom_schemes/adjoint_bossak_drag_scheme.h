@@ -75,7 +75,7 @@ namespace Kratos
  *
  * The adjoint Bossak equations are:
  * \f[
- *  \frac{1}{\gamma - 1} (\dot{\lambda}^n - \dot{\lambda}^{n+1}) + (\partial_{\mathbf{w}^n}\mathbf{f}^n - \partial_{\mathbf{w}^n}(\mathbf{M}\dot{\mathbf{w}}^{n-\alpha}))^T \lambda^n = -\partial_{\mathbf{w}^n}J^{nT}
+ *  \frac{1}{\gamma - 1} (\dot{\lambda}^n - \dot{\lambda}^{n+1}) + (\partial_{\mathbf{w}^n}\mathbf{f}^n - \partial_{\mathbf{w}^n}(\mathbf{M}^n\dot{\mathbf{w}}^{n-\alpha}))^T \lambda^n = -\partial_{\mathbf{w}^n}J^{nT}
  * \f]
  * \f[
  *  \frac{1}{\gamma - 1} \dot{\lambda}^n = \frac{1}{\gamma} \dot{\lambda}^{n+1} - \frac{1 - \alpha}{\gamma \Delta t}M^{nT} \lambda^n - \frac{\alpha}{\gamma \Delta t}M^{(n+1)T} \lambda^{n+1} + \frac{1}{\gamma \Delta t}\partial_{\dot{\mathbf{w}}^n}J^{nT} + \frac{1}{\gamma \Delta t}\partial_{\dot{\mathbf{w}}^n}J^{(n+1)T}
