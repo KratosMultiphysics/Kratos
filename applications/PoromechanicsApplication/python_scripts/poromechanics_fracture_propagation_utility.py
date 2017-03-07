@@ -130,8 +130,9 @@ class FracturePropagationUtility:
             # Call GiD to generate new mesh
             import subprocess
             os.chdir(self.gid_path)
-            #subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -n2 -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            #~ subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            #~ subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            subprocess.call(str(self.execute_gid) + " -c " + str(self.gid_preferences_path) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             os.chdir(self.problem_path)
             
             # Overwrite last state files with new problem files

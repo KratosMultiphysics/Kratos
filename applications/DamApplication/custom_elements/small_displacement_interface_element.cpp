@@ -285,7 +285,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
         
         JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
         
-        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint); //TODO PORQUE ES TDim -1
+        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         noalias(Np) = row(NContainer,GPoint);
         
@@ -627,7 +627,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR ) // TODO: FLAGS ESPECIALES???
+    if(rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
@@ -1102,9 +1102,36 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::nume
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
+        
+    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
     
-    rRotationMatrix(1,0) = -Vx[1];
-    rRotationMatrix(1,1) = Vx[0];
+    // Unitary vector in local x direction (3D)
+    array_1d<double, 3> Vx3D;
+    Vx3D[0] = Vx[0];
+    Vx3D[1] = Vx[1];
+    Vx3D[2] = 0.0;
+    
+    // Unitary vector in local y direction (first option)
+    array_1d<double, 3> Vy3D;
+    Vy3D[0] = -Vx[1];
+    Vy3D[1] = Vx[0];
+    Vy3D[2] = 0.0;
+    
+    // Vector in global z direction (first option)
+    array_1d<double, 3> Vz;
+    MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
+    
+    // Vz must have the same sign as vector (0,0,1)
+    if(Vz[2] > 0.0)
+    {
+        rRotationMatrix(1,0) = -Vx[1];
+        rRotationMatrix(1,1) = Vx[0];
+    }
+    else
+    {
+        rRotationMatrix(1,0) = Vx[1];
+        rRotationMatrix(1,1) = -Vx[0];
+    }
     
     KRATOS_CATCH( "" )
 }
