@@ -90,11 +90,8 @@ def analyzer(X,controls,iterator,response):
 
     # ------------------------------------------------------------------------------------------------------ 
 
-# Initalize model_part here to have it available for further use in this main script
-design_surface = ModelPart("design_surface")
-
 # Create an optimizer object 
-optimizer = optimizer_factory.CreateOptimizer(design_surface,opt_settings,analyzer)
+optimizer = optimizer_factory.CreateOptimizer(opt_settings,analyzer)
 
 print("\n> ==============================================================================================================")
 print("> Starting optimization")

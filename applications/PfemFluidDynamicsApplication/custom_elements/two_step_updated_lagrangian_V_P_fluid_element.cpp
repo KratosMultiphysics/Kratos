@@ -453,50 +453,89 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     double Mij  = Weight/ coeff;
     GeometryType& rGeom = this->GetGeometry();
 
+
       if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
-	BoundLHSMatrix(0,0) +=  Mij;
-	BoundLHSMatrix(1,1) +=  Mij;
+	if(rGeom[0].IsNot(INLET))
+	  BoundLHSMatrix(0,0) +=  Mij;
+	if(rGeom[1].IsNot(INLET))
+	  BoundLHSMatrix(1,1) +=  Mij;
       }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-	BoundLHSMatrix(0,0) +=  Mij;
-	BoundLHSMatrix(2,2) +=  Mij;
+	if(rGeom[0].IsNot(INLET))
+	  BoundLHSMatrix(0,0) +=  Mij;
+	if(rGeom[2].IsNot(INLET))
+	  BoundLHSMatrix(2,2) +=  Mij;
       }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-	BoundLHSMatrix(1,1) +=  Mij;
-	BoundLHSMatrix(2,2) +=  Mij;
+	if(rGeom[1].IsNot(INLET))
+	  BoundLHSMatrix(1,1) +=  Mij;
+	if(rGeom[2].IsNot(INLET))
+	  BoundLHSMatrix(2,2) +=  Mij;
       }
+
+   // if(rGeom[0].IsNot(INLET)  && rGeom[1].IsNot(INLET)  && rGeom[2].IsNot(INLET) ){
+
+    //   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
+    // 	if(rGeom[0].IsNot(INLET))
+    // 	  BoundLHSMatrix(0,0) +=  Mij;
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundLHSMatrix(1,1) +=  Mij;
+    //   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+    // 	if(rGeom[0].IsNot(INLET))
+    // 	  BoundLHSMatrix(0,0) +=  Mij;
+    // 	if(rGeom[2].IsNot(INLET))
+    // 	  BoundLHSMatrix(2,2) +=  Mij;
+    //   }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+    // 	if(rGeom[1].IsNot(INLET))
+    // 	  BoundLHSMatrix(1,1) +=  Mij;
+    // 	if(rGeom[2].IsNot(INLET))
+    // 	  BoundLHSMatrix(2,2) +=  Mij;
+    //   }
+    // }
   }
 
- template<  >
+  template<  >
   void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
-									   const ShapeFunctionsType& rN,
-									   const double Weight)
- {
-   const SizeType NumNodes = this->GetGeometry().PointsNumber();
-   double coeff=1.0+3.0;
-   double Mij  = Weight/ coeff;
-   GeometryType& rGeom = this->GetGeometry();
+									const ShapeFunctionsType& rN,
+									const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    double coeff=1.0+3.0;
+    double Mij  = Weight/ coeff;
+    GeometryType& rGeom = this->GetGeometry();
 
-     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-       BoundLHSMatrix(0,0) +=  Mij;
-       BoundLHSMatrix(1,1) +=  Mij;
-       BoundLHSMatrix(2,2) +=  Mij;
-     }
-     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-       BoundLHSMatrix(0,0) +=  Mij;
-       BoundLHSMatrix(1,1) +=  Mij;
-       BoundLHSMatrix(3,3) +=  Mij;
-     }
-     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-       BoundLHSMatrix(0,0) +=  Mij;
-       BoundLHSMatrix(2,2) +=  Mij;
-       BoundLHSMatrix(3,3) +=  Mij;
-     }
-     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
-       BoundLHSMatrix(1,1) +=  Mij;
-       BoundLHSMatrix(2,2) +=  Mij;
-       BoundLHSMatrix(3,3) +=  Mij;
-     }
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+      if(rGeom[0].IsNot(INLET))
+	BoundLHSMatrix(0,0) +=  Mij;
+      if(rGeom[1].IsNot(INLET))
+	BoundLHSMatrix(1,1) +=  Mij;
+      if(rGeom[2].IsNot(INLET))
+	BoundLHSMatrix(2,2) +=  Mij;
+    }
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      if(rGeom[0].IsNot(INLET))
+	BoundLHSMatrix(0,0) +=  Mij;
+      if(rGeom[1].IsNot(INLET))
+	BoundLHSMatrix(1,1) +=  Mij;
+      if(rGeom[3].IsNot(INLET))
+	BoundLHSMatrix(3,3) +=  Mij;
+    }
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      if(rGeom[0].IsNot(INLET))
+	BoundLHSMatrix(0,0) +=  Mij;
+      if(rGeom[2].IsNot(INLET))
+	BoundLHSMatrix(2,2) +=  Mij;
+      if(rGeom[3].IsNot(INLET))
+	BoundLHSMatrix(3,3) +=  Mij;
+    }
+    if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      if(rGeom[1].IsNot(INLET))
+	BoundLHSMatrix(1,1) +=  Mij;
+      if(rGeom[2].IsNot(INLET))
+	BoundLHSMatrix(2,2) +=  Mij;
+      if(rGeom[3].IsNot(INLET))
+	BoundLHSMatrix(3,3) +=  Mij;
+    }
 
- }
+  }
  
 
 
@@ -522,27 +561,43 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundRHSVector(VectorType
   // VectorType ElementalAcceleration = ZeroVector(2);
   // this->GetElementalAcceleration(ElementalAcceleration,0,TimeStep);
 
+
   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
-    BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
+
+
+
+    //to change into moving wall!!!!!//to change into moving wall!!!!!
+    //to change into moving wall!!!!!//to change into moving wall!!!!!//to change into moving wall!!!!!
+    //to change into moving wall!!!!!
+    //to change into moving wall!!!!!//to change into moving wall!!!!!//to change into moving wall!!!!!
+    //to change into moving wall!!!!!//to change into moving wall!!!!!
+    //to change into moving wall!!!!!//to change into moving wall!!!!!//to change into moving wall!!!!!
+    if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
+    if(rGeom[1].IsNot(INLET))
+      BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
   }else  if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
-    BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
+    if(rGeom[0].IsNot(INLET))
+      BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
+    if(rGeom[2].IsNot(INLET))   
+      BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
   }else  if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
     AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
     NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
-    BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
+    if(rGeom[1].IsNot(INLET))
+      BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev)/coeff ;
+    if(rGeom[2].IsNot(INLET))
+      BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0]+AccB[1]*NormalB[1]) + BoundRHSCoeffDev)/coeff ;
   }
 
 
@@ -582,12 +637,15 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalC    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-			  BoundRHSCoeffDev)/coeff;
+    if(rGeom[0].IsNot(INLET))
+      BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[1].IsNot(INLET))
+      BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[2].IsNot(INLET))
+      BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
+			    BoundRHSCoeffDev)/coeff;
   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
@@ -595,12 +653,15 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-			  BoundRHSCoeffDev)/coeff;
+    if(rGeom[0].IsNot(INLET))
+      BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[1].IsNot(INLET))
+      BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[3].IsNot(INLET))
+      BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
+			    BoundRHSCoeffDev)/coeff;
   }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
     AccA= 0.5/TimeStep*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
@@ -608,12 +669,15 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
     NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-			  BoundRHSCoeffDev)/coeff;
+    if(rGeom[0].IsNot(INLET))
+      BoundRHSVector[0] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[2].IsNot(INLET))
+      BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[3].IsNot(INLET))
+      BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
+			    BoundRHSCoeffDev)/coeff;
   }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
     AccA= 0.5/TimeStep*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
     AccB= 0.5/TimeStep*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
@@ -621,12 +685,15 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType
     NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
     NormalC    = rGeom[3].FastGetSolutionStepValue(NORMAL);
-    BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
-			  BoundRHSCoeffDev)/coeff;
-    BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
-			  BoundRHSCoeffDev)/coeff;
+    if(rGeom[1].IsNot(INLET))
+      BoundRHSVector[1] += (BoundRHSCoeffAcc*(AccA[0]*NormalA[0] + AccA[1]*NormalA[1] + AccA[2]*NormalA[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[2].IsNot(INLET))
+      BoundRHSVector[2] += (BoundRHSCoeffAcc*(AccB[0]*NormalB[0] + AccB[1]*NormalB[1] + AccB[2]*NormalB[2]) +
+			    BoundRHSCoeffDev)/coeff;
+    if(rGeom[3].IsNot(INLET))
+      BoundRHSVector[3] += (BoundRHSCoeffAcc*(AccC[0]*NormalC[0] + AccC[1]*NormalC[1] + AccC[2]*NormalC[2]) +
+			    BoundRHSCoeffDev)/coeff;
   }
 
 

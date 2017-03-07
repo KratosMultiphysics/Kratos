@@ -14,7 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
 #if !defined(KRATOS_QUADRILATERAL_2D_9_H_INCLUDED )
 #define  KRATOS_QUADRILATERAL_2D_9_H_INCLUDED
 
@@ -220,8 +219,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 9 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 9, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 9, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -529,8 +527,7 @@ public:
         case 8:
             return( fx3*fy3 );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" , *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;

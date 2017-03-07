@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TRIANGLE_2D_3_H_INCLUDED )
 #define  KRATOS_TRIANGLE_2D_3_H_INCLUDED
 
@@ -221,8 +219,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 3, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -801,9 +798,7 @@ public:
         case 2:
             return( rPoint[1] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" ,
-                                *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;

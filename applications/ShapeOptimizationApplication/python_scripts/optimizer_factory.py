@@ -68,43 +68,51 @@ import time
 class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self,opt_model_part,config,analyzer):
+    def __init__(self,config,analyzer):
 
         # For GID output
-        self.gid_io = GiDOutput(config.design_surface_name,
+        self.gid_io = GiDOutput(config.design_surface_sub_model_name,
                                 config.VolumeOutput,
                                 config.GiDPostMode,
                                 config.GiDMultiFileFlag,
                                 config.GiDWriteMeshFlag,
                                 config.GiDWriteConditionsFlag)
 
-        # Add variables needed for shape optimization
-        opt_model_part.AddNodalSolutionStepVariable(NORMAL)
-        opt_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        opt_model_part.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        opt_model_part.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        opt_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        opt_model_part.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
-        opt_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        opt_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        opt_model_part.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        opt_model_part.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
+        # Initalize model parts
+        input_model_part = ModelPart(config.model_input_filename)
 
+        # Add variables needed for shape optimization
+        input_model_part.AddNodalSolutionStepVariable(NORMAL)
+        input_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        input_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
+        input_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
+        input_model_part.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
+        input_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
+        input_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
+        input_model_part.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
+        input_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE)
+        input_model_part.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
+        input_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
+        input_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
+        input_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+        input_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
+        input_model_part.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
+        input_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
+        input_model_part.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
         
-        # Read and print model part (design surface)
+        # Read model input
         buffer_size = 1
-        model_part_io = ModelPartIO(config.design_surface_name)
-        model_part_io.ReadModelPart(opt_model_part)
-        opt_model_part.SetBufferSize(buffer_size)
-        opt_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,config.domain_size)
-        print("\nThe following design surface was defined:\n\n",opt_model_part)
+        model_part_io = ModelPartIO(config.model_input_filename)
+        model_part_io.ReadModelPart(input_model_part)
+        input_model_part.SetBufferSize(buffer_size)
+        input_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,config.domain_size)
+
+        # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
+        if( input_model_part.HasSubModelPart(config.design_surface_sub_model_name) ):
+            self.opt_model_part = input_model_part.GetSubModelPart(config.design_surface_sub_model_name)
+            print("\nThe following design surface was defined:\n\n",self.opt_model_part)
+        else:
+            raise RuntimeError("Sub-model part specified for optimization does not exist!")
 
         # Set configurations
         self.config = config
@@ -116,28 +124,51 @@ class VertexMorphingMethod:
         self.objectives = config.objectives
         self.constraints = config.constraints
 
+        # Print information about response functions
         print("> The following objectives are defined:\n")
         for func_id in config.objectives:
             print(func_id,":",config.objectives[func_id],"\n")
 
-        print("> The following constraints are defined:\n")
-        for func_id in config.constraints:
-            print(func_id,":",config.constraints[func_id],"\n")
+        if( len(config.constraints)!=0 ):
+            print("> The following constraints are defined:\n")
+            for func_id in config.constraints:
+                print(func_id,":",config.constraints[func_id],"\n")
+        else:
+            print("> No constraints defined.\n")
 
         # Create controller object
-        self.controller = Controller( config );  
+        self.controller = Controller( config ); 
 
-        # Model parameters 
-        self.opt_model_part = opt_model_part
+        # Identify possible damping regions and if necessary list corresponding sub-model parts and settings
+        damping_regions = []
+        if(self.config.perform_damping):
+            print("\n> The following damping regions are defined: \n")
+            for region in self.config.damping_regions:
+                sub_mdpa_name = region[0]
+                damp_in_X = region[1]
+                damp_in_Y = region[2]
+                damp_in_Z = region[3]
+                damping_function = region[4]
+                damping_radius = region[5]
+                if( input_model_part.HasSubModelPart(sub_mdpa_name) ):
+                    print(region)
+                    damping_regions.append( [ input_model_part.GetSubModelPart(sub_mdpa_name), 
+                                            damp_in_X, 
+                                            damp_in_Y, 
+                                            damp_in_Z, 
+                                            damping_function, 
+                                            damping_radius] )
+                else:
+                    raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)
 
         # Create mapper to map between geometry and design space 
         self.mapper = VertexMorphingMapper( self.opt_model_part,
                                             self.config.filter_function,
                                             self.config.use_mesh_preserving_filter_matrix,
                                             self.config.filter_size,
-                                            self.config.perform_edge_damping,
-                                            self.config.damped_edges )
-
+                                            self.config.perform_damping,
+                                            damping_regions )
+        
         # Toolbox to perform optimization
         self.opt_utils = OptimizationUtilities( self.opt_model_part,
                                                 self.objectives,
@@ -819,7 +850,7 @@ class Controller:
     # --------------------------------------------------------------------------
 
 # ==============================================================================
-def CreateOptimizer( opt_model_part, config, analyzer ):
+def CreateOptimizer( config, analyzer ):
 
     # Create folder where all functions includig the optimizer may store their design history in
     os.system( "rm -rf " + config.design_history_directory )
@@ -827,7 +858,7 @@ def CreateOptimizer( opt_model_part, config, analyzer ):
 
     # Creat optimizer according to selected optimization method
     if( config.design_control == "vertex_morphing" ):
-        optimizer = VertexMorphingMethod( opt_model_part, config, analyzer )
+        optimizer = VertexMorphingMethod( config, analyzer )
         return optimizer
 
     else:

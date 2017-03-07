@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TETRAHEDRA_3D_10_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_3D_10_H_INCLUDED
 
@@ -215,9 +213,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 10 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 10, given " ,
-                                this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -570,8 +566,7 @@ public:
         case 9:
             return( 4*rPoint[1]*rPoint[2] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" , *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
