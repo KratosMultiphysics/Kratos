@@ -24,6 +24,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "includes/gid_io.h"
+#include "utilities/geometry_utilities.h"
 
 
 namespace Kratos {
@@ -234,12 +235,18 @@ namespace Kratos {
 			KRATOS_WATCH(model_part.GetElement(6).GetGeometry());
 			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().DeterminantOfJacobian(0));
 			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().DeterminantOfJacobian(0));
-			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 166.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 166.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 66.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 66.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 33.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 33.);
+			boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+			array_1d<double, 4> N;
+			double Volume;
+				
+			GeometryUtils::CalculateGeometryData(model_part.GetElement(5).GetGeometry(), DN_DX, N, Volume);
+			KRATOS_WATCH(Volume);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 66.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 66.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 99.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 99.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 99.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 99.);
 
 			gid_io.InitializeMesh(1.00);
 			gid_io.WriteMesh(model_part.GetMesh());

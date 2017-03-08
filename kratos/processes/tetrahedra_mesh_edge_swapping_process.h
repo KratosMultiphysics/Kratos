@@ -174,6 +174,10 @@ namespace Kratos
 				  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 					  SwappingCases.SetTetrahedraForCase(*i_case, i, EdgeShell, tetrahedra_1, tetrahedra_2);
 					  double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
+					  if (tetrahedra_1.Volume() < std::numeric_limits<double>::epsilon()) // workaround for issue #126
+						  min_quality = -1000.00;
+					  if (tetrahedra_2.Volume() < std::numeric_limits<double>::epsilon()) // workaround for issue #126
+						  min_quality = -1000.00;
 					  if (min_quality < case_min_quality) {
 						  case_min_quality = min_quality;
 					  }
