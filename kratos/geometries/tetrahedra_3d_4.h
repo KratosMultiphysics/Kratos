@@ -331,8 +331,8 @@ public:
      */
     virtual double Length() const
     {
-        constexpr double factor = 12.0/std::sqrt(2.0);                          //2.0396489026555;  // 12/sqrt(2);
-        return factor * pow(std::fabs(Volume()), 0.33333333333333);            //sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;  // 12/sqrt(2);
+        return  factor * pow(std::fabs(Volume()), 0.33333333333333); //sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
