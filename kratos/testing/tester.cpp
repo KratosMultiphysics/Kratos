@@ -227,19 +227,18 @@ namespace Kratos
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
 		{
 			// creating the regex pattern replacing * with ".*"
-
-#if __cplusplus <= 199711L
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
-#else
-			 std::regex replace_star("\\*");
-			 std::stringstream regex_pattern_string;
-			 std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
-			 	TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
-			 for (auto i_test = GetInstance().mTestCases.begin();
-			 i_test != GetInstance().mTestCases.end(); i_test++)
-			 	if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
-			 		i_test->second->Select();
-#endif
+#else  
+			std::regex replace_star("\\*");
+			std::stringstream regex_pattern_string;
+			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
+				TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
+			for (auto i_test = GetInstance().mTestCases.begin();
+				i_test != GetInstance().mTestCases.end(); i_test++)
+				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
+					i_test->second->Select();
+#endif  
 		}
 
 		void Tester::RunSelectedTestCases()
