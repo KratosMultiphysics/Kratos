@@ -164,14 +164,14 @@ class VertexMorphingMethod:
         # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
         if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
             self.optimizationModelPart = self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
-            print("\nThe following design surface was defined:\n\n",self.optimizationModelPart)
+            print("> The following design surface was defined:\n\n",self.optimizationModelPart)
         else:
             raise RuntimeError("Sub-model part specified for optimization does not exist!")
 
         # Identify possible damping regions and if necessary list corresponding sub-model parts and settings
         damping_regions = []
         if(self.optimizationSettings.perform_damping):
-            print("\n> The following damping regions are defined: \n")
+            print("> The following damping regions are defined: \n")
             for region in self.optimizationSettings.damping_regions:
                 sub_mdpa_name = region[0]
                 damp_in_X = region[1]
@@ -210,7 +210,7 @@ class VertexMorphingMethod:
         
     # --------------------------------------------------------------------------
     def outputInformationAboutResponseFunctions( self ):
-        print("> The following objectives are defined:\n")
+        print("\n> The following objectives are defined:\n")
         for func_id in self.optimizationSettings.objectives:
             print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
 
@@ -225,8 +225,6 @@ class VertexMorphingMethod:
     def runSpecifiedOptimizationAlgorithm( self ):
         if(self.optimizationSettings.optimization_algorithm == "steepest_descent"):
            self.runSteepestDescentAlgorithm()
-        elif(self.optimizationSettings.optimization_algorithm == "augmented_lagrange"):
-           self.runAugmentedLagrangeAlgorithm()
         elif(self.optimizationSettings.optimization_algorithm == "penalized_projection"):
            self.runPenalizedProjectionAlgorithm()           
         else:
@@ -364,200 +362,6 @@ class VertexMorphingMethod:
             # Store initial objective value
             if( optItr==1 ):
                 initialValueOfObjectiveFunction = valueOfObjectiveFunction
-
-    # --------------------------------------------------------------------------
-    def runAugmentedLagrangeAlgorithm( self ):
-
-        # README!!!
-        # Note that the current implementation assumes that only one scalar objective & constraint is present
-
-        # Flags to trigger proper function calls
-        constraints_given = True
-
-        # Get Id of objective
-        only_F_id = None
-        for F_id in self.objectives:
-            only_F_id = F_id
-            break
-
-        # Get Id of constraint
-        only_C_id = None
-        for C_id in self.constraints:
-            only_C_id = C_id
-            break   
-
-        # Initialize the optimization algorithm
-        self.vm_utils.initialize_augmented_lagrange( self.constraints, 
-                                                     self.optimizationSettings.penalty_fac_0, 
-                                                     self.optimizationSettings.gamma, 
-                                                     self.optimizationSettings.penalty_fac_max, 
-                                                     self.optimizationSettings.lambda_0 )
-
-        # Initialize file where design evolution is recorded
-        with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'w') as csvfile:
-            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-            row = []
-            row.append("itr\t")
-            row.append("\tsub_itr\t")
-            row.append("\tl\t")
-            row.append("\tdl_relative[%]\t")
-            row.append("\tf\t")
-            row.append("\tdf_absolute[%]\t")
-            row.append("\tpenalty_fac\t")
-            row.append("\tC["+str(only_C_id)+"]:"+str(self.constraints[only_C_id]["type"])+"\t") 
-            row.append("\tlambda["+str(only_C_id)+"]")
-            historyWriter.writerow(row)  
-
-        # Define initial design (initial design corresponds to a zero shape update)
-        # Note that we assume an incremental design variable in vertex morphing
-        currentDesign = {}
-        for node in self.optimizationModelPart.Nodes:
-            currentDesign[node.Id] = [0.,0.,0.]   
-
-        # Miscellaneous working variables for data management
-        initial_f = 0.0
-        initial_l = 0.0
-        previous_l = 0.0         
-
-        # Start primary optimization loop
-        for optItr in range(1,self.optimizationSettings.max_opt_iterations+1):
-
-            # Some output
-            print("\n>===================================================================")
-            print("> ",time.ctime(),": Starting optimization iteration ",optItr)
-            print(">===================================================================\n")
-
-            timeAtStartOfCurrentOptimizationStep = time.time()
-
-            # Solve optimization subproblem
-            for sub_opt_itr in range(1,self.optimizationSettings.max_sub_opt_iterations+1):
-
-                # Some output
-                print("\n>===============================================")
-                print("> Starting suboptimization iteration ",sub_opt_itr)
-                print(">===============================================\n")
-
-                # Start measuring time needed for current suboptimization step
-                subopt_start_time = time.time()
-
-                # Set communicator to evaluate objective and constraint
-                self.communicator.initializeControls()
-                self.communicator.getControls()[only_F_id]["calculateValue"] = 1
-                self.communicator.getControls()[only_C_id]["calculateValue"] = 1
-
-                # Set communicator to evaluate objective and constraint gradient
-                self.communicator.getControls()[only_F_id]["calculateGradient"] = 1
-                self.communicator.getControls()[only_C_id]["calculateGradient"] = 1                
-
-                # Initialize response container
-                response = self.communicator.create_response_container()          
-
-                # Start analyzer according to specified controls
-                iterator = str(optItr) + "." + str(sub_opt_itr)
-                self.analyzer( currentDesign, self.communicator.getControls(), iterator, response )
-
-                # Evaluate Lagrange function
-                l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
-
-                # Store gradients on the nodes of the model_part
-                self.storeGradientsOnNodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
-
-                # Compute unit surface normals at each node of current design
-                self.geom_utils.compute_unit_surface_normals()
-
-                # Project received gradients on unit surface normal at each node to obtain normal gradients
-                self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
-
-                # Compute mapping matrix
-                self.mapper.compute_mapping_matrix()
-
-                # Map sensitivities to design space
-                self.mapper.map_sensitivities_to_design_space( constraints_given )
-
-                # Compute search direction
-                self.opt_utils.compute_search_direction_augmented_lagrange( self.constraints, response )
-
-                # Compute design variable update (do one step in the optimization algorithm)
-                self.opt_utils.compute_design_update()
-    
-                # Map design update to geometry space
-                self.mapper.map_design_update_to_geometry_space()
-
-                # Compute and output some measures to track changes in the objective function
-                delta_f_absolute = 0.0
-                delta_l_relative = 0.0
-                print("\n> Current value of Lagrange function = ",round(l,12))
-                if(sub_opt_itr>1):
-                    delta_f_absolute = 100*(response[only_F_id]["value"]-initial_f)/initial_f
-                    delta_l_relative = 100*(l-previous_l)/initial_l
-                    print("\n> Relative change of Lagrange function = ",round(delta_l_relative,6)," [%]")
-
-                # We write every major and every suboptimization iteration in design history
-                with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
-                   historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-                   row = []
-                   row.append(str(optItr)+"\t")
-                   row.append("\t"+str(sub_opt_itr)+"\t")
-                   row.append("\t"+str("%.12f"%(l))+"\t")
-                   row.append("\t"+str("%.6f"%(delta_l_relative))+"\t")
-                   row.append("\t"+str("%.12f"%(response[only_F_id]["value"]))+"\t")
-                   row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
-                   row.append("\t"+str("%.2f"%(self.vm_utils.get_penalty_fac()))+"\t")
-                   row.append("\t"+str("%.12f"%(response[only_C_id]["value"]))+"\t")
-                   row.append("\t"+str("%.12f"%(self.vm_utils.get_lambda(only_C_id))))
-                   historyWriter.writerow(row)
-
-                # Write design in GID format
-                write_itr = float(iterator)
-                self.gidIO.write_results(write_itr, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])
-
-                # Check convergence (We ensure that at least 2 subiterations are done)
-                if(sub_opt_itr>3):
-
-                    # Check if maximum iterations were reached
-                    if(sub_opt_itr==self.optimizationSettings.max_sub_opt_iterations): 
-                        print("\n> Maximal iterations of supoptimization problem reached!")
-                        break
-
-                    # Check for relative tolerance
-                    if(abs(delta_l_relative)<self.optimizationSettings.relative_tolerance_sub_opt): 
-                        print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_sub_opt,"%.")
-                        break
-
-                    # Check if value of lagrangian increases
-                    if(l>previous_l):
-                        print("\n> Value of Lagrange function increased!")
-                        break
-
-                # Update design
-                currentDesign = self.getDesign()   
-
-                # Store value of Lagrange function for next iteration
-                previous_l = l
-
-                # Store initial objective value
-                if(optItr==1 and sub_opt_itr==1):
-                    initial_f = response[only_F_id]["value"]
-                    initial_l = l
-
-                # Take time needed for current suboptimization step as well as for the overall opt so far
-                subopt_end_time = time.time()
-                print("\n> Time needed for current suboptimization step = ",round(subopt_end_time - subopt_start_time,2),"s")
-                print("\n> Time needed for total optimization so far = ",round(subopt_end_time - self.timeAtStartOfOptimization,2),"s")
-
-            # Check Convergence (More convergence criterion for major optimization iteration to be implemented!)
-
-            # Check if maximum iterations were reached
-            if(optItr==self.optimizationSettings.max_opt_iterations):
-                print("\n> Maximal iterations of optimization problem reached!")
-                break
-            
-            # Update lagrange multipliers and penalty factor
-            self.vm_utils.udpate_augmented_lagrange_parameters( self.constraints, response )  
-
-            # Take time needed for current optimization step
-            timeAtEndOfCurrentOptimizationStep = time.time()
-            print("\n> Time needed for current optimization step = ",round(timeAtEndOfCurrentOptimizationStep - timeAtStartOfCurrentOptimizationStep,2),"s")
 
     # --------------------------------------------------------------------------
     def runPenalizedProjectionAlgorithm( self ):

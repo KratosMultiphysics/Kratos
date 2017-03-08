@@ -153,6 +153,8 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
         # Calculation of primals
         if(communicator.isRequestingFunctionValueOf("strain_energy")):
 
+            initializeNewTimeStepInMainModelPart( optimizationIteration )
+
             print("\n> Starting to update the mesh")
             startTime = timer.time()
             updateMeshOfMainModelPart( currentDesign )
@@ -186,6 +188,10 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)
 
 # --------------------------------------------------------------------------
+def initializeNewTimeStepInMainModelPart( optimizationIteration ):
+    main_model_part.CloneTimeStep( optimizationIteration )
+
+# --------------------------------------------------------------------------
 def updateMeshOfMainModelPart( currentDesign ):
     for node_id in currentDesign.keys():
         node = main_model_part.Nodes[node_id]
@@ -195,9 +201,6 @@ def updateMeshOfMainModelPart( currentDesign ):
 
 # --------------------------------------------------------------------------
 def solveStructure( optimizationIteration ): 
-
-    # Advance time iterator of main_model_part
-    main_model_part.CloneTimeStep( optimizationIteration )
 
     # processes to be executed at the begining of the solution step
     for process in list_of_processes:

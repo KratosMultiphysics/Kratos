@@ -73,8 +73,7 @@ damping_regions = [ ["support_edges", False, True, True, "linear", 3 ],
 
 optimization_algorithm = "steepest_descent" 
 # options: "steepest_descent",
-#          "augmented_lagrange",
-#          "penalized_projection",
+#          "penalized_projection"
     
 # General convergence criterions
 max_opt_iterations = 300

@@ -199,7 +199,7 @@ public:
     // ==============================================================================
     void initialize_damping(boost::python::list damping_regions)
     {
-        std::cout << "\n\n> Starting to prepare damping..." << std::endl;
+        std::cout << "\n> Starting to prepare damping..." << std::endl;
 
         // Creating an auxiliary list for the nodes to be searched on
         PointVector list_of_nodes;
