@@ -1252,6 +1252,8 @@ public:
     //function for LAGRANGIAN INLET
     void SaveLagrangianInlet(ModelPart& fluid_model_part,ModelPart& lagrangian_inlet_model_part)
     {
+	KRATOS_THROW_ERROR(std::logic_error,"Function SaveLagrangianInlet must be re-implemented (see ulf_utilities) according to new format of creating new nodes","");	
+/*
         int last_id=fluid_model_part.Nodes().size();
 
         for(ModelPart::NodesContainerType::iterator i_node = fluid_model_part.NodesBegin(); i_node!=fluid_model_part.NodesEnd(); i_node++)
@@ -1283,12 +1285,16 @@ public:
             i->SetId(iii);
 //			i->Id()=iii;
         }
+	*/
     }
     //**********************************************************************************************
     //**********************************************************************************************
     void InjectNodesAtInlet(ModelPart& fluid_model_part,ModelPart& lagrangian_inlet_model_part,  float vel_x, float vel_y, float vel_z, float h)//, double& injection_time)
     {
-        //double time_step = fluid_model_part.GetProcessInfo()[TIME]/fluid_model_part.GetProcessInfo()[DELTA_TIME];
+	KRATOS_THROW_ERROR(std::logic_error,"Function InjectNodesAtInlet must be re-implemented (see ulf_utilities) according to new format of creating new nodes","");	
+     
+	/*
+	//double time_step = fluid_model_part.GetProcessInfo()[TIME]/fluid_model_part.GetProcessInfo()[DELTA_TIME];
         double last_id=fluid_model_part.Nodes().size();
         //copying the nodes at the inlet
         double path;
@@ -1367,6 +1373,7 @@ public:
             }
         }
 
+	*/
     }
     //**********************************************************************************************
     //**********************************************************************************************
@@ -1559,6 +1566,7 @@ public:
 
         KRATOS_CATCH("");
     }
+/*
    void ClearNodalPressureGrad(ModelPart& ThisModelPart)
     {
 
@@ -1595,7 +1603,7 @@ public:
   
    }    
 
-
+*/
 private:
 
     //aux vars

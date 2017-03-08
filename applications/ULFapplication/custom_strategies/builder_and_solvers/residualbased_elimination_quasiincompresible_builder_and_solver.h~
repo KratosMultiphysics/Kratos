@@ -246,7 +246,7 @@ public:
 	*/
         this->mEquationSystemSize = TDim*mActiveNodes.size();
 	//this->mEquationSystemSize = BaseType::mDofSet.size();
-        //mActiveSize = free_id;
+        mActiveSize = free_id;
 
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
