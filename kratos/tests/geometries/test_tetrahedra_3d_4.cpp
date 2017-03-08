@@ -97,8 +97,8 @@ namespace Kratos {
      * Checks if the number of edges is correct.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4EdgesNumber, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -112,8 +112,8 @@ namespace Kratos {
      * Checks if the number of faces is correct.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4FacesNumber, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -129,8 +129,8 @@ namespace Kratos {
      * Checks if the length of the triangle is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -144,8 +144,8 @@ namespace Kratos {
      * Checks if the area of the triangle is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Area, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -160,8 +160,8 @@ namespace Kratos {
      * For triangle 2D3 'volume()' call defaults to 'area()'
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Volume, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -175,12 +175,12 @@ namespace Kratos {
      * Checks if the minimum edge length is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      // Should NOT be the same
+      KRATOS_CHECK_NEAR(geomInvLen1->MinEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->MinEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->MinEdgeLength(), 2.828427, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->MinEdgeLength(), 1.000000, TOLERANCE);
@@ -190,12 +190,12 @@ namespace Kratos {
      * Checks if the maximum edge length is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MaxEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      // Should be the same
+      KRATOS_CHECK_NEAR(geomInvLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->MaxEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->MaxEdgeLength(), 2.828427, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->MaxEdgeLength(), 1.414213, TOLERANCE);
@@ -205,11 +205,12 @@ namespace Kratos {
      * Checks if the average edge length is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AverageEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
+      KRATOS_CHECK_NEAR(geomInvLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->AverageEdgeLength(), 1.414213, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->AverageEdgeLength(), 2.828427, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->AverageEdgeLength(), 1.207106, TOLERANCE);
@@ -219,12 +220,12 @@ namespace Kratos {
      * Checks if the circumradius is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Circumradius, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      // Should be the same
+      KRATOS_CHECK_NEAR(geomInvLen1->Circumradius(), 0.866025, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Circumradius(), 0.866025, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Circumradius(), 1.732050, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Circumradius(), 0.866025, TOLERANCE);
@@ -234,12 +235,12 @@ namespace Kratos {
      * Checks if the inradius is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Inradius, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      // Should NOT be the same
+      KRATOS_CHECK_NEAR(geomInvLen1->Inradius(), 0.288675, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Inradius(), 0.288675, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Inradius(), 0.577350, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Inradius(), 0.211324, TOLERANCE);
@@ -251,13 +252,14 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToCircumradiusQuality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
 
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
@@ -269,13 +271,14 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
 
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.732051, TOLERANCE);
@@ -287,13 +290,14 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShortestToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
 
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.707106, TOLERANCE);
@@ -305,8 +309,8 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4RegualrityQuiality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -316,6 +320,7 @@ namespace Kratos {
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
+      KRATOS_CHECK_EXCEPTION_RAISED(geomInvLen1->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
@@ -327,8 +332,8 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToSurfaceAreaQuality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
@@ -338,6 +343,7 @@ namespace Kratos {
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), -1.0, TOLERANCE);
 
+      KRATOS_CHECK_EXCEPTION_RAISED(geomInvLen1->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen1->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomRegLen2->Quality(criteria), Exception);
       KRATOS_CHECK_EXCEPTION_RAISED(geomTriRect->Quality(criteria), Exception);
@@ -349,16 +355,17 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToEdgeLengthQuality, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.839947, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.839947, TOLERANCE);
     }
 
     /** Checks if the volume to average edge length quality metric is correctly calculated.
@@ -367,16 +374,17 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToAverageEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.804041, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.804041, TOLERANCE);
     }
 
     /** Checks if the volume to RMS edge length quality metric is correctly calculated.
@@ -385,16 +393,17 @@ namespace Kratos {
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToRMSEdgeLength, KratosCoreGeometriesFastSuite) {
-      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
       auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.000000, TOLERANCE);
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), 0.839947, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria),  1.000000, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.839947, TOLERANCE);
     }
 
 
