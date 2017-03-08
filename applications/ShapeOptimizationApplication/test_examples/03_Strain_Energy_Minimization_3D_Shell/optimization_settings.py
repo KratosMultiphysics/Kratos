@@ -31,12 +31,6 @@ constraints = {  }
 design_control = "vertex_morphing" 
 # options: "vertex_morphing"
 
-design_output_mode = "relative"
-# options: "relative"   - X is defined relative to previous design
-#          "total"      - X is defined relative to initial design
-#          "absolute"   - X is defined as absolute values (coordinates)
-
-
 # ================================================================================================================
 # Case: design_control = "vertex_morphing"
 # ================================================================================================================

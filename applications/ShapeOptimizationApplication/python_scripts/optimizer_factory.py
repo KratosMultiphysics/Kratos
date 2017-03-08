@@ -258,12 +258,6 @@ class VertexMorphingMethod:
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
-        
-        # Define initial design (initial design corresponds to a zero shape update)
-        # Note that we assume an incremental design variable in vertex morphing
-        currentDesign = {}
-        for node in self.optimizationModelPart.Nodes:
-            currentDesign[node.Id] = [0.,0.,0.]
 
         # Miscellaneous working variables for data management
         initialValueOfObjectiveFunction = 0.0
@@ -285,7 +279,7 @@ class VertexMorphingMethod:
             self.communicator.requestFunctionValueOf( only_F_id )
             self.communicator.requestGradientOf( only_F_id )   
 
-            self.analyzer.analyzeDesignAndReportToCommunicator( currentDesign, optItr, self.communicator )
+            self.analyzer.analyzeDesignAndReportToCommunicator( self.optimizationModelPart, optItr, self.communicator )
 
             valueOfObjectiveFunction = self.communicator.getReportedFunctionValueOf ( only_F_id )
             gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( only_F_id )
@@ -356,9 +350,6 @@ class VertexMorphingMethod:
                 if( valueOfObjectiveFunction > previousValueOfObjectiveFunction ):
                     print("\n> Value of objective function increased!")
                     break
-
-            # Update design
-            currentDesign = self.getDesign()
 
             # Store values of for next iteration
             previousValueOfObjectiveFunction = valueOfObjectiveFunction
@@ -578,29 +569,6 @@ class VertexMorphingMethod:
                 sens_i[1] = constraint_grads[node_Id][1]
                 sens_i[2] = constraint_grads[node_Id][2]           
                 self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
-
-    # --------------------------------------------------------------------------
-    def getDesign( self ):
-
-        # Read and return the current design in the corresponding mode
-        currentDesign = {}
-
-        if(self.optimizationSettings.design_output_mode=="relative"):
-            for node in self.optimizationModelPart.Nodes:
-                currentDesign[node.Id] = node.GetSolutionStepValue(SHAPE_UPDATE)
-
-        elif(self.optimizationSettings.design_output_mode=="total"):
-            for node in self.opt_model_part.Nodes:
-                currentDesign[node.Id] = node.GetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)
-
-        elif(self.optimizationSettings.design_output_mode=="absolute"):
-            for node in self.opt_model_part.Nodes:
-                currentDesign[node.Id] = [node.X,node.Y,node.Z]
-
-        else:
-            sys.exit("Wrong definition of design_output_mode!")
-
-        return currentDesign
 
     # --------------------------------------------------------------------------
 

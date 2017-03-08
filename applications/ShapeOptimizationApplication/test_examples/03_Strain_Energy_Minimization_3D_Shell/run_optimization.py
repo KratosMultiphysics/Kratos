@@ -182,8 +182,8 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             
             gradientForCompleteModelPart = responseFunctionSolver["strain_energy"].get_gradient()
             gradientOnDesignSurface = {}
-            for node_id in currentDesign.keys():
-                gradientOnDesignSurface[node_id] = gradientForCompleteModelPart[node_id]
+            for node in currentDesign.Nodes:
+                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
 
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)
 
@@ -193,11 +193,10 @@ def initializeNewTimeStepInMainModelPart( optimizationIteration ):
 
 # --------------------------------------------------------------------------
 def updateMeshOfMainModelPart( currentDesign ):
-    for node_id in currentDesign.keys():
-        node = main_model_part.Nodes[node_id]
-        node.X0 = node.X0 + currentDesign[node_id][0]
-        node.Y0 = node.Y0 + currentDesign[node_id][1]
-        node.Z0 = node.Z0 + currentDesign[node_id][2]
+    for node in currentDesign.Nodes:
+        node.X0 = node.X0 + node.GetSolutionStepValue(SHAPE_UPDATE_X)
+        node.Y0 = node.Y0 + node.GetSolutionStepValue(SHAPE_UPDATE_Y)
+        node.Z0 = node.Z0 + node.GetSolutionStepValue(SHAPE_UPDATE_Z)
 
 # --------------------------------------------------------------------------
 def solveStructure( optimizationIteration ): 
