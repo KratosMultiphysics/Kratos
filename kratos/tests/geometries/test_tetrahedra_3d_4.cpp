@@ -30,7 +30,7 @@ namespace Kratos {
     typedef GeometryType::Pointer     GeometryPtrType;
 
     /** Generates a sample Tetrahedra3D4.
-     * Generates a triangle defined by three random points in the space.
+     * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4
      */
     GeometryPtrType GenerateTetrahedra3D4(
@@ -125,8 +125,8 @@ namespace Kratos {
       KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 4);
     }
 
-    /** Checks if the length of the triangle is calculated correctly.
-     * Checks if the length of the triangle is calculated correctly.
+    /** Checks if the length of the tetrahedra is calculated correctly.
+     * Checks if the length of the tetrahedra is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreGeometriesFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
@@ -140,8 +140,8 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Length(), 1.122462, TOLERANCE);
     }
 
-    /** Checks if the area of the triangle is calculated correctly.
-     * Checks if the area of the triangle is calculated correctly.
+    /** Checks if the area of the tetrahedra is calculated correctly.
+     * Checks if the area of the tetrahedra is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Area, KratosCoreGeometriesFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
@@ -155,9 +155,9 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Area(),  1.0/6.0, TOLERANCE);
     }
 
-    /** Checks if the volume of the triangle is calculated correctly.
-     * Checks if the volume of the triangle is calculated correctly.
-     * For triangle 2D3 'volume()' call defaults to 'area()'
+    /** Checks if the volume of the tetrahedra is calculated correctly.
+     * Checks if the volume of the tetrahedra is calculated correctly.
+     * For tetrahedra 3D4 'volume()' call defaults to 'area()'
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Volume, KratosCoreGeometriesFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
