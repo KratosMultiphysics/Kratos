@@ -246,12 +246,11 @@ public:
     void RotatePoint( 
         Point<3>& PointToRotate,
         const Point<3> PointReferenceRotation,
-        const array_1d<double, 3> SlaveNormal,
         const array_1d<double, 3> SlaveTangentXi,
         const array_1d<double, 3> SlaveTangentEta,
         const bool Inversed
         )
-    {        
+    {                
         // We move to the (0,0,0)
         Point<3> AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
@@ -264,7 +263,6 @@ public:
             {
                 RotationMatrix(0, i) = SlaveTangentXi[i];
                 RotationMatrix(1, i) = SlaveTangentEta[i];
-//                 RotationMatrix(2, i) = SlaveNormal[i];
             }
         }
         else
@@ -273,19 +271,10 @@ public:
             {
                 RotationMatrix(i, 0) = SlaveTangentXi[i];
                 RotationMatrix(i, 1) = SlaveTangentEta[i];
-//                 RotationMatrix(i, 2) = SlaveNormal[i];
             }
         }
         
         PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
-        
-//         KRATOS_WATCH(PointToRotate.Coordinates())
-        KRATOS_WATCH(RotationMatrix)
-        
-        RotationMatrix = GetRotationMatrix(SlaveNormal, SlaveTangentXi, SlaveTangentEta, Inversed);
-        
-        KRATOS_WATCH(RotationMatrix)
-//         KRATOS_WATCH(prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates())
     }
     
     /**
@@ -352,43 +341,9 @@ public:
         Point<3> AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
-        const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed);
+        const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed); // FIXME: Consider new matrix
         
         PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
-        
-//         const double Tolerance = 1.0e-16;
-//     
-//         // We calculate the normal angle
-//         double Phi0 = std::atan(SlaveNormal[2]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance));
-//         double Phi1 = M_PI/2.0;
-//         
-//         if (Inversed == true)
-//         {
-//             Phi0 = Phi1;
-//             Phi1 = Phi0;
-//         }
-//         
-// //         // Debug
-// //         KRATOS_WATCH(SlaveNormal);
-// //         std::cout << Phi0 << " " << Phi1 << std::endl;
-// //         KRATOS_WATCH(PointToRotate.Coordinates());
-//         
-//         AuxPointToRotate.Coordinate(1) = AuxPointToRotate.Coordinate(1) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
-//         AuxPointToRotate.Coordinate(2) = AuxPointToRotate.Coordinate(2) * std::sin(Phi1)/(std::sin(Phi0) +  Tolerance);
-//         if (Inversed == false)
-//         {
-//             AuxPointToRotate.Coordinate(3) = 0.0;
-//         }
-//         else
-//         {
-//             const double Radio = std::sqrt(AuxPointToRotate.Coordinate(1) * AuxPointToRotate.Coordinate(1) + AuxPointToRotate.Coordinate(2) * AuxPointToRotate.Coordinate(2));
-//             AuxPointToRotate.Coordinate(3) = Radio * std::cos(Phi1);
-//         }
-//         
-//         PointToRotate.Coordinates() = AuxPointToRotate.Coordinates() + PointReferenceRotation.Coordinates();
-//         
-// //         // Debug
-// //         KRATOS_WATCH(PointToRotate.Coordinates());
     }
     
     /**
@@ -532,42 +487,58 @@ public:
 //         KRATOS_WATCH(PointDest1);
 //         KRATOS_WATCH(PointDest2);
         
-        if (Denom == 0.0) // NOTE: Collinear
+        const double Tolerance = 1.0e-12;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
+        if (std::abs(Denom) < Tolerance) // NOTE: Collinear
         {
             return false;
         }
         
-        const bool DenomPositive = (Denom > 0.0);
+//         const bool DenomPositive = (Denom > 0.0);
         
         const double SOrig1Dest1X = PointOrig1.Coordinate(1) - PointDest1.Coordinate(1);
         const double SOrig1Dest1Y = PointOrig1.Coordinate(2) - PointDest1.Coordinate(2);
         
-        const double SNumer = SOrig1Orig2X * SOrig1Dest1Y - SOrig1Orig2Y * SOrig1Dest1X;
+//         const double SNumer = SOrig1Orig2X * SOrig1Dest1Y - SOrig1Orig2Y * SOrig1Dest1X;
+        const double S = (SOrig1Orig2X * SOrig1Dest1Y - SOrig1Orig2Y * SOrig1Dest1X)/Denom;
         
-        if ((SNumer < 0.0) == DenomPositive) // NOTE: No collision
+//         if ((SNumer < 0.0) == DenomPositive) // NOTE: No collision
+//         {
+//             return false;
+//         }
+        
+//         const double TNumer = SDest1Dest2X * SOrig1Dest1Y - SDest1Dest2Y * SOrig1Dest1X;
+        const double T = (SDest1Dest2X * SOrig1Dest1Y - SDest1Dest2Y * SOrig1Dest1X)/Denom;
+        
+//         if ((TNumer < 0.0) == DenomPositive) // NOTE: No collision
+//         {
+//             return false;
+//         }
+//         
+//         if (((SNumer > Denom) == DenomPositive) || ((TNumer > Denom) == DenomPositive)) // NOTE: No collision
+//         {
+//             return false;
+//         }
+        
+//         // Collision detected
+//         const double T = TNumer/Denom;
+        
+//         PointIntersection.Coordinate(1) = PointOrig1.Coordinate(1) + T * SOrig1Orig2X; 
+//         PointIntersection.Coordinate(2) = PointOrig1.Coordinate(2) + T * SOrig1Orig2Y; 
+        
+        if (S >= 0.0 && S <= 1.0 && T >= 0.0 && T <= 1.0)
+        {
+            PointIntersection.Coordinate(1) = PointOrig1.Coordinate(1) + T * SOrig1Orig2X; 
+            PointIntersection.Coordinate(2) = PointOrig1.Coordinate(2) + T * SOrig1Orig2Y; 
+            
+            return true;
+        }
+        else
         {
             return false;
         }
         
-        const double TNumer = SDest1Dest2X * SOrig1Dest1Y - SDest1Dest2Y * SOrig1Dest1X;
-        
-        if ((TNumer < 0.0) == DenomPositive) // NOTE: No collision
-        {
-            return false;
-        }
-        
-        if (((SNumer > Denom) == DenomPositive) || ((TNumer > Denom) == DenomPositive))
-        {
-            return false;
-        }
-        
-        // Collision detected
-        const double T = TNumer/Denom;
-        
-        PointIntersection.Coordinate(1) = PointOrig1.Coordinate(1) + T * SOrig1Orig2X; 
-        PointIntersection.Coordinate(2) = PointOrig1.Coordinate(2) + T * SOrig1Orig2Y; 
-        
-        return true;
+//         return true;
     }
     
     /**
@@ -586,11 +557,37 @@ public:
         
         const double xi  = local_edge[0];
         const double eta = local_edge[1];
-        
+
 //         // Debug
 //         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
         
+//         if (eta < 0.0)
+//         {
+//             return (2.0 * M_PI + std::atan2(eta, xi));
+//         }
+//         else
+//         {
+//             return (std::atan2(eta, xi));
+//         }
+        
         return (std::atan2(eta, xi));
+    }
+    
+    /**
+     * This function calculates in 2D the normal vector to a given one
+     * @param v: The vector to compute the normal 
+     * @return n: The normal vector
+     */
+    
+    array_1d<double, 3> GetNormalVector2D(const array_1d<double, 3> v)
+    {
+        array_1d<double, 3> n;
+
+        n[0] = - v[1];
+        n[1] =   v[0];
+        n[2] =    0.0;
+    
+        return n;
     }
     
     /**
@@ -615,8 +612,8 @@ public:
             local_edge /= norm_2(local_edge);
         }
         
-        const double xi  = inner_prod(local_edge, axis_1);
-        const double eta = inner_prod(axis_2,     axis_1);
+        const double xi  = inner_prod(axis_1, local_edge);
+        const double eta = inner_prod(axis_2, local_edge);
         
 //         // Debug
 //         KRATOS_WATCH(local_edge);
@@ -662,9 +659,10 @@ public:
         const Point<3> PointOrig2
         )
     {
-        const double Tolerance = 1.0e-8; 
-        const bool x = (std::abs(PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1)) < Tolerance) ? true : false;
-        const bool y = (std::abs(PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2)) < Tolerance) ? true : false;
+//         const double Tolerance = 1.0e-6;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        const bool x = (std::abs(PointOrig2.X() - PointOrig1.X()) < Tolerance) ? true : false;
+        const bool y = (std::abs(PointOrig2.Y() - PointOrig1.Y()) < Tolerance) ? true : false;
         
         return (x&&y);
     }
@@ -681,12 +679,10 @@ public:
         const Point<3> PointOrig2
         )
     {
-        const double Tolerance = 1.0e-8; 
-        const bool x = (std::abs(PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1)) < Tolerance) ? true : false;
-        const bool y = (std::abs(PointOrig2.Coordinate(2) - PointOrig1.Coordinate(2)) < Tolerance) ? true : false;
-        const bool z = (std::abs(PointOrig2.Coordinate(3) - PointOrig1.Coordinate(3)) < Tolerance) ? true : false;
+//         const double Tolerance = 1.0e-6;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        return (x&&y&&z);
+        return (norm_2(PointOrig2.Coordinates() - PointOrig1.Coordinates()) < Tolerance) ? true : false;
     }
     
     /**
@@ -701,7 +697,8 @@ public:
         const GeometryType::CoordinatesArrayType& rPoint
         )
     {
-        const double Tolerance = std::numeric_limits<double>::epsilon();
+        const double Tolerance = 1.0e-6;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         GeometryType::CoordinatesArrayType rResult;
         
@@ -715,7 +712,7 @@ public:
 
         //Newton iteration:
 
-        const unsigned int maxiter = 20;
+        const unsigned int maxiter = 30;
 
         for ( unsigned int k = 0; k < maxiter; k++ )
         {
@@ -733,7 +730,7 @@ public:
                 break;
             }
 
-            if ( norm_2( DeltaXi ) <  1.0e-8 )
+            if ( norm_2( DeltaXi ) <  Tolerance )
             {
                 break;
             }
@@ -1020,7 +1017,8 @@ private:
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         
         // We define the tolerance
-        const double Tolerance = 1.0e-8;
+        const double Tolerance = std::numeric_limits<double>::epsilon();;
+//         const double Tolerance = 1.0e-8;
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
@@ -1091,7 +1089,7 @@ private:
                     AllTriangle.GlobalCoordinates(gp_global, gp_local);
                     
                     // We recover this point to the triangle plane
-                    RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
+                    RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
     //                 RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                     
                     // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
@@ -1114,8 +1112,8 @@ private:
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
-                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
 //                 RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
 //                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
                 
@@ -1154,9 +1152,7 @@ private:
                         bool AddPoint = true;
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
-                            Point<3> AuxPoint = IntersectedPoint;
-//                             if (AuxPoint == PointList[iter])
-                            if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
+                            if (CheckPoints2D(IntersectedPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
                             }
@@ -1182,9 +1178,7 @@ private:
                     bool AddPoint = true;
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
-                        Point<3> AuxPoint = SlaveGeometry[i_node];
-//                         if (AuxPoint == PointList[iter])
-                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
+                        if (CheckPoints2D(SlaveGeometry[i_node], PointList[iter]) == true)
                         {
                             AddPoint = false;
                         }
@@ -1269,7 +1263,7 @@ private:
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
-                            RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
+                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
@@ -1335,42 +1329,42 @@ private:
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject( SlaveCenter, MasterGeometry[i_node], SlaveNormal);
         }
         
-        // Debug
-        std::cout << "Before rotate: " << std::endl;
-        for (unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
-        }
-        std::cout << std::endl;
-        for (unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
-        }
-        std::cout << std::endl;
+//         // Debug
+//         std::cout << "Before rotate: " << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
         
         // Before clipping we rotate to a XY plane
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            RotatePoint( SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
-            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint( SlaveProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
 //             RotatePoint(SlaveProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
 //             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
         }
         
-        // Debug
-        std::cout << "After rotate: " << std::endl;
-        for (unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
-        }
-        std::cout << std::endl;
-        for (unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
-        }
-        std::cout << std::endl;
-        
-        KRATOS_ERROR;
+//         // Debug
+//         std::cout << "After rotate: " << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << SlaveProjectedPoint[i_node].X() << "\t" << SlaveProjectedPoint[i_node].Y() << "\t" << SlaveProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
+//         for (unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             std::cout << MasterProjectedPoint[i_node].X() << "\t" << MasterProjectedPoint[i_node].Y() << "\t" << MasterProjectedPoint[i_node].Z() << std::endl;
+//         }
+//         std::cout << std::endl;
+//         
+//         KRATOS_ERROR;
         
         std::vector<Point<3>::Pointer> DummyPointsArray (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1392,16 +1386,6 @@ private:
         // We create the pointlist
         std::vector<Point<3>> PointList;
         
-//         // Debug
-//         for (unsigned int i_node = 0; i_node < 4; i_node++)
-//         {
-//             std::cout << "Node slave projected " << i_node << std::endl;
-//             KRATOS_WATCH(SlaveProjectedPoint[i_node]);
-//             std::cout << "Node master projected " << i_node << std::endl;
-//             KRATOS_WATCH(MasterProjectedPoint[i_node]);
-//         }
-//         std::cout << "We have the following points inside: " << AllInside[0] << " " << AllInside[1] << " " << AllInside[2] << " " << AllInside[3] << std::endl;
-        
         // No point inside
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
@@ -1420,16 +1404,24 @@ private:
         {            
             // We reorder the nodes according with the angle they form with the first node
             std::vector<double> Angles (3);
-            array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
-            array_1d<double, 3> n;
-            n[0] = - v[1];
-            n[1] =   v[0];
-            n[2] =    0.0;
+            array_1d<double, 3> v = MasterProjectedPoint[1].Coordinates() - MasterProjectedPoint[0].Coordinates();
+            v /= norm_2(v);
+            array_1d<double, 3> n = GetNormalVector2D(v);
             
             for (unsigned int elem = 1; elem < 4; elem++)
             {
-                Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem]);
-//                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem], v, n);
+//                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem]);
+                Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem], v, n);
+                if (Angles[elem - 1] < 0.0)
+                {
+                    v = MasterProjectedPoint[elem].Coordinates() - MasterProjectedPoint[0].Coordinates();
+                    v /= norm_2(v);
+                    n = GetNormalVector2D(v);
+                    for (unsigned int auxelem = 0; auxelem <= (elem - 1); auxelem++)
+                    {
+                        Angles[auxelem] -= Angles[elem - 1];
+                    }
+                }
             }
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
@@ -1442,7 +1434,6 @@ private:
             
 //             IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
             IntegrationPointsSlave.clear();
-        
             for (unsigned int elem = 0; elem < 2; elem++) // NOTE: We always have two points less that the number of nodes
             {
                 // NOTE: We add 1 because we removed from the list the fisrt point
@@ -1458,6 +1449,33 @@ private:
                     PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
                     PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
                 }
+                
+                // Debug
+                Point<3> aux1;
+                aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
+                RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                Point<3> aux2;
+                aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
+                RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                Point<3> aux3;
+                aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
+                RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                
+//                 // Debug 
+//     //             KRATOS_WATCH(MasterProjectedPoint.size());
+//                 for (unsigned int i_list = 0; i_list < MasterProjectedPoint.size(); i_list++)
+//                 {
+//     //                 KRATOS_WATCH(MasterProjectedPoint[i_list]);
+//                     Point<3> aux;
+//                     aux.Coordinates() = MasterProjectedPoint[i_list].Coordinates();
+//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z() << std::endl;
+//                 }
+//                 std::cout << std::endl;
                 
                 // We create the triangle
                 Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1478,7 +1496,7 @@ private:
                         triangle.GlobalCoordinates(gp_global, gp_local);
                         
                         // We recover this point to the triangle plane
-                        RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
+                        RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
@@ -1536,21 +1554,56 @@ private:
                         MasterProjectedPoint[jp_edge]
                         );
                     
+//                     // Debug
+//                     std::cout << std::endl;
+//                     Point<3> aux;
+//                     aux.Coordinates() = SlaveProjectedPoint[i_edge].Coordinates();
+//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     KRATOS_WATCH(aux);
+//                     aux.Coordinates() = SlaveProjectedPoint[ip_edge].Coordinates();
+//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     KRATOS_WATCH(aux);
+//                     aux.Coordinates() = MasterProjectedPoint[j_edge].Coordinates();
+//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     KRATOS_WATCH(aux);
+//                     aux.Coordinates() = MasterProjectedPoint[jp_edge].Coordinates();
+//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     KRATOS_WATCH(aux);
+//                     std::cout << std::endl;
+                    
                     if (intersected == true)
                     {
+//                         // Debug
+//                         std::cout << "Intersected" << std::endl;
+//                         std::cout << std::endl;
+//                         Point<3> aux;
+//                         aux.Coordinates() = IntersectedPoint.Coordinates();
+//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         KRATOS_WATCH(aux);
+//                         aux.Coordinates() = SlaveProjectedPoint[i_edge].Coordinates();
+//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         KRATOS_WATCH(aux);
+//                         aux.Coordinates() = SlaveProjectedPoint[ip_edge].Coordinates();
+//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         KRATOS_WATCH(aux);
+//                         aux.Coordinates() = MasterProjectedPoint[j_edge].Coordinates();
+//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         KRATOS_WATCH(aux);
+//                         aux.Coordinates() = MasterProjectedPoint[jp_edge].Coordinates();
+//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         KRATOS_WATCH(aux);
+                        
                         bool AddPoint = true;
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
-                            Point<3> AuxPoint = IntersectedPoint;
-//                             if (AuxPoint == PointList[iter])
-                            if (CheckPoints2D(AuxPoint, PointList[iter]) == true)
+                            if (CheckPoints2D(IntersectedPoint, PointList[iter]) == true)
                             {
                                 AddPoint = false;
                             }
                         }
                         
                         if (AddPoint == true) 
-                        {
+                        {                            
                             IntersectedPoint.Coordinate(3) = ZRef;
                             PointList.push_back(IntersectedPoint);
                             MapEdges[i_edge] += 1;
@@ -1559,18 +1612,19 @@ private:
                 }
             }
             
+//             // Debug
+//             KRATOS_ERROR;
+            
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
                 unsigned int il_node = (i_node == 0) ? 3 : i_node - 1; // The first node is in edge 1 and 4
                 
-                if ((MapEdges[i_node]  == 1) && (MapEdges[il_node] == 1))
+                if ((MapEdges[i_node] == 1) && (MapEdges[il_node] == 1))
                 {
                     bool AddPoint = true;
                     for (unsigned int iter = 0; iter < PointList.size(); iter++)
                     {
-                        Point<3> AuxPoint = SlaveProjectedPoint[i_node];
-//                         if (AuxPoint == PointList[iter])
-                        if (CheckPoints2D(AuxPoint, PointList[iter]) == true) 
+                        if (CheckPoints2D(SlaveProjectedPoint[i_node], PointList[iter]) == true) 
                         {
                             AddPoint = false;
                         }
@@ -1583,33 +1637,82 @@ private:
                 }
             }
             
-            // Debug 
-//             KRATOS_WATCH(PointList.size());
+//             // Debug 
+// //             KRATOS_WATCH(PointList.size());
 //             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
 //             {
 // //                 KRATOS_WATCH(PointList[i_list]);
-//                 std::cout << PointList[i_list].X() << "\t" << PointList[i_list].Y() << "\t" << PointList[i_list].Z() << std::endl;
+//                 Point<3> aux;
+//                 aux.Coordinates() = PointList[i_list].Coordinates();
+//                 RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                 std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z() << std::endl;
 //             }
 //             std::cout << std::endl;
 
             // We compose the triangles
             const unsigned int ListSize = PointList.size();
+            
+            // Debug
+            if (ListSize > 0 && ListSize < 3)
+            {
+                for (unsigned int i = 0; i < ListSize; i++)
+                {
+                    Point<3> aux;
+                    aux.Coordinates() = PointList[i].Coordinates();
+                    RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);            
+                    std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
+                }
+                std::cout << std::endl;
+                for (unsigned int i_node = 0; i_node < 4; i_node++)
+                {
+                    Point<3> aux;
+                    aux.Coordinates() = SlaveProjectedPoint[i_node].Coordinates();
+                    RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);   
+                    
+                    std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
+                }
+                std::cout << std::endl;
+                for (unsigned int i_node = 0; i_node < 4; i_node++)
+                {
+                    Point<3> aux;
+                    aux.Coordinates() = MasterProjectedPoint[i_node].Coordinates();
+                    RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);   
+                    
+                    std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
+                }
+            }
+            
             if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
             {
                 // We reorder the nodes according with the angle they form with the first node
                 std::vector<double> Angles (ListSize - 1);
                 array_1d<double, 3> v = PointList[1].Coordinates() - PointList[0].Coordinates();
-                array_1d<double, 3> n;
-                n[0] = - v[1];
-                n[1] =   v[0];
-                n[2] =    0.0;
+                v /= norm_2(v);
+                array_1d<double, 3> n = GetNormalVector2D(v);
                 
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
-                    Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
-//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
+//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
+                    Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
+                    if (Angles[elem - 1] < 0.0)
+                    {
+                        v = PointList[elem].Coordinates() - PointList[0].Coordinates();
+                        v /= norm_2(v);
+                        n = GetNormalVector2D(v);
+                        for (unsigned int auxelem = 0; auxelem <= (elem - 1); auxelem++)
+                        {
+                            Angles[auxelem] -= Angles[elem - 1];
+                        }
+                    }
                 }
                 
+//                 // Debug
+//                 std::cout << std::endl;
+//                 for (unsigned int i=0; i < Angles.size(); i++)
+//                 {
+//                     std::cout << Angles[i] << std::endl;
+//                 }
+                    
                 const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
                 
                 std::vector<Point<3>::Pointer> PointsArray (3);
@@ -1627,7 +1730,7 @@ private:
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
                 IntegrationPointsSlave.clear();
-            
+        
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
@@ -1643,6 +1746,21 @@ private:
                         PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
                         PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
                     }
+                    
+                    // Debug
+                    Point<3> aux1;
+                    aux1.Coordinates() = PointList[0].Coordinates();
+                    RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    
+                    Point<3> aux2;
+                    aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
+                    RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    
+                    Point<3> aux3;
+                    aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
+                    RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    
+                    std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
                     
                     // We create the triangle
                     Triangle2D3 <Point<3>> triangle( PointsArray );
@@ -1663,7 +1781,7 @@ private:
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
-                            RotatePoint(gp_global, SlaveCenter, SlaveNormal, SlaveTangentXi, SlaveTangentEta, true);
+                            RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we project to the slave surface
@@ -1675,19 +1793,19 @@ private:
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
                         }
                     }
-                    // Debug
-                    else // FIXME: This is because the nodes are not in correct order, look how to do that
-                    {
-                        KRATOS_WATCH(LocalArea);
-                        KRATOS_WATCH(HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]));
-                        KRATOS_WATCH(PointList[0]);
-                        KRATOS_WATCH(PointList[IndexVector[elem + 0] + 1]);
-                        KRATOS_WATCH(Angles[IndexVector[elem + 0]]);
-                        KRATOS_WATCH(PointList[IndexVector[elem + 1] + 1]);
-                        KRATOS_WATCH(Angles[IndexVector[elem + 1]]);
-                        
-                        KRATOS_ERROR;
-                    }
+//                     // Debug
+//                     else // FIXME: This is because the nodes are not in correct order, look how to do that
+//                     {
+//                         KRATOS_WATCH(LocalArea);
+//                         KRATOS_WATCH(HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]));
+//                         KRATOS_WATCH(PointList[0]);
+//                         KRATOS_WATCH(PointList[IndexVector[elem + 0] + 1]);
+//                         KRATOS_WATCH(Angles[IndexVector[elem + 0]]);
+//                         KRATOS_WATCH(PointList[IndexVector[elem + 1] + 1]);
+//                         KRATOS_WATCH(Angles[IndexVector[elem + 1]]);
+//                         
+//                         KRATOS_ERROR;
+//                     }
                 }
                 
                 if (IntegrationPointsSlave.size() > 0)
