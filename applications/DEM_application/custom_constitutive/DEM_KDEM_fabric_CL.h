@@ -19,9 +19,9 @@ namespace Kratos {
         
         ~DEM_KDEMFabric() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                               SphericContinuumParticle* neighbor,
@@ -32,24 +32,29 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation);
+                                              double indentation) override;
         
         void AddPoissonContribution(const double equiv_poisson, 
                                     double LocalCoordSystem[3][3], 
                                     double& normal_force, 
-                                    double calculation_area, Matrix* mSymmStressTensor,
-                                    SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation);
+                                    double calculation_area, 
+                                    Matrix* mSymmStressTensor,
+                                    SphericContinuumParticle* element1, 
+                                    SphericContinuumParticle* element2, 
+                                    const ProcessInfo& r_process_info, 
+                                    const int i_neighbor_count, 
+                                    const double indentation) override;
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

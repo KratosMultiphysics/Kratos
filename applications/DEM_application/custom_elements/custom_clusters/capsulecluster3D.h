@@ -64,7 +64,7 @@ namespace Kratos
         CapsuleCluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
         CapsuleCluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
         
 
         /**
@@ -113,7 +113,7 @@ namespace Kratos
          * is called to initialize the element.
          * Must be called before any calculation is done!
          */
-        virtual void CustomInitialize(ProcessInfo& r_process_info);
+        virtual void CustomInitialize(ProcessInfo& r_process_info) override;
         
         /**
          * this is called during the assembling process in order
@@ -132,11 +132,11 @@ namespace Kratos
          * @param r_process_info: the current process info instance
          */
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                ProcessInfo& r_process_info);
+                ProcessInfo& r_process_info) override;
 
        
         virtual void EquationIdVector(EquationIdVectorType& rResult,
-                ProcessInfo& r_process_info);
+                ProcessInfo& r_process_info) override;
         
 
         /**
@@ -145,26 +145,26 @@ namespace Kratos
          * @param rMassMatrix: the elemental mass matrix
          * @param r_process_info: the current process info instance
          */
-        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
+        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
         
         
-        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
+        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
      
 
         virtual void GetDofList(DofsVectorType& ElementalDofList,
-                ProcessInfo& r_process_info);
+                ProcessInfo& r_process_info) override;
         
       
         /**
          * this is called in the beginning of each solution step
          */
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
+        virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 
 
         /**
          * this is called at the end of each solution step
          */
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
         
 
         /**
@@ -178,24 +178,24 @@ namespace Kratos
 
         virtual void Calculate(const Variable<double>& rVariable,
                 double& Output,
-                const ProcessInfo& r_process_info);
+                const ProcessInfo& r_process_info) override;
     
 
         virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                 array_1d<double, 3 > & Output,
-                const ProcessInfo& r_process_info);
+                const ProcessInfo& r_process_info) override;
     
         virtual void Calculate(const Variable<Vector >& rVariable,
                 Vector& Output,
-                const ProcessInfo& r_process_info);
+                const ProcessInfo& r_process_info) override;
      
 
         virtual void Calculate(const Variable<Matrix >& rVariable,
                 Matrix& Output,
-                const ProcessInfo& r_process_info);
+                const ProcessInfo& r_process_info) override;
    
-        double SlowGetDensity();
-        int SlowGetParticleMaterial();
+        double SlowGetDensity() override;
+        int SlowGetParticleMaterial() override;
 
 
       ///@}
@@ -212,7 +212,7 @@ namespace Kratos
       ///@name Input and output
       ///@{
 
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
 	    std::stringstream buffer;
 	    buffer << "Discrete Element #" << Id();
@@ -220,13 +220,13 @@ namespace Kratos
         }
       
       /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const
+        virtual void PrintInfo(std::ostream& rOStream) const override
         {
 	    rOStream << "Discrete Element #" << Id();
         }
       
       /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const
+        virtual void PrintData(std::ostream& rOStream) const override
         {
 	  //mpGeometry->PrintData(rOStream);
         }

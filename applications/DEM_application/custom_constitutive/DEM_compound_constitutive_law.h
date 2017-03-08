@@ -17,12 +17,12 @@ public:
     // Pointer types for DEM_compound_constitutive_law
     KRATOS_CLASS_POINTER_DEFINITION(DEM_compound_constitutive_law);
     
-    DEMDiscontinuumConstitutiveLaw::Pointer Clone() const {
+    DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_compound_constitutive_law<MainCL, CohesionCL>(*this));
         return p_clone;
     }
 
-    void SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+    void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override {
         std::cout << "Assigning DEM_D_linear_viscous_Coulomb to Properties " << pProp->Id() << std::endl; // Print this correctly!!!
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -31,13 +31,13 @@ public:
     
     virtual ~DEM_compound_constitutive_law() {}
     
-    double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+    double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override {
     
         return mCCL.CalculateCohesiveNormalForce(element1, element2, indentation);
         
     };
     
-    double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) {
+    double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) override {
     
         return mCCL.CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
     }; 
@@ -48,12 +48,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MainCL);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MainCL);
     }
