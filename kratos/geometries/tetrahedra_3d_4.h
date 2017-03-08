@@ -357,13 +357,7 @@ public:
     /** This method calculates and returns the volume of this geometry.
      * This method calculates and returns the volume of this geometry.
      *
-     * Please note that the folling simplification is used during the
-     * calculus of the determinant in order to reduce the number of operations:
-     *
-     * | a e i 1 |   | a-d e-h i-l |
-     * | b f j 1 | = | b-d f-h j-l |
-     * | c g k 1 |   | c-d g-h k-l |
-     * | d h l 1 |
+     * This method uses the V = (A x B) * C / 6 formula.
      *
      * @return double value contains length, area or volume.
      *
