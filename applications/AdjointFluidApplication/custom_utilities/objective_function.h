@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "include/process_info.h"
+#include "includes/process_info.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 
@@ -61,13 +61,20 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Check()
+    virtual void Initialize(ModelPart& rModelPart)
     {
     }
 
-    virtual void Initialize(ModelPart& rModelPart)
+    virtual void InitializeSolutionStep(ModelPart& rModelPart)
     {
-        
+    }
+
+    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
+    {
+    }
+
+    virtual void Check()
+    {
     }
 
     /// Calculate the local gradient w.r.t. velocity

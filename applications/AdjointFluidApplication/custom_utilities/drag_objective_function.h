@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "include/process_info.h"
+#include "includes/process_info.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_parameters.h"
@@ -50,19 +50,17 @@ public:
     ///@{
 
     /// Constructor.
-    DragObjectiveFunction(Parameters& rParam)
+    DragObjectiveFunction(Parameters& rParameters)
     {
         Parameters DefaultParams(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
-            "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "drag_direction": [1.0, 0.0, 0.0]
         })");
 
         rParameters.ValidateAndAssignDefaults(DefaultParams);
 
         mStructureModelPartName = rParameters["structure_model_part_name"].GetString();
-        mBoundaryModelPartName = rParameters["boundary_model_part_name"].GetString();
 
         if (rParameters["drag_direction"].IsArray() == false ||
             rParameters["drag_direction"].size() != 3)
@@ -117,14 +115,6 @@ public:
                 mStructureModelPartName)
         }
 
-        if (rModelPart.HasSubModelPart(mBoundaryModelPartName) == false)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid parameters \"boundary_model_part_name\": ",
-                mBoundaryModelPartName)
-        }
-
 // initialize the variables to zero.
 #pragma omp parallel
         {
@@ -133,10 +123,7 @@ public:
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
 
             for (auto it = NodesBegin; it != NodesEnd; ++it)
-            {
                 it->Set(STRUCTURE, false);
-                it->Set(BOUNDARY, false);
-            }
         }
 
         ModelPart& rStructureModelPart = rModelPart.GetSubModelPart(mStructureModelPartName);
@@ -144,10 +131,6 @@ public:
              it != rStructureModelPart.NodesEnd();
              ++it)
             it->Set(STRUCTURE, true);
-
-        ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
-        for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
-            it->Set(BOUNDARY, true);
 
         // allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -232,7 +215,6 @@ private:
     ///@{
 
     std::string mStructureModelPartName;
-    std::string mBoundaryModelPartName;
     array_1d<double, TDim> mDragDirection;
     std::vector<Vector> mDragFlagVector;
     std::vector<unsigned int> mElementIds;
@@ -245,7 +227,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    Vector& GetDragFlagVector(Element& rElement)
+    Vector& GetDragFlagVector(const Element& rElement)
     {
         int k = OpenMPUtils::ThisThread();
 
