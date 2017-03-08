@@ -500,9 +500,9 @@ public:
       double y30 = rP2[1] - rP3[1];
       double z30 = rP2[2] - rP3[2];
 
-      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z30 - y30 * z20 * s10 - z30 * s20 * y10;
-      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z30 - x30 * z20 * s10 - z30 * s20 * x10;
-      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y30 - x30 * y20 * s10 - y30 * s20 * x10;
+      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z10 - y30 * z20 * s10 - z30 * s20 * y10;
+      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z10 - x30 * z20 * s10 - z30 * s20 * x10;
+      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y10 - x30 * y20 * s10 - y30 * s20 * x10;
       double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
 
       return std::sqrt( (detJMX*detJMX + detJMY*detJMY + detJMZ*detJMZ)) / (2*std::abs(detJAL));
