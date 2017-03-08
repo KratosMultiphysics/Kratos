@@ -125,8 +125,8 @@ namespace Kratos {
       KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 4);
     }
 
-    /** Checks if the length of the tetrahedra is calculated correctly.
-     * Checks if the length of the tetrahedra is calculated correctly.
+    /** Checks if the characteristic length of the tetrahedra is calculated correctly.
+     * Checks if the characteristic length of the tetrahedra is calculated correctly.
      */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreGeometriesFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
