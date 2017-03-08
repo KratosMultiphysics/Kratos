@@ -125,6 +125,21 @@ namespace Kratos {
       KRATOS_CHECK_EQUAL(geomTriRect->FacesNumber(), 4);
     }
 
+    /** Checks if the length of the triangle is calculated correctly.
+     * Checks if the length of the triangle is calculated correctly.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreGeometriesFastSuite) {
+      auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
+      auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
+      auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      KRATOS_CHECK_NEAR(geomInvLen1->Length(), 1.414213, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Length(), 1.414213, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen2->Length(), 2.828427, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Length(), 1.122462, TOLERANCE);
+    }
+
     /** Checks if the area of the triangle is calculated correctly.
      * Checks if the area of the triangle is calculated correctly.
      */
