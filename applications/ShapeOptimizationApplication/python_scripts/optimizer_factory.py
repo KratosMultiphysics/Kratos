@@ -133,7 +133,6 @@ class VertexMorphingMethod:
         print("> ==============================================================================================================\n")
 
         print(time.ctime())
-        
         self.timeAtStartOfOptimization = time.time()
 
         self.prepareOptimization()
@@ -146,74 +145,22 @@ class VertexMorphingMethod:
 
         self.gidIO.finalize_results()
 
-        timeAtEndOfOptimization = time.time()
-
         print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(timeAtEndOfOptimization - self.timeAtStartOfOptimization,2)," s!")
+        print("> Finished optimization in ",round(time.time() - self.timeAtStartOfOptimization,2)," s!")
         print("> ==============================================================================================================\n")
 
     # --------------------------------------------------------------------------
     def prepareOptimization( self ):
-
         self.outputInformationAboutResponseFunctions()
+        self.createFolderToStoreOptimizationHistory()
+        self.extractDesignSurfaceAndDampingRegions()
+        self.createToolsNecessaryForOptimization()
 
-        # Create folder where all functions includig the optimizer may store their design history in
-        os.system( "rm -rf " + self.optimizationSettings.design_history_directory )
-        os.system( "mkdir -p " + self.optimizationSettings.design_history_directory )
-
-        # Check if part to be optimized is defined as sub-model in the input model part and extract it as separate model part
-        if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
-            self.optimizationModelPart = self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
-            print("> The following design surface was defined:\n\n",self.optimizationModelPart)
-        else:
-            raise RuntimeError("Sub-model part specified for optimization does not exist!")
-
-        # Identify possible damping regions and if necessary list corresponding sub-model parts and settings
-        damping_regions = []
-        if(self.optimizationSettings.perform_damping):
-            print("> The following damping regions are defined: \n")
-            for region in self.optimizationSettings.damping_regions:
-                sub_mdpa_name = region[0]
-                damp_in_X = region[1]
-                damp_in_Y = region[2]
-                damp_in_Z = region[3]
-                damping_function = region[4]
-                damping_radius = region[5]
-                if( self.inputModelPart.HasSubModelPart(sub_mdpa_name) ):
-                    print(region)
-                    damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
-                                            damp_in_X, 
-                                            damp_in_Y, 
-                                            damp_in_Z, 
-                                            damping_function, 
-                                            damping_radius] )
-                else:
-                    raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)         
-
-        # Create mapper to map between geometry and design space 
-        self.mapper = VertexMorphingMapper(self.optimizationModelPart,
-                                           self.optimizationSettings.filter_function,
-                                           self.optimizationSettings.use_mesh_preserving_filter_matrix,
-                                           self.optimizationSettings.filter_size,
-                                           self.optimizationSettings.perform_damping,
-                                           damping_regions)
-        
-        # Toolbox to perform optimization
-        self.opt_utils = OptimizationUtilities(self.optimizationModelPart,
-                                               self.objectives,
-                                               self.constraints,
-                                               self.optimizationSettings.step_size,
-                                               self.optimizationSettings.normalize_search_direction)
-
-        # Toolbox to pre & post process geometry data
-        self.geom_utils = GeometryUtilities(self.optimizationModelPart)
-        
     # --------------------------------------------------------------------------
     def outputInformationAboutResponseFunctions( self ):
         print("\n> The following objectives are defined:\n")
         for func_id in self.optimizationSettings.objectives:
             print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
-
         if( len(self.optimizationSettings.constraints)!=0 ):
             print("> The following constraints are defined:\n")
             for func_id in self.optimizationSettings.constraints:
@@ -222,6 +169,63 @@ class VertexMorphingMethod:
             print("> No constraints defined.\n")
 
     # --------------------------------------------------------------------------
+    def createFolderToStoreOptimizationHistory ( self ):
+        os.system( "rm -rf " + self.optimizationSettings.design_history_directory )
+        os.system( "mkdir -p " + self.optimizationSettings.design_history_directory )
+   
+    # --------------------------------------------------------------------------
+    def extractDesignSurfaceAndDampingRegions( self ):
+        self.optimizationModelPart = self.getDesignSurfaceFromInputModelPart()
+        if(self.optimizationSettings.perform_damping):
+            self.dampingRegions = self.createContainerWithDampingRegionsAndSettings()
+
+    # --------------------------------------------------------------------------
+    def createToolsNecessaryForOptimization( self ):
+        self.vertexMorphingMapper = VertexMorphingMapper( self.optimizationModelPart,
+                                                          self.optimizationSettings.filter_function,
+                                                          self.optimizationSettings.use_mesh_preserving_filter_matrix,
+                                                          self.optimizationSettings.filter_size,
+                                                          self.optimizationSettings.perform_damping,
+                                                          self.dampingRegions ) 
+        self.optimizationTools = OptimizationUtilities( self.optimizationModelPart,
+                                                        self.objectives,
+                                                        self.constraints,
+                                                        self.optimizationSettings.step_size,
+                                                        self.optimizationSettings.normalize_search_direction )
+        self.geometryTools = GeometryUtilities( self.optimizationModelPart ) 
+    
+    # --------------------------------------------------------------------------
+    def getDesignSurfaceFromInputModelPart ( self ):
+        if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
+            return self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
+            print("> The following design surface was defined:\n\n",self.optimizationModelPart)
+        else:
+            raise RuntimeError("Sub-model part specified for optimization does not exist!")
+    
+    # --------------------------------------------------------------------------
+    def createContainerWithDampingRegionsAndSettings ( self ):
+        damping_regions = []
+        print("> The following damping regions are defined: \n")
+        for region in self.optimizationSettings.damping_regions:
+            sub_mdpa_name = region[0]
+            damp_in_X = region[1]
+            damp_in_Y = region[2]
+            damp_in_Z = region[3]
+            damping_function = region[4]
+            damping_radius = region[5]
+            if( self.inputModelPart.HasSubModelPart(sub_mdpa_name) ):
+                print(region)
+                damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
+                                        damp_in_X, 
+                                        damp_in_Y, 
+                                        damp_in_Z, 
+                                        damping_function, 
+                                        damping_radius] )
+            else:
+                raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)         
+        return damping_regions
+    
+    #---------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
         if(self.optimizationSettings.optimization_algorithm == "steepest_descent"):
            self.runSteepestDescentAlgorithm()
@@ -288,19 +292,19 @@ class VertexMorphingMethod:
 
             self.storeGradientsOnNodes( gradientOfObjectiveFunction )
 
-            self.geom_utils.compute_unit_surface_normals()
+            self.geometryTools.compute_unit_surface_normals()
 
-            self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
+            self.geometryTools.project_grad_on_unit_surface_normal( constraints_given )
 
-            self.mapper.compute_mapping_matrix()
+            self.vertexMorphingMapper.compute_mapping_matrix()
 
-            self.mapper.map_sensitivities_to_design_space( constraints_given )
+            self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
 
-            self.opt_utils.compute_search_direction_steepest_descent()
+            self.optimizationTools.compute_search_direction_steepest_descent()
 
-            self.opt_utils.compute_design_update()
+            self.optimizationTools.compute_design_update()
 
-            self.mapper.map_design_update_to_geometry_space()
+            self.vertexMorphingMapper.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
@@ -451,16 +455,13 @@ class VertexMorphingMethod:
             self.storeGradientsOnNodes( response[only_F_id]["gradient"], response[only_C_id]["gradient"] )
 
             # Compute unit surface normals at each node of current design
-            self.geom_utils.compute_unit_surface_normals()
-
-            # Project received gradients on unit surface normal at each node to obtain normal gradients
-            self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
+            self.geometryTools.project_grad_on_unit_surface_normal( constraints_given )
 
             # Compute mapping matrix
-            self.mapper.compute_mapping_matrix()
+            self.vertexMorphingMapper.compute_mapping_matrix()
 
             # Map sensitivities to design space
-            self.mapper.map_sensitivities_to_design_space( constraints_given )
+            self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
 
             # # Adjustment of step size
             # if( optItr > 1 and response[only_F_id]["value"]>previous_f):
@@ -468,15 +469,15 @@ class VertexMorphingMethod:
 
             correction_scaling = [False] 
             if(constraints_given):
-                self.opt_utils.compute_projected_search_direction( response[only_C_id]["value"] )
-                self.opt_utils.correct_projected_search_direction( response[only_C_id]["value"], previous_c, correction_scaling )
-                self.opt_utils.compute_design_update()
+                self.optimizationTools.compute_projected_search_direction( response[only_C_id]["value"] )
+                self.optimizationTools.correct_projected_search_direction( response[only_C_id]["value"], previous_c, correction_scaling )
+                self.optimizationTools.compute_design_update()
             else:
-                self.opt_utils.compute_search_direction_steepest_descent()
-                self.opt_utils.compute_design_update()
+                self.optimizationTools.compute_search_direction_steepest_descent()
+                self.optimizationTools.compute_design_update()
 
             # Map design update to geometry space
-            self.mapper.map_design_update_to_geometry_space()
+            self.vertexMorphingMapper.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track objective function
             delta_f_absolute = 0.0
