@@ -60,7 +60,6 @@
 #include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 #include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
-#include "custom_strategies/strategies/trilinos_adjoint_fluid_strategy.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -252,15 +251,6 @@ void AddStrategies()
     .def("MoveNodes",&TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
     .def("Solve", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
     .def("SetEchoLevel", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
-    ;
-
-    //********************************************************************************************
-
-    class_< TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
-    ("TrilinosAdjointFluidStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int >())
-    .def("Solve", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve)
-    .def("SetDragForceDirection", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetDragForceDirection)
-    .def("ComputeSensitivity", &TrilinosAdjointFluidStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ComputeSensitivity)
     ;
 
 }
