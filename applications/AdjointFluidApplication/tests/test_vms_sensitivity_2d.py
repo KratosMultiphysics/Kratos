@@ -19,6 +19,10 @@ class TestCase(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
+    def removeFile(self, file_path):
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
     def readNodalCoordinates(self,node_id,model_part_file_name):
         with open(model_part_file_name + '.mdpa', 'r') as model_part_file:
             lines = model_part_file.readlines()
@@ -121,12 +125,9 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self.ComputeFiniteDifferenceDragSensitivity([1],step_size,'./test_vms_sensitivity_2d/one_element_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/one_element_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
-            # remove hdf5 file
-            if "one_element_test_0.h5" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/one_element_test_0.h5")
-            # remove drag file
-            if "one_element_test.dat" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/one_element_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/one_element_test_0.h5")
+            self.removeFile("./test_vms_sensitivity_2d/one_element_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/one_element_test.time")
 
     def test_Cylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -144,12 +145,9 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self.ComputeFiniteDifferenceDragSensitivity([1968],step_size,'./test_vms_sensitivity_2d/cylinder_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/cylinder_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
-            # remove hdf5 file
-            if "cylinder_test_0.h5" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/cylinder_test_0.h5")
-            # remove drag file
-            if "cylinder_test.dat" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/cylinder_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_0.h5")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test.time")
 
     def test_SteadyCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -167,12 +165,9 @@ class TestCase(KratosUnittest.TestCase):
             FDSensitivity = self.ComputeFiniteDifferenceDragSensitivity([1968],step_size,'./test_vms_sensitivity_2d/steady_cylinder_test',[1.0,0.0,0.0],'./test_vms_sensitivity_2d/steady_cylinder_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
-            # remove hdf5 file
-            if "steady_cylinder_test_0.h5" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/steady_cylinder_test_0.h5")
-            # remove drag file
-            if "steady_cylinder_test.dat" in os.listdir("./test_vms_sensitivity_2d"):
-                os.remove("./test_vms_sensitivity_2d/steady_cylinder_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/steady_cylinder_test_0.h5")
+            self.removeFile("./test_vms_sensitivity_2d/steady_cylinder_test.dat")
+            self.removeFile("./test_vms_sensitivity_2d/steady_cylinder_test.time")
 
     def tearDown(self):
         pass
