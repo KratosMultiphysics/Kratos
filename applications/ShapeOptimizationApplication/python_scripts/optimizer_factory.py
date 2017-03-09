@@ -183,7 +183,6 @@ class VertexMorphingMethod:
     def createToolsNecessaryForOptimization( self ):
         self.vertexMorphingMapper = VertexMorphingMapper( self.optimizationModelPart,
                                                           self.optimizationSettings.filter_function,
-                                                          self.optimizationSettings.use_mesh_preserving_filter_matrix,
                                                           self.optimizationSettings.filter_size,
                                                           self.optimizationSettings.perform_damping,
                                                           self.dampingRegions ) 

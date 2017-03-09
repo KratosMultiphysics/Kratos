@@ -31,28 +31,18 @@ constraints = {  }
 design_control = "vertex_morphing" 
 # options: "vertex_morphing"
 
-# ================================================================================================================
 # Case: design_control = "vertex_morphing"
-# ================================================================================================================
-
 input_model_part_name = "3D_Shell"
 design_surface_submodel_part_name = "design_surface"
 domain_size = 3
 # options: 2 or 3 for 2D or 3D optimization patch
-
 filter_function = "linear"
 # options: "gaussian"
 #          "linear"
 filter_size = 3
-
-use_mesh_preserving_filter_matrix = False
-# options: True    - surface normal information used in the filter matrix
-#        : False   - complete filter matrix is used
-
 perform_damping = True
 # options: True    - damping is applied with the settings below
 #        : False   - no damping is applied, settings below can be ignored
-
 damping_regions = [ ["support_edges", False, True, True, "linear", 3 ],
                     ["side_edges", False, False, True, "linear", 3 ] ]
 # damping_region = [ [sub_model_part_name_1, damp_in_X, damp_in_Y, damp_in_Z, damping_function, damping_radius ],
@@ -74,14 +64,6 @@ max_opt_iterations = 300
     
 # Case: "steepest descent"
 relative_tolerance_objective = 1e-1 # [%]
-    
-# Case: optimization_algorithm = "augmented_lagrange"
-max_sub_opt_iterations = 100
-relative_tolerance_sub_opt = 1e-1 # [%]
-penalty_fac_0 = 4
-gamma = 4
-penalty_fac_max = 2000
-lambda_0 = 0.0
             
 # ================================================================================================================ 
 # Determination of step size (line-search) 
