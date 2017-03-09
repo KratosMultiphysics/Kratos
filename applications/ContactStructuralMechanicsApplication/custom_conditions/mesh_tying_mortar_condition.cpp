@@ -139,7 +139,7 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-
+    
     // NOTE: Add things if necessary
     
     KRATOS_CATCH( "" );
@@ -577,11 +577,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                 
         if (NumberOfINtegrationPoints > 0)
         {
-//             // Debug
-//             std::cout << "--------------------------------------------------" << std::endl;
-//             KRATOS_WATCH(this->Id());
-//             KRATOS_WATCH(PairIndex);
-//             rThisMortarConditionMatrices.print();
+            // Debug
+            std::cout << "--------------------------------------------------" << std::endl;
+            KRATOS_WATCH(this->Id());
+            KRATOS_WATCH(PairIndex);
+            rThisMortarConditionMatrices.print();
             
             // Assemble of the matrix is required
             if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
@@ -591,12 +591,12 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                 boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, PairIndex, rCurrentProcessInfo);
     //             boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = this->CalculateLocalLHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, LHS_SlaveElem_Contribution, EquationIdSlaveElem, PairIndex, rCurrentProcessInfo);
                 
-                // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex );
-                
 //                 // Debug
 // //                 KRATOS_WATCH(LHS_contact_pair);
 //                 LOG_MATRIX_PRETTY( LHS_contact_pair );
+                
+                // Contributions to stiffness matrix calculated on the reference config
+                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex );
             }
 
             // Assemble of the vector is required
@@ -607,12 +607,12 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                 const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, PairIndex, rCurrentProcessInfo);
     //             const array_1d<double, MatrixSize> RHS_contact_pair = this->CalculateLocalRHS<MatrixSize>( rThisMortarConditionMatrices, rDofData, RHS_SlaveElem_Contribution, EquationIdSlaveElem, PairIndex, rCurrentProcessInfo);
                 
-                // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex );
-                
 //                 // Debug
 // //                 KRATOS_WATCH(RHS_contact_pair);
 //                 LOG_VECTOR_PRETTY( RHS_contact_pair );
+                
+                // Contribution to previous step contact force and residuals vector
+                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex );
             }
         }
     }
@@ -792,10 +792,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateMortarOperat
 {
     /* DEFINITIONS */
     const double J_s = rVariables.DetJSlave; 
-    const VectorType Phi = rVariables.Phi_LagrangeMultipliers;
+//     const VectorType Phi = rVariables.Phi_LagrangeMultipliers;
+    const VectorType Phi = rVariables.N_Slave; // TODO: Restore this later
     const VectorType N1  = rVariables.N_Slave;
     const VectorType N2  = rVariables.N_Master;
-
+    
     // Mortar condition matrices - DOperator and MOperator
     boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
     boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
@@ -891,6 +892,10 @@ boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> MeshTyingM
                 unsigned j_index = TTensor * (2 * NumNodes) + (TTensor * j_master) + itensor;
                 PairLHS(i_index, j_index) = - MOperator(j_master, i_master);
                 PairLHS(j_index, i_index) = - MOperator(i_master, j_master);
+                
+//                 // Debug
+//                 std::cout << i_index << " " << j_index << std::endl;
+//                 std::cout << j_index << " " << i_index << std::endl;
             }
         }
     }
@@ -908,6 +913,10 @@ boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> MeshTyingM
                 unsigned j_index = TTensor * (2 * NumNodes) + (TTensor * j_slave) + itensor;;
                 PairLHS(i_index, j_index) = DOperator(j_slave, i_slave);
                 PairLHS(j_index, i_index) = DOperator(i_slave, j_slave);
+                
+//                 // Debug
+//                 std::cout << i_index << " " << j_index << std::endl;
+//                 std::cout << j_index << " " << i_index << std::endl;
             }
         }
     }

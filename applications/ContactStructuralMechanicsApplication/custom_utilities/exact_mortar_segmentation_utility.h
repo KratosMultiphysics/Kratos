@@ -53,6 +53,7 @@ namespace Kratos
     
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod              IntegrationMethod;
+    typedef IntegrationPoint<2>                       IntegrationPointType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
     
 ///@}
@@ -986,9 +987,6 @@ private:
         const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates());
         const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
-        // We initialize the total area
-        const double TotalArea = SlaveGeometry.Area();
-        
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 3> MasterProjectedPoint;
         array_1d<bool, 3> AllInside;
@@ -1049,13 +1047,16 @@ private:
                     
                     // We recover this point to the triangle plane
                     RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-    //                 RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                     
                     // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                     
-                    // We can cosntruct now the integration local triangle
-                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                    // We can construct now the integration local triangle
+                    Matrix J;
+                    AllTriangle.Jacobian(J, gp_local);
+                    const Matrix JTJ = prod( trans(J), J );
+                    const double DetJ = std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
+                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
                 }
                 
                 return true;
@@ -1073,8 +1074,6 @@ private:
             {
                 RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-//                 RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveNormal, false);
-//                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveNormal, false);
                 
                 if (AllInside[i_node] == true)
                 {
@@ -1223,14 +1222,14 @@ private:
                             
                             // We recover this point to the triangle plane
                             RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                             
-                            // We can cosntruct now the integration local triangle
-                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea ));
-//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * LocalArea/TotalArea );
+                            // We can construct now the integration local triangle
+                            const double DetJ = triangle.DeterminantOfJacobian(gp_local);
+                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
                         }
                     }
                 }
@@ -1266,7 +1265,7 @@ private:
         GeometryType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
-    {
+    {        
         // We define the tolerance
         const double Tolerance = 1.0e-8;
         
@@ -1308,9 +1307,6 @@ private:
             GeometryType::CoordinatesArrayType rResult;
             AllInside[i_node] = FasIsInsideQuadrilateral2D( DummyQuadrilateral, MasterProjectedPoint[i_node].Coordinates( ) ) ;
         }
-        
-        // We initialize the total area
-        const double TotalArea = DummyQuadrilateral.Area();
         
         // We create the pointlist
         std::vector<Point<3>> PointList;
@@ -1387,21 +1383,22 @@ private:
                 const double LocalArea = triangle.Area();
                 
                 if (LocalArea > Tolerance)
-                {
-                    // Debug
-                    Point<3> aux1;
-                    aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
-                    RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                {                       
+//                     // Debug
+//                     Point<3> aux1;
+//                     aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
+//                     RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     
+//                     Point<3> aux2;
+//                     aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
+//                     RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                     
+//                     Point<3> aux3;
+//                     aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
+//                     RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                     
-                    Point<3> aux2;
-                    aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
-                    RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
-                    Point<3> aux3;
-                    aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
-                    RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
-                    std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+//                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+//                     std::cout << LocalArea << " - Area[Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]]" << std::endl;
                     
                     // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                     for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
@@ -1414,15 +1411,19 @@ private:
                         
                         // We recover this point to the triangle plane
                         RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                         
                         // Now we project to the slave surface
                         Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
-                        // We can cosntruct now the integration local triangle
-                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea )); // NOTE: The weight of the triangle is 8 times smaller
-    //                     IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                        // We can construct now the integration local triangle
+                        const double DetJ = triangle.DeterminantOfJacobian(gp_local); 
+                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE:  The total weigh of a quadrilateral is 4
+//                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE:  The total weigh of a quadrilateral is 4
+                        
+                        // Debug
+//                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ << "+";// << std::endl;
+//                         std::cout << "Graphics3D[Sphere[{" << gp_global_proj.X() << "," << gp_global_proj.Y() << "," << gp_global_proj.Z()  << "}," << 0.2 * IntegrationPoints[PointNumber].Weight() * DetJ << "]],";// << std::endl;
                     }
                 }
 //                 // Debug
@@ -1691,21 +1692,22 @@ private:
                     const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
                     
                     if (LocalArea > Tolerance)
-                    {
-                        // Debug
-                        Point<3> aux1;
-                        aux1.Coordinates() = PointList[0].Coordinates();
-                        RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        
-                        Point<3> aux2;
-                        aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
-                        RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        
-                        Point<3> aux3;
-                        aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
-                        RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        
-                        std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                    {                                         
+//                         // Debug
+//                         Point<3> aux1;
+//                         aux1.Coordinates() = PointList[0].Coordinates();
+//                         RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         
+//                         Point<3> aux2;
+//                         aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
+//                         RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         
+//                         Point<3> aux3;
+//                         aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
+//                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+//                         
+//                         std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+//                         std::cout << LocalArea << " - Area[Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]]" << std::endl;
                         
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
@@ -1718,15 +1720,19 @@ private:
                             
                             // We recover this point to the triangle plane
                             RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                             RotatePoint(gp_global, SlaveCenter, SlaveNormal, true);
                             
                             // Now we project to the slave surface
                             Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                             
-                            // We can cosntruct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
-                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea )); // NOTE: The weight of the triangle is 8 times smaller
-//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * 8.0 * LocalArea/TotalArea ); // NOTE: The weight of the triangle is 8 times smaller
+                            // We can construct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
+                            const double DetJ = triangle.DeterminantOfJacobian(gp_local);
+                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE: The total weight of a quadrilateral is 4
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE: The total weight of a quadrilateral is 4
+                            
+                            // Debug
+//                             std::cout << IntegrationPoints[PointNumber].Weight() * DetJ << "+";// << std::endl;
+//                             std::cout << "Graphics3D[Sphere[{" << gp_global_proj.X() << "," << gp_global_proj.Y() << "," << gp_global_proj.Z()  << "}," << 0.2 * IntegrationPoints[PointNumber].Weight() * DetJ << "]],";// << std::endl;
                         }
                     }
 //                     // Debug

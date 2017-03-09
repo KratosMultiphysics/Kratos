@@ -10,9 +10,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
-from TestExactIntegration import TestLineExactIntegration as TTestLineExactIntegration
-from TestExactIntegration import TestTriangleExactIntegration as TTestTriangleExactIntegration
-from TestExactIntegration import TestQuadrilateralExactIntegration as TTestQuadrilateralExactIntegration
+from TestExactIntegration import TestLineExactIntegration1 as TTestLineExactIntegration1
+from TestExactIntegration import TestLineExactIntegration2 as TTestLineExactIntegration2
+from TestExactIntegration import TestTriangleExactIntegration1 as TTestTriangleExactIntegration1
+from TestExactIntegration import TestTriangleExactIntegration2 as TTestTriangleExactIntegration2
+from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
+from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
@@ -50,9 +53,12 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TTestLineExactIntegration('test_execution'))
-    smallSuite.addTest(TTestTriangleExactIntegration('test_execution'))
-    smallSuite.addTest(TTestQuadrilateralExactIntegration('test_execution'))
+    smallSuite.addTest(TTestLineExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
+    smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
@@ -81,9 +87,12 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TTestLineExactIntegration,
-            TTestTriangleExactIntegration,
-            TTestQuadrilateralExactIntegration,
+            TTestLineExactIntegration1,
+            TTestLineExactIntegration2,
+            TTestTriangleExactIntegration1,
+            TTestTriangleExactIntegration2,
+            TTestQuadrilateralExactIntegration1,
+            TTestQuadrilateralExactIntegration2,
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,
             TSimplePatchNotMatchingATestContact,
