@@ -5,6 +5,8 @@ namespace Kratos
   //
   KRATOS_CREATE_VARIABLE(double, CONTROL_POINT_WEIGHT)
 
+  KRATOS_CREATE_VARIABLE(Vector, LOCAL_PARAMETERS)
+  KRATOS_CREATE_VARIABLE(int, FACE_BREP_ID)
   ////Values of Shapefunctions N
   //KRATOS_CREATE_VARIABLE(Vector, SHAPE_FUNCTION_VALUES)
   ////Values of Shapefunctionderivatives in local space DN_De

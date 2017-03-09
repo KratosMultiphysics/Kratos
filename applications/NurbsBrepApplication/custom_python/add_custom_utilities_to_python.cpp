@@ -15,6 +15,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 
 // Project includes
@@ -25,7 +26,9 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/BrepModel.h"
 #include "custom_utilities/NurbsBrepModeler.h"
+#include "custom_utilities/BrepModelGeometryReader.h"
 
 namespace Kratos
 {
@@ -43,9 +46,20 @@ namespace Python
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<Parameters&, ModelPart&>());
+    typedef std::vector<BrepModel> BrepModelVector;
+
+    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelVector&, ModelPart&>());
       //.def("SetUp", &NurbsBrepModeler::SetUp)
       //;
+
+   /* class_<std::vector<BrepModel> >("BrepModelVec")
+      .def(vector_indexing_suite<std::vector<BrepModel> >())
+      ;*/
+
+    class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
+      .def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
+      ;
+    //void BrepModelGeometryReader::ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part)
     //  .def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
     //  .def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
     //  ;
