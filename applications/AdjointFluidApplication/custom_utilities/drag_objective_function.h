@@ -52,6 +52,8 @@ public:
     /// Constructor.
     DragObjectiveFunction(Parameters& rParameters)
     {
+        KRATOS_TRY
+
         Parameters DefaultParams(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
@@ -90,6 +92,8 @@ public:
             for (unsigned int d = 0; d < TDim; d++)
                 mDragDirection[d] /= magnitude;
         }
+
+        KRATOS_CATCH("")
     }
 
     /// Destructor.
@@ -107,6 +111,8 @@ public:
 
     virtual void Initialize(ModelPart& rModelPart)
     {
+        KRATOS_TRY
+
         if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
         {
             KRATOS_THROW_ERROR(
@@ -133,19 +139,34 @@ public:
              ++it)
             it->Set(STRUCTURE, true);
 
-        // allocate auxiliary memory
+        KRATOS_CATCH("")
+    }
+
+    virtual void InitializeSolutionStep(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        // allocate auxiliary memory. this is done here instead of Initialize()
+        // in case of restart.
         int NumThreads = OpenMPUtils::GetNumThreads();
         mElementIds.resize(NumThreads);
         mDragFlagVector.resize(NumThreads);
-        
+
+        // prevent model part from silently creating a new element
+        if (rModelPart.Elements().find(1) == rModelPart.Elements().end())
+            KRATOS_THROW_ERROR(std::runtime_error, "missing element 1", "")
+
+        // use element 1 to initialize drag flag vector
+        Element& rElem = rModelPart.GetElement(1);
 #pragma omp parallel
         {
             // initialize drag flag and element id vectors
             int k = OpenMPUtils::ThisThread();
-            Element& rElem = rModelPart.GetElement(1);
             mElementIds[k] = 0; // force initialization
             this->GetDragFlagVector(rElem);
         }
+
+        KRATOS_CATCH("")
     }
 
     virtual void CalculateAdjointVelocityContribution(const Element& rElem,
