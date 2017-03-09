@@ -159,7 +159,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
         # Calculation of value of objective function
-        if(communicator.isRequestingFunctionValueOf("strain_energy")):
+        if communicator.isRequestingFunctionValueOf("strain_energy"):
 
             iterateTimeStepInMainModelPart( optimizationIteration )
 
@@ -181,7 +181,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())  
 
         # Calculation of value of constraint function
-        if(communicator.isRequestingFunctionValueOf("mass")):
+        if communicator.isRequestingFunctionValueOf("mass"):
 
             print("\n> Starting calculation of value of mass constraint")
             responseFunctionSolver["mass"].calculate_value()
@@ -192,7 +192,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             communicator.reportFunctionReferenceValue("mass", responseFunctionSolver["mass"].get_initial_value())
 
         # Calculation of gradients of objective function
-        if(communicator.isRequestingGradientOf("strain_energy")): 
+        if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradient of objective function")
             startTime = timer.time()               
@@ -210,7 +210,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)   
 
         # Calculation of gradients of constraint function  
-        if(communicator.isRequestingGradientOf("mass")):       
+        if communicator.isRequestingGradientOf("mass"):       
 
             print("\n> Starting calculation of gradient of constraint function")
             startTime = timer.time()    

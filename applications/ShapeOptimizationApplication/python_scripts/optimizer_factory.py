@@ -66,7 +66,7 @@ import time
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-    if( optimizationSettings.design_control == "vertex_morphing" ):
+    if  optimizationSettings.design_control == "vertex_morphing":
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
     else:
@@ -90,6 +90,7 @@ class VertexMorphingMethod:
         self.optimizationSettings = optimizationSettings
         self.objectives = optimizationSettings.objectives
         self.constraints = optimizationSettings.constraints
+        self.designHistoryFile = self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file
 
         self.addVariablesNeededForOptimization()
 
@@ -161,7 +162,7 @@ class VertexMorphingMethod:
         print("\n> The following objectives are defined:\n")
         for func_id in self.optimizationSettings.objectives:
             print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
-        if( len(self.optimizationSettings.constraints)!=0 ):
+        if len(self.optimizationSettings.constraints) != 0:
             print("> The following constraints are defined:\n")
             for func_id in self.optimizationSettings.constraints:
                 print(func_id,":",self.optimizationSettings.constraints[func_id],"\n")
@@ -176,8 +177,10 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def extractDesignSurfaceAndDampingRegions( self ):
         self.optimizationModelPart = self.getDesignSurfaceFromInputModelPart()
-        if(self.optimizationSettings.perform_damping):
+        if self.optimizationSettings.perform_damping:
             self.dampingRegions = self.createContainerWithDampingRegionsAndSettings()
+        else:
+            self.dampingRegions = []
 
     # --------------------------------------------------------------------------
     def createToolsNecessaryForOptimization( self ):
@@ -195,7 +198,7 @@ class VertexMorphingMethod:
     
     # --------------------------------------------------------------------------
     def getDesignSurfaceFromInputModelPart ( self ):
-        if( self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name) ):
+        if self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name):
             optimizationModel = self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
             print("> The following design surface was defined:\n\n",optimizationModel)
             return optimizationModel
@@ -213,7 +216,7 @@ class VertexMorphingMethod:
             damp_in_Z = region[3]
             damping_function = region[4]
             damping_radius = region[5]
-            if( self.inputModelPart.HasSubModelPart(sub_mdpa_name) ):
+            if self.inputModelPart.HasSubModelPart(sub_mdpa_name):
                 print(region)
                 damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
                                         damp_in_X, 
@@ -227,9 +230,9 @@ class VertexMorphingMethod:
     
     #---------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
-        if(self.optimizationSettings.optimization_algorithm == "steepest_descent"):
+        if self.optimizationSettings.optimization_algorithm == "steepest_descent":
            self.runSteepestDescentAlgorithm()
-        elif(self.optimizationSettings.optimization_algorithm == "penalized_projection"):
+        elif self.optimizationSettings.optimization_algorithm == "penalized_projection":
            self.runPenalizedProjectionAlgorithm()           
         else:
             sys.exit("Specified optimization_algorithm not implemented!")
@@ -247,7 +250,7 @@ class VertexMorphingMethod:
             break
 
         # Initialize file where design evolution is recorded
-        with open(self.optimizationSettings.design_history_file, 'w') as csvfile:
+        with open(self.designHistoryFile, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -299,7 +302,7 @@ class VertexMorphingMethod:
             absoluteChangeOfObjectiveValue = 0.0
             relativeChangeOfObjectiveValue = 0.0
             print("\n> Current value of objective function = ",valueOfObjectiveFunction)
-            if(optimizationIteration >1):
+            if optimizationIteration > 1:
                 absoluteChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-initialValueOfObjectiveFunction) / initialValueOfObjectiveFunction
                 relativeChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-previousValueOfObjectiveFunction) / initialValueOfObjectiveFunction
                 print("> Absolut change of objective function = ",round(absoluteChangeOfObjectiveValue,6)," [%]")
@@ -311,7 +314,7 @@ class VertexMorphingMethod:
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
             runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)
-            with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
+            with open(self.designHistoryFile, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(optimizationIteration)+"\t")
@@ -328,28 +331,27 @@ class VertexMorphingMethod:
             print("> Time needed for total optimization so far = ",runTimeOptimization,"s")                              
 
             # Check convergence
-            if( optimizationIteration > 1 ):
+            if optimizationIteration > 1 :
 
                 # Check if maximum iterations were reached
-                if( optimizationIteration == self.optimizationSettings.max_opt_iterations ):
+                if optimizationIteration == self.optimizationSettings.max_opt_iterations:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if( abs(relativeChangeOfObjectiveValue) < self.optimizationSettings.relative_tolerance_objective ):
+                if abs(relativeChangeOfObjectiveValue) < self.optimizationSettings.relative_tolerance_objective:
                     print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
                     break
 
                 # Check if value of objective increases
-                if( valueOfObjectiveFunction > previousValueOfObjectiveFunction ):
+                if valueOfObjectiveFunction > previousValueOfObjectiveFunction:
                     print("\n> Value of objective function increased!")
-                    break
 
             # Store values of for next iteration
             previousValueOfObjectiveFunction = valueOfObjectiveFunction
 
             # Store initial objective value
-            if( optimizationIteration==1 ):
+            if optimizationIteration == 1:
                 initialValueOfObjectiveFunction = valueOfObjectiveFunction
 
     # --------------------------------------------------------------------------
@@ -374,7 +376,7 @@ class VertexMorphingMethod:
             break            
 
         # Initialize file where design evolution is recorded
-        with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'w') as csvfile:
+        with open(self.designHistoryFile, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -422,9 +424,9 @@ class VertexMorphingMethod:
             
             # Check if constraint is active
             for functionId in self.constraints:
-                if(self.constraints[functionId]["type"] == "eq"):
+                if self.constraints[functionId]["type"] == "eq":
                     constraints_given = True
-                elif(valueOfConstraintFunction > 0):
+                elif valueOfConstraintFunction > 0:
                     constraints_given = True
                 else:
                     constraints_given = False
@@ -437,7 +439,7 @@ class VertexMorphingMethod:
             self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
 
             correctionScaling = [False] 
-            if(constraints_given):
+            if constraints_given:
                 self.optimizationTools.compute_projected_search_direction( valueOfConstraintFunction )
                 self.optimizationTools.correct_projected_search_direction( valueOfConstraintFunction, previousValueOfConstraintFunction, correctionScaling )
                 self.optimizationTools.compute_design_update()
@@ -451,7 +453,7 @@ class VertexMorphingMethod:
             absoluteChangeOfObjectiveValue = 0.0
             relativeChangeOfObjectiveValue = 0.0
             print("\n> Current value of objective function = ",valueOfObjectiveFunction)
-            if(optimizationIteration>1):
+            if optimizationIteration > 1:
                 absoluteChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-initialValueOfObjectiveFunction) / initialValueOfObjectiveFunction
                 relativeChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-previousValueOfObjectiveFunction) / initialValueOfObjectiveFunction
                 print("> Absolut change of objective function = ",round(absoluteChangeOfObjectiveValue,6)," [%]")
@@ -464,7 +466,7 @@ class VertexMorphingMethod:
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
             runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)            
-            with open(self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file, 'a') as csvfile:
+            with open(self.designHistoryFile, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(optimizationIteration)+"\t")
@@ -488,24 +490,28 @@ class VertexMorphingMethod:
             print("\n> Time needed for total optimization so far = ",runTimeOptimization,"s")                       
 
             # Check convergence (Further convergence criterions to be implemented )
-            if(optimizationIteration>1):
+            if optimizationIteration>1:
 
                 # Check if maximum iterations were reached
-                if(optimizationIteration==self.optimizationSettings.max_opt_iterations):
+                if optimizationIteration==self.optimizationSettings.max_opt_iterations:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if(abs(relativeChangeOfObjectiveValue)<self.optimizationSettings.relative_tolerance_objective):
+                if abs(relativeChangeOfObjectiveValue)<self.optimizationSettings.relative_tolerance_objective:
                     print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
                     break
+
+                # Check if value of objective increases
+                if  valueOfObjectiveFunction > previousValueOfObjectiveFunction:
+                    print("\n> Value of objective function increased!")                    
 
             # Store values of for next iteration
             previousValueOfObjectiveFunction = valueOfObjectiveFunction
             previousValueOfConstraintFunction = valueOfConstraintFunction
 
             # Store initial objective value
-            if(optimizationIteration==1):
+            if optimizationIteration == 1:
                 initialValueOfObjectiveFunction = valueOfObjectiveFunction      
 
     # --------------------------------------------------------------------------
@@ -516,7 +522,7 @@ class VertexMorphingMethod:
         for node_Id in objective_grads:
 
             # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-            if(self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+            if self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
                 continue
 
             # If not deactivated, nodal sensitivities will be assigned
@@ -527,12 +533,12 @@ class VertexMorphingMethod:
             self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
 
         # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
-        if(bool(constraint_grads)):
+        if bool(constraint_grads):
             eucledian_norm_cons_sens = 0.0
             for node_Id in constraint_grads:
 
                 # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-                if(self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+                if self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
                     continue
 
                 # If not deactivated, nodal sensitivities will be assigned
@@ -602,15 +608,24 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def reportFunctionValue( self, functionId, functionValue ):
-        self.responseContainer[functionId]["value"] = functionValue
+        if functionId in self.responseContainer.keys():
+            self.responseContainer[functionId]["value"] = functionValue
+        else:
+            raise NameError("Reported function is not specified: " + functionId)
 
     # --------------------------------------------------------------------------
     def reportFunctionReferenceValue( self, functionId, functionReferenceValue ):
-        self.responseContainer[functionId]["reference"] = functionReferenceValue
+        if functionId in self.responseContainer.keys():
+            self.responseContainer[functionId]["reference"] = functionReferenceValue
+        else:
+            raise NameError("Reported function is not specified: " + functionId)
 
     # --------------------------------------------------------------------------
     def reportGradient( self, functionId, gradient ):
-        self.responseContainer[functionId]["gradient"] = gradient
+        if functionId in self.responseContainer.keys():        
+            self.responseContainer[functionId]["gradient"] = gradient
+        else:
+            raise NameError("Reported function is not specified: " + functionId)
 
     # --------------------------------------------------------------------------
     def getReportedFunctionValueOf( self, functionId ):
@@ -629,6 +644,6 @@ class Communicator:
 # ==============================================================================
 class analyzerBaseClass:
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-        raise("Analyzer base class is called. Please check your implementation of the function >> analyzeDesignAndReportToCommunicator << .")
+        raise RuntimeError("Analyzer base class is called. Please check your implementation of the function >> analyzeDesignAndReportToCommunicator << .")
 
 # ==============================================================================

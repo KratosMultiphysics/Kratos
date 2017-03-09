@@ -160,7 +160,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
         # Calculation of primals
-        if(communicator.isRequestingFunctionValueOf("strain_energy")):
+        if communicator.isRequestingFunctionValueOf("strain_energy"):
             
             iterateTimeStepInMainModelPart( optimizationIteration )
 
@@ -182,7 +182,7 @@ class kratosCSMAnalyzer( optimizer_factory.analyzerBaseClass ):
             communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())  
 
         # Calculation of gradients
-        if(communicator.isRequestingGradientOf("strain_energy")): 
+        if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradients")
             startTime = timer.time()               
