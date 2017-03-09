@@ -98,8 +98,8 @@ namespace Kratos {
 				 for (auto p_node : moving_nodes) {
 					 double new_x = p_node->X()*c - p_node->Y()*s;
 					 double new_y = p_node->X()*s + p_node->Y()*c;
-					 //p_node->X() = new_x;
-					 //p_node->Y() = new_y;
+					 p_node->X() = new_x;
+					 p_node->Y() = new_y;
 				 }
 
 				 FindNodalNeighboursProcess(model_part).Execute();
@@ -218,29 +218,13 @@ namespace Kratos {
 
 			FindNodalNeighboursProcess(model_part).Execute();
 
-			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_5to6_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-			gid_io.InitializeMesh(0.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			//GidIO<> gid_io("c:/temp/coarsening/edge_swapping_5to6_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+			//gid_io.InitializeMesh(0.00);
+			//gid_io.WriteMesh(model_part.GetMesh());
+			//gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
 			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 6);
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry());
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().DeterminantOfJacobian(0));
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().DeterminantOfJacobian(0));
-			boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
-			array_1d<double, 4> N;
-			double Volume;
-				
-			GeometryUtils::CalculateGeometryData(model_part.GetElement(5).GetGeometry(), DN_DX, N, Volume);
-			KRATOS_WATCH(Volume);
 			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 66.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 66.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 99.);
@@ -248,9 +232,9 @@ namespace Kratos {
 			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 99.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 99.);
 
-			gid_io.InitializeMesh(1.00);
-			gid_io.WriteMesh(model_part.GetMesh());
-			gid_io.FinalizeMesh();
+			//gid_io.InitializeMesh(1.00);
+			//gid_io.WriteMesh(model_part.GetMesh());
+			//gid_io.FinalizeMesh();
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(Tetrahedra6to8EdgeSwappingProcess, KratosCoreFastSuite)

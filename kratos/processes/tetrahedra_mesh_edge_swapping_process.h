@@ -183,15 +183,6 @@ namespace Kratos
 					  }
 				  }
 				  if (case_min_quality > max_cases_quality) {
-					  if (mrModelPart.NumberOfElements() == 5)
-					  {
-						  KRATOS_WATCH(tetrahedra_1);
-						  KRATOS_WATCH(tetrahedra_2);
-						  KRATOS_WATCH(tetrahedra_1.Quality(quality_criteria));
-						  KRATOS_WATCH(tetrahedra_2.Quality(quality_criteria));
-						  KRATOS_WATCH(case_min_quality);
-						  KRATOS_WATCH(max_cases_quality);
-					  }
 					  p_best_case = &(*i_case);
 					  max_cases_quality = case_min_quality;
 					  // Todo: break if apt quality reached.
@@ -203,18 +194,11 @@ namespace Kratos
 			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 				  SwappingCases.SetTetrahedraForCase(*p_best_case, i, EdgeShell, tetrahedra_1, tetrahedra_2);
 				  if (2 * i < EdgeShell.GetNumberOfTetrahedra()) {
-					  if(i == 3)
-						KRATOS_WATCH(tetrahedra_1);
 					  EdgeShell.pGetElement(2 * i)->GetGeometry() = tetrahedra_1;
 					  EdgeShell.pGetElement(2 * i)->Set(MODIFIED);
 				  }
 				  else {
-					  KRATOS_WATCH(mrModelPart.NumberOfElements() + 1);
-					  KRATOS_WATCH(max_cases_quality);
-					  KRATOS_WATCH(original_min_quality);
-					  KRATOS_WATCH(tetrahedra_1);
 					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements() + 1, tetrahedra_1));
-					  KRATOS_WATCH(mrModelPart.GetElement(mrModelPart.NumberOfElements()));
 				  }
 				  if ((2 * i) + 1 < EdgeShell.GetNumberOfTetrahedra()){
 					EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
