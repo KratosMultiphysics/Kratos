@@ -326,16 +326,15 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
         // if(fabs(EffectiveGapT)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
         // {
         //     rVariables.Contact.Options.Set(SLIP,false);  //contact stick case active
-	//     rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS] += 1;
+
         // }
         // else
         // {
         //     rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
-	//     rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS] += 1;
+
         // }
 	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS); 
 	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
-	//rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
 
     }
     else

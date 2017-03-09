@@ -114,11 +114,10 @@ public:
 
       if( mEchoLevel > 0 ){
 	std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
-	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
       }
 
     double RemovedConditions = mrModelPart.NumberOfConditions(mMeshId);
-    double NumberOfNodes = mrModelPart.NumberOfNodes(mMeshId);
+    // double NumberOfNodes = mrModelPart.NumberOfNodes(mMeshId);
 
     bool any_node_removed      = false;
     bool any_condition_removed = false;
@@ -197,7 +196,8 @@ public:
 
       
     // number of removed nodes:
-    mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);
+    // mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes(mMeshId);
+    mrRemesh.Info->RemovedNodes +=  error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
     int distance_remove =  inside_nodes_removed + boundary_nodes_removed;
       
     RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
@@ -332,16 +332,7 @@ private:
       {
 	if( i_node->IsNot(TO_ERASE) ){
 	  (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
-//	  if(i_node->Id()>24880){
-//	  std::cout<<" NOT ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
-//		  }	 
-	
 	}
-	// else{
-	//     // std::cout<<"   ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
-	//   if( i_node->Is(BOUNDARY) )
-	//     std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
-	// }
       }
 	
     rModelPart.Nodes(MeshId).Sort();
@@ -401,8 +392,6 @@ private:
 	       
 	    if(NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
 	      {
-		//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
-		//std::cout<<"   mean_node_radius "<<mean_node_radius<<" < "<<size_for_criterion_error<<" size_for_criterion_error"<<std::endl;
 		in->Set(TO_ERASE);
 		any_node_removed = true;
 		error_removed_nodes++;
@@ -483,7 +472,8 @@ private:
 	if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
 	  on_contact_tip = true;				  
 
-	if( in->IsNot(NEW_ENTITY) )
+	if( in->IsNot(NEW_ENTITY) &&  in->IsNot(INLET) )
+	// if( in->IsNot(NEW_ENTITY) )
 	  {
 	    radius = size_for_distance_inside;
 
@@ -493,19 +483,17 @@ private:
 	    if(in->Is(FREE_SURFACE)){// it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
 	      // radius = 0.5  * initialMeanRadius;//compared with element radius
 	      radius = 0.3  * initialMeanRadius;//compared with element radius
-       
-	      // radius*=0.85;
+	    }
+	    if(in->Is(INLET)){
+	      radius = 0.3  * initialMeanRadius;//compared with element radius
 	    }
 	    n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
 
 	    if (n_points_in_radius>1)
 	      {
-		// std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
 
-		//if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
-
-		// if ( in->IsNot(BOUNDARY) && in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && in->IsNot(ISOLATED))
-		if ( in->IsNot(RIGID) && in->IsNot(SOLID) )
+		if (  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) )
+		// if (  in->IsNot(RIGID) && in->IsNot(SOLID) )
 		  {
 		    if( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) ){
 		      //look if we are already erasing any of the other nodes
@@ -522,7 +510,6 @@ private:
 
 		      if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
 			in->Set(TO_ERASE);
-			// std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
 			any_node_removed = true;
 			inside_nodes_removed++;
 			//distance_remove++;
@@ -531,11 +518,11 @@ private:
 		    }
 
 		  }
-		// else if ( (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
-		else     {
+
+		else 	if (  in->IsNot(INLET)   )  {
+		// else 	 {
 
 		  // std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
-
 		  //here we loop over the neighbouring nodes and if there are nodes
 		  //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
 		  unsigned int k = 0;
@@ -554,8 +541,7 @@ private:
 		      if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
 			nn_on_contact_tip = true;				  
 
-		      //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
-		      if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
+       		      if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
 			{
 			  //KRATOS_WATCH( neighbours_distances[k] )
 			  if((*nn)->IsNot(TO_ERASE)){
@@ -569,11 +555,10 @@ private:
 			}
 		      }
 
-
 		      k++;
 		    }
 
-		  if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
+		  if(counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
 		    in->Set(TO_ERASE);
 		    if( mEchoLevel > 0 )
 		      std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
@@ -581,7 +566,7 @@ private:
 		    boundary_nodes_removed++;
 		    //distance_remove ++;
 		  }
-		  else if ( counter > 2 && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
+		  else if ( counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
 		    in->Set(TO_ERASE);
 		    if( mEchoLevel > 0 )
 		      std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
@@ -591,7 +576,6 @@ private:
 
 		}
 
-		//}
 
 	      }
 
@@ -607,177 +591,18 @@ private:
 	//coordinates
 	for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 	  {	
-	    if(ie->GetGeometry()[i].Is(RIGID) || ie->GetGeometry()[i].Is(SOLID)){
+	    if((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID)){
+	    // if(ie->GetGeometry()[i].Is(RIGID)  || ie->GetGeometry()[i].Is(SOLID)){
 	      rigidNodes++;
 	    }
 	  }
-	if(dimension==2){
-
-	  if(rigidNodes>1){
-	    // std::cout<<"erased_nodes "<<erased_nodes<<std::endl;
-	    double distWall=0;
-	    double safetyCoefficient2D=0.5;
-	    
-	    double elementVolume=ie->GetGeometry().Area();
-	    double CriticalVolume=0.1*mrRemesh.Refine->MeanVolume;
-	    CriticalVolume=0;
-	    if(elementVolume<CriticalVolume){
-	      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
-		{	
-		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(SOLID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
-		    ie->GetGeometry()[i].Set(TO_ERASE);
-		    if( mEchoLevel > 1 )
-		      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
-		    erased_nodes += 1;
-		    break;
-		  }
-		}
-	   
-	    }
-	    array_1d<double,3> Edges(3,0.0);
-	    array_1d<unsigned int,3> FirstEdgeNode(3,0);
-	    array_1d<unsigned int,3> SecondEdgeNode(3,0);
-	    double WallCharacteristicDistance=0;
-	    array_1d<double,2> CoorDifference(3,0.0);
-	    CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
-	    double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
-	    Edges[0]=sqrt(SquaredLength);
-	    FirstEdgeNode[0]=0;
-	    SecondEdgeNode[0]=1;
-	    if(ie->GetGeometry()[0].Is(RIGID)  && ie->GetGeometry()[1].Is(RIGID) ){
-	      WallCharacteristicDistance=Edges[0];
-	    }
-	    unsigned int Counter=0;
-	    for (unsigned int i = 2; i < ie->GetGeometry().size(); i++){
-	      for(unsigned int j = 0; j < i; j++)
-		{
-		  CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
-		  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
-		  Counter+=1;
-		  Edges[Counter]=sqrt(SquaredLength);
-		  FirstEdgeNode[Counter]=j;
-		  SecondEdgeNode[Counter]=i;
-		  if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
-		    WallCharacteristicDistance=Edges[Counter];
-		  }
-		}
-
-	    }
-	    distWall=WallCharacteristicDistance;
-
-	    for (unsigned int i = 0; i < 3; i++){
-	      if(((ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID)) ||
-		  (ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))) &&
-		 ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
-		 ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
-		 Edges[i]<safetyCoefficient2D*distWall){
-		if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
-		  ie->GetGeometry()[FirstEdgeNode[i]].Set(TO_ERASE);
-		  // std::cout<<"erase node 0"<<std::endl;
-		  erased_nodes += 1;
-		}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
-		  ie->GetGeometry()[SecondEdgeNode[i]].Set(TO_ERASE);
-		  // std::cout<<"erase node 1"<<std::endl;
-		  erased_nodes += 1;
-		}
-
-	      }
-
-	    }
-
-
+	
+	if(rigidNodes>1){    
+	  if(dimension==2){
+	    EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+	  }else if(dimension==3){
+	    EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
 	  }
-
-
-
-	}else if(dimension==3){
-	  // std::cout<<"boundary_nodes_removed "<<std::endl;
-
-	  if(rigidNodes>1){
-	    // std::cout<<"erased_nodes "<<erased_nodes<<std::endl;
-	    double distWall=0;
-	    // double safetyCoefficient3D=0.6;
-	    double safetyCoefficient3D=0.7;
-	    
-	    double elementVolume=ie->GetGeometry().Volume();
-	    double CriticalVolume=0.1*mrRemesh.Refine->MeanVolume;
-	    if(elementVolume<CriticalVolume){
-	      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
-		{
-		  if(ie->GetGeometry()[i].IsNot(RIGID) && ie->GetGeometry()[i].IsNot(SOLID) && ie->GetGeometry()[i].IsNot(TO_ERASE)){
-		    ie->GetGeometry()[i].Set(TO_ERASE);
-		    if( mEchoLevel > 1)
-		      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
-		    erased_nodes += 1;
-		    break;
-		  }
-		}
-	   
-	    }
-	    array_1d<double,6> Edges(6,0.0);
-	    array_1d<unsigned int,6> FirstEdgeNode(6,0);
-	    array_1d<unsigned int,6> SecondEdgeNode(6,0);
-	    double WallCharacteristicDistance=0;
-	    array_1d<double,3> CoorDifference(3,0.0);
-	    CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
-	    double SquaredLength = CoorDifference[0]*CoorDifference[0] +
-	      CoorDifference[1]*CoorDifference[1] +
-	      CoorDifference[2]*CoorDifference[2];
-	    Edges[0]=sqrt(SquaredLength);
-	    FirstEdgeNode[0]=0;
-	    SecondEdgeNode[0]=1;
-	    if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
-	      WallCharacteristicDistance=Edges[0];
-	    }
-	    unsigned int Counter=0;
-	    for (unsigned int i = 2; i < ie->GetGeometry().size(); i++){
-	      for(unsigned int j = 0; j < i; j++)
-	    	{
-	    	  CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
-	    	  SquaredLength = CoorDifference[0]*CoorDifference[0] +
-	    	    CoorDifference[1]*CoorDifference[1] +
-	    	    CoorDifference[2]*CoorDifference[2];
-	    	  Counter+=1;
-	    	  Edges[Counter]=sqrt(SquaredLength);
-	    	  FirstEdgeNode[Counter]=j;
-	    	  SecondEdgeNode[Counter]=i;
-	    	  // if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
-	    	  if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && WallCharacteristicDistance==0 ){
-	    	    WallCharacteristicDistance=Edges[Counter];
-	    	  }
-	    	}
-
-	    }
-	    distWall=WallCharacteristicDistance;
-
-
-	    for (unsigned int i = 0; i < 6; i++){
-	      if(((ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID)) ||
-	    	  (ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) && !ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))) &&
-	    	 ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
-	    	 ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
-	    	 Edges[i]<safetyCoefficient3D*distWall){
-	    	// if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(FREE_SURFACE)){
-	    	if(ie->GetGeometry()[FirstEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[FirstEdgeNode[i]].IsNot(TO_ERASE)){
-
-	    	  ie->GetGeometry()[FirstEdgeNode[i]].Set(TO_ERASE);
-	    	  // std::cout<<"erase node 0"<<std::endl;
-	    	  erased_nodes += 1;
-	    	// }else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(FREE_SURFACE)){
-	    	}else if(ie->GetGeometry()[SecondEdgeNode[i]].IsNot(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(SOLID) && ie->GetGeometry()[SecondEdgeNode[i]].IsNot(TO_ERASE)){
-	    	  ie->GetGeometry()[SecondEdgeNode[i]].Set(TO_ERASE);
-	    	  // std::cout<<"erase node 1"<<std::endl;
-	    	  erased_nodes += 1;
-	    	}
-
-	      }
-
-	    }
-
-
-
-	  }
-
 	}
 
       }
@@ -799,6 +624,191 @@ private:
 
       } 
 
+
+  void EraseCriticalNodes2D( Element::GeometryType& Element, unsigned int &erased_nodes,int& inside_nodes_removed)
+  { 
+
+    KRATOS_TRY
+	 
+      // std::cout<<"erased_nodes "<<erased_nodes<<std::endl;
+    double safetyCoefficient2D=0.5;
+	    
+    double elementVolume=Element.Area();
+    double criticalVolume=0.1*mrRemesh.Refine->MeanVolume;
+    criticalVolume=0;
+    if(elementVolume<criticalVolume){
+      for(unsigned int i=0; i<Element.size(); i++)
+	{	
+	  if(Element[i].IsNot(RIGID) && Element[i].IsNot(SOLID) && Element[i].IsNot(TO_ERASE)){
+	    Element[i].Set(TO_ERASE);
+	    if( mEchoLevel > 1 )
+	      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
+	    erased_nodes += 1;
+	    inside_nodes_removed++;
+	    break;
+	  }
+	}
+	   
+    }
+    array_1d<double,3> Edges(3,0.0);
+    array_1d<unsigned int,3> FirstEdgeNode(3,0);
+    array_1d<unsigned int,3> SecondEdgeNode(3,0);
+    double wallLength=0;
+    array_1d<double,2> CoorDifference(3,0.0);
+
+    ////////  to compute the length of the wall edge /////////
+    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
+    Edges[0]=sqrt(SquaredLength);
+    FirstEdgeNode[0]=0;
+    SecondEdgeNode[0]=1;
+    if(Element[0].Is(RIGID)  && Element[1].Is(RIGID) ){
+      wallLength=Edges[0];
+    }
+    unsigned int counter=0;
+    for (unsigned int i = 2; i < Element.size(); i++){
+      for(unsigned int j = 0; j < i; j++)
+	{
+	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
+	  counter+=1;
+	  Edges[counter]=sqrt(SquaredLength);
+	  FirstEdgeNode[counter]=j;
+	  SecondEdgeNode[counter]=i;
+	  if(Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[counter]>wallLength ){
+	    wallLength=Edges[counter];
+	  }
+	}
+
+    }
+
+    ////////  to compare the triangle height to wall edge length /////////
+    for (unsigned int i = 0; i < Element.size(); i++){
+      if(Element[i].IsNot(RIGID) && Element[i].IsNot(TO_ERASE) && Element[i].IsNot(SOLID)){
+    	double height=elementVolume*2.0/wallLength;
+    	if(height<safetyCoefficient2D*wallLength){
+    	    Element[i].Set(TO_ERASE);
+    	    erased_nodes += 1;
+    	    inside_nodes_removed++;
+    	  }
+
+    	}
+      }
+
+    // ////////  to compare the non-wall length to wall edge length /////////
+    // for (unsigned int i = 0; i < 3; i++){
+    //   if(((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].IsNot(RIGID)) ||
+    // 	  (Element[SecondEdgeNode[i]].Is(RIGID) && Element[FirstEdgeNode[i]].IsNot(RIGID))) &&
+    // 	 Element[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
+    // 	 Element[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
+    // 	 Edges[i]<safetyCoefficient2D*wallLength){
+    // 	if(Element[FirstEdgeNode[i]].IsNot(RIGID) && Element[FirstEdgeNode[i]].IsNot(SOLID) && Element[FirstEdgeNode[i]].IsNot(TO_ERASE)){
+    // 	  Element[FirstEdgeNode[i]].Set(TO_ERASE);
+    // 	  erased_nodes += 1;
+    // 	  inside_nodes_removed++;
+    // 	}else if(Element[SecondEdgeNode[i]].IsNot(RIGID) && Element[SecondEdgeNode[i]].IsNot(SOLID) && Element[SecondEdgeNode[i]].IsNot(TO_ERASE)){
+    // 	  Element[SecondEdgeNode[i]].Set(TO_ERASE);
+    // 	  erased_nodes += 1;
+    // 	  inside_nodes_removed++;
+    // 	}
+
+    //   }
+
+    // }
+    KRATOS_CATCH( "" )
+
+
+      }
+
+  void EraseCriticalNodes3D( Element::GeometryType& Element, unsigned int &erased_nodes,int& inside_nodes_removed)
+  { 
+	  
+    KRATOS_TRY
+
+    double safetyCoefficient3D=0.6;
+    // double safetyCoefficient3D=0.7;
+
+	    
+    double elementVolume=Element.Volume();
+    double criticalVolume=0.1*mrRemesh.Refine->MeanVolume;
+    if(elementVolume<criticalVolume){
+      for(unsigned int i=0; i<Element.size(); i++)
+	{
+	  if(Element[i].IsNot(RIGID) && Element[i].IsNot(SOLID) && Element[i].IsNot(TO_ERASE)){
+	    Element[i].Set(TO_ERASE);
+	    if( mEchoLevel > 1)
+	      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
+	    erased_nodes += 1;
+	    inside_nodes_removed++;
+	    break;
+	  }
+	}
+	   
+    }
+    array_1d<double,6> Edges(6,0.0);
+    array_1d<unsigned int,6> FirstEdgeNode(6,0);
+    array_1d<unsigned int,6> SecondEdgeNode(6,0);
+    double wallLength=0;
+    array_1d<double,3> CoorDifference(3,0.0);
+
+    ////////  to compute the length of the wall edge /////////
+    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    double SquaredLength = CoorDifference[0]*CoorDifference[0] +
+      CoorDifference[1]*CoorDifference[1] +
+      CoorDifference[2]*CoorDifference[2];
+    Edges[0]=sqrt(SquaredLength);
+    FirstEdgeNode[0]=0;
+    SecondEdgeNode[0]=1;
+    if(Element[0].Is(RIGID) && Element[1].Is(RIGID)){
+      wallLength=Edges[0];
+    }
+    unsigned int counter=0;
+    for (unsigned int i = 2; i < Element.size(); i++){
+      for(unsigned int j = 0; j < i; j++)
+	{
+	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  SquaredLength = CoorDifference[0]*CoorDifference[0] +
+	    CoorDifference[1]*CoorDifference[1] +
+	    CoorDifference[2]*CoorDifference[2];
+	  counter+=1;
+	  Edges[counter]=sqrt(SquaredLength);
+	  FirstEdgeNode[counter]=j;
+	  SecondEdgeNode[counter]=i;
+	  if(Element[i].Is(RIGID) && Element[j].Is(RIGID) && wallLength==0 ){
+	    wallLength=Edges[counter];
+	  }
+	}
+
+    }
+
+    // ////////  to compare the non-wall length to wall edge length /////////
+    for (unsigned int i = 0; i < Edges.size(); i++){
+      if(((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].IsNot(RIGID)) ||
+    	  (Element[SecondEdgeNode[i]].Is(RIGID) && Element[FirstEdgeNode[i]].IsNot(RIGID))) &&
+    	 Element[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
+    	 Element[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
+    	 Edges[i]<safetyCoefficient3D*wallLength){
+    	if(Element[FirstEdgeNode[i]].IsNot(RIGID) && Element[FirstEdgeNode[i]].IsNot(SOLID) && Element[FirstEdgeNode[i]].IsNot(TO_ERASE)){
+
+    	  Element[FirstEdgeNode[i]].Set(TO_ERASE);
+    	  inside_nodes_removed++;
+    	  erased_nodes += 1;
+    	}else if(Element[SecondEdgeNode[i]].IsNot(RIGID) && Element[SecondEdgeNode[i]].IsNot(SOLID) && Element[SecondEdgeNode[i]].IsNot(TO_ERASE)){
+    	  Element[SecondEdgeNode[i]].Set(TO_ERASE);
+    	  inside_nodes_removed++;
+    	  erased_nodes += 1;
+    	}
+
+      }
+
+    }
+
+
+    KRATOS_CATCH( "" )
+
+      }
+
+
     /// Assignment operator.
     RemoveMeshNodesForFluidsProcess& operator=(RemoveMeshNodesForFluidsProcess const& rOther);
 
@@ -813,6 +823,7 @@ private:
     ///@}
 
 }; // Class Process
+
 
 ///@}
 

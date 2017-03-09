@@ -34,13 +34,13 @@ AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 AnalyticSphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 AnalyticSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 /// Destructor.
 virtual ~AnalyticSphericParticle(){};
 
 /// Turn back information as a string.
-std::string Info() const
+std::string Info() const override
 {
 std::stringstream buffer;
 buffer << "AnalyticSphericParticle" ;
@@ -48,10 +48,10 @@ return buffer.str();
 }
 
 /// Print information about this object.
-void PrintInfo(std::ostream& rOStream) const {rOStream << "AnalyticSphericParticle";}
+void PrintInfo(std::ostream& rOStream) const override {rOStream << "AnalyticSphericParticle";}
 
 /// Print object's data.
-void PrintData(std::ostream& rOStream) const {}
+void PrintData(std::ostream& rOStream) const override {}
 
 protected:
 
@@ -75,7 +75,7 @@ array_1d<double, 4> mCollidingRadii;
 array_1d<double, 4> mCollidingNormalVelocities;
 array_1d<double, 4> mCollidingTangentialVelocities;
 
-void save(Serializer& rSerializer) const
+void save(Serializer& rSerializer) const override
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.save("mRadius",mRadius);
@@ -90,7 +90,7 @@ void save(Serializer& rSerializer) const
     }
 }
 
-void load(Serializer& rSerializer)
+void load(Serializer& rSerializer) override
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.load("mRadius",mRadius);

@@ -104,7 +104,7 @@ class Solution:
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
-
+        
         os.chdir(self.main_path)
 
         self.KRATOSprint("\nInitializing Problem...")
@@ -137,8 +137,8 @@ class Solution:
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         if (DEM_parameters.dem_inlet_option):
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)    
-            DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)    
-            DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
+            self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
@@ -230,10 +230,11 @@ class Solution:
             self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, time, dt)
+            #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if (DEM_parameters.dem_inlet_option):
-                DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.              
+                self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
             stepinfo = self.report.StepiReport(timer,time,step)
             if stepinfo:
@@ -317,7 +318,7 @@ class Solution:
                               self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
 
         if (DEM_parameters.dem_inlet_option):
-            objects_to_destroy.append(DEM_inlet)
+            objects_to_destroy.append(self.DEM_inlet)
 
         for obj in objects_to_destroy:
             del obj

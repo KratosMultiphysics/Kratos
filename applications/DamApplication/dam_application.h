@@ -119,15 +119,14 @@ const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicEle
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D20N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D27N;
 
-//~ const AddedMassCondition<2,2> mAddedMassCondition2D2N;
-//~ const AddedMassCondition<3,3> mAddedMassCondition3D3N;
-//~ const AddedMassCondition<3,4> mAddedMassCondition3D4N;
 const FreeSurfaceCondition<2,2> mFreeSurfaceCondition2D2N;
 const FreeSurfaceCondition<3,3> mFreeSurfaceCondition3D3N;
 const FreeSurfaceCondition<3,4> mFreeSurfaceCondition3D4N;
+
 const InfiniteDomainCondition<2,2> mInfiniteDomainCondition2D2N;
 const InfiniteDomainCondition<3,3> mInfiniteDomainCondition3D3N;
 const InfiniteDomainCondition<3,4> mInfiniteDomainCondition3D4N;
+
 const UPCondition<2,2> mUPCondition2D2N;
 const UPCondition<3,3> mUPCondition3D3N;
 const UPCondition<3,4> mUPCondition3D4N;
