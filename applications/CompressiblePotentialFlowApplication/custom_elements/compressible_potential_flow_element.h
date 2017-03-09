@@ -28,7 +28,7 @@
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
-
+#include "utilities/enrichment_utilities.h"
 namespace Kratos
 {
 
@@ -313,7 +313,7 @@ public:
             rLeftHandSideMatrix.clear();
 
             ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-            
+                        
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             
         }
@@ -325,39 +325,64 @@ public:
             if(rRightHandSideVector.size() != 2*NumNodes)
                 rRightHandSideVector.resize(2*NumNodes,false);
             rLeftHandSideMatrix.clear();
-
-            //compute the lhs and rhs that would correspond to it not being divided
-            Matrix lhs = ZeroMatrix(NumNodes,NumNodes);
-
-            double weight = data.vol;
-            ComputeLHSGaussPointContribution(weight,lhs,data);
-
-            //here impose the wake constraint
-#ifdef SYMMETRIC_CONSTRAINT_APPLICATION
-            const double k=1.0e4; //a value of 10000 here should be good enough
-            //THIS VERSION WORKS AND IS SYMMETRIC - however it depends on a penalty factor k
-            for(unsigned int i=0; i<NumNodes; ++i)
+            
+            //subdivide the element
+            constexpr unsigned int nvolumes = 3*(Dim-1);
+            bounded_matrix<double,NumNodes, Dim > Points;
+            array_1d<double,nvolumes> Volumes;
+            bounded_matrix<double, nvolumes, NumNodes > GPShapeFunctionValues;
+            array_1d<double,nvolumes> PartitionsSign;
+            std::vector<Matrix> GradientsValue(nvolumes);
+            bounded_matrix<double,nvolumes, 2> NEnriched;
+            
+            
+            
+            for(unsigned int i = 0; i<NumNodes; ++i)
             {
-                for(unsigned int j=0; j<NumNodes; ++j)
+                const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+                for(unsigned int k = 0; k<Dim; ++k)
                 {
-                    rLeftHandSideMatrix(i,j)                   =  (1.0+k)*lhs(i,j);
-                    rLeftHandSideMatrix(i,j+NumNodes)          = -k*lhs(i,j);
-                    rLeftHandSideMatrix(i+NumNodes,j)          = -k*lhs(i,j);
-                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0+k)*lhs(i,j);
+                    Points(i, k) = coords[k];
                 }
             }
-#else
+            
+            KRATOS_WATCH(Id())
+            KRATOS_WATCH(Points)
+            
+            const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
+                                                                                            data.DN_DX,
+                                                                                            data.distances,
+                                                                                            Volumes, 
+                                                                                            GPShapeFunctionValues, 
+                                                                                            PartitionsSign, 
+                                                                                            GradientsValue, 
+                                                                                            NEnriched);
+                                                                                            
+            KRATOS_WATCH(PartitionsSign)
+            KRATOS_WATCH(Volumes)
+
+            //compute the lhs and rhs that would correspond to it not being divided
+            Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
+            
+            for(unsigned int i=0; i<nsubdivisions; ++i)
+            {
+                if(PartitionsSign[i] > 0)
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
+                else
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+            }
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
-                array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
-                n /= norm_2(n);
-                bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
-                bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
-                bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
-                                
+//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
+//                 n /= norm_2(n);
+//                 bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
+//                 bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
+//                 bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
+//                                 
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
-//                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = 1e3*data.vol*prod(tmp, trans(data.DN_DX));
+//                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
                 
                 if(kutta_element == true)
                 {
@@ -365,11 +390,11 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)                   =  lhs(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)                   =  -constraint(i,j); // -tangent_constraint(i,j); 
+                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j); 
+                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
                             
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)                   =  -constraint(i,j); // -tangent_constraint(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
                 }
@@ -379,11 +404,11 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)                   =  lhs(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)                   =  0.0; 
+                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
+                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
                             
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)                   =  0.0; 
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
                     
@@ -395,8 +420,8 @@ public:
                         {
                                 for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i,j)          = lhs(i,j); 
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs(i,j); 
+                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
+                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
                                 }
                         }
                     }
@@ -408,19 +433,13 @@ public:
                         {   
                             for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs(i,j);
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs(i,j); 
+                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
+                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
                                 }
                         }
                     }
                 }
-                
-                
-                
-            
-            
-#endif
-            
+
             Vector split_element_values(NumNodes*2);
             GetValuesOnSplitElement(split_element_values, data.distances);
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
@@ -496,7 +515,7 @@ public:
             if(active && !this->Is(MARKER))
             {
                 const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-                const double vinfinity_norm = norm_2(vinfinity);
+                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
 
                 ElementalData<NumNodes,Dim> data;
 
@@ -512,7 +531,7 @@ public:
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
 
-                p = (vinfinity_norm - norm_2(v))/vinfinity_norm; //0.5*(norm_2(vinfinity) - norm_2(v));
+                p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
 
 
