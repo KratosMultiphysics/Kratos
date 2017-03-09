@@ -126,6 +126,7 @@ public:
                 it->Set(STRUCTURE, false);
         }
 
+        // mark structure
         ModelPart& rStructureModelPart = rModelPart.GetSubModelPart(mStructureModelPartName);
         for (auto it = rStructureModelPart.NodesBegin();
              it != rStructureModelPart.NodesEnd();
@@ -134,14 +135,15 @@ public:
 
         // allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
-        mDragFlagVector.resize(NumThreads);
         mElementIds.resize(NumThreads);
-
-        // initialize drag flag and element id vectors
-        Element& rElem = rModelPart.GetElement(0);
-        for (unsigned int k = 0; k < mElementIds.size(); ++k)
+        mDragFlagVector.resize(NumThreads);
+        
+#pragma omp parallel
         {
-            mElementIds[k] = 1; // force initialization
+            // initialize drag flag and element id vectors
+            int k = OpenMPUtils::ThisThread();
+            Element& rElem = rModelPart.GetElement(1);
+            mElementIds[k] = 0; // force initialization
             this->GetDragFlagVector(rElem);
         }
     }
