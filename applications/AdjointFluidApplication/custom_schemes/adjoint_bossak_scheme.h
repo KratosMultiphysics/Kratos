@@ -175,12 +175,12 @@ public:
 
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
-            rModelPart.GetElement(0).WorkingSpaceDimension();
+            rModelPart.GetElement(1).WorkingSpaceDimension();
         
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
-        if (DomainSize != 2 || DomainSize != 3)
+        if (DomainSize != 2 && DomainSize != 3)
             KRATOS_THROW_ERROR(std::runtime_error, "invalid DOMAIN_SIZE: ", DomainSize)
         if (DomainSize != WorkingSpaceDimension)
             KRATOS_THROW_ERROR(
