@@ -131,7 +131,7 @@ public:
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
             rModelPart.GetElement(1).WorkingSpaceDimension();
-        
+
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
@@ -150,20 +150,12 @@ public:
         }
 
         // initialize the variables to zero.
-#pragma omp parallel
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
-
-            for (auto it = NodesBegin; it != NodesEnd; ++it)
-            {
-                it->Set(BOUNDARY, false);
-                it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
-                    SHAPE_SENSITIVITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-            }
+            it->Set(BOUNDARY, false);
+            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -214,28 +206,10 @@ public:
     {
         KRATOS_TRY
 
-        const int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector Partition;
-
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, Partition);
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofSetBegin =
-                rDofSet.begin() + Partition[k];
-            typename DofsArrayType::iterator DofSetEnd =
-                rDofSet.begin() + Partition[k + 1];
-
-            for (auto itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-            {
-                if (itDof->IsFree())
-                {
-                    itDof->GetSolutionStepValue() +=
-                        TSparseSpace::GetValue(rDx, itDof->EquationId());
-                }
-            }
-        }
+        for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+            if (it->IsFree() == true)
+                it->GetSolutionStepValue() +=
+                    TSparseSpace::GetValue(rDx, it->EquationId());
 
         KRATOS_CATCH("")
     }
@@ -260,7 +234,7 @@ public:
         // d (objective) / d (primal)
         mpObjectiveFunction->CalculateAdjointVelocityContribution(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-        
+
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // residual form
@@ -426,7 +400,8 @@ private:
                 // adjoint solution
                 it->GetFirstDerivativesVector(mAdjointVelocity[k], 0);
 
-                noalias(CoordAuxVector[k]) += prod(ShapeDerivativesMatrix[k], mAdjointVelocity[k]);
+                noalias(CoordAuxVector[k]) +=
+                    prod(ShapeDerivativesMatrix[k], mAdjointVelocity[k]);
 
                 // Carefully write results to nodal variables
                 unsigned int CoordIndex = 0;

@@ -177,7 +177,7 @@ public:
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
             rModelPart.GetElement(1).WorkingSpaceDimension();
-        
+
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
@@ -196,22 +196,14 @@ public:
         }
 
         // initialize the variables to zero.
-#pragma omp parallel
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
-
-            for (auto it = NodesBegin; it != NodesEnd; ++it)
-            {
-                it->Set(BOUNDARY, false);
-                it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
-                    SHAPE_SENSITIVITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-                it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) =
-                    ADJOINT_ACCELERATION.Zero();
-            }
+            it->Set(BOUNDARY, false);
+            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_ACCELERATION) =
+                ADJOINT_ACCELERATION.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -248,32 +240,12 @@ public:
 
         mInvDt = 1.0 / DeltaTime;
 
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodesBegin, NodesEnd);
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+            it->GetValue(NODAL_AREA) = 0.0; // todo: define application variable
 
-            for (auto it = NodesBegin; it != NodesEnd; ++it)
-                it->GetValue(NODAL_AREA) = 0.0; // todo: define application variable
-        }
-
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElementsBegin;
-            ModelPart::ElementIterator ElementsEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElementsBegin, ElementsEnd);
-
-            for (auto it = ElementsBegin; it != ElementsEnd; ++it)
-            {
-                for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
-                {
-                    it->GetGeometry()[iNode].SetLock();
-                    it->GetGeometry()[iNode].GetValue(NODAL_AREA) += 1.0;
-                    it->GetGeometry()[iNode].UnSetLock();
-                }
-            }
-        }
+        for (auto it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
+            for (unsigned int iNode = 0; iNode < it->GetGeometry().PointsNumber(); ++iNode)
+                it->GetGeometry()[iNode].GetValue(NODAL_AREA) += 1.0;
 
         mpObjectiveFunction->InitializeSolutionStep(rModelPart);
 
@@ -307,56 +279,28 @@ public:
     {
         KRATOS_TRY
 
-        const int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector Partition;
-
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, Partition);
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofSetBegin =
-                rDofSet.begin() + Partition[k];
-            typename DofsArrayType::iterator DofSetEnd =
-                rDofSet.begin() + Partition[k + 1];
-
-            for (auto itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-            {
-                if (itDof->IsFree())
-                {
-                    itDof->GetSolutionStepValue() +=
-                        TSparseSpace::GetValue(rDx, itDof->EquationId());
-                }
-            }
-        }
+        for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+            if (it->IsFree() == true)
+                it->GetSolutionStepValue() +=
+                    TSparseSpace::GetValue(rDx, it->EquationId());
 
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
             static_cast<unsigned int>(rCurrentProcessInfo[DOMAIN_SIZE]);
 
-        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfNodes(), NumThreads, Partition);
-#pragma omp parallel
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
-            int k = OpenMPUtils::ThisThread();
-
-            ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + Partition[k];
-            ModelPart::NodeIterator NodesEnd =
-                rModelPart.NodesBegin() + Partition[k + 1];
-
-            for (auto it = NodesBegin; it != NodesEnd; it++)
-            {
-                array_1d<double, 3>& rCurrentAdjointAcceleration =
-                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 0);
-                const array_1d<double, 3>& rOldAdjointAcceleration =
-                    it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
-                for (unsigned int d = 0; d < DomainSize; ++d)
-                {
-                    rCurrentAdjointAcceleration[d] =
-                        (mGammaNewmark - 1.0) * mInvGamma * rOldAdjointAcceleration[d];
-                }
-            }
+            array_1d<double, 3>& rCurrentAdjointAcceleration =
+                it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 0);
+            const array_1d<double, 3>& rOldAdjointAcceleration =
+                it->FastGetSolutionStepValue(ADJOINT_ACCELERATION, 1);
+            for (unsigned int d = 0; d < DomainSize; ++d)
+                rCurrentAdjointAcceleration[d] =
+                    (mGammaNewmark - 1.0) * mInvGamma * rOldAdjointAcceleration[d];
         }
 
+        const int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector Partition;
         OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(), NumThreads, Partition);
 #pragma omp parallel
         {
@@ -458,10 +402,7 @@ public:
 
         // d (old objective) / d (primal acceleration)
         mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-            *pCurrentElement,
-            mAdjointMassMatrix[ThreadId],
-            mObjectiveGradient[ThreadId],
-            rCurrentProcessInfo);
+            *pCurrentElement, mAdjointMassMatrix[ThreadId], mObjectiveGradient[ThreadId], rCurrentProcessInfo);
 
         // old adjoint velocity
         pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId], 1);
@@ -480,12 +421,8 @@ public:
 
         // d (objective) / d (primal acceleration)
         mpObjectiveFunction->CalculateAdjointAccelerationContribution(
-            *pCurrentElement,
-            mAdjointMassMatrix[ThreadId],
-            mObjectiveGradient[ThreadId],
-            rCurrentProcessInfo);
-        noalias(rRHS_Contribution) -=
-            mInvGamma * mInvDt * mObjectiveGradient[ThreadId];
+            *pCurrentElement, mAdjointMassMatrix[ThreadId], mObjectiveGradient[ThreadId], rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= mInvGamma * mInvDt * mObjectiveGradient[ThreadId];
 
         // transposed gradient of element residual w.r.t. primal
         pCurrentElement->Calculate(ADJOINT_MATRIX_2, rLHS_Contribution, rCurrentProcessInfo);
