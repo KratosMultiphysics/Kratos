@@ -120,6 +120,7 @@ public:
 
         Parameters DefaultParams(R"(
         {
+            "scheme_type": "bossak",
             "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "alpha_bossak": -0.3,
             "adjoint_start_time": 0.0,

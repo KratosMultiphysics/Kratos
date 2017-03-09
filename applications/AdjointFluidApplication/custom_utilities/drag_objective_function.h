@@ -56,6 +56,7 @@ public:
 
         Parameters DefaultParams(R"(
         {
+            "objective_type": "drag",
             "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
             "drag_direction": [1.0, 0.0, 0.0]
         })");

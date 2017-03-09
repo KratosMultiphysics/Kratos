@@ -92,6 +92,7 @@ public:
 
         Parameters DefaultParams(R"(
         {
+            "scheme_type": "steady",
             "boundary_model_part_name": "PLEASE_SPECIFY_MODEL_PART"
         })");
 

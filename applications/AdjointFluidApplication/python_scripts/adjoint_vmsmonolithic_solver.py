@@ -27,7 +27,12 @@ class AdjointVMSMonolithicSolver:
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "adjoint_vmsmonolithic_solver",
-            "scheme_type": "bossak_drag",
+            "scheme_settings": {
+                "scheme_type": "bossak"
+            },
+            "objective_settings": {
+                "objective_type": "drag"
+            },
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -122,15 +127,15 @@ class AdjointVMSMonolithicSolver:
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement3D",
-                    "condition_name": "MonolithicWallCondition3D"
+                    "element_name": "VMSAdjointElement3D",
+                    "condition_name": "Condition3D4N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement2D",
-                    "condition_name": "MonolithicWallCondition2D"
+                    "element_name": "VMSAdjointElement2D",
+                    "condition_name": "Condition2D3N"
                     }
                     """)
             else:
@@ -176,10 +181,23 @@ class AdjointVMSMonolithicSolver:
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        if self.settings["scheme_type"].GetString() == "bossak_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
-        elif self.settings["scheme_type"].GetString() == "steady_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyDragScheme()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if self.settings["objective_settings"]["objective_type"].GetString() == "drag":
+            if (domain_size == 2):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction2D(self.settings["objective_settings"])
+            elif (domain_size == 3):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction3D(self.settings["objective_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
+
+        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
+            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+        else:
+            raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
