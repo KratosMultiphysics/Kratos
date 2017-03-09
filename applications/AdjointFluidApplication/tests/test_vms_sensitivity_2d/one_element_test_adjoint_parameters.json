@@ -12,7 +12,18 @@
     },
     "solver_settings" : {
         "solver_type"                   : "adjoint_vmsmonolithic_solver",
-        "scheme_type"                  : "bossak_drag",
+        "scheme_settings" : {
+            "scheme_type"               : "bossak",
+            "boundary_model_part_name"  : "Boundary",
+            "alpha_bossak"              :-0.3,
+            "adjoint_start_time"        : 0.0,
+            "adjoint_end_time"          : 3.000000001
+        },
+        "objective_settings" : {
+            "objective_type"            : "drag",
+            "structure_model_part_name" : "Structure",
+            "drag_direction"            : [1.0, 0.0, 0.0]
+        },
         "maximum_iterations"            : 10,
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,
@@ -106,20 +117,6 @@
 	    "model_part_name" : "MainModelPart",
             "file_name"       : "test_vms_sensitivity_2d/one_element_test",
             "variable_list"   : ["VELOCITY", "ACCELERATION", "PRESSURE"]
-        }
-    },{
-	"kratos_module"    : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module"    : "calculate_bossak_drag_sensitivity_process",
-        "help"             : "",
-        "process_name"     : "CalculateBossakDragSensitivityProcess",
-        "Parameters"          : {
-            "model_part_name"           : "MainModelPart",
-            "structure_model_part_name" : "Structure",
-            "boundary_model_part_name"  : "Boundary",
-            "alpha_bossak"              :-0.3,
-            "adjoint_start_time"        : 0.0,
-            "adjoint_end_time"          : 3.000000001,
-            "drag_direction"            : [1.0, 0.0, 0.0]
         }
     }]
 }
