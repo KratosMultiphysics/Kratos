@@ -20,13 +20,17 @@
 // Project includes
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
-// #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_4.h"
 
 namespace Kratos {
 
 KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowApplication():
-    mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
+    mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mCompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mPotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
   {}
 
 void KratosCompressiblePotentialFlowApplication::Register() 

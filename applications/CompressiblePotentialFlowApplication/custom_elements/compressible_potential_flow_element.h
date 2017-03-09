@@ -346,8 +346,6 @@ public:
                 }
             }
             
-            KRATOS_WATCH(Id())
-            KRATOS_WATCH(Points)
             
             const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
                                                                                             data.DN_DX,
@@ -357,9 +355,6 @@ public:
                                                                                             PartitionsSign, 
                                                                                             GradientsValue, 
                                                                                             NEnriched);
-                                                                                            
-            KRATOS_WATCH(PartitionsSign)
-            KRATOS_WATCH(Volumes)
 
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
