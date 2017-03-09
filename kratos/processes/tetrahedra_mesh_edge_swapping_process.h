@@ -136,6 +136,27 @@ namespace Kratos
 
       using EdgesContainerType = std::unordered_map<Edge, TetrahedraEdgeShell, Edge>;
 
+	  class Status { // Here I'm prototyping the base status class to be implemented in future. Pooyan.
+		  std::map<std::string, double> mData;
+	  public:
+		  Status() 
+		  {
+			  mData["OldMinQuality"] = 0.00;
+			  mData["CurrentMinQuality"] = 0.00;
+			  mData["OldMeanQuality"] = 0.00;
+			  mData["CurrentMeanQuality"] = 0.00;
+			  mData["NumberOfSwappingPerformed"] = 0.00;
+		  }
+
+		  double GetValue(std::string const& Name) { return mData[Name]; }
+		  void SetValue(std::string const& Name, double Value) { mData[Name] = Value; }
+		  void PrintData(std::ostream& rOStream) const {
+			  for (auto const& status_item : mData)
+				  rOStream << status_item.first << " : " << status_item.second << std::endl;
+		  }
+
+	  };
+
 
       ///@name Static Member Variables
       ///@{
@@ -148,6 +169,8 @@ namespace Kratos
       ModelPart& mrModelPart;
 
 	  EdgesContainerType mEdges;
+
+	  Status mStatus;
 
       ///@}
       ///@name Private Operators

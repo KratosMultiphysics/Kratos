@@ -48,7 +48,7 @@ namespace Kratos {
 
 			Parameters mesher_parameters(R"(
             {
-                "number_of_divisions":2,
+                "number_of_divisions":3,
                 "element_name": "Element3D4N"
             }  )");
 
@@ -68,8 +68,8 @@ namespace Kratos {
 
 			FindNodalNeighboursProcess(model_part).Execute();
 
-			//TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
-
+			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+			
 			 gid_io.InitializeMesh(1.00);
 			 gid_io.WriteMesh(model_part.GetMesh());
 			 gid_io.FinalizeMesh();
@@ -78,7 +78,7 @@ namespace Kratos {
 			 for (auto& node : model_part.Nodes())
 			 {
 				 double distance = norm_2(node);
-				 if (distance < 5. && node.Z() < 4.5 && node.Z() > -4.50)
+				 if (distance < 6. && node.Z() < 5.5 && node.Z() > -5.50)
 					 moving_nodes.push_back(&node);
 			 }
 			 int inverted_element_counter = 0;
@@ -104,7 +104,9 @@ namespace Kratos {
 
 				 FindNodalNeighboursProcess(model_part).Execute();
 
-				 TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
+				 TetrahedraMeshEdgeSwappingProcess swapping_process(model_part);
+				 swapping_process.Execute();
+				 KRATOS_WATCH(swapping_process);
 
 				 int inverted_element_counter = 0;
 				 for (auto& element : model_part.Elements()) {

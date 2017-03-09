@@ -1045,7 +1045,7 @@ void TetrahedraMeshEdgeSwappingProcess::PrintInfo(std::ostream& rOStream) const 
 
 /// Print object's data.
 void TetrahedraMeshEdgeSwappingProcess::PrintData(std::ostream& rOStream) const {
-
+	mStatus.PrintData(rOStream);
 }
 
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & EdgeShell) {
