@@ -59,7 +59,7 @@
             "krylov_type"         : "gmres",
             "coarsening_type"     : "aggregation",
             "scaling"             : true,
-            "verbosity"           : 2
+            "verbosity"           : 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","NoSlip2D_No_slip"],

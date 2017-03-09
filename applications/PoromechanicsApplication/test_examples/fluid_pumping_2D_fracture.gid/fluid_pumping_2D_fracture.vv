@@ -1,6 +1,6 @@
-BeginZE /home/ipouplana/Descargas/Tests/fluid_pumping_2D_fracture.gid/fluid_pumping_2D_fracture.vv
+BeginZE /home/ipouplana/Descargas/poro_tests/fluid_pumping_2D_fracture.gid/fluid_pumping_2D_fracture.vv
    x -0.833333492279052734 10.8333339691162109
-   y 11.1383810043334961 -6.13838100433349609
+   y 11.2297458648681641 -6.22974586486816406
    z -7.03609657287597656 7.03609657287597656
    e 5.83333349227905273
    v -0 -0 -8.74227765734758577e-08
@@ -29,7 +29,7 @@ BeginZE /home/ipouplana/Descargas/Tests/fluid_pumping_2D_fracture.gid/fluid_pump
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/ipouplana/Descargas/Tests/fluid_pumping_2D_fracture.gid/fluid_pumping_2D_fracture.vv
+EndZE /home/ipouplana/Descargas/poro_tests/fluid_pumping_2D_fracture.gid/fluid_pumping_2D_fracture.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

@@ -1,6 +1,6 @@
-BeginZE /home/ipouplana/Descargas/Tests/undrained_soil_column_2D.gid/undrained_soil_column_2D.vv
+BeginZE /home/ipouplana/Descargas/poro_tests/undrained_soil_column_2D.gid/undrained_soil_column_2D.vv
    x -16.0831241607666016 17.0831241607666016
-   y 39.557373046875 -9.557373046875
+   y 39.8171043395996094 -9.81710338592529297
    z -16.5831241607666016 16.5831241607666016
    e 16.5831241607666016
    v 0 0 0
@@ -29,7 +29,7 @@ BeginZE /home/ipouplana/Descargas/Tests/undrained_soil_column_2D.gid/undrained_s
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/ipouplana/Descargas/Tests/undrained_soil_column_2D.gid/undrained_soil_column_2D.vv
+EndZE /home/ipouplana/Descargas/poro_tests/undrained_soil_column_2D.gid/undrained_soil_column_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

@@ -1,0 +1,188 @@
+{
+    "problem_data"             : {
+        "problem_name"        : "2d_dam_thermo_mechanical",
+        "model_part_name"     : "MainModelPart",
+        "domain_size"         : 2,
+        "start_time"          : 0.0,
+        "end_time"            : 12.0,
+        "time_step"           : 1.0,
+        "streamlines_utility" : false,
+        "parallel_type"       : "OpenMP",
+        "number_of_threads"   : 1,
+        "time_scale"          : "Months"
+    },
+    "solver_settings"          : {
+        "solver_type"                   : "dam_thermo_mechanic_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "2d_dam_thermo_mechanical",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","INITIALTEMPERATURE_Temperature_Auto1","INITIALTEMPERATURE_Temperature_Auto2","BOFANGTEMPERATURE_Bofang_Temperature_Auto1","ThermalParameters2D_Thermal_Parameters_Auto1","HydroLinePressure2D_Hydrostatic_Pressure_Auto1"],
+        "reference_temperature"         : 10.0,
+        "thermal_solver_settings"       : {
+            "echo_level"                         : 1,
+            "reform_dofs_at_each_step"           : false,
+            "clear_storage"                      : false,
+            "compute_reactions"                  : false,
+            "move_mesh_flag"                     : false,
+            "compute_norm_dx_flag"               : false,
+            "theta_scheme"                       : 1.0,
+            "block_builder"                      : false,
+            "linear_solver_settings"             : {
+                "solver_type" : "SuperLUSolver",
+                "scaling"     : false
+            },
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2"]
+        },
+        "mechanical_solver_settings"    : {
+            "solution_type"                      : "Quasi-Static",
+            "strategy_type"                      : "Newton-Raphson",
+            "scheme_type"                        : "Newmark",
+            "convergence_criterion"              : "And_criterion",
+            "displacement_relative_tolerance"    : 0.0001,
+            "displacement_absolute_tolerance"    : 1e-9,
+            "residual_relative_tolerance"        : 0.0001,
+            "residual_absolute_tolerance"        : 1e-9,
+            "max_iteration"                      : 10,
+            "echo_level"                         : 1,
+            "buffer_size"                        : 2,
+            "compute_reactions"                  : true,
+            "reform_dofs_at_each_step"           : false,
+            "move_mesh_flag"                     : true,
+            "block_builder"                      : false,
+            "clear_storage"                      : false,
+            "rayleigh_m"                         : 0.0,
+            "rayleigh_k"                         : 0.0,
+            "nonlocal_damage"                    : false,
+            "linear_solver_settings"             : {
+                "solver_type" : "SuperLUSolver",
+                "scaling"     : false
+            },
+            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "loads_sub_model_part_list"          : [],
+            "loads_variable_list"                : []
+        }
+    },
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","TEMPERATURE","NEGATIVE_FACE_PRESSURE","NODAL_CAUCHY_STRESS_TENSOR"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_process_list" : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_X"      : true,
+            "is_fixed_Y"      : true,
+            "is_fixed_Z"      : true,
+            "value"           : [0.0,0.0,0.0],
+            "Value_X_Table"   : 0,
+            "Value_Y_Table"   : 0,
+            "Value_Z_Table"   : 0
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "INITIALTEMPERATURE_Temperature_Auto1",
+            "variable_name"   : "TEMPERATURE",
+            "is_fixed"        : false,
+            "value"           : 10,
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "INITIALTEMPERATURE_Temperature_Auto2",
+            "variable_name"   : "TEMPERATURE",
+            "is_fixed"        : true,
+            "value"           : 5,
+            "table"           : 2
+        }
+    },{
+        "python_module" : "impose_bofang_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeBofangConditionProcess",
+        "Parameters"    : {
+            "mesh_id"                                          : 0,
+            "model_part_name"                                  : "BOFANGTEMPERATURE_Bofang_Temperature_Auto1",
+            "variable_name"                                    : "TEMPERATURE",
+            "is_fixed"                                         : true,
+            "Gravity_Direction"                                : "Y",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 10,
+            "Surface_Temp"                                     : 15.19,
+            "Bottom_Temp"                                      : 6.15,
+            "Height_Dam"                                       : 40,
+            "Temperature_Amplitude"                            : 6.51,
+            "Day_Ambient_Temp"                                 : 201,
+            "Water_level"                                      : 40,
+            "Water_level_Table"                                : 1,
+            "Outer_temp"                                       : 5,
+            "Outer_temp_Table"                                 : 2,
+            "Month"                                            : 1,
+            "Month_Table"                                      : 3
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "impose_thermal_parameters_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeThermalParametersScalarValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ThermalParameters2D_Thermal_Parameters_Auto1",
+            "variable_name"   : "THERMAL_PARAMETERS",
+            "ThermalDensity"  : 2400,
+            "Conductivity"    : 1.0,
+            "SpecificHeat"    : 1000.0
+        }
+    },{
+        "python_module" : "impose_water_loads_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process sets a scalar variable value over a condition",
+        "process_name"  : "HydrostaticConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"                                          : 0,
+            "model_part_name"                                  : "HydroLinePressure2D_Hydrostatic_Pressure_Auto1",
+            "variable_name"                                    : "NEGATIVE_FACE_PRESSURE",
+            "Modify"                                           : true,
+            "Gravity_Direction"                                : "Y",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 10.0,
+            "Spe_weight"                                       : 10000,
+            "Water_level"                                      : 40,
+            "Water_Table"                                      : 1
+        }
+    }]
+}
