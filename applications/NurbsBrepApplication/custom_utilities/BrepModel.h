@@ -48,7 +48,7 @@ namespace Kratos
 
  */
 
-class BrepModel
+class BrepModel : public IndexedObject, public Flags
 {
 public:
   ///@name Type Definitions
@@ -66,16 +66,41 @@ public:
 
   /// Default constructor.
 //TODO: pass by reference not by value
-  BrepModel(FacesVector& faces, EdgesVector& edges)
+  BrepModel(unsigned int& brep_id, FacesVector& faces, EdgesVector& edges)
   : m_faces(faces),
-    m_edges(edges)
+    m_edges(edges),
+    IndexedObject(brep_id),
+    Flags()
   {
   }
-
   /// Destructor.
   virtual ~BrepModel()
   {
   }
+  // ==============================================================================
+  FacesVector& GetFaceVector()
+  {
+    return m_faces;
+  }
+
+  EdgesVector& GetEdgeVector()
+  {
+    return m_edges;
+  }
+  // ==============================================================================
+  /*Face& GetFace(const unsigned int& face_id, bool& is_existing)
+  {
+    is_existing = false;
+    for (unsigned int i = 0; i < m_faces.size(); i++)
+    {
+      if (m_faces[i].GetId() == face_id)
+      {
+        is_existing = true;
+        return m_faces[i];
+      }
+    }
+    return m_faces[0];
+  }*/
 
   // ==============================================================================
   /// Turn back information as a string.

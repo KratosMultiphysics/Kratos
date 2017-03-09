@@ -34,6 +34,8 @@
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/node.h"
 
+//#include "nurbs_utilities.h"
+
 namespace Kratos
 {
 
@@ -84,7 +86,7 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    void ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part);
+    std::vector<BrepModel*> ReadGeometry(ModelPart& model_part);
 
     /// Constructor.
     BrepModelGeometryReader(Parameters& cad_geometry_in_json);

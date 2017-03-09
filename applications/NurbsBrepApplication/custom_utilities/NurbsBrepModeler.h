@@ -18,13 +18,19 @@
 #include <ctime>
 
 // External includes 
-//#include <boost/python.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
+
+#include "../../kratos/spatial_containers/spatial_containers.h"
+//#include "../../kratos/utilities/binbased_fast_point_locator.h"
+//#include "../../kratos/includes/kratos_flags.h"
+
+//#include "nurbs_utilities.h"
 
 #include "BrepModelGeometryReader.h"
 #include "BrepModel.h"
@@ -35,7 +41,8 @@ namespace Kratos
   ///@name Kratos Globals
   ///@{ 
 
-  // Variables definition 
+
+
 
 
 
@@ -65,8 +72,20 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
+    // Variables definition 
+    typedef Node<3> NodeType;
+    typedef std::vector<NodeType::Pointer> NodeVector;
+
+    typedef std::vector<Face> FacesVector;
+    typedef std::vector<Edge> EdgesVector;
+
     typedef std::vector<BrepModel> BrepModelVector;
-    
+
+    //Search Tree
+    typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, 
+    std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > TreeType;
+
     /// Pointer definition of KratosNurbsTestcaseApplication
         KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
 
@@ -76,7 +95,7 @@ namespace Kratos
         
    
     /// Constructor.
-        NurbsBrepModeler(Parameters& cad_geometry, ModelPart& model_part);
+        NurbsBrepModeler(BrepModelVector& brep_model_vector, ModelPart& model_part);
 
         //NurbsBrepModeler();
     /// Destructor.
@@ -109,13 +128,11 @@ namespace Kratos
     ///@{ 
     //       static const ApplicationCondition  msApplicationCondition; 
     ///@} 
-        ///@name Member Variables
+    ///@name Member Variables
     ///@{ 
-
-    Parameters& m_cad_geometry;
     ModelPart& m_model_part;
-    //BrepModelGeometryReader m_brep_model_geometry_reader;
-    BrepModelVector m_brep_model_vector;
+    BrepModelVector& m_brep_model_vector;
+    //TreeType m_search_tree;
 
     ///@} 
     ///@name Private Operators
@@ -124,7 +141,10 @@ namespace Kratos
     ///@} 
     ///@name Private Operations
     ///@{ 
-
+    void CreateMeshedPoints(ModelPart& model_part);
+    Face& GetFace(const unsigned int face_id);
+    //Tree< KDTreePartition<BucketType> > CreateSearchTree(ModelPart model_part);
+    void MapNode(const Node<3>::Pointer node, Node<3>::Pointer node_on_geometry);
     ///@} 
     ///@name Private  Access 
     ///@{ 
@@ -142,25 +162,9 @@ namespace Kratos
 
     /// Copy constructor.
     NurbsBrepModeler(NurbsBrepModeler const& rOther);
-
-
     ///@}    
 
   }; // Class NurbsBrepModeler 
-
-  ///@} 
-
-
-  ///@name Type Definitions       
-  ///@{ 
-
-
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-
-  ///@} 
-
 
 }  // namespace Kratos.
 

@@ -20,11 +20,22 @@
 // Project includes
 #include "NurbsBrepModeler.h"
 #include "utilities/math_utils.h"
+#include "../../kratos/includes/node.h"
+
+//#include "nurbs_utilities.h"
+
 #include "BrepModelGeometryReader.h"
 
 
 namespace Kratos
 {
+  //Search Tree
+  // Variables definition 
+  typedef Node<3> NodeType;
+  typedef std::vector<NodeType::Pointer> NodeVector;
+  typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer,
+    std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
+  typedef Tree< KDTreePartition<BucketType> > TreeType;
 
 //TODO: for testing in c++ use the testing mechanism of kratos
   //void NurbsBrepModeler::SetUp(Parameters& cad_geometry, ModelPart& model_part)
@@ -34,17 +45,117 @@ namespace Kratos
   //  std::cout << "Test 2" << std::endl;
   //  m_brep_model_geometry_reader.ReadGeometry(m_brep_model_vector, model_part);
   //}
+  void NurbsBrepModeler::CreateMeshedPoints(ModelPart& model_part)
+  {
+    unsigned int u_resolution = 100;
+    unsigned int v_resolution = 100;
 
-NurbsBrepModeler::NurbsBrepModeler(Parameters& cad_geometry, ModelPart& model_part)
-  : m_cad_geometry(cad_geometry),
+    for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
+    {
+      for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
+      {
+        Face& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
+        unsigned int face_id = face.GetId();
+
+        Vector& knot_vector_u = face.GetUKnotVector();
+        Vector& knot_vector_v = face.GetVKnotVector();
+
+        double u_min = knot_vector_u[0];
+        double u_max = knot_vector_u[knot_vector_u.size()];
+        double v_min = knot_vector_v[0];
+        double v_max = knot_vector_v[knot_vector_v.size()];
+
+        double delta_u = (u_max - u_min) / u_resolution;
+        double delta_v = (v_max - v_min) / v_resolution;
+
+        // Loop over all u & v according to specified resolution
+        for (unsigned int i = 1; i < u_resolution; i++)
+        {
+          // current u-value
+          double u_i = u_min + i*delta_u;
+
+          for (unsigned int j = 1; j < v_resolution; j++)
+          {
+            // current v-value
+            double v_j = v_min + j*delta_v;
+
+            // Check if u_i and v_j represent a point inside the closed boundary loop
+            Vector point_of_interest = ZeroVector(2);
+            point_of_interest[0] = u_i;
+            point_of_interest[1] = v_j;
+            bool point_is_inside = face.CheckIfPointIsInside(point_of_interest);
+
+            if (point_is_inside)
+            {
+              // compute unique point in CAD-model for given u&v
+              unsigned int cad_node_counter = 0;
+              ++cad_node_counter;
+              Point<3> cad_point_coordinates;
+              face.EvaluateSurfacePoint(cad_point_coordinates, u_i, v_j, model_part);
+
+              // Add id to point --> node. Add node to list of CAD nodes
+              Node<3>::Pointer node = model_part.CreateNewNode(cad_node_counter, cad_point_coordinates[0], cad_point_coordinates[1], cad_point_coordinates[2]);
+              node->SetValue(LOCAL_PARAMETERS, point_of_interest);
+              node->SetValue(FACE_BREP_ID, face_id);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Face& NurbsBrepModeler::GetFace(const unsigned int face_id)
+  {
+    for (unsigned int i = 0; i < m_brep_model_vector.size(); i++)
+    {
+      FacesVector& face_vector = m_brep_model_vector[i].GetFaceVector();
+      for (unsigned int j = 0; j < face_vector.size(); j++)
+      {
+        if (face_vector[j].GetId() == face_id)
+        {
+          return face_vector[j];
+        }
+      }
+    }
+    KRATOS_THROW_ERROR(std::logic_error, "NurbsBrepModeler::GetFace: face_id does not exist", "");
+  }
+
+  //Tree< KDTreePartition<BucketType> > NurbsBrepModeler::CreateSearchTree(ModelPart model_part)
+  //{
+  //  std::cout << "\n> Starting construction of search-tree..." << std::endl;
+  //  //boost::timer timer;
+  //  typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
+  //  //std::vector<NodeType::Pointer>& node_vector = model_part.NodesArray;
+  //  int bucket_size = 20;
+  //  Tree< KDTreePartition<BucketType> > search_tree(model_part.NodesArray.NodesStart, model_part.NodesArray.NodesEnd, bucket_size);
+  //  return search_tree;
+  //  //std::cout << "> Time needed for constructing search-tree: " << timer.elapsed() << " s" << std::endl;
+  //}
+
+  void NurbsBrepModeler::MapNode(const Node<3>::Pointer node, Node<3>::Pointer node_on_geometry)
+  {
+    //ModelPart local_model_part("MeshingPoints");
+    //std::vector<Node<3>> nodes_local = local_model_part.NodesArray;
+    //int bucket_size = 20;
+    //Tree< KDTreePartition<BucketType> > search_tree(nodes_local[0], nodes_local.end(), bucket_size);
+    //NodeType::Pointer nearest_point = search_tree.SearchNearestPoint(*node);
+
+    Vector loacl_parameters_of_nearest_point = node->GetValue(LOCAL_PARAMETERS);
+    int face_id_of_nearest_point = node->GetValue(FACE_BREP_ID);
+  }
+
+NurbsBrepModeler::NurbsBrepModeler(BrepModelVector& brep_model_vector, ModelPart& model_part)
+  : m_brep_model_vector(brep_model_vector),
     m_model_part(model_part)
 {
   std::cout << "Test 1" << std::endl;
-  BrepModelGeometryReader m_brep_model_geometry_reader(cad_geometry);
+  //BrepModelGeometryReader m_brep_model_geometry_reader(cad_geometry);
   std::cout << "Test 2" << std::endl;
-  m_brep_model_geometry_reader.ReadGeometry(m_brep_model_vector, model_part);
+  //m_brep_model_geometry_reader.ReadGeometry(m_brep_model_vector, model_part);
 
 }
+
+
 
 NurbsBrepModeler::~NurbsBrepModeler()
 {}
