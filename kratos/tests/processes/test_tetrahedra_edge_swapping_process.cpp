@@ -336,16 +336,16 @@ namespace Kratos {
 			KRATOS_WATCH(model_part.GetElement(9).GetGeometry().Volume());
 			KRATOS_WATCH(model_part.GetElement(10).GetGeometry().Volume());
 			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 10);
-			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 189.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 143.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 189.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 143.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 36.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 29.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(7).GetGeometry().Volume(), 21.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(8).GetGeometry().Volume(), 17.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(9).GetGeometry().Volume(), 21.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(10).GetGeometry().Volume(), 17.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 114.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 218.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 69.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 63.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 91.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 81.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(7).GetGeometry().Volume(), 57.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(8).GetGeometry().Volume(), 49.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(9).GetGeometry().Volume(), 35.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(10).GetGeometry().Volume(), 30.);
 
 			gid_io.InitializeMesh(1.00);
 			gid_io.WriteMesh(model_part.GetMesh());
