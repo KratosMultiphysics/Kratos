@@ -279,187 +279,6 @@ public:
     }
     
     /**
-     * This function recovers the Euler angles from an orthogonal base (Local Coordinate System)
-     * @param Normal: The normal vector
-     * @param TangentXi: The first tangent vector
-     * @param TangentEta: The second tangent vector
-     * @param angles[0]: (pre) precession rotation
-     * @param angles[1]: (nut) nutation rotation
-     * @param angles[2]: (rot) intrinsic rotation
-     */
-    
-    array_1d<double, 3> LCS2Euler(
-        const array_1d<double, 3> Normal,
-        const array_1d<double, 3> TangentXi,
-        const array_1d<double, 3> TangentEta,
-        const bool Inversed
-        ) 
-    {
-        const double TangentEtaxy = std::sqrt(TangentEta[0] * TangentEta[0] + TangentEta[1] * TangentEta[1]);
-        
-        array_1d<double, 3> angles;
-        
-        if (TangentEtaxy > std::numeric_limits<double>::epsilon()) 
-        {
-            angles[0] =  std::atan2(TangentXi[0] * TangentEta[1] - TangentXi[1]*TangentEta[0], Normal[0] * TangentEta[1] - Normal[1] * TangentEta[0]);
-            angles[1] =  std::atan2(TangentEtaxy, TangentEta[2]);
-            angles[2] = -std::atan2(-TangentEta[0], TangentEta[1]);
-        }
-        else 
-        {
-            angles[0] = 0.0;
-            angles[1] = (TangentEta[2] > 0.0) ? 0.0 : M_PI;
-            angles[2] = -std::atan2(Normal[1], Normal[0]);
-        }
-        
-        if (Inversed == false)
-        {
-            return angles;
-        }
-        else
-        {
-            return -angles;
-        }
-    }
-    
-    /**
-     * This function rotates to align the projected points to a parallel plane to XY
-     * @param PointToRotate: The points from the origin geometry
-     * @param PointReferenceRotation: The center point used as reference to rotate
-     * @param SlaveNormal: The normal of the slave condition
-     * @param Inversed: If we rotate to the XY or we recover from XY
-     * @return PointRotated: The point rotated 
-     */
-    
-    void RotatePoint( 
-        Point<3>& PointToRotate,
-        const Point<3> PointReferenceRotation,
-        const array_1d<double, 3> SlaveNormal,
-        const bool Inversed
-        )
-    {        
-        // We move to the (0,0,0)
-        Point<3> AuxPointToRotate;
-        AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
-        
-        const boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = GetRotationMatrix(SlaveNormal, Inversed); // FIXME: Consider new matrix
-        
-        PointToRotate.Coordinates() = prod(RotationMatrix, AuxPointToRotate) + PointReferenceRotation.Coordinates();
-    }
-    
-    /**
-     * This function calculates the rotation matrix
-     * @param SlaveNormal: The normal used as reference to calculate the rotation
-     * @param Inversed: If we rotate to the XY or we recover from XY
-     * @return RotationMatrix: The corresponding rotation matrix
-     */
-    
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> GetRotationMatrix(
-        const array_1d<double, 3> SlaveNormal,
-        const bool Inversed
-        )
-    {
-        const double Tolerance = 1.0e-16;
-        
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
-        
-        const double angle1 = std::pow(-1, Inversed) * std::acos(SlaveNormal[1]/(std::sqrt(SlaveNormal[0] * SlaveNormal[0] + SlaveNormal[1] * SlaveNormal[1]) + Tolerance)); 
-        
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rot1 = ZeroMatrix(3, 3);
-        if (SlaveNormal[0] >= 0.0)
-        {
-            Rot1(0, 0) =   std::cos(-angle1);
-            Rot1(0, 1) = - std::sin(-angle1);
-            Rot1(1, 0) =   std::sin(-angle1);
-            Rot1(1, 1) =   std::cos(-angle1);
-        }
-        else
-        {
-            Rot1(0, 0) =   std::cos(-angle1);
-            Rot1(0, 1) =   std::sin(-angle1);
-            Rot1(1, 0) = - std::sin(-angle1);
-            Rot1(1, 1) =   std::cos(-angle1); 
-        }
-        
-        Rot1(2, 2) = 1.0;
-        
-        const array_1d<double, 3> RotSlaveNormal = prod(Rot1, SlaveNormal);
-        
-        const double angle2 = std::pow(-1, Inversed) * std::acos(RotSlaveNormal[2]/(std::sqrt(RotSlaveNormal[1] * RotSlaveNormal[1] + RotSlaveNormal[2] * RotSlaveNormal[2]) + Tolerance)); 
-        
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rot2 = ZeroMatrix(3, 3);
-        Rot2(0, 0) =   1.0;
-        Rot2(1, 1) =   std::cos(-angle2);
-        Rot2(1, 2) = - std::sin(-angle2);
-        Rot2(2, 1) =   std::sin(-angle2);
-        Rot2(2, 2) =   std::cos(-angle2);
-        
-        RotationMatrix = prod(Rot2, Rot1);
-        
-        return RotationMatrix;
-    }
-    
-    /**
-     * This function calculates the rotation matrix
-     * @param SlaveNormal: The normal used as reference to calculate the rotation
-     * @param Inversed: If we rotate to the XY or we recover from XY
-     * @param SlaveTangentXi: The first tangent vector of the slave condition
-     * @param SlaveTangentEta: The second tangent vector of the slave condition
-     * @return RotationMatrix: The corresponding rotation matrix
-     */
-    
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> GetRotationMatrix(
-        const array_1d<double, 3> SlaveNormal,
-        const array_1d<double, 3> SlaveTangentXi,
-        const array_1d<double, 3> SlaveTangentEta,
-        const bool Inversed
-        )
-    {
-        const array_1d<double, 3> theta = LCS2Euler(SlaveNormal, SlaveTangentXi, SlaveTangentEta, Inversed);
-        
-        // Calculate rotation about x axis
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rx;
-        Rx(0, 0) = 1.0;
-        Rx(0, 1) = 0.0;
-        Rx(0, 2) = 0.0;
-        Rx(1, 0) = 0.0;
-        Rx(1, 1) = std::cos(theta[0]);
-        Rx(1, 2) = -std::sin(theta[0]);
-        Rx(2, 0) = 0.0;
-        Rx(2, 1) = std::sin(theta[0]);
-        Rx(2, 2) = std::cos(theta[0]);
-        
-        // Calculate rotation about y axis
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Ry;
-        Ry(0, 0) = std::cos(theta[1]);
-        Ry(0, 1) = 0.0;
-        Ry(0, 2) = std::sin(theta[1]);
-        Ry(1, 0) = 0.0;
-        Ry(1, 1) = 1.0;
-        Ry(1, 2) = 0.0;
-        Ry(2, 0) = -std::sin(theta[1]);
-        Ry(2, 1) = 0.0;
-        Ry(2, 2) = std::cos(theta[1]);
-        
-        // Calculate rotation about z axis
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> Rz;
-        Rz(0, 0) = std::cos(theta[2]);
-        Rz(0, 1) = -std::sin(theta[2]);
-        Rz(0, 2) = 0.0;
-        Rz(1, 0) = std::sin(theta[2]);
-        Rz(1, 1) = std::cos(theta[2]);
-        Rz(1, 2) = 0.0;
-        Rz(2, 0) = 0.0;
-        Rz(2, 1) = 0.0;
-        Rz(2, 2) = 1.0;
-
-        // Combined rotation matrix
-        typedef boost::numeric::ublas::bounded_matrix<double, 3, 3> temp_type;
-        
-        return prod(Rz, prod<temp_type>(Ry, Rz));
-    }
-    
-    /**
      * This function intersects two lines in a 2D plane
      * @param PointOrig: The points from the origin geometry
      * @param PointDest: The points in the destination geometry
@@ -507,29 +326,6 @@ public:
         {
             return false;
         }
-    }
-    
-    /**
-     * This function calculates in 2D the angle between two points
-     * @param PointOrig1: The points from the origin geometry
-     * @param PointOrig2: The points in the destination geometry
-     * @return angle: The angle formed
-     */
-    
-    double AnglePoints(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2
-        )
-    {
-        const array_1d<double, 3> local_edge = PointOrig2.Coordinates() - PointOrig1.Coordinates();
-        
-        const double xi  = local_edge[0];
-        const double eta = local_edge[1];
-
-//         // Debug
-//         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
-        
-        return (std::atan2(eta, xi));
     }
     
     /**
@@ -582,30 +378,7 @@ public:
         
         return (std::atan2(eta, xi));
     }
-    
-    /**
-     * This function calculates the area of triangle using Heron's formula
-     * @param PointOrig1: The first point
-     * @param PointOrig2: The second point
-     * @param PointOrig3: The third point
-     * @return Area: The area of the triangle
-     */
-    
-    double HeronArea(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2,
-        const Point<3> PointOrig3
-        )
-    {
-        const double a = norm_2(PointOrig2.Coordinates() - PointOrig1.Coordinates());
-        const double b = norm_2(PointOrig3.Coordinates() - PointOrig2.Coordinates());
-        const double c = norm_2(PointOrig1.Coordinates() - PointOrig3.Coordinates());
-        
-        const double Area = MathUtils<double>::Heron<false>(a,b,c);
-        
-        return Area;
-    }
-    
+
     /**
      * This function checks in 2D if two nodes are the same one
      * @param PointOrig: The points from the origin geometry
@@ -1026,7 +799,6 @@ private:
             Triangle3D3 <Point<3>> AllTriangle( AllPointsArray );
         
             const double LocalArea = AllTriangle.Area();
-//             const double LocalArea = HeronArea(MasterProjectedPoint[0],MasterProjectedPoint[1],MasterProjectedPoint[2]);
             
             if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
             {
@@ -1161,7 +933,6 @@ private:
                 
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
-//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                     if (Angles[elem - 1] < 0.0)
                     {
@@ -1206,7 +977,6 @@ private:
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-//                     const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
                     const double LocalArea = triangle.Area();
 
                     if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
@@ -1335,7 +1105,6 @@ private:
             
             for (unsigned int elem = 1; elem < 4; elem++)
             {
-//                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem]);
                 Angles[elem - 1] = AnglePoints(MasterProjectedPoint[0], MasterProjectedPoint[elem], v, n);
                 if (Angles[elem - 1] < 0.0)
                 {
@@ -1379,7 +1148,6 @@ private:
                 Triangle2D3 <Point<3>> triangle( PointsArray );
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-//                 const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]);
                 const double LocalArea = triangle.Area();
                 
                 if (LocalArea > Tolerance)
@@ -1431,7 +1199,6 @@ private:
 //                 {
 //                     std::cout << std::endl;
 //                     KRATOS_WATCH(LocalArea);
-//                     KRATOS_WATCH(HeronArea(MasterProjectedPoint[0],MasterProjectedPoint[IndexVector[elem] + 1],MasterProjectedPoint[IndexVector[elem + 1] + 1]));
 //                     Point<3> aux1;
 //                     aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
 //                     RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
@@ -1636,7 +1403,6 @@ private:
                 
                 for (unsigned int elem = 1; elem < ListSize; elem++)
                 {
-//                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem]);
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                     if (Angles[elem - 1] < 0.0)
                     {
@@ -1657,13 +1423,6 @@ private:
                 // We initialize our auxiliar integration point vector
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
-                
-//                 // Debug
-//                 for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ ) // FIXME: The number of nodes and weight look wrong!!!
-//                 {
-//                     KRATOS_WATCH(IntegrationPoints[PointNumber].Coordinates())
-//                     KRATOS_WATCH(IntegrationPoints[PointNumber].Weight())
-//                 }
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
                 IntegrationPointsSlave.clear();
@@ -1688,7 +1447,6 @@ private:
                     Triangle2D3 <Point<3>> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
-//                     const double LocalArea = HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]); // FIXME: The nodes are not in correct order
                     const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
                     
                     if (LocalArea > Tolerance)
@@ -1740,7 +1498,6 @@ private:
 //                     {
 //                         std::cout << std::endl;
 //                         KRATOS_WATCH(LocalArea);
-//                         KRATOS_WATCH(HeronArea(PointList[0],PointList[IndexVector[elem] + 1],PointList[IndexVector[elem + 1] + 1]));
 //                         std::cout << CheckPoints2D(PointList[0], PointList[IndexVector[elem] + 1]) << "\t" << CheckPoints2D(PointList[IndexVector[elem + 1] + 1], PointList[IndexVector[elem] + 1]) << "\t" << CheckPoints2D(PointList[0], PointList[IndexVector[elem + 1] + 1]) << std::endl;
 //                         Point<3> aux1;
 //                         aux1.Coordinates() = PointList[0].Coordinates();
