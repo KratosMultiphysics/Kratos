@@ -219,7 +219,7 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
@@ -251,7 +251,7 @@ public:
 
 
             //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
-            #pragma omp parallel for  schedule(guided, 512)
+            #pragma omp for  schedule(guided, 512)
             for (int k = 0; k < nconditions; k++)
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + k;

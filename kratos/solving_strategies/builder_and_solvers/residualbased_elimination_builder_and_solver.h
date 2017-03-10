@@ -221,7 +221,7 @@ public:
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
 		
-                #pragma omp parallel firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
+                #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
                 {
                     #pragma omp  for schedule(guided, 512) nowait
                     for (int k = 0; k < nelements; k++)
