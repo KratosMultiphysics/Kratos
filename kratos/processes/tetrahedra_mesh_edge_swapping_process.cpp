@@ -945,7 +945,8 @@ namespace Kratos
 	}
 
 
-TetrahedraMeshEdgeSwappingProcess::TetrahedraMeshEdgeSwappingProcess(ModelPart & rModelPart): mrModelPart(rModelPart), mEdges(){
+TetrahedraMeshEdgeSwappingProcess::TetrahedraMeshEdgeSwappingProcess(ModelPart & rModelPart): mrModelPart(rModelPart), mEdges()
+, mOldMinQuality(2.00), mNewMinQuality(2.00),mNumberOfSwappingPerformed(0){
 
 }
 
@@ -955,6 +956,15 @@ TetrahedraMeshEdgeSwappingProcess::~TetrahedraMeshEdgeSwappingProcess(){
 
 void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	std::cout << std::endl;
+
+	mStatus.Reset();
+	mOldMinQuality = 2.00;
+	mNewMinQuality = 2.00;
+	mNumberOfSwappingPerformed = 0;
+
+	for (auto& element : mrModelPart.Elements()) {
+		element.Reset(MODIFIED);
+	}
 
 	constexpr int tetrahedra_edges[6][2] = { { 0,1 },{ 1,2 },{ 2,0 },{ 0,3 },{ 1,3 },{ 2,3 } };
 	for(auto i_element = mrModelPart.ElementsBegin() ; i_element != mrModelPart.ElementsEnd() ; i_element++){
@@ -1013,25 +1023,28 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	for (auto& edge : mEdges) {
 		if (edge.second.IsClosed()) {
 			if (!(edge.second.IsModified())) {
-				//if (edge.second.GetNumberOfShellPoints() == 3)
-				//	EdgeSwapping3(edge.second);
-				//if (edge.second.GetNumberOfShellPoints() == 4)
-				//	EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 3)
+					EdgeSwapping3(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 4)
+					EdgeSwapping<Internals::EdgeSwappingCases4>(edge.second);
 				if (edge.second.GetNumberOfShellPoints() == 5)
 					EdgeSwapping<Internals::EdgeSwappingCases5>(edge.second);
-				//if (edge.second.GetNumberOfShellPoints() == 6)
-				//	EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
-				//if (edge.second.GetNumberOfShellPoints() == 7)
-				//	EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
-				//if (edge.second.GetNumberOfShellPoints() == 8)
-				//	EdgeSwapping<Internals::EdgeSwappingCases8>(edge.second);
-				//if (edge.second.GetNumberOfShellPoints() == 9)
-				//	EdgeSwapping<Internals::EdgeSwappingCases9>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 6)
+					EdgeSwapping<Internals::EdgeSwappingCases6>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 7)
+					EdgeSwapping<Internals::EdgeSwappingCases7>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 8)
+					EdgeSwapping<Internals::EdgeSwappingCases8>(edge.second);
+				if (edge.second.GetNumberOfShellPoints() == 9)
+					EdgeSwapping<Internals::EdgeSwappingCases9>(edge.second);
 			}
 		}
 
 	}
 	ElementEraseProcess(mrModelPart).Execute();
+	mStatus.SetValue("OldMinQuality", mOldMinQuality);
+	mStatus.SetValue("NewMinQuality", mNewMinQuality);
+	mStatus.SetValue("NumberOfSwappingPerformed", mNumberOfSwappingPerformed);
 }
 
 std::string TetrahedraMeshEdgeSwappingProcess::Info() const{
@@ -1058,13 +1071,17 @@ void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping3(TetrahedraEdgeShell & Edge
 
 	double original_min_quality = EdgeShell.CalculateMinQuality(quality_criteria);
 	double min_quality = std::min(tetrahedra_1.Quality(quality_criteria), tetrahedra_2.Quality(quality_criteria));
+	mOldMinQuality = std::min(mOldMinQuality, original_min_quality);
+
 	if (min_quality > original_min_quality) {
+		mNumberOfSwappingPerformed++;
+		mNewMinQuality = std::min(mNewMinQuality, min_quality);
 		EdgeShell.pGetElement(0)->GetGeometry() = tetrahedra_1;
 		EdgeShell.pGetElement(1)->GetGeometry() = tetrahedra_2;
 		EdgeShell.pGetElement(2)->Set(TO_ERASE);
 	}
-	//else
-	//	std::cout << min_quality << " is worst respect to " << original_min_quality << std::endl;
+	else
+		mNewMinQuality = std::min(mNewMinQuality, original_min_quality);
 }
 
 void TetrahedraMeshEdgeSwappingProcess::EdgeSwapping4(TetrahedraEdgeShell & EdgeShell) {

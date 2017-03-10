@@ -139,15 +139,17 @@ namespace Kratos
 	  class Status { // Here I'm prototyping the base status class to be implemented in future. Pooyan.
 		  std::map<std::string, double> mData;
 	  public:
-		  Status() 
-		  {
-			  mData["OldMinQuality"] = 0.00;
-			  mData["CurrentMinQuality"] = 0.00;
-			  mData["OldMeanQuality"] = 0.00;
-			  mData["CurrentMeanQuality"] = 0.00;
+		  Status() {
+			  Reset();
+		  }
+
+		  void Reset() {
+			  mData["OldMinQuality"] = 2.00;
+			  mData["NewMinQuality"] = 2.00;
 			  mData["NumberOfSwappingPerformed"] = 0.00;
 		  }
 
+		  
 		  double GetValue(std::string const& Name) { return mData[Name]; }
 		  void SetValue(std::string const& Name, double Value) { mData[Name] = Value; }
 		  void PrintData(std::ostream& rOStream) const {
@@ -170,6 +172,10 @@ namespace Kratos
 
 	  EdgesContainerType mEdges;
 
+	  double mOldMinQuality;
+	  double mNewMinQuality;
+	  std::size_t mNumberOfSwappingPerformed;
+
 	  Status mStatus;
 
       ///@}
@@ -190,6 +196,8 @@ namespace Kratos
 		  Tetrahedra3D4<Node<3>> tetrahedra_2 = EdgeShell.pGetElement(0)->GetGeometry(); // It will be reinitialized afterward
 		  typename const TEdgeSwappingCasesType::EdgeSwappingCaseType* p_best_case = nullptr;
 		  double max_cases_quality = original_min_quality;
+
+		  mOldMinQuality = std::min(mOldMinQuality, original_min_quality);
 
 		  for (auto i_case = SwappingCases.GetCases().begin(); i_case != SwappingCases.GetCases().end(); i_case++) {
 			  double case_min_quality = std::numeric_limits<double>::max();
@@ -213,7 +221,8 @@ namespace Kratos
 			  }
 		  }
 		  if (max_cases_quality > original_min_quality + std::numeric_limits<double>::epsilon()) {
-			  
+			  mNumberOfSwappingPerformed++;
+			  mNewMinQuality = std::min(mNewMinQuality, max_cases_quality);
 			  for (std::size_t i = 0; i < SwappingCases.NumberOfTrianglesPerCase(); i++) {
 				  SwappingCases.SetTetrahedraForCase(*p_best_case, i, EdgeShell, tetrahedra_1, tetrahedra_2);
 				  if (2 * i < EdgeShell.GetNumberOfTetrahedra()) {
@@ -221,17 +230,21 @@ namespace Kratos
 					  EdgeShell.pGetElement(2 * i)->Set(MODIFIED);
 				  }
 				  else {
-					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements() + 1, tetrahedra_1));
+					  std::size_t last_id = mrModelPart.Elements().back().Id();
+					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(last_id + 1, tetrahedra_1));
 				  }
 				  if ((2 * i) + 1 < EdgeShell.GetNumberOfTetrahedra()){
 					EdgeShell.pGetElement((2 * i) + 1)->GetGeometry() = tetrahedra_2;
 					EdgeShell.pGetElement((2 * i) + 1)->Set(MODIFIED);
 				  }
 				  else {
-					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(mrModelPart.NumberOfElements() + 1, tetrahedra_2));
+					  std::size_t last_id = mrModelPart.Elements().back().Id();
+					  mrModelPart.AddElement(EdgeShell.pGetElement(0)->Clone(last_id + 1, tetrahedra_2));
 				  }
 			  }
 		  }
+		  else
+			  mNewMinQuality = std::min(mNewMinQuality, original_min_quality);
 	  }
 
 	  void EdgeSwapping3(TetrahedraEdgeShell & EdgeShell);

@@ -77,7 +77,9 @@ namespace Kratos {
 			 std::vector<Node<3>*> moving_nodes; // Is not the way to store nodes outside the test!
 			 for (auto& node : model_part.Nodes())
 			 {
-				 double distance = norm_2(node);
+				 double dx = node.X();
+				 double dy = node.Y();
+				 double distance = std::sqrt(dx*dx+dy*dy);
 				 if (distance < 6. && node.Z() < 5.5 && node.Z() > -5.50)
 					 moving_nodes.push_back(&node);
 			 }
