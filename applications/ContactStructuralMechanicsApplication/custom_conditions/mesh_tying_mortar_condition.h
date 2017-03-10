@@ -595,6 +595,8 @@ protected:
     unsigned int mPairSize;                                              // The number of contact pairs
     std::vector<Condition::Pointer> mThisMasterConditions;               // Vector which contains the pointers to the master conditions
 
+    std::vector<IntegrationPointsType> mIntegrationPointsVector;         // This vector contains all the integration nodes
+    
 //     /* The list of variable to compute */
 //     array_1d<Variable< array_1d_component_type>, TDim> mTyingVarVector;  // Variable considered in the mesh tying
 //     Variable<double> mTyingVarScalar;                                    // Variable considered in the mesh tying

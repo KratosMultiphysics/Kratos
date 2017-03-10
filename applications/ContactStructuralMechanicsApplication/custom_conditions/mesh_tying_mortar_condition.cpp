@@ -110,6 +110,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
             
             mPairSize += 1;
             mThisMasterConditions.push_back(pCond);
+            mIntegrationPointsVector.push_back(IntegrationPointsSlave);
 //             mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
         }
     }
@@ -152,7 +153,7 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-
+    
     // NOTE: Add things if necessary
         
     KRATOS_CATCH( "" );
@@ -548,7 +549,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
 //     }
     
     // Iterate over the master segments
-    ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
+//     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {                                                           
         // Initialize general variables for the current master element
@@ -561,8 +562,8 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         rThisMortarConditionMatrices.Initialize();
         
         // Get the integration points
-        IntegrationPointsType IntegrationPointsSlave;
-        IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
+        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
+//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
         
         const unsigned int NumberOfINtegrationPoints = IntegrationPointsSlave.size();
         
@@ -577,11 +578,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
                 
         if (NumberOfINtegrationPoints > 0)
         {
-            // Debug
-            std::cout << "--------------------------------------------------" << std::endl;
-            KRATOS_WATCH(this->Id());
-            KRATOS_WATCH(PairIndex);
-            rThisMortarConditionMatrices.print();
+//             // Debug
+//             std::cout << "--------------------------------------------------" << std::endl;
+//             KRATOS_WATCH(this->Id());
+//             KRATOS_WATCH(PairIndex);
+//             rThisMortarConditionMatrices.print();
             
             // Assemble of the matrix is required
             if ( rLocalSystem.CalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ||
@@ -658,13 +659,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     
     double TotalWeight = 0.0;
 
-    ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
+//     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {   
         // Get the integration points
-        IntegrationPointsType IntegrationPointsSlave;
-        IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
+        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
+//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
         
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );

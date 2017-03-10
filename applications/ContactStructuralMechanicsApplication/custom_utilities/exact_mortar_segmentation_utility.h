@@ -37,6 +37,7 @@
 /* Utilities */
 #include "custom_utilities/contact_utilities.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/qr_utility.h"            //QR decomposition utility used in matrix inversion.
 
 namespace Kratos
 {
@@ -49,12 +50,13 @@ namespace Kratos
     
     typedef Point<3>                                             PointType;
     typedef Node<3>                                               NodeType;
-    typedef Geometry<NodeType>                                GeometryType;
+    typedef Geometry<NodeType>                            GeometryNodeType;
+    typedef Geometry<PointType>                          GeometryPointType;
     
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod              IntegrationMethod;
     typedef IntegrationPoint<2>                       IntegrationPointType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
+    typedef GeometryNodeType::IntegrationPointsArrayType IntegrationPointsType;
     
 ///@}
 ///@name  Enum's
@@ -149,7 +151,7 @@ public:
      * Get the integration method to consider
      */
         
-    GeometryType::IntegrationPointsArrayType GetIntegrationTriangle()
+    GeometryNodeType::IntegrationPointsArrayType GetIntegrationTriangle()
     {
         // Setting the auxiliar integration points
         if (mIntegrationOrder == 1)
@@ -186,14 +188,15 @@ public:
      */
     
     inline bool GetExactIntegration(    
-        GeometryType& SlaveGeometry,
+        GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryType& MasterGeometry,
+        GeometryNodeType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         );
     
     /**
      * This utility computes the exact integration of the mortar condition
+     * @param SlaveCond: The slave condition
      * @param MasterCond: The master condition
      * @param IntegrationPointsSlave: The integrations points that belong to the slave
      * @return True if there is a common area (the geometries intersect), false otherwise
@@ -233,6 +236,165 @@ public:
         return solution;
     }
     
+    /**
+     * This function computes the moment fitting matrix to redistribute the Gauss Points in the new arbitrary geometry 
+     * @param PointToRotate: The points from the origin geometry
+     * @param IntegrationPointsSlave: The integrations points that belong to the slave
+     * @param SlaveGeometry: The geometry to consider
+     * @return IntegrationPointsSlave: The integrations points that belong to the slave
+     */
+    
+    void MomentFittingIntegrationPoints( 
+        IntegrationPointsType& IntegrationPointsSlave,
+        GeometryNodeType& SlaveGeometry
+        )
+    {        
+        // Initial values
+        const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
+        const unsigned int SlaveGeometrySize = SlaveGeometry.size();
+        
+        QR<double, row_major> QRDecomposition; // QR decomposition object
+        
+        // We calculate the Moment Fitting matrix
+        Matrix A (IntegrationPointsSlaveSize, SlaveGeometrySize);
+        Vector M (IntegrationPointsSlaveSize);
+        
+        for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+        {
+            M[i] = IntegrationPointsSlave[i].Weight();
+            
+            Point<3> GP;
+            GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+            
+            Vector N( SlaveGeometrySize );
+            SlaveGeometry.ShapeFunctionsValues( N, GP );
+            
+            for (unsigned int j = 0; j < SlaveGeometrySize; j++)
+            {                
+                A(i, j) = N[j];
+            }
+        }
+        
+        // Now we apply the QR decomposition
+        Vector w( SlaveGeometrySize );
+        
+        QRDecomposition.compute(IntegrationPointsSlaveSize, SlaveGeometrySize, &A(0, 0));
+        QRDecomposition.solve( &M[0], &w[0] );
+        
+        // Debug
+        KRATOS_WATCH(w); // TODO: Think how to redistribute the weight!!!!!
+        
+//         IntegrationPointsType IntegrationPointsSlaveTest ();
+    }
+    
+//     void MomentFittingIntegrationPoints( 
+//         IntegrationPointsType& IntegrationPointsSlave,
+//         GeometryNodeType& SlaveGeometry
+//         )
+//     {
+//         // Initial values
+//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
+//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
+//         
+//         QR<double, row_major> QRDecomposition; // QR decomposition object
+//         
+//         // We calculate the Moment Fitting matrix
+//         Matrix A (SlaveGeometrySize, IntegrationPointsSlaveSize);
+//         Vector M = ZeroVector(SlaveGeometrySize);
+//         
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {
+//             Point<3> GP;
+//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+//             
+//             Vector N( SlaveGeometrySize );
+//             SlaveGeometry.ShapeFunctionsValues( N, GP );
+//             
+//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
+//             {          
+//                 M[j] += N[j] * IntegrationPointsSlave[i].Weight();
+//                 
+//                 A(j, i) = N[j];
+//             }
+//         }
+//         
+// //         // Debug
+// //         KRATOS_WATCH(A)
+// //         KRATOS_WATCH(M)
+//         
+//         // Now we apply the QR decomposition
+//         Vector w( IntegrationPointsSlaveSize );
+//         
+//         QRDecomposition.compute(SlaveGeometrySize, IntegrationPointsSlaveSize, &A(0, 0));
+//         QRDecomposition.solve( &M[0], &w[0] );
+//         
+// //         // Debug
+// //         KRATOS_WATCH(w)
+//         
+//         // Finally the calculate the weights for each Gauss Point
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {            
+//             IntegrationPointsSlave[i].Weight() = w[i];
+//         }
+//     }
+    
+//     void MomentFittingIntegrationPoints( 
+//         IntegrationPointsType& IntegrationPointsSlave,
+//         GeometryNodeType& SlaveGeometry
+//         )
+//     {
+//         // Initial values
+//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
+//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
+//         
+//         QR<double, row_major> QRDecomposition; // QR decomposition object
+//         
+//         // We calculate the Moment Fitting matrix
+//         Matrix A (IntegrationPointsSlaveSize, SlaveGeometrySize);
+//         Vector M (IntegrationPointsSlaveSize);
+//         
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {
+//             M[i] = IntegrationPointsSlave[i].Weight();
+//             
+//             Point<3> GP;
+//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+//             
+//             Vector N( SlaveGeometrySize );
+//             SlaveGeometry.ShapeFunctionsValues( N, GP );
+//             
+//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
+//             {                
+//                 A(i, j) = N[j];
+//             }
+//         }
+//         
+// //         // Debug
+// //         KRATOS_WATCH(A)
+// //         KRATOS_WATCH(M)
+//         
+//         // Now we apply the QR decomposition
+//         Vector w( SlaveGeometrySize );
+//         
+//         QRDecomposition.compute(IntegrationPointsSlaveSize, SlaveGeometrySize, &A(0, 0));
+//         QRDecomposition.solve( &M[0], &w[0] );
+//         
+// //         // Debug
+// //         KRATOS_WATCH(w)
+//         
+//         // Finally the calculate the weights for each Gauss Point
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {
+//             Point<3> GP;
+//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+//             
+//             Vector N( SlaveGeometrySize );
+//             SlaveGeometry.ShapeFunctionsValues( N, GP );
+//             
+//             IntegrationPointsSlave[i].Weight() = inner_prod(N, w);
+//         }
+//     }
+//     
     /**
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
@@ -427,13 +589,13 @@ public:
     
     bool FasIsInsideQuadrilateral2D(
         Quadrilateral2D4 <Point<3>>& SlaveGeometry,
-        const GeometryType::CoordinatesArrayType& rPoint
+        const GeometryNodeType::CoordinatesArrayType& rPoint
         )
     {
         const double Tolerance = 1.0e-6;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        GeometryType::CoordinatesArrayType rResult;
+        GeometryNodeType::CoordinatesArrayType rResult;
         
         Matrix J;
 
@@ -441,7 +603,7 @@ public:
         
         Vector DeltaXi = ZeroVector( 3 );
         
-        GeometryType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+        GeometryNodeType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
         //Newton iteration:
 
@@ -506,6 +668,37 @@ public:
         //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
         
         return x10 * y20 - y10 * x20;
+    }
+    
+    /**
+     * This functions calculates the determinant of a 3D condition (local dimension 2)
+     * @param geom: The geometry where calculate the jacobian
+     * @param GP: The gauss point
+     * @return The DetJ
+     */
+    
+    double DetJNonSquare(
+        GeometryNodeType& geom,
+        Point<3> GP
+        )
+    {
+        Matrix J;
+        geom.Jacobian(J, GP);
+        const Matrix JTJ = prod( trans(J), J );
+        
+        return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
+    }
+    
+    double DetJNonSquare(
+        GeometryPointType& geom,
+        Point<3> GP
+        )
+    {
+        Matrix J;
+        geom.Jacobian(J, GP);
+        const Matrix JTJ = prod( trans(J), J );
+        
+        return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
     }
     
     /**
@@ -597,9 +790,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
-        GeometryType& SlaveGeometry,
+        GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryType& MasterGeometry,
+        GeometryNodeType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {             
@@ -611,7 +804,7 @@ private:
         
         // Declaring auxiliar values
         PointType projected_gp_global;
-        GeometryType::CoordinatesArrayType projected_gp_local;
+        GeometryNodeType::CoordinatesArrayType projected_gp_local;
         double aux_dist = 0.0;
         
         // Declare the boolean of full integral
@@ -701,7 +894,7 @@ private:
 //             if (total_weight > 0.0)
         {
             // With the proportion of the weigth you recalculate the integration weight. Change the coordinates of the integration to accomodate
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             IntegrationPointsSlave.resize(IntegrationPoints.size());
             for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
             {
@@ -741,9 +934,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
-        GeometryType& SlaveGeometry,
+        GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryType& MasterGeometry,
+        GeometryNodeType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {
@@ -768,7 +961,7 @@ private:
         {
             MasterProjectedPoint[i_node] = ContactUtilities::FastProject(SlaveCenter, MasterGeometry[i_node], SlaveNormal);
             
-            GeometryType::CoordinatesArrayType ProjectedGPLocal;
+            GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
         
             AllInside[i_node] = SlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
         }
@@ -803,7 +996,7 @@ private:
             if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
             {
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+                const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
                 IntegrationPointsSlave.resize(LocalIntegrationSize, false);
@@ -824,12 +1017,13 @@ private:
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                     
                     // We can construct now the integration local triangle
-                    Matrix J;
-                    AllTriangle.Jacobian(J, gp_local);
-                    const Matrix JTJ = prod( trans(J), J );
-                    const double DetJ = std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
-                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
+//                     const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
+                    const double DetJ = DetJNonSquare(AllTriangle, gp_local);
+                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ);
                 }
+                
+                // We correct the weights using the moment fitting 
+                MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
                 
                 return true;
             }
@@ -951,7 +1145,7 @@ private:
                 std::vector<Point<3>::Pointer> PointsArray (3);
                 
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+                const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
@@ -997,6 +1191,7 @@ private:
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                             
                             // We can construct now the integration local triangle
+//                             const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
                             const double DetJ = triangle.DeterminantOfJacobian(gp_local);
                             IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
@@ -1006,6 +1201,9 @@ private:
                 
                 if (IntegrationPointsSlave.size() > 0)
                 {
+                    // We correct the weights using the moment fitting
+                    MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+                    
                     return true;
                 }
                 else
@@ -1030,9 +1228,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
-        GeometryType& SlaveGeometry,
+        GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryType& MasterGeometry,
+        GeometryNodeType& MasterGeometry,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {        
@@ -1048,7 +1246,7 @@ private:
         
         // No we project both nodes from the slave side and the master side
         array_1d<Point<3>, 4> SlaveProjectedPoint;
-        array_1d<Point<3>, 4> MasterProjectedPoint; // TODO: Check the internal points too
+        array_1d<Point<3>, 4> MasterProjectedPoint;
         array_1d<bool, 4> AllInside;
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1074,7 +1272,7 @@ private:
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            GeometryType::CoordinatesArrayType rResult;
+            GeometryNodeType::CoordinatesArrayType rResult;
             AllInside[i_node] = FasIsInsideQuadrilateral2D( DummyQuadrilateral, MasterProjectedPoint[i_node].Coordinates( ) ) ;
         }
         
@@ -1123,7 +1321,7 @@ private:
             std::vector<Point<3>::Pointer> PointsArray (3);
 //             
             // We initialize our auxiliar integration point vector
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
+            const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
             const size_t LocalIntegrationSize = IntegrationPoints.size();
             
 //             IntegrationPointsSlave.resize(2 * LocalIntegrationSize, false);
@@ -1166,7 +1364,6 @@ private:
 //                     RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                     
 //                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-//                     std::cout << LocalArea << " - Area[Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]]" << std::endl;
                     
                     // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                     for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
@@ -1185,13 +1382,11 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can construct now the integration local triangle
+//                         const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
                         const double DetJ = triangle.DeterminantOfJacobian(gp_local); 
+//                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE:  The total weigh of a quadrilateral is 4
 //                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE:  The total weigh of a quadrilateral is 4
-                        
-                        // Debug
-//                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ << "+";// << std::endl;
-//                         std::cout << "Graphics3D[Sphere[{" << gp_global_proj.X() << "," << gp_global_proj.Y() << "," << gp_global_proj.Z()  << "}," << 0.2 * IntegrationPoints[PointNumber].Weight() * DetJ << "]],";// << std::endl;
                     }
                 }
 //                 // Debug
@@ -1223,6 +1418,21 @@ private:
             
             if (IntegrationPointsSlave.size() > 0)
             {
+                // We correct the integration weights using the moment fitting
+                MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+                
+//                 // Debug
+//                 for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
+//                 {
+//                     Point<3> gp_local;
+//                     gp_local.Coordinates() = IntegrationPointsSlave[PointNumber].Coordinates();
+//                     Point<3> gp_global;
+//                     SlaveGeometry.GlobalCoordinates(gp_global, gp_local);
+//                                                 
+// //                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 << "+";// << std::endl;
+//                     std::cout << "Graphics3D[Sphere[{" << gp_global.X() << "," << gp_global.Y() << "," << gp_global.Z()  << "}," << 0.05 * IntegrationPointsSlave[PointNumber].Weight()<< "]],";// << std::endl;
+//                 }
+                
                 return true;
             }
             else
@@ -1421,7 +1631,7 @@ private:
                 std::vector<Point<3>::Pointer> PointsArray (3);
                 
                 // We initialize our auxiliar integration point vector
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
+                const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
@@ -1465,7 +1675,6 @@ private:
 //                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
 //                         std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-//                         std::cout << LocalArea << " - Area[Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]]" << std::endl;
                         
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
@@ -1484,13 +1693,11 @@ private:
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                             
                             // We can construct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
+//                             const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
                             const double DetJ = triangle.DeterminantOfJacobian(gp_local);
+//                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE: The total weight of a quadrilateral is 4
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE: The total weight of a quadrilateral is 4
-                            
-                            // Debug
-//                             std::cout << IntegrationPoints[PointNumber].Weight() * DetJ << "+";// << std::endl;
-//                             std::cout << "Graphics3D[Sphere[{" << gp_global_proj.X() << "," << gp_global_proj.Y() << "," << gp_global_proj.Z()  << "}," << 0.2 * IntegrationPoints[PointNumber].Weight() * DetJ << "]],";// << std::endl;
                         }
                     }
 //                     // Debug
@@ -1523,6 +1730,21 @@ private:
                 
                 if (IntegrationPointsSlave.size() > 0)
                 {
+                    // We correct the integration weights using the moment fitting
+                    MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+                    
+//                     // Debug
+//                     for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
+//                     {
+//                         Point<3> gp_local;
+//                         gp_local.Coordinates() = IntegrationPointsSlave[PointNumber].Coordinates();
+//                         Point<3> gp_global;
+//                         SlaveGeometry.GlobalCoordinates(gp_global, gp_local);
+//                                        
+// //                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 << "+";// << std::endl;
+//                         std::cout << "Graphics3D[Sphere[{" << gp_global.X() << "," << gp_global.Y() << "," << gp_global.Z()  << "}," << 0.05 * IntegrationPointsSlave[PointNumber].Weight()<< "]],";// << std::endl;
+//                     }
+                    
                     return true;
                 }
                 else

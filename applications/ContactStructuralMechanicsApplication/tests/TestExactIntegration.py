@@ -124,7 +124,7 @@ class TestTriangleExactIntegration1(KratosUnittest.TestCase):
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(1)
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 2
         normal[2] = -1.0
@@ -146,9 +146,15 @@ class TestTriangleExactIntegration1(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertAlmostEqual(MatrixSolution[0,0], 1.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/3.0)
-        self.assertAlmostEqual(MatrixSolution[0,2], 0.5)
+        self.assertAlmostEqual(MatrixSolution[0,0], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[0,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,0], 4.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,1], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[1,2], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,0], 1.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,1], 4.0/6.0)
+        self.assertAlmostEqual(MatrixSolution[2,2], 1.0/6.0)
         
 class TestTriangleExactIntegration2(KratosUnittest.TestCase):
     def test_execution(self):
@@ -173,7 +179,7 @@ class TestTriangleExactIntegration2(KratosUnittest.TestCase):
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(1)
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D3N(2)
 
         # Triangle 2
         normal[2] = -1.0
@@ -195,9 +201,15 @@ class TestTriangleExactIntegration2(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertAlmostEqual(MatrixSolution[0,0], 0.5)
-        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/6.0)
-        self.assertAlmostEqual(MatrixSolution[0,2], 0.25)
+        self.assertAlmostEqual(MatrixSolution[0,0], 0.25)
+        self.assertAlmostEqual(MatrixSolution[0,1], 1.0/12.0)
+        self.assertAlmostEqual(MatrixSolution[0,2], 1.0/12.0)
+        self.assertAlmostEqual(MatrixSolution[1,0], 0.75)
+        self.assertAlmostEqual(MatrixSolution[1,1], 1.0/12.0)
+        self.assertAlmostEqual(MatrixSolution[1,2], 1.0/12.0)
+        self.assertAlmostEqual(MatrixSolution[2,0], 0.5)
+        self.assertAlmostEqual(MatrixSolution[2,1], 1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[2,2], 1.0/12.0)
 
 # QUADRILATERAL
 class TestQuadrilateralExactIntegration1(KratosUnittest.TestCase):
@@ -225,7 +237,7 @@ class TestQuadrilateralExactIntegration1(KratosUnittest.TestCase):
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
 
         # Creating the utility:
-        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(1)
+        ExactIntegration = ContactStructuralMechanicsApplication.ExactMortarIntegrationUtility3D4N(2)
 
         # Quadrilateral 2
         normal[2] = -1.0
@@ -249,12 +261,24 @@ class TestQuadrilateralExactIntegration1(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertAlmostEqual(MatrixSolution[0,0],  2.0/6.0)
-        self.assertAlmostEqual(MatrixSolution[0,1], -2.0/6.0)
-        self.assertAlmostEqual(MatrixSolution[0,2],  2.0/1.0)
-        self.assertAlmostEqual(MatrixSolution[1,0], -2.0/6.0)
-        self.assertAlmostEqual(MatrixSolution[1,1],  2.0/6.0)
-        self.assertAlmostEqual(MatrixSolution[1,2],  2.0/1.0)
+        self.assertAlmostEqual(MatrixSolution[0,0], -1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[0,1], -2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[0,2],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[1,0],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[1,1], -2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[1,2],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[2,0],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[2,1],  1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[2,2],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[3,0], -2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[3,1], -1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[3,2],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[4,0],  1.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[4,1],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[4,2],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[5,0], -2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[5,1],  2.0/3.0)
+        self.assertAlmostEqual(MatrixSolution[5,2],  2.0/3.0)
         
 class TestQuadrilateralExactIntegration2(KratosUnittest.TestCase):
     def test_execution(self):
