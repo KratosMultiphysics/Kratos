@@ -31,7 +31,7 @@ namespace Kratos {
 	namespace Testing {
 
 
-		KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingRotatingBlock3x3, KratosCoreFastSuite)
 		{
 			Point<3>::Pointer p_point1(new Point<3>(-10.00, -10.00, -10.00));
 			Point<3>::Pointer p_point2(new Point<3>(10.00, -10.00, -10.00));
