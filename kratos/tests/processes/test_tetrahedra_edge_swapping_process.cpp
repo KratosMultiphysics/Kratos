@@ -89,9 +89,6 @@ namespace Kratos {
 					 inverted_element_counter++;
 			 }
 			 
-			 KRATOS_WATCH(inverted_element_counter);
-
-
 			 constexpr double pi = 3.141592653589793238462643383279;
 			 for (int i = 10; i < 180; i+=10) {
 				 const double alpha = 10.00 * pi / 180.00;
@@ -108,7 +105,7 @@ namespace Kratos {
 
 				 TetrahedraMeshEdgeSwappingProcess swapping_process(model_part);
 				 swapping_process.Execute();
-				 KRATOS_WATCH(swapping_process);
+				 //KRATOS_WATCH(swapping_process);
 
 				 int inverted_element_counter = 0;
 				 for (auto& element : model_part.Elements()) {
@@ -116,7 +113,7 @@ namespace Kratos {
 						 inverted_element_counter++;
 				 }
 
-				 KRATOS_WATCH(inverted_element_counter);
+				 KRATOS_CHECK_EQUAL(inverted_element_counter,0);
 				 gid_io.InitializeMesh(i);
 				 gid_io.WriteMesh(model_part.GetMesh());
 				 gid_io.FinalizeMesh();
@@ -310,13 +307,6 @@ namespace Kratos {
 			model_part.CreateNewElement("Element3D4N", 6, { 101,100,7,6 }, p_properties);
 			model_part.CreateNewElement("Element3D4N", 7, { 101,100,1,7 }, p_properties);
 
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(7).GetGeometry().Volume());
 			FindNodalNeighboursProcess(model_part).Execute();
 
 			GidIO<> gid_io("c:/temp/coarsening/edge_swapping_7to10_test", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
@@ -325,16 +315,6 @@ namespace Kratos {
 			gid_io.FinalizeMesh();
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(7).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(8).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(9).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(10).GetGeometry().Volume());
 			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 10);
 			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 114.);
 			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 218.);
