@@ -272,22 +272,14 @@ namespace Kratos {
 			TetrahedraMeshEdgeSwappingProcess(model_part).Execute();
 
 			KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), 8);
-			KRATOS_WATCH(model_part.GetElement(1).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(2).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(3).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(4).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(5).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(6).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(7).GetGeometry().Volume());
-			KRATOS_WATCH(model_part.GetElement(8).GetGeometry().Volume());
-			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 199.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 133.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 103.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 29.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 159.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 106.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(7).GetGeometry().Volume(), 18.);
-			KRATOS_CHECK_GREATER(model_part.GetElement(8).GetGeometry().Volume(), 7.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(1).GetGeometry().Volume(), 139.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(2).GetGeometry().Volume(), 193.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(3).GetGeometry().Volume(), 126.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(4).GetGeometry().Volume(), 73.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(5).GetGeometry().Volume(), 77.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(6).GetGeometry().Volume(), 81.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(7).GetGeometry().Volume(), 35.);
+			KRATOS_CHECK_GREATER(model_part.GetElement(8).GetGeometry().Volume(), 31.);
 
 			gid_io.InitializeMesh(1.00);
 			gid_io.WriteMesh(model_part.GetMesh());
