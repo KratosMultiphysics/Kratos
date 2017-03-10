@@ -18,55 +18,25 @@ class AdjointVMSMonolithicSolver:
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "adjoint_vmsmonolithic_solver",
-            "scheme_type": "bossak_drag",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+            "solver_type" : "adjoint_vmsmonolithic_solver",
+            "scheme_settings" : {
+                "scheme_type" : "bossak"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
-            "oss_switch": 0,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "time_order": 2,
-            "compute_reactions": false,
-            "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "bicgstab",
-                "velocity_block_preconditioner" : {
-                    "tolerance" : 1e-3,
-                    "precondioner_type" : "spai0"
-                },
-                "pressure_block_preconditioner" : {
-                    "tolerance" : 1e-2,
-                    "precondioner_type" : "spai0"
-                },
-                "tolerance" : 1e-6,
-                "krylov_type": "bicgstab",
-                "gmres_krylov_space_dimension": 50,
-                "max_iteration": 50,
-                "verbosity" : 0,
-                "scaling": true,
-                "coarse_enough" : 5000
+            "objective_settings" : {
+                "objective_type" : "drag"
+            },
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "unknown_name"
+            },
+            "linear_solver_settings" : {
+                "solver_type" : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "no_skin_parts":[""],
-            "alpha_bossak":-0.3,
-            "move_mesh_strategy": 0,
-            "periodic": "periodic",
-            "regularization_coef": 1000,
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "skin_parts"  : [""],
+            "dynamic_tau" : 0.0,
+            "oss_switch"  : 0,
+            "echo_level"  : 0
         }""")
 
         # overwrite the default settings with user-provided parameters
@@ -114,14 +84,14 @@ class AdjointVMSMonolithicSolver:
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement3D",
+                    "element_name": "VMSAdjointElement3D",
                     "condition_name": "Condition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name":"VMSAdjointElement2D",
+                    "element_name": "VMSAdjointElement2D",
                     "condition_name": "Condition2D2N"
                     }
                     """)
@@ -168,10 +138,23 @@ class AdjointVMSMonolithicSolver:
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        if self.settings["scheme_type"].GetString() == "bossak_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
-        elif self.settings["scheme_type"].GetString() == "steady_drag":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyDragScheme()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if self.settings["objective_settings"]["objective_type"].GetString() == "drag":
+            if (domain_size == 2):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction2D(self.settings["objective_settings"])
+            elif (domain_size == 3):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction3D(self.settings["objective_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
+
+        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
+            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
+            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+        else:
+            raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 

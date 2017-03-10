@@ -312,8 +312,8 @@ public:
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
 	  if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){
-	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
-	  }else{
+	      UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
+	  }else {
 	    (i)->FastGetSolutionStepValue(PRESSURE) = 0.0; 
 	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
 	      array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);

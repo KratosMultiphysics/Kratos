@@ -119,6 +119,12 @@ class ExplicitStrategy:
 
         self.rolling_friction_option = self.Var_Translator(Param.RollingFrictionOption)
 
+        if not (hasattr(Param, "GlobalDamping")):
+            self.global_damping = 0.0
+            print("\nGlobal Damping parameter not found! No damping will be applied...\n")
+        else:
+            self.global_damping = Param.GlobalDamping
+
         # PRINTING VARIABLES
         self.print_export_id = self.Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = 0
@@ -179,6 +185,7 @@ class ExplicitStrategy:
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
+        self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
         self.do_search_neighbours = True # Hard-coded until needed as an option

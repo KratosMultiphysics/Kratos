@@ -57,21 +57,13 @@ public:
 
     // Name Operations
 
-    virtual Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-
-    virtual void Initialize();
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );		
-    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
-    
-    virtual void AddExplicitContribution(const VectorType& rRHS,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double,3> >& rDestinationVariable,
-                                 const ProcessInfo& r_process_info);
+    virtual void Initialize() override;
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;		
+    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
+    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;    
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& r_process_info) override;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     
@@ -107,12 +99,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }

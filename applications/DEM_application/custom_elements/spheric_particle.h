@@ -47,7 +47,7 @@ SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 /// Destructor.
 virtual ~SphericParticle();
@@ -62,21 +62,21 @@ virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt,
 virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
 virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
 virtual void InitializeForceComputation(ProcessInfo& r_process_info);
-virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info);
-virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
-virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
-virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
+virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override;
+virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
+virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
+virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
 virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
-virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
-virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
-virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
-virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info);
+virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
+virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
+virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
+virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
@@ -168,7 +168,7 @@ int    SlowGetParticleMaterial();
 double GetBoundDeltaDispSq();
 
 /// Turn back information as a string.
-virtual std::string Info() const
+virtual std::string Info() const override
 {
 std::stringstream buffer;
 buffer << "SphericParticle" ;
@@ -176,10 +176,10 @@ return buffer.str();
 }
 
 /// Print information about this object.
-virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericParticle";}
+virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SphericParticle";}
 
 /// Print object's data.
-virtual void PrintData(std::ostream& rOStream) const {}
+virtual void PrintData(std::ostream& rOStream) const override {}
 
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
@@ -222,7 +222,7 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
                                                 double mTimeStep,
                                                 int search_control) final;
 
-virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
+virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
@@ -334,6 +334,8 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
+virtual void ApplyGlobalDampingToContactForces();
+
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
@@ -343,12 +345,13 @@ PropertiesProxy* mFastProperties;
 int mClusterId;
 double mBoundDeltaDispSq;
 DEMIntegrationScheme* mpIntegrationScheme;
+double mGlobalDamping;
 
 private:
 
 friend class Serializer;
 
-virtual void save(Serializer& rSerializer) const
+virtual void save(Serializer& rSerializer) const override
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.save("mRadius",mRadius);
@@ -363,7 +366,7 @@ virtual void save(Serializer& rSerializer) const
     }
 }
 
-virtual void load(Serializer& rSerializer)
+virtual void load(Serializer& rSerializer) override
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
     rSerializer.load("mRadius",mRadius);

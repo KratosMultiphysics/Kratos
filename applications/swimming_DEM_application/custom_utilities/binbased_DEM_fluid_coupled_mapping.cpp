@@ -59,7 +59,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
             // looking for the fluid element in which the DEM node falls
             bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
-
             // interpolating the variables
 
             if (is_found){

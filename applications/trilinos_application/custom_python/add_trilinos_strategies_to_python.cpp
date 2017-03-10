@@ -258,7 +258,6 @@ void AddStrategies()
     .def("SetEchoLevel", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
     ;
 
-    //********************************************************************************************
 }
 
 } // namespace Python.
