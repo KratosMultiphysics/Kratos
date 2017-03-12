@@ -244,11 +244,55 @@ public:
      * @return IntegrationPointsSlave: The integrations points that belong to the slave
      */
     
+//     void MomentFittingIntegrationPoints( 
+//         IntegrationPointsType& IntegrationPointsSlave,
+//         GeometryNodeType& SlaveGeometry
+//         )
+//     {
+//         // Initial values
+//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
+//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
+//         
+//         QR<double, row_major> QRDecomposition; // QR decomposition object
+//         
+//         // We calculate the Moment Fitting matrix
+//         Matrix A (SlaveGeometrySize, IntegrationPointsSlaveSize);
+//         Vector M = ZeroVector(SlaveGeometrySize);
+//         
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {
+//             Point<3> GP;
+//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+//             
+//             Vector N( SlaveGeometrySize );
+//             SlaveGeometry.ShapeFunctionsValues( N, GP );
+//             
+//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
+//             {          
+//                 M[j] += N[j] * IntegrationPointsSlave[i].Weight();
+//                 
+//                 A(j, i) = N[j];
+//             }
+//         }
+//         
+//         // Now we apply the QR decomposition
+//         Vector w( IntegrationPointsSlaveSize );
+//         
+//         QRDecomposition.compute(SlaveGeometrySize, IntegrationPointsSlaveSize, &A(0, 0));
+//         QRDecomposition.solve( &M[0], &w[0] );
+//         
+//         // Finally the calculate the weights for each Gauss Point
+//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+//         {            
+//             IntegrationPointsSlave[i].Weight() = w[i];
+//         }
+//     }
+    
     void MomentFittingIntegrationPoints( 
         IntegrationPointsType& IntegrationPointsSlave,
         GeometryNodeType& SlaveGeometry
         )
-    {        
+    {
         // Initial values
         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
@@ -281,120 +325,19 @@ public:
         QRDecomposition.compute(IntegrationPointsSlaveSize, SlaveGeometrySize, &A(0, 0));
         QRDecomposition.solve( &M[0], &w[0] );
         
-        // Debug
-        KRATOS_WATCH(w); // TODO: Think how to redistribute the weight!!!!!
-        
-//         IntegrationPointsType IntegrationPointsSlaveTest ();
+        // Finally the calculate the weights for each Gauss Point
+        for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
+        {
+            Point<3> GP;
+            GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
+            
+            Vector N( SlaveGeometrySize );
+            SlaveGeometry.ShapeFunctionsValues( N, GP );
+            
+            IntegrationPointsSlave[i].Weight() = inner_prod(N, w);
+        }
     }
     
-//     void MomentFittingIntegrationPoints( 
-//         IntegrationPointsType& IntegrationPointsSlave,
-//         GeometryNodeType& SlaveGeometry
-//         )
-//     {
-//         // Initial values
-//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
-//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
-//         
-//         QR<double, row_major> QRDecomposition; // QR decomposition object
-//         
-//         // We calculate the Moment Fitting matrix
-//         Matrix A (SlaveGeometrySize, IntegrationPointsSlaveSize);
-//         Vector M = ZeroVector(SlaveGeometrySize);
-//         
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {
-//             Point<3> GP;
-//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
-//             
-//             Vector N( SlaveGeometrySize );
-//             SlaveGeometry.ShapeFunctionsValues( N, GP );
-//             
-//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
-//             {          
-//                 M[j] += N[j] * IntegrationPointsSlave[i].Weight();
-//                 
-//                 A(j, i) = N[j];
-//             }
-//         }
-//         
-// //         // Debug
-// //         KRATOS_WATCH(A)
-// //         KRATOS_WATCH(M)
-//         
-//         // Now we apply the QR decomposition
-//         Vector w( IntegrationPointsSlaveSize );
-//         
-//         QRDecomposition.compute(SlaveGeometrySize, IntegrationPointsSlaveSize, &A(0, 0));
-//         QRDecomposition.solve( &M[0], &w[0] );
-//         
-// //         // Debug
-// //         KRATOS_WATCH(w)
-//         
-//         // Finally the calculate the weights for each Gauss Point
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {            
-//             IntegrationPointsSlave[i].Weight() = w[i];
-//         }
-//     }
-    
-//     void MomentFittingIntegrationPoints( 
-//         IntegrationPointsType& IntegrationPointsSlave,
-//         GeometryNodeType& SlaveGeometry
-//         )
-//     {
-//         // Initial values
-//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
-//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
-//         
-//         QR<double, row_major> QRDecomposition; // QR decomposition object
-//         
-//         // We calculate the Moment Fitting matrix
-//         Matrix A (IntegrationPointsSlaveSize, SlaveGeometrySize);
-//         Vector M (IntegrationPointsSlaveSize);
-//         
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {
-//             M[i] = IntegrationPointsSlave[i].Weight();
-//             
-//             Point<3> GP;
-//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
-//             
-//             Vector N( SlaveGeometrySize );
-//             SlaveGeometry.ShapeFunctionsValues( N, GP );
-//             
-//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
-//             {                
-//                 A(i, j) = N[j];
-//             }
-//         }
-//         
-// //         // Debug
-// //         KRATOS_WATCH(A)
-// //         KRATOS_WATCH(M)
-//         
-//         // Now we apply the QR decomposition
-//         Vector w( SlaveGeometrySize );
-//         
-//         QRDecomposition.compute(IntegrationPointsSlaveSize, SlaveGeometrySize, &A(0, 0));
-//         QRDecomposition.solve( &M[0], &w[0] );
-//         
-// //         // Debug
-// //         KRATOS_WATCH(w)
-//         
-//         // Finally the calculate the weights for each Gauss Point
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {
-//             Point<3> GP;
-//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
-//             
-//             Vector N( SlaveGeometrySize );
-//             SlaveGeometry.ShapeFunctionsValues( N, GP );
-//             
-//             IntegrationPointsSlave[i].Weight() = inner_prod(N, w);
-//         }
-//     }
-//     
     /**
      * This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate: The points from the origin geometry
@@ -1017,13 +960,13 @@ private:
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                     
                     // We can construct now the integration local triangle
-//                     const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
-                    const double DetJ = DetJNonSquare(AllTriangle, gp_local);
-                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ);
+                    const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                    const double DetJ2 = DetJNonSquare(AllTriangle, gp_local);
+                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1);
                 }
                 
-                // We correct the weights using the moment fitting 
-                MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+//                 // We correct the weights using the moment fitting 
+//                 MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
                 
                 return true;
             }
@@ -1191,9 +1134,9 @@ private:
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                             
                             // We can construct now the integration local triangle
-//                             const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
-                            const double DetJ = triangle.DeterminantOfJacobian(gp_local);
-                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
+                            const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                            const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
+                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 ));
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
                         }
                     }
@@ -1201,8 +1144,8 @@ private:
                 
                 if (IntegrationPointsSlave.size() > 0)
                 {
-                    // We correct the weights using the moment fitting
-                    MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+//                     // We correct the weights using the moment fitting
+//                     MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
                     
                     return true;
                 }
@@ -1382,10 +1325,10 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can construct now the integration local triangle
-//                         const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
-                        const double DetJ = triangle.DeterminantOfJacobian(gp_local); 
-//                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
-                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE:  The total weigh of a quadrilateral is 4
+                        const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                        const double DetJ2 = triangle.DeterminantOfJacobian(gp_local); 
+                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
+//                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE:  The total weigh of a quadrilateral is 4
 //                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE:  The total weigh of a quadrilateral is 4
                     }
                 }
@@ -1418,8 +1361,8 @@ private:
             
             if (IntegrationPointsSlave.size() > 0)
             {
-                // We correct the integration weights using the moment fitting
-                MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+//                 // We correct the integration weights using the moment fitting
+//                 MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
                 
 //                 // Debug
 //                 for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
@@ -1693,10 +1636,10 @@ private:
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                             
                             // We can construct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
-//                             const double DetJ = DetJNonSquare(SlaveGeometry, gp_local);
-                            const double DetJ = triangle.DeterminantOfJacobian(gp_local);
-//                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
-                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE: The total weight of a quadrilateral is 4
+                            const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                            const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
+                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
+//                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE: The total weight of a quadrilateral is 4
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE: The total weight of a quadrilateral is 4
                         }
                     }
@@ -1730,8 +1673,8 @@ private:
                 
                 if (IntegrationPointsSlave.size() > 0)
                 {
-                    // We correct the integration weights using the moment fitting
-                    MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
+//                     // We correct the integration weights using the moment fitting
+//                     MomentFittingIntegrationPoints(IntegrationPointsSlave, SlaveGeometry);
                     
 //                     // Debug
 //                     for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
