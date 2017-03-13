@@ -27,11 +27,12 @@
 namespace Kratos
 {
 //TODO: you should isolate this from python. In kratos the "Parameters" class gives you access to the json object.
-  std::vector<BrepModel*> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
+  //std::vector<BrepModel> 
+  std::vector<BrepModel> BrepModelGeometryReader::ReadGeometry(ModelPart& model_part)
   {
     std::cout << "\n> Start reading CAD geometry..." << std::endl;
 
-    std::vector<BrepModel*> r_brep_model_vector;
+    std::vector<BrepModel> r_brep_model_vector;
 
     for (int brep_i = 0; brep_i < m_cad_geometry_in_json["breps"].size(); brep_i++)
     {
@@ -66,25 +67,29 @@ namespace Kratos
         // Variables needed later
         unsigned int length_u_vector = brep_json["faces"][i]["surface"]["knot_vectors"][0].size();
         unsigned int length_v_vector = brep_json["faces"][i]["surface"]["knot_vectors"][1].size();
-        Vector knot_vector_u = ZeroVector(length_u_vector);
-        Vector knot_vector_v = ZeroVector(length_v_vector);
+        Vector knot_vector_u = ZeroVector(length_u_vector+2);
+        Vector knot_vector_v = ZeroVector(length_v_vector+2);
         unsigned int p;
         unsigned int q;
         IntVector control_points_ids;
 
         // read and store knot_vector_u
+        knot_vector_u(0) = brep_json["faces"][i]["surface"]["knot_vectors"][0][0].GetDouble();
         for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
         {
-          knot_vector_u(u_idx) = brep_json["faces"][i]["surface"]["knot_vectors"][0][u_idx].GetDouble();
+          knot_vector_u(u_idx+1) = brep_json["faces"][i]["surface"]["knot_vectors"][0][u_idx].GetDouble();
           //knot_vector_u.insert_element(-1, knot);
         }
+        knot_vector_u[length_u_vector+1] = brep_json["faces"][i]["surface"]["knot_vectors"][0][length_u_vector-1].GetDouble();
 
         // read and store knot_vector_v
+        knot_vector_v(0) = brep_json["faces"][i]["surface"]["knot_vectors"][1][0].GetDouble();
         for (int v_idx = 0; v_idx < length_v_vector; v_idx++)
         {
-          knot_vector_v(v_idx) = brep_json["faces"][i]["surface"]["knot_vectors"][1][v_idx].GetDouble();
+          knot_vector_v(v_idx+1) = brep_json["faces"][i]["surface"]["knot_vectors"][1][v_idx].GetDouble();
           //knot_vector_v.insert_element(-1, knot);
         }
+        knot_vector_v[length_v_vector + 1] = brep_json["faces"][i]["surface"]["knot_vectors"][1][length_v_vector - 1].GetDouble();
 
         // read and store polynamial degree p and q
         p = brep_json["faces"][i]["surface"]["degrees"][0].GetInt();
@@ -116,8 +121,8 @@ namespace Kratos
         // 2. step: boundary loops
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        TrimmingLoopVector trimming_loop;
-        TrimmingCurveVector trimming_curves;
+        TrimmingLoopVector trimming_loops;
+        //TrimmingCurveVector trimming_curves;
 
         // For better reading
         Parameters boundary_dict(brep_json["faces"][i]["boundary_loops"]);
@@ -125,28 +130,30 @@ namespace Kratos
         // Loop over all boundary loops
         for (int loop_idx = 0; loop_idx < boundary_dict.size(); loop_idx++)
         {
-          IntVector loop;
+          TrimmingCurveVector loop_curves;
 
           // Loop over all curves
           for (int edge_idx = 0; edge_idx < boundary_dict[loop_idx]["trimming_curves"].size(); edge_idx++)
           {
             unsigned int curve_index = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["trim_index"].GetInt();
-            loop.push_back(curve_index);
+            //loop.push_back(curve_index);
 
             bool curve_direction = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["curve_direction"].GetBool();
             // Variables needed later
             unsigned int length_u_vector = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"].size();
-            Vector boundary_knot_vector_u = ZeroVector(length_u_vector);
+            Vector boundary_knot_vector_u = ZeroVector(length_u_vector+2);
             unsigned int boundary_p;
             std::vector<array_1d<double, 4>> boundary_control_points;
             Vector active_range = ZeroVector(2);
-
+            std::cout << "Hier" << std::endl;
             // read and store knot_vector_u
+            boundary_knot_vector_u(0) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][0].GetDouble();
             for (int u_idx = 0; u_idx < length_u_vector; u_idx++)
             {
-              boundary_knot_vector_u(u_idx) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][u_idx].GetDouble();
+              boundary_knot_vector_u(u_idx+1) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][u_idx].GetDouble();
               //boundary_knot_vector_u.insert_element(-1, knot);
             }
+            boundary_knot_vector_u[length_u_vector + 1] = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["u_vec"][length_u_vector - 1].GetDouble();
 
             // read and store polynamial degree p and q
             boundary_p = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["degrees"].GetInt();
@@ -174,9 +181,14 @@ namespace Kratos
 
             // Create and store edge
             TrimmingCurve new_boundary_curve(curve_index, curve_direction, boundary_knot_vector_u, boundary_p, boundary_control_points, active_range);
-            trimming_curves.push_back(new_boundary_curve);
-          }
 
+            loop_curves.push_back(new_boundary_curve);
+          }
+          bool is_outer_loop = true;
+          if (boundary_dict[loop_idx]["loop_type"].GetString() == "inner")
+            is_outer_loop = false;
+          BoundaryLoop loop(loop_curves, is_outer_loop);
+          trimming_loops.push_back(loop);
           // Read loop type
           //std::string loop_type = extractString(boundary_dict[loop_idx]["loop_type"]);
           //std::string Inner("Inner");
@@ -185,11 +197,11 @@ namespace Kratos
           //  is_inner_loop = true;
 
           // Create and store boundary loop
-          trimming_loop.push_back(loop);
+          //trimming_loop.push_back(loop);
         }
 
         // create face
-        Face face(face_id, trimming_curves, trimming_loop, knot_vector_u, knot_vector_v, p, q, control_points_ids);
+        Face face(face_id, trimming_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids);
         faces_vector.push_back(face);
       }
 
@@ -243,11 +255,16 @@ namespace Kratos
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // 3. Step: Create BrepModel
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      auto brep = new BrepModel(brep_brep_id, faces_vector, edges_vector);
+      
+      std::cout << "faces_vector: " << faces_vector.size() << std::endl;
+      std::cout << "edges_vector: " << edges_vector.size() << std::endl;
+      BrepModel brep(brep_brep_id, faces_vector, edges_vector);
 
+      std::cout << "erstellen 2" << std::endl;
 
       
-      r_brep_model_vector.push_back(brep);
+      r_brep_model_vector.push_back(brep);// [brep_i] = &brep;
+      std::cout << "erstellen 3" << std::endl;
     }
     std::cout << "\n> Finished reading CAD geometry..." << std::endl;
     return r_brep_model_vector;

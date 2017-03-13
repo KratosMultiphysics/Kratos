@@ -1,5 +1,6 @@
-#if !defined(KRATOS_BREP_MODEL_H_INCLUDED )
-#define  KRATOS_BREP_MODEL_H_INCLUDED
+#if !defined(KRATOS_BOUNDARY_LOOP_H_INCLUDED )
+#define  KRATOS_BOUNDARY_LOOP_H_INCLUDED
+
 
 
 // ------------------------------------------------------------------------------
@@ -10,15 +11,12 @@
 #include <algorithm>
 #include <cmath>
 #include <math.h>
-#include <vector>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "Face.h"
-#include "Edge.h"
+#include "TrimmingCurve.h"
 
-// ==============================================================================
 
 namespace Kratos
 {
@@ -40,56 +38,56 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class BrepModel : public IndexedObject, public Flags
+  class BoundaryLoop
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<TrimmingCurve> TrimmingCurveVector;
     
-    /// Pointer definition of KratosNurbsTestcaseApplication
-    KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
+    /// Pointer definition of KratosNurbsBrepApplication
+    KRATOS_CLASS_POINTER_DEFINITION(BoundaryLoop);
 
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    FacesVector& GetFaceVector();
-    EdgesVector& GetEdgeVector();
 
+    //TrimmingCurveVector& GetTrimmingCurves();
+    bool& IsOuterLoop();
+    std::vector<array_1d<double, 2>> GetBoundaryPolygon();
 
-    //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
-    BrepModel(unsigned int& brep_id, 
-      FacesVector& faces, 
-      EdgesVector& edges);
+    BoundaryLoop(TrimmingCurveVector& trimming_curves, bool is_outer_loop);
 
     /// Destructor.
-    virtual ~BrepModel();
+    virtual ~BoundaryLoop();
 
     /// Copy constructor.
-    //BrepModel(BrepModel const& rOther);
+    //BoundaryLoop(BoundaryLoop const& rOther);
 
     /// Assignment operator.
-    //BrepModel& operator=(BrepModel const& rOther);
+    //BoundaryLoop& operator=(BoundaryLoop const& rOther);
     ///@} 
   protected:
 
   private:
-
-    ///@name Private methods
-    ///@{ 
-
-    ///@} 
     ///@name Member Variables
     ///@{ 
-    FacesVector m_faces;
-    EdgesVector m_edges;
+
+    TrimmingCurveVector m_trimming_curves;
+    bool m_is_outer_loop;
+
+  
+    ///@name Un accessible methods 
+    ///@{ 
+
+
+
     ///@}    
 
-  }; // Class BrepModel 
+  }; // Class BoundaryLoop 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BREP_MODEL_H_INCLUDED  defined
+#endif // KRATOS_BOUNDARY_LOOP_H_INCLUDED  defined
