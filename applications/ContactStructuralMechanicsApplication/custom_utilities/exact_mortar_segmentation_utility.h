@@ -244,50 +244,6 @@ public:
      * @return IntegrationPointsSlave: The integrations points that belong to the slave
      */
     
-//     void MomentFittingIntegrationPoints( 
-//         IntegrationPointsType& IntegrationPointsSlave,
-//         GeometryNodeType& SlaveGeometry
-//         )
-//     {
-//         // Initial values
-//         const unsigned int IntegrationPointsSlaveSize = IntegrationPointsSlave.size();
-//         const unsigned int SlaveGeometrySize = SlaveGeometry.size();
-//         
-//         QR<double, row_major> QRDecomposition; // QR decomposition object
-//         
-//         // We calculate the Moment Fitting matrix
-//         Matrix A (SlaveGeometrySize, IntegrationPointsSlaveSize);
-//         Vector M = ZeroVector(SlaveGeometrySize);
-//         
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {
-//             Point<3> GP;
-//             GP.Coordinates() = IntegrationPointsSlave[i].Coordinates();
-//             
-//             Vector N( SlaveGeometrySize );
-//             SlaveGeometry.ShapeFunctionsValues( N, GP );
-//             
-//             for (unsigned int j = 0; j < SlaveGeometrySize; j++)
-//             {          
-//                 M[j] += N[j] * IntegrationPointsSlave[i].Weight();
-//                 
-//                 A(j, i) = N[j];
-//             }
-//         }
-//         
-//         // Now we apply the QR decomposition
-//         Vector w( IntegrationPointsSlaveSize );
-//         
-//         QRDecomposition.compute(SlaveGeometrySize, IntegrationPointsSlaveSize, &A(0, 0));
-//         QRDecomposition.solve( &M[0], &w[0] );
-//         
-//         // Finally the calculate the weights for each Gauss Point
-//         for (unsigned int i = 0; i < IntegrationPointsSlaveSize; i++)
-//         {            
-//             IntegrationPointsSlave[i].Weight() = w[i];
-//         }
-//     }
-    
     void MomentFittingIntegrationPoints( 
         IntegrationPointsType& IntegrationPointsSlave,
         GeometryNodeType& SlaveGeometry
@@ -474,12 +430,6 @@ public:
         
         const double xi  = inner_prod(axis_1, local_edge);
         const double eta = inner_prod(axis_2, local_edge);
-        
-//         // Debug
-//         KRATOS_WATCH(local_edge);
-//         KRATOS_WATCH(axis_1);
-//         KRATOS_WATCH(axis_2);
-//         std::cout << std::atan2(eta, xi) << " " << xi << " "<< eta << std::endl;
         
         return (std::atan2(eta, xi));
     }
@@ -1137,7 +1087,7 @@ private:
                             const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
                             const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
                             IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 ));
-//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 );
                         }
                     }
                 }
@@ -1328,35 +1278,9 @@ private:
                         const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
                         const double DetJ2 = triangle.DeterminantOfJacobian(gp_local); 
                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
-//                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE:  The total weigh of a quadrilateral is 4
-//                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE:  The total weigh of a quadrilateral is 4
+//                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1  );
                     }
                 }
-//                 // Debug
-//                 else
-//                 {
-//                     std::cout << std::endl;
-//                     KRATOS_WATCH(LocalArea);
-//                     Point<3> aux1;
-//                     aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
-//                     RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     
-//                     KRATOS_WATCH(aux1);
-//                     
-//                     Point<3> aux2;
-//                     aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
-//                     RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     
-//                     KRATOS_WATCH(aux2);
-//                     
-//                     Point<3> aux3;
-//                     aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
-//                     RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     
-//                     KRATOS_WATCH(aux3);
-//                     
-//                     KRATOS_ERROR;
-//                 }
             }
             
             if (IntegrationPointsSlave.size() > 0)
@@ -1418,45 +1342,8 @@ private:
                         MasterProjectedPoint[jp_edge]
                         );
                     
-//                     // Debug
-//                     std::cout << std::endl;
-//                     Point<3> aux;
-//                     aux.Coordinates() = SlaveProjectedPoint[i_edge].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     KRATOS_WATCH(aux);
-//                     aux.Coordinates() = SlaveProjectedPoint[ip_edge].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     KRATOS_WATCH(aux);
-//                     aux.Coordinates() = MasterProjectedPoint[j_edge].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     KRATOS_WATCH(aux);
-//                     aux.Coordinates() = MasterProjectedPoint[jp_edge].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                     KRATOS_WATCH(aux);
-//                     std::cout << std::endl;
-                    
                     if (intersected == true)
                     {
-//                         // Debug
-//                         std::cout << "Intersected" << std::endl;
-//                         std::cout << std::endl;
-//                         Point<3> aux;
-//                         aux.Coordinates() = IntersectedPoint.Coordinates();
-//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         KRATOS_WATCH(aux);
-//                         aux.Coordinates() = SlaveProjectedPoint[i_edge].Coordinates();
-//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         KRATOS_WATCH(aux);
-//                         aux.Coordinates() = SlaveProjectedPoint[ip_edge].Coordinates();
-//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         KRATOS_WATCH(aux);
-//                         aux.Coordinates() = MasterProjectedPoint[j_edge].Coordinates();
-//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         KRATOS_WATCH(aux);
-//                         aux.Coordinates() = MasterProjectedPoint[jp_edge].Coordinates();
-//                         RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         KRATOS_WATCH(aux);
-                        
                         bool AddPoint = true;
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
@@ -1475,9 +1362,6 @@ private:
                     }
                 }
             }
-            
-//             // Debug
-//             KRATOS_ERROR;
             
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
@@ -1501,50 +1385,8 @@ private:
                 }
             }
             
-//             // Debug 
-// //             KRATOS_WATCH(PointList.size());
-//             for (unsigned int i_list = 0; i_list < PointList.size(); i_list++)
-//             {
-// //                 KRATOS_WATCH(PointList[i_list]);
-//                 Point<3> aux;
-//                 aux.Coordinates() = PointList[i_list].Coordinates();
-//                 RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                 std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z() << std::endl;
-//             }
-//             std::cout << std::endl;
-
             // We compose the triangles
             const unsigned int ListSize = PointList.size();
-            
-//             // Debug
-//             if (ListSize > 0 && ListSize < 3)
-//             {
-//                 for (unsigned int i = 0; i < ListSize; i++)
-//                 {
-//                     Point<3> aux;
-//                     aux.Coordinates() = PointList[i].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);            
-//                     std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
-//                 }
-//                 std::cout << std::endl;
-//                 for (unsigned int i_node = 0; i_node < 4; i_node++)
-//                 {
-//                     Point<3> aux;
-//                     aux.Coordinates() = SlaveProjectedPoint[i_node].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);   
-//                     
-//                     std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
-//                 }
-//                 std::cout << std::endl;
-//                 for (unsigned int i_node = 0; i_node < 4; i_node++)
-//                 {
-//                     Point<3> aux;
-//                     aux.Coordinates() = MasterProjectedPoint[i_node].Coordinates();
-//                     RotatePoint(aux, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);   
-//                     
-//                     std::cout << aux.X() << "\t" << aux.Y() << "\t" << aux.Z()  << std::endl;
-//                 }
-//             }
             
             if (ListSize > 2) // Technically the minimum is three, just in case I consider 2
             {
@@ -1639,36 +1481,9 @@ private:
                             const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
                             const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
-//                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); // NOTE: The total weight of a quadrilateral is 4
-//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ ); // NOTE: The total weight of a quadrilateral is 4
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 ); 
                         }
                     }
-//                     // Debug
-//                     else // FIXME: This is because the nodes are not in correct order, look how to do that (or zero area!!!)
-//                     {
-//                         std::cout << std::endl;
-//                         KRATOS_WATCH(LocalArea);
-//                         std::cout << CheckPoints2D(PointList[0], PointList[IndexVector[elem] + 1]) << "\t" << CheckPoints2D(PointList[IndexVector[elem + 1] + 1], PointList[IndexVector[elem] + 1]) << "\t" << CheckPoints2D(PointList[0], PointList[IndexVector[elem + 1] + 1]) << std::endl;
-//                         Point<3> aux1;
-//                         aux1.Coordinates() = PointList[0].Coordinates();
-//                         RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         
-//                         KRATOS_WATCH(aux1);
-//                         
-//                         Point<3> aux2;
-//                         aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
-//                         RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         
-//                         KRATOS_WATCH(aux2);
-//                         
-//                         Point<3> aux3;
-//                         aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
-//                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-//                         
-//                         KRATOS_WATCH(aux3);
-//                         
-//                         KRATOS_ERROR;
-//                     }
                 }
                 
                 if (IntegrationPointsSlave.size() > 0)
