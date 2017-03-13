@@ -1,5 +1,5 @@
-#if !defined(KRATOS_BREP_MODEL_GEOMETRY_READER_H_INCLUDED )
-#define  KRATOS_BREP_MODEL_GEOMETRY_READER_H_INCLUDED
+#if !defined(KRATOS_BREP_MODEL_GEOMETRY_READER_APPLICATION_H_INCLUDED )
+#define  KRATOS_BREP_MODEL_GEOMETRY_READER_APPLICATION_H_INCLUDED
 
 
 
@@ -15,7 +15,7 @@
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-//#include <boost/python.hpp>
+#include <boost/python.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -25,6 +25,7 @@
 // ------------------------------------------------------------------------------
 #include "BrepModel.h"
 #include "TrimmingCurve.h"
+#include "BoundaryLoop.h"
 #include "BrepModel.h"
 #include "Face.h"
 #include "Edge.h"
@@ -71,8 +72,8 @@ namespace Kratos
     typedef std::vector<FaceTrim> FaceTrimVector;
 
     //Face:
-    typedef std::vector<std::vector<int>> TrimmingLoopVector;
     typedef std::vector<TrimmingCurve> TrimmingCurveVector;
+    typedef std::vector<BoundaryLoop> TrimmingLoopVector;
 
     //BrepModel:
     typedef std::vector<Face> FacesVector;
@@ -86,7 +87,7 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
-    std::vector<BrepModel*> ReadGeometry(ModelPart& model_part);
+    std::vector<BrepModel> ReadGeometry(ModelPart& model_part);
 
     /// Constructor.
     BrepModelGeometryReader(Parameters& cad_geometry_in_json);

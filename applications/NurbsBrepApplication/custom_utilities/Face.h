@@ -21,6 +21,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "TrimmingCurve.h"
+#include "BoundaryLoop.h"
 #include "nurbs_utilities.h"
 #include "../../kratos/includes/node.h"
 
@@ -65,7 +66,7 @@ public:
   ///@{
   //typedef std::vector<double> Vector;
   typedef std::vector<int> IntVector;
-  typedef std::vector<std::vector<int>> TrimmingLoopVector;
+  typedef std::vector<BoundaryLoop> TrimmingLoopVector;
   typedef std::vector<TrimmingCurve> TrimmingCurveVector;
   ///@}
 
@@ -74,12 +75,11 @@ public:
 
 
   /// Default constructor.
-  Face(unsigned int brep_id, TrimmingCurveVector& trimming_curves,
+  Face(unsigned int brep_id, 
     TrimmingLoopVector& trimming_loops,
     Vector& knot_vector_u, Vector& knot_vector_v,
     unsigned int& p, unsigned int& q, IntVector& control_point_ids)
-  : m_trimming_curves(trimming_curves),
-    m_trimming_loops(trimming_loops),
+    : m_trimming_loops(trimming_loops),
     m_knot_vector_u(knot_vector_u),
     m_knot_vector_v(knot_vector_v),
     m_p(p),
@@ -111,7 +111,7 @@ public:
     return m_knot_vector_u;
   }
 
-  void MapNodeNewtonRaphson(const Node<3>::Pointer node, Node<3>::Pointer node_on_geometry, ModelPart& model_part)
+  void MapNodeNewtonRaphson(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& model_part)
   {
     // Initialize P: point on the mesh
     Vector P = ZeroVector(3);
@@ -129,9 +129,9 @@ public:
     Vector myGradient = ZeroVector(2);
     double det_H = 0;
     Matrix InvH = ZeroMatrix(2, 2);
-    Vector local_parameter = node_on_geometry->GetValue(LOCAL_PARAMETERS);
-    double u_k = local_parameter[0];
-    double v_k = local_parameter[0];
+    Vector local_parameter = node->GetValue(LOCAL_PARAMETERS);
+    double u_k = local_parameter(0);
+    double v_k = local_parameter(0);
     Point<3> newtonRaphsonPoint;
 
     double norm_deltau = 100000000;
@@ -180,57 +180,40 @@ public:
     //int span_u_of_np = knot_span_nearest_point[0];
     //int span_v_of_np = knot_span_nearest_point[1];
     //m_patches[patch_itr_of_nearest_point].GetSurface().FlagControlPointsForMapping(span_u_of_np, span_v_of_np, u_of_nearest_point, v_of_nearest_point);
-
-
   }
 
-  TrimmingCurve& GetTrimmingCurve(unsigned int& trim_index)
-  {
-    for (unsigned int trimming_curve_i = 0; trimming_curve_i < m_trimming_curves.size(); ++trimming_curve_i)
-    {
-      if (m_trimming_curves[trimming_curve_i].GetIndex() == trim_index)
-      {
-        return m_trimming_curves[trimming_curve_i];
-      }
-    }
-  }
+  //TrimmingCurve& GetTrimmingCurve(unsigned int trim_index)
+  //{
+  //  for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); ++loop_i)
+  //  {
+  //    TrimmingCurveVector trimming_curves m_trimming_loops[loop_i].GetTrimmingCurves();
+  //    for (unsigned int trimming_curve_i = 0; trimming_curve_i < trimming_curves.size(); ++trimming_curve_i)
+  //    {
+  //      if (trimming_curves[trimming_curve_i].GetIndex() == trim_index)
+  //      {
+  //        return trimming_curves[trimming_curve_i];
+  //      }
+  //    }
+  //  }
+  //}
 
-  std::vector<array_1d<double, 2>> GetBoundaryPolygon(std::vector<int>& loop)
-  {
-    std::vector<array_1d<double, 2>> boundary_polygon;
-    unsigned int number_polygon_points = 500;
-    for (unsigned int edge_i = 0; edge_i < loop.size(); edge_i++)
-    {
-      std::vector<array_1d<double, 2>> boundary_polygon_edge = m_trimming_curves[loop[edge_i]].CreatePolygon(number_polygon_points);
-      unsigned int old_length = boundary_polygon.size();
-      boundary_polygon.resize(boundary_polygon.size() + number_polygon_points);
-      for (unsigned int polygon_i = 0; polygon_i < boundary_polygon_edge.size(); polygon_i++)
-      {
-        boundary_polygon[old_length + polygon_i] = boundary_polygon_edge[polygon_i];
-      }
-    }
-    return boundary_polygon;
-  }
+
 
   bool CheckIfPointIsInside(Vector node_parameters)
   {
     // Boost is used to check whether point of interest is inside given polygon or not
-
     // Type definitions to use boost functionalities
     typedef boost::geometry::model::d2::point_xy<double> point_type;
     typedef boost::geometry::model::polygon<point_type> polygon_type;
-
     // We assume point is inside, check all boundary loops if this is true. If this is not true for a single loop, then point is considered outside of this patch
     point_type point(node_parameters[0], node_parameters[1]);
     bool is_inside = true;
-
     // Loop over all boundary loops of current patch
     for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
     {
-
       // Initialize necessary variables
       polygon_type poly;
-      std::vector<array_1d<double, 2>>& boundary_polygon = GetBoundaryPolygon(m_trimming_loops[loop_i]);
+      std::vector<array_1d<double, 2>>& boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon();
 
       // Prepare polygon for boost
       for (unsigned int i = 0; i<boundary_polygon.size(); i++)
@@ -239,14 +222,12 @@ public:
       if (boundary_polygon.size()>0)
         boost::geometry::append(boost::geometry::exterior_ring(poly),
           boost::geometry::make<point_type>(boundary_polygon[0][0], boundary_polygon[0][1]));
-
       // Check inside or outside
       is_inside = boost::geometry::within(point, poly);
-
       // Boost does not consider the polygon direction, it always assumes inside as in the interior of the closed polygon.
       // If the CAD loop is an inner loop, however, the area which is considered inner is the unbounded side of the closed polygon.
       // So we toggle the results from the within search to be correct.
-      if (loop_i==0)
+      if (!m_trimming_loops[loop_i].IsOuterLoop())
         is_inside = !is_inside;
 
       // If a point is considered outside in one loop, it is outside in general, hence we can break the loop
@@ -426,7 +407,6 @@ public:
         int vi = span_v - m_q + c;
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
-
         // Evaluate basis function
         R(b, c) = N(b)*M(c)*model_part.GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
         sum += R(b, c);
@@ -634,7 +614,6 @@ private:
   // ==============================================================================
 
   //unsigned int m_brep_id;
-  TrimmingCurveVector m_trimming_curves;
   TrimmingLoopVector m_trimming_loops;
   Vector m_knot_vector_u;
   Vector m_knot_vector_v;

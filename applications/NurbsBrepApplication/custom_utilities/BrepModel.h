@@ -59,8 +59,6 @@ public:
 
 
   ///@}
-  //TODO: delete explicitly the copy constructor
-
   /// Pointer definition of BrepModel
   //    KRATOS_CLASS_POINTER_DEFINITION[BrepModel];
 
@@ -72,14 +70,21 @@ public:
     IndexedObject(brep_id),
     Flags()
   {
+    std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
   }
   /// Destructor.
   virtual ~BrepModel()
   {
   }
+  //TODO: delete explicitly the copy constructor
+  /// Copy constructor.
+  //BrepModel(const BrepModel&) = delete;
+  /// Copy constructor.
+  //BrepModel[BrepModel const& rOther];
   // ==============================================================================
   FacesVector& GetFaceVector()
   {
+    std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
     return m_faces;
   }
 
@@ -127,8 +132,8 @@ private:
   // ==============================================================================
   // Initialized by class constructor
   // ==============================================================================
-  FacesVector& m_faces;
-  EdgesVector& m_edges;
+  FacesVector m_faces;
+  EdgesVector m_edges;
   //VerticesVector m_vertices;
 
   // ==============================================================================
@@ -137,8 +142,7 @@ private:
   /// Assignment operator.
   //      BrepModel& operator=[BrepModel const& rOther];
 
-  /// Copy constructor.
-  //      BrepModel[BrepModel const& rOther];
+
 
 }; // Class BrepModel
 

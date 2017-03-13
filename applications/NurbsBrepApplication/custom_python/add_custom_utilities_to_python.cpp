@@ -47,11 +47,13 @@ namespace Python
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     typedef std::vector<BrepModel> BrepModelVector;
+    typedef std::vector<Face> FacesVector;
+    typedef std::vector<Edge> EdgesVector;
 
-    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelVector&, ModelPart&>());
+    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelGeometryReader&, ModelPart&>());
       //.def("SetUp", &NurbsBrepModeler::SetUp)
       //;
-
+    //class_<BrepModel, boost::noncopyable>("BrepModel", init<unsigned int&, FacesVector&, EdgesVector&>());
    /* class_<std::vector<BrepModel> >("BrepModelVec")
       .def(vector_indexing_suite<std::vector<BrepModel> >())
       ;*/

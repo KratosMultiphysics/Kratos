@@ -75,6 +75,9 @@ namespace Kratos
     // Variables definition 
     typedef Node<3> NodeType;
     typedef std::vector<NodeType::Pointer> NodeVector;
+    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+    typedef std::vector<double>                          DistanceVector;
+    typedef std::vector<double>::iterator                DistanceIterator;
 
     typedef std::vector<Face> FacesVector;
     typedef std::vector<Edge> EdgesVector;
@@ -82,9 +85,9 @@ namespace Kratos
     typedef std::vector<BrepModel> BrepModelVector;
 
     //Search Tree
-    typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, 
-    std::vector<NodeType::Pointer>::iterator, std::vector<double>::iterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > TreeType;
+    // KDtree definitions
+    typedef Bucket< 3, NodeType, NodeVector, NodeType::Pointer, NodeIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > tree;
 
     /// Pointer definition of KratosNurbsTestcaseApplication
         KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
@@ -95,7 +98,7 @@ namespace Kratos
         
    
     /// Constructor.
-        NurbsBrepModeler(BrepModelVector& brep_model_vector, ModelPart& model_part);
+        NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part);
 
         //NurbsBrepModeler();
     /// Destructor.
@@ -130,8 +133,8 @@ namespace Kratos
     ///@} 
     ///@name Member Variables
     ///@{ 
-    ModelPart& m_model_part;
-    BrepModelVector& m_brep_model_vector;
+    ModelPart m_model_part;
+    BrepModelVector m_brep_model_vector;
     //TreeType m_search_tree;
 
     ///@} 
@@ -144,7 +147,7 @@ namespace Kratos
     void CreateMeshedPoints(ModelPart& model_part);
     Face& GetFace(const unsigned int face_id);
     //Tree< KDTreePartition<BucketType> > CreateSearchTree(ModelPart model_part);
-    void MapNode(const Node<3>::Pointer node, Node<3>::Pointer node_on_geometry);
+    void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry);
     ///@} 
     ///@name Private  Access 
     ///@{ 

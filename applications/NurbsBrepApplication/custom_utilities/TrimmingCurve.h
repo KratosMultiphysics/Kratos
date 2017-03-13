@@ -96,11 +96,6 @@ public:
   }
 //TODO: you need to give reading access to your internals through the Calculate function
 
-  // --------------------------------------------------------------------------
-  //ControlPointVector& GetControlPoints()
-  //{
-  //  return m_control_points;
-  //}
 
   std::vector<array_1d<double, 2>> CreatePolygon(unsigned int& number_polygon_points)
   {

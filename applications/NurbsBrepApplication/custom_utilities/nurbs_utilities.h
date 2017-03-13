@@ -39,13 +39,13 @@ namespace Kratos
 
     // adapted from ALGORITHM A2.1, Page 68, "The NURBS Book" by Piegl, Tiller 
     // T.Oberbichler 02.2017
-    static int find_knot_span(const int &p, const Vector &knots, const double &u) {
-      const auto upper = upper_bound(knots.begin() + p, knots.end() - p, u);
+    //static int find_knot_span(const int &p, const Vector &knots, const double &u) {
+    //  const auto upper = upper_bound(knots.begin() + p, knots.end() - p, u);
 
-      const auto span = distance(knots.begin(), upper) - 1;
+    //  const auto span = distance(knots.begin(), upper) - 1;
 
-      return span;
-    }
+    //  return span;
+    //}
 
     // #####################################################################################
     // #####################################################################################
@@ -221,35 +221,37 @@ namespace Kratos
     ///  \author     Daniel Baumgärtner (12/2016)
     //
     //########################################################################################
-    //int find_Knot_Span(Vector _knotVec, double _par, int _pDeg, int _nCtrl)
-    //{
-    //	double epsilon = 1.0e-11;
-    //
-    //	if(_par<=_knotVec[0])
-    //		_par = _knotVec[0]+epsilon;
-    //
-    //	if(_par>=_knotVec[_knotVec.size()-1])
-    //		_par = _knotVec[_knotVec.size()-1]-epsilon;
-    //
-    //	int low = _pDeg;
-    //	int high = _nCtrl+1;
-    //	int span=(low+high)/2;
-    //
-    //	while (_par < _knotVec[span] || _par >= _knotVec[span+1])
-    //	{
-    //		if (_par < _knotVec[span])
-    //		{
-    //			high = span;
-    //		}
-    //		else
-    //		{
-    //			low = span;
-    //		}
-    //		span = (low+high)/2;
-    //	}
-    //
-    //	return span;
-    //}
+    static int find_knot_span(int _pDeg, Vector _knotVec, double _par)
+    {
+    	double epsilon = 1.0e-11;
+    
+    	if(_par<=_knotVec[0])
+    		_par = _knotVec[0]+epsilon;
+    
+    	if(_par>=_knotVec[_knotVec.size()-1])
+    		_par = _knotVec[_knotVec.size()-1]-epsilon;
+    
+
+      int _nCtrl = _knotVec.size() - _pDeg - 1;
+    	int low = _pDeg;
+    	int high = _nCtrl+1;
+    	int span=(low+high)/2;
+    
+    	while (_par < _knotVec[span] || _par >= _knotVec[span+1])
+    	{
+    		if (_par < _knotVec[span])
+    		{
+    			high = span;
+    		}
+    		else
+    		{
+    			low = span;
+    		}
+    		span = (low+high)/2;
+    	}
+    
+    	return span;
+    }
 
   protected:
 
