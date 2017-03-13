@@ -259,7 +259,7 @@ public:
       return typename BaseType::Pointer( new Line2D3( ThisPoints ) );
     }
 
-    
+
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -309,9 +309,9 @@ public:
         const TPointType& point1 = BaseType::GetPoint(2);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return sqrt( length );
     }
 
@@ -348,9 +348,9 @@ public:
         const TPointType& point1 = BaseType::GetPoint(2);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return sqrt( length );
     }
 
@@ -368,7 +368,7 @@ public:
 
         return false;
     }
-    
+
     ///@}
     ///@name Jacobian
     ///@{
@@ -414,15 +414,15 @@ public:
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
                 jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
 
-		
+
             }
 
             rResult[pnt] = jacobian;
 
-	    
+
         }//end of loop over all integration points
 
-	
+
 
         return rResult;
     }
@@ -563,7 +563,8 @@ public:
      */
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        BaseType::DeterminantOfJacobian(rResult, ThisMethod);
+        return rResult;
     }
 
     /** Determinant of jacobian in specific integration point of
@@ -586,7 +587,7 @@ public:
      */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        return BaseType::DeterminantOfJacobian(IntegrationPointIndex, ThisMethod);
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -603,7 +604,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        return BaseType::DeterminantOfJacobian(rPoint);
     }
 
     /** Inverse of jacobians for given integration method. This method
@@ -680,7 +681,7 @@ public:
     {
       return EdgesNumber();
     }
-    
+
     ///@}
     ///@name Shape Function
     ///@{
@@ -1104,5 +1105,4 @@ const GeometryData Line2D3<TPointType>::msGeometryData( 2,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

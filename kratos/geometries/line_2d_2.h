@@ -266,7 +266,7 @@ public:
         return typename BaseType::Pointer( new Line2D2( ThisPoints ) );
     }
 
-    
+
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -318,9 +318,9 @@ public:
         const TPointType& SecondPoint = BaseType::GetPoint(1);
         const double lx = FirstPoint.X() - SecondPoint.X();
         const double ly = FirstPoint.Y() - SecondPoint.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return std::sqrt( length );
     }
 
@@ -357,9 +357,9 @@ public:
         const TPointType& SecondPoint = BaseType::GetPoint(1);
         const double lx = FirstPoint.X() - SecondPoint.X();
         const double ly = FirstPoint.Y() - SecondPoint.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return std::sqrt( length );
     }
 
@@ -422,7 +422,7 @@ public:
     point index of given integration method.
 
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -504,7 +504,16 @@ public:
     */
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = 0.5*(this->Length());
+        }
         return rResult;
     }
 
@@ -528,8 +537,7 @@ public:
     */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return 0.0;
+        return 0.5*(this->Length());
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -546,8 +554,7 @@ public:
     */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return 0.0;
+        return 0.5*(this->Length());
     }
 
 
@@ -650,7 +657,7 @@ public:
         NodesInFaces(1,0)=1;
 
     }
-    
+
     ///@}
     ///@name Shape Function
     ///@{
@@ -854,20 +861,20 @@ public:
 
         // Project point
         const double tol = 1e-14; // Tolerance
-        
+
         // Normal
         array_1d<double,2> Normal = ZeroVector(2);
         Normal[0] = SecondPoint[1] -  FirstPoint[1];
         Normal[1] =  FirstPoint[0] - SecondPoint[0];
         const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
         Normal /= norm;
-        
+
         // Vector point and distance
         array_1d<double,2> VectorPoint = ZeroVector(2);
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         const double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
-        
+
 //        KRATOS_WATCH(rPoint);
 //        KRATOS_WATCH(Point_projected);
 //        KRATOS_WATCH(dist_proy);
@@ -875,13 +882,13 @@ public:
         if (dist_proy < tol)
         {
             const double L  = Length();
-            
+
             const double l1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
                       + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
-            
+
             const double l2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
                       + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
-            
+
 //            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
 
             if (l1 <= (L + tol) && l2 <= (L + tol))
@@ -900,7 +907,7 @@ public:
             {
                 rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
             }
-            
+
         }
         else
         {
@@ -1172,4 +1179,4 @@ const GeometryData Line2D2<TPointType>::msGeometryData( 2,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined
