@@ -864,14 +864,38 @@ private:
         // We create the pointlist
         std::vector<Point<3>> PointList;
         
-        // No point inside // FIXME:
+        // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
             (AllInside[2] == false))
         {
-            IntegrationPointsSlave.clear();
-//             IntegrationPointsSlave.resize(0, false);
-            return false;
+            // We check if all the nodes are inside the master element
+            array_1d<Point<3>, 3> SlaveProjectedPoint;
+            
+            const Point<3> MasterCenter = MasterGeometry.Center();
+            
+            for (unsigned int i_node = 0; i_node < 3; i_node++)
+            {
+                SlaveProjectedPoint[i_node] = ContactUtilities::FastProject(MasterCenter, SlaveGeometry[i_node], MasterNormal);
+                
+                GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
+            
+                AllInside[i_node] = MasterGeometry.IsInside( SlaveProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal, Tolerance) ;
+            }
+            
+            // The whole slave is inside the master
+            if ((AllInside[0] == true) &&
+                (AllInside[1] == true) &&
+                (AllInside[2] == true))
+            {
+                IntegrationPointsSlave = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            }
+            else
+            {
+                IntegrationPointsSlave.clear();
+//                 IntegrationPointsSlave.resize(0, false);
+                return false;
+            }
         }
         // All the points inside
         else if ((AllInside[0] == true) &&
@@ -1176,15 +1200,58 @@ private:
         // We create the pointlist
         std::vector<Point<3>> PointList;
         
-        // No point inside
+        // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
             (AllInside[2] == false) &&
             (AllInside[3] == false))
         {
-            IntegrationPointsSlave.clear();
-//             IntegrationPointsSlave.resize(0, false);
-            return false;
+            // We check if all the nodes are inside the master element            
+            const Point<3> MasterCenter = MasterGeometry.Center();
+            
+            const array_1d<double, 3> MasterTangentXi  = (MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates())/norm_2(MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates());
+            const array_1d<double, 3> MasterTangentEta = MathUtils<double>::UnitCrossProduct(MasterTangentXi, MasterNormal);
+            
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                SlaveProjectedPoint[i_node]  = ContactUtilities::FastProject( MasterCenter,  SlaveGeometry[i_node], MasterNormal);
+                MasterProjectedPoint[i_node] = ContactUtilities::FastProject( MasterCenter, MasterGeometry[i_node], MasterNormal);
+            }
+            
+            // Before clipping we rotate to a XY plane
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                RotatePoint( SlaveProjectedPoint[i_node], MasterCenter, MasterTangentXi, MasterTangentEta, false);
+                RotatePoint(MasterProjectedPoint[i_node], MasterCenter, MasterTangentXi, MasterTangentEta, false);
+            }
+            
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                DummyPointsArray[i_node] = boost::make_shared<Point<3>>(MasterProjectedPoint[i_node]);
+            }
+            
+            Quadrilateral2D4 <Point<3>> AuxDummyQuadrilateral( DummyPointsArray );
+            
+            for (unsigned int i_node = 0; i_node < 4; i_node++)
+            {
+                GeometryNodeType::CoordinatesArrayType rResult;
+                AllInside[i_node] = FasIsInsideQuadrilateral2D( AuxDummyQuadrilateral, SlaveProjectedPoint[i_node].Coordinates( ) ) ;
+            }
+            
+            // The whole slave is inside the master
+            if ((AllInside[0] == true) &&
+                (AllInside[1] == true) &&
+                (AllInside[2] == true) &&
+                (AllInside[3] == true))
+            {
+                IntegrationPointsSlave = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            }
+            else
+            {
+                IntegrationPointsSlave.clear();
+    //             IntegrationPointsSlave.resize(0, false);
+                return false;
+            }
         }
         // All the points inside
         else if ((AllInside[0] == true) &&
