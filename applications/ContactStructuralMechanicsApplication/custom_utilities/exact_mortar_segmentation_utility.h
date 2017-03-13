@@ -191,6 +191,7 @@ public:
         GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& MasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         );
     
@@ -210,7 +211,7 @@ public:
     {
         IntegrationPointsType IntegrationPointsSlave;
         
-        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), IntegrationPointsSlave);
+        const bool solution = GetExactIntegration(SlaveCond->GetGeometry(), SlaveCond->GetValue(NORMAL), MasterCond->GetGeometry(), MasterCond->GetValue(NORMAL), IntegrationPointsSlave);
         
         CustomSolution.resize(IntegrationPointsSlave.size(), TDim, false);
         
@@ -686,6 +687,7 @@ private:
         GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& MasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {             
@@ -699,7 +701,6 @@ private:
         // Declaring auxiliar values
         PointType projected_gp_global;
         GeometryNodeType::CoordinatesArrayType projected_gp_local;
-        double aux_dist = 0.0;
         
         // Declare the boolean of full integral
         bool full_int = true;
@@ -709,7 +710,7 @@ private:
         {
             const array_1d<double, 3> normal = SlaveGeometry[i_slave].GetValue(NORMAL);
             
-            ContactUtilities::ProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, aux_dist, -normal ); // The opposite direction
+            ContactUtilities::FastProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
             
             const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
             
@@ -830,6 +831,7 @@ private:
         GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& MasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {
@@ -862,7 +864,7 @@ private:
         // We create the pointlist
         std::vector<Point<3>> PointList;
         
-        // No point inside
+        // No point inside // FIXME:
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
             (AllInside[2] == false))
@@ -1124,6 +1126,7 @@ private:
         GeometryNodeType& SlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
         GeometryNodeType& MasterGeometry,
+        const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {        

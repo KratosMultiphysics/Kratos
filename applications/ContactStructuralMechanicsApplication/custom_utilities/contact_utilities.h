@@ -135,13 +135,13 @@ public:
     }
     
     static inline void ContactContainerFiller(
-            std::vector<contact_container> *& ConditionPointers,
-            Condition::Pointer & pCond_1,       // SLAVE
-            const Condition::Pointer & pCond_2, // MASTER
-            const array_1d<double, 3> & contact_normal1, // SLAVE
-            const array_1d<double, 3> & contact_normal2, // MASTER
-            const double ActiveCheckFactor
-            )
+        std::vector<contact_container> *& ConditionPointers,
+        Condition::Pointer & pCond_1,       // SLAVE
+        const Condition::Pointer & pCond_2, // MASTER
+        const array_1d<double, 3> & contact_normal1, // SLAVE
+        const array_1d<double, 3> & contact_normal2, // MASTER
+        const double ActiveCheckFactor
+        )
     {
         const bool cond_active = ContactContainerFiller(pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
         
@@ -159,20 +159,61 @@ public:
      * Project a point over a line/plane following an arbitrary direction
      * @param Geom: The geometry where to be projected
      * @param PointDestiny: The point to be projected
+     * @param Normal: The normal of the geometry
+     * @param Vector: The direction to project
+     * @return PointProjected: The point pojected over the plane
+     */
+
+    static inline void FastProjectDirection(
+        const GeometryType& Geom,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        const array_1d<double,3>& Normal,
+        const array_1d<double,3>& Vector
+        )
+    {        
+        const double Tolerance = std::numeric_limits<double>::epsilon();
+        
+        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
+
+        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
+        {
+            const double dist = inner_prod(vector_points, Normal)/norm_2(Normal);
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
+        }
+        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
+        {
+            const double dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+        }
+        else
+        {
+            PointProjected.Coordinates() = PointDestiny.Coordinates();
+            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
+        }
+    }
+    
+    /**
+     * Project a point over a line/plane following an arbitrary direction
+     * @param Geom: The geometry where to be projected
+     * @param PointDestiny: The point to be projected
      * @param Vector: The direction to project
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
 
     static inline void ProjectDirection(
-            const GeometryType& Geom,
-            const Point<3>& PointDestiny,
-            Point<3>& PointProjected,
-            double& dist,
-            const array_1d<double,3>& Vector
-            )
+        const GeometryType& Geom,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        double& dist,
+        const array_1d<double,3>& Vector
+        )
     {        
-        const double tol = 1.0e-15;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
         array_1d<double,3> Normal;
         
@@ -181,14 +222,14 @@ public:
 //         const array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
         const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
-        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
+        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
         {
             dist = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
             std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
         }
-        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
+        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
         {
             dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
@@ -203,14 +244,14 @@ public:
     }
     
     static inline void ProjectCoordDirection(
-            const GeometryType& Geom,
-            const GeometryType::CoordinatesArrayType& CoordDestiny,
-            GeometryType::CoordinatesArrayType& CoordProjected,
-            double& dist,
-            const array_1d<double,3>& Vector
-            )
+        const GeometryType& Geom,
+        const GeometryType::CoordinatesArrayType& CoordDestiny,
+        GeometryType::CoordinatesArrayType& CoordProjected,
+        double& dist,
+        const array_1d<double,3>& Vector
+        )
     {        
-        const double tol = 1.0e-15;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
         array_1d<double,3> Normal;
         
@@ -218,14 +259,14 @@ public:
         
         const array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
 
-        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
+        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
         {
             dist = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             CoordProjected = CoordDestiny + Vector * dist;
             std::cout << " :: Warning: Zero projection vector. Projection using the condition normal vector instead." << std::endl;
         }
-        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
+        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
         {
             dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
@@ -323,12 +364,12 @@ public:
      */
     
     static inline void Project(
-            const Point<3>& PointOrigin,
-            const Point<3>& PointDestiny,
-            Point<3>& PointProjected,
-            double& dist,
-            const array_1d<double,3>& Normal
-            )
+        const Point<3>& PointOrigin,
+        const Point<3>& PointDestiny,
+        Point<3>& PointProjected,
+        double& dist,
+        const array_1d<double,3>& Normal
+        )
     {
         array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
@@ -338,10 +379,10 @@ public:
     }
     
     static inline Point<3> FastProject(
-            const Point<3>& PointOrigin,
-            const Point<3>& PointDestiny,
-            const array_1d<double,3>& Normal
-            )
+        const Point<3>& PointOrigin,
+        const Point<3>& PointDestiny,
+        const array_1d<double,3>& Normal
+        )
     {
         array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
@@ -360,9 +401,9 @@ public:
      */
     
     static inline double DistancePoints(
-            const Point<3>& PointOrigin,
-            const Point<3>& PointDestiny
-            )
+        const Point<3>& PointOrigin,
+        const Point<3>& PointDestiny
+        )
     {
         const double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
                                     + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
@@ -379,9 +420,9 @@ public:
      */
 
     static inline double CenterAndRadius(
-            Condition::Pointer pCond,
-            Point<3>& Center
-            )
+        Condition::Pointer pCond,
+        Point<3>& Center
+        )
     {
         double Radius = 0.0;
         Center = pCond->GetGeometry().Center();
@@ -438,9 +479,9 @@ public:
             normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
         }
         
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        if (norm_2(normal) > tol)
+        if (norm_2(normal) > Tolerance)
         {
             normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
         }
@@ -450,15 +491,18 @@ public:
     
     /**
      * This function calculates the normal of a geometry
-     * @param Cond: The pointer to the condition of interest
+     * @return Normal: The normal of the geometry
+     * @param TangentXi: The first tangent of the geometry
+     * @param TangentEta: The second tangent of the geometry
+     * @param Geom: The geometry of interest
      */
 
     static inline void GeometryNormal(
-            array_1d<double,3> & Normal,
-            array_1d<double,3> & TangentXi,
-            array_1d<double,3> & TangentEta,
-            const GeometryType & Geom
-            )
+        array_1d<double,3> & Normal,
+        array_1d<double,3> & TangentXi,
+        array_1d<double,3> & TangentEta,
+        const GeometryType & Geom
+        )
     {
         noalias(Normal) = ZeroVector(3);
         
@@ -470,20 +514,20 @@ public:
             Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
         }
         
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        if (norm_2( Normal ) > tol)
+        if ( norm_2( Normal ) > Tolerance )
         {
-            Normal /= norm_2( Normal );
-            TangentXi /= norm_2( TangentXi );
+            Normal     /= norm_2( Normal );
+            TangentXi  /= norm_2( TangentXi );
             TangentEta /= norm_2( TangentEta );
         }
     }
         
     static inline void GeometryNormal(
-            array_1d<double,3> & Normal,
-            const GeometryType & Geom
-            )
+        array_1d<double,3> & Normal,
+        const GeometryType & Geom
+        )
     {
         array_1d<double,3> TangentXi, TangentEta;
         
@@ -495,11 +539,11 @@ public:
      */
 
     static inline void NodalTangents(
-            array_1d<double,3> & t1,    // tangent in xi direction
-            array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
-            const GeometryType & Geom,
-            const unsigned int i_node
-            )
+        array_1d<double,3> & t1,    // tangent in xi direction
+        array_1d<double,3> & t2,    // tangent in eta direction in 3D or simply e3 cartesian vector in 2D
+        const GeometryType & Geom,
+        const unsigned int i_node
+        )
     {
         const unsigned int dimension = Geom.WorkingSpaceDimension( );
         const unsigned int local_dim = Geom.LocalSpaceDimension( );
@@ -538,7 +582,7 @@ public:
     static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) 
     {
         // Tolerance
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize normal vectors
         const array_1d<double,3> ZeroVect = ZeroVector(3);
@@ -590,7 +634,7 @@ public:
             auto itNode = pNode.begin() + i;
 
             const double total_area = itNode->GetValue(NODAL_AREA);
-            if (total_area > tol)
+            if (total_area > Tolerance)
             {
                 itNode->GetValue(NORMAL)      /= total_area;
                 itNode->GetValue(TANGENT_XI)  /= total_area;
@@ -615,7 +659,7 @@ public:
             const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
             const double norm_tangenteta = norm_2(itNode->GetValue(TANGENT_ETA));
             
-            if (norm_normal > tol)
+            if (norm_normal > Tolerance)
             {
                 itNode->GetValue(NORMAL)      /= norm_normal;
                 itNode->GetValue(TANGENT_XI)  /= norm_tangentxi;
@@ -640,7 +684,7 @@ public:
         ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
 
         // Tolerance
-        const double tol = 1.0e-14;
+        const double Tolerance = std::numeric_limits<double>::epsilon();
 
         // Initialize directional derivative
         const unsigned int dimension = it_cond_begin->WorkingSpaceDimension( ); 
@@ -829,7 +873,7 @@ public:
             const double nj_norm = norm_2( nj );
             const double nj_norm_3 = nj_norm * nj_norm * nj_norm;
             
-            if ( nj_norm_3 > tol )
+            if ( nj_norm_3 > Tolerance )
             {
                 const Matrix Cj = I / nj_norm - nj_o_nj / nj_norm_3;
                 itNode->GetValue(DELTA_NORMAL) = prod( Cj, itNode->GetValue(DELTA_NORMAL) );
@@ -857,33 +901,6 @@ public:
         else
         {
             KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << J.size2( ) << std::endl;
-        }
-    }
-    
-    /**
-     * Calculates the inverse of the jacobian of the contact element  
-     * @param Jacobian: The element's jacobian
-     * @return The inverse of the provided jacobian
-     */
-    
-    template< unsigned int TDim, unsigned int TNumNodes>
-    static inline boost::numeric::ublas::bounded_matrix<double, TDim - 1, TNumNodes> ContactElementInvJacobian( boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim - 1> J )
-    {
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> JJT = prod( J, trans(J) );
-        if( TDim == 2 )
-        {
-            boost::numeric::ublas::bounded_matrix<double, 2, 2> InvJJT;
-            const double det = JJT(0, 0) * JJT(1, 1) - JJT(0, 1) * JJT(1, 0);
-            InvJJT(0, 0) =   JJT(1, 1) / det;
-            InvJJT(0, 1) = - JJT(0, 1) / det;
-            InvJJT(1, 0) = - JJT(1, 0) / det;
-            InvJJT(1, 1) =   JJT(0, 0) / det;
-            
-            return prod(trans(J), InvJJT);
-        }
-        else
-        {
-            KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << TDim - 1 << std::endl;
         }
     }
     

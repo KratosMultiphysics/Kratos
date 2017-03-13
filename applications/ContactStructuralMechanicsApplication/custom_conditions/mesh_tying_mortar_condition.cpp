@@ -101,7 +101,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
         Condition::Pointer pCond = (*all_containers)[i_cond].condition;
         
         IntegrationPointsType IntegrationPointsSlave;
-        const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), IntegrationPointsSlave);
+        const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), IntegrationPointsSlave);
         
 //         // Using collocation instead exact integration
 //         ColocationIntegration ThisColocationIntegration;
@@ -604,7 +604,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         
         // Get the integration points
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
-//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
+//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
         
         const unsigned int NumberOfINtegrationPoints = IntegrationPointsSlave.size();
         
@@ -706,7 +706,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     {   
         // Get the integration points
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
-//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), IntegrationPointsSlave);
+//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
         
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );

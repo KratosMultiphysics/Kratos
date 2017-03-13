@@ -116,8 +116,8 @@ def AssambleTestSuites():
             TThreeDSimplestTrianglePatchMatchingTestContact,
             TThreeDPatchMatchingTestContact,
             TThreeDPatchNonMatchingTestContact,
-            #TALMHyperSimplePatchTestContact,
-            #TALMSimplePatchTestContact,
+            TALMHyperSimplePatchTestContact,
+            TALMSimplePatchTestContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,
