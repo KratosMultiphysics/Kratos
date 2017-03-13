@@ -550,17 +550,12 @@ class PartitionedFSISolver:
             # Solve the mesh problem
             self.mesh_solver.Solve()
 
-            # Set the obtained mesh velocity as initial interface velocity
-            KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.MESH_VELOCITY,
-                                                             KratosMultiphysics.VELOCITY,
-                                                             self._GetFluidInterfaceSubmodelPart().Nodes)
-
             print("Mesh prediction computed.")
 
     ### RESIDUALS ###
 
-    # The residual schemes have been implemented such that they have to modify "self.vel_residual"
-    # "self.vel_residual" is a vector containing the nodal residual at the fluid interface
+    # The residual schemes have been implemented such that they retur a "vel_residual" vector.
+    # "vel_residual" is a vector containing the nodal values of the residual at the fluid interface.
     # The residual computation starts from the iteration prediction stored in "self.iteration_value"
 
     # Dirichlet-Neumann scheme interface velocity residual
