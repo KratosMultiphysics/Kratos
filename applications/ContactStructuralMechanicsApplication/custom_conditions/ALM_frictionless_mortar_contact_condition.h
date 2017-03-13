@@ -459,8 +459,8 @@ protected:
         Type1 LagrangeMultipliers;
         
         // The normals of the nodes
-        Type2 Normal_m; // TODO: Think about remove "_"
-        Type2 Normal_s;
+        Type2 NormalMaster; // TODO: Think about remove "_"
+        Type2 NormalSlave;
         
         // Displacements and velocities
         Type2 X1;
@@ -469,12 +469,12 @@ protected:
         Type2 u2;
         
         // Derivatives    
-        array_1d<double, Size1> DeltaJ_s;
-        array_1d<Type1, Size1> DeltaPhi;
-        array_1d<Type1, Size2> DeltaN1;
-        array_1d<Type1, Size2> DeltaN2;
-        array_1d<Type2, Size1> Delta_Normal_s;
-        array_1d<Type2, Size1> Delta_Normal_m;
+        array_1d<double, Size1> DeltaJSlave;
+        array_1d<Type1,  Size1> DeltaPhi;
+        array_1d<Type1,  Size2> DeltaN1;
+        array_1d<Type1,  Size2> DeltaN2;
+        array_1d<Type2,  Size1> DeltaNormalSlave;
+        array_1d<Type2,  Size1> DeltaNormalMaster;
         
         // Ae
         Type3 Ae;
@@ -496,7 +496,7 @@ protected:
             LagrangeMultipliers = ZeroVector(TNumNodes);
             
             // The normals of the nodes
-            Normal_s = ZeroMatrix(TNumNodes, TDim);
+            NormalSlave = ZeroMatrix(TNumNodes, TDim);
             
             // Displacements and velocities of the slave            
             for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
@@ -519,7 +519,7 @@ protected:
                 DeltaN1[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
                 DeltaN2[i] = ZeroVector(TNumNodes);
                 DeltaN2[i + TNumNodes * TDim] = ZeroVector(TNumNodes);
-                Delta_Normal_s[i]      = ZeroMatrix(TNumNodes, TDim);
+                DeltaNormalSlave[i]      = ZeroMatrix(TNumNodes, TDim);
             }
         }
         
@@ -557,14 +557,14 @@ protected:
                 {
                     X2(iNode, iDof) = coord[iDof];
                     u2(iNode, iDof) = disp[iDof];
-                    Normal_m(iNode, iDof) = normal[iDof]; 
+                    NormalMaster(iNode, iDof) = normal[iDof]; 
                 }
             }
             
             // Derivative of master's normal
             for (unsigned int i = 0; i < TNumNodes * TDim; i++)
             {
-                Delta_Normal_m[i] = ZeroMatrix(TNumNodes, TDim);
+                DeltaNormalMaster[i] = ZeroMatrix(TNumNodes, TDim);
             }
         }
     };

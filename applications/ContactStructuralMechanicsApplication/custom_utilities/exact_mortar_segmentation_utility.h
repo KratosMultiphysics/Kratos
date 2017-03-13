@@ -690,7 +690,8 @@ private:
         )
     {             
         // We take the geometry GP from the core 
-        const double tol = 1.0e-4; 
+        const double Tolerance = 1.0e-4;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         double total_weight = 0.0;
         array_1d<double,2> coor_aux = ZeroVector(2);
@@ -710,7 +711,7 @@ private:
             
             ContactUtilities::ProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, aux_dist, -normal ); // The opposite direction
             
-            const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local );
+            const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
             
             if (inside == false)
             {
@@ -783,8 +784,7 @@ private:
             KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates: "<< coor_aux << std::endl;
         }
         
-        if (total_weight > tol)
-//             if (total_weight > 0.0)
+        if (total_weight > Tolerance)
         {
             // With the proportion of the weigth you recalculate the integration weight. Change the coordinates of the integration to accomodate
             const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
@@ -836,8 +836,8 @@ private:
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         
         // We define the tolerance
-        const double Tolerance = std::numeric_limits<double>::epsilon();;
-//         const double Tolerance = 1.0e-8;
+        const double Tolerance = 1.0e-8;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
@@ -856,7 +856,7 @@ private:
             
             GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
         
-            AllInside[i_node] = SlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal ) ;
+            AllInside[i_node] = SlaveGeometry.IsInside( MasterProjectedPoint[i_node].Coordinates( ), ProjectedGPLocal, Tolerance) ;
         }
         
         // We create the pointlist
@@ -1129,6 +1129,7 @@ private:
     {        
         // We define the tolerance
         const double Tolerance = 1.0e-8;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const Point<3> SlaveCenter = SlaveGeometry.Center();
