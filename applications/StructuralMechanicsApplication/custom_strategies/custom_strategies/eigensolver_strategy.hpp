@@ -128,14 +128,10 @@ public:
     /// Destructor.
     virtual ~EigensolverStrategy()
     {
-        KRATOS_TRY
-
         // Clear() controls order of deallocation to avoid invalid memory access
         // in some special cases.
         // warning: BaseType::GetModelPart() may be invalid here.
         this->Clear();
-
-        KRATOS_CATCH("")
     }
 
     ///@}
