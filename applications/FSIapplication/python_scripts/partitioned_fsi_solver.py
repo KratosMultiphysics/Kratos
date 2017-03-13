@@ -356,7 +356,11 @@ class PartitionedFSISolver:
             self.coupling_utility.InitializeNonLinearIteration()
 
             # Update the fluid interface according to the previous iteration
-            # If the correction is done over the velocity, the interface displacement must be done according the corrected velocity.
+            # If the correction is done over the velocity, the interface displacement must be done according the corrected velocity,
+            # stored in self.iteration_value. Note that this implies that the structure displacement is dropped, and that the interface
+            # position is given by the self.iteration_value associated displacement, which is computed using the Bossak formulaes.
+            # It is very impotant to note that the same time integration schemes have to be used in structure, fluid and mesh solvers
+            # to have perfect consistency when the mesh is moved.
             if self.correction_over_velocity == True:
                 self._ComputeCorrectedInterfacePosition()
 

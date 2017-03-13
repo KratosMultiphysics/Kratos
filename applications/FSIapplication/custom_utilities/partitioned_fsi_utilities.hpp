@@ -103,19 +103,30 @@ public:
     /**@name Public Operators*/
     /*@{ */
 
-    // Get the fluid interface number of nodes
+    /**
+     * This function computes the fluid interface residual size as the
+     * number of fluid interface nodes times the problem domain size.
+     * @return the fluid domain residual size
+     */
     unsigned int GetFluidInterfaceResidualSize()
     {
         return (mrFluidInterfaceModelPart.NumberOfNodes())*TDim;
     }
 
-    // Get the fluid interface number of nodes
+    /**
+     * This function computes the structure interface residual size as the
+     * number of structure interface nodes times the problem domain size.
+     * @return the structure domain residual size
+     */
     unsigned int GetStructureInterfaceResidualSize()
     {
         return (mrStructureInterfaceModelPart.NumberOfNodes())*TDim;
     }
 
-    // Returns the area of the fluid interface
+    /**
+     * This function returns the fluid interface length in 2D or the fluid interface area in 3D.
+     * @return the fluid interface length
+     */
     double GetFluidInterfaceArea()
     {
         double FluidInterfaceArea = 0.0;
@@ -134,7 +145,10 @@ public:
         return FluidInterfaceArea;
     }
 
-    // Returns the area of the structure interface
+    /**
+     * This function returns the structure interface length in 2D or the structure interface area in 3D.
+     * @return the structure interface length
+     */
     double GetStructureInterfaceArea()
     {
         double StructureInterfaceArea = 0.0;
@@ -153,7 +167,13 @@ public:
         return StructureInterfaceArea;
     }
 
-    // Set and fix a fluid interface vector variable
+    /**
+     * This function sets the variable data contained in a vector over the the
+     * fluid interface. The variable can be fixed or not.
+     * @param rVariable: variable to be set
+     * @param FixVariable: decide wether the variable is fixed or not
+     * @param rFluidInterfaceDataVector: vector containing the data values to be set
+     */
     void SetAndFixFluidInterfaceVectorVariable(const Variable<array_1d<double, 3 > >& rVariable,
                                                const bool FixVariable,
                                                const VectorType& rFluidInterfaceDataVector)
@@ -192,9 +212,16 @@ public:
         }
     }
 
-    // Compute fluid interface velocity residual vector and store its norm in the ProcessInfo.
-    // TODO: MPI parallelization
-    void ComputeFluidInterfaceVelocityResidual(VectorType& fluid_interface_residual)
+    /**
+     * This function computes the velocity residual vector over the fluid interface.
+     * The velocity residual is defined as the fluid velocity value minus the velocity
+     * value mapped from the structure (stored in the VECTOR_PROJECTED variable).
+     * The nodal values of the residual are stored in the FSI_INTERFACE_RESIDUAL variable.
+     * Besides, the norm of the residual vector is stored in the ProcessInfo using
+     * the FSI_INTERFACE_RESIDUAL_NORM variable.
+     * @param fluid_interface_residual: reference to the residual vector
+     */
+    void ComputeFluidInterfaceVelocityResidual(VectorType& fluid_interface_residual) // TODO: MPI parallelization
     {
         fluid_interface_residual = ZeroVector(this->GetFluidInterfaceResidualSize());
 
@@ -223,9 +250,15 @@ public:
 
     };
 
-    // Compute fluid interface mesh velocity residual norm and store its norm in the ProcessInfo.
-    // TODO: MPI parallelization
-    void ComputeFluidInterfaceMeshVelocityResidualNorm()
+    /**
+     * This function computes the mesh velocity residual over the fluid interface.
+     * The mesh velocity residual is defined as the fluid velocity value minus the
+     * mesh velocity value.
+     * The nodal values of the residual are stored in the FSI_INTERFACE_MESH_RESIDUAL variable.
+     * Besides, the norm of the mesh residual vector is stored in the ProcessInfo using
+     * the FSI_INTERFACE_MESH_RESIDUAL_NORM variable.
+     */
+    void ComputeFluidInterfaceMeshVelocityResidualNorm() // TODO: MPI parallelization
     {
 
         VectorType fluid_interface_mesh_residual = ZeroVector(this->GetFluidInterfaceResidualSize());
@@ -313,6 +346,13 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
+    /**
+     * This function computes the nodal error of a vector magnitude. The error is defined
+     * as OriginalVariable minus ModifiedVariable.
+     * @param rOriginalVariable: variable with the reference value
+     * @param rModifiedVariable: variable with the computed vvalue
+     * @param rErrorStorageVariable: variable to store the error nodal value
+     */
     void ComputeNodeByNodeResidual(const Variable<array_1d<double, 3 > >& rOriginalVariable,
                                    const Variable<array_1d<double, 3 > >& rModifiedVariable,
                                    const Variable<array_1d<double, 3 > >& rErrorStorageVariable)
@@ -333,6 +373,14 @@ private:
         }
     }
 
+    /**
+     * This function computes the nodal error of a vector magnitude in a consistent manner.
+     * The error is defined as the integral over the interface of a tests function times
+     * the difference between rOriginalVariable and rModifiedVariable. 
+     * @param rOriginalVariable: variable with the reference value
+     * @param rModifiedVariable: variable with the computed vvalue
+     * @param rErrorStorageVariable: variable to store the error nodal value
+     */
     void ComputeConsistentResidual(const Variable<array_1d<double, 3 > >& rOriginalVariable,
                                    const Variable<array_1d<double, 3 > >& rModifiedVariable,
                                    const Variable<array_1d<double, 3 > >& rErrorStorageVariable)
