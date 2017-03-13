@@ -34,6 +34,8 @@ from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTes
 from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
 from SmallTests import ALMHyperSimplePatchTestContact as TALMHyperSimplePatchTestContact
 from SmallTests import ALMSimplePatchTestContact as TALMSimplePatchTestContact
+from SmallTests import ALMSimplestPatchTestThreeDContact as TALMSimplestPatchTestThreeDContact
+from SmallTests import ALMSimplePatchTestThreeDContact as TALMSimplePatchTestThreeDContact
 
 ## NIGTHLY TESTS
 from NightlyTests import IroningTestContact as TIroningTestContact
@@ -81,6 +83,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMSimplestPatchTestThreeDContact('test_execution'))
+    smallSuite.addTest(TALMSimplePatchTestThreeDContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -118,6 +122,8 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
+            TALMSimplestPatchTestThreeDContact,
+            TALMSimplePatchTestThreeDContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,

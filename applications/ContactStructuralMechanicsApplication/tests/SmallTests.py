@@ -95,3 +95,9 @@ class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
     
 class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
+    
+class ALMSimplestPatchTestThreeDContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
+    
+class ALMSimplePatchTestThreeDContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/simple_patch_test_3D"
