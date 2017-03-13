@@ -89,4 +89,9 @@ class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
 
 class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_nonmatching_test"
+
+class ALMSimplePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/simple_patch_test"
     
+class ALMHyperSimplePatchTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
