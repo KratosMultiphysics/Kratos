@@ -1,5 +1,6 @@
-#ifndef EDGE_H
-#define EDGE_H
+#if !defined(KRATOS_EDGE_H_INCLUDED )
+#define  KRATOS_EDGE_H_INCLUDED
+
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -9,115 +10,90 @@
 #include <algorithm>
 #include <cmath>
 #include <math.h>
+#include <vector>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "FaceTrim.h"
+#include "../../kratos/includes/node.h"
+
+#include "nurbs_brep_application.h"
+#include "nurbs_brep_application_variables.h"
 
 // ==============================================================================
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-
- */
-
-class Edge : public IndexedObject, public Flags
-{
-public:
+  ///@name Kratos Globals
+  ///@{ 
+  ///@} 
   ///@name Type Definitions
-  ///@{
-  //typedef std::vector<double> DoubleVector;
-  // For matrix / vector operations
-  typedef std::vector<FaceTrim> FaceTrimVector;
-  typedef std::vector<Vector> ParameterVector;
-
+  ///@{ 
   ///@}
-
-  /// Pointer definition of Edge
-  //    KRATOS_CLASS_POINTER_DEFINITION[Edge];
-
-  /// Default constructor.
-  //TODO: make it "public IndexedObject, public Flags"
-  Edge(unsigned int edge_id, ParameterVector boundary_vertices, FaceTrimVector face_trims_vector)
-  : m_boundary_vertices(boundary_vertices),
-    m_face_trims_vector(face_trims_vector),
-    IndexedObject(edge_id),
-    Flags()
+  ///@name  Enum's
+  ///@{
+  ///@}
+  ///@name  Functions 
+  ///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
+  /// Short class definition.
+  /** Detail class definition.
+  */
+  class Edge : public IndexedObject, public Flags
   {
-    //m_n_u = m_knot_vector_u.size() - m_p - 1;
-  }
+  public:
+    ///@name Type Definitions
+    ///@{
 
-  /// Destructor.
-  virtual ~Edge()
-  {
-  }
-//TODO: you need to give reading access to your internals through the Calculate function
-  // ==============================================================================
-  /// Turn back information as a string.
-  virtual std::string Info() const
-  {
-    return "Edge";
-  }
+    typedef std::vector<FaceTrim> FaceTrimVector;
+    typedef std::vector<Vector> ParameterVector;
+    
+    /// Pointer definition of KratosNurbsTestcaseApplication
+    //KRATOS_CLASS_POINTER_DEFINITION(Edge);
 
-  // ==============================================================================
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream &rOStream) const
-  {
-    rOStream << "Edge";
-  }
-
-  // ==============================================================================
-  /// Print object's data.
-  virtual void PrintData(std::ostream &rOStream) const
-  {
-  }
+    ///@}
+    ///@name Life Cycle 
+    ///@{ 
 
 
-private:
-  // ==============================================================================
-  // Initialized by class constructor
-  // ==============================================================================
-  //unsigned int m_edge_id;
-  ParameterVector m_boundary_vertices;
-  FaceTrimVector m_face_trims_vector;
-  //unsigned int m_n_u; // number of control points in u-direction
-  //double m_epsilon = 1e-10; // Tolerance value
 
-  // ==============================================================================
-  // General working arrays
-  // ==============================================================================
-  /// Assignment operator.
-  //      Edge& operator=[Edge const& rOther];
+    //TODO: you need to give reading access to your internals through the Calculate function
+    /// Constructor.
+    Edge(unsigned int edge_id,
+      ParameterVector& boundary_vertices,
+      FaceTrimVector& face_trims_vector);
 
-  /// Copy constructor.
-  //      Edge[Edge const& rOther];
+    /// Destructor.
+    virtual ~Edge();
 
-}; // Class Edge
+    /// Copy constructor.
+    //Edge(Edge const& rOther);
 
-} // namespace Kratos.
+    /// Assignment operator.
+    //Edge& operator=(Edge const& rOther);
+    ///@} 
+  protected:
 
-#endif // EDGE_H
+  private:
+
+    ///@name Private methods
+    ///@{ 
+
+    ///@} 
+    ///@name Member Variables
+    ///@{ 
+
+    ParameterVector m_boundary_vertices;
+    FaceTrimVector m_face_trims_vector;
+
+    ///@}    
+
+  }; // Class Edge 
+
+}  // namespace Kratos.
+
+#endif // KRATOS_EDGE_H_INCLUDED  defined

@@ -45,6 +45,7 @@ namespace Kratos
     return boundary_polygon;
   }
 
+
   //TrimmingCurveVector& BoundaryLoop::GetTrimmingCurves()
   //{
   //  return m_trimming_curves;

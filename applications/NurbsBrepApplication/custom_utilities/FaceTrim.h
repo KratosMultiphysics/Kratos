@@ -1,5 +1,6 @@
-#ifndef FACE_TRIM_H
-#define FACE_TRIM_H
+#if !defined(KRATOS_FACE_TRIM_H_INCLUDED )
+#define  KRATOS_FACE_TRIM_H_INCLUDED
+
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -10,109 +11,75 @@
 #include <cmath>
 #include <math.h>
 
-// ------------------------------------------------------------------------------
-// Project includes
-// ------------------------------------------------------------------------------
-//#include "ControlPoint.h"
-//#include "b_spline_utilities.h"
-
-// ==============================================================================
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-
- */
-
-class FaceTrim
-{
-public:
+  ///@name Kratos Globals
+  ///@{ 
+  ///@} 
   ///@name Type Definitions
-  ///@{
-
-  // For matrix / vector operations
-  //typedef std::vector<double> Vector;
-  //typedef std::vector<std::vector<double>> ParameterVector;
-
+  ///@{ 
   ///@}
-
-  /// Pointer definition of Trim
-  //    KRATOS_CLASS_POINTER_DEFINITION[FaceTrim];
-
-  /// Default constructor.
-  FaceTrim(unsigned int face_id, unsigned int trim_index, bool relative_direction)
-  : m_face_id(face_id),
-    m_trim_index(trim_index),
-    m_relative_direction(relative_direction)
+  ///@name  Enum's
+  ///@{
+  ///@}
+  ///@name  Functions 
+  ///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
+  /// Short class definition.
+  /** Detail class definition.
+  */
+  class FaceTrim
   {
-  }
+  public:
+    ///@name Type Definitions
+    ///@{
 
-  /// Destructor.
-  virtual ~FaceTrim()
-  {
-  }
+    //typedef std::vector<TrimmingCurve> TrimmingCurveVector;
+    
+    /// Pointer definition of KratosNurbsBrepApplication
+    //KRATOS_CLASS_POINTER_DEFINITION(FaceTrim);
 
-  // ==============================================================================
-  /// Turn back information as a string.
-  virtual std::string Info() const
-  {
-    return "FaceTrim";
-  }
+    ///@}
+    ///@name Life Cycle 
+    ///@{ 
 
-  // ==============================================================================
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream &rOStream) const
-  {
-    rOStream << "FaceTrim";
-  }
+    /// Constructor.
+    FaceTrim(unsigned int face_id, 
+      unsigned int trim_index, 
+      bool relative_direction);
 
-  // ==============================================================================
-  /// Print object's data.
-  virtual void PrintData(std::ostream &rOStream) const
-  {
-  }
+    /// Destructor.
+    virtual ~FaceTrim();
+
+    /// Copy constructor.
+    //FaceTrim(FaceTrim const& rOther);
+
+    /// Assignment operator.
+    //FaceTrim& operator=(FaceTrim const& rOther);
+    ///@} 
+  protected:
+
+  private:
+    ///@name Member Variables
+    ///@{ 
+    unsigned int m_face_id;
+    unsigned int m_trim_index;
+    bool m_relative_direction;
+    ///@}    
+     
+    ///@name Un accessible methods 
+    ///@{ 
 
 
-private:
-  // ==============================================================================
-  // Initialized by class constructor
-  // ==============================================================================
-  unsigned int m_face_id;
-  unsigned int m_trim_index;
-  bool m_relative_direction;
 
-  // ==============================================================================
-  // General working arrays
-  // ==============================================================================
-  /// Assignment operator.
-  //      FaceTrim& operator=[FaceTrim const& rOther];
+    ///@}    
 
-  /// Copy constructor.
-  //      FaceTrim[FaceTrim const& rOther];
+  }; // Class FaceTrim 
 
-}; // Class FaceTrim
+}  // namespace Kratos.
 
-} // namespace Kratos.
-
-#endif // FACE_TRIM_H
+#endif // KRATOS_FACE_TRIM_H_INCLUDED  defined

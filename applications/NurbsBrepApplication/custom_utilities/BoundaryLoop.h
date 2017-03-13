@@ -1,5 +1,5 @@
-#if !defined(KRATOS_BREP_MODEL_GEOMETRY_READER_H_INCLUDED )
-#define  KRATOS_BREP_MODEL_GEOMETRY_READER_H_INCLUDED
+#if !defined(KRATOS_BOUNDARY_LOOP_H_INCLUDED )
+#define  KRATOS_BOUNDARY_LOOP_H_INCLUDED
 
 
 
@@ -11,14 +11,6 @@
 #include <algorithm>
 #include <cmath>
 #include <math.h>
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-//#include <boost/python.hpp>
-//#include <boost/numeric/ublas/matrix.hpp>
-//#include <boost/numeric/ublas/vector.hpp>
-//#include <boost/numeric/ublas/io.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -54,7 +46,7 @@ namespace Kratos
 
     typedef std::vector<TrimmingCurve> TrimmingCurveVector;
     
-    /// Pointer definition of KratosNurbsTestcaseApplication
+    /// Pointer definition of KratosNurbsBrepApplication
     KRATOS_CLASS_POINTER_DEFINITION(BoundaryLoop);
 
     ///@}
@@ -63,7 +55,7 @@ namespace Kratos
 
     //TrimmingCurveVector& GetTrimmingCurves();
     bool& IsOuterLoop();
-    std::vector<array_1d<double, 2>> BoundaryLoop::GetBoundaryPolygon();
+    std::vector<array_1d<double, 2>> GetBoundaryPolygon();
 
     /// Constructor.
     BoundaryLoop(TrimmingCurveVector& trimming_curves, bool is_outer_loop);
@@ -98,4 +90,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BOUNDARY_LOOP_APPLICATION_H_INCLUDED  defined
+#endif // KRATOS_BOUNDARY_LOOP_H_INCLUDED  defined
