@@ -548,63 +548,6 @@ public:
         return rResult;
     }
 
-    /** Determinant of jacobians for given integration method. This
-     * method calculate determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
-    {
-        BaseType::DeterminantOfJacobian(rResult, ThisMethod);
-        return rResult;
-    }
-
-    /** Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        return BaseType::DeterminantOfJacobian(IntegrationPointIndex, ThisMethod);
-    }
-
-    /** Determinant of jacobian in given point. This method calculate determinant of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
-    {
-        return BaseType::DeterminantOfJacobian(rPoint);
-    }
-
     /** Inverse of jacobians for given integration method. This method
      * calculate inverse of jacobians matrices in all integrations points of
      * given integration method.

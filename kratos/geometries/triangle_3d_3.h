@@ -917,9 +917,11 @@ public:
             rResult.resize(integration_points_number,false);
         }
 
+        const double detJ = 2.0*(this->Area());
+
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt] = 2.0*(this->Area());
+            rResult[pnt] = detJ;
         }
         return rResult;
     }

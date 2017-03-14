@@ -510,9 +510,11 @@ public:
             rResult.resize(integration_points_number,false);
         }
 
+        const double detJ = 0.5*(this->Length());
+
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt] = 0.5*(this->Length());
+            rResult[pnt] = detJ;
         }
         return rResult;
     }
