@@ -47,20 +47,13 @@ public:
     // Destructor
     virtual ~SolidFace3D();
 
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize();
-    virtual void CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info );
-		
-    void CalculateNormal(array_1d<double, 3>& rnormal);
-    void FinalizeSolutionStep(ProcessInfo& r_process_info);
-    
-    void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
+    void Initialize() override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;		
+    void CalculateNormal(array_1d<double, 3>& rnormal) override;
+    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;    
+    void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode) override;
 
 protected:
   
@@ -68,12 +61,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DEMWall );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DEMWall );
     }

@@ -1375,7 +1375,7 @@ public:
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             this->Jacobian( J, pnt, ThisMethod);
-            rResult[pnt] = MathUtils<double>::Det(J);
+            rResult[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
         return rResult;
     }
