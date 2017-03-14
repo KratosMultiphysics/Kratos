@@ -122,7 +122,7 @@ def AssambleTestSuites():
             TThreeDPatchNonMatchingTestContact,
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
-            #TALMSimplestPatchTestThreeDContact,
+            TALMSimplestPatchTestThreeDContact,
             TALMSimplePatchTestThreeDContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
