@@ -473,7 +473,7 @@ public:
     ElementType& GetElement(IndexType ElementId)
     {
         auto i = mpElements->find(ElementId);
-	KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
         return *i;
     }
 
@@ -564,7 +564,7 @@ public:
     typename ConditionType::Pointer pGetCondition(IndexType ConditionId)
     {
         auto i = mpConditions->find(ConditionId);
-	KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
         return *i.base();
     }
 
@@ -572,7 +572,7 @@ public:
     ConditionType& GetCondition(IndexType ConditionId)
     {
         auto i = mpConditions->find(ConditionId);
-	KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
         return *i;
     }
 
