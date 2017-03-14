@@ -22,11 +22,11 @@ namespace Kratos {
 
         //void Initialize(const ProcessInfo& r_process_info);
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
         
-        double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
+        double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) override;
             
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;  
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;  
 
     }; //class DEM_D_Linear_confined
 

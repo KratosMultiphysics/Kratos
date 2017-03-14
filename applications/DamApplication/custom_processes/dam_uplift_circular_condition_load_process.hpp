@@ -149,7 +149,7 @@ public:
             radius_comp_1 = 0;
             radius_comp_2 = 2;
         }
-        else if( mgravity_direction == "Z")
+        else
         {
             direction = 3;
             radius_comp_1 = 0;
@@ -288,7 +288,7 @@ public:
             radius_comp_1 = 0;
             radius_comp_2 = 2;
         }
-        else if( mgravity_direction == "Z")
+        else
         {
             direction = 3;
             radius_comp_1 = 0;

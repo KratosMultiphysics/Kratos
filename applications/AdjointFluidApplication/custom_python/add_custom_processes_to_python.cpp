@@ -21,7 +21,6 @@
 #include "processes/process.h"
 #include "custom_processes/output_primal_solution_process.h"
 #include "custom_processes/input_primal_solution_process.h"
-#include "custom_processes/calculate_bossak_drag_sensitivity_process.h"
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -40,10 +39,6 @@ void AddCustomProcessesToPython()
 
     class_< InputPrimalSolutionProcess, bases<Process> >
     ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
-    ;
-
-    class_< CalculateBossakDragSensitivityProcess, bases<Process> >
-    ("CalculateBossakDragSensitivityProcess", init<ModelPart&, Parameters&>())
     ;
 }
 

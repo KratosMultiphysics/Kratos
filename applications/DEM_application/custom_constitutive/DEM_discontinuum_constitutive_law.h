@@ -54,18 +54,6 @@ namespace Kratos {
                 SphericParticle* element1,
                 SphericParticle* element2);
 
-
-        virtual void CalculateForces(const ProcessInfo& r_process_info,
-                                     double LocalElasticContactForce[3],
-                                     double LocalDeltDisp[3],
-                                     double kn_el,
-                                     double kt_el,
-                                     double indentation,
-                                     double& failure_criterion_state,
-                                     bool& sliding,
-                                     SphericParticle* element1,
-                                     SphericParticle* element2,
-                                     int& mNeighbourFailureId_count);
         
         virtual void CalculateElasticEnergy(double& normal_elastic_energy,
                                                                 double indentation,
@@ -73,19 +61,7 @@ namespace Kratos {
                                                                 SphericParticle* element1,
                                                                 SphericParticle* element2);
 
-
-        virtual void CalculateNormalForceLinear(double LocalElasticContactForce[3], const double kn_el, const double indentation);
-        virtual void CalculateTangentialForceLinear(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                const double kt_el,
-                const double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count);
         
-        virtual void CalculateNormalForceHertz(double LocalElasticContactForce[3], const double kn_el, const double indentation);
         virtual void CalculateViscoDamping(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
                 double indentation,
@@ -133,29 +109,9 @@ namespace Kratos {
                 
         virtual double CalculateNormalForce(const double indentation);
         virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
-        virtual double CalculateNormalForce(SphericParticle* const element, DEMWall* const wall, const double indentation);
-            
-        virtual void CalculateTangentialForce(const double normal_force,
-                                            double LocalElasticContactForce[3],
-                                            const double LocalDeltDisp[3],
-                                            bool& sliding,
-                                            SphericParticle * const element1,
-                                            SphericParticle * const element2);
-        virtual void CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
-                                                    double LocalElasticContactForce[3],
-                                                    const double LocalDeltDisp[3],            
-                                                    bool& sliding,
-                                                    SphericParticle* const element,
-                                                    DEMWall* const wall,
-                                                    double indentation,
-                                                    double previous_indentation);
-        
+        virtual double CalculateNormalForce(SphericParticle* const element, DEMWall* const wall, const double indentation); 
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
-        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
-
-        virtual void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle * const element1, SphericParticle * const element2);                                                
-        virtual void CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall);
-        
+        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);       
         virtual double LocalPeriod(const int i, SphericParticle* element1,SphericParticle* element2);
 
 
@@ -163,13 +119,13 @@ namespace Kratos {
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.save("MyMemberName",myMember);
 
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.load("MyMemberName",myMember);
         }

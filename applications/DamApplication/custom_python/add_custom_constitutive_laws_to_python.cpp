@@ -54,9 +54,7 @@ using namespace boost::python;
 void  AddCustomConstitutiveLawsToPython()
 {
     class_< ThermalLinearElastic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic3DLaw",init<>() );
-
     class_< ThermalLinearElastic2DPlaneStrain, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStrain",init<>() );
-
     class_< ThermalLinearElastic2DPlaneStress, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalLinearElastic2DPlaneStress",init<>() );
 
     class_< ThermalSimoJuLocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ThermalSimoJuLocalDamage3DLaw",init<>() );
