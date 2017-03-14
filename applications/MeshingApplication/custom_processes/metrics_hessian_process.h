@@ -145,7 +145,7 @@ public:
             
             if ( itNode->SolutionStepsDataHas( mVariable ) == false )
             {
-                KRATOS_THROW_ERROR( std::invalid_argument, "Missing variable on node ", itNode->Id() )
+                KRATOS_ERROR << "Missing variable on node " << itNode->Id() << std::endl;
             }
             
             const double distance = itNode->FastGetSolutionStepValue(DISTANCE, 0); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
@@ -325,7 +325,7 @@ private:
         // We first transform into a matrix
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(hessian);
         
-        MetricsMathUtils<TDim>::EigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
+        MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
         
         // Recalculate the metric eigen values
         for (unsigned int i = 0; i < TDim; i++)
@@ -473,7 +473,7 @@ private:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "WARNING: YOU CAN USE JUST 2D TRIANGLES OR 3D TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: ", geom.size() );
+                KRATOS_ERROR << "WARNING: YOU CAN USE JUST 2D TRIANGLES OR 3D TETRAEDRA RIGHT NOW IN THE GEOMETRY UTILS: " << geom.size() << std::endl;
             }
         }
             
@@ -487,8 +487,8 @@ private:
     
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string
-     * @param Interpolation: The equivalent enum
+     * @param str: The string that you want to comvert in the equivalent enum
+     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
     Interpolation ConvertInter(const std::string& str)

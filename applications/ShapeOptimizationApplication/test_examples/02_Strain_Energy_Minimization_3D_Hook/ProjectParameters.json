@@ -25,51 +25,55 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
-            "scaling"     : true,
-            "verbosity"   : 0
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_disp","PointLoad3D_load"],
+        "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
         "rotation_dofs"                      : false
     },
     "mesh_solver_settings"                  : {
             "solver_type": "mesh_solver_structural_similarity",
                 "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "3D_Hook"
+                "input_filename" : "hook_improved"
             },
             "time_order"                 : 2,
             "mesh_reform_dofs_each_step" : false,
             "mesh_compute_reactions"     : true
     },    
     "constraints_process_list" : [{
-        "python_module" : "impose_vector_value_by_components_process",
+        "python_module"   : "impose_vector_value_by_components_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "ImposeVectorValueByComponentsProcess",
-        "Parameters"    : {
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_disp",
+            "model_part_name" : "support",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : true,
             "is_fixed_y"      : true,
-            "is_fixed_z"      : true,            
-            "value"           : [0.0,0.0,0.0]
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]            
         }
     }],
     "loads_process_list"       : [{
-        "python_module" : "process_factory",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "ApplyConstantVectorValueProcess",
-        "Parameters"    : {
+        "python_module"   : "apply_scalar_on_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"                  : "This process sets a scalar variable value over a condition",
+        "process_name"          : "ApplyScalarOnConditionsProcess",
+        "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_load",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1000,
-            "direction"       : [0.0,0.0,-1.0]
+            "model_part_name" : "SurfacePressure3D_load",
+            "variable_name"   : "NEGATIVE_FACE_PRESSURE",
+            "value"           : 1000
         }
     }],
     "output_configuration"     : {

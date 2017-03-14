@@ -200,7 +200,7 @@ class DEMEnergyCalculator(object):
         self.calculate_option = False
         
         if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-            if (DEM_parameters.EnergyCalculationOption):
+            if (DEM_parameters.EnergyCalculationOption): #TODO: add Var_translator here
                 self.calculate_option = True
                 self.DEM_parameters = DEM_parameters
                 self.SpheresModelPart = spheres_model_part;
@@ -309,22 +309,25 @@ class Procedures(object):
             sys.exit("\nExecution was aborted.\n")
         return scheme
         
-    def AddAllVariablesInAllModelParts(self, solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters):
+    def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
+        
+        spheres_model_part = all_model_parts.spheres_model_part
+        cluster_model_part = all_model_parts.cluster_model_part
+        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
+        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        
         self.solver=solver
         self.scheme=scheme
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
         self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-        #self.scheme.AddSpheresVariables(spheres_model_part)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        #self.scheme.AddClustersVariables(cluster_model_part)
         self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
         self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
         self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
-        #self.scheme.AddSpheresVariables(DEM_inlet_model_part)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -884,13 +887,23 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         evaluate_computation_of_fem_results()
         
-    def MoveAllMeshes(self, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt):
+    def MoveAllMeshes(self, all_model_parts, time, dt):
+        
+        spheres_model_part = all_model_parts.spheres_model_part
+        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
+        rigid_face_model_part = all_model_parts.rigid_face_model_part
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
     
-    def UpdateTimeInModelParts(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step):       
+    def UpdateTimeInModelParts(self, all_model_parts, time,dt,step):  
+        
+        spheres_model_part = all_model_parts.spheres_model_part
+        cluster_model_part = all_model_parts.cluster_model_part
+        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
+        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        
         spheres_model_part.ProcessInfo[TIME]          = time
         spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
         spheres_model_part.ProcessInfo[TIME_STEPS]    = step
@@ -902,6 +915,10 @@ class DEMFEMProcedures(object):
         cluster_model_part.ProcessInfo[TIME]          = time
         cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
         cluster_model_part.ProcessInfo[TIME_STEPS]    = step  
+        
+        DEM_inlet_model_part.ProcessInfo[TIME]          = time
+        DEM_inlet_model_part.ProcessInfo[DELTA_TIME]    = dt
+        DEM_inlet_model_part.ProcessInfo[TIME_STEPS]    = step
 
     def close_graph_files(self, RigidFace_model_part):
         
@@ -1600,7 +1617,15 @@ class DEMIo(object):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
-    def PrintResults(self, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
+    def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
+        
+        spheres_model_part = all_model_parts.spheres_model_part
+        cluster_model_part = all_model_parts.cluster_model_part
+        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
+        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        contact_model_part = all_model_parts.contact_model_part
+        mapping_model_part = all_model_parts.mapping_model_part
+        
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(spheres_model_part,
                                    rigid_face_model_part,

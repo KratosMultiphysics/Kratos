@@ -26,6 +26,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_mat_deriv_simplex_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_component_gradient_simplex_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_gradient_Pouliot_2012.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_gradient_Pouliot_2012_edge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian_component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/calculate_velocity_laplacian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
@@ -44,9 +45,11 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/velocity_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/cellular_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/ethier_flow_field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/pouliot_flow_field.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/sets/space_time_set.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery_meshing_tools.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/field_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fields/fluid_field_utility.cpp
 )

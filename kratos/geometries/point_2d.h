@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_POINT_2D_H_INCLUDED )
@@ -155,8 +163,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( BaseType::PointsNumber() != 1)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                         "Invalid points number. Expected 2, given " , BaseType::PointsNumber());
+            KRATOS_ERROR << "Invalid points number. Expected 2, given " << BaseType::PointsNumber() << std::endl;
     }
 
     /** Copy constructor.
@@ -514,19 +521,18 @@ public:
     ///@name Shape Function
     ///@{
 
-    //  virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex,
-    //                                        const CoordinatesArrayType& rPoint) const
-    // {
-    //	    KRATOS_THROW_ERROR(std::logic_error,
-    //  "This method is not implemented yet!" , *this);
-    //   return 0;
-    //      }
+//      virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex,
+//                                            const CoordinatesArrayType& rPoint) const
+//     {
+//     	    KRATOS_ERROR << "This method is not implemented yet!" << *this <<  std::endl;
+//       return 0;
+//          }
 
 
 
     //      virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
     //	{
-    //		  KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
+    //		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
     //	}
 
 

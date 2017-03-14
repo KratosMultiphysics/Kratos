@@ -101,10 +101,8 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
 
     def Solve(self):
 
-        ## Stepping and time settings
-        Dt = self.ProjectParameters["fluid_solver_settings"]["problem_data"]["time_step"].GetDouble()
+        ## Time settings
         end_time = self.ProjectParameters["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
-
         time = 0.0
         step = 0
         out = 0.0
@@ -118,27 +116,9 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
 
         while(time <= end_time):
 
+            Dt = (self.solver).ComputeDeltaTime()
             time = time + Dt
             step = step + 1
-
-            # Custom velocity profile for Mok benchmark
-            # Note that this is not the original time variation. A linear one has been set to avoid to import Numpy.
-            if time <=10.0:
-                v_bar = 0.06067*(time/10.0)
-            elif time>10.0:
-                v_bar = 0.06067
-
-            for node in self.solver.fluid_solver.main_model_part.GetSubModelPart("Inlet2D_Inlet").Nodes:
-
-                vel = Vector(3)
-                vel[0] = 4*v_bar*node.Y*(1-node.Y)
-                vel[1] = 0.0
-                vel[2] = 0.0
-
-                node.SetSolutionStepValue(VELOCITY,0,vel)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                node.Fix(VELOCITY_Z)
 
             self.solver.SetTimeStep(step)
 
@@ -152,7 +132,7 @@ class KratosExecuteMokBenchmark(KratosUnittest.TestCase):
                 self.gid_output_structure.ExecuteInitializeSolutionStep()
                 self.gid_output_fluid.ExecuteInitializeSolutionStep()
 
-            self.solver.Solve()
+            (self.solver).Solve()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()

@@ -38,10 +38,10 @@ _Kratos_ is **FINITE ELEMENT METHOD** (**FEM**) based. Many problems in engineer
 
 _Kratos_ is **OBJECT ORIENTED**. An integration of disciplines, in the physical as well as in the mathematical sense, suggests the use of the modern object oriented philosophy from the computational point of view. The modular design, hierarchy and abstraction of these approaches fits to the generality, flexibility and reusability required for the current and future challenges in numerical methods.
 
-![](http://kratos-wiki.cimne.upc.edu/images/a/af/Oop.jpg)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Oop.jpg)
 
 _Kratos_ is **OPEN SOURCE**. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The **[BSD](https://github.com/KratosMultiphysics/Kratos/wiki/_new)** (**Berkeley Software Distribution**) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
-![](http://kratos-wiki.cimne.upc.edu/images/9/9f/Manos.jpg)
+![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Manos.jpg)
 
 _Kratos_ is **FREE** because is devoted mainly to developers, researchers and students and, therefore, is the most fruitful way to share knowledge and built a robust numerical methods laboratory adapted to their users' needs. Free because you have the freedom to modify and distribute the software. The one thing you're not able to do with free software is take away other people's freedom. Please, read the license for more detailed information.

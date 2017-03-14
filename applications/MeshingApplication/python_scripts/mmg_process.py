@@ -30,6 +30,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
             },
+            "framework"                            : "Eulerian",
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
                 "interpolation_error"              : 0.04,
@@ -136,6 +137,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.interpolation = self.params["anisotropy_parameters"]["interpolation"].GetString()
 
         self.initial_step = self.params["initial_step"].GetInt()
+        self.framework = self.params["framework"].GetString()
         self.step_frequency = self.params["step_frequency"].GetInt()
         self.save_external_files = self.params["save_external_files"].GetBool()
         self.max_number_of_searchs = self.params["max_number_of_searchs"].GetInt()
@@ -156,9 +158,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self._CreateMetricsProcess()
 
         if (self.dim == 2):
-            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility2D(self.Model[self.model_part_name], self.output_file_name, self.echo_level, self.framework)
         else:
-            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.output_file_name, self.echo_level)
+            self.MmgUtility = MeshingApplication.MmgUtility3D(self.Model[self.model_part_name], self.output_file_name, self.echo_level, self.framework)
 
         if (self.initial_remeshing == True):
             self._ExecuteRefinement()

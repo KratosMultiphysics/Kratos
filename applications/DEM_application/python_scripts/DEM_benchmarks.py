@@ -134,7 +134,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         #solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, contact_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
         solver = SolverStrategy.ExplicitStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
-        procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
+        procedures.AddAllVariablesInAllModelParts(solver, scheme, all_model_parts, DEM_parameters)
 
         os.chdir(main_path)
         DEM_parameters.problem_name = 'benchmark' + str(benchmark_number)
@@ -264,7 +264,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             time = time + dt
             step += 1
 
-            DEMFEMProcedures.UpdateTimeInModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step) 
+            DEMFEMProcedures.UpdateTimeInModelParts(all_model_parts, time,dt,step) 
 
             benchmark.ApplyNodalRotation(time, dt, spheres_model_part)            
     
@@ -272,7 +272,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             solver.Solve()
             ####################################################
             
-            DEMFEMProcedures.MoveAllMeshes(rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt)
+            DEMFEMProcedures.MoveAllMeshes(all_model_parts, time, dt)
        
             ##### adding DEM elements by the inlet ######
             if (DEM_parameters.dem_inlet_option):
@@ -317,7 +317,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+                demio.PrintResults(all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
                 os.chdir(main_path)
 
                 time_old_print = time

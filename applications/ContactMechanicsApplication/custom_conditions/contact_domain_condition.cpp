@@ -454,7 +454,7 @@ void ContactDomainCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
 
 void ContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
 {
-  //0.- Clear nodal contact forces
+  //Clear nodal contact forces
   ClearNodalForces();
 
   CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
@@ -462,42 +462,28 @@ void ContactDomainCondition::InitializeNonLinearIteration( ProcessInfo& CurrentP
   CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
 }
+
+
+////************************************************************************************
+////************************************************************************************
+
+void ContactDomainCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+{
+  //Calculte nodal contact forces
+  CalculateNodalForces(CurrentProcessInfo);
+  
+  //some other elements must need to know the nodal CONTACT_FORCE ie. Thermal Contact Element
+  
+}
+
+  
 //************************************************************************************
 //************************************************************************************
 
 void ContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
   KRATOS_TRY
-
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-
-  //--------------
-  
-  //set contact forces to nodes
-
-  //create local system components
-  LocalSystemComponents LocalSystem;
-
-  //calculation flags
-  LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
-  LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_NODAL_CONTACT_FORCES);
-  MatrixType LeftHandSideMatrix = Matrix();
-  VectorType RightHandSideVector = Vector();
-  
-  //Initialize sizes for the system components:
-  this->InitializeSystemMatrices( LeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
-
-  //Set Variables to Local system components
-  LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-  LocalSystem.SetRightHandSideVector(RightHandSideVector);
-
-  //Calculate condition system
-  this->CalculateConditionSystem( LocalSystem, CurrentProcessInfo );
-
-  //-------------
-  
+    
   //Store historical variables
   MeshDataTransferUtilities::TransferParameters TransferVariables;
   TransferVariables.SetVariable(CAUCHY_STRESS_VECTOR);
@@ -535,6 +521,42 @@ void ContactDomainCondition::ClearNodalForces()
     KRATOS_CATCH( "" )
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainCondition::CalculateNodalForces(ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_TRY
+   
+    //--------------
+  
+    //set contact forces to nodes
+    
+    //create local system components
+    LocalSystemComponents LocalSystem;
+    
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_NODAL_CONTACT_FORCES);
+    MatrixType LeftHandSideMatrix = Matrix();
+    VectorType RightHandSideVector = Vector();
+    
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( LeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+    
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, CurrentProcessInfo );
+    
+
+    KRATOS_CATCH( "" )
+}
+
+  
 
 //***********************************************************************************
 //***********************************************************************************
