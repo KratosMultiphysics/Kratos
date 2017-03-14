@@ -85,9 +85,9 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.T
                     EigenMatrix = node.GetValue(self.eigenvectorvariable)
                     # NOTE: The DoF stored include the velocity and acceleration, solve this in the future
                     dof_values = KratosMultiphysics.Vector(3)
-                    dof_values[0] = math.cos(angle) * EigenMatrix[count, 3]
-                    dof_values[1] = math.cos(angle) * EigenMatrix[count, 4]
-                    dof_values[2] = math.cos(angle) * EigenMatrix[count, 5]
+                    dof_values[0] = math.cos(angle) * EigenMatrix[count, 0]
+                    dof_values[1] = math.cos(angle) * EigenMatrix[count, 1]
+                    dof_values[2] = math.cos(angle) * EigenMatrix[count, 2]
                     node.SetSolutionStepValue(self.dof_variable_name, 0, dof_values) 
                 
                 gid_io.WriteNodalResults(self.dof_variable_name, self.model_part.Nodes, label, 0)
