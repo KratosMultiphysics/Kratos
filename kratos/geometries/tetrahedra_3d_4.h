@@ -693,7 +693,7 @@ public:
      *
      * @return [description]
      */
-    virtual double VolumeToAverageEdgeLength() const {
+    virtual double VolumeToAverageEdgeLength() const override {
       constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
       return normFactor * Volume() / std::pow(AverageEdgeLength(), 3);
