@@ -262,7 +262,6 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class element Clone "<<std::endl;
         return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
