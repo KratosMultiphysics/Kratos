@@ -58,8 +58,8 @@ memory = [[(m + 1 + 5 * 2 ** k) * bytes_per_vector for k in range(n_doubling)] f
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 font_size = 60
-ax.tick_params(axis='x', labelsize=0.75 * font_size)
-ax.tick_params(axis='y', labelsize=0.75 * font_size)
+ax.tick_params(axis='x', labelsize=0.5 * font_size)
+ax.tick_params(axis='y', labelsize=0.5 * font_size)
 ax.tick_params(axis='both', which='major', pad=20)
 fig.tight_layout()
 m = 0
@@ -70,12 +70,16 @@ for line in reversed(E):
     else:
         plt.plot(memory[10-m], line, '-o', label='m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
     m += 1
-plt.xlabel('$\mathrm{bytes}$', fontsize = font_size)
-plt.ylabel('$E$', fontsize = font_size)
-plt.legend(prop={'size':30}, bbox_to_anchor=(1.12,1.12))
+plt.xlabel('$\mathrm{bytes}$', fontsize = 0.75 * font_size)
+plt.ylabel('$E(100)$', fontsize = 0.75 * font_size)
+plt.legend(prop={'size':20}, bbox_to_anchor=(1.09,1.08))
 plt.semilogy()
+figure = plt.gcf() # get current figure
+figure.set_size_inches(14, 11)
 
-plt.savefig('EvsMemory.pdf', dpi = 600)
+tag_zoom = ''
+if zoom_in:
+    tag_zoom += 'Zoom'
+plt.savefig('EvsMemory' + tag_zoom + '.pdf', dpi = 1000)
 #plt.tight_layout()
 plt.show()
-

@@ -231,7 +231,7 @@ protected:
         {
             for (auto itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); itNode++)
             {
-                const double h = itNode->GetValue(NODAL_H);
+                const double h = itNode->FastGetSolutionStepValue(NODAL_H);
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
                 tol_d = factor*h;
 

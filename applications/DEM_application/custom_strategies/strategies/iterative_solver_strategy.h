@@ -54,7 +54,7 @@ namespace Kratos
       }
 
 
-      virtual void Initialize()
+      virtual void Initialize() override
       {
 
         KRATOS_TRY
@@ -91,7 +91,7 @@ namespace Kratos
         //BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2);
       }
 
-      virtual double Solve()
+      virtual double Solve() override
       {
 
         KRATOS_TRY

@@ -42,7 +42,7 @@ namespace Kratos
          Timer::PrintTimingInformation();
       }
 
-      void Initialize()
+      void Initialize() override
       {
 
         KRATOS_TRY
@@ -55,7 +55,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      double Solve()
+      double Solve() override
       {
           KRATOS_TRY
           ModelPart& r_model_part = this->GetModelPart();

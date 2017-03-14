@@ -80,13 +80,12 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
                                                                             self.settings["maximum_iterations"].GetInt(),
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["MoveMeshFlag"].GetBool())
+                                                                            self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic solver initialization finished.")
