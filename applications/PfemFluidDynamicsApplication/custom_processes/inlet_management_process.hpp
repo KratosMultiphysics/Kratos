@@ -240,9 +240,9 @@ private:
     KRATOS_TRY
       std::cout<<" RECOGNIZE INLET NODES "<<std::endl;
     const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
-    double maxSeparation=0.75*mrRemesh.Refine->CriticalRadius;
+    double maxSeparation=mrRemesh.Refine->CriticalRadius;
     if(dimension==3)
-      maxSeparation=0.75*mrRemesh.Refine->CriticalRadius;
+      maxSeparation=mrRemesh.Refine->CriticalRadius;
 
     int count=0;
     // std::cout<<" maxSeparation "<<maxSeparation<<std::endl;
