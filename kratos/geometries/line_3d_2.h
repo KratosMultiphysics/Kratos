@@ -314,9 +314,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -354,9 +354,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -409,9 +409,9 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -496,8 +496,18 @@ public:
     */
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        rResult = ZeroVector( 1 );
-        rResult[0] = 0.5 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        const double detJ = 0.5*(this->Length());
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = detJ;
+        }
         return rResult;
     }
 
@@ -521,7 +531,7 @@ public:
     */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
+        return 0.5*(this->Length());
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -538,7 +548,7 @@ public:
     */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
+        return 0.5*(this->Length());
     }
 
 
@@ -646,10 +656,10 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult = ZeroMatrix( 2, 1 ); 
+        rResult = ZeroMatrix( 2, 1 );
         rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5; 
-        return( rResult ); 
+        rResult( 1, 0 ) =  0.5;
+        return( rResult );
     }
 
 
@@ -922,5 +932,4 @@ const GeometryData Line3D2<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined
