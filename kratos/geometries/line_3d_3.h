@@ -274,7 +274,7 @@ public:
 
         return p_clone;
     }
-    
+
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
@@ -309,9 +309,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -349,9 +349,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -579,33 +579,6 @@ public:
      * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
      * i \f$ is the given integration point index of given
      * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
-
-    /** Determinant of jacobian in given point. This method calculate determinant of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
 
     /** Inverse of jacobians for given integration method. This method
      * calculate inverse of jacobians matrices in all integrations points of
@@ -697,7 +670,7 @@ public:
             return( 0.5*( rPoint[0] + 1.0 )*rPoint[0] );
         case 2:
 	    return( 1.0 -rPoint[0]*rPoint[0] );
-            
+
         default:
             KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
@@ -1096,5 +1069,4 @@ const GeometryData Line3D3<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_3D_3_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_3D_3_H_INCLUDED  defined
