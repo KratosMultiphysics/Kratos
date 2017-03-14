@@ -809,7 +809,7 @@ private:
         if ((AllInside[0] == false) &&
             (AllInside[1] == false) &&
             (AllInside[2] == false))
-        {
+        {            
             // We check if all the nodes are inside the master element
             array_1d<Point<3>, 3> SlaveProjectedPoint;
             
@@ -861,6 +861,21 @@ private:
                 
                 IntegrationPointsSlave.resize(LocalIntegrationSize, false);
                 
+                // Debug
+                Point<3> aux1;
+                aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
+                RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                Point<3> aux2;
+                aux2.Coordinates() = MasterProjectedPoint[1].Coordinates();
+                RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                Point<3> aux3;
+                aux3.Coordinates() = MasterProjectedPoint[2].Coordinates();
+                RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                
+                std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                
                 // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                 for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                 {                    
@@ -895,7 +910,7 @@ private:
             // Before clipping we rotate to a XY plane
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+                RotatePoint(       SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
                 RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
                 
                 if (AllInside[i_node] == true)
@@ -1032,6 +1047,21 @@ private:
 
                     if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
                     {
+                        // Debug
+                        Point<3> aux1;
+                        aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
+                        RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                        
+                        Point<3> aux2;
+                        aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
+                        RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                        
+                        Point<3> aux3;
+                        aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
+                        RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                        
+                        std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                            
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                         {                    
@@ -1261,7 +1291,7 @@ private:
 //                     Point<3> aux3;
 //                     aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
 //                     RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
+//                     
 //                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
                     
                     // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
@@ -1463,7 +1493,7 @@ private:
 //                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
 //                         std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-                        
+//                         
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                         {                            

@@ -779,19 +779,19 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
     )
 {       
     /* LOCAL COORDINATES */
-    const PointType& local_point = IntegrationPointsSlave[rPointNumber].Coordinates();
+    const PointType& LocalPoint = IntegrationPointsSlave[rPointNumber].Coordinates();
        
     /// SLAVE CONDITION ///
-    GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
+    GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, LocalPoint.Coordinates() );
     rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
 //     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, local_point);
+    this->MasterShapeFunctionValue( rVariables, LocalPoint);
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    GetGeometry( ).Jacobian( rVariables.j_Slave, local_point.Coordinates() );
-    rVariables.DetJSlave = ContactUtilities::ContactElementDetJacobian( rVariables.j_Slave );
+    GetGeometry( ).Jacobian( rVariables.j_Slave, LocalPoint.Coordinates() );
+    rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
 }
  
 /***********************************************************************************/
@@ -801,7 +801,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
-    const PointType& local_point 
+    const PointType& LocalPoint 
     )
 {    
     GeometryType& master_seg = rVariables.GetMasterElement( );
@@ -811,7 +811,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     double aux_dist = 0.0;
-    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, -normal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType projected_gp_local;

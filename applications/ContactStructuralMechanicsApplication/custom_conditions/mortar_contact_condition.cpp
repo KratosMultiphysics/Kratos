@@ -970,7 +970,7 @@ bool MortarContactCondition<TDim,TNumNodes>::CalculateKinematics(
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     slave_nodes.Jacobian( rVariables.j_Slave, local_point.Coordinates() );
-    rVariables.DetJSlave = ContactUtilities::ContactElementDetJacobian( rVariables.j_Slave );
+    rVariables.DetJSlave = slave_nodes.DeterminantOfJacobian( local_point );
     
     /* FRICTION COEFFICIENT */
     if (GetProperties().Has(FRICTION_COEFFICIENT) == true) // NOTE: In function of the friction law (TODO: Remove this!!!)

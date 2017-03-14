@@ -882,29 +882,6 @@ public:
     }
     
     /**
-     * Calculates the determinant of the jacobian of the contact element  
-     * @param Jacobian: The element's jacobian
-     * @return The determinant of the provided jacobian
-     */
-    
-    static inline const double ContactElementDetJacobian( const Matrix& J )
-    {
-        Matrix JTJ = prod( trans(J), J );
-        if( J.size2( ) == 1 )
-        {
-            return std::sqrt( JTJ(0,0) );
-        }
-        else if( J.size2( ) == 2 )
-        {
-            return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
-        }
-        else
-        {
-            KRATOS_ERROR << "Illegal local dimension for contact element. Dimension = " << J.size2( ) << std::endl;
-        }
-    }
-    
-    /**
      * It changes from active to inactive and viceversa the nodes 
      * @param ModelPart: The model part to compute
      * @return The modelparts with the conditions changed
