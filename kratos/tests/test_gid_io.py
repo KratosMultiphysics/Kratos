@@ -80,7 +80,6 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__Check("deactivated_out.mdpa_0.post.msh","deactivated_ref.ref")
 
-    @UnitTest.skip("testDoubleFreeError currently produces a SegFault and stops execution.")
     def testDoubleFreeError(self):
 
         output_file_1 = "outFile"
