@@ -259,7 +259,7 @@ public:
       return typename BaseType::Pointer( new Line2D3( ThisPoints ) );
     }
 
-    
+
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -309,9 +309,9 @@ public:
         const TPointType& point1 = BaseType::GetPoint(2);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return sqrt( length );
     }
 
@@ -348,9 +348,9 @@ public:
         const TPointType& point1 = BaseType::GetPoint(2);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
-        
+
         const double length = lx * lx + ly * ly;
-        
+
         return sqrt( length );
     }
 
@@ -368,7 +368,7 @@ public:
 
         return false;
     }
-    
+
     ///@}
     ///@name Jacobian
     ///@{
@@ -414,15 +414,15 @@ public:
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
                 jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
 
-		
+
             }
 
             rResult[pnt] = jacobian;
 
-	    
+
         }//end of loop over all integration points
 
-	
+
 
         return rResult;
     }
@@ -550,62 +550,6 @@ public:
         return rResult;
     }
 
-    /** Determinant of jacobians for given integration method. This
-     * method calculate determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    /** Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    /** Determinant of jacobian in given point. This method calculate determinant of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
     /** Inverse of jacobians for given integration method. This method
      * calculate inverse of jacobians matrices in all integrations points of
      * given integration method.
@@ -680,7 +624,7 @@ public:
     {
       return EdgesNumber();
     }
-    
+
     ///@}
     ///@name Shape Function
     ///@{
@@ -1104,5 +1048,4 @@ const GeometryData Line2D3<TPointType>::msGeometryData( 2,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined 
-
+#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

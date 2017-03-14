@@ -6,8 +6,8 @@
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_CUSTOM_SCHEMES_PYTHON_H_INCLUDED)
-#define KRATOS_CUSTOM_SCHEMES_PYTHON_H_INCLUDED
+#if !defined(KRATOS_CUSTOM_OBJECTIVE_FUNCTIONS_PYTHON_H_INCLUDED)
+#define KRATOS_CUSTOM_OBJECTIVE_FUNCTIONS_PYTHON_H_INCLUDED
 
 namespace Kratos
 {
@@ -15,10 +15,10 @@ namespace Kratos
 namespace Python
 {
 
-  void AddCustomSchemesToPython();
+  void AddCustomObjectiveFunctionsToPython();
 
 } // namespace Python
 
 } // namespace Kratos
 
-#endif // KRATOS_CUSTOM_SCHEMES_PYTHON_H_INCLUDED
+#endif // KRATOS_CUSTOM_OBJECTIVE_FUNCTIONS_PYTHON_H_INCLUDED

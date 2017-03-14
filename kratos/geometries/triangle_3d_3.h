@@ -898,9 +898,6 @@ public:
     }
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Determinant of jacobians for given integration method.
      * This method calculates determinant of jacobian in all
      * integrations points of given integration method.
@@ -912,16 +909,23 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
+    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Triangle3D::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        const double detJ = 2.0*(this->Area());
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = detJ;
+        }
         return rResult;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Determinant of jacobian in specific integration point of
      * given integration method. This method calculate determinant
@@ -944,13 +948,9 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Triangle3D::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
+        return 2.0*(this->Area());
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Determinant of jacobian in given point.
      * This method calculate determinant of jacobian
@@ -963,20 +963,10 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    /**
-     * :TODO: needs to be changed to Point<3> again. As PointType can
-     * be a Node with unique ID or an IntegrationPoint or any arbitrary
-     * point in space this needs to be reviewed
-     * (comment by janosch)
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR << "Triangle3D::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
+        return 2.0*(this->Area());
     }
 
     /**
