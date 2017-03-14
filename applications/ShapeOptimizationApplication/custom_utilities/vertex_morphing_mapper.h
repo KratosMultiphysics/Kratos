@@ -119,9 +119,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ==========================================================================
     // Type definitions for better reading later
-    // ==========================================================================
     typedef array_1d<double,3> array_3d;
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
@@ -131,12 +129,14 @@ public:
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    // ==========================================================================
     // Type definitions for linear algebra including sparse systems
-    // ==========================================================================
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     typedef typename SparseSpaceType::VectorType VectorType;
+
+    // Type definitions for tree-search
+    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
     /// Pointer definition of VertexMorphingMapper
     KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingMapper);
@@ -210,10 +210,6 @@ public:
         // Creating an auxiliary list for the nodes to be searched on
         NodeVector list_of_nodes;
 
-        // Start constructing and computing the kdtree
-        typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-        typedef Tree< KDTreePartition<BucketType> > tree;
-
         // Add nodes to list wich collects all nodes for neighbour-search
         for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
         {
@@ -221,14 +217,9 @@ public:
             list_of_nodes.push_back(pnode);
         }
 
-        // Arrays needed for spatial search
-        unsigned int max_nodes_affected = 10000;
-        NodeVector nodes_affected(max_nodes_affected);
-        DoubleVector resulting_squared_distances(max_nodes_affected);
-
         // Compute tree with the node positions
         unsigned int bucket_size = 100;
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+        KDTree treeOfAllOptimizationNodes(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int region_itr = 0; region_itr < boost::python::len(m_damping_regions); region_itr++)
@@ -253,13 +244,18 @@ public:
                 ModelPart::NodeType& damping_node_i = *node_itr;
                 array_3d i_coord = damping_node_i.Coordinates();
 
+                // Arrays needed for spatial search
+                unsigned int max_nodes_affected = 10000;
+                NodeVector nodes_affected(max_nodes_affected);
+                DoubleVector resulting_squared_distances(max_nodes_affected);
+
                 // Perform spatial search for current node
                 unsigned int number_of_nodes_affected;
-                number_of_nodes_affected = nodes_tree.SearchInRadius( damping_node_i, 
-                                                                      damping_radius, 
-                                                                      nodes_affected.begin(),
-                                                                      resulting_squared_distances.begin(), 
-                                                                      max_nodes_affected ); 
+                number_of_nodes_affected = treeOfAllOptimizationNodes.SearchInRadius( damping_node_i, 
+                                                                                      damping_radius, 
+                                                                                      nodes_affected.begin(),
+                                                                                      resulting_squared_distances.begin(), 
+                                                                                      max_nodes_affected ); 
                 
                 // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
                 if(number_of_nodes_affected == max_nodes_affected)
@@ -293,8 +289,6 @@ public:
     // --------------------------------------------------------------------------
     void compute_mapping_matrix()
     {
-        KRATOS_TRY;
-
         // Measure time
         boost::timer mapping_time;
 
@@ -309,10 +303,6 @@ public:
         // Creating an auxiliary list for the nodes to be searched on
         NodeVector list_of_nodes;
 
-        // Start constructing and computing the kdtree
-        typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-        typedef Tree< KDTreePartition<BucketType> > tree;
-
         // starting calculating time of construction of the kdtree
         for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
         {
@@ -322,14 +312,9 @@ public:
             list_of_nodes.push_back(pnode);
         }
 
-        // Arrays needed for spatial search
-        unsigned int max_nodes_affected = 10000;            
-        NodeVector nodes_affected(max_nodes_affected);
-        DoubleVector resulting_squared_distances(max_nodes_affected);
-
         // Compute tree with the node positions
         unsigned int bucket_size = 100;
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+        KDTree treeOfAllOptimizationNodes(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         // Prepare Weighting function to be used in the mapping
         FilterFunction filter_function( m_filter_function_type, m_filter_size );
@@ -337,9 +322,6 @@ public:
         // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
         {
-            // Initialize list of affected nodes
-            nodes_affected.clear();
-
             // Get node information
             ModelPart::NodeType& node_i = *node_itr;
             array_3d i_coord = node_i.Coordinates();
@@ -347,13 +329,19 @@ public:
             // Get tID of the node in the mapping matrix
             int i = node_i.GetValue(MAPPING_MATRIX_ID);
 
+            // Arrays needed for spatial search
+            unsigned int max_nodes_affected = 10000;            
+            NodeVector nodes_affected(max_nodes_affected);
+            DoubleVector resulting_squared_distances(max_nodes_affected);
+
+
             // Perform spatial search for current node
             unsigned int number_of_nodes_affected;
-            number_of_nodes_affected = nodes_tree.SearchInRadius( node_i, 
-                                                                  m_filter_size, 
-                                                                  nodes_affected.begin(),
-                                                                  resulting_squared_distances.begin(), 
-                                                                  max_nodes_affected );
+            number_of_nodes_affected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
+                                                                                  m_filter_size, 
+                                                                                  nodes_affected.begin(),
+                                                                                  resulting_squared_distances.begin(), 
+                                                                                  max_nodes_affected );
 
             // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
             if(number_of_nodes_affected >= max_nodes_affected)
@@ -397,15 +385,11 @@ public:
 
         // Console output for information
         std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
     void map_sensitivities_to_design_space( bool constraint_given )
     {
-        KRATOS_TRY;
-
         // Measure time
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
@@ -427,10 +411,8 @@ public:
 
         // Map objective sensitivities
 
-        // Assign nodal sensitivities to vector used for mapping
-        VectorType dJdX;
-        VectorType dJdY;
-        VectorType dJdZ;
+        // Assign nodal sensitivities to vectors used for mapping
+        VectorType dJdX, dJdY, dJdZ;
         dJdX.resize(m_number_of_design_variables);
         dJdY.resize(m_number_of_design_variables);
         dJdZ.resize(m_number_of_design_variables);
@@ -442,9 +424,7 @@ public:
             dJdY[i] = node_sens[1];
             dJdZ[i] = node_sens[2];
         }
-        VectorType dCdX;
-        VectorType dCdY;
-        VectorType dCdZ;
+        VectorType dCdX, dCdY, dCdZ;
         if(constraint_given)
         {
             dCdX.resize(m_number_of_design_variables);
@@ -460,9 +440,8 @@ public:
             }
         }
 
-        VectorType dJdsx;
-        VectorType dJdsy;
-        VectorType dJdsz;
+        // Perform mapping of objective sensitivities
+        VectorType dJdsx, dJdsy, dJdsz;
         dJdsx.resize(m_number_of_design_variables);
         dJdsy.resize(m_number_of_design_variables);
         dJdsz.resize(m_number_of_design_variables);
@@ -485,9 +464,7 @@ public:
         if(constraint_given)
         {
             // Perform mapping
-            VectorType dCdsx;
-            VectorType dCdsy;
-            VectorType dCdsz;
+            VectorType dCdsx, dCdsy, dCdsz;
             dCdsx.resize(m_number_of_design_variables);
             dCdsy.resize(m_number_of_design_variables);
             dCdsz.resize(m_number_of_design_variables);
@@ -509,23 +486,17 @@ public:
 
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
     void map_design_update_to_geometry_space()
     {
-        KRATOS_TRY;
-
         // Measure time of mapping
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of design update to geometry space..." << std::endl;
 
         // Assign design update to vector which shall be mapped (depending specified mapping matrix )
-        VectorType dsx;
-        VectorType dsy;
-        VectorType dsz;
+        VectorType dsx, dsy, dsz;
         dsx.resize(m_number_of_design_variables);
         dsy.resize(m_number_of_design_variables);
         dsz.resize(m_number_of_design_variables);
@@ -538,9 +509,7 @@ public:
         }
 
         // Perform mapping to compute shape update
-        VectorType dx;
-        VectorType dy;
-        VectorType dz;
+        VectorType dx, dy, dz;
         dx.resize(m_number_of_design_variables);
         dy.resize(m_number_of_design_variables);
         dz.resize(m_number_of_design_variables);
@@ -605,8 +574,6 @@ public:
 
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     // ==============================================================================
