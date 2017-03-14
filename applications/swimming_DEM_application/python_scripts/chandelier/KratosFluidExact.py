@@ -132,7 +132,7 @@ pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
-pp.CFD_DEM.do_impose_flow_from_field = True
+pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
 #number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials
@@ -683,7 +683,7 @@ post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # otherwise variables are set to 0 by default
 
 
-# CHANDELIER BEGIN
+# CANDELIER BEGIN
 import math
 import cmath
 import mpmath
@@ -742,11 +742,11 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 for node in spheres_model_part.Nodes:
     node.SetSolutionStepValue(VELOCITY_Y, ch_pp.u0)
     node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
-    node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+    node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
     node.Fix(VELOCITY_Z)
     node.SetSolutionStepValue(VELOCITY_OLD_X, ch_pp.u0)
     node.SetSolutionStepValue(VELOCITY_OLD_Y, ch_pp.v0)
-    node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+    node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
     node.Fix(VELOCITY_OLD_Z)
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
@@ -818,7 +818,8 @@ while (time <= final_time):
     derivative_recovery_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if derivative_recovery_counter.Tick():
-        recovery.Recover()
+        pass
+        # recovery.Recover()
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -857,9 +858,6 @@ while (time <= final_time):
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)
 
                     if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                         solver.Solve() # only advance in space
@@ -880,8 +878,8 @@ while (time <= final_time):
                     vp_x = node.GetSolutionStepValue(VELOCITY_X)
                     vp_y = node.GetSolutionStepValue(VELOCITY_Y)
                     vp_z = node.GetSolutionStepValue(VELOCITY_Z)
-                    integrands.append([vx - vp_x, vy - vp_y, 0.])
-
+                    # integrands.append([vx - vp_x, vy - vp_y, - vp_z])
+                    integrands.append([vx - vp_x, vy - vp_y, 0])
                     if quadrature_counter.Tick():
                         if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
                             basset_force_tool.AppendIntegrandsWindow(spheres_model_part)

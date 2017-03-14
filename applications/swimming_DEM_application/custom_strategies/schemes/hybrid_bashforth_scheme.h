@@ -35,6 +35,16 @@ namespace Kratos {
         /// Destructor.
         virtual ~HybridBashforthScheme() {}
 
+        DEMIntegrationScheme* CloneRaw() const override {
+            DEMIntegrationScheme* cloned_scheme(new HybridBashforthScheme(*this));
+            return cloned_scheme;
+        }
+
+         DEMIntegrationScheme::Pointer CloneShared() const override {
+            DEMIntegrationScheme::Pointer cloned_scheme(new HybridBashforthScheme(*this));
+            return cloned_scheme;
+        }
+
         /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
 
         void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption);*/
