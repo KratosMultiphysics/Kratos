@@ -32,9 +32,13 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_condition.cpp
 )
 
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+	file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosContactStructuralMechanicsApplication SHARED ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES})
+add_library(KratosContactStructuralMechanicsApplication SHARED ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
 target_link_libraries(KratosContactStructuralMechanicsApplication KratosCore KratosStructuralMechanicsApplication)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
