@@ -1001,14 +1001,41 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(boost::numeric
     double inv_norm_x = 1.0/norm_2(Vx);
     Vx[0] *= inv_norm_x;
     Vx[1] *= inv_norm_x;
-        
+
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
+
+    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
     
-    rRotationMatrix(1,0) = -Vx[1];
-    rRotationMatrix(1,1) = Vx[0];
+    // Unitary vector in local x direction (3D)
+    array_1d<double, 3> Vx3D;
+    Vx3D[0] = Vx[0];
+    Vx3D[1] = Vx[1];
+    Vx3D[2] = 0.0;
     
+    // Unitary vector in local y direction (first option)
+    array_1d<double, 3> Vy3D;
+    Vy3D[0] = -Vx[1];
+    Vy3D[1] = Vx[0];
+    Vy3D[2] = 0.0;
+    
+    // Vector in global z direction (first option)
+    array_1d<double, 3> Vz;
+    MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
+
+    // Vz must have the same sign as vector (0,0,1)
+    if(Vz[2] > 0.0)
+    {
+        rRotationMatrix(1,0) = -Vx[1];
+        rRotationMatrix(1,1) = Vx[0];
+    }
+    else
+    {
+        rRotationMatrix(1,0) = Vx[1];
+        rRotationMatrix(1,1) = -Vx[0];
+    }
+        
     KRATOS_CATCH( "" )
 }
 

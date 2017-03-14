@@ -86,8 +86,8 @@ public:
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
         double volume;        // In 2D: element area. In 3D: element volume
-        double delta_t;       // Only, needed if the temporal dependent term is considered in the subscales
-        double dyn_tau_coeff; // Only, needed if the temporal dependent term is considered in the subscales
+        double dt;       // Time increment
+        double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
     };
 
     ///@}
@@ -450,8 +450,8 @@ protected:
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
 
-        rData.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
-        rData.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dt = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 

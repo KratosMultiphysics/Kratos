@@ -28,14 +28,14 @@
 namespace Kratos {
 namespace Testing {
 
+    static std::streambuf *coutbuf = std::cout.rdbuf();
+    static bool exceptionThrown = false;
+
     // FIXME: EXCPETION -> EXCEPTION
     // TODO: Move to 'include/checks.h' once is confirmed to work as intended
     #define KRATOS_CHECK_EXCEPTION_RAISED(STATEMENT, EXCEPTION_TYPE)              \
-      std::ofstream out("/dev/null");                                             \
-      std::streambuf *coutbuf = std::cout.rdbuf();                                \
-      std::cout.rdbuf(out.rdbuf());                                               \
-                                                                                  \
-      bool exceptionThrown = false;                                               \
+      std::cout.rdbuf(nullptr);                                                   \
+      exceptionThrown = false;                                                    \
                                                                                   \
       try {                                                                       \
         STATEMENT;                                                                \

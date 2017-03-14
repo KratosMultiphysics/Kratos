@@ -127,7 +127,7 @@ namespace Kratos
                                                    double& RollingResistance,
                                                    ProcessInfo& r_process_info,
                                                    const double dt,
-                                                   const bool multi_stage_RHS) final;
+                                                   const bool multi_stage_RHS) override final;
 
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,

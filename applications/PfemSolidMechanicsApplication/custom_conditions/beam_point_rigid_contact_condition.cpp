@@ -356,11 +356,7 @@ void BeamPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurre
 //************************************************************************************
 //************************************************************************************
 void BeamPointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-  
+{  
   ClearNodalForces();
 }
 
@@ -377,11 +373,7 @@ void BeamPointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& Cur
 void BeamPointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
   KRATOS_TRY
-    
-  CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-  CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-  CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-  
+      
   KRATOS_CATCH( "" )
 }
 //***********************************************************************************
@@ -468,9 +460,6 @@ void BeamPointRigidContactCondition::CalculateConditionSystem(LocalSystemCompone
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = 1;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-	if( Variables.Options.Is(ACTIVE) )
-	  rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1; 
 
         if ( rLocalSystem.CalculationFlags.Is(BeamPointRigidContactCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
