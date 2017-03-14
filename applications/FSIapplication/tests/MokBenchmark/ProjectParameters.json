@@ -99,6 +99,7 @@
         "problem_data"                     : {
             "problem_name"    : "mok_benchmark",
             "model_part_name" : "MainModelPart",
+            "parallel_type"   : "OpenMP",
             "domain_size"     : 2,
             "start_step"      : 0.0,
             "end_time"        : 25.0
@@ -130,7 +131,7 @@
             "Restart_Step"     : 0
         },
         "solver_settings"                  : {
-            "solver_type"                   : "navier_stokes_solver_vmsmonolithic",
+            "solver_type"                   : "Monolithic",
             "model_import_settings"         : {
                 "input_type"     : "mdpa",
                 "input_filename" : "MokBenchmark/mok_benchmark_Fluid"
@@ -282,8 +283,8 @@
         "solver_settings" : {
             "coupling_scheme"            : "DirichletNeumann",
             "solver_type"                : "partitioned_fsi_solver",
-            "nl_tol"                     : 1e-4,
-            "nl_max_it"                  : 50,
+            "nl_tol"                     : 1e-7,
+            "nl_max_it"                  : 25,
             "move_interface"             : true,
             "mesh_prediction"            : true,
             "coupling_strategy"          : {

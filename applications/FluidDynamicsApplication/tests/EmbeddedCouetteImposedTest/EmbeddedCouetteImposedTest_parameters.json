@@ -59,7 +59,7 @@
             "krylov_type"         : "gmres",
             "coarsening_type"     : "aggregation",
             "scaling"             : true,
-            "verbosity"           : 1
+            "verbosity"           : 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet3D","Outlet3D","Sides3D","Bot3D"],

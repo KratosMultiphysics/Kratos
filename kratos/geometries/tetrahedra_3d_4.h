@@ -331,8 +331,8 @@ public:
      */
     virtual double Length() const override
     {
-        const double param = 2.0396489026555;  //12/raiz(2);
-        return  param * pow(Volume(), 0.33333333333333); //sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
+        return  factor * pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -357,13 +357,7 @@ public:
     /** This method calculates and returns the volume of this geometry.
      * This method calculates and returns the volume of this geometry.
      *
-     * Please note that the folling simplification is used during the
-     * calculus of the determinant in order to reduce the number of operations:
-     *
-     * | a e i 1 |   | a-d e-h i-l |
-     * | b f j 1 | = | b-d f-h j-l |
-     * | c g k 1 |   | c-d g-h k-l |
-     * | d h l 1 |
+     * This method uses the V = (A x B) * C / 6 formula.
      *
      * @return double value contains length, area or volume.
      *
@@ -506,9 +500,9 @@ public:
       double y30 = rP2[1] - rP3[1];
       double z30 = rP2[2] - rP3[2];
 
-      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z30 - y30 * z20 * s10 - z30 * s20 * y10;
-      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z30 - x30 * z20 * s10 - z30 * s20 * x10;
-      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y30 - x30 * y20 * s10 - y30 * s20 * x10;
+      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z10 - y30 * z20 * s10 - z30 * s20 * y10;
+      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z10 - x30 * z20 * s10 - z30 * s20 * x10;
+      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y10 - x30 * y20 * s10 - y30 * s20 * x10;
       double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
 
       return std::sqrt( (detJMX*detJMX + detJMY*detJMY + detJMZ*detJMZ)) / (2*std::abs(detJAL));
@@ -699,10 +693,10 @@ public:
      *
      * @return [description]
      */
-    virtual double VolumeToAverageEdgeLength() const override {
-      constexpr double normFactor = 3.0 * 1.41421356237309504880;
+    virtual double VolumeToAverageEdgeLength() const {
+      constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
-      return normFactor * Volume() / AverageEdgeLength();
+      return normFactor * Volume() / std::pow(AverageEdgeLength(), 3);
     }
 
     /** Calculates the volume to average edge length quality metric.

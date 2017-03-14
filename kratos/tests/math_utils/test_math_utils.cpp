@@ -119,6 +119,36 @@ namespace Kratos
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
         }
         
+        /** Checks if it calculates the generalized determinant of a non-square matrix
+         * Checks if it calculates the generalized determinant of a non-square matrix
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGenDetMatTest, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            Matrix mat23 = ZeroMatrix(2, 3);
+            mat23(0,0) = 1.0;
+            mat23(1,1) = 1.0;
+            
+            double det = MathUtils<double>::GeneralizedDet(mat23);
+            
+            KRATOS_CHECK_NEAR(det, 0.0, tolerance);
+            
+            Matrix mat55 = ZeroMatrix(5, 5);
+            mat55(0,0) =   1.0;
+            mat55(1,1) =   1.0;
+            mat55(2,2) =   1.0;
+            mat55(3,3) =   1.0;
+            mat55(2,3) = - 1.0;
+            mat55(3,2) =   1.0;
+            mat55(4,4) =   2.0;
+            
+            det = MathUtils<double>::Det(mat55);
+
+            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+        }
+        
         /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
          * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix 
          */

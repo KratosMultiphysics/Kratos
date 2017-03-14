@@ -155,7 +155,7 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.problem_path))
             
         
-        return main_model_part,solver,list_of_processes,gid_output,propagate_fractures
+        return main_model_part,solver,list_of_processes,gid_output
 
     def GenereateNewModelPart(self,main_model_part,solver,list_of_processes,gid_output):
         
@@ -202,8 +202,7 @@ class FracturePropagationUtility:
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, main_model_part_old.ProcessInfo[KratosMultiphysics.DELTA_TIME])
         main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, main_model_part_old.ProcessInfo[KratosPoro.TIME_UNIT_CONVERTER])
-        Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
-
+        
         # Construct the solver (main setting methods are located in the solver_module)
         solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
         solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
@@ -216,11 +215,15 @@ class FracturePropagationUtility:
 
         # Add degrees of freedom
         solver.AddDofs()
-
+        
+        # Creation of Kratos model
+        PoroModel = KratosMultiphysics.Model()
+        PoroModel.AddModelPart(main_model_part)
+        
         # Build sub_model_parts (save the list of the submodel part in the object Model)
         for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            Model.update({part_name : main_model_part.GetSubModelPart(part_name)})
+            PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
         # Print model_part
         echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
@@ -231,8 +234,8 @@ class FracturePropagationUtility:
 
         # Construct processes to be applied
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+        list_of_processes += process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
         # Initialize processes
         for process in list_of_processes:
