@@ -2099,7 +2099,10 @@ protected:
         Element::EquationIdVectorType ids;
         for(ElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
         {
-            if( ! (i_element)->GetValue( IS_INACTIVE ) )
+            bool element_is_active = true;
+            if( (i_element)->IsDefined(ACTIVE) )
+                element_is_active = (i_element)->Is(ACTIVE);
+            if( element_is_active )
             {
                 ids.resize((i_element)->GetGeometry().size());
                 for(unsigned int i = 0; i < (i_element)->GetGeometry().size();  ++i)
