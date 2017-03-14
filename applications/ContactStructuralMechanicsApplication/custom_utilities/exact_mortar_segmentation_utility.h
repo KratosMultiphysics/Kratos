@@ -506,37 +506,6 @@ public:
     }
     
     /**
-     * This functions calculates the determinant of a 3D condition (local dimension 2)
-     * @param geom: The geometry where calculate the jacobian
-     * @param GP: The gauss point
-     * @return The DetJ
-     */
-    
-    double DetJNonSquare(
-        GeometryNodeType& geom,
-        Point<3> GP
-        )
-    {
-        Matrix J;
-        geom.Jacobian(J, GP);
-        const Matrix JTJ = prod( trans(J), J );
-        
-        return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
-    }
-    
-    double DetJNonSquare(
-        GeometryPointType& geom,
-        Point<3> GP
-        )
-    {
-        Matrix J;
-        geom.Jacobian(J, GP);
-        const Matrix JTJ = prod( trans(J), J );
-        
-        return std::sqrt( JTJ(0,0) * JTJ(1,1) - JTJ(1,0) * JTJ(0,1) );
-    }
-    
-    /**
      * This function gives you the indexes needed to order a vector 
      * @param vect: The vector to order
      * @return idx: The vector of indexes
@@ -892,8 +861,8 @@ private:
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                     
                     // We can construct now the integration local triangle
-                    const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
-                    const double DetJ2 = DetJNonSquare(AllTriangle, gp_local);
+                    const double DetJ1 = SlaveGeometry.DeterminantOfJacobian(gp_local);
+                    const double DetJ2 = AllTriangle.DeterminantOfJacobian(gp_local);
                     IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1);
                 }
                 
@@ -1078,7 +1047,7 @@ private:
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                             
                             // We can construct now the integration local triangle
-                            const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                            const double DetJ1 = SlaveGeometry.DeterminantOfJacobian(gp_local);
                             const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
                             IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 ));
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 );
@@ -1311,7 +1280,7 @@ private:
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can construct now the integration local triangle
-                        const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                        const double DetJ1 = SlaveGeometry.DeterminantOfJacobian(gp_local);
                         const double DetJ2 = triangle.DeterminantOfJacobian(gp_local); 
                         IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
 //                         IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1  );
@@ -1510,8 +1479,8 @@ private:
                             Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                             
-                            // We can construct now the integration local triangle // FIXME: The weights I am getting are constant, probably you did something wrong
-                            const double DetJ1 = DetJNonSquare(SlaveGeometry, gp_local);
+                            // We can construct now the integration local triangle 
+                            const double DetJ1 = SlaveGeometry.DeterminantOfJacobian(gp_local);
                             const double DetJ2 = triangle.DeterminantOfJacobian(gp_local);
                             IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 )); 
 //                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 ); 
