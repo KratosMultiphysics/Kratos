@@ -865,7 +865,23 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        Matrix jacobian ( 3, 2 );
+        
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            this->Jacobian( jacobian, pnt, ThisMethod);
+            
+            const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow((jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1)),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
+            
+            rResult[pnt] = std::sqrt(detJ);
+        }
+        
         return rResult;
     }
 
@@ -894,8 +910,13 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
+        Matrix jacobian ( 3, 2 );
+         
+        this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
+            
+        const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow((jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1)),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
+            
+        return std:sqrt(detJ);
     }
 
     /**
@@ -925,8 +946,13 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
+        Matrix jacobian ( 3, 2 );
+         
+        this->Jacobian( jacobian, rPoint);
+            
+        const double detJ = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2)+std::pow(jacobian(2,0),2))+std::pow((jacobian(1,1)*jacobian(2,0)-jacobian(1,0)*jacobian(2,1)),2)-2*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1)+jacobian(2,0)*jacobian(2,1))+std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2)+std::pow(jacobian(2,1),2));
+        
+        return std::sqrt(detJ);
     }
 
     /**
@@ -953,7 +979,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
+        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -984,7 +1010,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
+        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -1007,7 +1033,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR << "Quadrilateral3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
+        KRATOS_ERROR << "Quadrilateral3D4::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
