@@ -93,9 +93,9 @@ index_short = len([value for value in dts if value < 2])
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 font_size = 40
-ax.tick_params(axis='x', labelsize=0.75 * font_size)
-ax.tick_params(axis='y', labelsize=0.75 * font_size)
-ax.tick_params(axis='both', which='major', pad=15)
+ax.tick_params(axis='x', labelsize=0.5 * font_size)
+ax.tick_params(axis='y', labelsize=0.5 * font_size)
+ax.tick_params(axis='both', which='major', pad=10)
 fig.tight_layout()
 
 m = 0
@@ -104,14 +104,16 @@ for line in reversed(E):
     if m == n_exponentials - 1:
         plt.plot(dts, line, '--', marker='o', markersize=10, label='Daitche', color='k')
     else:
-        plt.plot(dts, line, '-o', markersize=10, label='Hinsberg, m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
+        plt.plot(dts, line, '-o', markersize=10, label='m = ' + str(10 - m), linewidth=0.5*(11-m), ms=10)
     m += 1
 
 
-plt.xlabel('$\mathrm{d}t$', fontsize = font_size)
-plt.ylabel('$E$', fontsize = font_size)
+plt.xlabel('$\mathrm{d}t$', fontsize = 0.75 * font_size)
+plt.ylabel('$E(100)$', fontsize = 0.75 * font_size)
 plt.legend(loc='upper left',prop={'size':25})
 plt.semilogx()
 plt.semilogy()
-plt.savefig('EvsDt.pdf', dpi = 600, bbox_inches = 'tight')
+figure = plt.gcf() # get current figure
+figure.set_size_inches(14, 11)
+plt.savefig('EvsDt.pdf', dpi = 1000, bbox_inches = 'tight')
 plt.show()
