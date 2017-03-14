@@ -376,7 +376,7 @@ private:
     /**
      * This function computes the nodal error of a vector magnitude in a consistent manner.
      * The error is defined as the integral over the interface of a tests function times
-     * the difference between rOriginalVariable and rModifiedVariable. 
+     * the difference between rOriginalVariable and rModifiedVariable.
      * @param rOriginalVariable: variable with the reference value
      * @param rModifiedVariable: variable with the computed vvalue
      * @param rErrorStorageVariable: variable to store the error nodal value
@@ -451,10 +451,7 @@ private:
 
             for (int ii=0; ii<static_cast<int>(NumNodes); ++ii)
             {
-                array_1d<double, 3> aux_val;
-                aux_val[0] = 0.0;
-                aux_val[1] = 0.0;
-                aux_val[2] = 0.0;
+                array_1d<double, 3> aux_val = ZeroVector(3);
                 for (unsigned int jj=0; jj<TDim; ++jj)
                 {
                     aux_val[jj] = ConsResVect[ii*BlockSize+jj];
