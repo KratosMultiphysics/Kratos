@@ -157,13 +157,13 @@ public:
         if (rModelPart.Elements().find(1) == rModelPart.Elements().end())
             KRATOS_THROW_ERROR(std::runtime_error, "missing element 1", "")
 
-        // use element 1 to initialize drag flag vector
-        Element& rElem = rModelPart.GetElement(1);
+        // use first element to initialize drag flag vector
+        Element& rElem = *std::begin(rModelPart.Elements);
 #pragma omp parallel
         {
             // initialize drag flag and element id vectors
             int k = OpenMPUtils::ThisThread();
-            mElementIds[k] = 0; // force initialization
+            mElementIds[k] = rElem.Id() + 1; // force initialization
             this->GetDragFlagVector(rElem);
         }
 
