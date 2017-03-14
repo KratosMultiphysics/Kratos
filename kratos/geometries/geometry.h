@@ -1423,7 +1423,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 
@@ -1443,7 +1443,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, rPoint);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 

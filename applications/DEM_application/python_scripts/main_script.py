@@ -34,6 +34,37 @@ class Solution:
     
     def __init__(self):
         
+        self.solver_strategy = self.SetSolverStrategy()
+        self.creator_destructor = self.SetParticleCreatorDestructor()
+        self.dem_fem_search = self.SetDemFemSearch()
+        self.procedures = self.SetProcedures()
+        
+        self.procedures.CheckInputParameters(DEM_parameters)
+        
+        # Creating necessary directories:
+        self.main_path = os.getcwd()
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+
+        self.demio         = DEM_procedures.DEMIo(DEM_parameters, self.post_path)
+        self.report        = DEM_procedures.Report()
+        self.parallelutils = DEM_procedures.ParallelUtils()
+        self.materialTest  = DEM_procedures.MaterialTest()
+        self.scheme = self.procedures.SetScheme()
+
+        # Set the print function TO_DO: do this better...
+        self.KRATOSprint   = self.procedures.KRATOSprint
+        
+        
+    def SetProcedures(self):
+        return DEM_procedures.Procedures(DEM_parameters)
+    
+    def SetDemFemSearch(self):
+        return DEM_FEM_Search()
+    
+    def SetParticleCreatorDestructor(self):
+        return ParticleCreatorDestructor()
+    
+    def SetSolverStrategy(self):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
         if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
@@ -51,26 +82,8 @@ class Solution:
         else:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
             
-        self.solver_strategy = SolverStrategy
+        return SolverStrategy
 
-        self.creator_destructor = ParticleCreatorDestructor()
-        self.dem_fem_search = DEM_FEM_Search()
-        self.procedures    = DEM_procedures.Procedures(DEM_parameters)
-        self.procedures.CheckInputParameters(DEM_parameters)
-        
-        # Creating necessary directories:
-        self.main_path = os.getcwd()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
-
-        self.demio         = DEM_procedures.DEMIo(DEM_parameters, self.post_path)
-        self.report        = DEM_procedures.Report()
-        self.parallelutils = DEM_procedures.ParallelUtils()
-        self.materialTest  = DEM_procedures.MaterialTest()
-        self.scheme = self.procedures.SetScheme()
-
-        # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = self.procedures.KRATOSprint
-        
 
     def Run(self):        
     

@@ -362,7 +362,7 @@ private:
             ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
             ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-                it->GetValue(IS_INACTIVE) = false;
+                it->Set(ACTIVE, true);
         }
 
 
@@ -386,7 +386,10 @@ private:
                 WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);
                 for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb)
                 {
-                    if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && neighb->GetValue(IS_INACTIVE)==false && it->Id()!= neighb->Id())
+                    bool neighb_is_active = true;
+                    if( neighb->IsDefined(ACTIVE) )
+                        neighb_is_active = neighb->Is(ACTIVE);
+                    if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && neighb_is_active && it->Id()!= neighb->Id())
                     {
                         TheNodes(geom_1, count, 0, 1, rJoint);
                         Element::GeometryType& geom_2 = neighb->GetGeometry();
@@ -394,7 +397,7 @@ private:
                         count_2                       = SearchEdge(neighb, Id);
                         TheNodes(geom_2, count_2, 2, 3, rJoint);
                         mJointsArray.push_back(rJoint);
-                        it->GetValue(IS_INACTIVE) = true;
+                        it->Set(ACTIVE, false);
                     }
                     count++;
                 }
