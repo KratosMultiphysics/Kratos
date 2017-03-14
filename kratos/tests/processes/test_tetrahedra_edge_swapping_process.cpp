@@ -105,6 +105,7 @@ namespace Kratos {
 
 				 TetrahedraMeshEdgeSwappingProcess swapping_process(model_part);
 				 swapping_process.Execute();
+				 swapping_process.Execute();
 				 //KRATOS_WATCH(swapping_process);
 
 				 int inverted_element_counter = 0;

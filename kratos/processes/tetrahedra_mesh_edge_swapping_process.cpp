@@ -961,6 +961,7 @@ void TetrahedraMeshEdgeSwappingProcess::Execute(){
 	mOldMinQuality = 2.00;
 	mNewMinQuality = 2.00;
 	mNumberOfSwappingPerformed = 0;
+	mEdges.clear();
 
 	for (auto& element : mrModelPart.Elements()) {
 		element.Reset(MODIFIED);
