@@ -3,6 +3,7 @@ import numpy as np
 import h5py
 from KratosMultiphysics import *
 
+
 def GetOldTimeIndicesAndWeights(current_time, times_array):
     old_index = bi.bisect(times_array, current_time)
     future_index = old_index + 1
