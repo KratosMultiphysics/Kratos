@@ -73,7 +73,8 @@ namespace Kratos
 			Matrix& rRotationMatrix);
 
 		//'Local' -> 3x3
-		void CrBeamElement3D2N::CalculateInitialLocalCS();
+		//void CrBeamElement3D2N::CalculateInitialLocalCS();
+		void CalculateInitialLocalCS();
 		MatrixType UpdateRotationMatrixLocal();
 
 		void CalculateLocalSystem(
