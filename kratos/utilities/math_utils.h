@@ -320,7 +320,7 @@ public:
         {
             InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
         }
-        else if (InputMatrix.size1() > InputMatrix.size2()) // Right inverse
+        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
         {
             const Matrix aux = prod(InputMatrix, trans(InputMatrix));
             Matrix auxInv;

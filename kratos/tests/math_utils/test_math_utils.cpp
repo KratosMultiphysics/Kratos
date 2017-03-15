@@ -12,8 +12,6 @@
 
 // System includes
 #include <limits>
-#include <stdlib.h>
-#include <time.h>
 
 // External includes
 
@@ -156,11 +154,9 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreMathUtilsFastSuite) 
         {
             constexpr double tolerance = 1e-6;
-            
-            srand (1);
 
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11;
-            mat11(0,0) = rand() % 10 + 1;
+            mat11(0,0) = 0.896308;
             
             double det;
             const boost::numeric::ublas::bounded_matrix<double, 1, 1> inv11 = MathUtils<double>::InvertMatrix<1>(mat11, det);
@@ -169,13 +165,10 @@ namespace Kratos
             KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
             
             boost::numeric::ublas::bounded_matrix<double, 2, 2> mat22;
-            for (unsigned int i = 0; i < 2; i++)
-            {
-                for (unsigned int j = 0; j < 2; j++)
-                {
-                    mat22(i, j)= rand() % 10 + 1;
-                }
-            }
+            mat22(0,0) = 0.670005;
+            mat22(0,1) = 0.853367;
+            mat22(1,0) = 1.47006;
+            mat22(1,1) = 1.00029;
             
             const boost::numeric::ublas::bounded_matrix<double, 2, 2> inv22 = MathUtils<double>::InvertMatrix<2>(mat22, det);
             const boost::numeric::ublas::bounded_matrix<double, 2, 2> I22 = prod(inv22, mat22);
@@ -196,13 +189,15 @@ namespace Kratos
             }
             
             boost::numeric::ublas::bounded_matrix<double, 3, 3> mat33;
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                for (unsigned int j = 0; j < 3; j++)
-                {
-                    mat33(i, j)= rand() % 10 + 1;
-                }
-            }
+            mat33(0,0) = 0.678589;
+            mat33(0,1) = 0.386213;
+            mat33(0,2) = 0.371126;
+            mat33(1,0) = 1.01524;
+            mat33(1,1) = 0.403437;
+            mat33(1,2) = 1.03755;
+            mat33(2,0) = 0.450516;
+            mat33(2,1) = 1.08225;
+            mat33(2,2) = 0.972831;
             
             const boost::numeric::ublas::bounded_matrix<double, 3, 3> inv33 = MathUtils<double>::InvertMatrix<3>(mat33, det);
             const boost::numeric::ublas::bounded_matrix<double, 3, 3> I33 = prod(inv33, mat33);
@@ -223,13 +218,22 @@ namespace Kratos
             }
             
             boost::numeric::ublas::bounded_matrix<double, 4, 4> mat44;
-            for (unsigned int i = 0; i < 4; i++)
-            {
-                for (unsigned int j = 0; j < 4; j++)
-                {
-                    mat44(i, j)= rand() % 10 + 1;
-                }
-            }
+            mat44(0,0) = 0.00959158;
+            mat44(0,1) = 0.466699;
+            mat44(0,2) = 0.167357;
+            mat44(0,3) = 0.255465;
+            mat44(1,0) = 1.6356;
+            mat44(1,1) = 0.387988;
+            mat44(1,2) = 1.17823;
+            mat44(1,3) = 1.38661;
+            mat44(2,0) = 2.57105;
+            mat44(2,1) = 1.63057;
+            mat44(2,2) = 2.5713;
+            mat44(2,3) = 1.73297;
+            mat44(3,0) = 3.40005;
+            mat44(3,1) = 1.94218;
+            mat44(3,2) = 2.58081;
+            mat44(3,3) = 3.3083;
             
             const boost::numeric::ublas::bounded_matrix<double, 4, 4> inv44 = MathUtils<double>::InvertMatrix<4>(mat44, det);
             const boost::numeric::ublas::bounded_matrix<double, 4, 4> I44 = prod(inv44, mat44);
@@ -258,39 +262,128 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            srand (1);
+            double det;
+            Matrix inv;
+            Matrix I;
             
-            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+            unsigned int i_dim = 1;
+            
+            Matrix mat = ZeroMatrix(i_dim, i_dim);
+            
+            mat(0,0) = 0.346432;
+
+            MathUtils<double>::InvertMatrix(mat,inv, det);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
             {
-                Matrix mat = ZeroMatrix(i_dim, i_dim);
-                
-                for (unsigned int i = 0; i < i_dim; i++)
+                for (unsigned int j = 0; j < i_dim; j++)
                 {
-                    for (unsigned int j = 0; j < i_dim; j++)
+                    if (i == j) 
                     {
-                        mat(i, j)= rand() % 10 + 1;
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
-                
-                double det;
-                Matrix inv;
-                
-                MathUtils<double>::InvertMatrix(mat,inv, det);
-                
-                const Matrix I = prod(inv, mat);
-                
-                for (unsigned int i = 0; i < i_dim; i++)
+            }
+            
+            i_dim = 2;
+            mat.resize(i_dim, i_dim, false);
+            
+            mat(0,0) = 0.833328;
+            mat(0,1) = 0.491166;
+            mat(1,0) = 0.81167;
+            mat(1,1) = 1.17205;
+
+            MathUtils<double>::InvertMatrix(mat,inv, det);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
+            {
+                for (unsigned int j = 0; j < i_dim; j++)
                 {
-                    for (unsigned int j = 0; j < i_dim; j++)
+                    if (i == j) 
                     {
-                        if (i == j) 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                        }
-                        else 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
-                        }
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                    }
+                }
+            }
+            
+            i_dim = 3;
+            mat.resize(i_dim, i_dim, false);
+            
+            mat(0,0) = 0.371083;
+            mat(0,1) = 0.392607;
+            mat(0,2) = 0.306494;
+            mat(1,0) = 0.591012;
+            mat(1,1) = 1.00733;
+            mat(1,2) = 1.07727;
+            mat(2,0) = 0.0976054;
+            mat(2,1) = 2.54893;
+            mat(2,2) = 1.23981;
+
+            MathUtils<double>::InvertMatrix(mat,inv, det);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
+            {
+                for (unsigned int j = 0; j < i_dim; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                    }
+                }
+            }
+            
+            i_dim = 4;
+            mat.resize(i_dim, i_dim, false);
+            
+            mat(0,1) = 0.979749;
+            mat(0,2) = 0.494393;
+            mat(0,3) = 0.23073;
+            mat(1,0) = 1.79224;
+            mat(1,1) = 0.198842;
+            mat(1,2) = 0.074485;
+            mat(1,3) = 1.45717;
+            mat(2,0) = 1.6039;
+            mat(2,1) = 0.673926;
+            mat(2,2) = 2.63817;
+            mat(2,3) = 1.0287;
+            mat(3,0) = 0.366503;
+            mat(3,1) = 3.02634;
+            mat(3,2) = 1.24104;
+            mat(3,3) = 3.62022;
+
+            MathUtils<double>::InvertMatrix(mat,inv, det);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
+            {
+                for (unsigned int j = 0; j < i_dim; j++)
+                {
+                    if (i == j) 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                    }
+                    else 
+                    {
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -304,76 +397,68 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            srand (1);
-            
             // We check the Left inverse
-            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+
+            const unsigned int i_dim = 2;
+            const unsigned int j_dim = 3;
+            
+            Matrix mat = ZeroMatrix(i_dim, j_dim);
+            
+            mat(0,0) = 0.770724;
+            mat(1,0) = 0.573294;
+            mat(0,1) = 1.27699;
+            mat(1,1) = 1.57776;
+            mat(0,2) = 1.30216;
+            mat(1,2) = 2.66483;
+            
+            double det;
+            Matrix inv;
+            
+            MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
+            
+            Matrix I = prod(mat, inv);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
             {
-                Matrix mat = ZeroMatrix(i_dim, i_dim - 1);
-                
-                for (unsigned int i = 0; i < i_dim; i++)
+                for (unsigned int j = 0; j < i_dim; j++)
                 {
-                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    if (i == j) 
                     {
-                        mat(i, j)= rand() % 10 + 1;
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
                     }
-                }
-                
-                double det;
-                Matrix inv;
-                
-                MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
-                
-                const Matrix I = prod(inv, mat);
-                
-                for (unsigned int i = 0; i < i_dim - 1; i++)
-                {
-                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    else 
                     {
-                        if (i == j) 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                        }
-                        else 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
-                        }
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
             
-            // We check the Right
-            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+            // We check the Right inverse
+            mat.resize(j_dim, i_dim);
+            mat = ZeroMatrix(j_dim, i_dim);
+        
+            mat(0,0) = 0.786075;
+            mat(1,0) = 0.91272;
+            mat(2,0) = 0.745604;
+            mat(0,1) = 0.992728;
+            mat(1,1) = 1.82324;
+            mat(2,1) = 0.19581;
+            
+            MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
+            
+            I = prod(inv, mat);
+            
+            for (unsigned int i = 0; i < i_dim; i++)
             {
-                Matrix mat = ZeroMatrix(i_dim - 1, i_dim);
-                
-                for (unsigned int i = 0; i < i_dim - 1; i++)
+                for (unsigned int j = 0; j < i_dim; j++)
                 {
-                    for (unsigned int j = 0; j < i_dim; j++)
+                    if (i == j) 
                     {
-                        mat(i, j)= rand() % 10 + 1;
+                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
                     }
-                }
-                
-                double det;
-                Matrix inv;
-                
-                MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
-                
-                const Matrix I = prod(inv, mat);
-                
-                for (unsigned int i = 0; i < i_dim - 1; i++)
-                {
-                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    else 
                     {
-                        if (i == j) 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
-                        }
-                        else 
-                        {
-                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
-                        }
+                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -406,16 +491,15 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double, 3, 3> eigenmat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> vectormat33;
             
-            srand (1);
-            
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                for (unsigned int j = i; j < 3; j++)
-                {
-                    mat33(i, j) = rand() % 10 + 1;
-                    mat33(j, i) = mat33(i, j);
-                }
-            }
+            mat33(0,0) = 0.678589;
+            mat33(0,1) = 0.386213;
+            mat33(0,2) = 0.371126;
+            mat33(1,0) = mat33(0,1);
+            mat33(1,1) = 0.403437;
+            mat33(1,2) = 1.03755;
+            mat33(2,0) = mat33(0,2);
+            mat33(2,1) = mat33(1,2);
+            mat33(2,2) = 0.972831;
             
             bool converged = MathUtils<double>::EigenSystem<3>(mat33, vectormat33, eigenmat33);
 
