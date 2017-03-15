@@ -11,6 +11,7 @@ def GetFilePath(fileName):
 class TestVariableUtils(KratosUnittest.TestCase):
 
     def test_set_variable(self):
+        print("aaa")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -36,6 +37,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
 
     def test_copy_var(self):
+        print("bbb")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
@@ -57,6 +59,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.GetSolutionStepValue(DENSITY))
 
     def test_save_var(self):
+        print("ccc")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
@@ -69,6 +72,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         ##save the variable values
         VariableUtils().SaveScalarVar(VISCOSITY, DENSITY, model_part.Nodes)
         VariableUtils().SaveVectorVar(DISPLACEMENT, VELOCITY, model_part.Nodes)
+        print("ssss")
 
         ##verify the result
         for node in model_part.Nodes:
@@ -78,6 +82,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.GetValue(DENSITY))
 
     def test_set_to_zero(self):
+        print("eee")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -97,6 +102,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
 
     def test_select_node_list(self):
+        print("fff")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -117,6 +123,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertTrue(model_part.Nodes[974].Id in ids_list)
 
     def test_apply_fixity(self):
+        print("eeeeeee")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -136,6 +143,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
 
     def test_apply_vector(self):
+        print("fffgggggggggggg")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -159,8 +167,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), data_vector_x1[i])
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), data_vector_x2[i])
             i+=1
+        print("uuuu")
 
     def test_sum_variable(self):
+        print("xxxxxxx")
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
