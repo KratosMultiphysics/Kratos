@@ -419,7 +419,7 @@ namespace Kratos
 	CrBeamElement3D2N::MatrixType CrBeamElement3D2N::CalculateTransformationS()
 	{
 		KRATOS_TRY
-			VectorType n_x = ZeroVector(3);
+		VectorType n_x = ZeroVector(3);
 		VectorType n_y = ZeroVector(3);
 		VectorType n_z = ZeroVector(3);
 		n_x[0] = 1.0;
@@ -781,15 +781,20 @@ namespace Kratos
 		VectorType currentDisp = ZeroVector(LocalSize);
 		this->GetValuesVector(currentDisp, 0);
 
+
+		//update Residual
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
-		rRightHandSideVector -= prod(rLeftHandSideMatrix, currentDisp);
+		//rRightHandSideVector -= prod(rLeftHandSideMatrix, currentDisp);
+		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
+
+
 		//assign global element variables
 		this->mLHS = rLeftHandSideMatrix;
 		//add bodyforces 
 		mBodyForces = ZeroVector(12);
 		mBodyForces = this->CalculateBodyForces();
-		rRightHandSideVector += mBodyForces;
+		noalias(rRightHandSideVector) += mBodyForces;
 
 		mIterationCount++;
 		KRATOS_CATCH("")
@@ -957,7 +962,7 @@ namespace Kratos
 	double CrBeamElement3D2N::CalculateGreenLagrangeStrain()
 	{
 		KRATOS_TRY
-			double l = this->mCurrentLength;
+		double l = this->mCurrentLength;
 		double L = this->mLength;
 		//longitudinal green lagrange strain
 		return ((l * l - L * L) / (2 * L * L));
@@ -1007,7 +1012,7 @@ namespace Kratos
 	}
 	void CrBeamElement3D2N::UpdateIncrementDeformation() {
 		KRATOS_TRY
-			VectorType actualDeformation = ZeroVector(12);
+		VectorType actualDeformation = ZeroVector(12);
 		VectorType total_nodal_def = ZeroVector(12);
 		VectorType total_nodal_pos = ZeroVector(6);
 		if (mIterationCount == 0) mTotalNodalDeformation = ZeroVector(12);
