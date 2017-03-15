@@ -76,6 +76,12 @@ namespace Kratos
 			const ProcessInfo& rCurrentProcessInfo);
 
 
+		//new functions
+		void UpdateInternalForces(VectorType& rinternalForces);
+		void CreateTransformationMatrix(Matrix& rRotationMatrix);
+		double CalculateCurrentLength();
+		//
+
 		void CalculateOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
 			std::vector<Vector>& rOutput,
@@ -130,8 +136,9 @@ namespace Kratos
 
 
 	private:
-		double mPreStress, mArea, mYoungsModulus, mLength, mDensity;
+		double mPreStress, mArea, mYoungsModulus, mLength, mDensity, mInternalStrainGL, mCurrentLength;
 		MatrixType mLHS;
+		uint mIterCount = 0; 
 
 		TrussElement3D2N() {};
 

@@ -66,6 +66,7 @@ namespace Kratos
 		this->mArea = GetProperties()[CROSS_AREA];
 		this->mYoungsModulus = GetProperties()[YOUNG_MODULUS];
 		this->mLength = this->CalculateReferenceLength();
+		this->mCurrentLength = this->CalculateCurrentLength();
 		this->mDensity = GetProperties()[DENSITY];
 
 		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2) == false) this->mPreStress = 0.00;
@@ -90,9 +91,9 @@ namespace Kratos
 		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
 		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
 		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-		L = sqrt(dx*dx + dy*dy + dz*dz);
-		l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) + (dw + dz)*(dw + dz));
-		e_GL = (l*l - L*L) / (2 * L*L);
+		L = mLength;
+		l = mCurrentLength;
+		e_GL = (l*l - L*L) / (2.00 * L*L);
 		L2 = L*L;
 		L4 = L2*L2;
 		//using PK2 -> GreenLagrange
@@ -116,28 +117,28 @@ namespace Kratos
 		LocalStiffnessMatrix(0, 3) = A*L*(-K_1 / L2 - E*(dx + du)*(dx + du) / L4); //k14
 		LocalStiffnessMatrix(3, 0) = LocalStiffnessMatrix(0, 3); //k41
 
-		LocalStiffnessMatrix(0, 4) = A*L*((-1)*(dx + du)*(dy + dv)*E / L4); //k15
+		LocalStiffnessMatrix(0, 4) = A*L*((-1.00)*(dx + du)*(dy + dv)*E / L4); //k15
 		LocalStiffnessMatrix(4, 0) = LocalStiffnessMatrix(0, 4); //k51
 
-		LocalStiffnessMatrix(0, 5) = A*L*((-1)*(dx + du)*(dz + dw)*E / L4); //k16
+		LocalStiffnessMatrix(0, 5) = A*L*((-1.00)*(dx + du)*(dz + dw)*E / L4); //k16
 		LocalStiffnessMatrix(5, 0) = LocalStiffnessMatrix(0, 5); //k61
 
 		LocalStiffnessMatrix(1, 2) = A*L*((dy + dv)*(dz + dw)*E / L4); //k23
 		LocalStiffnessMatrix(2, 1) = LocalStiffnessMatrix(1, 2); //k32
 
-		LocalStiffnessMatrix(1, 3) = A*L*((-1)*(dy + dv)*(dx + du)*E / L4); //k24
+		LocalStiffnessMatrix(1, 3) = A*L*((-1.00)*(dy + dv)*(dx + du)*E / L4); //k24
 		LocalStiffnessMatrix(3, 1) = LocalStiffnessMatrix(1, 3); //k42
 
 		LocalStiffnessMatrix(1, 4) = A*L*(-K_1 / L2 - E*(dy + dv)*(dy + dv) / L4);  //k25
 		LocalStiffnessMatrix(4, 1) = LocalStiffnessMatrix(1, 4); //k52
 
-		LocalStiffnessMatrix(1, 5) = A*L*((-1)*(dy + dv)*(dz + dw)*E / L4); //k26
+		LocalStiffnessMatrix(1, 5) = A*L*((-1.00)*(dy + dv)*(dz + dw)*E / L4); //k26
 		LocalStiffnessMatrix(5, 1) = LocalStiffnessMatrix(1, 5); //k62
 
-		LocalStiffnessMatrix(2, 3) = A*L*((-1)*(dw + dz)*(dx + du)*E / L4); //k34
+		LocalStiffnessMatrix(2, 3) = A*L*((-1.00)*(dw + dz)*(dx + du)*E / L4); //k34
 		LocalStiffnessMatrix(3, 2) = LocalStiffnessMatrix(2, 3); //k43
 
-		LocalStiffnessMatrix(2, 4) = A*L*((-1)*(dw + dz)*(dy + dv)*E / L4);  //k35
+		LocalStiffnessMatrix(2, 4) = A*L*((-1.00)*(dw + dz)*(dy + dv)*E / L4);  //k35
 		LocalStiffnessMatrix(4, 2) = LocalStiffnessMatrix(2, 4); //k53
 
 		LocalStiffnessMatrix(2, 5) = A*L*(-K_1 / L2 - E*(dz + dw)*(dz + dw) / L4); //k36
@@ -263,21 +264,27 @@ namespace Kratos
 		const SizeType LocalSize = NumNodes * dimension;
 
 		this->Initialize();
+
 		//resizing the matrices + create memory for LHS
 		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		//creating LHS
-		rLeftHandSideMatrix = this->CreateElementStiffnessMatrix();
+		noalias(rLeftHandSideMatrix) = this->CreateElementStiffnessMatrix();
 		mLHS = rLeftHandSideMatrix;
+
 		//create+compute RHS
 		VectorType currentDisp = ZeroVector(LocalSize);
 		this->GetValuesVector(currentDisp);
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
-		rRightHandSideVector -= prod(rLeftHandSideMatrix, currentDisp);
+		//noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentDisp); 
+		//update Residual
+		VectorType internalForces = ZeroVector(6);
+		this->UpdateInternalForces(internalForces);
+		noalias(rRightHandSideVector) -= internalForces;
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
+		this->mIterCount++;
 		KRATOS_CATCH("")
 	}
 	void TrussElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
@@ -306,9 +313,8 @@ namespace Kratos
 		const SizeType LocalSize = NumNodes * dimension;
 
 		////resizing the matrices + create memory for LHS
-		//if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
-
-		//rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		////creating LHS
 		//rLeftHandSideMatrix = this->CreateElementStiffnessMatrix();	
 		rLeftHandSideMatrix = this->mLHS;
@@ -485,18 +491,10 @@ namespace Kratos
 	double TrussElement3D2N::CalculateGreenLagrangeStrain()
 	{
 		KRATOS_TRY
-
-		double du, dv, dw, dx, dy, dz, l, L;
-		du = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-		dv = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-		dw = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-		l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) + (dw + dz)*(dw + dz));
-		L = this->mLength;
+		double l = this->mCurrentLength;
+		double L = this->mLength;
 		//longitudinal green lagrange strain
-		return ((l * l - L * L) / (2 * L * L));
+		return ((l * l - L * L) / (2.00 * L * L));
 		KRATOS_CATCH("")
 	}
 
@@ -508,11 +506,119 @@ namespace Kratos
 		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
 		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
 		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-		L = L = sqrt(dx*dx + dy*dy + dz*dz);
+		L = sqrt(dx*dx + dy*dy + dz*dz);
 		//longitudinal green lagrange strain
 		return L;
 		KRATOS_CATCH("")
 	}
+	double TrussElement3D2N::CalculateCurrentLength()
+	{
+		KRATOS_TRY
+		double du, dv, dw, dx, dy, dz, l;
+		du = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+		dv = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+		dw = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+		dx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+		l = sqrt((du + dx)*(du + dx) + (dv + dy)*(dv + dy) + (dw + dz)*(dw + dz));
+		return l;
+		KRATOS_CATCH("")
+	}
+	void TrussElement3D2N::UpdateInternalForces(VectorType& rinternalForces)
+	{
+		KRATOS_TRY
+		MatrixType TransformationMatrix = ZeroMatrix(6, 6);
+		this->CreateTransformationMatrix(TransformationMatrix);
+		if (mIterCount == 0) mInternalStrainGL = 0.00;
+		else mInternalStrainGL = this->CalculateGreenLagrangeStrain();
+		double l = mCurrentLength;
+		double L0 = mLength;
+		double E = mYoungsModulus;
+		double A = mArea;
+		double N = (mInternalStrainGL * l * E * A )  / L0;
+		//internal force vectors
+		VectorType f_local = ZeroVector(6);
+		f_local[0] = -1.00 * N;
+		f_local[3] = 1.00 * N;
+
+		rinternalForces = ZeroVector(6);
+		rinternalForces = prod(TransformationMatrix, f_local);
+		KRATOS_CATCH("");
+	}
+
+	void TrussElement3D2N::CreateTransformationMatrix(Matrix& rRotationMatrix)
+	{
+		KRATOS_TRY
+		//1st calculate transformation matrix
+		Vector DirectionVectorX = ZeroVector(3);
+		Vector DirectionVectorY = ZeroVector(3);
+		Vector DirectionVectorZ = ZeroVector(3);
+		Vector ReferenceCoordinates = ZeroVector(6);
+		Vector GlobalZ = ZeroVector(3);
+		GlobalZ[2] = 1.0;
+
+		ReferenceCoordinates[0] = GetGeometry()[0].X();
+		ReferenceCoordinates[1] = GetGeometry()[0].Y();
+		ReferenceCoordinates[2] = GetGeometry()[0].Z();
+		ReferenceCoordinates[3] = GetGeometry()[1].X();
+		ReferenceCoordinates[4] = GetGeometry()[1].Y();
+		ReferenceCoordinates[5] = GetGeometry()[1].Z();
+
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			DirectionVectorX[i] = (ReferenceCoordinates[i + 3] - ReferenceCoordinates[i]);
+		}
+		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
+		double VectorNorm;
+		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
+		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
+
+		double tolerance = 1.0 / 1000.0;
+		if ((fabs(DirectionVectorX[0]) < tolerance) && (fabs(DirectionVectorX[1]) < tolerance)) {
+			DirectionVectorX = ZeroVector(3);
+			DirectionVectorX[2] = 1.0;
+			DirectionVectorY[1] = 1.0;
+			DirectionVectorZ[0] = -1.0;
+			if (ReferenceCoordinates[2] > ReferenceCoordinates[5]) {
+				DirectionVectorX *= -1.0;
+				DirectionVectorZ *= -1.0;
+			}
+		}
+		else {
+			DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, DirectionVectorX);
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
+			DirectionVectorY /= VectorNorm;
+
+			DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX, DirectionVectorY);
+			VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
+			DirectionVectorZ /= VectorNorm;
+		}
+
+		//2nd fill big rotation matrix
+		MatrixType IninitialCS = ZeroMatrix(3, 3);
+		for (uint i = 0; i < 3; i++) {
+			IninitialCS(i, 0) = DirectionVectorX[i];
+			IninitialCS(i, 1) = DirectionVectorY[i];
+			IninitialCS(i, 2) = DirectionVectorZ[i];
+		}
+
+		rRotationMatrix = ZeroMatrix(6, 6);
+		if (rRotationMatrix.size1() != 6) rRotationMatrix.resize(6, 6, false);
+		//Building the rotation matrix for the local element matrix
+		for (unsigned int kk = 0; kk < 6; kk += 3)
+		{
+			for (unsigned int i = 0; i<3; i++)
+			{
+				for (unsigned int j = 0; j<3; j++)
+				{
+					rRotationMatrix(i + kk, j + kk) = IninitialCS(i, j);
+				}
+			}
+		}
+		KRATOS_CATCH("")
+
+	}	
 } 
 
 
