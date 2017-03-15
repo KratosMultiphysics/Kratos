@@ -94,15 +94,9 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef std::size_t SizeType;
-
     typedef std::vector<std::size_t> EquationIdVectorType;
 
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -372,28 +366,10 @@ public:
     }
 
 
-
-    // virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-    //                         ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     VectorType RHS;
-    //     this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
-    // }
-
-
-
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Condition check
     /**
-      @param rDampingMatrix Left-hand side matrix
-      @param rRightHandSideVector Right-hand side vector
-      @param rCurrentProcessInfo ProcessInfo instance (unused)
-      */
-    // virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
-    //         VectorType& rRightHandSideVector,
-    //         ProcessInfo& rCurrentProcessInfo);
-
-
-    /// Check that all data required by this condition is available and reasonable
+     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     */
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
@@ -419,10 +395,6 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
             if(DYNAMIC_VISCOSITY.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            // if(IS_STRUCTURE.Key() == 0)
-            //     KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
-            // if(Y_WALL.Key() == 0)
-            //     KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
             if(EXTERNAL_PRESSURE.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
 
@@ -526,115 +498,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // 1D line shape functions values at Gauss points
-    // void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,2,2>& Ncontainer)
-    // {
-    //     const double val1 = 0.5*(1+std::sqrt(1/3))
-    //     const double val2 = 0.5*(1-std::sqrt(1/3))
-    //     Ncontainer(0,0) = val1; Ncontainer(0,1) = val2;
-    //     Ncontainer(1,0) = val2; Ncontainer(1,1) = val1;
-    // }
-    //
-    // // 2D triangle shape functions values at Gauss points
-    // void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
-    // {
-    //     const double one_sixt = 1.0/6.0;
-    //     const double two_third = 2.0/3.0;
-    //     Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
-    //     Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
-    //     Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
-    // }
-
-    /// Commpute the wall stress and add corresponding terms to the system contributions.
-    /**
-      @param rLocalMatrix Local system matrix
-      @param rLocalVector Local right hand side
-      */
-    // virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
-    //                   VectorType& rLocalVector,
-	// 	      ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     GeometryType& rGeometry = this->GetGeometry();
-    //     const size_t BlockSize = TDim + 1;
-    //     const double NodalFactor = 1.0 / double(TDim);
-    //
-    //     double area = NodalFactor * rGeometry.DomainSize();
-    //     // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
-    //
-    //     for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-    //     {
-    //         const NodeType& rConstNode = rGeometry[itNode];
-    //         const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
-    //         if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
-    //         {
-    //             array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-    //             const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-    //             Vel -= VelMesh;
-    //             const double Ikappa = 1.0/0.41; // inverse of Von Karman's kappa
-    //             const double B = 5.2;
-    //             const double limit_yplus = 10.9931899; // limit between linear and log regions
-    //
-    //             const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
-    //             const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
-    //
-    //             double wall_vel = 0.0;
-    //             for (size_t d = 0; d < TDim; d++)
-    //             {
-    //                 wall_vel += Vel[d]*Vel[d];
-    //             }
-    //             wall_vel = sqrt(wall_vel);
-    //
-    //             if (wall_vel > 1e-12) // do not bother if velocity is zero
-    //             {
-    //
-    //                 // linear region
-    //                 double utau = sqrt(wall_vel * nu / y);
-    //                 double yplus = y * utau / nu;
-    //
-    //                 // log region
-    //                 if (yplus > limit_yplus)
-    //                 {
-    //
-    //                     // wall_vel / utau = 1/kappa * log(yplus) + B
-    //                     // this requires solving a nonlinear problem:
-    //                     // f(utau) = utau*(1/kappa * log(y*utau/nu) + B) - wall_vel = 0
-    //                     // note that f'(utau) = 1/kappa * log(y*utau/nu) + B + 1/kappa
-    //
-    //                     unsigned int iter = 0;
-    //                     double dx = 1e10;
-    //                     const double tol = 1e-6;
-    //                     double uplus = Ikappa * log(yplus) + B;
-    //
-    //                     while(iter < 100 && fabs(dx) > tol * utau)
-    //                     {
-    //                         // Newton-Raphson iteration
-    //                         double f = utau * uplus - wall_vel;
-    //                         double df = uplus + Ikappa;
-    //                         dx = f/df;
-    //
-    //                         // Update variables
-    //                         utau -= dx;
-    //                         yplus = y * utau / nu;
-    //                         uplus = Ikappa * log(yplus) + B;
-    //                         ++iter;
-    //                     }
-    //                     if (iter == 100)
-    //                     {
-    //                         std::cout << "Warning: wall condition Newton-Raphson did not converge. Residual is " << dx << std::endl;
-    //                     }
-    //                 }
-    //                 const double Tmp = area * utau * utau * rho / wall_vel;
-    //                 for (size_t d = 0; d < TDim; d++)
-    //                 {
-    //                     size_t k = itNode*BlockSize+d;
-    //                     rLocalVector[k] -= Vel[d] * Tmp;
-    //                     rLocalMatrix(k,k) += Tmp;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
     void CalculateNormal(array_1d<double,3>& An);
 
     void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
@@ -726,16 +589,14 @@ private:
 
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes >
-inline std::istream& operator >> (std::istream& rIStream,
-                                  NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, NavierStokesWallCondition<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes >
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWallCondition<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

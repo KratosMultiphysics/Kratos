@@ -110,34 +110,10 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
     }
 }
 
-
-
-
-// template<unsigned int TDim, unsigned int TNumNodes>
-// void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
-//                                                                                    VectorType &rRightHandSideVector,
-//                                                                                    ProcessInfo &rCurrentProcessInfo)
-// {
-//     // Initialize local contributions
-//     const SizeType LocalSize = (TDim + 1) * TNumNodes;
-//
-//     if (rDampMatrix.size1() != LocalSize)
-//         rDampMatrix.resize(LocalSize,LocalSize);
-//     if (rRightHandSideVector.size() != LocalSize)
-//         rRightHandSideVector.resize(LocalSize);
-//
-//     noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
-//     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-//
-//     this->ApplyNeumannCondition(rDampMatrix,rRightHandSideVector);
-//
-//     this->ApplyWallLaw(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
-// }
-
-/// Returns a list of the element's Dofs
+/// Computes the Gauss pt. LHS contribution
 /**
-* @param ElementalDofList the list of DOFs
-* @param Ngauss Gauss point shape function values
+* @param lhs_gauss reference to the local LHS matrix
+* @param data Gauss pt. data structure
 */
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
@@ -147,10 +123,10 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution
     noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
 }
 
-/// Returns a list of the element's Dofs
+/// Computes the Gauss pt. RHS contribution
 /**
-* @param ElementalDofList the list of DOFs
-* @param Ngauss  Gauss point shape function values
+* @param rhs_gauss reference to the local RHS vector
+* @param data Gauss pt. data structure
 */
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
@@ -180,8 +156,10 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
     }
 }
 
-// protected funcions
-
+/// Computes the 2D condition normal
+/**
+* @param An reference to condition normal vector
+*/
 template <>
 void NavierStokesWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
 {
@@ -193,6 +171,10 @@ void NavierStokesWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
 
 }
 
+/// Computes the 3D condition normal
+/**
+* @param An reference to condition normal vector
+*/
 template <>
 void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 {
@@ -210,50 +192,6 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     MathUtils<double>::CrossProduct(An,v1,v2);
     An *= 0.5;
 }
-
-// template<unsigned int TDim, unsigned int TNumNodes>
-// void NavierStokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
-// {
-//     const NavierStokesWallCondition<TDim,TNumNodes>& rConstThis = *this;
-//     if (rConstThis.GetValue(IS_STRUCTURE) == 0.0)
-//     {
-//         const unsigned int LocalSize = TDim+1;
-//         const GeometryType& rGeom = this->GetGeometry();
-//         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-//         const unsigned int NumGauss = IntegrationPoints.size();
-//
-//         MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-//
-//         array_1d<double,3> Normal;
-//         this->CalculateNormal(Normal); //this already contains the area
-//         double A = std::sqrt(Normal[0]*Normal[0]+Normal[1]*Normal[1]+Normal[2]*Normal[2]);
-//         Normal /= A;
-//
-//         // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-//         double J = (TDim == 2) ? 0.5*A : 2.0*A;
-//
-//         for (unsigned int g = 0; g < NumGauss; g++)
-//         {
-//             Vector N = row(NContainer,g);
-//             double Weight = J * IntegrationPoints[g].Weight();
-//
-//             // Neumann boundary condition
-//             for (unsigned int i = 0; i < TNumNodes; i++)
-//             {
-//                 //unsigned int row = i*LocalSize;
-//                 const NodeType& rConstNode = this->GetGeometry()[i];
-//                 const double pext = rConstNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
-//
-//                 for (unsigned int j = 0; j < TNumNodes; j++)
-//                 {
-//                     unsigned int row = j*LocalSize;
-//                     for (unsigned int d = 0; d < TDim;d++)
-//                         rLocalVector[row+d] -= Weight*N[j]*N[i]*pext*Normal[d];
-//                 }
-//             }
-//         }
-//     }
-// }
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
