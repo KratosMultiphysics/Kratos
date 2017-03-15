@@ -31,8 +31,6 @@ class DamEigenSolver():
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "rotation_dofs": false,
-            "pressure_dofs": false,
             "eigensolver_settings":{
                 "solver_type": "FEAST"
             },
