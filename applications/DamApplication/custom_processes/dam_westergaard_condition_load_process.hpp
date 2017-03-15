@@ -115,7 +115,7 @@ public:
             direction = 1;
         else if( mgravity_direction == "Y")
             direction = 2;
-        else if( mgravity_direction == "Z")
+        else
             direction = 3;
         
 		double ref_coord = mreference_coordinate + mwater_level;
@@ -135,24 +135,23 @@ public:
                     it->Fix(var);
                 }
 
-				double y_water =  ref_coord- (it->Coordinate(direction));
+                double y_water =  ref_coord- (it->Coordinate(direction));
                 
-				if (y_water<0.0)
-				{
-					y_water=0.0;
-				}
+                if (y_water<0.0)
+                {
+                    y_water=0.0;
+                }
                 
                 // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
                 if(unit_acceleration<0.0)
                 {
-                // The first part is related to hydrostatic pressure 
-                     pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
+                    pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
                 }
                 else
                 {
-                     pressure = (mspecific*(y_water));
+                    pressure = (mspecific*(y_water));
                 }
-                
+
                 if(pressure>0.0)
                 {
                     it->FastGetSolutionStepValue(var) = pressure;
@@ -194,16 +193,16 @@ public:
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         int direction;
         double pressure;
-        
+                
         if( mgravity_direction == "X")
             direction = 1;
         else if( mgravity_direction == "Y")
             direction = 2;
-        else if( mgravity_direction == "Z")
+        else
             direction = 3;
         
-		double ref_coord = mreference_coordinate + mwater_level;
-		double unit_acceleration = macceleration/9.81;
+        double ref_coord = mreference_coordinate + mwater_level;
+        double unit_acceleration = macceleration/9.81;
                            
         if(nnodes != 0)
         {
@@ -219,17 +218,16 @@ public:
                     it->Fix(var);
                 }
                    
-				double y_water =  ref_coord- (it->Coordinate(direction));
+                double y_water =  ref_coord- (it->Coordinate(direction));
                 
-				if (y_water<0.0)
-				{
-					y_water=0.0;
-				}
+                if (y_water<0.0)
+                {
+                    y_water=0.0;
+                }
                 
                 // Hydrodynamics Westergaard effects just contribute when the acceleration goes in the upstream direction                
                 if(unit_acceleration<0.0)
                 {
-                // The first part is related to hydrostatic pressure 
                     pressure = (mspecific*(y_water)) + 0.875*(-1.0*unit_acceleration)*mspecific*sqrt(y_water*mwater_level);
                 }
                 else

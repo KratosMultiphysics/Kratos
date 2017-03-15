@@ -45,11 +45,10 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    #~ nightSuite.addTest(TMokBenchmarkTest('test_execution'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    #~ validationSuite.addTest(TTurekBenchmarkTest('test_execution'))
+    validationSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -60,9 +59,6 @@ def AssambleTestSuites():
             TEmbeddedCouetteImposedTest,
             TEmbeddedReservoirTest,
             TManufacturedSolutionTest
-            #~ TNonConformantOneSideMap3D_test2,
-            #~ TMokBenchmarkTest
-            #####TTurekBenchmarkTest
         ])
     )
 

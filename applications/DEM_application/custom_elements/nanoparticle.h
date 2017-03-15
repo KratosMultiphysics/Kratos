@@ -35,7 +35,7 @@ public:
     NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){mThicknessOverRadius = 0.01;}
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){mThicknessOverRadius = 0.01;}
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return SphericParticle::Pointer(new NanoParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -45,7 +45,7 @@ public:
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NanoParticle" ;
@@ -53,22 +53,22 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "NanoParticle";}
+    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "NanoParticle";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}    
-    void Initialize(const ProcessInfo& r_process_info);
+    virtual void PrintData(std::ostream& rOStream) const override {}    
+    void Initialize(const ProcessInfo& r_process_info) override;
 
     void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                  array_1d<double, 3>& additionally_applied_moment,
                                  const ProcessInfo& r_current_process_info,
-                                 const array_1d<double,3>& gravity);
+                                 const array_1d<double,3>& gravity) override;
 
-    void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
+    void MemberDeclarationFirstStep(const ProcessInfo& r_process_info) override;
     
-    double CalculateVolume();
-    void SetInteractionRadius(double radius);
-    double GetInteractionRadius();
+    double CalculateVolume() override;
+    void SetInteractionRadius(double radius) override;
+    double GetInteractionRadius() override;
 
 protected:
 
@@ -79,12 +79,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
     }

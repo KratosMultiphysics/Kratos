@@ -150,6 +150,7 @@ void AddCustomUtilitiesToPython() {
         .def("AddSpheresNotBelongingToClustersToMixModelPart", &PostUtilities::AddSpheresNotBelongingToClustersToMixModelPart)
         .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)
         .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
+        .def("IntegrationOfElasticForces", &PostUtilities::IntegrationOfElasticForces)
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
         .def("ComputePoisson2D", &PostUtilities::ComputePoisson2D)
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)

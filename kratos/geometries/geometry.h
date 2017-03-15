@@ -1375,7 +1375,7 @@ public:
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             this->Jacobian( J, pnt, ThisMethod);
-            rResult[pnt] = MathUtils<double>::Det(J);
+            rResult[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
         return rResult;
     }
@@ -1423,7 +1423,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 
@@ -1443,7 +1443,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, rPoint);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 

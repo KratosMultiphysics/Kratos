@@ -1,0 +1,100 @@
+{
+    "problem_data"             : {
+        "problem_name"        : "Acoustic_example",
+        "model_part_name"     : "MainModelPart",
+        "domain_size"         : 2,
+        "start_time"          : 0.0,
+        "end_time"            : 0.01,
+        "time_step"           : 0.0001,
+        "streamlines_utility" : false,
+        "parallel_type"       : "OpenMP",
+        "number_of_threads"   : 1,
+        "time_scale"          : "Seconds"
+    },
+    "solver_settings"          : {
+        "solver_type"                   : "dam_P_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "Acoustic_example",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["PRESSURE_Pressure_Auto1","PRESSURE_Pressure_Auto2","InfiniteDomain2D_Boundary_Radiation_Auto1"],
+        "acoustic_solver_settings"      : {
+            "strategy_type"               : "Newton-Raphson",
+            "scheme_type"                 : "Newmark",
+            "convergence_criterion"       : "Residual_criterion",
+            "residual_relative_tolerance" : 0.0001,
+            "residual_absolute_tolerance" : 1e-9,
+            "max_iteration"               : 10,
+            "move_mesh_flag"              : false,
+            "echo_level"                  : 0,
+            "linear_solver_settings"      : {
+                "solver_type"   : "AMGCL",
+                "max_iteration" : 200,
+                "tolerance"     : 1e-7,
+                "verbosity"     : 0,
+                "GMRES_size"    : 50
+            }
+        }
+    },
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["PRESSURE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_process_list" : [{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformPressureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PRESSURE_Pressure_Auto1",
+            "variable_name"   : "PRESSURE",
+            "is_fixed"        : false,
+            "value"           : 0.0,
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformPressureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PRESSURE_Pressure_Auto2",
+            "variable_name"   : "PRESSURE",
+            "is_fixed"        : true,
+            "value"           : 10,
+            "table"           : 0
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "special_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : [],
+        "process_name"  : "InfiniteDomainProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "InfiniteDomain2D_Boundary_Radiation_Auto1",
+            "variable_name"   : "Dt_PRESSURE"
+        }
+    }]
+}

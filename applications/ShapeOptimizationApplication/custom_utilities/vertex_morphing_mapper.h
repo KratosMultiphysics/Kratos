@@ -119,25 +119,24 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ==========================================================================
     // Type definitions for better reading later
-    // ==========================================================================
     typedef array_1d<double,3> array_3d;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointTypePointer;
-    typedef std::vector<PointType::Pointer> PointVector;
-    typedef std::vector<PointType::Pointer>::iterator PointIterator;
-    typedef std::vector<double> DistanceVector;
-    typedef std::vector<double>::iterator DistanceIterator;
+    typedef Node < 3 > NodeType;
+    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef std::vector<NodeType::Pointer> NodeVector;
+    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+    typedef std::vector<double> DoubleVector;
+    typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    // ==========================================================================
     // Type definitions for linear algebra including sparse systems
-    // ==========================================================================
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     typedef typename SparseSpaceType::VectorType VectorType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+    // Type definitions for tree-search
+    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;    
 
     /// Pointer definition of VertexMorphingMapper
     KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingMapper);
@@ -149,36 +148,24 @@ public:
     /// Default constructor.
     VertexMorphingMapper( ModelPart& model_part,
                           std::string filter_function_type,
-                          bool use_mesh_preserving_mapping_matrix,
                           double filter_size,
                           bool perform_damping,
                           boost::python::list damping_regions )
         : mr_opt_model_part(model_part),
           m_filter_function_type(filter_function_type),
-          m_use_mesh_preserving_mapping_matrix(use_mesh_preserving_mapping_matrix),
           m_filter_size(filter_size),
           m_perform_damping(perform_damping),
+          m_damping_regions(damping_regions),
           m_number_of_design_variables(model_part.Nodes().size())
     {
         // Set precision for output
         std::cout.precision(12);
 
-        // Create map to obtain local mapping matrix Id from global node Id
-        unsigned int i = 0;
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-            // Store local mapping matrix Id on the node
-            node_i->SetValue(MAPPING_MATRIX_ID,i++);
+        assignMappingMatrixIds();
 
-        // Initialize damping (By default damping factor is set to unity and hence has no influence)
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            node_i->SetValue(DAMPING_FACTOR_X,1.0);    
-            node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
-            node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
-        } 
-        
+        initalizeDampingFactorsToHaveNoInfluence(); 
         if(perform_damping)   
-            initialize_damping(damping_regions);
+            setDampingFactorsAccordingDampingFunction();
     }
 
     /// Destructor.
@@ -197,45 +184,55 @@ public:
     ///@{
 
     // ==============================================================================
-    void initialize_damping(boost::python::list damping_regions)
+    void assignMappingMatrixIds()
     {
-        std::cout << "\n\n> Starting to prepare damping..." << std::endl;
+        unsigned int i = 0;
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            node_i->SetValue(MAPPING_MATRIX_ID,i++);
+    }
+
+    // --------------------------------------------------------------------------
+    void initalizeDampingFactorsToHaveNoInfluence()
+    {
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            node_i->SetValue(DAMPING_FACTOR_X,1.0);    
+            node_i->SetValue(DAMPING_FACTOR_Y,1.0);  
+            node_i->SetValue(DAMPING_FACTOR_Z,1.0);  
+        } 
+    }
+
+    // --------------------------------------------------------------------------
+    void setDampingFactorsAccordingDampingFunction()
+    {
+        std::cout << "\n> Starting to prepare damping..." << std::endl;
 
         // Creating an auxiliary list for the nodes to be searched on
-        PointVector list_of_nodes;
-
-        // Start constructing and computing the kdtree
-        typedef Bucket< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-        typedef Tree< KDTreePartition<BucketType> > tree;
+        NodeVector list_of_nodes;
 
         // Add nodes to list wich collects all nodes for neighbour-search
         for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
         {
-            PointTypePointer pnode = *(node_it.base());
+            NodeTypePointer pnode = *(node_it.base());
             list_of_nodes.push_back(pnode);
         }
 
-        // Arrays needed for spatial search
-        unsigned int max_nodes_affected = 10000;
-        PointVector nodes_affected(max_nodes_affected);
-        DistanceVector resulting_squared_distances(max_nodes_affected);
-
         // Compute tree with the node positions
         unsigned int bucket_size = 100;
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+        KDTree treeOfAllOptimizationNodes(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         // Loop over all regions for which damping is to be applied
-        for (unsigned int region_itr = 0; region_itr < boost::python::len(damping_regions); region_itr++)
+        for (unsigned int region_itr = 0; region_itr < boost::python::len(m_damping_regions); region_itr++)
         {
             // Extract sub-model part for damping
-            ModelPart& damping_sub_mdpa = extractModelPart(damping_regions[region_itr][0]);
+            ModelPart& damping_sub_mdpa = extractModelPart(m_damping_regions[region_itr][0]);
 
             // Read settings for current edge
-            bool damp_in_X = damping_regions[region_itr][1];
-            bool damp_in_Y = damping_regions[region_itr][2];
-            bool damp_in_Z = damping_regions[region_itr][3];
-            std::string damping_function_type = extractString(damping_regions[region_itr][4]);
-            double damping_radius = extractDouble(damping_regions[region_itr][5]);
+            bool damp_in_X = m_damping_regions[region_itr][1];
+            bool damp_in_Y = m_damping_regions[region_itr][2];
+            bool damp_in_Z = m_damping_regions[region_itr][3];
+            std::string damping_function_type = extractString(m_damping_regions[region_itr][4]);
+            double damping_radius = extractDouble(m_damping_regions[region_itr][5]);
 
             // Prepare damping function
             DampingFunction damping_function( damping_function_type, damping_radius );
@@ -247,13 +244,18 @@ public:
                 ModelPart::NodeType& damping_node_i = *node_itr;
                 array_3d i_coord = damping_node_i.Coordinates();
 
+                // Arrays needed for spatial search
+                unsigned int max_nodes_affected = 10000;
+                NodeVector nodes_affected(max_nodes_affected);
+                DoubleVector resulting_squared_distances(max_nodes_affected);
+
                 // Perform spatial search for current node
                 unsigned int number_of_nodes_affected;
-                number_of_nodes_affected = nodes_tree.SearchInRadius( damping_node_i, 
-                                                                      damping_radius, 
-                                                                      nodes_affected.begin(),
-                                                                      resulting_squared_distances.begin(), 
-                                                                      max_nodes_affected ); 
+                number_of_nodes_affected = treeOfAllOptimizationNodes.SearchInRadius( damping_node_i, 
+                                                                                      damping_radius, 
+                                                                                      nodes_affected.begin(),
+                                                                                      resulting_squared_distances.begin(), 
+                                                                                      max_nodes_affected ); 
                 
                 // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
                 if(number_of_nodes_affected == max_nodes_affected)
@@ -287,251 +289,107 @@ public:
     // --------------------------------------------------------------------------
     void compute_mapping_matrix()
     {
-        KRATOS_TRY;
-
         // Measure time
         boost::timer mapping_time;
 
-        // Depending on settings, compute either reduced mapping matrix, which improves in-plane mesh movement or complete matrix
-        if(m_use_mesh_preserving_mapping_matrix)
+        std::cout << "\n> Starting computation of complete mapping matrix..." << std::endl;
+
+        // Initialize filter matrix
+        m_mapping_matrix.resize(m_number_of_design_variables,m_number_of_design_variables);
+
+        // Initialize mapping matrix (zero possible entries)
+        m_mapping_matrix.clear();
+
+        // Creating an auxiliary list for the nodes to be searched on
+        NodeVector list_of_nodes;
+
+        // starting calculating time of construction of the kdtree
+        for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
         {
-            std::cout << "\n> Starting computation of mesh-preserving mapping matrix..." << std::endl;
+            NodeTypePointer pnode = *(node_it.base());
 
-            // Initialize filter matrix
-            m_mapping_matrix.resize(m_number_of_design_variables*3,m_number_of_design_variables);
-
-            // Initialize mapping matrix (zero possible entries)
-            m_mapping_matrix.clear();
-
-            // Creating an auxiliary list for the nodes to be searched on
-            PointVector list_of_nodes;
-
-            // Start constructing and computing the kdtree
-            typedef Bucket< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-            typedef Tree< KDTreePartition<BucketType> > tree;
-
-            // Add nodes to list wich collects all nodes for neighbour-search
-            for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
-            {
-                PointTypePointer pnode = *(node_it.base());
-                list_of_nodes.push_back(pnode);
-            }
-
-            // Arrays needed for spatial search
-            unsigned int max_nodes_affected = 10000;
-            PointVector nodes_affected(max_nodes_affected);
-            DistanceVector resulting_squared_distances(max_nodes_affected);
-
-            // Compute tree with the node positions
-            unsigned int bucket_size = 100;
-            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
-            // Prepare Weighting function to be used in the mapping
-            FilterFunction filter_function( m_filter_function_type, m_filter_size );
-
-            // Loop over all design variables
-            for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
-            {
-                // Get node information
-                ModelPart::NodeType& node_i = *node_itr;
-                array_3d i_coord = node_i.Coordinates();
-
-                // Get tID of the node in the mapping matrix
-                int i = node_i.GetValue(MAPPING_MATRIX_ID);
-
-                // Perform spatial search for current node
-                unsigned int number_of_nodes_affected;
-                number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), max_nodes_affected);
-
-                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-                if(number_of_nodes_affected == max_nodes_affected)
-                    std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
-
-
-                // Some lists to increase efficiency in the loop later
-                std::vector<double> list_of_weights(3*number_of_nodes_affected,0.0);
-                std::vector<int> list_of_neighbor_mapping_ids(number_of_nodes_affected,0);
-
-                // Compute and assign weights in the mapping matrix
-                double sum_weights = 0.0;
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    // Get node information
-                    ModelPart::NodeType& node_j = *nodes_affected[j_itr];
-                    array_3d j_coord = node_j.Coordinates();
-
-                    // Get the id of the node in the mapping matrix
-                    int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-                    // Computation of weight according specified weighting function
-                    // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                    double Aij = filter_function.compute_weight(i_coord,j_coord);
-
-                    // Multiplication by the node normal (nodal director)
-                    array_3d n = node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-
-                    // Add values to list
-                    list_of_neighbor_mapping_ids[j_itr] = j;
-                    list_of_weights[3*j_itr+0] = Aij*n[0]; 
-                    list_of_weights[3*j_itr+1] = Aij*n[1];   
-                    list_of_weights[3*j_itr+2] = Aij*n[2];                      
-
-                    // Computed for integration of weighting function later using post-scaling
-                    sum_weights += Aij;
-                }
-
-                // Post scaling + sort in all matrix entries in mapping matrix
-                // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
-
-                // X-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[3*j_itr+0] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+0,3*j+0,Aij);               
-                }
-                // Y-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[3*j_itr+1] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+1,3*j+1,Aij);                      
-                }
-                // Z-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[3*j_itr+2] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+2,3*j+2,Aij);                      
-                }   
-            }
-
-            // Console output for information
-            std::cout << "> Time needed for computation of reduced mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
+            // Putting the nodes of interest in an auxiliary list
+            list_of_nodes.push_back(pnode);
         }
-        else // compute complete matrix
+
+        // Compute tree with the node positions
+        unsigned int bucket_size = 100;
+        KDTree treeOfAllOptimizationNodes(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+
+        // Prepare Weighting function to be used in the mapping
+        FilterFunction filter_function( m_filter_function_type, m_filter_size );
+
+        // Loop over all design variables
+        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
         {
-            std::cout << "\n> Starting computation of complete mapping matrix..." << std::endl;
+            // Get node information
+            ModelPart::NodeType& node_i = *node_itr;
+            array_3d i_coord = node_i.Coordinates();
 
-            // Initialize filter matrix
-            m_mapping_matrix.resize(m_number_of_design_variables*3,m_number_of_design_variables*3);
-
-            // Initialize mapping matrix (zero possible entries)
-            m_mapping_matrix.clear();
-
-            // Creating an auxiliary list for the nodes to be searched on
-            PointVector list_of_nodes;
-
-            // Start constructing and computing the kdtree
-            typedef Bucket< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-            typedef Tree< KDTreePartition<BucketType> > tree;
-
-            // starting calculating time of construction of the kdtree
-            for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
-            {
-                PointTypePointer pnode = *(node_it.base());
-
-                // Putting the nodes of interest in an auxiliary list
-                list_of_nodes.push_back(pnode);
-            }
+            // Get tID of the node in the mapping matrix
+            int i = node_i.GetValue(MAPPING_MATRIX_ID);
 
             // Arrays needed for spatial search
             unsigned int max_nodes_affected = 10000;            
-            PointVector nodes_affected(max_nodes_affected);
-            DistanceVector resulting_squared_distances(max_nodes_affected);
+            NodeVector nodes_affected(max_nodes_affected);
+            DoubleVector resulting_squared_distances(max_nodes_affected);
 
-            // Compute tree with the node positions
-            unsigned int bucket_size = 100;
-            tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
-            // Prepare Weighting function to be used in the mapping
-            FilterFunction filter_function( m_filter_function_type, m_filter_size );
+            // Perform spatial search for current node
+            unsigned int number_of_nodes_affected;
+            number_of_nodes_affected = treeOfAllOptimizationNodes.SearchInRadius( node_i, 
+                                                                                  m_filter_size, 
+                                                                                  nodes_affected.begin(),
+                                                                                  resulting_squared_distances.begin(), 
+                                                                                  max_nodes_affected );
 
-            // Loop over all design variables
-            for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+            // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
+            if(number_of_nodes_affected >= max_nodes_affected)
+                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
+
+            // Some lists to increase efficiency in the loop later
+            DoubleVector list_of_weights(number_of_nodes_affected,0.0);
+            std::vector<int> list_of_neighbor_mapping_ids(number_of_nodes_affected,0);
+
+            // Compute and assign weights in the mapping matrix
+            double sum_weights = 0.0;
+            for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
             {
-                // Initialize list of affected nodes
-                nodes_affected.clear();
-
                 // Get node information
-                ModelPart::NodeType& node_i = *node_itr;
-                array_3d i_coord = node_i.Coordinates();
+                ModelPart::NodeType& node_j = *nodes_affected[j_itr];
+                array_3d j_coord = node_j.Coordinates();
 
-                // Get tID of the node in the mapping matrix
-                int i = node_i.GetValue(MAPPING_MATRIX_ID);
+                // Get the id of the node in the mapping matrix
+                int j = node_j.GetValue(MAPPING_MATRIX_ID);
 
-                // Perform spatial search for current node
-                unsigned int number_of_nodes_affected;
-                number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), max_nodes_affected);
+                // Computation of weight according specified weighting function
+                double Aij = filter_function.compute_weight(i_coord,j_coord);
 
-                // Throw a warning if specified (hard-coded) maximum number of neighbors is reached
-                if(number_of_nodes_affected >= max_nodes_affected)
-                    std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_nodes_affected << " nodes) reached!" << std::endl;
+                // Add values to list
+                list_of_neighbor_mapping_ids[j_itr] = j;
+                list_of_weights[j_itr] = Aij;
 
-                // Some lists to increase efficiency in the loop later
-                std::vector<double> list_of_weights(number_of_nodes_affected,0.0);
-                std::vector<int> list_of_neighbor_mapping_ids(number_of_nodes_affected,0);
-
-                // Compute and assign weights in the mapping matrix
-                double sum_weights = 0.0;
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    // Get node information
-                    ModelPart::NodeType& node_j = *nodes_affected[j_itr];
-                    array_3d j_coord = node_j.Coordinates();
-
-                    // Get the id of the node in the mapping matrix
-                    int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-                    // Computation of weight according specified weighting function
-                    double Aij = filter_function.compute_weight(i_coord,j_coord);
-
-                    // Add values to list
-                    list_of_neighbor_mapping_ids[j_itr] = j;
-                    list_of_weights[j_itr] = Aij;
-
-                    // Computed for integration of weighting function later using post-scaling
-                    sum_weights += Aij;
-                }
-
-                // Post scaling + sort in all matrix entries in mapping matrix
-                // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
-
-                // X-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[j_itr] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+0,3*j+0,Aij);               
-                }
-                // Y-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[j_itr] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+1,3*j+1,Aij);                      
-                }
-                // Z-Direction
-                for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-                {
-                    int j = list_of_neighbor_mapping_ids[j_itr];
-                    double Aij = list_of_weights[j_itr] / sum_weights;
-                    m_mapping_matrix.push_back(3*i+2,3*j+2,Aij);                      
-                }                                
+                // Computed for integration of weighting function later using post-scaling
+                sum_weights += Aij;
             }
 
-            // Console output for information
-            std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
+            // Post scaling + sort in all matrix entries in mapping matrix
+            // We sort in row by row using push_back. This is much more efficient than having only one loop and using a direct access
+            for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
+            {
+                int j = list_of_neighbor_mapping_ids[j_itr];
+                double Aij = list_of_weights[j_itr] / sum_weights;
+                m_mapping_matrix.push_back(i,j,Aij);               
+            }                          
         }
 
-        KRATOS_CATCH("");
+        // Console output for information
+        std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void map_sensitivities_to_design_space( bool constraint_given )
     {
-        KRATOS_TRY;
-
         // Measure time
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of sensitivities to design space..." << std::endl;
@@ -553,145 +411,111 @@ public:
 
         // Map objective sensitivities
 
-        // Assign nodal sensitivities to vector used for mapping
-        VectorType dJdX;
-        dJdX.resize(m_number_of_design_variables*3);
+        // Assign nodal sensitivities to vectors used for mapping
+        VectorType dJdX, dJdY, dJdZ;
+        dJdX.resize(m_number_of_design_variables);
+        dJdY.resize(m_number_of_design_variables);
+        dJdZ.resize(m_number_of_design_variables);
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
             int i = node_i->GetValue(MAPPING_MATRIX_ID);
             array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            dJdX[i*3+0] = node_sens[0];
-            dJdX[i*3+1] = node_sens[1];
-            dJdX[i*3+2] = node_sens[2];
+            dJdX[i] = node_sens[0];
+            dJdY[i] = node_sens[1];
+            dJdZ[i] = node_sens[2];
         }
-        VectorType dCdX;
+        VectorType dCdX, dCdY, dCdZ;
         if(constraint_given)
         {
-            dCdX.resize(m_number_of_design_variables*3);
+            dCdX.resize(m_number_of_design_variables);
+            dCdY.resize(m_number_of_design_variables);
+            dCdZ.resize(m_number_of_design_variables);
             for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
             {
                 int i = node_i->GetValue(MAPPING_MATRIX_ID);
                 array_3d node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                dCdX[i*3+0] = node_sens[0];
-                dCdX[i*3+1] = node_sens[1];
-                dCdX[i*3+2] = node_sens[2];
+                dCdX[i] = node_sens[0];
+                dCdY[i] = node_sens[1];
+                dCdZ[i] = node_sens[2];
             }
         }
 
-        // Perform mapping according to the specified mapping matrix
-        if(m_use_mesh_preserving_mapping_matrix)
+        // Perform mapping of objective sensitivities
+        VectorType dJdsx, dJdsy, dJdsz;
+        dJdsx.resize(m_number_of_design_variables);
+        dJdsy.resize(m_number_of_design_variables);
+        dJdsz.resize(m_number_of_design_variables);
+        SparseSpaceType::TransposeMult(m_mapping_matrix,dJdX,dJdsx);
+        SparseSpaceType::TransposeMult(m_mapping_matrix,dJdY,dJdsy);
+        SparseSpaceType::TransposeMult(m_mapping_matrix,dJdZ,dJdsz);
+
+        // Assign results to nodal variables
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            VectorType dJds;
-            dJds.resize(m_number_of_design_variables);
-            SparseSpaceType::TransposeMult(m_mapping_matrix,dJdX,dJds);
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            VectorType dJds_i = ZeroVector(3);
+            dJds_i(0) = dJdsx[i];
+            dJds_i(1) = dJdsy[i];
+            dJds_i(2) = dJdsz[i];
+            node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dJds_i;
+        }
+
+        // Repeat mapping to map constraint sensitivities
+        if(constraint_given)
+        {
+            // Perform mapping
+            VectorType dCdsx, dCdsy, dCdsz;
+            dCdsx.resize(m_number_of_design_variables);
+            dCdsy.resize(m_number_of_design_variables);
+            dCdsz.resize(m_number_of_design_variables);
+            SparseSpaceType::TransposeMult(m_mapping_matrix,dCdX,dCdsx);
+            SparseSpaceType::TransposeMult(m_mapping_matrix,dCdY,dCdsy);
+            SparseSpaceType::TransposeMult(m_mapping_matrix,dCdZ,dCdsz);
 
             // Assign results to nodal variables
             for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
             {
                 int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                VectorType dJds_i = ZeroVector(3);
-                dJds_i(0) = dJds[i];
-                node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dJds_i;
-            }
-
-            // Repeat mapping to map constraint sensitivities
-            if(constraint_given)
-            {
-                // Perform mapping
-                VectorType dCds;
-                dCds.resize(m_number_of_design_variables);
-                SparseSpaceType::TransposeMult(m_mapping_matrix,dCdX,dCds);
-
-                // Assign results to nodal variables
-                for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-                {
-                    int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                    VectorType dCds_i = ZeroVector(3);
-                    dCds_i(0) = dCds[i];
-                    node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
-                }
-            }
-        }
-        else // if complete matrix is used for mapping
-        {
-            VectorType dJds;
-            dJds.resize(m_number_of_design_variables*3);
-            SparseSpaceType::TransposeMult(m_mapping_matrix,dJdX,dJds);
-
-            // Assign results to nodal variables
-            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-            {
-                int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                VectorType dJds_i = ZeroVector(3);
-                dJds_i(0) = dJds[i*3+0];
-                dJds_i(1) = dJds[i*3+1];
-                dJds_i(2) = dJds[i*3+2];
-                node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dJds_i;
-            }
-
-            // Repeat mapping to map constraint sensitivities
-            if(constraint_given)
-            {
-                // Perform mapping
-                VectorType dCds;
-                dCds.resize(m_number_of_design_variables*3);
-                SparseSpaceType::TransposeMult(m_mapping_matrix,dCdX,dCds);
-
-                // Assign results to nodal variables
-                for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-                {
-                    int i = node_i->GetValue(MAPPING_MATRIX_ID);
-                    VectorType dCds_i = ZeroVector(3);
-                    dCds_i(0) = dCds[i*3+0];
-                    dCds_i(1) = dCds[i*3+1];
-                    dCds_i(2) = dCds[i*3+2];
-                    node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
-                }
+                VectorType dCds_i = ZeroVector(3);
+                dCds_i(0) = dCdsx[i];
+                dCds_i(1) = dCdsy[i];
+                dCds_i(2) = dCdsz[i];
+                node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
             }
         }
 
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
     void map_design_update_to_geometry_space()
     {
-        KRATOS_TRY;
-
         // Measure time of mapping
         boost::timer mapping_time;
         std::cout << "\n> Starting mapping of design update to geometry space..." << std::endl;
 
         // Assign design update to vector which shall be mapped (depending specified mapping matrix )
-        VectorType ds;
-        if(m_use_mesh_preserving_mapping_matrix)
+        VectorType dsx, dsy, dsz;
+        dsx.resize(m_number_of_design_variables);
+        dsy.resize(m_number_of_design_variables);
+        dsz.resize(m_number_of_design_variables);
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-        	ds.resize(m_number_of_design_variables);
-        	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        	{
-        		int i = node_i->GetValue(MAPPING_MATRIX_ID);
-        		ds[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_X);
-        	}
-        }
-        else
-        {
-        	ds.resize(m_number_of_design_variables*3);
-        	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        	{
-        		int i = node_i->GetValue(MAPPING_MATRIX_ID);
-        		ds[3*i+0] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_X);
-        		ds[3*i+1] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Y);
-        		ds[3*i+2] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Z);
-        	}
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            dsx[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_X);
+            dsy[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Y);
+            dsz[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE_Z);
         }
 
         // Perform mapping to compute shape update
-        VectorType dx;
-        dx.resize(m_number_of_design_variables*3);
-        noalias(dx) = prod(m_mapping_matrix,ds);
+        VectorType dx, dy, dz;
+        dx.resize(m_number_of_design_variables);
+        dy.resize(m_number_of_design_variables);
+        dz.resize(m_number_of_design_variables);
+        noalias(dx) = prod(m_mapping_matrix,dsx);
+        noalias(dy) = prod(m_mapping_matrix,dsy);
+        noalias(dz) = prod(m_mapping_matrix,dsz);
 
         // Assign dx as nodal shape updates and update coordinates accordingly
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
@@ -708,9 +532,9 @@ public:
                 // Read shape update from solution vector
                 int i = node_i->GetValue(MAPPING_MATRIX_ID);
                 array_3d shape_update;
-                shape_update[0] = dx[3*i+0];
-                shape_update[1] = dx[3*i+1];
-                shape_update[2] = dx[3*i+2];
+                shape_update[0] = dx[i];
+                shape_update[1] = dy[i];
+                shape_update[2] = dz[i];
 
                 // If node is on specified boundary, project shape update on specified boundary plane
                 // I.e. remove component that is normal to the boundary plane
@@ -750,8 +574,6 @@ public:
 
         // Console output for information
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     // ==============================================================================
@@ -846,9 +668,9 @@ private:
     // ==============================================================================
     ModelPart& mr_opt_model_part;
     std::string m_filter_function_type;
-    bool m_use_mesh_preserving_mapping_matrix;
     const double m_filter_size;
     bool m_perform_damping;
+    boost::python::list m_damping_regions;
     const unsigned int m_number_of_design_variables;
 
     // ==============================================================================
