@@ -77,7 +77,7 @@ namespace Kratos
     void MapNodeNewtonRaphson(const Node<3>::Pointer& node,
       Node<3>::Pointer& node_on_geometry, ModelPart& model_part);
     bool CheckIfPointIsInside(Vector node_parameters);
-    void EvaluateSurfacePoint(Point<3> rSurfacePoint, double u, double v, ModelPart& model_part);
+    void EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v, ModelPart& model_part);
 
 
     //TODO: you need to give reading access to your internals through the Calculate function

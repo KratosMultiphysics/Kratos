@@ -31,6 +31,7 @@ namespace Kratos
   // --------------------------------------------------------------------------
   void Face::MapNodeNewtonRaphson(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& model_part)
   {
+    std::cout << "test hier" << std::endl;
     // Initialize P: point on the mesh
     Vector P = ZeroVector(3);
     P(0) = node->X();
@@ -47,10 +48,10 @@ namespace Kratos
     Vector myGradient = ZeroVector(2);
     double det_H = 0;
     Matrix InvH = ZeroMatrix(2, 2);
-    Vector local_parameter = node->GetValue(LOCAL_PARAMETERS);
+    Vector local_parameter = node_on_geometry->GetValue(LOCAL_PARAMETERS);
     double u_k = local_parameter(0);
     double v_k = local_parameter(0);
-    Point<3> newtonRaphsonPoint;
+    //Node<3>::Pointer newtonRaphsonPoint;
 
     double norm_deltau = 100000000;
     unsigned int k = 0;
@@ -72,10 +73,16 @@ namespace Kratos
       v_k -= deltau(1);
 
       // Q is updated
-      EvaluateSurfacePoint(newtonRaphsonPoint, u_k, v_k, model_part);
-      Q_k(0) = newtonRaphsonPoint[0];
-      Q_k(1) = newtonRaphsonPoint[1];
-      Q_k(2) = newtonRaphsonPoint[2];
+      EvaluateSurfacePoint(node_on_geometry, u_k, v_k, model_part);
+      Q_k(0) = node_on_geometry->X();
+      Q_k(1) = node_on_geometry->Y();
+      Q_k(2) = node_on_geometry->Z();
+
+      KRATOS_WATCH(Q_k)
+
+      //Q_k(0) = newtonRaphsonPoint[0];
+      //Q_k(1) = newtonRaphsonPoint[1];
+      //Q_k(2) = newtonRaphsonPoint[2];
       norm_deltau = norm_2(deltau);
 
       k++;
@@ -84,12 +91,12 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::runtime_error, "Newton-Raphson to find closest point did not converge in the following number of iterations: ", k - 1);
     }
     // Update nearest point
-    local_parameter[0] = u_k;
-    local_parameter[1] = v_k;
-    node_on_geometry->X() = Q_k(0);
-    node_on_geometry->Y() = Q_k(1);
-    node_on_geometry->Z() = Q_k(2);
-    node_on_geometry->SetValue(LOCAL_PARAMETERS, local_parameter);
+    //local_parameter[0] = u_k;
+    //local_parameter[1] = v_k;
+    //node_on_geometry->X() = Q_k(0);
+    //node_on_geometry->Y() = Q_k(1);
+    //node_on_geometry->Z() = Q_k(2);
+    //node_on_geometry->SetValue(LOCAL_PARAMETERS, local_parameter);
 
     //// Compute and store span of each parameter to avoid redundant computations later
     //IntVector knot_span_nearest_point = m_patches[patch_itr_of_nearest_point].GetSurface().GetKnotSpan(u_of_nearest_point, v_of_nearest_point);
@@ -156,14 +163,22 @@ namespace Kratos
   ///  \author     Daniel Baumgärtner (12/2016)
   //
   //########################################################################################
-  void Face::EvaluateSurfacePoint(Point<3> rSurfacePoint, double u, double v, ModelPart& model_part)
+  void Face::EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v, ModelPart& model_part)
   {
-    rSurfacePoint[0] = 0;
-    rSurfacePoint[1] = 0;
-    rSurfacePoint[2] = 0;
+    Point<3> new_point(0, 0, 0);
+    //rSurfacePoint->X() = 0;
+    //rSurfacePoint->Y() = 0;
+    //rSurfacePoint->Z() = 0;
 
     int span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, u);
     int span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, v);
+
+    Vector ShapeFunctionsN = ZeroVector((m_q + 1)*(m_p + 1));
+    //std::vector<int> ControlPointIDs;
+    //ControlPointIDs.resize((m_q + 1)*(m_p + 1));
+    Vector local_parameter(2);
+    local_parameter[0] = u;
+    local_parameter[1] = v;
 
     for (int c = 0; c <= m_q; c++)
     {
@@ -178,11 +193,24 @@ namespace Kratos
         Matrix R;
         EvaluateNURBSFunctions(span_u, span_v, u, v, R, model_part);
 
-        rSurfacePoint[0] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        rSurfacePoint[1] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        rSurfacePoint[2] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        ShapeFunctionsN(b + (m_q + 1)*c) = R(b, c);
+        //ControlPointIDs.push_back(m_control_points_ids[control_point_index]);
+        //ControlPointIDs[b + (m_q + 1)*c] = m_control_points_ids[control_point_index];
+
+        new_point[0] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * model_part.GetNode(m_control_points_ids[control_point_index]).Z();
       }
     }
+    rSurfacePoint->X() = new_point[0];// (new_point[0], new_point[1], new_point[2]);
+    rSurfacePoint->Y() = new_point[1];
+    rSurfacePoint->Z() = new_point[2];
+
+    KRATOS_WATCH(new_point)
+
+    rSurfacePoint->SetValue(LOCAL_PARAMETERS, local_parameter);
+    rSurfacePoint->SetValue(SHAPE_FUNCTION_VALUES, ShapeFunctionsN);
+    //rSurfacePoint->SetValue(CONTROL_POINT_IDS, ControlPointIDs);
   }
   // #######################################################################################
   ///

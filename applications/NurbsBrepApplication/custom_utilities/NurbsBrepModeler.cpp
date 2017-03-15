@@ -82,18 +82,18 @@ namespace Kratos
             {
               // compute unique point in CAD-model for given u&v
               ++cad_node_counter;
-              Point<3> cad_point_coordinates;
+              Node<3>::Pointer cad_point = Node<3>::Pointer(new Node<3>(cad_node_counter, 0,0,0));
 
               std::cout << "check point inside" << std::endl;
 
-              face.EvaluateSurfacePoint(cad_point_coordinates, u_i, v_j, m_model_part);
+              face.EvaluateSurfacePoint(cad_point, u_i, v_j, m_model_part);
 
               std::cout << "check: " << std::endl;
 
+              cad_point->SetValue(LOCAL_PARAMETERS, point_of_interest);
+              cad_point->SetValue(FACE_BREP_ID, face_id);
               // Add id to point --> node. Add node to list of CAD nodes
-              Node<3>::Pointer node = model_part.CreateNewNode(cad_node_counter, cad_point_coordinates[0], cad_point_coordinates[1], cad_point_coordinates[2]);
-              node->SetValue(LOCAL_PARAMETERS, point_of_interest);
-              node->SetValue(FACE_BREP_ID, face_id);
+              model_part.AddNode(cad_point);// .CreateNewNode(cad_node_counter, cad_point_coordinates[0], cad_point_coordinates[1], cad_point_coordinates[2]);
             }
           }
         }
@@ -149,16 +149,24 @@ namespace Kratos
     //boost::shared_ptr<Node<3>>& nodes_local = local_model_part.NodesArray;
     int bucket_size = 20;
     tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-    NodeType::Pointer nearest_point = search_tree.SearchNearestPoint(*node);
+    node_on_geometry = search_tree.SearchNearestPoint(*node);
     //std::cout << "Point found!" << std::endl;
-    Vector local_parameters_of_nearest_point = nearest_point->GetValue(LOCAL_PARAMETERS);
-    unsigned int face_id_of_nearest_point = nearest_point->GetValue(FACE_BREP_ID);
+    Vector local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+    unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
     std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
     std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
 
     Face& face = GetFace(face_id_of_nearest_point);
 
-    face.MapNodeNewtonRaphson(nearest_point, node_on_geometry, m_model_part);
+    face.MapNodeNewtonRaphson(node, node_on_geometry, m_model_part);
+
+    local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
+    face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
+    std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
+    std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
+
+    Vector N = node_on_geometry->GetValue(SHAPE_FUNCTION_VALUES);
+    KRATOS_WATCH(N)
   }
 
 NurbsBrepModeler::NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part)
@@ -166,8 +174,8 @@ NurbsBrepModeler::NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_
 {
   m_brep_model_vector = brep_model_geometry_reader.ReadGeometry(m_model_part);
 
-  Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 1, 0));
-  Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0, 1, 0));
+  Node<3>::Pointer node = Node<3>::Pointer(new Node<3>(0, 7.3, 0));
+  Node<3>::Pointer closest_point = Node<3>::Pointer(new Node<3>(0.25, 0.1792, 0));
 
   MapNode(node, closest_point);
 }
