@@ -304,6 +304,39 @@ public:
     }
     
     /**
+     * It inverts non square matrices (https://en.wikipedia.org/wiki/Inverse_element#Matrices)
+     * @param InputMatrix: Is the input matrix (unchanged at output)
+     * @return InvertedMatrix: Is the inverse of the input matrix
+     * @return InputMatrixDet: Is the determinant of the input matrix
+     */
+
+    static void GeneralizedInvertMatrix(
+        const MatrixType& InputMatrix,
+        MatrixType& InvertedMatrix,
+        TDataType& InputMatrixDet
+        )
+    {
+        if (InputMatrix.size1() == InputMatrix.size2())
+        {
+            InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+        }
+        else if (InputMatrix.size1() > InputMatrix.size2()) // Right inverse
+        {
+            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+        }
+        else // Left inverse
+        {
+            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
+            Matrix auxInv;
+            InvertMatrix(aux, auxInv, InputMatrixDet);
+            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+        }
+    }
+    
+    /**
      * It inverts matrices of order 2, 3 and 4
      * @param InputMatrix: Is the input matrix (unchanged at output)
      * @return InvertedMatrix: Is the inverse of the input matrix

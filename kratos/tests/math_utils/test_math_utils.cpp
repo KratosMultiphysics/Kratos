@@ -296,6 +296,89 @@ namespace Kratos
             }
         }
         
+        /** Checks if it calculates correctly the inverse of a non square matrix
+         * Checks if it calculates correctly the inverse of a non square matrix
+         */
+        
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGeneralizedInvertMatrixTest, KratosCoreMathUtilsFastSuite) 
+        {
+            constexpr double tolerance = 1e-6;
+            
+            srand (time(NULL));
+            
+            // We check the Left inverse
+            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+            {
+                Matrix mat = ZeroMatrix(i_dim, i_dim - 1);
+                
+                for (unsigned int i = 0; i < i_dim; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    {
+                        mat(i, j)= rand() % 10 + 1;
+                    }
+                }
+                
+                double det;
+                Matrix inv;
+                
+                MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
+                
+                const Matrix I = prod(inv, mat);
+                
+                for (unsigned int i = 0; i < i_dim - 1; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    {
+                        if (i == j) 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        }
+                        else 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        }
+                    }
+                }
+            }
+            
+            // We check the Right
+            for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
+            {
+                Matrix mat = ZeroMatrix(i_dim - 1, i_dim);
+                
+                for (unsigned int i = 0; i < i_dim - 1; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim; j++)
+                    {
+                        mat(i, j)= rand() % 10 + 1;
+                    }
+                }
+                
+                double det;
+                Matrix inv;
+                
+                MathUtils<double>::GeneralizedInvertMatrix(mat,inv, det);
+                
+                const Matrix I = prod(inv, mat);
+                
+                for (unsigned int i = 0; i < i_dim - 1; i++)
+                {
+                    for (unsigned int j = 0; j < i_dim - 1; j++)
+                    {
+                        if (i == j) 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        }
+                        else 
+                        {
+                            KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        }
+                    }
+                }
+            }
+        }
+        
         /** Checks if it calculates the sign function 
          * Checks if it calculates the sign function 
          */
