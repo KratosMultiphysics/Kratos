@@ -317,7 +317,7 @@ namespace Kratos
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 		unsigned int       size = number_of_nodes * dimension;
-		unsigned int       MatSize = 2 * size;
+		//unsigned int       MatSize = 2 * size;
 
 		Vector DirectionVectorX = ZeroVector(3);
 		Vector DirectionVectorY = ZeroVector(3);
