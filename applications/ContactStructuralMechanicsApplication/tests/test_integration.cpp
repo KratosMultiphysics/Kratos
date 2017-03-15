@@ -183,10 +183,10 @@ namespace Kratos
             ModelPart ModelPart("Main");
             
             // First we create the nodes 
-            NodeType::Pointer pNode1 = ModelPart.CreateNewNode(0,0.0,0.0,0.0);
-            NodeType::Pointer pNode2 = ModelPart.CreateNewNode(1,1.0,0.0,0.0);
-            NodeType::Pointer pNode3 = ModelPart.CreateNewNode(2,1.0,1.0,0.0);
-            NodeType::Pointer pNode4 = ModelPart.CreateNewNode(3,0.0,1.0,0.0);
+            NodeType::Pointer pNode1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.0);
+            NodeType::Pointer pNode2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
+            NodeType::Pointer pNode3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.0);
+            NodeType::Pointer pNode4 = ModelPart.CreateNewNode(3, - 0.1,  1.3, 0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> ConditionNodes0 (4);
@@ -216,7 +216,7 @@ namespace Kratos
             
             // We calculate the integral of the mass matrix (assuming constant density)
             GeometryNodeType::IntegrationPointsArrayType IntegrationPointsQuadrilateral = Quadrature<QuadrilateralGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
+            GeometryNodeType::IntegrationPointsArrayType IntegrationPointsTriangle = Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
             
             boost::numeric::ublas::bounded_matrix<double, 4, 4> MassMatrix0 = ZeroMatrix(4, 4);
             
@@ -259,17 +259,7 @@ namespace Kratos
                 quadrilateral0.ShapeFunctionsValues( N1, LocalPoint1 );
                 quadrilateral0.ShapeFunctionsValues( N2, LocalPoint2 );
                 
-//                 Matrix J1;
-//                 quadrilateral0.Jacobian( J1, LocalPoint1 );
-//                 Matrix J2;
-//                 triangle1.Jacobian( J2, LocalPoint0 );
-//                 
-//                 Matrix J1J2 = prod(trans(J1),J2);
-//                 KRATOS_WATCH(MathUtils<double>::Det(J1J2));
-                
-                const double DetJ01 = quadrilateral0.DeterminantOfJacobian( LocalPoint1 );
                 const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ02 = quadrilateral0.DeterminantOfJacobian( LocalPoint2 );
                 const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
                 
                 const double weight = IntegrationPointsTriangle[PointNumber].Weight();
@@ -278,16 +268,18 @@ namespace Kratos
                 {
                     for (unsigned int jnode = 0; jnode < 4; jnode++)
                     {                        
-                        MassMatrix1(inode, jnode ) += 4.0 * DetJ1 * DetJ01 * weight * N1[inode] * N1[jnode] \
-                                                    + 4.0 * DetJ2 * DetJ02 * weight * N2[inode] * N2[jnode];
+                        MassMatrix1(inode, jnode ) += DetJ1 * weight * N1[inode] * N1[jnode] 
+                                                    + DetJ2 * weight * N2[inode] * N2[jnode];
                     }
                 }
             }
+
             
+            // Debug
 //             KRATOS_WATCH(MassMatrix0)
 //             KRATOS_WATCH(MassMatrix1)
             
-            const double Tolerance = 1.0e-3;
+            const double Tolerance = 1.0e-8;
             for (unsigned int inode = 0; inode < 4; inode++)
             {
                 for (unsigned int jnode = 0; jnode < 4; jnode++)
