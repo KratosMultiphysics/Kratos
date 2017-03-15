@@ -854,9 +854,6 @@ private:
                     Point<3> gp_global;
                     AllTriangle.GlobalCoordinates(gp_global, gp_local);
                     
-                    // We recover this point to the triangle plane
-                    RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
                     // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global);
                     
@@ -888,7 +885,7 @@ private:
             }
         
             // We consider the Z coordinate constant
-            const double ZRef = MasterProjectedPoint[0].Coordinate(3);
+            const double ZRef = SlaveCenter.Coordinate(3);
             
             // We find the intersection in each side
             std::map<unsigned int, unsigned int> MapEdges;
@@ -1053,6 +1050,12 @@ private:
                     }
                 }
                 
+                // We recover the rotation
+                for (unsigned int i_node = 0; i_node < 3; i_node++)
+                {
+                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
+                
                 if (IntegrationPointsSlave.size() > 0)
                 {                    
                     return true;
@@ -1064,6 +1067,12 @@ private:
             }
             else // No intersection
             {
+                // We recover the rotation
+                for (unsigned int i_node = 0; i_node < 3; i_node++)
+                {
+                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
+                
                 IntegrationPointsSlave.clear();
 //                 IntegrationPointsSlave.resize(0, false);
                 return false;
@@ -1279,7 +1288,7 @@ private:
                         
                         // We can construct now the integration local triangle
                         const double DetJ = triangle.DeterminantOfJacobian(gp_local); 
-                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ )); 
+                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
                     }
                 }
             }
@@ -1317,7 +1326,7 @@ private:
             }
             
             // We consider the Z coordinate constant
-            const double ZRef = MasterProjectedPoint[0].Coordinate(3);
+            const double ZRef = SlaveCenter.Coordinate(3);
             
             // We find the intersection in each side
             std::map<unsigned int, unsigned int> MapEdges;
@@ -1477,7 +1486,7 @@ private:
                             
                             // We can construct now the integration local triangle 
                             const double DetJ = SlaveGeometry.DeterminantOfJacobian(gp_local);
-                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), 4.0 * IntegrationPoints[PointNumber].Weight() * DetJ ));
+                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
                         }
                     }
                 }

@@ -14,6 +14,7 @@ from TestExactIntegration import TestLineExactIntegration1 as TTestLineExactInte
 from TestExactIntegration import TestLineExactIntegration2 as TTestLineExactIntegration2
 from TestExactIntegration import TestTriangleExactIntegration1 as TTestTriangleExactIntegration1
 from TestExactIntegration import TestTriangleExactIntegration2 as TTestTriangleExactIntegration2
+from TestExactIntegration import TestTriangleExactIntegration3 as TTestTriangleExactIntegration3
 from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
 from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 from SmallTests import SimplePatchTestTwoDMeshTying as TSimplePatchTestTwoDMeshTying
@@ -63,6 +64,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestLineExactIntegration2('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration1('test_execution'))
     smallSuite.addTest(TTestTriangleExactIntegration2('test_execution'))
+    smallSuite.addTest(TTestTriangleExactIntegration3('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -103,6 +105,7 @@ def AssambleTestSuites():
             TTestLineExactIntegration2,
             TTestTriangleExactIntegration1,
             TTestTriangleExactIntegration2,
+            TTestTriangleExactIntegration3,
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
@@ -123,7 +126,7 @@ def AssambleTestSuites():
             TALMHyperSimplePatchTestContact,
             TALMSimplePatchTestContact,
             #TALMSimplestPatchTestThreeDContact,
-            TALMSimplePatchTestThreeDContact,
+            #TALMSimplePatchTestThreeDContact,
             ############# JUST TESTING ###########
             ##THertzCompleteTestContact,
             ##TIroningTestContact,
