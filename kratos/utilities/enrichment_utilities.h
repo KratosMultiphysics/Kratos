@@ -1973,6 +1973,599 @@ public:
     }
     
     
+	//2D: 2 enrichment functions for capturing weak and strong discontinities. All the shape functions follow the criteria of Partition of Unity.  
+	static int CalculateEnrichedShapeFuncionsExtendedModified2D(Geometry< Node<3> >& Julio,boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (5)>& NEnriched,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientpositive,boost::numeric::ublas::bounded_matrix<double,10, 2>& rGradientnegative ,boost::numeric::ublas::bounded_matrix<int,3,3>& father_nodes,std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
+        {
+	  KRATOS_TRY
+	    
+	  const double one_third=1.0/3.0;
+	  boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+	  boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+	  boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain_aux;
+ 	  boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+	  
+	  double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
+	  double Area;//area of the complete element
+	  rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
+	  Area = CalculateVolume2D( rPoints );
+	  array_1d<bool,3> cut_edges;
+	  array_1d<double,3> aux_nodes_relative_locations;
+	  boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+	  boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomainaux_1aux; //used to retrieve derivatives
+	  
+	  //to begin with we must check whether our element is cut or not by the interfase.
+	  if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
+	    {
+	      rVolumes(0)=Area;
+	      rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third;
+	      NEnriched(0,0) = 0.0;
+	      //type_of_cut=1;
+	      for (int j = 0; j < 2; j++)
+                rGradientsValue[0](0, j) = 0.0;
+	      if (rDistances(0) < 0.0) rPartitionsSign[0] = -1.0;
+	      else rPartitionsSign[0] = 1.0;
+	      //KRATOS_WATCH("one element not in the intefase")
+			return 1;
+	    }
+
+	  //const double unsigned_distance0=fabs(rDistances(0));
+	  //const double unsigned_distance1=fabs(rDistances(1));
+	  //const double unsigned_distance2=fabs(rDistances(2));
+	  //we begin by finding the largest distance:
+	 // double longest_distance=fabs(unsigned_distance0);
+	  //if (unsigned_distance1>longest_distance)
+	  //  longest_distance=unsigned_distance1;
+	  //if (unsigned_distance2>longest_distance)
+	  //  longest_distance=unsigned_distance2;
+	  //Now we set a maximum relative distance
+	  //const double tolerable_distance =longest_distance*0.001;// 0.001 	// (1/1,000,000 seems to have good results)
+	  
+	  //const double epsilon = 1e-15; //1.00e-9;
+	  //compute the gradient of the distance and normalize it
+	  array_1d<double, 2 > grad_d;
+	  noalias(grad_d) = prod(trans(DN_DX), rDistances);
+
+	  array_1d<double, 3> exact_distance = rDistances;
+	  array_1d<double, 3> abs_distance = ZeroVector(3);
+	  
+	  
+	  if ((rDistances(0)*rDistances(1))<0.0) //edge 12 is cut
+	    cut_edges[0]=true;
+	  else
+	    cut_edges[0]=false;
+	  if ((rDistances(1)*rDistances(2))<0.0) //edge 23 is cut. 
+	    cut_edges[1]=true;
+	  else
+	    cut_edges[1]=false;
+	  if ((rDistances(2)*rDistances(0))<0.0) //edge 23 is cut. 
+	    cut_edges[2]=true;
+	  else
+	    cut_edges[2]=false;
+	  
+	  //We have 3 edges, meaning we created 3 aux nodes. But one of them actually matches the position of a real node (the one that is not on an interface edge is displaced to one of the ends (a node)
+	  //the new shape functions are built by setting the values in all (real and aux) nodes to zero except in one of the interphase nodes. in the array aux_node_shape_function_index we assign this value
+	  array_1d<int, 3 > aux_node_enrichment_shape_function_index; //when not used, it must be -1;
+	  
+	  int shape_function_id=0;
+	  father_nodes(0,0)=-1;
+	  father_nodes(0,1)=-1;
+	  father_nodes(0,2)=-1;
+	  father_nodes(1,0)=-1;
+	  father_nodes(1,1)=-1;
+	  father_nodes(1,2)=-1;
+	  father_nodes(2,0)=-1;
+	  father_nodes(2,1)=-1;
+	  father_nodes(2,2)=-1;
+
+	  //KRATOS_WATCH(father_nodes);
+	  for (unsigned int i=0; i<3; i++) //we go over the 3 edges:
+	    {
+	      int edge_begin_node=i;
+	      int edge_end_node=i+1;
+	      if (edge_end_node==3) edge_end_node=0; //it's a triangle, so node 3 is actually node 0
+		    
+	      if(cut_edges(i)==true)
+		{
+		  aux_nodes_relative_locations(i)=fabs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; //position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
+		  
+		  aux_nodes_father_nodes(i,0)=edge_begin_node;
+		  aux_nodes_father_nodes(i,1)=edge_end_node;
+		  aux_node_enrichment_shape_function_index(i)=shape_function_id;
+		  father_nodes(i,0)=edge_begin_node;
+		  father_nodes(i,1)=edge_end_node;
+		  father_nodes(i,2)=shape_function_id;
+		  shape_function_id++;
+		  
+
+		}
+	      else
+		{//<
+		  if(fabs(rDistances(edge_end_node))<fabs(rDistances(edge_begin_node))) //if edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
+		    {
+		      aux_nodes_relative_locations(i)=0.0;
+		      aux_nodes_father_nodes(i,0)=edge_end_node;
+		      aux_nodes_father_nodes(i,1)=edge_end_node;
+		    }
+		  else
+		    {
+		      aux_nodes_relative_locations(i)=1.0;
+		      aux_nodes_father_nodes(i,0)=edge_begin_node;
+		      aux_nodes_father_nodes(i,1)=edge_begin_node;
+		    }
+		  aux_node_enrichment_shape_function_index(i)=-1;
+		}
+	      
+	      //and we save the coordinate of the new aux nodes:
+	      for (unsigned int j=0;j<2;j++){	//x,y coordinates
+		aux_points(i,j)= rPoints(edge_begin_node,j) * aux_nodes_relative_locations(i) + rPoints(edge_end_node,j) * (1.0- aux_nodes_relative_locations(i));
+	      }
+	    }
+	  
+	  
+	  array_1d<double,2> base_point;
+	  if (cut_edges(0)==true) // it means it is a cut edge, if it was 0.0 or 1.0 then it would be an uncut edge 
+	    { 
+	      base_point[0] = aux_points(0,0);
+	      base_point[1] = aux_points(0,1);
+
+	    }
+	  else //it means aux_point 0 is a clone of other point, so we go to the second edge.
+	    { 
+	      base_point[0] = aux_points(1,0);
+	      base_point[1] = aux_points(1,1);
+	    }
+	  
+	  for (int i_node = 0; i_node < 3; i_node++)
+	    {
+	      double d =    (rPoints(i_node,0) - base_point[0]) * grad_d[0] + (rPoints(i_node,1) - base_point[1]) * grad_d[1] ;
+	      abs_distance[i_node] = fabs(d);
+	    }
+	  
+	  //assign correct sign to exact distance
+	  for (int i = 0; i < 3; i++)
+	    {
+	      if (rDistances[i] < 0.0)
+		{
+		  exact_distance[i] = -abs_distance[i];
+		  --most_common_sign;
+		}
+	      else
+		{
+		  exact_distance[i] = abs_distance[i];
+		  ++most_common_sign;
+		}
+	    }
+	  
+	  //compute exact distance gradients
+        array_1d<double, 2 > exact_distance_gradient;
+        noalias(exact_distance_gradient) = prod(trans(DN_DX), exact_distance);
+	
+        array_1d<double, 2 > abs_distance_gradient;
+        noalias(abs_distance_gradient) = prod(trans(DN_DX), abs_distance);
+	
+	
+	double max_aux_dist_on_cut = -1;
+	for (int edge = 0; edge < 3; edge++)
+	  {
+	    const int i = edge;
+	    int j = edge+1;
+	    if (j==3) j=0;
+	    if (rDistances[i] * rDistances[j] < 0.0)
+	      {
+		const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
+		//compute the position of the edge node
+		double abs_dist_on_cut = abs_distance[i] * tmp + abs_distance[j] * (1.00 - tmp);
+                if(abs_dist_on_cut > max_aux_dist_on_cut) max_aux_dist_on_cut = abs_dist_on_cut;
+             }
+	  }
+	//we reset all data:
+	rGradientsValue[0]=ZeroMatrix(5,2);
+	rGradientsValue[1]=ZeroMatrix(5,2);
+	rGradientsValue[2]=ZeroMatrix(5,2);
+
+	NEnriched=ZeroMatrix(3,5);
+	rGPShapeFunctionValues=ZeroMatrix(3,3);
+	
+	//now we must check the 4 created partitions of the domain.	
+	//one has been collapsed, so we discard it and therefore save only one.
+	unsigned int partition_number=0;		//	
+	//the 3 first partitions are  created using 2 auxiliary nodes and a normal node. at least one of these will be discarded due to zero area		
+	//the last one is composed by the 3 auxiliary nodes. it 'looks' wrong, but since at least one has been collapsed, it actually has a normal node.      
+	bool found_empty_partition=false;
+	
+	//the enrichment is directly the shape functions created by using the partition.
+	//we have to save for the enrichment 0 and 1 which is the node that will be active, that is, whose shape function value is zero (for some partitions all 3 shape functions are inactive)
+	
+	for ( int i=0; i<4; i++) //i partition	
+	  {
+	    
+	    array_1d<int, 2 > active_node_in_enrichment_shape_function; 
+	    active_node_in_enrichment_shape_function(0)=-1;  active_node_in_enrichment_shape_function(1)=-1; //initialized as if all are inactive -> gradient=0;
+	    //the same but for the replacement shape functions
+	    array_1d<int, 3 > active_node_in_replacement_shape_function; 
+	    active_node_in_replacement_shape_function(0)=-1;  active_node_in_replacement_shape_function(1)=-1; active_node_in_replacement_shape_function(2)=-1; //initialized as if all are inactive -> gradient=0;
+	    
+	    int j_aux = i + 2;
+	    if (j_aux>2) j_aux -= 3; 
+	    boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+	    array_1d<double,3> N; 
+	    bool useful = false;
+	    	      
+	      int useful_node_for_N0star=-1;
+	      int useful_node_for_N1star=-1;
+	    
+	    if (i<3)
+	      {
+		partition_father_nodes(0,0)=i;
+		partition_father_nodes(0,1)=i;
+		partition_father_nodes(1,0)=aux_nodes_father_nodes(i,0); //we are using i aux node
+		partition_father_nodes(1,1)=aux_nodes_father_nodes(i,1); //we are using i aux node
+		partition_father_nodes(2,0)=aux_nodes_father_nodes(j_aux,0); //we are using j_aux node
+		partition_father_nodes(2,1)=aux_nodes_father_nodes(j_aux,1); //we are using j_aux node
+		
+
+		coord_subdomain(0,0)=rPoints(i,0);
+		coord_subdomain(0,1)=rPoints(i,1);
+		coord_subdomain(1,0)=aux_points(i,0);
+		coord_subdomain(1,1)=aux_points(i,1);
+		coord_subdomain(2,0)=aux_points(j_aux,0);
+		coord_subdomain(2,1)=aux_points(j_aux,1);
+		
+		//notice that local nodes 2 and 3 and the possible candidates, with indexes i and j_aux:
+		if (aux_node_enrichment_shape_function_index(i)> -1) //that is, local node 2 it is a useful node:
+		  active_node_in_enrichment_shape_function(  aux_node_enrichment_shape_function_index(i)  )=1;	//saving that local node 2 will be active for either enrichment 1 or 2.
+		// else we do nothing, we are not saving this node and the -1 stays
+		
+		//now the same for the local node 3 (j_aux)
+		if (aux_node_enrichment_shape_function_index(j_aux)> -1) //that is, local node 3 it is a useful node:
+		  active_node_in_enrichment_shape_function( aux_node_enrichment_shape_function_index(j_aux) )=2;	//saving that local node 3 will be active for either enrichment 1 or 2.
+		// else we do nothing, we are not saving this node and the -1 stays
+				
+		active_node_in_replacement_shape_function(i)=0; //standard shape function i will be replaced by the one of local subelement node 1 
+		//now local nodes 2 and 3
+		if (aux_nodes_father_nodes(i,0)==aux_nodes_father_nodes(i,1))
+		  active_node_in_replacement_shape_function(aux_nodes_father_nodes(i,0))=1;
+		if (aux_nodes_father_nodes(j_aux,0)==aux_nodes_father_nodes(j_aux,1))
+		  active_node_in_replacement_shape_function(aux_nodes_father_nodes(j_aux,0))=2;
+		if( (aux_nodes_father_nodes(i,0)!=aux_nodes_father_nodes(i,1)) && (aux_nodes_father_nodes(j_aux,0)!=aux_nodes_father_nodes(j_aux,1)))
+		  {
+		    useful=true;
+		  }
+		
+		coord_subdomain(0,0)=rPoints(i,0);
+		coord_subdomain(0,1)=rPoints(i,1);
+		coord_subdomain(1,0)=aux_points(i,0);
+		coord_subdomain(1,1)=aux_points(i,1);
+		coord_subdomain(2,0)=aux_points(j_aux,0);
+		coord_subdomain(2,1)=aux_points(j_aux,1);
+		
+		
+		//an aux_node is useful when one of its father nodes is the real node of the subelement. that means that the edge is part of the subelement.
+		if(partition_father_nodes(1,0)==i || partition_father_nodes(1,1)==i) //if one of the father nodes of node_aux_i is equal to the real node i
+		{
+		  if(aux_node_enrichment_shape_function_index(i)==0)
+		    useful_node_for_N0star=1;
+		  if(aux_node_enrichment_shape_function_index(i)==1)
+		    useful_node_for_N1star=1;
+		}
+		if(partition_father_nodes(2,0)==j_aux || partition_father_nodes(2,1)==j_aux) //if one of the father nodes of node_aux_i is equal to the real node i
+		{
+		  if(aux_node_enrichment_shape_function_index(j_aux)==0)
+		    useful_node_for_N0star=2;
+		  if(aux_node_enrichment_shape_function_index(j_aux)==1)
+		    useful_node_for_N1star=2;
+		}
+	      }
+	    else
+	      {
+		//the last partition, made by the 3 aux nodes.
+		partition_father_nodes=aux_nodes_father_nodes;
+		coord_subdomain=aux_points;
+		useful=true;
+		int non_aux_node = -1; //one of the nodes of this partition is actually a real node, which has repeated father node 
+		int non_aux_node_father_node=-1; //the real node id
+		//we have to check the 3 of them: 
+		for (int j = 0; j < 3; j++)
+		    {
+		      if(partition_father_nodes(j,0)==partition_father_nodes(j,1))
+		        {
+			  non_aux_node=j;
+			  non_aux_node_father_node=partition_father_nodes(j,0);
+			}
+		    }
+		for (int j = 0; j < 3; j++)
+		  {
+		    if (aux_node_enrichment_shape_function_index(j)> -1) //that is, local node j it is a useful node:
+		    {
+		      active_node_in_enrichment_shape_function(  aux_node_enrichment_shape_function_index(j)  ) = j;
+
+		      if(partition_father_nodes(j,0)==non_aux_node_father_node || partition_father_nodes(j,1)==non_aux_node_father_node)
+			{
+			  if (aux_node_enrichment_shape_function_index(j)==0)
+			    useful_node_for_N0star=j;
+			  if (aux_node_enrichment_shape_function_index(j)==1)
+			    useful_node_for_N1star=j;
+			}
+		    }
+		    
+		    //to replace the standard shape functions:
+		    if (aux_nodes_father_nodes(j,0)==aux_nodes_father_nodes(j,1))
+		      active_node_in_replacement_shape_function(aux_nodes_father_nodes(j,0))=j;	
+		  }
+		
+	      }
+		    
+	    //calculate data of this partition
+	    double temp_area;
+	    CalculateGeometryData(coord_subdomain, DN_DX_subdomain, temp_area);
+	    if (temp_area > 1.0e-20) //ok, it does not have zero area
+	      {
+
+		rVolumes(partition_number)=temp_area;
+		//we look for the gauss point of the partition:
+		double x_GP_partition =  one_third * ( coord_subdomain(0,0) + coord_subdomain(1,0) + coord_subdomain(2,0) );
+		double y_GP_partition =  one_third * ( coord_subdomain(0,1) + coord_subdomain(1,1) + coord_subdomain(2,1) );
+		double z_GP_partition  = 0.0;
+		coord_subdomain_aux = coord_subdomain;
+		//we reset the coord_subdomain matrix so that we have the whole element again:
+		coord_subdomain = rPoints;	
+		//and we calculate its shape function values
+		CalculatePosition ( coord_subdomain , x_GP_partition ,y_GP_partition ,z_GP_partition , N);
+		//we check the partition sign.
+		const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/fabs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
+		//rPartitionsSign(partition_number)=partition_sign;
+		
+		rGPShapeFunctionValues(partition_number,0)=N(0);
+		rGPShapeFunctionValues(partition_number,1)=N(1);
+		rGPShapeFunctionValues(partition_number,2)=N(2);
+		
+		//compute enriched shape function values
+
+		typedef GeometryData::IntegrationMethod IntegrationMethod;
+		IntegrationMethod mThisIntegrationMethod;
+		std::vector< Matrix > mInvJ0;
+		Vector mDetJ0;
+
+		Geometry< Node<3> >::PointsArrayType NewPoints;
+		Node<3>::Pointer p_new_node;
+		int id_local=0; 	
+		for (unsigned int j=0; j!=3; j++)
+		{	
+		  p_new_node = Node<3>::Pointer(new Node<3>(id_local, coord_subdomain_aux(j,0), coord_subdomain_aux(j,1), coord_subdomain_aux(j,2)));
+		  NewPoints.push_back(p_new_node);
+		  id_local++;
+		}
+
+		Geometry< Node<3> >::Pointer pGeom = Julio.Create(NewPoints);
+		//const unsigned int number_of_points = pGeom->size();
+		//KRATOS_WATCH(number_of_points);
+		mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
+
+		typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+		//const GeomtryType::IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
+		const IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
+
+		mInvJ0.resize(integration_points.size());
+		mDetJ0.resize(integration_points.size(),false);
+		
+		//KRATOS_WATCH(integration_points.size());
+		//KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+		Element::GeometryType::JacobiansType J0;
+		J0 = pGeom->Jacobian(J0, mThisIntegrationMethod);  
+
+		const Matrix& Ncontainer = pGeom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+		double xp=0.0;
+		double yp=0.0;
+		//double zp=0.0;
+		double temp_areaaux_2=0.0;
+		bounded_matrix<double, 4, 8 > N_new=ZeroMatrix(4,8);
+		
+		for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
+	  	{
+		  //unsigned int number_of_nodes = pGeom->PointsNumber();
+		  //unsigned int dimension = pGeom->WorkingSpaceDimension();
+		  const Vector& N=row(Ncontainer,PointNumber);
+
+		  MathUtils<double>::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
+		  double Weight = integration_points[PointNumber].Weight()* mDetJ0[PointNumber];
+
+		  xp=0.0;
+		  yp=0.0;
+		  //zp=0.0;
+
+		  for (unsigned int tt=0; tt<3; tt++)
+		  {
+		    xp += N[tt] * coord_subdomain_aux(tt,0);
+		    yp += N[tt] * coord_subdomain_aux(tt,1);
+		  }
+
+		for (unsigned int h=0; h<3; h++)  //loop por los nodos del subelemento
+		{
+
+		  bounded_matrix<double, 3, 2 > original_coordinates; //8 is the max number of nodes and aux_nodes
+		  for (unsigned int i = 0; i < 3; i++)
+		    for (unsigned int j = 0; j < 2; j++)
+		      original_coordinates(i, j) = rPoints(i, j);
+		      
+
+		  original_coordinates(h,0) = xp;
+		  original_coordinates(h,1) = yp;
+		  
+
+		  CalculateGeometryData(original_coordinates, DN_DX_subdomainaux_1aux, temp_areaaux_2);//222
+ 
+		  PRUEBA[partition_number](PointNumber,h) = temp_areaaux_2/Area;// * Weight;
+		  weight(partition_number)=Weight;
+		}
+		
+		}
+		
+		double dist = 0.0;
+		double abs_dist = 0.0;
+		for (int j = 0; j < 3; j++)
+		  {
+		    dist += rGPShapeFunctionValues(partition_number, j) * exact_distance[j];
+		    abs_dist += rGPShapeFunctionValues(partition_number, j) * abs_distance[j];
+		  }
+		
+		    if (partition_sign < 0.0)
+		      rPartitionsSign[partition_number] = -1.0;
+		    else
+		      rPartitionsSign[partition_number] = 1.0;
+		    
+		    //We use the sublement shape functions and derivatives:
+		    //we loop the 2 enrichment shape functions:
+		    for (int index_shape_function = 0; index_shape_function < 2; index_shape_function++) //enrichment shape function
+		      {
+			if (active_node_in_enrichment_shape_function(index_shape_function) > -1) //recall some of them are inactive:
+			  {
+			    NEnriched(partition_number, index_shape_function+3 ) = one_third ; //only one gauss point. if more were to be used, it would still be simple (1/2,1/2,0);(0,1/2,1/2);(1/2,0,1/2);
+			    for (int j = 0; j < 2; j++) //x,y,(z)
+			      {
+				rGradientsValue[partition_number](index_shape_function+3, j) = DN_DX_subdomain(active_node_in_enrichment_shape_function(index_shape_function),j); 
+			      }
+			    
+			  }
+			else
+			  {
+			    NEnriched(partition_number, index_shape_function+3 ) = 0.0;
+			    //NEnriched(partition_number, index_shape_function +2) = 0.0;
+			    for (int j = 0; j < 2; j++) //x,y,(z)
+			      {
+				rGradientsValue[partition_number](index_shape_function+3, j) = 0.0;
+				//KRATOS_WATCH(rGradientsValue);
+				//rGradientsValue[partition_number](index_shape_function+2, j) = 0.0;
+			      }
+			  }
+			
+		      }
+
+		    array_1d<int,(2+1)> replacement_shape_function_nodes = ZeroVector(3);
+		    for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //replacement shape function
+			{
+				int active_node=-1;
+				for (int j = 0; j < 3; j++) //number_of_nodes in the subelement
+					if (partition_father_nodes(j,0)==index_shape_function && partition_father_nodes(j,1)==index_shape_function)
+					{
+						active_node=j;
+						break;
+					}
+				if(active_node> -1)
+				{
+					for (int j = 0; j < 2; j++) //x,y,(z)
+						rGradientsValue[partition_number](index_shape_function, j) = DN_DX_subdomain(active_node,j);
+					 NEnriched(partition_number, index_shape_function ) = one_third;
+					 replacement_shape_function_nodes(index_shape_function) = active_node;
+				}
+				else
+				{
+				  for (int j = 0; j < 2; j++) //x,y,(z)
+				    rGradientsValue[partition_number](index_shape_function, j) = 0.0;
+				  replacement_shape_function_nodes(index_shape_function) = -1;
+				}
+			}				
+		    
+		    //We use the sublement shape functions and derivatives:
+		    //we loop the 3 replacement shape functions:
+		    unsigned int number_of_real_nodes=0; //(each partition can have either 1 or 2);
+		    for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //enrichment shape function
+		      {
+			if (active_node_in_replacement_shape_function(index_shape_function) > -1) //recall some of them are inactive:
+			  number_of_real_nodes++;
+		      }
+		    
+		    if(useful_node_for_N0star > -1)
+		      {	
+			for (int j = 0; j < 2; j++) //x,y,(z)
+			  {	
+			    if(partition_sign>0)
+			      { 
+				//first two rows are for the side where N*1 = 1
+				//row 1 is for gradN*1
+				rGradientpositive(3, j)=DN_DX_subdomain(useful_node_for_N0star, j);
+				//row 2 is for gradN*2
+				if (active_node_in_enrichment_shape_function(1) > -1)
+				  rGradientpositive(4, j)=DN_DX_subdomain(active_node_in_enrichment_shape_function(1), j);
+				
+				for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //replacement shape function
+				  {
+				    if(replacement_shape_function_nodes(index_shape_function)>-1)
+				      {
+					rGradientpositive(index_shape_function, j) = DN_DX_subdomain(replacement_shape_function_nodes(index_shape_function), j);
+				      }
+				  }
+			      }
+			    else
+			      {
+				rGradientnegative(3, j) =DN_DX_subdomain(useful_node_for_N0star, j);
+				//KRATOS_WATCH(rGradientnegative);
+				if (active_node_in_enrichment_shape_function(1) > -1)
+				  rGradientnegative(4, j) =DN_DX_subdomain(active_node_in_enrichment_shape_function(1), j);
+				
+				for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //replacement shape function
+				  {
+				    if(replacement_shape_function_nodes(index_shape_function)>-1)
+				      {
+					rGradientnegative(index_shape_function, j) = DN_DX_subdomain(replacement_shape_function_nodes(index_shape_function), j);
+				      }
+				  }
+			      } 
+			  }	
+		      }
+		    if(useful_node_for_N1star > -1)
+		      {	
+			for (int j = 0; j < 2; j++) //x,y,(z)
+			  {	
+			    if(partition_sign>0)
+			      { 
+				//rows 3 and 4 are for the side where N*2 = 1
+				//row 4 is for gradN*2
+				rGradientpositive(9, j)=DN_DX_subdomain(useful_node_for_N1star, j);
+				//row 3 is for gradN*1
+				if (active_node_in_enrichment_shape_function(0) > -1)
+				  rGradientpositive(8, j)=DN_DX_subdomain(active_node_in_enrichment_shape_function(0), j);
+				//KRATOS_WATCH(rGradientpositive);
+				
+				for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //replacement shape function
+				  {
+				    if(replacement_shape_function_nodes(index_shape_function)>-1)
+				      {
+					rGradientpositive(index_shape_function+5, j) = DN_DX_subdomain(replacement_shape_function_nodes(index_shape_function), j);
+				      }
+				  }
+			      }
+			    else
+			      {
+				rGradientnegative(9, j)=DN_DX_subdomain(useful_node_for_N1star, j);
+				if(active_node_in_enrichment_shape_function(0) > -1)
+				  rGradientnegative(8, j)=DN_DX_subdomain(active_node_in_enrichment_shape_function(0), j);
+				//KRATOS_WATCH(rGradientnegative);
+				
+						for (int index_shape_function = 0; index_shape_function < 3; index_shape_function++) //replacement shape function
+						  {
+							if(replacement_shape_function_nodes(index_shape_function)>-1)
+							{
+								rGradientnegative(index_shape_function+5, j) = DN_DX_subdomain(replacement_shape_function_nodes(index_shape_function), j);
+							}
+						  }
+					      } 
+				       }	
+				}
+	
+		    partition_number++;
+		    
+		  }
+		else
+		  found_empty_partition=true;
+	      }
+	    if (found_empty_partition==false)
+	      KRATOS_WATCH("WROOOONGGGGGGGGGGG");
+	    
+	    return 3;
+	    KRATOS_CATCH("");
+	    
+	  }
     
         //2D
     static int CalculateEnrichedShapeFuncionsInLocalAxis(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_original,
