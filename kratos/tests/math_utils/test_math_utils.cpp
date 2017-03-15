@@ -157,7 +157,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            srand (time(NULL));
+            srand (1);
 
             boost::numeric::ublas::bounded_matrix<double, 1, 1> mat11;
             mat11(0,0) = rand() % 10 + 1;
@@ -258,7 +258,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            srand (time(NULL));
+            srand (1);
             
             for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
             {
@@ -304,7 +304,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            srand (time(NULL));
+            srand (1);
             
             // We check the Left inverse
             for (unsigned int i_dim = 1; i_dim <= 4; i_dim++)
@@ -406,7 +406,7 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double, 3, 3> eigenmat33;
             boost::numeric::ublas::bounded_matrix<double, 3, 3> vectormat33;
             
-            srand (time(NULL));
+            srand (1);
             
             for (unsigned int i = 0; i < 3; i++)
             {
