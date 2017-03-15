@@ -325,6 +325,7 @@ public:
             const Matrix aux = prod(InputMatrix, trans(InputMatrix));
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
             InvertedMatrix = prod(trans(InputMatrix), auxInv);
         }
         else // Left inverse
@@ -332,6 +333,7 @@ public:
             const Matrix aux = prod(trans(InputMatrix), InputMatrix);
             Matrix auxInv;
             InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
             InvertedMatrix = prod(auxInv, trans(InputMatrix));
         }
     }
