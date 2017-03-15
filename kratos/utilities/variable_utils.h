@@ -155,8 +155,7 @@ public:
         for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
         {
             ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            array_1d<double, 3 > & destination = i->GetValue(SavedVariable);
-            noalias(destination) = i->FastGetSolutionStepValue(OriginVariable);
+            i->SetValue(SavedVariable, i->FastGetSolutionStepValue(OriginVariable));
         }
         KRATOS_CATCH("")
     }
@@ -173,7 +172,7 @@ public:
         for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
         {
             ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-            i->GetValue(SavedVariable) = i->FastGetSolutionStepValue(OriginVariable);
+            i->SetValue(SavedVariable,i->FastGetSolutionStepValue(OriginVariable));
         }
         KRATOS_CATCH("")
     }
