@@ -15,8 +15,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "mesh_id"                   : 0,
-                "kutta_part_name"           : "please specify the model part that contains the kutta nodes",
-                "fluid_part_name"           : "model_part",
+                "model_part_name"           : "please specify the model part that contains the kutta nodes",
+                "fluid_part_name"           : "MainModelPart",
                 "direction"                  : [1.0,0.0,0.0],
                 "epsilon"    : 1e-9
             }
@@ -36,7 +36,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.kutta_model_part = Model[settings["kutta_part_name"].GetString()]
+        self.kutta_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
         
     def Execute(self):

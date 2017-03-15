@@ -183,8 +183,8 @@ private:
 	///@{
         const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
         const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
-        const PotentialWallCondition<2,3> mPotentialWallCondition2D2N;
-        const PotentialWallCondition<2,3> mPotentialWallCondition3D3N;
+        const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
+        const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
 
 
 	///@}

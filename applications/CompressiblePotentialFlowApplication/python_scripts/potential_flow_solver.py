@@ -35,8 +35,13 @@ class LaplacianSolver:
             },
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
-                    "max_iteration": 100,
-                    "tolerance": 1e-6
+                    "max_iteration": 200,
+                    "smoother_type":"ilu0",
+                    "coarsening_type":"aggregation",
+                    "krylov_type": "lgmres",
+                    "tolerance": 1e-9,
+                    "verbosity": 2,
+                    "scaling": true
             }
         }""")
         
@@ -107,14 +112,14 @@ class LaplacianSolver:
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"CompressiblePotentialFlowElement3D4N",
-                    "condition_name": "SurfaceCondition3D3N"
+                    "condition_name": "PotentialWallCondition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"CompressiblePotentialFlowElement2D3N",
-                    "condition_name": "LineCondition2D2N"
+                    "condition_name": "PotentialWallCondition2D2N"
                     }
                     """)
             else:

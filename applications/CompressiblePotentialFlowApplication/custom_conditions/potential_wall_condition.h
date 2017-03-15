@@ -233,7 +233,7 @@ public:
         else CalculateNormal3D(An);
 
         const array_1d<double,3>& v = this->GetValue(VELOCITY);
-        const double value = inner_prod(v, An)/static_cast<double>(TNumNodes);
+        const double value = -inner_prod(v, An)/static_cast<double>(TNumNodes);
 
         for(unsigned int i=0; i<TNumNodes; ++i)
         {
