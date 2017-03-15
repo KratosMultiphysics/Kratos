@@ -14,6 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/properties.h"
+#include "includes/checks.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -21,7 +22,14 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(PropertiesHasTable, KratosCoreFastSuite)
 		{
 			Properties properties(0);
-			properties.HasTable(TEMPERATURE, VISCOSITY);
+			KRATOS_CHECK_IS_FALSE(properties.HasTable(TEMPERATURE, VISCOSITY));
+
+			Table<double> table;
+			properties.SetTable(TEMPERATURE, VISCOSITY, table);
+
+			KRATOS_CHECK(properties.HasTable(TEMPERATURE, VISCOSITY));
+			KRATOS_CHECK_IS_FALSE(properties.HasTable(TEMPERATURE, DISPLACEMENT_X));
+			KRATOS_CHECK_IS_FALSE(properties.HasTable(VISCOSITY, TEMPERATURE));
 		}
 	}
 }  // namespace Kratos.
