@@ -258,9 +258,9 @@ public:
         {
             // Check that all required variables have been registered
             if(POSITIVE_FACE_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"POSITIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "POSITIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.";
             if(NEGATIVE_FACE_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"NEGATIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "NEGATIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
 
@@ -269,9 +269,9 @@ public:
             {
 
                 if(this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing POSITIVE_FACE_PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing POSITIVE_FACE_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(NEGATIVE_FACE_PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing NEGATIVE_FACE_PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing NEGATIVE_FACE_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
 
 
                 return Check;
