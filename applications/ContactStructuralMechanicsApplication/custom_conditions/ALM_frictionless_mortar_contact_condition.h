@@ -1003,6 +1003,7 @@ protected:
     /*
      * Returns a value depending of the active/inactive set
      */
+    
     unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const
     {
         unsigned int value = 0;
@@ -1017,6 +1018,42 @@ protected:
         
         return value;
     }
+
+    // TODO: Remove this later after pooyan accepts the pull request
+    template<class TDataType>
+    static void GeneralizedInvertMatrix(
+        const MatrixType& InputMatrix,
+        MatrixType& InvertedMatrix,
+        TDataType& InputMatrixDet
+        )
+    {
+        if (InputMatrix.size1() == InputMatrix.size2())
+        {
+            MathUtils<TDataType>::InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+        }
+        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
+        {
+            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
+            Matrix auxInv;
+            MathUtils<TDataType>::InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+        }
+        else // Left inverse
+        {
+            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
+            Matrix auxInv;
+            MathUtils<TDataType>::InvertMatrix(aux, auxInv, InputMatrixDet);
+	    InputMatrixDet = std::sqrt(InputMatrixDet);
+            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+        }
+    }
+    
+    /*
+     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian "perturbed"
+     */
+    
+    Matrix CalculateDeltaPosition();
     
     ///@}
     ///@name Protected  Access

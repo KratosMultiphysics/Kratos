@@ -791,7 +791,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     GetGeometry( ).Jacobian( rVariables.j_Slave, LocalPoint.Coordinates() );
-    rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
+    rVariables.DetJSlave = 1.0;
+//     rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
 }
  
 /***********************************************************************************/
