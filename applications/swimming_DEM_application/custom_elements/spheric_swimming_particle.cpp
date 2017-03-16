@@ -173,7 +173,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(NodeType& node, arra
         const double volume = CalculateVolume();
 
         if (mBuoyancyForceType == 2 || mDragForceType == 2){ // Maxey-Riley form of buoyancy (minus the fluid acceleration term); Weatherford
-            noalias(buoyancy) =  - gravity * mFluidDensity * volume;
+            noalias(buoyancy) = - gravity * mFluidDensity * volume;
         }
 
         else {
