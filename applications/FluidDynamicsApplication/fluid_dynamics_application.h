@@ -59,6 +59,7 @@
 #include "custom_elements/stokes_3D_twofluid.h"
 
 #include "custom_elements/navier_stokes.h"
+#include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_elements/embedded_navier_stokes.h"
 
 
@@ -236,7 +237,7 @@ private:
     const FractionalStep<3> mFractionalStep3D;
     const FractionalStepDiscontinuous<2> mFractionalStepDiscontinuous2D;
     const FractionalStepDiscontinuous<3> mFractionalStepDiscontinuous3D;
-	
+
     /// 2D Spalart-Allmaras turbulent viscosity transport equation element
     const SpalartAllmaras mSpalartAllmaras2D;
     /// 3D Spalart-Allmaras turbulent viscosity transport equation element
@@ -259,7 +260,7 @@ private:
     const  WallConditionDiscontinuous<2,2> mWallConditionDiscontinuous2D;
     /// Exact 3D slip condition using rotated coordinates (fractional step version) - suitable for continuity equation integrated by parts
     const  WallConditionDiscontinuous<3,3> mWallConditionDiscontinuous3D;
-    
+
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
@@ -267,13 +268,13 @@ private:
     /// stokes condition(monolithic version)
     const  StokesWallCondition<3,3> mStokesWallCondition3D;
 
-    /// Periodic Condition 
+    /// Periodic Condition
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
     const FSPeriodicCondition<3> mFSPeriodicCondition3D;
     const FSPeriodicCondition<2> mFSPeriodicConditionEdge2D;
     const FSPeriodicCondition<3> mFSPeriodicConditionEdge3D;
 
-    
+
     /// 2D instance of the DPGVMS element
     const DPGVMS<2> mDPGVMS2D;
     /// 3D instance of the DPGVMS element
@@ -297,7 +298,7 @@ private:
 
     const HerschelBulkleyFluid< VMS<2> > mHerschelBulkleyVMS2D;
     const HerschelBulkleyFluid< VMS<3> > mHerschelBulkleyVMS3D;
-    
+
 //     const NavierStokesSymbolic2D mNavierStokesSymbolic2D;
 //     const StokesSymbolic2D mStokesSymbolic2D;
     const Stokes3D mStokes3D;
@@ -306,7 +307,9 @@ private:
     /// Navier-Stokes symbolic element
     const NavierStokes<2> mNavierStokes2D;
     const NavierStokes<3> mNavierStokes3D;
-    
+    const NavierStokesWallCondition<2> mNavierStokesWallCondition2D;
+    const NavierStokesWallCondition<3> mNavierStokesWallCondition3D;
+
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
     const EmbeddedNavierStokes<3> mEmbeddedNavierStokes3D;
@@ -363,6 +366,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED  defined
