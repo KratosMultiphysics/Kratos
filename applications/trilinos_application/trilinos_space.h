@@ -509,10 +509,10 @@ public:
     inline static double GetValue(const VectorType& x, std::size_t I)
     {
         // index must be local to this proc
-        KRATOS_ERROR_IF_NOT(x.Map().MyGID(I)) << " non-local id: " << I << ".";
+        KRATOS_ERROR_IF_NOT(x.Map().MyGID(static_cast<int>(I))) << " non-local id: " << I << ".";
         // Epetra_MultiVector::operator[] is used here to get the pointer to
         // the zeroth (only) local vector.
-        return x[0][x.Map().LID(I)];
+        return x[0][x.Map().LID(static_cast<int>(I))];
     }
 
     //***********************************************************************

@@ -131,7 +131,7 @@ public:
 
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
-            rModelPart.Elements.begin()->WorkingSpaceDimension();
+            rModelPart.Elements().begin()->WorkingSpaceDimension();
 
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
@@ -219,9 +219,9 @@ public:
         else
         {
             for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
-                if (it->FastGetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
                     if (it->IsFree() == true)
-                        it->FastGetSolutionStepValue() +=
+                        it->GetSolutionStepValue() +=
                             TSparseSpace::GetValue(rDx, it->EquationId());
             
             // todo: add a function Communicator::SynchronizeDofVariables() to
