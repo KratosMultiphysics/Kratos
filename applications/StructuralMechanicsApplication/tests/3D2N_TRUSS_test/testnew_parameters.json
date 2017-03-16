@@ -1,0 +1,120 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "testnew",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_static_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Static",
+        "analysis_type"                      : "Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "3D2N_TRUSS_test/testnew"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type" : "Super_LU",
+            "scaling"     : false,
+            "verbosity"   : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_structure"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann","DISPLACEMENT_allnodes"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_dirichletXYZ",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_dirichletXZ",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : false,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_neumann",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 100000,
+            "direction"       : [0,-1,0]
+        }
+    }],
+	"list_other_processes" :[
+    {
+        "python_module"   : "simple_3D2N_truss_test_local_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ApplyLocalProcess",
+        "Parameters"            : {
+            "model_part_name"  : "DISPLACEMENT_allnodes"
+        }
+    }
+    ],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : true,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "gauss_point_results" : ["TRUSS_PRESTRESS_PK2","GREEN_LAGRANGE_STRAIN_VECTOR"]
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
