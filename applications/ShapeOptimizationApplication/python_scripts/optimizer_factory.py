@@ -588,7 +588,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def deleteAllReportedValues( self ):
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
 
     # --------------------------------------------------------------------------
     def requestFunctionValueOf( self, functionId ):
@@ -616,7 +616,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def reportFunctionReferenceValue( self, functionId, functionReferenceValue ):
         if functionId in self.responseContainer.keys():
-            self.responseContainer[functionId]["reference"] = functionReferenceValue
+            self.responseContainer[functionId]["referenceValue"] = functionReferenceValue
         else:
             raise NameError("Reported function is not specified: " + functionId)
 
@@ -633,7 +633,7 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def getReportedFunctionReferenceValueOf( self, functionId ):
-        return self.responseContainer[functionId]["reference"]
+        return self.responseContainer[functionId]["referenceValue"]
 
     # --------------------------------------------------------------------------    
     def getReportedGradientOf( self, functionId ):
