@@ -858,13 +858,13 @@ void Membrane1Element::CalculateAll(
         CalculateMetricDeformed(PointNumber, DN_De, gab, g1, g2);
         CalculateStrain(StrainVector, gab, mGab0[PointNumber]);
 
-        if (this->GetId() == 1)
-        {
-            KRATOS_WATCH(Q);
-            KRATOS_WATCH(g1);
-            KRATOS_WATCH(g2);
-            KRATOS_WATCH(StrainVector);
-        }
+        //if (this->GetId() == 1)
+        //{
+        //    KRATOS_WATCH(Q);
+        //    KRATOS_WATCH(g1);
+        //    KRATOS_WATCH(g2);
+        //    KRATOS_WATCH(StrainVector);
+        //}
 
         Vector CartesianStrainVector = prod(Q, StrainVector);
 
@@ -928,13 +928,13 @@ void Membrane1Element::CalculateAll(
 
         CalculateSecondVariationStrain(DN_De, Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12, Q, g1, g2);
 
-        if (this->GetId() == 1)
-        {
+        //if (this->GetId() == 1)
+        //{
 
-            KRATOS_WATCH(Strain_locCartesian_11);
-            KRATOS_WATCH(Strain_locCartesian_22);
-            KRATOS_WATCH(Strain_locCartesian_12);
-        }
+        //    KRATOS_WATCH(Strain_locCartesian_11);
+        //    KRATOS_WATCH(Strain_locCartesian_22);
+        //    KRATOS_WATCH(Strain_locCartesian_12);
+        //}
 
 
         // LEFT HAND SIDE MATRIX
@@ -946,32 +946,11 @@ void Membrane1Element::CalculateAll(
             //KRATOS_WATCH(IntToReferenceWeight);
             CalculateAndAddKm(rLeftHandSideMatrix, B, D, IntToReferenceWeight);
 
-            //if(this->GetId() == 1)
-            //{
-            //    std::cout << "#################" << std::endl;
-            //    std::cout << "rLeftHandSideMatrix for Linear Part" << std::endl;
-            //    KRATOS_WATCH(rLeftHandSideMatrix);
-            //    KRATOS_WATCH(StrainDeformation);
-            //    KRATOS_WATCH(Strain_locCartesian_11);
-            //    KRATOS_WATCH(Strain_locCartesian_22);
-            //    KRATOS_WATCH(Strain_locCartesian_12);
-            //    std::cout << "#################" << std::endl;
-            //}
-
-            //KRATOS_WATCH(rLeftHandSideMatrix(0,0));
-
             // adding non-linear-contribution to stiffness matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
                 Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12,
                 StrainDeformation,
                 IntToReferenceWeight);
-
-            //if (this->GetId() == 1)
-            //{
-            //    std::cout << "&&&&&&&&&&&&&&&&&&" << std::endl;
-            //    KRATOS_WATCH(rLeftHandSideMatrix);
-            //    std::cout << "&&&&&&&&&&&&&&&&&&" << std::endl;
-            //}
         }
 
         // RIGHT HAND SIDE VECTOR
@@ -988,11 +967,11 @@ void Membrane1Element::CalculateAll(
     //    KRATOS_WATCH(rRightHandSideVector);
 
     // DEBUG INFO
-    if (this->GetId() == 1 /*|| this->GetId() == 2*/)
-    {
-        //KRATOS_WATCH(rLeftHandSideMatrix);
-        KRATOS_WATCH(rRightHandSideVector);
-    }
+    //if (this->GetId() == 1 /*|| this->GetId() == 2*/)
+    //{
+    //    //KRATOS_WATCH(rLeftHandSideMatrix);
+    //    KRATOS_WATCH(rRightHandSideVector);
+    //}
 
 
     KRATOS_CATCH("")
@@ -1130,77 +1109,13 @@ void Membrane1Element::CalculateSecondVariationStrain(Matrix DN_De,
     //Matrix dg3_m = ZeroMatrix(3, 3);
 
     Vector ddStrain_curvilinear = ZeroVector(3);
-    /*
-    Matrix dn_n = ZeroMatrix(3, 3);
-    Matrix dn_m = ZeroMatrix(3, 3);
 
-    // basis vector g3
-    array_1d<double, 3> g3;
-    array_1d<double, 3> ddn;
-
-    CrossProduct(g3, g1, g2);
-
-    // differential area dA
-    double dA = norm_2(g3);
-
-    // normal vector n
-    array_1d<double, 3> n = g3 / dA;
-
-    double invdA = 1 / dA;
-    double invdA3 = 1 / pow(dA, 3);
-    double invdA5 = 1 / pow(dA, 5);
-    */
     for (unsigned int n = 0; n < number_of_nodes; ++n)
     {
-        /*
-        //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
-        dg3_n(0, 0) = 0;
-        dg3_n(0, 1) = -DN_De(n, 0) * g2[2] + DN_De(n, 1)*g1[2];
-        dg3_n(0, 2) = DN_De(n, 0) * g2[1] - DN_De(n, 1)*g1[1];
-
-        //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
-        dg3_n(1, 0) = DN_De(n, 0) * g2[2] - DN_De(n, 1)*g1[2];
-        dg3_n(1, 1) = 0;
-        dg3_n(1, 2) = -DN_De(n, 0)*g2[0] + DN_De(n, 1)*g1[0];
-
-        //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
-        dg3_n(2, 0) = -DN_De(n, 0) * g2[1] + DN_De(n, 1) * g1[1];
-        dg3_n(2, 1) = DN_De(n, 0) * g2[0] - DN_De(n, 1) * g1[0];
-        dg3_n(2, 2) = 0;
-        */
-
         for (unsigned int i = 0; i < 3; ++i)
         {
-            /*
-            double g3dg3n = (g3[0] * dg3_n(i, 0) + g3[1] * dg3_n(i, 1) + g3[2] * dg3_n(i, 2));
-            double g3dg3lg3n = g3dg3n*invdA3;
-
-            dn_n(i, 0) = dg3_n(i, 0)*invdA - g3[0] * g3dg3lg3n;
-            dn_n(i, 1) = dg3_n(i, 1)*invdA - g3[1] * g3dg3lg3n;
-            dn_n(i, 2) = dg3_n(i, 2)*invdA - g3[2] * g3dg3lg3n;
-            */
-
             for (unsigned int m = 0; m <= n; m++)
             {
-                /*
-                //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
-                dg3_m(0, 0) = 0;
-                dg3_m(0, 1) = -DN_De(m, 0) * g2[2] + DN_De(m, 1)*g1[2];
-                dg3_m(0, 2) = DN_De(m, 0) * g2[1] - DN_De(m, 1)*g1[1];
-
-                //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
-                dg3_m(1, 0) = DN_De(m, 0) * g2[2] - DN_De(m, 1)*g1[2];
-                dg3_m(1, 1) = 0;
-                dg3_m(1, 2) = -DN_De(m, 0)*g2[0] + DN_De(m, 1)*g1[0];
-
-                //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
-                dg3_m(2, 0) = -DN_De(m, 0) * g2[1] + DN_De(m, 1) * g1[1];
-                dg3_m(2, 1) = DN_De(m, 0) * g2[0] - DN_De(m, 1) * g1[0];
-                dg3_m(2, 2) = 0;
-
-                
-                //std::cout << "dg3_m: " << dg3_m << std::endl;
-                */
 
                 int limit = i + 1;
                 if (m < n)
