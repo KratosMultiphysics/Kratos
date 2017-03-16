@@ -573,7 +573,7 @@ class Communicator:
         for func_id in optimizationSettings.constraints:
             self.responseContainer[func_id] = {}          
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
     
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
