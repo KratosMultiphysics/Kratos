@@ -8,34 +8,29 @@
 
 // Application includes
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_strategies/custom_schemes/adjoint_bossak_drag_scheme.h"
-#include "custom_strategies/custom_schemes/adjoint_steady_drag_scheme.h"
+#include "custom_schemes/adjoint_bossak_scheme.h"
+#include "custom_schemes/adjoint_steady_scheme.h"
 
 namespace Kratos
 {
-
 namespace Python
 {
-  using namespace boost::python;
+using namespace boost::python;
 
-  void AddCustomSchemesToPython()
-  {
+void AddCustomSchemesToPython()
+{
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
-    class_< AdjointBossakDragScheme<SparseSpaceType, LocalSpaceType>,
-    	    bases<SchemeType>,
-    	    boost::noncopyable >
-        ( "AdjointBossakDragScheme", init<double>() )
+    class_<AdjointBossakScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
+        "AdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>())
         ;
 
-    class_< AdjointSteadyDragScheme<SparseSpaceType, LocalSpaceType>,
-          bases<SchemeType>,
-          boost::noncopyable >
-        ( "AdjointSteadyDragScheme", init<>() )
+    class_<AdjointSteadyScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
+        "AdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>())
         ;
-  }
+}
 
 } // namespace Python
 

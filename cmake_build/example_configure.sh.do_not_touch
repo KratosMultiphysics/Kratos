@@ -39,7 +39,6 @@ cmake ..  									                                                    \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  						                              \
 -DMESHING_APPLICATION=ON 							                                          \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
--DPFEM_APPLICATION=ON 								                                          \
 -DSTRUCTURAL_APPLICATION=ON 							                                      \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
 -DALE_APPLICATION=ON 								                                            \

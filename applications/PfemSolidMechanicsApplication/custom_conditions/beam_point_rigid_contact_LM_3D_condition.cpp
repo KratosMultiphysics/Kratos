@@ -298,11 +298,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamPointRigidContactLM3DCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-  {
-    CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-    CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-    CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
-  
+  {  
     //added to control force evolution per step:
     // array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
     // mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);

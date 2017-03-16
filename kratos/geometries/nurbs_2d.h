@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_NURBS_2D_3_H_INCLUDED ) //modified by Matthias
@@ -470,8 +478,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
 
         //calculating the local gradients and the shape functions derivatives
@@ -767,7 +774,7 @@ public:
     */
     virtual SizeType EdgesNumber() const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
+        KRATOS_ERROR << "Nurbs_2d::EdgesNumber" << "No Edges defined for NURBS-surfaces" << std::endl;
         return 0;
     }
 
@@ -785,7 +792,7 @@ public:
     virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::Edges", "No Edges defined for NURBS-surfaces" );
+        KRATOS_ERROR << "Nurbs_2d::Edges" << "No Edges defined for NURBS-surfaces"  << std::endl;
         return edges;
 
     }
@@ -1035,8 +1042,7 @@ public:
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
@@ -1334,7 +1340,7 @@ public:
                                                      Matrix *rResult,
                                                      double t ) const 
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
+        KRATOS_ERROR << "Nurbs_2d::ShapeFunctionsSecondDerivatives" << "Second order derivatives not yet implemented" << std::endl;
         return *rResult;
     }
 
@@ -1350,7 +1356,7 @@ public:
                                                    Matrix *rResult,
                                                    double t ) const 
     {
-            KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
+            KRATOS_ERROR << "Nurbs_2d::ShapeFunctionsThirdDerivatives" << "Third order derivatives not yet implemented" << std::endl;
             return *rResult;
     }
 
@@ -1658,7 +1664,7 @@ public:
             Vector res = prod(trans(DN),CurrentGlobalCoords);
 
             //deteminant of Jacobian
-            double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
 
             //filling matrix
             invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
@@ -1681,7 +1687,7 @@ public:
                 res[2] = 0.0;
                 std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
                 break;
-                //KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
+                //KRATOS_ERROR << "Computation of local coordinates failed at iteration" << k << std::endl;
             }
 
             if ( norm_2( DeltaXi ) < tol )

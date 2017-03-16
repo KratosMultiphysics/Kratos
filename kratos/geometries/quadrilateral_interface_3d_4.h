@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Ignasi de Pouplana $
-//   Date:                $Date:         January 2015 $
-//   Revision:            $Revision:              1.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
 //
 
 #if !defined(KRATOS_QUADRILATERAL_INTERFACE_3D_4_H_INCLUDED )
@@ -254,8 +258,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 4, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -532,7 +535,7 @@ public:
             Vector res = prod(trans(DN),CurrentGlobalCoords);
 
             //deteminant of Jacobian
-            double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
 
             //filling matrix
             invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
@@ -554,7 +557,7 @@ public:
                 res[1] = 0.0;
                 std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
                 break;
-                //KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
+                //KRATOS_ERROR << "Computation of local coordinates failed at iteration" << k << std::endl;
             }
 
             if ( norm_2( DeltaXi ) < tol )
@@ -702,7 +705,7 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" <<"Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -731,7 +734,7 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return 0.0;
     }
 
@@ -762,7 +765,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" << "Jacobian is not square"  << std::endl;
         return 0.0;
     }
 
@@ -790,7 +793,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" << "Jacobian is not square"  << std::endl;
         return rResult;
     }
 
@@ -821,7 +824,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" << "Jacobian is not square"  << std::endl;
         return rResult;
     }
 
@@ -844,7 +847,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "QuadrilateralInterface3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "QuadrilateralInterface3D4::DeterminantOfJacobian" << "Jacobian is not square"  << std::endl;
         return rResult;
     }
 
@@ -915,9 +918,7 @@ public:
         case 3:
             return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -969,8 +970,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )

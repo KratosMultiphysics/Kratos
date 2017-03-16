@@ -13,10 +13,9 @@
 
 // Application includes
 #include "adjoint_fluid_application.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_objective_functions_to_python.h"
 
 namespace Kratos
 {
@@ -32,10 +31,9 @@ BOOST_PYTHON_MODULE(KratosAdjointFluidApplication)
 	 KratosAdjointFluidApplication::Pointer,
 	 bases<KratosApplication>, boost::noncopyable >("KratosAdjointFluidApplication");
 
-  AddCustomStrategiesToPython();
   AddCustomSchemesToPython();
-  AddCustomUtilitiesToPython();
   AddCustomProcessesToPython();
+  AddCustomObjectiveFunctionsToPython();
 
   // Moved to Kratos Core for trilinos_application
   //KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VELOCITY );

@@ -159,30 +159,16 @@ public:
 	  for(el=0; el<OutNumberOfElements; el++)
 	    {
 	      Geometry<Node<3> > vertices;
-	      //double Alpha   = 0;
-	      //double nodal_h = 0;
-	      //double param   = 0.3333333;
-	      
-	      // int  numflying=0;
-	      // int  numlayer =0;
-	      // int  numfixed =0;
-	      
+
 	      unsigned int  numfreesurf =0;
 	      unsigned int  numboundary =0;	      
 	      unsigned int  numrigid =0;	      
 	      unsigned int  numinternalsolid =0;	      
 	      unsigned int  numsolid =0;	      
+	      unsigned int  numinlet =0;	      
+	      unsigned int  numisolated =0;	      
 	      // unsigned int  numinsertednodes =0;	      
 
-
-
-	      // std::cout<<" selected vertices ["<<OutElementList[el*nds];
-	      // for(unsigned int d=1; d<nds; d++)
-	      // 	{
-	      // 	  std::cout<<", "<<OutElementList[el*nds+d];
-	      // 	}
-	      
-	      // std::cout<<"] "<<std::endl;
 
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
@@ -210,9 +196,9 @@ public:
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
 		  //check flags on nodes
-		  if(vertices.back().Is(FREE_SURFACE)){
-		    numfreesurf++;
-		    // std::cout<<" FREE_SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+
+		  if(vertices.back().Is(ISOLATED)){
+		    numisolated++;
 		  }
 
 		  if(vertices.back().Is(BOUNDARY)){
@@ -233,26 +219,13 @@ public:
 		  }
 		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
-		    // std::cout<<" free surface COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		    // std::cout<<"FREE SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
 
-		  // if(vertices.back().Is(OLD_ENTITY))
-		  //   numinsertednodes++;
-
-		  // vertices[pn].Reset(INTERFACE);
-
-	  
-		  // if(VertexPa[pn].match(_wall_))
-		  // 	numfixed++;
-		  
-		  // if(VertexPa[pn].match(_flying_))
-		  // 	numflying++;
-
-		  // if(VertexPa[pn].match(_layer_))
-		  // 	numlayer++;
-		  
-		  //nodal_h+=vertices.back().FastGetSolutionStepValue(NODAL_H);
-		  
+		  if(vertices.back().Is(INLET)){
+		    // vertices.back().Reset(INLET);
+		    numinlet++;
+		  }
 		}
 	      
 	      
@@ -261,86 +234,84 @@ public:
 		continue;
 	      }
 	      
-	      //1.- to not consider wall elements
-	      // if(numfixed==3)
-	      //   Alpha=0;
-	      
-	      //2.- alpha shape:
-	      //Alpha  = nodal_h * param;
-	      //Alpha *= mrRemesh.AlphaParameter; //1.4; 1.35;
-	      
-	      //2.1.- correction to avoid big elements on boundaries
-	      // if(numflying>0){
-	      //   Alpha*=0.8;
-	      // }
-	      // else{
-	      //   if(numfixed+numsurf<=2){
-	      //     //2.2.- correction to avoid voids in the fixed boundaries
-	      //     if(numfixed>0)
-	      // 	Alpha*=1.4;
-	      
-	      //     //2.3.- correction to avoid voids on the free surface
-	      //     if(numsurf>0)
-	      // 	Alpha*=1.3;
-	      
-
-	      
-	      // }
-	      
-	      //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
 
 	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
-	      // if(numboundary>=nds-1)
-	      // 	Alpha*=1.8;
 
-	      // if(numboundary>nds){
-	      // 	Alpha*=1.05;
+
+	      // if(numinlet==3){
+	      // 	Alpha*=1.5;
+	      // } else if(numinlet==2){
+	      // 	Alpha*=1.15;
+	      // }
+	 
+	      // if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+	      // 	Alpha*=0.75;
+	      // }else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+	      // 	Alpha*=0.95;
+	      // }
+	      // if(numrigid==0 && numfreesurf==0 && numisolated==0){
+	      // 	Alpha*=1.5;
 	      // }
 
-	      // if(numfreesurf==0 && numsolid==0 && firstMesh==false){
-	      if(numfreesurf==0 && firstMesh==false){
-		if(dimension==2){
-		  if(numrigid==0){
-		    // Alpha*=1.05;
-		    Alpha*=1.5;
-		  }else{
-		    // Alpha*=1.2;
-		    Alpha*=1.5;
-		  }
 
+	      // if(numisolated==0 && numfreesurf==0 && firstMesh==false){
+	      // if(numisolated==0 && numinlet>0 && (numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
+	      // if((numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
+	      // 	if(dimension==2){
+	      // 	  if(numrigid==0 && numfreesurf==0){
+	      // 	    // Alpha*=2.0;
+	      // 	    Alpha*=1.5;
+	      // 	  }else{
+	      // 	    //Alpha*=1.75;
+	      // 	    Alpha*=1.35;
+	      // 	  }
+
+	      // 	}
+	      // 	if(dimension==3){
+	      // 	  if(numrigid==0){
+	      // 	    // Alpha*=1.15;
+	      // 	    Alpha*=1.5;
+	      // 	    // std::cout<<"RIGID 0";
+	      // 	  }else{
+	      // 	    // Alpha*=1.25;
+	      // 	    Alpha*=1.5;
+	      // 	    // std::cout<<"Alpha*=1.5 "<<Alpha;
+	      // 	  }
+	      // 	}
+	      // }
+
+	      if(dimension==2){
+		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+		  Alpha*=0.7;
+		}else if((numrigid+numisolated+numfreesurf)==nds){
+		  Alpha*=0.9;
+		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+		  Alpha*=0.95;
 		}
-		if(dimension==3){
-		  if(numrigid==0){
-		    // Alpha*=1.15;
-		    Alpha*=1.5;
-		    // std::cout<<"RIGID 0";
-		  }else{
-		    // Alpha*=1.25;
-		    Alpha*=1.5;
-		    // std::cout<<" NONRIGID";
-		    // std::cout<<"Alpha*=1.5 "<<Alpha;
-		  }
+		if(numrigid==0 && numfreesurf==0 && numisolated==0){
+		  Alpha*=1.75;
+		}else if(numfreesurf==0 && numisolated==0){
+		  Alpha*=1.25;
+		}
+	      }else  if(dimension==3){
+		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+		  Alpha*=0.85;
+		}else if((numrigid+numisolated+numfreesurf)==nds){
+		  Alpha*=0.925;
+		}else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
+		  Alpha*=0.975;
+		}
+		if(numrigid==0 && numfreesurf==0 && numisolated==0){
+		  Alpha*=1.75;
+		}else if(numfreesurf==0 && numisolated==0){
+		  Alpha*=1.25;
 		}
 	      }
 	      if(firstMesh==true){
 		Alpha*=1.15;
 	      }
 	      
-
-	      // std::cout<<" vertices for the contact element "<<std::endl;
-	      // for( unsigned int n=0; n<nds; n++)
-	      // 	{
-	      // 	  std::cout<<" ("<<n+1<<"): ["<<mrRemesh.NodalPreIds[vertices[n].Id()]<<"] "<<vertices[n]<<std::endl;
-	      // 	}
-
-	      // std::cout<<" vertices for the subdomain element "<<std::endl;
-	      // for( unsigned int n=0; n<nds; n++)
-	      // 	{
-	      // 	  std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"] "<<vertices[n]<<std::endl;
-	      // 	}
-	      
-	      // std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
-	      
+    
 	      bool accepted=false;
 	      
 	      ModelerUtilities ModelerUtils;
@@ -348,25 +319,15 @@ public:
 	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		{
 		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
-		  std::cout<<" NOT HEREEEEEEEEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"<<std::endl;
-
 		}
 	      else
 		{
+
 		  double MeanMeshSize=mrRemesh.Refine->CriticalRadius;
 		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension,MeanMeshSize);
-		  // std::cout<<"Alpha "<<Alpha<<" MeanMeshSize "<<MeanMeshSize<<std::endl;
-		  // accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension);
+
 		}
 
-	      	   
-	      //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
-	      // if(accepted)
-	      // {
-	      //   std::cout<<" Element passed Alpha Shape "<<std::endl;
-	      //     if(mrRemesh.Refine->Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
-	      //   	accepted=ModelerUtilities::CheckSubdomain(vertices);
-	      // }
 
 	      //3.1.-
 	      bool self_contact = false;
@@ -379,24 +340,9 @@ public:
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
 		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
-		      std::cout<<" NOT HEREEEEEEEEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"<<std::endl;
-		    }
-		  else
-		    {
-		        // accepted=ModelerUtils.CheckInnerCentre(vertices); //problems in 3D: when slivers are released, a boundary is created and the normals calculated, then elements that are inside suddently its center is calculated as outside... // some corrections are needded.
 		    }
 		}
 
-	      // if(numinsertednodes>0){
-	      // 	accepted=true;
-	      // 	// std::cout<<" ELEMENT WITH A NEW NODE.. I WILL NOT ERASE IT "<<std::endl;
-
-	      // }
-
-	      // else{
-	      
-	      //   std::cout<<" Element DID NOT pass Alpha Shape ("<<Alpha<<") "<<std::endl;
-	      // }
 	      if(numrigid==nds){
 		accepted=false;
 	      }

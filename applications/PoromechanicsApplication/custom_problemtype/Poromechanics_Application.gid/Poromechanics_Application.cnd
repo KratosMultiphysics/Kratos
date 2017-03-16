@@ -52,9 +52,10 @@ VALUE: 1.0
 HELP: Units in IS: m
 QUESTION: Damage_Threshold
 VALUE: 1.0e-4
+HELP: Strain value after which damage starts growing.
 QUESTION: Strength_Ratio
 VALUE: 10.0
-HELP: Ratio between compression and tension strength
+HELP: Ratio between compression and tension strength.
 QUESTION: Fracture_Energy
 VALUE: 100.0
 HELP: Units in IS: N·m/m2
@@ -77,7 +78,7 @@ VALUE: BilinearCohesivePlaneStrain2DLaw
 DEPENDENCIES: (BilinearCohesivePlaneStrain2DLaw,HIDE,Thickness,1.0)(BilinearCohesivePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#)(BilinearCohesive3DLaw,HIDE,Thickness,#CURRENT#)
 QUESTION: Young_Modulus
 VALUE: 3.0e7
-HELP: Units in IS: N/m2
+HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
 QUESTION: Poisson_Ratio
 VALUE: 0.2
 QUESTION: Solid_Density
@@ -105,17 +106,19 @@ VALUE: 1.0
 HELP: Units in IS: m
 QUESTION: Damage_Threshold
 VALUE: 1.0e-4
+HELP: Strain value after which damage starts growing.
 QUESTION: Minimum_Joint_Width
 VALUE: 1.0e-3
-HELP: Units in IS: m
+HELP: Small number for avoiding division by zero in zero-thickness cases. Units in IS: m
 QUESTION: Critical_Displacement
 VALUE: 0.05
-HELP: Units in IS: m
+HELP: Relative displacement after which cohesive stresses vanish. Units in IS: m
 QUESTION: Yield_Stress
 VALUE: 3.5e6
-HELP: Units in IS: N/m2
+HELP: Cohesive strength of the joint. Units in IS: N/m2
 QUESTION: Friction_Coefficient
 VALUE: 0.4
+HELP: Mohr-Coulomb's friction coefficient in contact cases.
 END CONDITION
 
 

@@ -37,21 +37,21 @@ namespace Kratos
       CylinderParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       CylinderParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
       /// Destructor.
       virtual ~CylinderParticle();
       
-      double CalculateVolume();  
-      double CalculateMomentOfInertia();
+      double CalculateVolume() override;  
+      double CalculateMomentOfInertia() override;
       
-      void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
-      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
-      void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info);    
+      void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
+      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
+      void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
+      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;    
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
           std::stringstream buffer;
           buffer << "CylinderParticle" ;
@@ -59,10 +59,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CylinderParticle";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "CylinderParticle";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     protected:
@@ -74,12 +74,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      virtual void save(Serializer& rSerializer) const override
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
       }
 
-      virtual void load(Serializer& rSerializer)
+      virtual void load(Serializer& rSerializer) override
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
       }

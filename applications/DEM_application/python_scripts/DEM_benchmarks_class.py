@@ -1341,11 +1341,11 @@ class Benchmark9:
 
             if node.Id == 1:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
-                node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
             else:
                 node.SetSolutionStepValue(VELOCITY_X, -self.initial_normal_vel)
-                node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
     def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, output_time_step, dt):

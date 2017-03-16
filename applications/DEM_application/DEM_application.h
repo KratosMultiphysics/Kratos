@@ -54,23 +54,23 @@ public:
     /// Destructor.
     virtual ~KratosDEMApplication() {}
 
-    virtual void Register();
+    virtual void Register() override;
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "KratosDEMApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);

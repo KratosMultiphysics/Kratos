@@ -36,7 +36,6 @@ def AssembleTestSuites():
     smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_PrimalGradient'))
     smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_ElementSensitivity'))
     smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_AdjointBossakDragScheme'))
-    smallSuite.addTest(test_vms_sensitivity_for_one_time_step_2d.TestCase('test_Sensitivity'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_OneElement'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_Cylinder'))
     smallSuite.addTest(test_vms_sensitivity_2d.TestCase('test_SteadyCylinder'))

@@ -222,8 +222,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 4, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -533,9 +532,7 @@ public:
         case 3:
             return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" ,
-                                *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -673,12 +670,12 @@ public:
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
-        rResult( 1, 0 ) = 0.25 * ( 1.0 - rPoint[1] );
+        rResult( 1, 0 ) =  0.25 * ( 1.0 - rPoint[1] );
         rResult( 1, 1 ) = -0.25 * ( 1.0 + rPoint[0] );
-        rResult( 2, 0 ) = 0.25 * ( 1.0 + rPoint[1] );
-        rResult( 2, 1 ) = 0.25 * ( 1.0 + rPoint[0] );
+        rResult( 2, 0 ) =  0.25 * ( 1.0 + rPoint[1] );
+        rResult( 2, 1 ) =  0.25 * ( 1.0 + rPoint[0] );
         rResult( 3, 0 ) = -0.25 * ( 1.0 + rPoint[1] );
-        rResult( 3, 1 ) = 0.25 * ( 1.0 - rPoint[0] );
+        rResult( 3, 1 ) =  0.25 * ( 1.0 - rPoint[0] );
         return rResult;
     }
 
@@ -698,12 +695,12 @@ public:
         rResult.resize( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
-        rResult( 1, 0 ) = 0.25 * ( 1.0 - rPoint.Y() );
+        rResult( 1, 0 ) =  0.25 * ( 1.0 - rPoint.Y() );
         rResult( 1, 1 ) = -0.25 * ( 1.0 + rPoint.X() );
-        rResult( 2, 0 ) = 0.25 * ( 1.0 + rPoint.Y() );
-        rResult( 2, 1 ) = 0.25 * ( 1.0 + rPoint.X() );
+        rResult( 2, 0 ) =  0.25 * ( 1.0 + rPoint.Y() );
+        rResult( 2, 1 ) =  0.25 * ( 1.0 + rPoint.X() );
         rResult( 3, 0 ) = -0.25 * ( 1.0 + rPoint.Y() );
-        rResult( 3, 1 ) = 0.25 * ( 1.0 - rPoint.X() );
+        rResult( 3, 1 ) =  0.25 * ( 1.0 - rPoint.X() );
         return rResult;
     }
 
@@ -733,20 +730,20 @@ public:
         rResult[0]( 1, 0 ) = 0.25;
         rResult[0]( 1, 1 ) = 0.0;
 
-        rResult[1]( 0, 0 ) = 0.0;
+        rResult[1]( 0, 0 ) =  0.0;
         rResult[1]( 0, 1 ) = -0.25;
         rResult[1]( 1, 0 ) = -0.25;
-        rResult[1]( 1, 1 ) = 0.0;
+        rResult[1]( 1, 1 ) =  0.0;
 
         rResult[2]( 0, 0 ) = 0.0;
         rResult[2]( 0, 1 ) = 0.25;
         rResult[2]( 1, 0 ) = 0.25;
         rResult[2]( 1, 1 ) = 0.0;
 
-        rResult[3]( 0, 0 ) = 0.0;
+        rResult[3]( 0, 0 ) =  0.0;
         rResult[3]( 0, 1 ) = -0.25;
         rResult[3]( 1, 0 ) = -0.25;
-        rResult[3]( 1, 1 ) = 0.0;
+        rResult[3]( 1, 1 ) =  0.0;
 
         return rResult;
     }

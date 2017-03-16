@@ -89,10 +89,10 @@ QUESTION: Desired_Iterations
 Value: 4
 HELP: The larger this number, the larger the radius
 QUESTION: Max_Radius_Factor
-Value: 20.0
+Value: 10.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Min_Radius_Factor
-Value: 0.5
+Value: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: true

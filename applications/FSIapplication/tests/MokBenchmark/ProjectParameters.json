@@ -41,18 +41,16 @@
             "Custom1" : ["0.0","0.5"]
         },
         "constraints_process_list" : [{
-            "python_module"         : "impose_vector_value_by_components_process",
+            "python_module"         : "experimental_assign_vector_process",
             "kratos_module"         : "KratosMultiphysics",
-            "help"                  : "This process fixes the selected components of a given vector variable",
-            "process_name"          : "ImposeVectorValueByComponentsProcess",
+            "process_name"          : "ExperimentalAssignVectorProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_BC",
                 "variable_name"   : "DISPLACEMENT",
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : true,
-                "is_fixed_z"      : true,
-                "value"           : [0.0,0.0,0.0]
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0],
+                "constrained"     : [true,true,true]
             }
         }],
         "loads_process_list"       : [{
@@ -101,6 +99,7 @@
         "problem_data"                     : {
             "problem_name"    : "mok_benchmark",
             "model_part_name" : "MainModelPart",
+            "parallel_type"   : "OpenMP",
             "domain_size"     : 2,
             "start_step"      : 0.0,
             "end_time"        : 25.0
@@ -132,7 +131,7 @@
             "Restart_Step"     : 0
         },
         "solver_settings"                  : {
-            "solver_type"                   : "navier_stokes_solver_vmsmonolithic",
+            "solver_type"                   : "Monolithic",
             "model_import_settings"         : {
                 "input_type"     : "mdpa",
                 "input_filename" : "MokBenchmark/mok_benchmark_Fluid"
@@ -162,7 +161,7 @@
             },
             "volume_model_part_name" : "Parts_Fluid",
             "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","Slip2D_Slip","NoSlip2D_No_slip","FluidNoSlipInterface2D_Interface"],
-            "no_skin_parts"          : ["DISPLACEMENT_ALE_mesh_BC"],
+            "no_skin_parts"          : ["DISPLACEMENT_ALE_mesh_BC","Control_Nodes"],
             "time_stepping"          : {
                 "automatic_time_step" : false,
                 "time_step"           : 0.1
@@ -170,27 +169,42 @@
         },
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module"         : "impose_vector_value_by_direction_process",
+            "python_module"         : "experimental_assign_vector_by_direction_process",
             "kratos_module"         : "KratosMultiphysics",
-            "help"                  : "This process fixes all the components of a given vector variable",
-            "check"                 : "DirectorVectorNonZero direction",
-            "process_name"          : "ImposeVectorValueByDirectionProcess",
+            "process_name"          : "AssignAutomaticDirectionVectorProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Inlet2D_Inlet",
                 "variable_name"   : "VELOCITY",
-                "modulus"         : 1.0,
-                "direction"       : [1.0,0.0,0.0]
+                "modulus"         : "2*0.06067*(1-cos(pi*t/10))*y*(1-y)",
+                "constrained"     : true,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [0.0,10.0]
             }
         },{
-            "python_module"         : "impose_scalar_value_process",
-            "kratos_module"         : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"          : "ApplyOutletProcess",
+            "python_module"         : "experimental_assign_vector_by_direction_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "AssignAutomaticDirectionVectorProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Inlet2D_Inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : "4*0.06067*y*(1-y)",
+                "constrained"     : true,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [10.0,"End"]
+            }
+        },{
+            "python_module"         : "experimental_assign_value_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "ExperimentalAssignValueProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "Outlet2D_Outlet",
                 "variable_name"   : "PRESSURE",
-                "value"           : 0
+                "interval"        : [0.0,"End"],
+                "constrained"     : true,
+                "value"           : 0.0
             }
         },{
             "python_module"         : "apply_slip_process",
@@ -209,23 +223,20 @@
                 "model_part_name" : "NoSlip2D_No_slip"
             }
         },{
-            "python_module" : "impose_vector_value_by_components_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"          : "This process fixes the selected components of a given vector variable",
-            "process_name"  : "ImposeVectorValueByComponentsProcess",
-            "Parameters"    : {
+            "python_module"         : "experimental_assign_vector_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "ExperimentalAssignVectorProcess",
+            "Parameters"            : {
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_ALE_mesh_BC",
                 "variable_name"   : "MESH_DISPLACEMENT",
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : true,
-                "is_fixed_z"      : true,
-                "value"           : [0.0,0.0,0.0]
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0],
+                "constrained"     : [true,true,true]
             }
         },{
             "python_module"         : "set_interface_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
             "process_name"          : "SetInterfaceProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
@@ -233,13 +244,26 @@
                 "variable_name"   : "FLUID_INTERFACE"
             }
         },{
-            "python_module"         : "MokBenchmark_local_process",
-            "kratos_module"         : "KratosMultiphysics.FSIApplication",
-            "help"                  : [],
-            "process_name"          : "ApplyLocalProcess",
+            "python_module"         : "from_json_check_result_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
-                "model_part_name" : "FluidNoSlipInterface2D_Interface"
+                "check_variables" : ["MESH_DISPLACEMENT_X"],
+                "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
+                "model_part_name" : "Control_Nodes",
+                "tolerance"       : 1e-4,
+                "time_frequency"  : 0.1
+            }
+        },{
+            "python_module"         : "from_json_check_result_process",
+            "kratos_module"         : "KratosMultiphysics",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables" : ["PRESSURE"],
+                "input_file_name" : "MokBenchmark/mok_benchmark_results.json",
+                "model_part_name" : "Control_Nodes",
+                "tolerance"       : 5e-2,
+                "time_frequency"  : 0.1
             }
         }],
         "gravity"                          : [{
@@ -259,8 +283,8 @@
         "solver_settings" : {
             "coupling_scheme"            : "DirichletNeumann",
             "solver_type"                : "partitioned_fsi_solver",
-            "nl_tol"                     : 1e-4,
-            "nl_max_it"                  : 50,
+            "nl_tol"                     : 1e-7,
+            "nl_max_it"                  : 25,
             "move_interface"             : true,
             "mesh_prediction"            : true,
             "coupling_strategy"          : {
