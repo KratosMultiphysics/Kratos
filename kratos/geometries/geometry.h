@@ -1307,7 +1307,7 @@ public:
     /** Jacobian in given point. This method calculate jacobian
     matrix in given point.
 
-    @param rPoint point which jacobians has to
+    @param rCoordinates point which jacobians has to
     be calculated in it.
 
     @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -1341,7 +1341,7 @@ public:
     /** Jacobian in given point. This method calculate jacobian
     matrix in given point.
 
-    @param rPoint point which jacobians has to
+    @param rCoordinates point which jacobians has to
     be calculated in it.
     
     @param DeltaPosition Matrix with the nodes position increment which describes
