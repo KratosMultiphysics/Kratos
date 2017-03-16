@@ -143,11 +143,8 @@ namespace Kratos
                 triangle0.ShapeFunctionsValues( N2, LocalPoint2 );
                 triangle0.ShapeFunctionsValues( N3, LocalPoint3 );
                 
-                const double DetJ01 = triangle0.DeterminantOfJacobian( LocalPoint1 );
                 const double DetJ1  = triangle1.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ02 = triangle0.DeterminantOfJacobian( LocalPoint2 );
                 const double DetJ2  = triangle2.DeterminantOfJacobian( LocalPoint0 );
-                const double DetJ03 = triangle0.DeterminantOfJacobian( LocalPoint3 );
                 const double DetJ3  = triangle3.DeterminantOfJacobian( LocalPoint0 );
                 
                 const double weight = IntegrationPoints[PointNumber].Weight();
@@ -156,9 +153,9 @@ namespace Kratos
                 {
                     for (unsigned int jnode = 0; jnode < 3; jnode++)
                     {
-                        MassMatrix1(inode, jnode) += DetJ01 * DetJ1 * weight * N1[inode] * N1[jnode] \
-                                                   + DetJ02 * DetJ2 * weight * N2[inode] * N2[jnode] \
-                                                   + DetJ03 * DetJ3 * weight * N3[inode] * N3[jnode];
+                        MassMatrix1(inode, jnode) += DetJ1 * weight * N1[inode] * N1[jnode] \
+                                                   + DetJ2 * weight * N2[inode] * N2[jnode] \
+                                                   + DetJ3 * weight * N3[inode] * N3[jnode];
                     }
                 }
             }
