@@ -33,21 +33,14 @@
         "LoadRestart"      : false,
         "Restart_Step"     : 0
     },
- "solver_settings"                  : {
-        "solver_type"                  : "ale_navier_stokes_solver_vmsmonolithic",
-        "ale_solver_type"              : "mesh_solver_structural_similarity",
-        "model_import_settings"        : {
+    "solver_settings"                      : {
+            "solver_type"                  : "mesh_solver_structural_similarity",
+            "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "01_Mesh_Test_2D3N"
         },
-        "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : [],
-        "no_skin_parts"                : [],
-        "time_stepping"                : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
-        }
-    },
+        "volume_model_part_name"       : "Parts_Fluid"
+},
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : []
 }
