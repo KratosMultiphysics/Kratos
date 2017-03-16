@@ -240,19 +240,21 @@ public:
 
         // Compute condition unit normal vector
         this->CalculateNormal(data.Normal); //this already contains the area
-        const double A = std::sqrt(data.Normal[0]*data.Normal[0]+data.Normal[1]*data.Normal[1]+data.Normal[2]*data.Normal[2]);
+        const double A = norm_2(data.Normal);
         data.Normal /= A;
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
+        Vector GaussPtsJDet = ZeroVector(NumGauss);
+        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
         const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
         for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
         {
             data.N = row(Ncontainer, igauss);
-            const double J = rGeom.DeterminantOfJacobian(igauss, GeometryData::GI_GAUSS_2);
+            const double J = GaussPtsJDet[igauss];
             data.wGauss = J * IntegrationPoints[igauss].Weight();
 
             ComputeGaussPointRHSContribution(rhs_gauss, data);
@@ -292,19 +294,21 @@ public:
 
         // Compute condition normal
         this->CalculateNormal(data.Normal); //this already contains the area
-        const double A = std::sqrt(data.Normal[0]*data.Normal[0]+data.Normal[1]*data.Normal[1]+data.Normal[2]*data.Normal[2]);
+        const double A = norm_2(data.Normal);
         data.Normal /= A;
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
+        Vector GaussPtsJDet = ZeroVector(NumGauss);
+        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
         const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
         for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
         {
             data.N = row(Ncontainer, igauss);
-            const double J = rGeom.DeterminantOfJacobian(igauss, GeometryData::GI_GAUSS_2);
+            const double J = GaussPtsJDet[igauss];
             data.wGauss = J * IntegrationPoints[igauss].Weight();
 
             ComputeGaussPointLHSContribution(lhs_local, data);
@@ -342,19 +346,21 @@ public:
 
         // Compute condition normal
         this->CalculateNormal(data.Normal); //this already contains the area
-        const double A = std::sqrt(data.Normal[0]*data.Normal[0]+data.Normal[1]*data.Normal[1]+data.Normal[2]*data.Normal[2]);
+        const double A = norm_2(data.Normal);
         data.Normal /= A;
 
         // Gauss point information
         GeometryType& rGeom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
+        Vector GaussPtsJDet = ZeroVector(NumGauss);
+        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
         const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
         for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
         {
             data.N = row(Ncontainer, igauss);
-            const double J = rGeom.DeterminantOfJacobian(igauss, GeometryData::GI_GAUSS_2);
+            const double J = GaussPtsJDet[igauss];
             data.wGauss = J * IntegrationPoints[igauss].Weight();
 
             ComputeGaussPointRHSContribution(rhs_local, data);
@@ -384,40 +390,40 @@ public:
         {
             // Check that all required variables have been registered
             if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
             if(MESH_VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "MESH_VELOCITY Key is 0. Check if the application was correctly registered.";
             if(ACCELERATION.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "ACCELERATION Key is 0. Check if the application was correctly registered.";
             if(PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
             if(DENSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
             if(DYNAMIC_VISCOSITY.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
             if(EXTERNAL_PRESSURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
+                KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
             for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
                 if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing MESH_VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing ACCELERATION variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing EXTERNAL_PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing EXTERNAL_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                    this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                    this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing VELOCITY component degree of freedom on node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                    KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                    KRATOS_ERROR << "missing PRESSURE component degree of freedom on node " << this->GetGeometry()[i].Id();
             }
 
             return Check;
