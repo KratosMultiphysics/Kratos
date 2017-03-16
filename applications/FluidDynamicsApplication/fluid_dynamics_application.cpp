@@ -75,6 +75,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Navier-Stokes symbolic elements
     mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mNavierStokesWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
@@ -98,7 +100,7 @@ void KratosFluidDynamicsApplication::Register()
 //    KRATOS_REGISTER_VARIABLE(C_SMAGORINSKY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(COARSE_VELOCITY);
-    
+
     // Non-Newtonian constitutive relations
     KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
 
@@ -127,10 +129,10 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("FractionalStep3D",mFractionalStep3D);
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuous2D",mFractionalStepDiscontinuous2D);
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuous3D",mFractionalStepDiscontinuous3D);
-	
+
     KRATOS_REGISTER_ELEMENT("SpalartAllmaras2D",mSpalartAllmaras2D);
     KRATOS_REGISTER_ELEMENT("SpalartAllmaras3D",mSpalartAllmaras3D);
-    
+
     KRATOS_REGISTER_ELEMENT("DPGVMS2D",mDPGVMS2D);
     KRATOS_REGISTER_ELEMENT("DPGVMS3D",mDPGVMS3D);
 
@@ -143,10 +145,10 @@ void KratosFluidDynamicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D",mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D",mHerschelBulkleyVMS3D);
-    
+
     KRATOS_REGISTER_ELEMENT("Stokes3D4N",mStokes3D);
     KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N",mStokes3DTwoFluid);
-    
+
     // Navier-Stokes symbolic elements
     KRATOS_REGISTER_ELEMENT("NavierStokes2D3N",mNavierStokes2D);
     KRATOS_REGISTER_ELEMENT("NavierStokes3D4N",mNavierStokes3D);
@@ -166,6 +168,8 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D",mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D",mMonolithicWallCondition3D);
+    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition2D",mNavierStokesWallCondition2D);
+    KRATOS_REGISTER_CONDITION("NavierStokesWallCondition3D",mNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D",mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D",mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D",mFSPeriodicCondition3D);
@@ -175,5 +179,3 @@ void KratosFluidDynamicsApplication::Register()
 
 
 }  // namespace Kratos.
-
-
