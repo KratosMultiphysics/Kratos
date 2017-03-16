@@ -31,12 +31,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         }
         """)
         
-        print("************************************************************************")
-        print("******** WARNING USING THE OLD INTERFACE *******************************")
-        print("****** PLEASE DERIVE THE PROCESS assign_vector_components_to_nodes *****")
-        print("****** FROM THE CORE KEEPING THE INTERESTED FUNCTIONALITIES ************")
-        print("************************************************************************")
-        
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)

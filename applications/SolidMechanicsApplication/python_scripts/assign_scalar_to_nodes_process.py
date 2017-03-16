@@ -41,11 +41,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         }
         """)
 
-        print("************************************************************************")
-        print("******** WARNING USING THE OLD INTERFACE *******************************")
-        print("****** PLEASE DERIVE THE PROCESS assign_scalar_to_nodes ****************")
-        print("****** FROM THE CORE KEEPING THE INTERESTED FUNCTIONALITIES ************")
-        print("************************************************************************")
 
         #trick to allow "value" to be a string or a double value
         if(custom_settings.Has("value")):
