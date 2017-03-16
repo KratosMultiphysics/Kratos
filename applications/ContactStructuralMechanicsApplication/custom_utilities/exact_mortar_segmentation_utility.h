@@ -523,6 +523,31 @@ public:
     }
     
     /**
+     * This functions calculates the determinant of a 3D triangle (using points) to check if invert the order
+     * @param PointOrig1: First point
+     * @param PointOrig2: Second point
+     * @param PointOrig3: Third point
+     * @return The DetJ
+     */
+    
+    double FasTriagleCheck3D(
+        const Point<3> PointOrig1,
+        const Point<3> PointOrig2,
+        const Point<3> PointOrig3
+        )
+    {
+        Matrix jacobian( 3, 2 );
+        jacobian( 0, 0 ) = -( PointOrig1.X() ) + ( PointOrig2.X() ); //on the Gauss points (J is constant at each element)
+        jacobian( 1, 0 ) = -( PointOrig1.Y() ) + ( PointOrig2.Y() );
+        jacobian( 2, 0 ) = -( PointOrig1.Z() ) + ( PointOrig2.Z() );
+        jacobian( 0, 1 ) = -( PointOrig1.X() ) + ( PointOrig3.X() );
+        jacobian( 1, 1 ) = -( PointOrig1.Y() ) + ( PointOrig3.Y() );
+        jacobian( 2, 1 ) = -( PointOrig1.Z() ) + ( PointOrig3.Z() );
+        
+        return MathUtils<double>::GeneralizedDet(jacobian);
+    }
+    
+    /**
      * This function gives you the indexes needed to order a vector 
      * @param vect: The vector to order
      * @return idx: The vector of indexes
@@ -1001,10 +1026,16 @@ private:
                 // We initialize our auxiliar integration point vector
                 const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
                 const size_t LocalIntegrationSize = IntegrationPoints.size();
+            
+                // We recover the rotation
+                for (unsigned int i_node = 0; i_node < 3; i_node++)
+                {
+                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
                 
 //                 IntegrationPointsSlave.resize((ListSize - 2) * LocalIntegrationSize, false);
                 IntegrationPointsSlave.clear();
-            
+                
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     // NOTE: We add 1 because we removed from the list the fisrt point
@@ -1066,13 +1097,7 @@ private:
                         }
                     }
                 }
-                
-                // We recover the rotation
-                for (unsigned int i_node = 0; i_node < 3; i_node++)
-                {
-                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                }
-                
+
                 if (IntegrationPointsSlave.size() > 0)
                 {                    
                     return true;
@@ -1877,16 +1902,21 @@ private:
 
                 ConditionsPointsSlave.resize((ListSize - 2));
             
+                // We recover this point to the triangle plane
+                for (unsigned int i_node = 0; i_node < 3; i_node++)
+                {
+                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
+                for (unsigned int i_master = 0; i_master < MasterProjectedPoint.size(); i_master++)
+                {
+                    RotatePoint(MasterProjectedPoint[i_master], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
+                
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
                     if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                     {
                         array_1d<Point<3>, 3> PointsLocals;
-                        
-                        // We recover this point to the triangle plane
-                        RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                         
                         // Now we project to the slave surface
                         Point<3> gp_global_proj; 
@@ -1907,11 +1937,6 @@ private:
                     {
                         array_1d<Point<3>, 3> PointsLocals;
                         
-                        // We recover this point to the triangle plane
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        
                         // Now we project to the slave surface
                         Point<3> gp_global_proj; 
                         Point<3> gp_local;
@@ -1927,12 +1952,6 @@ private:
                         
                         ConditionsPointsSlave[elem] = PointsLocals;
                     }
-                }
-                
-                // We recover the rotation
-                for (unsigned int i_node = 0; i_node < 3; i_node++)
-                {
-                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                 }
                 
                 if (ConditionsPointsSlave.size() > 0)
@@ -2107,17 +2126,18 @@ private:
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
             
+            // We recover this point to the triangle plane
+            for (unsigned int i_master = 0; i_master < MasterProjectedPoint.size(); i_master++)
+            {
+                RotatePoint(MasterProjectedPoint[i_master], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+            }
+            
             ConditionsPointsSlave.resize(2);
             for (unsigned int elem = 0; elem < 2; elem++) 
             {
-                if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
+                if (FasTriagleCheck3D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                 {
                     array_1d<Point<3>, 3> PointsLocals;
-                    
-                    // We recover this point to the triangle plane
-                    RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                     
                     // Now we project to the slave surface
                     Point<3> gp_global_proj; 
@@ -2138,11 +2158,6 @@ private:
                 {
                     array_1d<Point<3>, 3> PointsLocals;
                     
-                    // We recover this point to the triangle plane
-                    RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
                     // Now we project to the slave surface
                     Point<3> gp_global_proj; 
                     Point<3> gp_local;
@@ -2157,7 +2172,7 @@ private:
                     PointsLocals[2] = gp_local;
                     
                     ConditionsPointsSlave[elem] = PointsLocals;
-                }
+                }                
             }
             
             if (ConditionsPointsSlave.size() > 0)
@@ -2277,17 +2292,18 @@ private:
                 
                 ConditionsPointsSlave.resize((ListSize - 2));
         
+                // We recover this point to the triangle plane
+                for (unsigned int i_master = 0; i_master < MasterProjectedPoint.size(); i_master++)
+                {
+                    RotatePoint(MasterProjectedPoint[i_master], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                }
+                
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
-                    if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
+                    if (FasTriagleCheck3D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                     {
                         array_1d<Point<3>, 3> PointsLocals;
-                        
-                        // We recover this point to the triangle plane
-                        RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        
+                    
                         // Now we project to the slave surface
                         Point<3> gp_global_proj; 
                         Point<3> gp_local;
@@ -2306,11 +2322,6 @@ private:
                     else
                     {
                         array_1d<Point<3>, 3> PointsLocals;
-                        
-                        // We recover this point to the triangle plane
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 1] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[IndexVector[elem + 0] + 1], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                        RotatePoint(MasterProjectedPoint[0], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                         
                         // Now we project to the slave surface
                         Point<3> gp_global_proj; 
