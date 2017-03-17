@@ -277,7 +277,6 @@ namespace Kratos
 		this->GetValuesVector(currentDisp);
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
-		//noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, currentDisp); 
 		//update Residual
 		VectorType internalForces = ZeroVector(6);
 		this->UpdateInternalForces(internalForces);
@@ -316,7 +315,6 @@ namespace Kratos
 		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		////creating LHS
-		//rLeftHandSideMatrix = this->CreateElementStiffnessMatrix();	
 		rLeftHandSideMatrix = this->mLHS;
 		KRATOS_CATCH("")
 	}
@@ -507,7 +505,6 @@ namespace Kratos
 		dy = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
 		dz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
 		L = sqrt(dx*dx + dy*dy + dz*dz);
-		//longitudinal green lagrange strain
 		return L;
 		KRATOS_CATCH("")
 	}
