@@ -1,5 +1,6 @@
 import os
 from KratosMultiphysics import *
+import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_MainKratosMPI
 
@@ -18,6 +19,10 @@ class TestCase(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
+    
+    def removeFile(self, file_path):
+        if os.path.isfile(file_path):
+            os.remove(file_path)
 
     def createTest(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
@@ -37,10 +42,19 @@ class TestCase(KratosUnittest.TestCase):
             # solve adjoint
             test = self.createTest('test_vms_sensitivity_2d/mpi_cylinder_test_adjoint')
             test.Solve()
-            #Sensitivity = [[]]
-            #Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-            #Sensitivity[0].append(test.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
-
+            KratosMPI.mpi.world.barrier()
+            rank = test.main_model_part.GetCommunicator().MyPID()
+            # remove files
+            if rank == 0:
+                self.removeFile("./test_vms_sensitivity_2d/mpi_cylinder_test_probe1.dat")
+                self.removeFile("./test_vms_sensitivity_2d/mpi_cylinder_test_probe2.dat")
+                self.removeFile("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe1.dat")
+                self.removeFile("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat")
+                self.removeFile("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe3.dat")
+                self.removeFile("./test_vms_sensitivity_2d/cylinder_test.time")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".time")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".mdpa")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".h5")
 
     def tearDown(self):
         pass
