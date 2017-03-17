@@ -20,31 +20,28 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
 
         self.main_model_part = main_model_part
 
-        ## default settings string in json format
+        # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_adjoint_vmsmonolithic_solver",
-            "scheme_type": "bossak_drag",
+            "scheme_settings" : {
+                "scheme_type": "bossak"
+            },
+            "objective_settings" : {
+                "objective_type" : "drag"
+            },
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "dynamic_tau": 0.0,
-            "echo_level": 0,
-            "time_order": 2,
-            "linear_solver_settings"       : {
-                "solver_type"                        : "MultiLevelSolver",
-                "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
-                "max_levels"                         : 3,
-                "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : true,
-                "scaling"                            : true
+            "linear_solver_settings" : {
+                "solver_type" : "MultiLevelSolver"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "no_skin_parts":[""],
-            "alpha_bossak":-0.3
+            "dynamic_tau": 0.0,
+            "oss_switch": 0,
+            "echo_level": 0
         }""")
 
         # overwrite the default settings with user-provided parameters
@@ -153,10 +150,23 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        if self.settings["scheme_type"].GetString() == "bossak_drag":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointBossakDragScheme(self.settings["alpha_bossak"].GetDouble())
-        elif self.settings["scheme_type"].GetString() == "steady_drag":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyDragScheme()
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if self.settings["objective_settings"]["objective_type"].GetString() == "drag":
+            if (domain_size == 2):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction2D(self.settings["objective_settings"])
+            elif (domain_size == 3):
+                self.objective_function = AdjointFluidApplication.DragObjectiveFunction3D(self.settings["objective_settings"])
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
+
+        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
+            self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
+            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+        else:
+            raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
             guess_row_size = 20*4
@@ -181,6 +191,7 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
         self.solver.Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         print ("Monolithic MPI solver initialization finished.")
 
