@@ -350,6 +350,7 @@ namespace Kratos
       ///@{
 
 		void GenerateOctree();
+		void SetOctreeBoundingBox();
 
 
       ///@}
