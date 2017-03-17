@@ -33,7 +33,7 @@ namespace Kratos
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::Execute() {
-
+		GenerateOctree();
 	}
 
 	/// Turn back information as a string.
@@ -55,10 +55,7 @@ namespace Kratos
 		SetOctreeBoundingBox();
 
 		// Adding mrModelPart2 to the octree
-		for (ModelPart::NodeIterator i_node = mrModelPart2.NodesBegin();
-		i_node != mrModelPart2.NodesEnd();
-			i_node++)
-		{
+		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
 			double temp_point[3];
 			temp_point[0] = i_node->X();
 			temp_point[1] = i_node->Y();
@@ -66,48 +63,36 @@ namespace Kratos
 			mOctree.Insert(temp_point);
 		}
 		
-		for (ModelPart::ElementIterator i_element = mrModelPart2.ElementsBegin();
-		i_element != mrModelPart2.ElementsEnd();
-			i_element++)
-		{
+		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
 			mOctree.Insert(*(i_element).base());
 		}
 	}
 
 	void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox() {
-		double low[3];
-		double high[3];
+		Point<3> low(mrModelPart1.NodesBegin()->Coordinates());
+		Point<3> high(mrModelPart1.NodesBegin()->Coordinates());
 
-		for (int i = 0; i < 3; i++)
-		{
-			low[i] = high[i] = mrModelPart1.NodesBegin()->Coordinate(i + 1);
-		}
-
-		// loop over all nodes in the bounding box
-		for (ModelPart::NodeIterator i_node = mrModelPart1.NodesBegin();
-		i_node != mrModelPart1.NodesEnd();
-			i_node++)
-		{
-			for (int i = 0; i < 3; i++)
-			{
+		// loop over all nodes in first modelpart
+		for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
+			for (int i = 0; i < 3; i++) {
 				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
 				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
 			}
 		}
 
 		// loop over all skin nodes
-		for (ModelPart::NodeIterator i_node = mrModelPart2.NodesBegin();
-		i_node != mrModelPart2.NodesEnd();
-			i_node++)
-		{
-			for (int i = 0; i < 3; i++)
-			{
+		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+			for (int i = 0; i < 3; i++) {
 				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
 				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
 			}
 		}
 
-		mOctree.SetBoundingBox(low, high);
+		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
+		mOctree.SetBoundingBox(low.data().data(), high.data().data());
+
+		KRATOS_WATCH(low);
+		KRATOS_WATCH(high);
 
 	}
 
