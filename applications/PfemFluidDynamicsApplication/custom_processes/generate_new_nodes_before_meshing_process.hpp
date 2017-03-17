@@ -158,10 +158,7 @@ public:
 	 
       }//if ElementsToRefine>0
 
-    // for(int nn= 0; nn< ElementsToRefine; nn++)
-    //   {
-    // 	std::cout<<nn<<". volume: "<<BiggestVolumes[nn]<<" elems to refine: "<<ElementsToRefine<<std::endl;
-    //   }
+
 
     mrRemesh.Info->RemovedNodes -=ElementsToRefine;
     if(CountNodes<ElementsToRefine){
@@ -289,7 +286,6 @@ private:
     ///@{
 
 
-
   void SelectEdgeToRefine2D( Element::GeometryType& Element, 
 			     std::vector<array_1d<double,3> >& NewPositions,
 			     std::vector<double >& BiggestVolumes,
@@ -327,13 +323,11 @@ private:
     double safetyCoefficient2D=1.5;
     double penalization=1.0;
     if(rigidNodes>1){
+      // penalization=0.7;
       penalization=0.8;
       if(inletNodes>0){
-	penalization=0.9;
+      	penalization=0.9;
       }
-    }
-    if(freesurfaceNodes>1){
-      penalization=0.7;
     }
 
     double ElementalVolume =  Element.Area();
@@ -369,16 +363,17 @@ private:
     }
 
     bool dangerousElement=false;
-    if(rigidNodes>1 || freesurfaceNodes>1 ){
+    if(rigidNodes>1){
       for (unsigned int i = 0; i < 3; i++){
 	if((Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
 	   (Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID) )){
 	  Edges[i]=0;
 
 	}
-	if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-	  Edges[i]=0;
-	}
+	// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+	//   Edges[i]=0;
+	//   // Edges[i]*=penalizationFreeSurface;
+	// }
 	if((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID))  && 
 	   (Element[SecondEdgeNode[i]].Is(FREE_SURFACE)|| Element[SecondEdgeNode[i]].Is(RIGID))){
 	  Edges[i]=0;
@@ -498,9 +493,9 @@ private:
 	penalization=0.9;
       }
     }
-    if(freesurfaceNodes>2){
-      penalization=0.6;
-    }
+    // if(freesurfaceNodes>2){
+    //   penalization=0.6;
+    // }
 
     double ElementalVolume =  Element.Volume();
 
@@ -535,15 +530,15 @@ private:
     }
     //Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
     bool dangerousElement=false;
-    if(rigidNodes>1 || freesurfaceNodes>1){
+    if(rigidNodes>1){
       for (unsigned int i = 0; i < 6; i++){
 	if((Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
 	   (Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID) )){
 	  Edges[i]=0;
 	}
-	if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-	  Edges[i]=0;
-	}
+	// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+	//   Edges[i]=0;
+	// }
       }
 
     }else if(rigidNodes==1){
@@ -878,511 +873,511 @@ private:
       }
 
 
- void SelectNewNodesForHomogeneousMeshes()
+ // void SelectNewNodesForHomogeneousMeshes()
 
-  {
-    KRATOS_TRY
+ //  {
+ //    KRATOS_TRY
 
  
-      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
+ //      const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
 
 
-    int ElementsToRefine=0;
-    ElementsToRefine=mrRemesh.Info->RemovedNodes;
+ //    int ElementsToRefine=0;
+ //    ElementsToRefine=mrRemesh.Info->RemovedNodes;
 
-    if(ElementsToRefine>0)
-      std::cout<<" I will find "<<ElementsToRefine <<" new nodes"<<std::endl;
-    std::vector<array_1d<double,3> > NewPositions;
-    std::vector<double > BiggestVolumes;
-    std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
-    std::vector<bool > ElementalInterpolation;
-    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-    double currentTime = rCurrentProcessInfo[TIME];
-    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-    if(currentTime<2*timeInterval){
-      ElementsToRefine=0;
-      std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
-    }
-    int CountNodes=0;
-    // double athird=0.3333333333333333;
-    NewPositions.resize(ElementsToRefine);
-    BiggestVolumes.resize(ElementsToRefine);
-    NodesIDToInterpolate.resize(ElementsToRefine);
-    ElementalInterpolation.resize(ElementsToRefine);
+ //    if(ElementsToRefine>0)
+ //      std::cout<<" I will find "<<ElementsToRefine <<" new nodes"<<std::endl;
+ //    std::vector<array_1d<double,3> > NewPositions;
+ //    std::vector<double > BiggestVolumes;
+ //    std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
+ //    std::vector<bool > ElementalInterpolation;
+ //    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+ //    double currentTime = rCurrentProcessInfo[TIME];
+ //    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+ //    if(currentTime<2*timeInterval){
+ //      ElementsToRefine=0;
+ //      std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
+ //    }
+ //    int CountNodes=0;
+ //    // double athird=0.3333333333333333;
+ //    NewPositions.resize(ElementsToRefine);
+ //    BiggestVolumes.resize(ElementsToRefine);
+ //    NodesIDToInterpolate.resize(ElementsToRefine);
+ //    ElementalInterpolation.resize(ElementsToRefine);
 
-    Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+ //    Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
 
-    bool DofsFound=false;
+ //    bool DofsFound=false;
 
-    int count=0;
-    if(ElementsToRefine>0 )
-      {
- 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
- 	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
- 	const unsigned int nds = element_begin->GetGeometry().size();
- 	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
- 	  {
+ //    int count=0;
+ //    if(ElementsToRefine>0 )
+ //      {
+ // 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+ // 	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+ // 	const unsigned int nds = element_begin->GetGeometry().size();
+ // 	for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(mMeshId); ie++)
+ // 	  {
 		
- 	    const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+ // 	    const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
- 	    ModelerUtilities ModelerUtils;
- 	    double ElementalVolume = 0;	
- 	    unsigned int rigidNodes=0;
- 	    unsigned int freesurfaceNodes=0;
- 	    bool toEraseNodeFound=false;
+ // 	    ModelerUtilities ModelerUtils;
+ // 	    double ElementalVolume = 0;	
+ // 	    unsigned int rigidNodes=0;
+ // 	    unsigned int freesurfaceNodes=0;
+ // 	    bool toEraseNodeFound=false;
 
- 	    ///////////////// FOR 2D CASE: choose the right (big and safe) elements to refine and compute the new node  position and variables //////////////////////
- 	    if(dimension==2)
- 	      {
+ // 	    ///////////////// FOR 2D CASE: choose the right (big and safe) elements to refine and compute the new node  position and variables //////////////////////
+ // 	    if(dimension==2)
+ // 	      {
 
- 		for(unsigned int pn=0; pn<nds; pn++)
- 		  {
- 		    if(ie->GetGeometry()[pn].Is(RIGID)){
- 		      rigidNodes++;
- 		    }
- 		    if(ie->GetGeometry()[pn].Is(TO_ERASE)){
- 		      toEraseNodeFound=true;
- 		    }
+ // 		for(unsigned int pn=0; pn<nds; pn++)
+ // 		  {
+ // 		    if(ie->GetGeometry()[pn].Is(RIGID)){
+ // 		      rigidNodes++;
+ // 		    }
+ // 		    if(ie->GetGeometry()[pn].Is(TO_ERASE)){
+ // 		      toEraseNodeFound=true;
+ // 		    }
 
- 		    if(ie->GetGeometry()[pn].Is(FREE_SURFACE))
- 		      freesurfaceNodes++;
- 		  }
+ // 		    if(ie->GetGeometry()[pn].Is(FREE_SURFACE))
+ // 		      freesurfaceNodes++;
+ // 		  }
 	  		  
 
- 		ElementalVolume =  ie->GetGeometry().Area();
+ // 		ElementalVolume =  ie->GetGeometry().Area();
 
- 		array_1d<double,3> Edges(3,0.0);
- 		array_1d<unsigned int,3> FirstEdgeNode(3,0);
- 		array_1d<unsigned int,3> SecondEdgeNode(3,0);
- 		double WallCharacteristicDistance=0;
- 		array_1d<double,2> CoorDifference(2,0.0);
- 		CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
- 		double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
- 		Edges[0]=sqrt(SquaredLength);
- 		FirstEdgeNode[0]=0;
- 		SecondEdgeNode[0]=1;
- 		if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
- 		  WallCharacteristicDistance=Edges[0];
- 		}
- 		unsigned int Counter=0;
- 		for (unsigned int i = 2; i < nds; i++){
- 		  for(unsigned int j = 0; j < i; j++)
- 		    {
- 		      CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
- 		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
- 		      Counter+=1;
- 		      Edges[Counter]=sqrt(SquaredLength);
- 		      FirstEdgeNode[Counter]=j;
- 		      SecondEdgeNode[Counter]=i;
- 		      if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
- 			WallCharacteristicDistance=Edges[Counter];
- 		      }
- 		    }
+ // 		array_1d<double,3> Edges(3,0.0);
+ // 		array_1d<unsigned int,3> FirstEdgeNode(3,0);
+ // 		array_1d<unsigned int,3> SecondEdgeNode(3,0);
+ // 		double WallCharacteristicDistance=0;
+ // 		array_1d<double,2> CoorDifference(2,0.0);
+ // 		CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
+ // 		double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
+ // 		Edges[0]=sqrt(SquaredLength);
+ // 		FirstEdgeNode[0]=0;
+ // 		SecondEdgeNode[0]=1;
+ // 		if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
+ // 		  WallCharacteristicDistance=Edges[0];
+ // 		}
+ // 		unsigned int Counter=0;
+ // 		for (unsigned int i = 2; i < nds; i++){
+ // 		  for(unsigned int j = 0; j < i; j++)
+ // 		    {
+ // 		      CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
+ // 		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
+ // 		      Counter+=1;
+ // 		      Edges[Counter]=sqrt(SquaredLength);
+ // 		      FirstEdgeNode[Counter]=j;
+ // 		      SecondEdgeNode[Counter]=i;
+ // 		      if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
+ // 			WallCharacteristicDistance=Edges[Counter];
+ // 		      }
+ // 		    }
 
- 		}
+ // 		}
 
- 		double safetyCoefficient2D=1.5;
- 		bool dangerousElement=false;
- 		if(rigidNodes>1 || freesurfaceNodes>1 ){
- 		  for (unsigned int i = 0; i < 3; i++){
- 		    if((Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
-		       (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
- 		      Edges[i]=0;
+ // 		double safetyCoefficient2D=1.5;
+ // 		bool dangerousElement=false;
+ // 		if(rigidNodes>1 || freesurfaceNodes>1 ){
+ // 		  for (unsigned int i = 0; i < 3; i++){
+ // 		    if((Edges[i]<WallCharacteristicDistance*safetyCoefficient2D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
+ // 		       (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
+ // 		      Edges[i]=0;
 
- 		    }
-		    if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-		      Edges[i]=0;
-		    }
-		    if((ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) || ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))  && 
-		       (ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)|| ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
-		      Edges[i]=0;
-		    }
- 		  }
+ // 		    }
+ // 		    if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+ // 		      Edges[i]=0;
+ // 		    }
+ // 		    if((ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) || ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID))  && 
+ // 		       (ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)|| ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
+ // 		      Edges[i]=0;
+ // 		    }
+ // 		  }
 
- 		}
- 		if((Edges[0]==0 && Edges[1]==0 && Edges[2]==0) || rigidNodes==3){
- 		  dangerousElement=true;
- 		}
+ // 		}
+ // 		if((Edges[0]==0 && Edges[1]==0 && Edges[2]==0) || rigidNodes==3){
+ // 		  dangerousElement=true;
+ // 		}
 
- 		if(dangerousElement==false && toEraseNodeFound==false){
- 		  // count++;
- 		  if(count<ElementsToRefine){
+ // 		if(dangerousElement==false && toEraseNodeFound==false){
+ // 		  // count++;
+ // 		  if(count<ElementsToRefine){
 
- 		    array_1d<double,2> NewPosition(2,0.0);
- 		    unsigned int maxCount=3;
- 		    double LargestEdge=0;
+ // 		    array_1d<double,2> NewPosition(2,0.0);
+ // 		    unsigned int maxCount=3;
+ // 		    double LargestEdge=0;
 
- 		    for(unsigned int i=0; i<3; i++)
- 		      {
- 			if(Edges[i]>LargestEdge){
- 			  maxCount=i;
- 			  LargestEdge=Edges[i];
- 			}
- 		      }
- 		    NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
- 		    NodesIDToInterpolate[CountNodes][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
- 		    NodesIDToInterpolate[CountNodes][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
- 		    ElementalInterpolation[CountNodes]=false;
- 		    // std::cout<<"...1st NodeToInterpol "<< NodesIDToInterpolate[CountNodes][0]<<std::endl;
- 		    // std::cout<<"...2nd NodeToInterpol "<< NodesIDToInterpolate[CountNodes][1]<<std::endl;
- 		    BiggestVolumes[CountNodes]=ElementalVolume;
- 		    NewPositions[CountNodes]=NewPosition;
- 		    CountNodes++;
-  		  }else if (freesurfaceNodes<3 && rigidNodes<3 ){
-		    double penalization=1.0;
-		    if(rigidNodes>1){
-		      penalization=0.8;
-		    }
-		    if(freesurfaceNodes>1){
-		      penalization=0.7;
-		    }
+ // 		    for(unsigned int i=0; i<3; i++)
+ // 		      {
+ // 			if(Edges[i]>LargestEdge){
+ // 			  maxCount=i;
+ // 			  LargestEdge=Edges[i];
+ // 			}
+ // 		      }
+ // 		    NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+ // 		    NodesIDToInterpolate[CountNodes][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
+ // 		    NodesIDToInterpolate[CountNodes][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
+ // 		    ElementalInterpolation[CountNodes]=false;
+ // 		    // std::cout<<"...1st NodeToInterpol "<< NodesIDToInterpolate[CountNodes][0]<<std::endl;
+ // 		    // std::cout<<"...2nd NodeToInterpol "<< NodesIDToInterpolate[CountNodes][1]<<std::endl;
+ // 		    BiggestVolumes[CountNodes]=ElementalVolume;
+ // 		    NewPositions[CountNodes]=NewPosition;
+ // 		    CountNodes++;
+ //  		  }else if (freesurfaceNodes<3 && rigidNodes<3 ){
+ // 		    double penalization=1.0;
+ // 		    if(rigidNodes>1){
+ // 		      penalization=0.8;
+ // 		    }
+ // 		    if(freesurfaceNodes>1){
+ // 		      penalization=0.7;
+ // 		    }
 
-		    ElementalVolume*=penalization;
- 		    for(int nn= 0; nn< ElementsToRefine; nn++)
- 		      {
+ // 		    ElementalVolume*=penalization;
+ // 		    for(int nn= 0; nn< ElementsToRefine; nn++)
+ // 		      {
 
- 			if(ElementalVolume>BiggestVolumes[nn]){
+ // 			if(ElementalVolume>BiggestVolumes[nn]){
 
- 			  array_1d<double,2> NewPosition(2,0.0);
- 			  unsigned int maxCount=3;
- 			  double LargestEdge=0;
+ // 			  array_1d<double,2> NewPosition(2,0.0);
+ // 			  unsigned int maxCount=3;
+ // 			  double LargestEdge=0;
 
- 			  for(unsigned int i=0; i<3; i++)
- 			    {
- 			      if(Edges[i]>LargestEdge){
- 				maxCount=i;
- 				LargestEdge=Edges[i];
- 			      }
- 			    }
- 			  bool suitableElement=true;
- 			  if(maxCount<3){
- 			    NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
- 			    for(int j= 0; j< ElementsToRefine; j++)
- 			      {
- 				if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1]){
- 				  suitableElement=false;
- 				}
- 			      }	
- 			    if(suitableElement==true){	    
- 			      NodesIDToInterpolate[nn][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
- 			      NodesIDToInterpolate[nn][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
- 			      ElementalInterpolation[nn]=false;
- 			    }
+ // 			  for(unsigned int i=0; i<3; i++)
+ // 			    {
+ // 			      if(Edges[i]>LargestEdge){
+ // 				maxCount=i;
+ // 				LargestEdge=Edges[i];
+ // 			      }
+ // 			    }
+ // 			  bool suitableElement=true;
+ // 			  if(maxCount<3){
+ // 			    NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;	
+ // 			    for(int j= 0; j< ElementsToRefine; j++)
+ // 			      {
+ // 				if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1]){
+ // 				  suitableElement=false;
+ // 				}
+ // 			      }	
+ // 			    if(suitableElement==true){	    
+ // 			      NodesIDToInterpolate[nn][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
+ // 			      NodesIDToInterpolate[nn][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
+ // 			      ElementalInterpolation[nn]=false;
+ // 			    }
 
- 			  }
- 			  else{
- 			    suitableElement=false;
- 			    std::cout<<"ATTENTION!!! suitableElement=false"<<std::endl;
- 			  }
- 			  if(suitableElement==true){
- 			    BiggestVolumes[nn]=ElementalVolume;
- 			    NewPositions[nn]=NewPosition;
- 			  }
- 			  break;
- 			}
- 		      }
- 		  }
- 		  count++;
- 		}
+ // 			  }
+ // 			  else{
+ // 			    suitableElement=false;
+ // 			    std::cout<<"ATTENTION!!! suitableElement=false"<<std::endl;
+ // 			  }
+ // 			  if(suitableElement==true){
+ // 			    BiggestVolumes[nn]=ElementalVolume;
+ // 			    NewPositions[nn]=NewPosition;
+ // 			  }
+ // 			  break;
+ // 			}
+ // 		      }
+ // 		  }
+ // 		  count++;
+ // 		}
 	       
- 	      }
- 	    ///////////////// FOR 3D CASE: choose the right (big and safe) elements to refine and compute the new node  position and variables //////////////////////
+ // 	      }
+ // 	    ///////////////// FOR 3D CASE: choose the right (big and safe) elements to refine and compute the new node  position and variables //////////////////////
 
- 	    else if(dimension==3){
+ // 	    else if(dimension==3){
 
- 	      for(unsigned int pn=0; pn<nds; pn++)
- 		{
- 		  if(ie->GetGeometry()[pn].Is(RIGID)){
- 		    rigidNodes++;
- 		  }else if(DofsFound==false){
- 		    reference_dofs = ie->GetGeometry()[pn].GetDofs();
- 		    DofsFound=true;
- 		  }
- 		  if(ie->GetGeometry()[pn].Is(TO_ERASE)){
- 		    toEraseNodeFound=true;
- 		  }
- 		  if(ie->GetGeometry()[pn].Is(FREE_SURFACE))
- 		    freesurfaceNodes++;
- 		}
+ // 	      for(unsigned int pn=0; pn<nds; pn++)
+ // 		{
+ // 		  if(ie->GetGeometry()[pn].Is(RIGID)){
+ // 		    rigidNodes++;
+ // 		  }else if(DofsFound==false){
+ // 		    reference_dofs = ie->GetGeometry()[pn].GetDofs();
+ // 		    DofsFound=true;
+ // 		  }
+ // 		  if(ie->GetGeometry()[pn].Is(TO_ERASE)){
+ // 		    toEraseNodeFound=true;
+ // 		  }
+ // 		  if(ie->GetGeometry()[pn].Is(FREE_SURFACE))
+ // 		    freesurfaceNodes++;
+ // 		}
 
- 	      ElementalVolume =  ie->GetGeometry().Volume();
+ // 	      ElementalVolume =  ie->GetGeometry().Volume();
 
- 	      // std::cout<<"  (3D) the rigid nodes are "<< rigidNodes<<std::endl;
+ // 	      // std::cout<<"  (3D) the rigid nodes are "<< rigidNodes<<std::endl;
 
- 	      array_1d<double,6> Edges(6,0.0);
- 	      array_1d<unsigned int,6> FirstEdgeNode(6,0);
- 	      array_1d<unsigned int,6> SecondEdgeNode(6,0);
- 	      double WallCharacteristicDistance=0;
- 	      array_1d<double,3> CoorDifference(3,0.0);
- 	      CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
- 	      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1]  + CoorDifference[2]*CoorDifference[2];
- 	      Edges[0]=sqrt(SquaredLength);
- 	      FirstEdgeNode[0]=0;
- 	      SecondEdgeNode[0]=1;
- 	      if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
- 		WallCharacteristicDistance=Edges[0];
- 	      }
- 	      unsigned int Counter=0;
- 	      for (unsigned int i = 2; i < nds; i++){
- 		for(unsigned int j = 0; j < i; j++)
- 		  {
- 		    CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
- 		    SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
- 		    Counter+=1;
- 		    Edges[Counter]=sqrt(SquaredLength);
- 		    FirstEdgeNode[Counter]=j;
- 		    SecondEdgeNode[Counter]=i;
- 		    if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
- 		      WallCharacteristicDistance=Edges[Counter];
- 		    }
- 		  }
+ // 	      array_1d<double,6> Edges(6,0.0);
+ // 	      array_1d<unsigned int,6> FirstEdgeNode(6,0);
+ // 	      array_1d<unsigned int,6> SecondEdgeNode(6,0);
+ // 	      double WallCharacteristicDistance=0;
+ // 	      array_1d<double,3> CoorDifference(3,0.0);
+ // 	      CoorDifference = ie->GetGeometry()[1].Coordinates() - ie->GetGeometry()[0].Coordinates();
+ // 	      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1]  + CoorDifference[2]*CoorDifference[2];
+ // 	      Edges[0]=sqrt(SquaredLength);
+ // 	      FirstEdgeNode[0]=0;
+ // 	      SecondEdgeNode[0]=1;
+ // 	      if(ie->GetGeometry()[0].Is(RIGID) && ie->GetGeometry()[1].Is(RIGID)){
+ // 		WallCharacteristicDistance=Edges[0];
+ // 	      }
+ // 	      unsigned int Counter=0;
+ // 	      for (unsigned int i = 2; i < nds; i++){
+ // 		for(unsigned int j = 0; j < i; j++)
+ // 		  {
+ // 		    CoorDifference = ie->GetGeometry()[i].Coordinates() - ie->GetGeometry()[j].Coordinates();
+ // 		    SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+ // 		    Counter+=1;
+ // 		    Edges[Counter]=sqrt(SquaredLength);
+ // 		    FirstEdgeNode[Counter]=j;
+ // 		    SecondEdgeNode[Counter]=i;
+ // 		    if(ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[j].Is(RIGID) && Edges[Counter]>WallCharacteristicDistance ){
+ // 		      WallCharacteristicDistance=Edges[Counter];
+ // 		    }
+ // 		  }
 
- 	      }
- 	      //Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
+ // 	      }
+ // 	      //Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 
- 	      double safetyCoefficient3D=1.6;
- 	      bool dangerousElement=false;
- 	      if(rigidNodes>1 || freesurfaceNodes>1){
- 		for (unsigned int i = 0; i < 6; i++){
-		  if((Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
-		     (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
- 		  // if(Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
- 		    Edges[i]=0;
- 		  }
-		  if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-		    Edges[i]=0;
-		  }
- 		}
+ // 	      double safetyCoefficient3D=1.6;
+ // 	      bool dangerousElement=false;
+ // 	      if(rigidNodes>1 || freesurfaceNodes>1){
+ // 		for (unsigned int i = 0; i < 6; i++){
+ // 		  if((Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))) ||
+ // 		     (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) && ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID) )){
+ // 		  // if(Edges[i]<WallCharacteristicDistance*safetyCoefficient3D && (ie->GetGeometry()[FirstEdgeNode[i]].Is(RIGID) || ie->GetGeometry()[SecondEdgeNode[i]].Is(RIGID))){
+ // 		    Edges[i]=0;
+ // 		  }
+ // 		  if(ie->GetGeometry()[FirstEdgeNode[i]].Is(FREE_SURFACE) && ie->GetGeometry()[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+ // 		    Edges[i]=0;
+ // 		  }
+ // 		}
 
- 	      }else if(rigidNodes==1){
- 		if(ie->GetGeometry()[0].Is(RIGID)){
- 		  Edges[0]=0;
- 		  Edges[1]=0;
- 		  Edges[3]=0;
- 		}
- 		if(ie->GetGeometry()[1].Is(RIGID)){
- 		  Edges[0]=0;
- 		  Edges[2]=0;
- 		  Edges[4]=0;
- 		}
- 		if(ie->GetGeometry()[2].Is(RIGID)){
- 		  Edges[1]=0;
- 		  Edges[2]=0;
- 		  Edges[5]=0;
- 		}
- 		if(ie->GetGeometry()[3].Is(RIGID)){
- 		  Edges[3]=0;
- 		  Edges[4]=0;
- 		  Edges[5]=0;
- 		}
- 	      }
+ // 	      }else if(rigidNodes==1){
+ // 		if(ie->GetGeometry()[0].Is(RIGID)){
+ // 		  Edges[0]=0;
+ // 		  Edges[1]=0;
+ // 		  Edges[3]=0;
+ // 		}
+ // 		if(ie->GetGeometry()[1].Is(RIGID)){
+ // 		  Edges[0]=0;
+ // 		  Edges[2]=0;
+ // 		  Edges[4]=0;
+ // 		}
+ // 		if(ie->GetGeometry()[2].Is(RIGID)){
+ // 		  Edges[1]=0;
+ // 		  Edges[2]=0;
+ // 		  Edges[5]=0;
+ // 		}
+ // 		if(ie->GetGeometry()[3].Is(RIGID)){
+ // 		  Edges[3]=0;
+ // 		  Edges[4]=0;
+ // 		  Edges[5]=0;
+ // 		}
+ // 	      }
 
- 	      if((Edges[0]==0 && Edges[1]==0 && Edges[2]==0 && Edges[3]==0 && Edges[4]==0 && Edges[5]==0) || rigidNodes>2){
- 		dangerousElement=true;
- 	      }
+ // 	      if((Edges[0]==0 && Edges[1]==0 && Edges[2]==0 && Edges[3]==0 && Edges[4]==0 && Edges[5]==0) || rigidNodes>2){
+ // 		dangerousElement=true;
+ // 	      }
 
- 	      //just to fill the vector
- 	      if(dangerousElement==false && toEraseNodeFound==false){
- 		// count++;
- 		if(count<ElementsToRefine){ 
+ // 	      //just to fill the vector
+ // 	      if(dangerousElement==false && toEraseNodeFound==false){
+ // 		// count++;
+ // 		if(count<ElementsToRefine){ 
 
- 		  array_1d<double,3> NewPosition(3,0.0);
- 		  unsigned int maxCount=6;
- 		  double LargestEdge=0;
+ // 		  array_1d<double,3> NewPosition(3,0.0);
+ // 		  unsigned int maxCount=6;
+ // 		  double LargestEdge=0;
 
- 		  for(unsigned int i=0; i<6; i++)
- 		    {
- 		      if(Edges[i]>LargestEdge){
- 			maxCount=i;
- 			LargestEdge=Edges[i];
- 		      }
- 		    }
- 		  NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()                         +ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
- 		  NodesIDToInterpolate[CountNodes][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
- 		  NodesIDToInterpolate[CountNodes][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
- 		  ElementalInterpolation[CountNodes]=false;
- 		  BiggestVolumes[CountNodes]=ElementalVolume;
- 		  NewPositions[CountNodes]=NewPosition;
- 		  CountNodes++;
- 		}else if (freesurfaceNodes<4 && rigidNodes<4){
-		  double penalization=1.0;
-		  if(rigidNodes>2){
-		    penalization=0.7;
-		  }
-		  if(freesurfaceNodes>2){
-		    penalization=0.6;
-		  }
+ // 		  for(unsigned int i=0; i<6; i++)
+ // 		    {
+ // 		      if(Edges[i]>LargestEdge){
+ // 			maxCount=i;
+ // 			LargestEdge=Edges[i];
+ // 		      }
+ // 		    }
+ // 		  NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()                         +ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+ // 		  NodesIDToInterpolate[CountNodes][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
+ // 		  NodesIDToInterpolate[CountNodes][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
+ // 		  ElementalInterpolation[CountNodes]=false;
+ // 		  BiggestVolumes[CountNodes]=ElementalVolume;
+ // 		  NewPositions[CountNodes]=NewPosition;
+ // 		  CountNodes++;
+ // 		}else if (freesurfaceNodes<4 && rigidNodes<4){
+ // 		  double penalization=1.0;
+ // 		  if(rigidNodes>2){
+ // 		    penalization=0.7;
+ // 		  }
+ // 		  if(freesurfaceNodes>2){
+ // 		    penalization=0.6;
+ // 		  }
 
-		  ElementalVolume*=penalization;
- 		  for(int nn= 0; nn< ElementsToRefine; nn++)
- 		    {
- 		      if(ElementalVolume>BiggestVolumes[nn]){
+ // 		  ElementalVolume*=penalization;
+ // 		  for(int nn= 0; nn< ElementsToRefine; nn++)
+ // 		    {
+ // 		      if(ElementalVolume>BiggestVolumes[nn]){
 
- 			array_1d<double,3> NewPosition(3,0.0);
- 			unsigned int maxCount=6;
- 			double LargestEdge=0;
+ // 			array_1d<double,3> NewPosition(3,0.0);
+ // 			unsigned int maxCount=6;
+ // 			double LargestEdge=0;
 			
- 			for(unsigned int i=0; i<6; i++)
- 			  {
- 			    if(Edges[i]>LargestEdge){
- 			      maxCount=i;
- 			      LargestEdge=Edges[i];
- 			    }
- 			  }
- 			bool suitableElement=true;
+ // 			for(unsigned int i=0; i<6; i++)
+ // 			  {
+ // 			    if(Edges[i]>LargestEdge){
+ // 			      maxCount=i;
+ // 			      LargestEdge=Edges[i];
+ // 			    }
+ // 			  }
+ // 			bool suitableElement=true;
 
- 			if(maxCount<6){
+ // 			if(maxCount<6){
 
- 			  NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
- 			  for(int j= 0; j< ElementsToRefine; j++)
- 			    {
- 			      if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1] && NewPositions[j][2]==NewPosition[2]){
- 				suitableElement=false; //this is a repeated node, I have already choose this from another element
- 			      }
- 			    }
- 			  if(suitableElement==true){	    
- 			    NodesIDToInterpolate[nn][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
- 			    NodesIDToInterpolate[nn][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
- 			    ElementalInterpolation[nn]=false;
- 			  }
- 			}
- 			else{
- 			  suitableElement=false;		
- 			  std::cout<<"ATTENTION!!! suitableElement=false"<<std::endl;
- 			}
+ // 			  NewPosition=    (ie->GetGeometry()[FirstEdgeNode[maxCount]].Coordinates()+ie->GetGeometry()[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+ // 			  for(int j= 0; j< ElementsToRefine; j++)
+ // 			    {
+ // 			      if(NewPositions[j][0]==NewPosition[0] && NewPositions[j][1]==NewPosition[1] && NewPositions[j][2]==NewPosition[2]){
+ // 				suitableElement=false; //this is a repeated node, I have already choose this from another element
+ // 			      }
+ // 			    }
+ // 			  if(suitableElement==true){	    
+ // 			    NodesIDToInterpolate[nn][0]=ie->GetGeometry()[FirstEdgeNode[maxCount]].GetId();
+ // 			    NodesIDToInterpolate[nn][1]=ie->GetGeometry()[SecondEdgeNode[maxCount]].GetId();
+ // 			    ElementalInterpolation[nn]=false;
+ // 			  }
+ // 			}
+ // 			else{
+ // 			  suitableElement=false;		
+ // 			  std::cout<<"ATTENTION!!! suitableElement=false"<<std::endl;
+ // 			}
 
- 			if(suitableElement==true){
- 			  BiggestVolumes[nn]=ElementalVolume;
- 			  NewPositions[nn]=NewPosition;
- 			}
- 			break;
- 		      }
- 		    }
- 		}
- 		count++;
- 	      }
- 	    } //2D and 3D cases
+ // 			if(suitableElement==true){
+ // 			  BiggestVolumes[nn]=ElementalVolume;
+ // 			  NewPositions[nn]=NewPosition;
+ // 			}
+ // 			break;
+ // 		      }
+ // 		    }
+ // 		}
+ // 		count++;
+ // 	      }
+ // 	    } //2D and 3D cases
 
-    	  }// elements loop
+ //    	  }// elements loop
 	 
-      }//if ElementsToRefine>0
+ //      }//if ElementsToRefine>0
 
-    for(int nn= 0; nn< ElementsToRefine; nn++)
-      {
-	std::cout<<nn<<". volume: "<<BiggestVolumes[nn]<<" elems to refine: "<<ElementsToRefine<<std::endl;
-      }
+ //    for(int nn= 0; nn< ElementsToRefine; nn++)
+ //      {
+ // 	std::cout<<nn<<". volume: "<<BiggestVolumes[nn]<<" elems to refine: "<<ElementsToRefine<<std::endl;
+ //      }
 
-    std::vector<Node<3>::Pointer > list_of_new_nodes;
+ //    std::vector<Node<3>::Pointer > list_of_new_nodes;
 
-    // unsigned int initial_node_size = mrModelPart.Nodes().size()+1+ElementsToRefine; //total model part node size
-    double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
-    double NodeId = ModelerUtilities::GetMaxNodeId(mrModelPart);
+ //    // unsigned int initial_node_size = mrModelPart.Nodes().size()+1+ElementsToRefine; //total model part node size
+ //    double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+ //    double NodeId = ModelerUtilities::GetMaxNodeId(mrModelPart);
 
-    unsigned int initial_node_size =NodeIdParent + 1 + ElementsToRefine; //total model part node size
+ //    unsigned int initial_node_size =NodeIdParent + 1 + ElementsToRefine; //total model part node size
 
-    if(NodeId>NodeIdParent){
-      initial_node_size =NodeId + 1 + ElementsToRefine;
-      std::cout<<"initial_node_size  "<<initial_node_size<<std::endl;
-    }
+ //    if(NodeId>NodeIdParent){
+ //      initial_node_size =NodeId + 1 + ElementsToRefine;
+ //      std::cout<<"initial_node_size  "<<initial_node_size<<std::endl;
+ //    }
 
-    //assign data to dofs
-    VariablesList& VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+ //    //assign data to dofs
+ //    VariablesList& VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
-    for(unsigned int nn= 0; nn< NewPositions.size(); nn++)
-      {
+ //    for(unsigned int nn= 0; nn< NewPositions.size(); nn++)
+ //      {
 
- 	unsigned int id = initial_node_size + nn;
+ // 	unsigned int id = initial_node_size + nn;
 
-        // std::cout<<"NEW POINT ("<<id<<") COORDINATES x,y: "<<NewPositions[nn][0]<<" "<<NewPositions[nn][1]<<std::endl;
+ //        // std::cout<<"NEW POINT ("<<id<<") COORDINATES x,y: "<<NewPositions[nn][0]<<" "<<NewPositions[nn][1]<<std::endl;
 
- 	// std::cout<<"interpolNodes: "<<NodesIDToInterpolate[nn][0]<<" "<<NodesIDToInterpolate[nn][1]<<std::endl;
- 	// std::cout<<"true or false? "<<ElementalInterpolation[nn]<<std::endl;
+ // 	// std::cout<<"interpolNodes: "<<NodesIDToInterpolate[nn][0]<<" "<<NodesIDToInterpolate[nn][1]<<std::endl;
+ // 	// std::cout<<"true or false? "<<ElementalInterpolation[nn]<<std::endl;
 
-    	double  x = NewPositions[nn][0];
-    	double  y = NewPositions[nn][1];
-    	double  z = 0; 
-    	if(dimension==3)
-    	  z=NewPositions[nn][2];
+ //    	double  x = NewPositions[nn][0];
+ //    	double  y = NewPositions[nn][1];
+ //    	double  z = 0; 
+ //    	if(dimension==3)
+ //    	  z=NewPositions[nn][2];
 
 	
-    	Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
-    	pnode->Set(NEW_ENTITY); //not boundary
- 	list_of_new_nodes.push_back( pnode );
- 	if(mrRemesh.InputInitializedFlag){
- 	  mrRemesh.NodalPreIds.push_back( pnode->Id() );
- 	  pnode->SetId(id);
- 	}
+ //    	Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
+ //    	pnode->Set(NEW_ENTITY); //not boundary
+ // 	list_of_new_nodes.push_back( pnode );
+ // 	if(mrRemesh.InputInitializedFlag){
+ // 	  mrRemesh.NodalPreIds.push_back( pnode->Id() );
+ // 	  pnode->SetId(id);
+ // 	}
 
- 	// //giving model part variables list to the node
- 	pnode->SetSolutionStepVariablesList(&VariablesList);
+ // 	// //giving model part variables list to the node
+ // 	pnode->SetSolutionStepVariablesList(&VariablesList);
 	      
- 	// //set buffer size
- 	pnode->SetBufferSize(mrModelPart.GetBufferSize());
+ // 	// //set buffer size
+ // 	pnode->SetBufferSize(mrModelPart.GetBufferSize());
 
- 	if(mMeshId!=0)
- 	  mrModelPart.AddNode(pnode,mMeshId);
+ // 	if(mMeshId!=0)
+ // 	  mrModelPart.AddNode(pnode,mMeshId);
 
- 	//generating the dofs
- 	if(DofsFound==false){
- 	  reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
- 	}
- 	for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
- 	  {
- 	    Node<3>::DofType& rDof = *iii;
- 	    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
- 	    (p_new_dof)->FreeDof();
- 	  }
+ // 	//generating the dofs
+ // 	if(DofsFound==false){
+ // 	  reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+ // 	}
+ // 	for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+ // 	  {
+ // 	    Node<3>::DofType& rDof = *iii;
+ // 	    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+ // 	    (p_new_dof)->FreeDof();
+ // 	  }
 
- 	Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
- 	Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);	
- 	InterpolateFromTwoNodes(pnode,SlaveNode1,SlaveNode2,VariablesList);
-	if(SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID)){
-	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
-	}
-	if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
-	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
-	}      
-      }
+ // 	Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
+ // 	Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);	
+ // 	InterpolateFromTwoNodes(pnode,SlaveNode1,SlaveNode2,VariablesList);
+ // 	if(SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID)){
+ // 	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
+ // 	}
+ // 	if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
+ // 	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
+ // 	}      
+ //      }
 
 
-    //set the coordinates to the original value
-    const array_1d<double,3> ZeroNormal(3,0.0);
-    for(std::vector<Node<3>::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
-      {
- 	const array_1d<double,3>& displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
- 	(*it)->X0() = (*it)->X() - displacement[0];
- 	(*it)->Y0() = (*it)->Y() - displacement[1];
- 	(*it)->Z0() = (*it)->Z() - displacement[2];
+ //    //set the coordinates to the original value
+ //    const array_1d<double,3> ZeroNormal(3,0.0);
+ //    for(std::vector<Node<3>::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+ //      {
+ // 	const array_1d<double,3>& displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
+ // 	(*it)->X0() = (*it)->X() - displacement[0];
+ // 	(*it)->Y0() = (*it)->Y() - displacement[1];
+ // 	(*it)->Z0() = (*it)->Z() - displacement[2];
 
- 	// count++;
- 	(*it)->Set(FLUID);
- 	(*it)->Set(ACTIVE);
- 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,0)<<std::endl;
- 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,1)<<std::endl;
- 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,2)<<std::endl;
- 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,0)<<std::endl;
- 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,1)<<std::endl;
- 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,2)<<std::endl;
- 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,0)<<std::endl;
- 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,1)<<std::endl;
- 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,2)<<std::endl;
- 	// std::cout<<"bulkModulus "<<(*it)->FastGetSolutionStepValue(BULK_MODULUS)<<std::endl;
- 	// std::cout<<"density "<<(*it)->FastGetSolutionStepValue(DENSITY)<<std::endl;
- 	// std::cout<<"viscosity "<<(*it)->FastGetSolutionStepValue(VISCOSITY)<<std::endl;
- 	//correct contact_normal interpolation
- 	if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
- 	  noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+ // 	// count++;
+ // 	(*it)->Set(FLUID);
+ // 	(*it)->Set(ACTIVE);
+ // 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,0)<<std::endl;
+ // 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,1)<<std::endl;
+ // 	// std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,2)<<std::endl;
+ // 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,0)<<std::endl;
+ // 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,1)<<std::endl;
+ // 	// std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,2)<<std::endl;
+ // 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,0)<<std::endl;
+ // 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,1)<<std::endl;
+ // 	// std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,2)<<std::endl;
+ // 	// std::cout<<"bulkModulus "<<(*it)->FastGetSolutionStepValue(BULK_MODULUS)<<std::endl;
+ // 	// std::cout<<"density "<<(*it)->FastGetSolutionStepValue(DENSITY)<<std::endl;
+ // 	// std::cout<<"viscosity "<<(*it)->FastGetSolutionStepValue(VISCOSITY)<<std::endl;
+ // 	//correct contact_normal interpolation
+ // 	if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
+ // 	  noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 		    
- 	(*it)->SetValue(DOMAIN_LABEL,mMeshId);
+ // 	(*it)->SetValue(DOMAIN_LABEL,mMeshId);
 	  
-      }
+ //      }
 
-    mrRemesh.InputInitializedFlag=false;
+ //    mrRemesh.InputInitializedFlag=false;
 
 
-    KRATOS_CATCH( "" )
+ //    KRATOS_CATCH( "" )
 
-      }
+ //      }
 
 
 

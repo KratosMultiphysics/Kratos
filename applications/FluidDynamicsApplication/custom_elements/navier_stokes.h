@@ -86,7 +86,7 @@ public:
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
         double volume;        // In 2D: element area. In 3D: element volume
-        double dt;       // Time increment
+        double dt;            // Time increment
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
     };
 
@@ -595,7 +595,7 @@ protected:
     {
         return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

@@ -227,6 +227,46 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
 
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
+        
+    def test_add_value(self):
+        kp = Parameters("{}")
+        kp.AddEmptyValue("new_double").SetDouble(1.0)
+        
+        self.assertTrue(kp.Has("new_double"))
+        self.assertEqual(kp["new_double"].GetDouble(), 1.0)
+        
+    def test_iterators(self):
+        kp = Parameters(json_string)
+        
+        #iteration by range
+        nitems = 0
+        for iterator in kp:
+            nitems = nitems + 1
+        self.assertEqual(nitems, 5)
+            
+        #iteration by items
+        for key,value in kp.items():
+            #print(value.PrettyPrintJsonString())
+            self.assertEqual(kp[key].PrettyPrintJsonString(), value.PrettyPrintJsonString())
+            #print(key,value)
+            
+        #testing values
+                          
+
+        expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
+        counter = 0
+        
+        for value in kp.values():
+            self.assertEqual(value.WriteJsonString(), expected_values[counter])
+            counter += 1
+
+        #testing values
+        expected_keys = ['int_value', 'double_value', 'bool_value', 'string_value', 'level1'] 
+        counter = 0
+        for key in kp.keys():
+            self.assertEqual(key, expected_keys[counter])
+            counter += 1 
+
 
 
 if __name__ == '__main__':
