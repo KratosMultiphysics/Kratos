@@ -10,28 +10,30 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## MAIN FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
 
   ## CUSTOM PYTHON
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
   ## ELEMENTS
   # Adding the beam element
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
 
-	# Adding shells and membranes elements
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane1_element.cpp	
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
+
+
+  # Adding shells and membranes elements
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
 
   # Adding the SPRISM element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
@@ -41,10 +43,12 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## CONDITIONS
   # Beam's moment conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
 
   # Torques conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
 
 )
 
@@ -72,12 +76,14 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_TESTING_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" FILES_MATCHING PATTERN "*.csv")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -85,5 +91,3 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION applications/${CURRENT_DIR_NAME}/python_scripts )
