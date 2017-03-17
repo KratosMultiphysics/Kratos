@@ -30,7 +30,7 @@ else:
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
 
-class Solution:
+class Solution(object):
     
     def __init__(self):
         
@@ -53,6 +53,17 @@ class Solution:
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
+        
+        # Prepare modelparts
+        self.spheres_model_part    = ModelPart("SpheresPart")
+        self.rigid_face_model_part = ModelPart("RigidFacePart")
+        self.cluster_model_part    = ModelPart("ClusterPart")
+        self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
+        self.mapping_model_part    = ModelPart("MappingPart")
+        self.contact_model_part    = ModelPart("ContactPart")
+        self.all_model_parts = DEM_procedures.SetOfModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.mapping_model_part, self.contact_model_part)
+                
+        self.solver = self.SetSolver()
         
         
     def SetProcedures(self):
@@ -83,6 +94,10 @@ class Solution:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
             
         return SolverStrategy
+    
+    
+    def SetSolver(self):
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
 
     def Run(self):        
@@ -96,16 +111,6 @@ class Solution:
         
     def Initialize(self):                
         
-        # Prepare modelparts
-        self.spheres_model_part    = ModelPart("SpheresPart")
-        self.rigid_face_model_part = ModelPart("RigidFacePart")
-        self.cluster_model_part    = ModelPart("ClusterPart")
-        self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
-        self.mapping_model_part    = ModelPart("MappingPart")
-        self.contact_model_part    = ModelPart("ContactPart")
-        self.all_model_parts = DEM_procedures.SetOfModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.mapping_model_part, self.contact_model_part)
-                
-        self.solver = self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
         

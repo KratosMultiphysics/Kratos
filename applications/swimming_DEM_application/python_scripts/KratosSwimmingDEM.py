@@ -11,7 +11,7 @@ import time as timer
 init_time = timer.time()
 import os
 import sys
-sys.path.append("/home/gcasas/kratos")
+
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
@@ -44,6 +44,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 
 sys.path.insert(0,'')
 # DEM Application
+import dem_main_script
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
@@ -76,856 +77,767 @@ else:
     import DEM_material_test_script
     print("Running under OpenMP........")
 
-# TO_DO: Ugly fix. Change it. I don't like this to be in the main...
-# Strategy object
-
-import swimming_sphere_strategy as SolverStrategy
-
-DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
-
-##############################################################################
-#                                                                            #
-#    INITIALIZE                                                              #
-#                                                                            #
-##############################################################################
-
-#G
-pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.fluid_already_calculated = 0
-pp.CFD_DEM.recovery_echo_level = 1
-pp.CFD_DEM.gradient_calculation_type = 1
-pp.CFD_DEM.pressure_grad_recovery_type = 1
-pp.CFD_DEM.store_full_gradient = 0
-pp.CFD_DEM.laplacian_calculation_type = 0
-pp.CFD_DEM.do_search_neighbours = False
-pp.CFD_DEM.faxen_terms_type = 0
-pp.CFD_DEM.vorticity_calculation_type = 5
-pp.CFD_DEM.material_acceleration_calculation_type = 5
-pp.CFD_DEM.faxen_force_type = 0
-pp.CFD_DEM.vorticity_calculation_type = 5
-pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 0
-pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 2
-pp.CFD_DEM.n_init_basset_steps = 0
-pp.CFD_DEM.time_steps_per_quadrature_step = 1
-pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
-pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.1
-pp.CFD_DEM.number_of_exponentials = 10
-pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
-pp.CFD_DEM.print_steps_per_plot_step = 1
-pp.CFD_DEM.PostCationConcentration = False
-pp.CFD_DEM.do_impose_flow_from_field = False
-pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
-pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
-pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
-pp.CFD_DEM.print_VORTICITY_option = 1
-pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
-# Making the fluid step an exact multiple of the DEM step
-pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
-pp.viscosity_modification_type = 0.0
-#Z
-# NANO BEGIN
-if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-    pp.CFD_DEM.PostCationConcentration = True
-    pp.initial_concentration = 1.0
-    pp.final_concentration = 0.01
-    pp.fluid_speed = 1e-14
-    pp.cation_concentration_frequence = 1
-    concentration = pp.initial_concentration
-# NANO END
-
-# Import utilities from models
-procedures    = DEM_procedures.Procedures(DEM_parameters)
-
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
-
-demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
-report        = DEM_procedures.Report()
-parallelutils = DEM_procedures.ParallelUtils()
-materialTest  = DEM_procedures.MaterialTest()
-
-# Moving to the recently created folder
-os.chdir(main_path)
-swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
-
-# Set the print function TO_DO: do this better...
-KRATOSprint   = procedures.KRATOSprint
-
-# Preprocess the model
-procedures.PreProcessModel(DEM_parameters)
-
-# Prepare modelparts
-spheres_model_part    = ModelPart("SpheresPart")
-rigid_face_model_part = ModelPart("RigidFacePart")
-cluster_model_part    = ModelPart("ClusterPart")
-DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part    = ModelPart("MappingPart")
-contact_model_part    = ModelPart("ContactPart")
-all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
-
-# defining and adding imposed porosity fields
-pp.fluid_fraction_fields = []
-field1 = swim_proc.FluidFractionFieldUtility.LinearField(0.0,
-                                                         [0.0, 0.0, 0.0],
-                                                         [-1.0, -1.0, 0.15],
-                                                         [1.0, 1.0, 0.3])
-pp.fluid_fraction_fields.append(field1)
-
-# building lists of variables for which memory is to be allocated
-# TEMPORARY, HORRIBLE !!!
-pp.viscosity_modification_type = 0.0
-
-vars_man.ConstructListsOfVariables(pp)
-#_____________________________________________________________________________________________________________________________________
-#
-#                               F L U I D    B L O C K    B E G I N S
-#_____________________________________________________________________________________________________________________________________
-
-# defining variables to be used
-# GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
-# CODE IS NOT USING IT
-
-variables_dictionary = {"PRESSURE"   : PRESSURE,
-                        "VELOCITY"   : VELOCITY,
-                        "MU"         : MU,         #    MOD.
-                        "BUOYANCY"   : BUOYANCY,   #    MOD.
-                        "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
-                        "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-
-# defining a model part for the fluid part
-fluid_model_part = ModelPart("FluidPart")
-
-if "REACTION" in pp.nodal_results:
-    fluid_model_part.AddNodalSolutionStepVariable(REACTION)
-if "DISTANCE" in pp.nodal_results:
-    fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
-
-#
-#
-# importing the solvers needed
-SolverSettings = pp.FluidSolverConfiguration
-solver_module = import_solver(SolverSettings)
-
-#
-# importing variables
-print('Adding nodal variables to the fluid_model_part')  #     MOD.
-sys.stdout.flush()
-
-# caution with breaking up this block (memory allocation)! {
-solver_module.AddVariables(fluid_model_part, SolverSettings)
-vars_man.AddNodalVariables(fluid_model_part, pp.fluid_vars)  #     MOD.
-# }
-
-# introducing input file name
-input_file_name = pp.problem_name
-
-# reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name)
-model_part_io_fluid.ReadModelPart(fluid_model_part)
-
-#_____________________________________________________________________________________________________________________________________
-#
-#                               F L U I D    B L O C K    E N D S
-#_____________________________________________________________________________________________________________________________________
-
-# Constructing a utilities objects
-creator_destructor = ParticleCreatorDestructor()
-dem_fem_search = DEM_FEM_Search()
-
-#Getting chosen scheme:
-if DEM_parameters.IntegrationScheme == 'Forward_Euler':
-    scheme = ForwardEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
-    if pp.CFD_DEM.basset_force_type > 0:
-        scheme = SymplecticEulerOldVelocityScheme()
-    else:
-        scheme = SymplecticEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
-    scheme = TaylorScheme()
-elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
-    scheme = NewmarkBetaScheme(0.5, 0.25)
-elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
-    scheme = VerletVelocityScheme()
-elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-    scheme = HybridBashforthScheme()
-else:
-    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
-
-if DEM_parameters.ElementType == "SwimmingNanoParticle":
-    scheme = TerminalVelocityScheme()
-
-# Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
-
-# Add variables
-
-procedures.AddAllVariablesInAllModelParts(solver, scheme, all_model_parts, DEM_parameters)
-vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
-vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
-vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
-
-# If Lalplacian form = 2, free all pressure Dofs
-# laplacian_form = pp.laplacian_form
-# if(laplacian_form >= 2):
-    # for node in fluid_model_part.Nodes:
-        # node.Free(PRESSURE)
-
-# adding extra process info variables
-vars_man.AddingExtraProcessInfoVariables(pp, fluid_model_part, spheres_model_part)
-
-# defining a model part for the mixed part
-mixed_model_part = ModelPart("MixedPart")
-
-
-# Reading the model_part
-spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
-model_part_io_spheres = ModelPartIO(spheres_mp_filename)
-
-if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
-    pass
-else:
-    parallelutils.PerformInitialPartition(model_part_io_spheres)
-
-[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-
-model_part_io_spheres.ReadModelPart(spheres_model_part)
-
-rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
-model_part_io_fem.ReadModelPart(rigid_face_model_part)
-
-clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
-model_part_io_clusters = ModelPartIO(clusters_mp_filename)
-model_part_io_clusters.ReadModelPart(cluster_model_part)
-
-DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
-model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
-
-# Setting up the buffer size
-spheres_model_part.SetBufferSize(1)
-cluster_model_part.SetBufferSize(1)
-DEM_inlet_model_part.SetBufferSize(1)
-rigid_face_model_part.SetBufferSize(1)
-fluid_model_part.SetBufferSize(3)
-
-# Adding dofs
-solver.AddDofs(spheres_model_part)
-solver.AddDofs(cluster_model_part)
-solver.AddDofs(DEM_inlet_model_part)
-solver_module.AddDofs(fluid_model_part, SolverSettings)
-swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part)
-
-# copy Y_WALL
-for node in fluid_model_part.Nodes:
-    y = node.GetSolutionStepValue(Y_WALL, 0)
-    node.SetValue(Y_WALL, y)
-
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
-
-os.chdir(main_path)
-
-KRATOSprint("\nInitializing Problem...")
-
-# Initialize GiD-IO
-demio.AddGlobalVariables()
-demio.AddSpheresVariables()
-demio.AddFEMBoundaryVariables()
-demio.AddClusterVariables()
-demio.AddContactVariables()
-# MPI
-demio.AddMpiVariables()
-
-demio.Configure(DEM_parameters.problem_name,
-                DEM_parameters.OutputFileType,
-                DEM_parameters.Multifile,
-                DEM_parameters.ContactMeshOption)
-
-demio.SetOutputName(DEM_parameters.problem_name)
-
-os.chdir(post_path)
-
-demio.InitializeMesh(all_model_parts)
-
-os.chdir(post_path)
-
-# Perform a partition to balance the problem
-parallelutils.Repart(spheres_model_part)
-parallelutils.CalculateModelNewIds(spheres_model_part)
-
-os.chdir(post_path)
-
-#Setting up the BoundingBox
-bounding_box_time_limits = []
-if (DEM_parameters.BoundingBoxOption == "ON"):
-    procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
-    bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
-
-#Creating a solver object and set the search strategy
-#solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
-
-# Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
-
-Dt_DEM = DEM_parameters.MaxTimeStep
-
-# activate turbulence model
-if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-    # apply the initial turbulent viscosity on all of the nodes
-    turb_visc = SolverSettings.TurbulentViscosity
-    for node in fluid_model_part.Nodes:
-        node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, turb_visc)
-        visc = node.GetSolutionStepValue(VISCOSITY)
-        node.SetSolutionStepValue(MOLECULAR_VISCOSITY, 0, visc)
-        if (node.IsFixed(VELOCITY_X) and node.GetSolutionStepValue(VELOCITY_X, 0) != 0.0) or \
-           (node.IsFixed(VELOCITY_Y) and node.GetSolutionStepValue(VELOCITY_Y, 0) != 0.0) or \
-           (node.IsFixed(VELOCITY_Z) and node.GetSolutionStepValue(VELOCITY_Z, 0) != 0.0):
-            node.Fix(TURBULENT_VISCOSITY)
-
-    # select nodes on the wall
-    fluid_solver.wall_nodes = []
-    for i in SolverSettings.SA_wall_group_ids:
-        # get the nodes of the wall for SA.
-        nodes = fluid_model_part.GetNodes(i)
-        for node in nodes:
-            fluid_solver.wall_nodes.append(node)
-            node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
-            node.Fix(TURBULENT_VISCOSITY)
-
-solver.CreateCPlusPlusStrategy()
-solver.Initialize()    # Possible modifications of DELTA_TIME
-
-fluid_solver.Initialize()
-print("fluid solver created")
-sys.stdout.flush()
-
-if (DEM_parameters.ContactMeshOption =="ON"):
-    contact_model_part = solver.contact_model_part
-
-# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
-# Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-
-if not pp.VolumeOutput:
-    cut_list = define_output.DefineCutPlanes()
-    gid_io.define_cuts(fluid_model_part, cut_list)
-
-# gid_io.initialize_results(fluid_model_part) # MOD.
-
-import swimming_DEM_gid_output
-swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
-                                                                   pp.VolumeOutput,
-                                                                   pp.GiDPostMode,
-                                                                   pp.GiDMultiFileFlag,
-                                                                   pp.GiDWriteMeshFlag,
-                                                                   pp.GiDWriteConditionsFlag)
-
-swimming_DEM_gid_io.initialize_swimming_DEM_results(spheres_model_part, cluster_model_part, rigid_face_model_part, mixed_model_part)
-
-# define the drag computation list
-drag_list = define_output.DefineDragList()
-drag_file_output_list = []
-for it in drag_list:
-    f = open(it[1], 'w')
-    drag_file_output_list.append(f)
-    tmp = "#Drag for group " + it[1] + "\n"
-    f.write(tmp)
-    tmp = "time RX RY RZ"
-    f.write(tmp)
-    f.flush()
-
-print(drag_file_output_list)
-
-
-def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
-    i = 0
-    for it in drag_list:
-        print(it[0])
-        nodes = fluid_model_part.GetNodes(it[0])
-        drag = Vector(3)
-        drag[0] = 0.0
-        drag[1] = 0.0
-        drag[2] = 0.0
-        for node in nodes:
-            reaction = node.GetSolutionStepValue(REACTION, 0)
-            drag[0] += reaction[0]
-            drag[1] += reaction[1]
-            drag[2] += reaction[2]
-
-        output = str(time) + " " + str(drag[0]) + " " + str(
-            drag[1]) + " " + str(drag[2]) + "\n"
-        # print drag_file_output_list[i]
-        # print output
-        drag_file_output_list[i].write(output)
-        drag_file_output_list[i].flush()
-        i = i + 1
-
-
-# preparing output of point graphs
-#import point_graph_printer
-
-#output_nodes_list = define_output.DefineOutputPoints()
-#graph_printer = point_graph_printer.PrintGraphPrinter(
-    #output_nodes_list,
-    #fluid_model_part,
-    #variables_dictionary,
-    #domain_size)
-
-# setting fluid's body force to the same as DEM's
-if DEM_parameters.body_force_on_fluid_option:
-
-    for node in fluid_model_part.Nodes:
-        node.SetSolutionStepValue(BODY_FORCE_X, 0, DEM_parameters.GravityX)
-        node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEM_parameters.GravityY)
-        node.SetSolutionStepValue(BODY_FORCE_Z, 0, DEM_parameters.GravityZ)
-
-# coarse-graining: applying changes to the physical properties of the model to adjust for
-# the similarity transformation if required (fluid effects only).
-swim_proc.ApplySimilarityTransformations(fluid_model_part, DEM_parameters.similarity_transformation_type , DEM_parameters.model_over_real_diameter_factor )
-
-# creating a Post Utils object that executes several post-related tasks
-post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
-                                               pp,
-                                               fluid_model_part,
-                                               spheres_model_part,
-                                               cluster_model_part,
-                                               rigid_face_model_part,
-                                               mixed_model_part)
-
-# creating an IOTools object to perform other printing tasks
-io_tools = swim_proc.IOTools(pp)
-
-# creating a projection module for the fluid-DEM coupling
-h_min = 0.01
-n_balls = 1
-fluid_volume = 10
-DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
-# creating a physical calculations module to analyse the DEM model_part
-dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
-
-if DEM_parameters.coupling_level_type:
-
-    if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
-        biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
-        DEM_parameters.meso_scale_length  = 20 * biggest_size
-
-    elif spheres_model_part.NumberOfElements(0) == 0:
-        DEM_parameters.meso_scale_length  = 1.0
-
-    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
-    projection_module.UpdateDatabase(h_min)
-
-# creating a custom functions calculator for the implementation of additional custom functions
-custom_functions_tool = swim_proc.FunctionsCalculator(pp)
-
-# creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
-derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
-
-# creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
-if pp.CFD_DEM.basset_force_type > 0:
-    basset_force_tool = swim_proc.BassetForceTools()
-
-# creating a stationarity assessment tool
-stationarity_tool = swim_proc.StationarityAssessmentTool(DEM_parameters.max_pressure_variation_rate_tol , custom_functions_tool)
-
-# creating a debug tool
-dem_volume_tool = swim_proc.ProjectionDebugUtils(DEM_parameters.fluid_domain_volume, fluid_model_part, spheres_model_part, custom_functions_tool)
-
-# creating a distance calculation process for the embedded technology
-# (used to calculate elemental distances defining the structure embedded in the fluid mesh)
-if (DEM_parameters.embedded_option):
-    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_face_model_part, fluid_model_part)
-    calculate_distance_process.Execute()
-
-# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
-
-if (DEM_parameters.dem_inlet_option):
-    max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-    max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
-    max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-    max_fluid_node_Id = swim_proc.FindMaxNodeId(fluid_model_part)
-    max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id, max_elem_Id)
-    #max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
-
-    creator_destructor.SetMaxNodeId(max_node_Id)
-
-    # constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)
-    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
-    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, False)
-
-DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
-
-
-KRATOSprint("Initialization Complete" + "\n")
-
-step           = 0
-time           = pp.Start_time
-Dt             = pp.Dt
-out            = Dt
-Nsteps         = pp.nsteps
-final_time     = pp.CFD_DEM.FinalTime
-output_time    = pp.CFD_DEM.OutputTimeStep
-
-report.Prepare(timer, DEM_parameters.ControlTime)
-
-first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
-
-if (DEM_parameters.ModelDataInfo == "ON"):
-    os.chdir(data_and_results)
-    if (DEM_parameters.ContactMeshOption == "ON"):
-        (coordination_number) = procedures.ModelData(spheres_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
-        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
-        os.chdir(main_path)
-    else:
-        KRATOSprint("Activate Contact Mesh for ModelData information")
-
-if DEM_parameters.flow_in_porous_medium_option:
-    fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, DEM_parameters.min_fluid_fraction )
-
-    for field in pp.fluid_fraction_fields:
-        fluid_frac_util.AppendLinearField(field)
-
-    fluid_frac_util.AddFluidFractionField()
-
-if DEM_parameters.flow_in_porous_DEM_medium_option:
-    swim_proc.FixModelPart(spheres_model_part)
-
-# choosing the directory in which we want to work (print to)
-
-os.chdir(post_path)
-
-def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
-    current_time += delta_time
-
-    tolerance = 0.0001
-    while current_time < (current_time_plus_increment - tolerance * delta_time):
-        yield current_time
-        current_time += delta_time
-
-    current_time = current_time_plus_increment
-    yield current_time
-
-######################################################################################################################################
-
-#                      I N I T I A L I Z I N G    T I M E    L O O P     ...   ( M I X E D    F L U I D / D E M    B L O C K )
-
-######################################################################################################################################
-
-# setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter             = swim_proc.Counter(1,
-                                                 3,
-                                                 DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-DEM_to_fluid_counter         = swim_proc.Counter(1,
-                                                 1,
-                                                 DEM_parameters.coupling_level_type > 1)
-derivative_recovery_counter    = swim_proc.Counter(1,
-                                                 1,
-                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
-stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step,
-                                                 1,
-                                                 DEM_parameters.stationary_problem_option)
-print_counter                = swim_proc.Counter(1,
-                                                 1,
-                                                 out >= output_time)
-debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle,
-                                                 1,
-                                                 DEM_parameters.print_debug_info_option)
-particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle,
-                                                 1,
-                                                 DEM_parameters.print_particles_results_option)
-quadrature_counter           = swim_proc.Counter(pp.CFD_DEM.time_steps_per_quadrature_step,
-                                                 1,
-                                                 pp.CFD_DEM.print_BASSET_FORCE_option)
-mat_deriv_averager           = swim_proc.Averager(1, 3)
-laplacian_averager           = swim_proc.Averager(1, 3)
-#G
-
-# NANO BEGIN
-frequence = 1
-
-if DEM_parameters.ElementType == "SwimmingNanoParticle":
-    frequence = pp.cation_concentration_frequence
-
-cation_concentration_counter = swim_proc.Counter(frequence, 1, pp.CFD_DEM.drag_force_type == 9)
-# NANO END
-
-#fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
-
-#for node in fluid_model_part.Nodes:
-    #node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
-    #node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
-    #node.SetSolutionStepValue(BODY_FORCE_Z, 0, - 9.81)
-#import meshing_utils
-
-#meshing_utils.ModifyRadiusesGivenPorosity(model_part, porosity, tol)
-#Z
-
-
-##############################################################################
-#                                                                            #
-#    MAIN LOOP                                                               #
-#                                                                            #
-##############################################################################
-
-DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
-time_dem     = 0.0
-Dt_DEM       = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
-rigid_face_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
-cluster_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
-stationarity = False
-
-report.total_steps_expected = int(DEM_parameters.FinalTime / Dt_DEM)
-
-KRATOSprint(report.BeginReport(timer))
-
-mesh_motion = DEMFEMUtilities()
-
-# creating a Post Utils object that executes several post-related tasks
-post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
-
-swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # otherwise variables are set to 0 by default
-
-
-# ANALYTICS BEGIN
-pp.CFD_DEM.perform_analytics_option = False
-
-if pp.CFD_DEM.perform_analytics_option:
-    import analytics
-    variables_to_measure = [PRESSURE]
-    steps_between_measurements = 100
-    gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
-    point_coors = [0.0, 0.0, 0.01]
-    target_node = swim_proc.FindClosestNode(fluid_model_part, point_coors)
-    target_id = target_node.Id
-    print(target_node.X, target_node.Y, target_node.Z)
-    print(target_id)
-    def condition(node):
-        return node.Id == target_id
-
-    gauge.ConstructArrayOfNodes(condition)
-    print(gauge.variables)
-    print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
-# ANALYTICS END
-
-# NANO BEGIN
-if pp.CFD_DEM.drag_force_type == 9:
-    alpha = 1000.0
-
-    for node in spheres_model_part.Nodes:
-        node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
-
-# NANO END
-
-#G
-
-import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-recovery = derivative_recoverer.DerivativeRecoveryStrategy(pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
-
-number=0
-for node in fluid_model_part.Nodes:
-    number += 1
-#Z
-
-N_steps = int(final_time / Dt_DEM) + 20
-
-if pp.CFD_DEM.basset_force_type > 0:
-    basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
-if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
-    basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
-
-post_utils.Writeresults(time)
-
-while (time <= final_time):
-
-    time = time + Dt
-    step += 1
-    fluid_model_part.CloneTimeStep(time)
-    print("\n", "TIME = ", time)
-    print('ELAPSED TIME = ', timer.time() - init_time)
-    sys.stdout.flush()
-
-    if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
-        time_final_DEM_substepping = time + Dt
-
-    else:
-        time_final_DEM_substepping = time
-
-    # calculating elemental distances defining the structure embedded in the fluid mesh
-    if DEM_parameters.embedded_option:
-        calculate_distance_process.Execute()
-
-    if embedded_counter.Tick():
-        embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
-        embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
-
-    # solving the fluid part
-
-    if step >= 3 and not stationarity:
-        print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
+class Solution:
+    
+    def __init__(self):
+        self.main_path = os.getcwd()
+        
+        self.pp = pp        
+        self.DS = dem_main_script.Solution()
+
+        DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
+
+        ##############################################################################
+        #                                                                            #
+        #    INITIALIZE                                                              #
+        #                                                                            #
+        ##############################################################################
+
+        #G
+        self.pp.CFD_DEM = DEM_parameters
+        self.pp.CFD_DEM.fluid_already_calculated = 0
+        self.pp.CFD_DEM.recovery_echo_level = 1
+        self.pp.CFD_DEM.gradient_calculation_type = 1
+        self.pp.CFD_DEM.pressure_grad_recovery_type = 1
+        self.pp.CFD_DEM.store_full_gradient = 0
+        self.pp.CFD_DEM.laplacian_calculation_type = 0
+        self.pp.CFD_DEM.do_search_neighbours = False
+        self.pp.CFD_DEM.faxen_terms_type = 0
+        self.pp.CFD_DEM.vorticity_calculation_type = 5
+        self.pp.CFD_DEM.material_acceleration_calculation_type = 1
+        self.pp.CFD_DEM.faxen_force_type = 0
+        self.pp.CFD_DEM.vorticity_calculation_type = 5
+        self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
+        self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
+        self.pp.CFD_DEM.basset_force_integration_type = 2
+        self.pp.CFD_DEM.n_init_basset_steps = 0
+        self.pp.CFD_DEM.time_steps_per_quadrature_step = 1
+        self.pp.CFD_DEM.delta_time_quadrature = self.pp.CFD_DEM.time_steps_per_quadrature_step * self.pp.CFD_DEM.MaxTimeStep
+        self.pp.CFD_DEM.quadrature_order = 2
+        self.pp.CFD_DEM.time_window = 0.1
+        self.pp.CFD_DEM.number_of_exponentials = 10
+        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
+        self.pp.CFD_DEM.print_steps_per_plot_step = 1
+        self.pp.CFD_DEM.PostCationConcentration = False
+        self.pp.CFD_DEM.do_impose_flow_from_field = False
+        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
+        self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
+        self.pp.CFD_DEM.print_VORTICITY_option = 1
+        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        # Making the fluid step an exact multiple of the DEM step
+        self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
+        self.pp.viscosity_modification_type = 0.0
+        #Z
+        # NANO BEGIN
+        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            self.pp.CFD_DEM.PostCationConcentration = True
+            self.pp.initial_concentration = 1.0
+            self.pp.final_concentration = 0.01
+            self.pp.fluid_speed = 1e-14
+            self.pp.cation_concentration_frequence = 1
+            concentration = self.pp.initial_concentration
+        # NANO END
+        
+    def Run(self):
+
+        self.DS.Initialize()
+
+        # Moving to the recently created folder        
+        os.chdir(self.main_path)
+        [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+        swim_proc.CopyInputFilesIntoFolder(self.main_path, post_path)
+
+
+        # defining and adding imposed porosity fields
+        self.pp.fluid_fraction_fields = []
+        field1 = swim_proc.FluidFractionFieldUtility.LinearField(0.0,
+                                                                 [0.0, 0.0, 0.0],
+                                                                 [-1.0, -1.0, 0.15],
+                                                                 [1.0, 1.0, 0.3])
+        self.pp.fluid_fraction_fields.append(field1)
+
+        # building lists of variables for which memory is to be allocated
+        # TEMPORARY, HORRIBLE !!!
+        self.pp.viscosity_modification_type = 0.0
+
+        vars_man.ConstructListsOfVariables(self.pp)
+        #_____________________________________________________________________________________________________________________________________
+        #
+        #                               F L U I D    B L O C K    B E G I N S
+        #_____________________________________________________________________________________________________________________________________
+
+        # defining variables to be used
+        # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
+        # CODE IS NOT USING IT
+
+        variables_dictionary = {"PRESSURE"   : PRESSURE,
+                                "VELOCITY"   : VELOCITY,
+                                "MU"         : MU,         #    MOD.
+                                "BUOYANCY"   : BUOYANCY,   #    MOD.
+                                "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
+                                "LIFT_FORCE" : LIFT_FORCE} #    MOD.
+
+        # defining a model part for the fluid part
+        fluid_model_part = ModelPart("FluidPart")
+
+        if "REACTION" in self.pp.nodal_results:
+            fluid_model_part.AddNodalSolutionStepVariable(REACTION)
+        if "DISTANCE" in self.pp.nodal_results:
+            fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+
+        #
+        #
+        # importing the solvers needed
+        SolverSettings = self.pp.FluidSolverConfiguration
+        solver_module = import_solver(SolverSettings)
+
+        #
+        # importing variables
+        print('Adding nodal variables to the fluid_model_part')  #     MOD.
         sys.stdout.flush()
 
-        if not pp.CFD_DEM.drag_force_type == 9:
-            fluid_solver.Solve()
-               
-    # assessing stationarity
+        # caution with breaking up this block (memory allocation)! {
+        solver_module.AddVariables(fluid_model_part, SolverSettings)
+        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.        
+        # }
 
-        if stationarity_counter.Tick():
-            print("Assessing Stationarity...")
-            stationarity = stationarity_tool.Assess(fluid_model_part)
-            sys.stdout.flush()
+        # introducing input file name
+        input_file_name = self.pp.problem_name
 
-    # printing if required
+        # reading the fluid part
+        os.chdir(self.main_path)
+        model_part_io_fluid = ModelPartIO(input_file_name)
+        model_part_io_fluid.ReadModelPart(fluid_model_part)
 
-    if particles_results_counter.Tick():
-        # eliminating remote balls
+        #_____________________________________________________________________________________________________________________________________
+        #
+        #                               F L U I D    B L O C K    E N D S
+        #_____________________________________________________________________________________________________________________________________
 
-        #if pp.dem.BoundingBoxOption == "ON":
-        #    creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
 
-        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
-        graph_printer.PrintGraphs(time)
-        PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
+        #Getting chosen scheme:
+        if DEM_parameters.IntegrationScheme == 'Forward_Euler':
+            scheme = ForwardEulerScheme()
+        elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
+            if self.pp.CFD_DEM.basset_force_type > 0:
+                scheme = SymplecticEulerOldVelocityScheme()
+            else:
+                scheme = SymplecticEulerScheme()
+        elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
+            scheme = TaylorScheme()
+        elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
+            scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
+            scheme = VerletVelocityScheme()
+        elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+            scheme = HybridBashforthScheme()
+        else:
+            self.DS.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+        if DEM_parameters.ElementType == "SwimmingNanoParticle":
+            scheme = TerminalVelocityScheme()
 
-        if DEM_parameters.coupling_level_type > 0:
-            projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
+        # Add variables
+
+        vars_man.AddNodalVariables(self.DS.spheres_model_part, self.pp.dem_vars)
+        vars_man.AddNodalVariables(self.DS.rigid_face_model_part, self.pp.rigid_faces_vars)
+        vars_man.AddNodalVariables(self.DS.DEM_inlet_model_part, self.pp.inlet_vars)
+
+        # If Lalplacian form = 2, free all pressure Dofs
+        # laplacian_form = pp.laplacian_form
+        # if(laplacian_form >= 2):
+            # for node in fluid_model_part.Nodes:
+                # node.Free(PRESSURE)
+
+        # adding extra process info variables
+        vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, self.DS.spheres_model_part)
+
+        # defining a model part for the mixed part
+        mixed_model_part = ModelPart("MixedPart")
+
+
+        fluid_model_part.SetBufferSize(3)
+        solver_module.AddDofs(fluid_model_part, SolverSettings)
+        swim_proc.AddExtraDofs(self.pp, fluid_model_part, self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.DEM_inlet_model_part)
+
+        # copy Y_WALL
+        for node in fluid_model_part.Nodes:
+            y = node.GetSolutionStepValue(Y_WALL, 0)
+            node.SetValue(Y_WALL, y)
+
+        # Creating necessary directories
+        
+        [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
+
+        os.chdir(self.main_path)
+
+        self.DS.KRATOSprint("\nInitializing Problem...")
+
+        # Initialize GiD-IO
+        self.demio = DEM_procedures.DEMIo(DEM_parameters, post_path)
+        self.demio.AddGlobalVariables()
+        self.demio.AddSpheresVariables()
+        self.demio.AddFEMBoundaryVariables()
+        self.demio.AddClusterVariables()
+        self.demio.AddContactVariables()
+        # MPI
+        self.demio.AddMpiVariables()
+
+        self.demio.Configure(DEM_parameters.problem_name,
+                        DEM_parameters.OutputFileType,
+                        DEM_parameters.Multifile,
+                        DEM_parameters.ContactMeshOption)
+
+        self.demio.SetOutputName(DEM_parameters.problem_name)
+
+        os.chdir(post_path)
+
+        self.demio.InitializeMesh(self.DS.all_model_parts)
+
+
+        #Setting up the BoundingBox
+        bounding_box_time_limits = []
+        if (DEM_parameters.BoundingBoxOption == "ON"):
+            self.DS.procedures.SetBoundingBox(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.rigid_face_model_part, self.DS.creator_destructor)
+            bounding_box_time_limits = [self.DS.solver.bounding_box_start_time, self.DS.solver.bounding_box_stop_time]
+
+        # Creating the fluid solver
+        fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
+
+        Dt_DEM = DEM_parameters.MaxTimeStep
+
+        # activate turbulence model
+        if(self.pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
+            # apply the initial turbulent viscosity on all of the nodes
+            turb_visc = SolverSettings.TurbulentViscosity
+            for node in fluid_model_part.Nodes:
+                node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, turb_visc)
+                visc = node.GetSolutionStepValue(VISCOSITY)
+                node.SetSolutionStepValue(MOLECULAR_VISCOSITY, 0, visc)
+                if (node.IsFixed(VELOCITY_X) and node.GetSolutionStepValue(VELOCITY_X, 0) != 0.0) or \
+                   (node.IsFixed(VELOCITY_Y) and node.GetSolutionStepValue(VELOCITY_Y, 0) != 0.0) or \
+                   (node.IsFixed(VELOCITY_Z) and node.GetSolutionStepValue(VELOCITY_Z, 0) != 0.0):
+                    node.Fix(TURBULENT_VISCOSITY)
+
+            # select nodes on the wall
+            fluid_solver.wall_nodes = []
+            for i in SolverSettings.SA_wall_group_ids:
+                # get the nodes of the wall for SA.
+                nodes = fluid_model_part.GetNodes(i)
+                for node in nodes:
+                    fluid_solver.wall_nodes.append(node)
+                    node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
+                    node.Fix(TURBULENT_VISCOSITY)
+
+        fluid_solver.Initialize()
+        print("fluid solver created")
+        sys.stdout.flush()
+
+        # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
+        # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+
+        if not self.pp.VolumeOutput:
+            cut_list = define_output.DefineCutPlanes()
+            gid_io.define_cuts(fluid_model_part, cut_list)
+
+        # gid_io.initialize_results(fluid_model_part) # MOD.
+
+        import swimming_DEM_gid_output
+        swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
+                                                                           self.pp.VolumeOutput,
+                                                                           self.pp.GiDPostMode,
+                                                                           self.pp.GiDMultiFileFlag,
+                                                                           self.pp.GiDWriteMeshFlag,
+                                                                           self.pp.GiDWriteConditionsFlag)
+
+        swimming_DEM_gid_io.initialize_swimming_DEM_results(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.rigid_face_model_part, mixed_model_part)
+
+        # define the drag computation list
+        drag_list = define_output.DefineDragList()
+        drag_file_output_list = []
+        for it in drag_list:
+            f = open(it[1], 'w')
+            drag_file_output_list.append(f)
+            tmp = "#Drag for group " + it[1] + "\n"
+            f.write(tmp)
+            tmp = "time RX RY RZ"
+            f.write(tmp)
+            f.flush()
+
+        print(drag_file_output_list)
+
+
+        def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
+            i = 0
+            for it in drag_list:
+                print(it[0])
+                nodes = fluid_model_part.GetNodes(it[0])
+                drag = Vector(3)
+                drag[0] = 0.0
+                drag[1] = 0.0
+                drag[2] = 0.0
+                for node in nodes:
+                    reaction = node.GetSolutionStepValue(REACTION, 0)
+                    drag[0] += reaction[0]
+                    drag[1] += reaction[1]
+                    drag[2] += reaction[2]
+
+                output = str(time) + " " + str(drag[0]) + " " + str(
+                    drag[1]) + " " + str(drag[2]) + "\n"
+                # print drag_file_output_list[i]
+                # print output
+                drag_file_output_list[i].write(output)
+                drag_file_output_list[i].flush()
+                i = i + 1
+
+
+        # preparing output of point graphs
+        #import point_graph_printer
+
+        #output_nodes_list = define_output.DefineOutputPoints()
+        #graph_printer = point_graph_printer.PrintGraphPrinter(
+            #output_nodes_list,
+            #fluid_model_part,
+            #variables_dictionary,
+            #domain_size)
+
+        # setting fluid's body force to the same as DEM's
+        if DEM_parameters.body_force_on_fluid_option:
+
+            for node in fluid_model_part.Nodes:
+                node.SetSolutionStepValue(BODY_FORCE_X, 0, DEM_parameters.GravityX)
+                node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEM_parameters.GravityY)
+                node.SetSolutionStepValue(BODY_FORCE_Z, 0, DEM_parameters.GravityZ)
+
+        # coarse-graining: applying changes to the physical properties of the model to adjust for
+        # the similarity transformation if required (fluid effects only).
+        swim_proc.ApplySimilarityTransformations(fluid_model_part, DEM_parameters.similarity_transformation_type , DEM_parameters.model_over_real_diameter_factor )
+
+        # creating a Post Utils object that executes several post-related tasks
+        post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
+                                                       self.pp,
+                                                       fluid_model_part,
+                                                       self.DS.spheres_model_part,
+                                                       self.DS.cluster_model_part,
+                                                       self.DS.rigid_face_model_part,
+                                                       mixed_model_part)
+
+        # creating an IOTools object to perform other printing tasks
+        io_tools = swim_proc.IOTools(self.pp)
+
+        # creating a projection module for the fluid-DEM coupling
+        h_min = 0.01
+        n_balls = 1
+        fluid_volume = 10
+        DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
+        # creating a physical calculations module to analyse the DEM model_part
+        dem_physics_calculator = SphericElementGlobalPhysicsCalculator(self.DS.spheres_model_part)
+
+        if DEM_parameters.coupling_level_type:
+
+            if DEM_parameters.meso_scale_length <= 0.0 and self.DS.spheres_model_part.NumberOfElements(0) > 0:
+                biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(self.DS.spheres_model_part, RADIUS)
+                DEM_parameters.meso_scale_length  = 20 * biggest_size
+
+            elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
+                DEM_parameters.meso_scale_length  = 1.0
+
+            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, domain_size, self.pp)
+            projection_module.UpdateDatabase(h_min)
+
+        # creating a custom functions calculator for the implementation of additional custom functions
+        custom_functions_tool = swim_proc.FunctionsCalculator(self.pp)
+
+        # creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
+        derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
+
+        # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
+        if self.pp.CFD_DEM.basset_force_type > 0:
+            basset_force_tool = swim_proc.BassetForceTools()
+
+        # creating a stationarity assessment tool
+        stationarity_tool = swim_proc.StationarityAssessmentTool(DEM_parameters.max_pressure_variation_rate_tol , custom_functions_tool)
+
+        # creating a debug tool
+        dem_volume_tool = swim_proc.ProjectionDebugUtils(DEM_parameters.fluid_domain_volume, fluid_model_part, self.DS.spheres_model_part, custom_functions_tool)
+
+        # creating a distance calculation process for the embedded technology
+        # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
+        if (DEM_parameters.embedded_option):
+            calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.DS.rigid_face_model_part, fluid_model_part)
+            calculate_distance_process.Execute()
+
+
+        self.DS.KRATOSprint("Initialization Complete" + "\n")
+
+        step           = 0
+        time           = self.pp.Start_time
+        Dt             = self.pp.Dt
+        out            = Dt
+        Nsteps         = self.pp.nsteps
+        final_time     = self.pp.CFD_DEM.FinalTime
+        output_time    = self.pp.CFD_DEM.OutputTimeStep
+
+        self.DS.report.Prepare(timer, DEM_parameters.ControlTime)
+
+        first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
+
+        if (DEM_parameters.ModelDataInfo == "ON"):
+            os.chdir(data_and_results)
+            if (DEM_parameters.ContactMeshOption == "ON"):
+                (coordination_number) = self.DS.procedures.ModelData(self.DS.spheres_model_part, self.DS.solver) # Calculates the mean number of neighbours the mean radius, etc..
+                self.DS.KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+                os.chdir(self.main_path)
+            else:
+                self.DS.KRATOSprint("Activate Contact Mesh for ModelData information")
+
+        if DEM_parameters.flow_in_porous_medium_option:
+            fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, DEM_parameters.min_fluid_fraction )
+
+            for field in self.pp.fluid_fraction_fields:
+                fluid_frac_util.AppendLinearField(field)
+
+            fluid_frac_util.AddFluidFractionField()
+
+        if DEM_parameters.flow_in_porous_DEM_medium_option:
+            swim_proc.FixModelPart(self.DS.spheres_model_part)
+
+        # choosing the directory in which we want to work (print to)
+
+        os.chdir(post_path)
+
+        def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
+            current_time += delta_time
+
+            tolerance = 0.0001
+            while current_time < (current_time_plus_increment - tolerance * delta_time):
+                yield current_time
+                current_time += delta_time
+
+            current_time = current_time_plus_increment
+            yield current_time
+
+        ######################################################################################################################################
+
+        #                      I N I T I A L I Z I N G    T I M E    L O O P     ...   ( M I X E D    F L U I D / D E M    B L O C K )
+
+        ######################################################################################################################################
+
+        # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
+        embedded_counter             = swim_proc.Counter(1,
+                                                         3,
+                                                         DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        DEM_to_fluid_counter         = swim_proc.Counter(1,
+                                                         1,
+                                                         DEM_parameters.coupling_level_type > 1)
+        derivative_recovery_counter    = swim_proc.Counter(1,
+                                                         1,
+                                                         DEM_parameters.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+        stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step,
+                                                         1,
+                                                         DEM_parameters.stationary_problem_option)
+        print_counter                = swim_proc.Counter(1,
+                                                         1,
+                                                         out >= output_time)
+        debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle,
+                                                         1,
+                                                         DEM_parameters.print_debug_info_option)
+        particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle,
+                                                         1,
+                                                         DEM_parameters.print_particles_results_option)
+        quadrature_counter           = swim_proc.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step,
+                                                         1,
+                                                         self.pp.CFD_DEM.print_BASSET_FORCE_option)
+        mat_deriv_averager           = swim_proc.Averager(1, 3)
+        laplacian_averager           = swim_proc.Averager(1, 3)
+        #G
+
+        # NANO BEGIN
+        frequence = 1
+
+        if DEM_parameters.ElementType == "SwimmingNanoParticle":
+            frequence = self.pp.cation_concentration_frequence
+
+        cation_concentration_counter = swim_proc.Counter(frequence, 1, self.pp.CFD_DEM.drag_force_type == 9)
+        # NANO END
+
+        #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
+
+        #for node in fluid_model_part.Nodes:
+            #node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
+            #node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
+            #node.SetSolutionStepValue(BODY_FORCE_Z, 0, - 9.81)
+        #import meshing_utils
+
+        #meshing_utils.ModifyRadiusesGivenPorosity(model_part, porosity, tol)
+        #Z
+
+
+        ##############################################################################
+        #                                                                            #
+        #    MAIN LOOP                                                               #
+        #                                                                            #
+        ##############################################################################
+
+        DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
+        time_dem     = 0.0
+        Dt_DEM       = self.DS.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        self.DS.rigid_face_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+        self.DS.cluster_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+        stationarity = False
+
+        self.DS.report.total_steps_expected = int(DEM_parameters.FinalTime / Dt_DEM)
+
+        self.DS.KRATOSprint(self.DS.report.BeginReport(timer))
+
+        mesh_motion = DEMFEMUtilities()
+
+        # creating a Post Utils object that executes several post-related tasks
+        post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, self.DS.spheres_model_part)
+
+        swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, self.DS.spheres_model_part, self.pp) # otherwise variables are set to 0 by default
+
+
+        # ANALYTICS BEGIN
+        self.pp.CFD_DEM.perform_analytics_option = False
+
+        if self.pp.CFD_DEM.perform_analytics_option:
+            import analytics
+            variables_to_measure = [PRESSURE]
+            steps_between_measurements = 100
+            gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
+            point_coors = [0.0, 0.0, 0.01]
+            target_node = swim_proc.FindClosestNode(fluid_model_part, point_coors)
+            target_id = target_node.Id
+            print(target_node.X, target_node.Y, target_node.Z)
+            print(target_id)
+            def condition(node):
+                return node.Id == target_id
+
+            gauge.ConstructArrayOfNodes(condition)
+            print(gauge.variables)
+            print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
+        # ANALYTICS END
+
+        # NANO BEGIN
+        if self.pp.CFD_DEM.drag_force_type == 9:
+            alpha = 1000.0
+
+            for node in self.DS.spheres_model_part.Nodes:
+                node.SetSolutionStepValue(CATION_CONCENTRATION, self.pp.initial_concentration)
+
+        # NANO END
+
+        #G
+
+        import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+        recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
+
+        number=0
+        for node in fluid_model_part.Nodes:
+            number += 1
+        #Z
+
+        N_steps = int(final_time / Dt_DEM) + 20
+
+        if self.pp.CFD_DEM.basset_force_type > 0:
+            basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
+        if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
+            basset_force_tool.FillHinsbergVectors(self.DS.spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
         post_utils.Writeresults(time)
-        out = 0
 
-    # solving the DEM part
-    derivative_recovery_counter.Switch(time > DEM_parameters.interaction_start_time)
+        while (time <= final_time):
 
-    if derivative_recovery_counter.Tick():
-        recovery.Recover()
+            time = time + Dt
+            step += 1
+            fluid_model_part.CloneTimeStep(time)
+            print("\n", "TIME = ", time)
+            print('ELAPSED TIME = ', timer.time() - init_time)
+            sys.stdout.flush()
 
-    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
-    sys.stdout.flush()
-    first_dem_iter = True
-
-    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
-        DEM_step += 1   # this variable is necessary to get a good random insertion of particles
-        spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
-        rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
-        cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
-        # NANO BEGIN
-        if cation_concentration_counter.Tick():
-            concentration = pp.final_concentration + (pp.initial_concentration - pp.final_concentration) * math.exp(- alpha * time_dem)
-
-            for node in spheres_model_part.Nodes:
-                node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
-        # NANO END
-        # applying fluid-to-DEM coupling if required
-
-        if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
-
-            if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
-                projection_module.ProjectFromNewestFluid()
+            if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
+                time_final_DEM_substepping = time + Dt
 
             else:
-                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
+                time_final_DEM_substepping = time
 
-                if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-                    solver.Solve() # only advance in space
-                    projection_module.InterpolateVelocity()
+            # calculating elemental distances defining the structure embedded in the fluid mesh
+            if DEM_parameters.embedded_option:
+                calculate_distance_process.Execute()
 
-                if quadrature_counter.Tick():
-                    if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
-                        basset_force_tool.AppendIntegrandsWindow(spheres_model_part)
-                    elif pp.CFD_DEM.basset_force_type == 2:
-                        basset_force_tool.AppendIntegrands(spheres_model_part)
+            if embedded_counter.Tick():
+                embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
+                embedded.ApplyEmbeddedBCsToBalls(self.DS.spheres_model_part, DEM_parameters)
 
-        # performing the time integration of the DEM part
+            # solving the fluid part
 
-        spheres_model_part.ProcessInfo[TIME]    = time_dem
-        rigid_face_model_part.ProcessInfo[TIME] = time_dem
-        cluster_model_part.ProcessInfo[TIME]    = time_dem
+            if step >= 3 and not stationarity:
+                print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
+                sys.stdout.flush()
 
-        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
-            solver.Solve()
+                if not self.pp.CFD_DEM.drag_force_type == 9:
+                    fluid_solver.Solve()
 
-        # Walls movement:
-        mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
-        mesh_motion.MoveAllMeshes(spheres_model_part, time, Dt)
-        mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, Dt)
+            # assessing stationarity
 
-        #### TIME CONTROL ##################################
+                if stationarity_counter.Tick():
+                    print("Assessing Stationarity...")
+                    stationarity = stationarity_tool.Assess(fluid_model_part)
+                    sys.stdout.flush()
 
-        # adding DEM elements by the inlet:
-        if (DEM_parameters.dem_inlet_option):
-            DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.
+            # printing if required
 
-        if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+            if particles_results_counter.Tick():
+                # eliminating remote balls
 
-            if DEM_parameters.coupling_level_type:
-                projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
+                #if self.pp.dem.BoundingBoxOption == "ON":
+                #    self.DS.creator_destructor.DestroyParticlesOutsideBoundingBox(self.DS.spheres_model_part)
 
-            post_utils.Writeresults(time_dem)
-            out = 0
+                io_tools.PrintParticlesResults(self.pp.variables_to_print_in_file, time, self.DS.spheres_model_part)
+                graph_printer.PrintGraphs(time)
+                PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-        out = out + Dt_DEM
-        #first_dem_iter = False
+            if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedDEM":
 
-    if DEM_parameters.ElementType == "SwimmingNanoParticle":
-        print("concentration: " + str(concentration))
+                if DEM_parameters.coupling_level_type > 0:
+                    projection_module.ComputePostProcessResults(self.DS.spheres_model_part.ProcessInfo)
 
-    #### PRINTING GRAPHS ####
-    os.chdir(graphs_path)
-    # measuring mean velocities in a certain control volume (the 'velocity trap')
-    if (DEM_parameters.VelocityTrapOption):
-        post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+                post_utils.Writeresults(time)
+                out = 0
 
-    os.chdir(post_path)
+            # solving the DEM part
+            derivative_recovery_counter.Switch(time > DEM_parameters.interaction_start_time)
 
-    # applying DEM-to-fluid coupling
+            if derivative_recovery_counter.Tick():
+                recovery.Recover()
 
-    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
-        projection_module.ProjectFromParticles()
+            print("Solving DEM... (", self.DS.spheres_model_part.NumberOfElements(0), "elements )")
+            sys.stdout.flush()
+            first_dem_iter = True
 
-    # coupling checks (debugging)
+            for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
+                DEM_step += 1   # this variable is necessary to get a good random insertion of particles
+                self.DS.spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
+                self.DS.rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
+                self.DS.cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
+                # NANO BEGIN
+                if cation_concentration_counter.Tick():
+                    concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- alpha * time_dem)
 
-    if debug_info_counter.Tick():
-        dem_volume_tool.UpdateDataAndPrint(DEM_parameters.fluid_domain_volume)
+                    for node in self.DS.spheres_model_part.Nodes:
+                        node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
+                # NANO END
+                # applying fluid-to-DEM coupling if required
 
-    # printing if required
+                if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
-    if particles_results_counter.Tick():
+                    if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+                        projection_module.ProjectFromNewestFluid()
 
-        # eliminating remote balls
+                    else:
+                        projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
 
-        #if pp.dem.BoundingBoxOption == "ON":
-            #creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
+                        if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+                            self.DS.solver.Solve() # only advance in space
+                            projection_module.InterpolateVelocity()
 
-        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
-        graph_printer.PrintGraphs(time)
-        PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-    
-    #if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+                        if quadrature_counter.Tick():
+                            if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
+                                basset_force_tool.AppendIntegrandsWindow(self.DS.spheres_model_part)
+                            elif self.pp.CFD_DEM.basset_force_type == 2:
+                                basset_force_tool.AppendIntegrands(self.DS.spheres_model_part)
 
-        #if DEM_parameters.coupling_level_type:
-            #projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
+                # performing the time integration of the DEM part
 
-        #post_utils.Writeresults(time)
-        #out = 0
+                self.DS.spheres_model_part.ProcessInfo[TIME]    = time_dem
+                self.DS.rigid_face_model_part.ProcessInfo[TIME] = time_dem
+                self.DS.cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-    #out = out + Dt
+                if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
+                    self.DS.solver.Solve()
 
-swimming_DEM_gid_io.finalize_results()
+                # Walls movement:
+                mesh_motion.MoveAllMeshes(self.DS.rigid_face_model_part, time, Dt)
+                mesh_motion.MoveAllMeshes(self.DS.spheres_model_part, time, Dt)
+                mesh_motion.MoveAllMeshes(self.DS.DEM_inlet_model_part, time, Dt)
 
-print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
-simulation_elapsed_time = timer.clock() - simulation_start_time
-print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
-print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
-print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
-sys.stdout.flush()
+                #### TIME CONTROL ##################################
 
-for i in drag_file_output_list:
-    i.close()
+                # adding DEM elements by the inlet:
+                if (DEM_parameters.dem_inlet_option):
+                    self.DS.DEM_inlet.CreateElementsFromInletMesh(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.creator_destructor)  # After solving, to make sure that neighbours are already set.
+
+                if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":/
+
+                    if DEM_parameters.coupling_level_type:
+                        projection_module.ComputePostProcessResults(self.DS.spheres_model_part.ProcessInfo)
+
+                    post_utils.Writeresults(time_dem)
+                    out = 0
+
+                out = out + Dt_DEM
+                #first_dem_iter = False
+
+            if DEM_parameters.ElementType == "SwimmingNanoParticle":
+                print("concentration: " + str(concentration))
+
+            #### PRINTING GRAPHS ####
+            os.chdir(graphs_path)
+            # measuring mean velocities in a certain control volume (the 'velocity trap')
+            if (DEM_parameters.VelocityTrapOption):
+                post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+
+            os.chdir(post_path)
+
+            # applying DEM-to-fluid coupling
+
+            if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
+                projection_module.ProjectFromParticles()
+
+            # coupling checks (debugging)
+
+            if debug_info_counter.Tick():
+                dem_volume_tool.UpdateDataAndPrint(DEM_parameters.fluid_domain_volume)
+
+            # printing if required
+
+            if particles_results_counter.Tick():
+
+                # eliminating remote balls
+
+                #if self.pp.dem.BoundingBoxOption == "ON":
+                    #self.DS.creator_destructor.DestroyParticlesOutsideBoundingBox(self.DS.spheres_model_part)
+
+                io_tools.PrintParticlesResults(self.pp.variables_to_print_in_file, time, self.DS.spheres_model_part)
+                graph_printer.PrintGraphs(time)
+                PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
+
+            #if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+
+                #if DEM_parameters.coupling_level_type:
+                    #projection_module.ComputePostProcessResults(self.DS.spheres_model_part.ProcessInfo)
+
+                #post_utils.Writeresults(time)
+                #out = 0
+
+            #out = out + Dt
+
+        swimming_DEM_gid_io.finalize_results()
+
+        print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
+        simulation_elapsed_time = timer.clock() - simulation_start_time
+        print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
+        print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
+        print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
+        sys.stdout.flush()
+
+        for i in drag_file_output_list:
+            i.close()
+            
+
+if __name__=="__main__":
+    Solution().Run()    

@@ -85,7 +85,7 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         if self.calculate_vorticity:
             self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
 
-    def RecoverGradientOfVelocityComponent(self, component:[int]):
+    def RecoverGradientOfVelocityComponent(self, component):
         self.model_part.ProcessInfo[CURRENT_COMPONENT] = component
         self.Solve()
         if self.calculate_vorticity:
