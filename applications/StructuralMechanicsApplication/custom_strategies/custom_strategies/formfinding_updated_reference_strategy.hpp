@@ -7,7 +7,6 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Long Chen
-//                   
 //
 
 //#if !defined(KRATOS_FORMFINDING_UPDATED_REFERENCE_STRATEGY )
@@ -188,6 +187,8 @@ namespace Kratos
             mpDx = TSparseSpace::CreateEmptyVectorPointer();
             mpb = TSparseSpace::CreateEmptyVectorPointer();
 
+            mHomotopyFactor = 0.0;
+
             KRATOS_CATCH("");
         }
 
@@ -249,6 +250,8 @@ namespace Kratos
             mpA = TSparseSpace::CreateEmptyMatrixPointer();
             mpDx = TSparseSpace::CreateEmptyVectorPointer();
             mpb = TSparseSpace::CreateEmptyVectorPointer();
+
+            mHomotopyFactor = 0.0;
 
             KRATOS_CATCH("");
         }
@@ -878,6 +881,16 @@ namespace Kratos
         TSystemVectorPointerType mpDx;
         TSystemVectorPointerType mpb;
         TSystemMatrixPointerType mpA;
+
+        /**
+        * homotopy factor describing the mapping from original problem to the
+        * modified problem
+        * 0 ~ only the modified problem is to be solved
+        * 1 ~ only the original problem is to be solved
+        */
+
+        double mHomotopyFactor;
+
 
         /**
         * Flag telling if it is needed to reform the DofSet at each
