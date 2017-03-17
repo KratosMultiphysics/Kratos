@@ -29,7 +29,8 @@
             "input_filename" : "test_vms_sensitivity_2d/cylinder_test"
         },
         "linear_solver_settings" : {
-            "solver_type" : "MultiLevelSolver"
+            "solver_type" : "MultiLevelSolver",
+            "tolerance"   : 1e-8
         },        
         "volume_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
@@ -161,7 +162,7 @@
         "Parameters" :{
             "file_name_1"         : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat",
             "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2_ref.dat",
-	    "decimal_places" : 1
+	    "decimal_places" : 2
         }
     },{
         "python_module"   : "compare_two_point_output_files_mpi_process",
