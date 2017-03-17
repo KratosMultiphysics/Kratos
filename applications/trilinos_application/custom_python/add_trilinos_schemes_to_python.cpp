@@ -34,6 +34,7 @@
 #include "spaces/ublas_space.h"
 // #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 //strategies
 // #include "solving_strategies/strategies/solving_strategy.h"
@@ -58,6 +59,11 @@
 
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
 #include "custom_strategies/schemes/trilinos_gear_scheme.h"
+
+// AdjointFluidApplication
+#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
+#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_scheme.h"
+#include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 
 //convergence criterias
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -244,8 +250,15 @@ void  AddSchemes()
             .def(init<>()) // constructor without a turbulence model
             .def(init<const Variable<int>&>()) // constructor for periodic conditions
             ;
-}
 
+    class_< AdjointSteadyScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
+            bases<TrilinosBaseSchemeType>, boost::noncopyable >
+            ( "AdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
+
+    class_< AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
+            bases<TrilinosBaseSchemeType>, boost::noncopyable >
+            ( "AdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
+}
 
 } // namespace Python.
 
