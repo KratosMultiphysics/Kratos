@@ -116,6 +116,44 @@ void LaplacianMeshMovingElement::Initialize()
     KRATOS_CATCH("");
 }
 
+
+void LaplacianMeshMovingElement::GetDisplacementValues(VectorType& rValues, const int Step)
+{
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+   // if (rValues.size() != mLocalSize)
+   //     rValues.resize(mLocalSize, false);
+
+    if (dimension == 2)
+    {
+        SizeType Index = 0;
+
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rValues[Index++] =
+                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_X, 0);
+            rValues[Index++] =
+                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y, 0);
+        }
+    }
+    else if (dimension == 3)
+    {
+        SizeType Index = 0;
+
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rValues[Index++] =
+                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_X, 0);
+            rValues[Index++] =
+                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y, 0);
+            rValues[Index++] =
+                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Z, 0);
+        }
+    }
+}
+
 LaplacianMeshMovingElement::MatrixType LaplacianMeshMovingElement::CalculateDerivatives(
     const int& rdimension, const double& rPointNumber)
 {
@@ -179,14 +217,20 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Compute LHS
         MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
         noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX), trans(DN_DX));
-
+        /*
         VectorType IntermediateDisplacements(NumNodes);
-
+        
         CalculateDeltaPosition(IntermediateDisplacements, rCurrentProcessInfo);
 
         // Compute RHS
         noalias(rRightHandSideVector) -=
             prod(rLeftHandSideMatrix, IntermediateDisplacements);
+        */
+        // Compute RHS
+        double LocalSize = NumNodes * dimension;
+        VectorType LastValues = ZeroVector(LocalSize);
+        this->GetDisplacementValues(LastValues, 0);
+        noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, LastValues);
     }
     KRATOS_CATCH("");
 }

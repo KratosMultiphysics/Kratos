@@ -6,7 +6,7 @@ from math import sin,cos
 
 movementList = ["TRANSLATION_X", "TRANSLATION_Y", "BENDING", "ROTATION"]
 # =============================================================
-movement = 2             # set 0-3
+movement = 0             # set 0-3
 amplificationFactor = 2  # factor to amplify the movement
 solveMesh = True         # set to "True" to solve the mesh
 # =============================================================
@@ -46,7 +46,7 @@ def DisplacementToMesh(fluid_interface, time, movement, ampFac):
             yOld = node.Y0
             valueX = (cos(time*.6)*xOld + sin(time*.6)*yOld) - xOld
             valueY = (-sin(time*.6)*xOld + cos(time*.6)*yOld) - yOld
-            print("Setting Rotation")
+
         else:
             wait = input("Wrong type of movement specified, please correct input")
         # set the prescribed values

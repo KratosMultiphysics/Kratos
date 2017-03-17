@@ -17,7 +17,7 @@
             },
             "file_label"          : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_frequency"    : 1,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -34,10 +34,13 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                      : {
-            "solver_type"                  : "mesh_solver_structural_similarity",
+            "solver_type"                  : "mesh_solver_laplacian",
             "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "01_Mesh_Test_2D3N"
+        },
+        "ale_linear_solver_settings"        : {
+        "solver_type" : "AMGCL"
         },
         "volume_model_part_name"       : "Parts_Fluid"
 },

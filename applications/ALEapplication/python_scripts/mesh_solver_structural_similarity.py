@@ -63,7 +63,7 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
         print("Construction of MeshSolverStructuralSimilarity finished")
-
+    '''
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -77,7 +77,7 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
             node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
             node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
         print("Mesh solver DOFs added correctly.")
-
+    '''
     def Initialize(self):
         (self.neighbour_search).Execute()
 
@@ -92,7 +92,7 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
             node.SetSolutionStepValue(MESH_RHS,0,zero)
 
         self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.mesh_reform_dofs_each_step, self.mesh_compute_reactions)
-        (self.solver).SetEchoLevel(2)
+        (self.solver).SetEchoLevel(0)
 
     def UpdateReferenceMesh(self):
         (self.solver).UpdateReferenceMesh()

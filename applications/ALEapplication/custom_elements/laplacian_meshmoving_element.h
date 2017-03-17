@@ -186,7 +186,6 @@ protected:
     ///@name Protected Operators
     ///@{
     ///@}
-
     ///@name Protected Operations
     ///@{
     void GetDisplacementValues(VectorType& rValues, const int Step = 0);
