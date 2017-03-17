@@ -253,11 +253,11 @@ void  AddSchemes()
 
     class_< AdjointSteadyScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
             bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "AdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
+            ( "TrilinosAdjointSteadyScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
 
     class_< AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
             bases<TrilinosBaseSchemeType>, boost::noncopyable >
-            ( "AdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
+            ( "TrilinosAdjointBossakScheme", init<Parameters&, ObjectiveFunction::Pointer>() );
 }
 
 } // namespace Python.
