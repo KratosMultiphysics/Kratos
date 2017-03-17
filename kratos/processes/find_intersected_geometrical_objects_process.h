@@ -254,7 +254,7 @@ namespace Kratos
 	  FindIntersectedGeometricalObjectsProcess(FindIntersectedGeometricalObjectsProcess const& rOther) = delete;
 
 	  /// Constructor to be used.
-	  FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart const& rPart2);
+	  FindIntersectedGeometricalObjectsProcess(ModelPart& rPart1, ModelPart& rPart2);
 
 
 	  /// Destructor.
@@ -337,7 +337,7 @@ namespace Kratos
       ///@{
 
 		ModelPart& mrModelPart1;
-		ModelPart const& mrModelPart2;
+		ModelPart& mrModelPart2;
 		OctreeType mOctree;
 
       ///@}
