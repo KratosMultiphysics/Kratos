@@ -153,10 +153,6 @@ public:
         mElementIds.resize(NumThreads);
         mDragFlagVector.resize(NumThreads);
 
-        // prevent model part from silently creating a new element
-        if (rModelPart.Elements().find(1) == rModelPart.Elements().end())
-            KRATOS_THROW_ERROR(std::runtime_error, "missing element 1", "")
-
         // use first element to initialize drag flag vector
         Element& rElem = *std::begin(rModelPart.Elements());
 #pragma omp parallel
