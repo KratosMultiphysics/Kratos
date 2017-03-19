@@ -678,10 +678,10 @@ private:
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
     double wallLength=0;
-    array_1d<double,2> CoorDifference(2,0.0);
+    array_1d<double,3> CoorDifference(3,0.0);
 
     ////////  to compute the length of the wall edge /////////
-    CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+    noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -693,7 +693,7 @@ private:
     for (unsigned int i = 2; i < Element.size(); i++){
       for(unsigned int j = 0; j < i; j++)
 	{
-	  CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+	  noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
 	  SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
 	  counter+=1;
 	  Edges[counter]=sqrt(SquaredLength);
