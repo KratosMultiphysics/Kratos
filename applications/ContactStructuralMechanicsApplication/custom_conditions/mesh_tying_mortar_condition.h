@@ -30,6 +30,10 @@
 /* Utilities */
 #include "custom_utilities/logging_settings.hpp"
 
+/* Geometries */
+#include "geometries/line_2d_2.h"
+#include "geometries/triangle_3d_3.h"
+
 namespace Kratos 
 {
 
@@ -82,20 +86,27 @@ public:
         
     /// Counted pointer of MeshTyingMortarCondition
     KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
-
-    typedef Condition                                                  BaseType;
+    typedef Condition                                                                    BaseType;
     
-    typedef typename BaseType::VectorType                            VectorType;
+    typedef typename BaseType::VectorType                                              VectorType;
 
-    typedef typename BaseType::MatrixType                            MatrixType;
+    typedef typename BaseType::MatrixType                                              MatrixType;
 
-    typedef typename BaseType::IndexType                              IndexType;
+    typedef typename BaseType::IndexType                                                IndexType;
 
-    typedef typename BaseType::GeometryType::Pointer        GeometryPointerType;
+    typedef typename BaseType::GeometryType::Pointer                          GeometryPointerType;
 
-    typedef typename BaseType::NodesArrayType                    NodesArrayType;
+    typedef typename BaseType::NodesArrayType                                      NodesArrayType;
 
-    typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
+    typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    
+    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    
+    typedef Line2D2<Point<3>>                                                            LineType;
+    
+    typedef Triangle3D3<Point<3>>                                                    TriangleType;
+    
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
     static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
@@ -1084,6 +1095,38 @@ protected:
         const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> POperator = prod(InvDOperator, rMortarConditionMatrices.MOperator);
         
         return POperator;
+    }
+    
+    /*
+     * It returns theintegration method considered
+     */
+    
+    IntegrationMethod GetIntegrationMethod()
+    {
+        if (mIntegrationOrder == 1)
+        {
+            return GeometryData::GI_GAUSS_1;
+        }
+        else if (mIntegrationOrder == 2)
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
+        else if (mIntegrationOrder == 3)
+        {
+            return GeometryData::GI_GAUSS_3;
+        }
+        else if (mIntegrationOrder == 4)
+        {
+            return GeometryData::GI_GAUSS_4;
+        }
+        else if (mIntegrationOrder == 5)
+        {
+            return GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
     }
     
     ///@}

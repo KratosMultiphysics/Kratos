@@ -90,6 +90,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
+    IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    
     mPairSize = 0;
     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
@@ -100,8 +102,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     {
         Condition::Pointer pCond = (*all_containers)[i_cond].condition;
         
-        IntegrationPointsType IntegrationPointsSlave;
-        const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), IntegrationPointsSlave);
+//          // Reading integration points
+//         IntegrationPointsType IntegrationPointsSlave;
+//         const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), IntegrationPointsSlave);
+        
+        // Reading integration points
+        ConditionArrayListType ConditionsPointsSlave;
+        const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), ConditionsPointsSlave);
         
 //         // Using collocation instead exact integration
 //         ColocationIntegration ThisColocationIntegration;
@@ -142,17 +149,55 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
         
         if (IsInside == true)
         {
-//             // Debug
-//             KRATOS_WATCH(IntegrationPointsSlave.size());
-//             for (unsigned int i = 0; i < IntegrationPointsSlave.size(); i++)
-//             {
-//                 KRATOS_WATCH(IntegrationPointsSlave[i]);
-//             }
+            GeometryType::IntegrationPointsArrayType AllIntegrationPointsSlave;
             
-            mPairSize += 1;
-            mThisMasterConditions.push_back(pCond);
-            mIntegrationPointsVector.push_back(IntegrationPointsSlave);
-//             mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
+            for (unsigned int i_geom = 0; i_geom < ConditionsPointsSlave.size(); i_geom++)
+            {
+                std::vector<PointType::Pointer> PointsArray (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                for (unsigned int i_node = 0; i_node < TDim; i_node++)
+                {
+                    PointType GlobalPoint;
+                    GetGeometry().GlobalCoordinates(GlobalPoint, ConditionsPointsSlave[i_geom][i_node]);
+                    PointsArray[i_node] = boost::make_shared<PointType>(GlobalPoint);
+                }
+                
+                DecompositionType DecompGeom( PointsArray );
+                
+                const GeometryType::IntegrationPointsArrayType& IntegrationPointsSlave = DecompGeom.IntegrationPoints( ThisIntegrationMethod );
+                
+                // Integrating the mortar operators
+                for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
+                {
+                    const double Weight = IntegrationPointsSlave[PointNumber].Weight();
+                    const PointType LocalPointDecomp = IntegrationPointsSlave[PointNumber].Coordinates();
+                    PointType LocalPointParent;
+                    PointType GPGlobal;
+                    DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
+                    GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
+                    
+                    const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );
+                    
+                    AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
+                }
+            }
+            
+//                 // Debug
+//                 for (unsigned int i = 0; i < AllIntegrationPointsSlave.size(); i++)
+//                 {
+//                     KRATOS_WATCH(AllIntegrationPointsSlave[i].Coordinates())
+//                     KRATOS_WATCH(AllIntegrationPointsSlave[i].Weight())
+//                 }
+//                 for (unsigned int i = 0; i < IntegrationPointsSlave.size(); i++)
+//                 {
+//                     KRATOS_WATCH(IntegrationPointsSlave[i].Coordinates())
+//                     KRATOS_WATCH(IntegrationPointsSlave[i].Weight())
+//                 }
+ 
+                mPairSize += 1;
+                mThisMasterConditions.push_back(pCond);
+                mIntegrationPointsVector.push_back(AllIntegrationPointsSlave);
+//                 mIntegrationPointsVector.push_back(IntegrationPointsSlave);
+//                 mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
         }
     }
         
