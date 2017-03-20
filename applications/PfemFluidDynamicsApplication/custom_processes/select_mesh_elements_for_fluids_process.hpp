@@ -196,10 +196,6 @@ public:
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
 		  //check flags on nodes
-		  if(vertices.back().Is(FREE_SURFACE)){
-		    numfreesurf++;
-		    // std::cout<<" FREE_SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
-		  }
 
 		  if(vertices.back().Is(ISOLATED)){
 		    numisolated++;
@@ -223,11 +219,13 @@ public:
 		  }
 		  if(vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)){
 		    numfreesurf++;
+		    // std::cout<<"FREE SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
+
 		  if(vertices.back().Is(INLET)){
+		    // vertices.back().Reset(INLET);
 		    numinlet++;
 		  }
-		  
 		}
 	      
 	      
@@ -240,31 +238,73 @@ public:
 	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
 
-	      if(numinlet>0){
-	      	Alpha*=1.2;
-	      }
+	      // if(numinlet==3){
+	      // 	Alpha*=1.5;
+	      // } else if(numinlet==2){
+	      // 	Alpha*=1.15;
+	      // }
+	 
+	      // if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+	      // 	Alpha*=0.75;
+	      // }else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+	      // 	Alpha*=0.95;
+	      // }
+	      // if(numrigid==0 && numfreesurf==0 && numisolated==0){
+	      // 	Alpha*=1.5;
+	      // }
 
-	      if(numisolated==0 && numfreesurf==0 && firstMesh==false){
-		if(dimension==2){
-		  if(numrigid==0){
-		    // Alpha*=1.05;
-		    Alpha*=1.5;
-		  }else{
-		    // Alpha*=1.2;
-		    Alpha*=1.5;
-		  }
 
+	      // if(numisolated==0 && numfreesurf==0 && firstMesh==false){
+	      // if(numisolated==0 && numinlet>0 && (numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
+	      // if((numfreesurf>0 && (numisolated+numfreesurf+numrigid)<nds) && firstMesh==false){
+	      // 	if(dimension==2){
+	      // 	  if(numrigid==0 && numfreesurf==0){
+	      // 	    // Alpha*=2.0;
+	      // 	    Alpha*=1.5;
+	      // 	  }else{
+	      // 	    //Alpha*=1.75;
+	      // 	    Alpha*=1.35;
+	      // 	  }
+
+	      // 	}
+	      // 	if(dimension==3){
+	      // 	  if(numrigid==0){
+	      // 	    // Alpha*=1.15;
+	      // 	    Alpha*=1.5;
+	      // 	    // std::cout<<"RIGID 0";
+	      // 	  }else{
+	      // 	    // Alpha*=1.25;
+	      // 	    Alpha*=1.5;
+	      // 	    // std::cout<<"Alpha*=1.5 "<<Alpha;
+	      // 	  }
+	      // 	}
+	      // }
+
+	      if(dimension==2){
+		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+		  Alpha*=0.7;
+		}else if((numrigid+numisolated+numfreesurf)==nds){
+		  Alpha*=0.9;
+		}else if(numfreesurf==2 || (numisolated+numfreesurf)==2){
+		  Alpha*=0.95;
 		}
-		if(dimension==3){
-		  if(numrigid==0){
-		    // Alpha*=1.15;
-		    Alpha*=1.5;
-		    // std::cout<<"RIGID 0";
-		  }else{
-		    // Alpha*=1.25;
-		    Alpha*=1.5;
-		    // std::cout<<"Alpha*=1.5 "<<Alpha;
-		  }
+		if(numrigid==0 && numfreesurf==0 && numisolated==0){
+		  Alpha*=1.75;
+		}else if(numfreesurf==0 && numisolated==0){
+		  Alpha*=1.25;
+		}
+	      }else  if(dimension==3){
+		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
+		  Alpha*=0.85;
+		}else if((numrigid+numisolated+numfreesurf)==nds){
+		  Alpha*=0.925;
+		}else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
+		  Alpha*=0.975;
+		}
+		if(numrigid==0 && numfreesurf==0 && numisolated==0){
+		  Alpha*=1.75;
+		}else if(numfreesurf==0 && numisolated==0){
+		  Alpha*=1.25;
 		}
 	      }
 	      if(firstMesh==true){
@@ -279,15 +319,13 @@ public:
 	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		{
 		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
-		  std::cout<<" NOT HEREEEEEEEEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"<<std::endl;
-
 		}
 	      else
 		{
+
 		  double MeanMeshSize=mrRemesh.Refine->CriticalRadius;
 		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension,MeanMeshSize);
-		  // std::cout<<"Alpha "<<Alpha<<" MeanMeshSize "<<MeanMeshSize<<std::endl;
-		  // accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension);
+
 		}
 
 

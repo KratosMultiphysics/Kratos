@@ -32,9 +32,10 @@ void DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart
     }
 
     Properties::Pointer p_properties = r_tetra_model_part.pGetProperties(0);
-    std::vector<long unsigned int> pair;
+    std::vector<ModelPart::IndexType> pair;
     pair.resize(2);
-    long unsigned int elem_id = 0;
+	ModelPart::IndexType elem_id = 0;
+	ModelPart::IndexType default_index = 0;
 
     for (auto i_edge : set_of_all_edges) {
         int i_node = 0;
@@ -44,7 +45,7 @@ void DerivativeRecoveryMeshingTools::FillUpEdgesModelPartFromTetrahedraModelPart
             ++i_node;
         }
 
-        r_edges_model_part.CreateNewElement(element_type, elem_id, pair, p_properties);
+        r_edges_model_part.CreateNewElement(element_type, elem_id, pair, p_properties, default_index);
         ++elem_id;
     }
 }
