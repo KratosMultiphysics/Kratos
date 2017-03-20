@@ -533,7 +533,8 @@ namespace Kratos
 		double L0 = mLength;
 		double E = mYoungsModulus;
 		double A = mArea;
-		double N = (mInternalStrainGL * l * E * A )  / L0;
+		double S_pre = mPreStress;
+		double N = ((E*mInternalStrainGL + S_pre) * l * A) / L0;
 		//internal force vectors
 		VectorType f_local = ZeroVector(6);
 		f_local[0] = -1.00 * N;
