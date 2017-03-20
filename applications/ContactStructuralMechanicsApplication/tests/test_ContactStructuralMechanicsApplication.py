@@ -123,8 +123,8 @@ def AssambleTestSuites():
             TThreeDSimplestTrianglePatchMatchingTestContact,
             TThreeDPatchMatchingTestContact,
             TThreeDPatchNonMatchingTestContact,
-            TALMHyperSimplePatchTestContact,
-            TALMSimplePatchTestContact,
+            #TALMHyperSimplePatchTestContact,
+            #TALMSimplePatchTestContact,
             #TALMSimplestPatchTestThreeDContact,
             #TALMSimplePatchTestThreeDContact,
             ############# JUST TESTING ###########

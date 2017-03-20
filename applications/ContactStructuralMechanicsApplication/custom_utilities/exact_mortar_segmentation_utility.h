@@ -265,15 +265,15 @@ public:
      */
     
     void RotatePoint( 
-        Point<3>& PointToRotate,
-        const Point<3> PointReferenceRotation,
+        PointType& PointToRotate,
+        const PointType PointReferenceRotation,
         const array_1d<double, 3> SlaveTangentXi,
         const array_1d<double, 3> SlaveTangentEta,
         const bool Inversed
         )
     {                
         // We move to the (0,0,0)
-        Point<3> AuxPointToRotate;
+        PointType AuxPointToRotate;
         AuxPointToRotate.Coordinates() = PointToRotate.Coordinates() - PointReferenceRotation.Coordinates();
         
         boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix = ZeroMatrix(3, 3);
@@ -307,11 +307,11 @@ public:
      */
     
     bool Clipping2D(
-        Point<3>& PointIntersection, 
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2,
-        const Point<3> PointDest1,
-        const Point<3> PointDest2
+        PointType& PointIntersection, 
+        const PointType PointOrig1,
+        const PointType PointOrig2,
+        const PointType PointDest1,
+        const PointType PointDest2
         )
     {
         const double SOrig1Orig2X = PointOrig2.Coordinate(1) - PointOrig1.Coordinate(1);
@@ -375,8 +375,8 @@ public:
      */
     
     double AnglePoints(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2,
+        const PointType PointOrig1,
+        const PointType PointOrig2,
         const array_1d<double, 3> axis_1,
         const array_1d<double, 3> axis_2
         )
@@ -401,8 +401,8 @@ public:
      */
     
     bool CheckPoints2D(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2
+        const PointType PointOrig1,
+        const PointType PointOrig2
         )
     {
         const double Tolerance = 1.0e-6;
@@ -422,8 +422,8 @@ public:
      */
     
     bool CheckPoints3D(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2
+        const PointType PointOrig1,
+        const PointType PointOrig2
         )
     {
         const double Tolerance = 1.0e-6;
@@ -433,14 +433,14 @@ public:
     }
     
     /**
-     * This functions recovers if the nodes are inside a Quadrilateral conformed with Point<3>, instead of Nodes<3> (The input ones)
+     * This functions recovers if the nodes are inside a Quadrilateral conformed with PointType, instead of Nodes<3> (The input ones)
      * @param SlaveGeometry: The quadrilateral of interest
      * @param rPoint: The point to study if is inside
      * @return True if the point is inside the geometry
      */
     
     bool FasIsInsideQuadrilateral2D(
-        Quadrilateral2D4 <Point<3>>& SlaveGeometry,
+        Quadrilateral2D4 <PointType>& SlaveGeometry,
         const GeometryNodeType::CoordinatesArrayType& rPoint
         )
     {
@@ -503,9 +503,9 @@ public:
      */
     
     double FasTriagleCheck2D(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2,
-        const Point<3> PointOrig3
+        const PointType PointOrig1,
+        const PointType PointOrig2,
+        const PointType PointOrig3
         )
     {
         const double x10 = PointOrig2.X() - PointOrig1.X();
@@ -531,9 +531,9 @@ public:
      */
     
     double FasTriagleCheck3D(
-        const Point<3> PointOrig1,
-        const Point<3> PointOrig2,
-        const Point<3> PointOrig3
+        const PointType PointOrig1,
+        const PointType PointOrig2,
+        const PointType PointOrig3
         )
     {
         Matrix jacobian( 3, 2 );
@@ -794,14 +794,14 @@ private:
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = SlaveGeometry.Center();
+        const PointType SlaveCenter = SlaveGeometry.Center();
         
         // We define the condition tangents
         const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates());
         const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // No we project both nodes from the slave side and the master side
-        array_1d<Point<3>, 3> MasterProjectedPoint;
+        array_1d<PointType, 3> MasterProjectedPoint;
         array_1d<bool, 3> AllInside;
         
         for (unsigned int i_node = 0; i_node < 3; i_node++)
@@ -814,7 +814,7 @@ private:
         }
         
         // We create the pointlist
-        std::vector<Point<3>> PointList;
+        std::vector<PointType> PointList;
         
         // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
@@ -822,9 +822,9 @@ private:
             (AllInside[2] == false))
         {            
             // We check if all the nodes are inside the master element
-            array_1d<Point<3>, 3> SlaveProjectedPoint;
+            array_1d<PointType, 3> SlaveProjectedPoint;
             
-            const Point<3> MasterCenter = MasterGeometry.Center();
+            const PointType MasterCenter = MasterGeometry.Center();
             
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
@@ -854,13 +854,13 @@ private:
                  (AllInside[1] == true) &&
                  (AllInside[2] == true))
         {
-            std::vector<Point<3>::Pointer> AllPointsArray (3);
+            std::vector<PointType::Pointer> AllPointsArray (3);
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
-                AllPointsArray[i_node] = boost::make_shared<Point<3>>(MasterProjectedPoint[i_node]);
+                AllPointsArray[i_node] = boost::make_shared<PointType>(MasterProjectedPoint[i_node]);
             }
             
-            Triangle3D3 <Point<3>> AllTriangle( AllPointsArray );
+            Triangle3D3 <PointType> AllTriangle( AllPointsArray );
         
             const double LocalArea = AllTriangle.Area();
             
@@ -873,15 +873,15 @@ private:
                 IntegrationPointsSlave.resize(LocalIntegrationSize, false);
                 
 //                 // Debug
-//                 Point<3> aux1;
+//                 PointType aux1;
 //                 aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
 //                 RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                 
-//                 Point<3> aux2;
+//                 PointType aux2;
 //                 aux2.Coordinates() = MasterProjectedPoint[1].Coordinates();
 //                 RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                 
-//                 Point<3> aux3;
+//                 PointType aux3;
 //                 aux3.Coordinates() = MasterProjectedPoint[2].Coordinates();
 //                 RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                 
@@ -891,9 +891,9 @@ private:
                 for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                 {                    
                     // We convert the local coordinates to global coordinates
-                    Point<3> gp_local;
+                    PointType gp_local;
                     gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                    Point<3> gp_global;
+                    PointType gp_global;
                     AllTriangle.GlobalCoordinates(gp_global, gp_local);
                     
                     // Now we are supposed to project to the slave surface, but like the point it is already in the slave surface (with a triangle we work in his plane) we just calculate the local coordinates
@@ -901,7 +901,7 @@ private:
                     
                     // We can construct now the integration local triangle
                     const double DetJ = AllTriangle.DeterminantOfJacobian(gp_local);
-                    IntegrationPointsSlave[PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
+                    IntegrationPointsSlave[PointNumber] = IntegrationPointType( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
                 }
                 
                 return true;
@@ -941,7 +941,7 @@ private:
                 {
                     const unsigned int jp_edge = (j_edge == 2) ? 0 : j_edge + 1;
                     
-                    Point<3> IntersectedPoint;
+                    PointType IntersectedPoint;
                     const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveGeometry[i_edge],
@@ -1021,7 +1021,7 @@ private:
                 
                 const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
                 
-                std::vector<Point<3>::Pointer> PointsArray (3);
+                std::vector<PointType::Pointer> PointsArray (3);
                 
                 // We initialize our auxiliar integration point vector
                 const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
@@ -1041,19 +1041,19 @@ private:
                     // NOTE: We add 1 because we removed from the list the fisrt point
                     if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
                     {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[0] = boost::make_shared<PointType>(PointList[0]);
+                        PointsArray[1] = boost::make_shared<PointType>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<PointType>(PointList[IndexVector[elem + 1] + 1]);
                     }
                     else
                     {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+                        PointsArray[0] = boost::make_shared<PointType>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[1] = boost::make_shared<PointType>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<PointType>(PointList[0]);
                     }
                     
                     // We create the triangle
-                    Triangle2D3 <Point<3>> triangle( PointsArray );
+                    Triangle2D3 <PointType> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                     const double LocalArea = triangle.Area();
@@ -1061,15 +1061,15 @@ private:
                     if (LocalArea > Tolerance) // NOTE: Just in case we are not getting a real area
                     {
 //                         // Debug
-//                         Point<3> aux1;
+//                         PointType aux1;
 //                         aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
 //                         RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
-//                         Point<3> aux2;
+//                         PointType aux2;
 //                         aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
 //                         RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
-//                         Point<3> aux3;
+//                         PointType aux3;
 //                         aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
 //                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
@@ -1079,9 +1079,9 @@ private:
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                         {                    
                             // We convert the local coordinates to global coordinates
-                            Point<3> gp_local;
+                            PointType gp_local;
                             gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                            Point<3> gp_global;
+                            PointType gp_global;
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
@@ -1092,8 +1092,8 @@ private:
                             
                             // We can construct now the integration local triangle
                             const double DetJ = triangle.DeterminantOfJacobian(gp_local);
-                            IntegrationPointsSlave.push_back( IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
-//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
+                            IntegrationPointsSlave.push_back( IntegrationPointType( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
+//                             IntegrationPointsSlave[elem * LocalIntegrationSize + PointNumber] = IntegrationPointType( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ );
                         }
                     }
                 }
@@ -1142,15 +1142,15 @@ private:
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = SlaveGeometry.Center();
+        const PointType SlaveCenter = SlaveGeometry.Center();
         
         // We define the condition tangents
         const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates());
         const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // No we project both nodes from the slave side and the master side
-        array_1d<Point<3>, 4> SlaveProjectedPoint;
-        array_1d<Point<3>, 4> MasterProjectedPoint;
+        array_1d<PointType, 4> SlaveProjectedPoint;
+        array_1d<PointType, 4> MasterProjectedPoint;
         array_1d<bool, 4> AllInside;
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1166,13 +1166,13 @@ private:
             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
         }
         
-        std::vector<Point<3>::Pointer> DummyPointsArray (4);
+        std::vector<PointType::Pointer> DummyPointsArray (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            DummyPointsArray[i_node] = boost::make_shared<Point<3>>(SlaveProjectedPoint[i_node]);
+            DummyPointsArray[i_node] = boost::make_shared<PointType>(SlaveProjectedPoint[i_node]);
         }
         
-        Quadrilateral2D4 <Point<3>> DummyQuadrilateral( DummyPointsArray );
+        Quadrilateral2D4 <PointType> DummyQuadrilateral( DummyPointsArray );
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
@@ -1181,7 +1181,7 @@ private:
         }
         
         // We create the pointlist
-        std::vector<Point<3>> PointList;
+        std::vector<PointType> PointList;
         
         // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
@@ -1190,7 +1190,7 @@ private:
             (AllInside[3] == false))
         {
             // We check if all the nodes are inside the master element            
-            const Point<3> MasterCenter = MasterGeometry.Center();
+            const PointType MasterCenter = MasterGeometry.Center();
             
             const array_1d<double, 3> MasterTangentXi  = (MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates())/norm_2(MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates());
             const array_1d<double, 3> MasterTangentEta = MathUtils<double>::UnitCrossProduct(MasterTangentXi, MasterNormal);
@@ -1210,10 +1210,10 @@ private:
             
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
-                DummyPointsArray[i_node] = boost::make_shared<Point<3>>(MasterProjectedPoint[i_node]);
+                DummyPointsArray[i_node] = boost::make_shared<PointType>(MasterProjectedPoint[i_node]);
             }
             
-            Quadrilateral2D4 <Point<3>> AuxDummyQuadrilateral( DummyPointsArray );
+            Quadrilateral2D4 <PointType> AuxDummyQuadrilateral( DummyPointsArray );
             
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
@@ -1265,7 +1265,7 @@ private:
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
             
-            std::vector<Point<3>::Pointer> PointsArray (3);
+            std::vector<PointType::Pointer> PointsArray (3);
 //             
             // We initialize our auxiliar integration point vector
             const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
@@ -1278,19 +1278,19 @@ private:
                 // NOTE: We add 1 because we removed from the list the fisrt point
                 if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                 {
-                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
-                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                    PointsArray[0] = boost::make_shared<PointType>(MasterProjectedPoint[0]);
+                    PointsArray[1] = boost::make_shared<PointType>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
+                    PointsArray[2] = boost::make_shared<PointType>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
                 }
                 else
                 {
-                    PointsArray[0] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
-                    PointsArray[1] = boost::make_shared<Point<3>>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
-                    PointsArray[2] = boost::make_shared<Point<3>>(MasterProjectedPoint[0]);
+                    PointsArray[0] = boost::make_shared<PointType>(MasterProjectedPoint[IndexVector[elem + 1] + 1]);
+                    PointsArray[1] = boost::make_shared<PointType>(MasterProjectedPoint[IndexVector[elem + 0] + 1]); 
+                    PointsArray[2] = boost::make_shared<PointType>(MasterProjectedPoint[0]);
                 }
                 
                 // We create the triangle
-                Triangle2D3 <Point<3>> triangle( PointsArray );
+                Triangle2D3 <PointType> triangle( PointsArray );
                 
                 // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                 const double LocalArea = triangle.Area();
@@ -1298,15 +1298,15 @@ private:
                 if (LocalArea > Tolerance)
                 {                       
 //                     // Debug
-//                     Point<3> aux1;
+//                     PointType aux1;
 //                     aux1.Coordinates() = MasterProjectedPoint[0].Coordinates();
 //                     RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                     
-//                     Point<3> aux2;
+//                     PointType aux2;
 //                     aux2.Coordinates() = MasterProjectedPoint[IndexVector[elem + 0] + 1].Coordinates();
 //                     RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                     
-//                     Point<3> aux3;
+//                     PointType aux3;
 //                     aux3.Coordinates() = MasterProjectedPoint[IndexVector[elem + 1] + 1].Coordinates();
 //                     RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                     
@@ -1316,21 +1316,21 @@ private:
                     for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                     {                    
                         // We convert the local coordinates to global coordinates
-                        Point<3> gp_local;
+                        PointType gp_local;
                         gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                        Point<3> gp_global;
+                        PointType gp_global;
                         triangle.GlobalCoordinates(gp_global, gp_local);
                         
                         // We recover this point to the triangle plane
                         RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
+                        PointType gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         
                         // We can construct now the integration local triangle
                         const double DetJ = triangle.DeterminantOfJacobian(gp_local); 
-                        IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
+                        IntegrationPointsSlave.push_back(IntegrationPointType( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ )); 
                     }
                 }
             }
@@ -1340,9 +1340,9 @@ private:
 //                 // Debug
 //                 for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
 //                 {
-//                     Point<3> gp_local;
+//                     PointType gp_local;
 //                     gp_local.Coordinates() = IntegrationPointsSlave[PointNumber].Coordinates();
-//                     Point<3> gp_global;
+//                     PointType gp_global;
 //                     SlaveGeometry.GlobalCoordinates(gp_global, gp_local);
 //                                                 
 // //                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 << "+";// << std::endl;
@@ -1382,7 +1382,7 @@ private:
                 {
                     const unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
                     
-                    Point<3> IntersectedPoint;
+                    PointType IntersectedPoint;
                     const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveProjectedPoint[i_edge],
@@ -1462,7 +1462,7 @@ private:
                     
                 const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
                 
-                std::vector<Point<3>::Pointer> PointsArray (3);
+                std::vector<PointType::Pointer> PointsArray (3);
                 
                 // We initialize our auxiliar integration point vector
                 const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = GetIntegrationTriangle();
@@ -1476,19 +1476,19 @@ private:
                     // NOTE: We add 1 because we removed from the list the fisrt point
                     if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
                     {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[0]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[0] = boost::make_shared<PointType>(PointList[0]);
+                        PointsArray[1] = boost::make_shared<PointType>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<PointType>(PointList[IndexVector[elem + 1] + 1]);
                     }
                     else
                     {
-                        PointsArray[0] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 1] + 1]);
-                        PointsArray[1] = boost::make_shared<Point<3>>(PointList[IndexVector[elem + 0] + 1]); 
-                        PointsArray[2] = boost::make_shared<Point<3>>(PointList[0]);
+                        PointsArray[0] = boost::make_shared<PointType>(PointList[IndexVector[elem + 1] + 1]);
+                        PointsArray[1] = boost::make_shared<PointType>(PointList[IndexVector[elem + 0] + 1]); 
+                        PointsArray[2] = boost::make_shared<PointType>(PointList[0]);
                     }
                     
                     // We create the triangle
-                    Triangle2D3 <Point<3>> triangle( PointsArray );
+                    Triangle2D3 <PointType> triangle( PointsArray );
                     
                     // Now we get the GP from this triangle (and weights, will be later with the total area summed)
                     const double LocalArea = triangle.Area(); // FIXME: Probably this is affecting to to the calculation of the local coordinates
@@ -1496,15 +1496,15 @@ private:
                     if (LocalArea > Tolerance)
                     {                                         
 //                         // Debug
-//                         Point<3> aux1;
+//                         PointType aux1;
 //                         aux1.Coordinates() = PointList[0].Coordinates();
 //                         RotatePoint(aux1, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
-//                         Point<3> aux2;
+//                         PointType aux2;
 //                         aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
 //                         RotatePoint(aux2, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
-//                         Point<3> aux3;
+//                         PointType aux3;
 //                         aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
 //                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
@@ -1514,21 +1514,21 @@ private:
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                         {                            
                             // We convert the local coordinates to global coordinates
-                            Point<3> gp_local;
+                            PointType gp_local;
                             gp_local.Coordinates() = IntegrationPoints[PointNumber].Coordinates();
-                            Point<3> gp_global;
+                            PointType gp_global;
                             triangle.GlobalCoordinates(gp_global, gp_local);
                             
                             // We recover this point to the triangle plane
                             RotatePoint(gp_global, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                             
                             // Now we project to the slave surface
-                            Point<3> gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
+                            PointType gp_global_proj = ContactUtilities::FastProject(SlaveCenter, gp_global, - SlaveNormal); // We came back 
                             SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                             
                             // We can construct now the integration local triangle 
-                            const double DetJ = SlaveGeometry.DeterminantOfJacobian(gp_local);
-                            IntegrationPointsSlave.push_back(IntegrationPoint<3>( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
+                            const double DetJ = triangle.DeterminantOfJacobian(gp_local);
+                            IntegrationPointsSlave.push_back(IntegrationPointType( gp_local.Coordinate(1), gp_local.Coordinate(2), IntegrationPoints[PointNumber].Weight() * DetJ ));
                         }
                     }
                 }
@@ -1538,9 +1538,9 @@ private:
 //                     // Debug
 //                     for (unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++)
 //                     {
-//                         Point<3> gp_local;
+//                         PointType gp_local;
 //                         gp_local.Coordinates() = IntegrationPointsSlave[PointNumber].Coordinates();
-//                         Point<3> gp_global;
+//                         PointType gp_global;
 //                         SlaveGeometry.GlobalCoordinates(gp_global, gp_local);
 //                                        
 // //                         std::cout << IntegrationPoints[PointNumber].Weight() * DetJ2 / DetJ1 << "+";// << std::endl;
@@ -1676,7 +1676,7 @@ private:
         if (total_weight > Tolerance)
         {
             ConditionsPointsSlave.resize(1);
-            array_1d<Point<3>, 2> ListPoints;
+            array_1d<PointType, 2> ListPoints;
             ListPoints[0].Coordinate(1) = coor_aux[0];
             ListPoints[1].Coordinate(1) = coor_aux[1];
             ConditionsPointsSlave[0] = ListPoints;
@@ -1713,14 +1713,14 @@ private:
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = SlaveGeometry.Center();
+        const PointType SlaveCenter = SlaveGeometry.Center();
         
         // We define the condition tangents
         const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[1].Coordinates() - SlaveGeometry[0].Coordinates());
         const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // No we project both nodes from the slave side and the master side
-        array_1d<Point<3>, 3> MasterProjectedPoint;
+        array_1d<PointType, 3> MasterProjectedPoint;
         array_1d<bool, 3> AllInside;
         
         for (unsigned int i_node = 0; i_node < 3; i_node++)
@@ -1733,7 +1733,7 @@ private:
         }
         
         // We create the pointlist
-        std::vector<Point<3>> PointList;
+        std::vector<PointType> PointList;
         
         // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
@@ -1741,9 +1741,9 @@ private:
             (AllInside[2] == false))
         {            
             // We check if all the nodes are inside the master element
-            array_1d<Point<3>, 3> SlaveProjectedPoint;
+            array_1d<PointType, 3> SlaveProjectedPoint;
             
-            const Point<3> MasterCenter = MasterGeometry.Center();
+            const PointType MasterCenter = MasterGeometry.Center();
             
             for (unsigned int i_node = 0; i_node < 3; i_node++)
             {
@@ -1820,7 +1820,7 @@ private:
                 {
                     const unsigned int jp_edge = (j_edge == 2) ? 0 : j_edge + 1;
                     
-                    Point<3> IntersectedPoint;
+                    PointType IntersectedPoint;
                     const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveGeometry[i_edge],
@@ -1916,11 +1916,11 @@ private:
                 {
                     if (FasTriagleCheck2D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                     {
-                        array_1d<Point<3>, 3> PointsLocals;
+                        array_1d<PointType, 3> PointsLocals;
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj; 
-                        Point<3> gp_local;
+                        PointType gp_global_proj; 
+                        PointType gp_local;
                         gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[0], - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         PointsLocals[0] = gp_local;
@@ -1935,11 +1935,11 @@ private:
                     }
                     else
                     {
-                        array_1d<Point<3>, 3> PointsLocals;
+                        array_1d<PointType, 3> PointsLocals;
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj; 
-                        Point<3> gp_local;
+                        PointType gp_global_proj; 
+                        PointType gp_local;
                         gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[IndexVector[elem + 1] + 1], - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         PointsLocals[0] = gp_local;
@@ -1994,15 +1994,15 @@ private:
         )
     {        
         // Firt we create an auxiliar plane based in the condition center and its normal
-        const Point<3> SlaveCenter = SlaveGeometry.Center();
+        const PointType SlaveCenter = SlaveGeometry.Center();
         
         // We define the condition tangents
         const array_1d<double, 3> SlaveTangentXi  = (SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates())/norm_2(SlaveGeometry[2].Coordinates() - SlaveGeometry[0].Coordinates());
         const array_1d<double, 3> SlaveTangentEta = MathUtils<double>::UnitCrossProduct(SlaveTangentXi, SlaveNormal);
         
         // No we project both nodes from the slave side and the master side
-        array_1d<Point<3>, 4> SlaveProjectedPoint;
-        array_1d<Point<3>, 4> MasterProjectedPoint;
+        array_1d<PointType, 4> SlaveProjectedPoint;
+        array_1d<PointType, 4> MasterProjectedPoint;
         array_1d<bool, 4> AllInside;
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
@@ -2018,13 +2018,13 @@ private:
             RotatePoint(MasterProjectedPoint[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
         }
         
-        std::vector<Point<3>::Pointer> DummyPointsArray (4);
+        std::vector<PointType::Pointer> DummyPointsArray (4);
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            DummyPointsArray[i_node] = boost::make_shared<Point<3>>(SlaveProjectedPoint[i_node]);
+            DummyPointsArray[i_node] = boost::make_shared<PointType>(SlaveProjectedPoint[i_node]);
         }
         
-        Quadrilateral2D4 <Point<3>> DummyQuadrilateral( DummyPointsArray );
+        Quadrilateral2D4 <PointType> DummyQuadrilateral( DummyPointsArray );
         
         for (unsigned int i_node = 0; i_node < 4; i_node++)
         {
@@ -2033,7 +2033,7 @@ private:
         }
         
         // We create the pointlist
-        std::vector<Point<3>> PointList;
+        std::vector<PointType> PointList;
         
         // No point from the master is inside the slave
         if ((AllInside[0] == false) &&
@@ -2042,7 +2042,7 @@ private:
             (AllInside[3] == false))
         {
             // We check if all the nodes are inside the master element            
-            const Point<3> MasterCenter = MasterGeometry.Center();
+            const PointType MasterCenter = MasterGeometry.Center();
             
             const array_1d<double, 3> MasterTangentXi  = (MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates())/norm_2(MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates());
             const array_1d<double, 3> MasterTangentEta = MathUtils<double>::UnitCrossProduct(MasterTangentXi, MasterNormal);
@@ -2062,10 +2062,10 @@ private:
             
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
-                DummyPointsArray[i_node] = boost::make_shared<Point<3>>(MasterProjectedPoint[i_node]);
+                DummyPointsArray[i_node] = boost::make_shared<PointType>(MasterProjectedPoint[i_node]);
             }
             
-            Quadrilateral2D4 <Point<3>> AuxDummyQuadrilateral( DummyPointsArray );
+            Quadrilateral2D4 <PointType> AuxDummyQuadrilateral( DummyPointsArray );
             
             for (unsigned int i_node = 0; i_node < 4; i_node++)
             {
@@ -2137,11 +2137,11 @@ private:
             {
                 if (FasTriagleCheck3D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                 {
-                    array_1d<Point<3>, 3> PointsLocals;
+                    array_1d<PointType, 3> PointsLocals;
                     
                     // Now we project to the slave surface
-                    Point<3> gp_global_proj; 
-                    Point<3> gp_local;
+                    PointType gp_global_proj; 
+                    PointType gp_local;
                     gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[0], - SlaveNormal); // We came back 
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     PointsLocals[0] = gp_local;
@@ -2156,11 +2156,11 @@ private:
                 }
                 else
                 {
-                    array_1d<Point<3>, 3> PointsLocals;
+                    array_1d<PointType, 3> PointsLocals;
                     
                     // Now we project to the slave surface
-                    Point<3> gp_global_proj; 
-                    Point<3> gp_local;
+                    PointType gp_global_proj; 
+                    PointType gp_local;
                     gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[IndexVector[elem + 1] + 1], - SlaveNormal); // We came back 
                     SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                     PointsLocals[0] = gp_local;
@@ -2210,7 +2210,7 @@ private:
                 {
                     const unsigned int jp_edge = (j_edge == 3) ? 0 : j_edge + 1;
                     
-                    Point<3> IntersectedPoint;
+                    PointType IntersectedPoint;
                     const bool intersected = Clipping2D(
                         IntersectedPoint,
                         SlaveProjectedPoint[i_edge],
@@ -2302,11 +2302,11 @@ private:
                 {
                     if (FasTriagleCheck3D(MasterProjectedPoint[0], MasterProjectedPoint[IndexVector[elem] + 1], MasterProjectedPoint[IndexVector[elem + 1] + 1]) > 0.0)
                     {
-                        array_1d<Point<3>, 3> PointsLocals;
+                        array_1d<PointType, 3> PointsLocals;
                     
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj; 
-                        Point<3> gp_local;
+                        PointType gp_global_proj; 
+                        PointType gp_local;
                         gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[0], - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         PointsLocals[0] = gp_local;
@@ -2321,11 +2321,11 @@ private:
                     }
                     else
                     {
-                        array_1d<Point<3>, 3> PointsLocals;
+                        array_1d<PointType, 3> PointsLocals;
                         
                         // Now we project to the slave surface
-                        Point<3> gp_global_proj; 
-                        Point<3> gp_local;
+                        PointType gp_global_proj; 
+                        PointType gp_local;
                         gp_global_proj = ContactUtilities::FastProject(SlaveCenter, MasterProjectedPoint[IndexVector[elem + 1] + 1], - SlaveNormal); // We came back 
                         SlaveGeometry.PointLocalCoordinates(gp_local, gp_global_proj);
                         PointsLocals[0] = gp_local;
