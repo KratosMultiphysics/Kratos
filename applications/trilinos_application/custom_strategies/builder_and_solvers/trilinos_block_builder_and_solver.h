@@ -25,6 +25,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+
 #include "Epetra_MpiComm.h"
 
 //trilinos includes
@@ -39,6 +40,7 @@
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_RowMatrixOut.h"
 #include "EpetraExt_MultiVectorOut.h"
+#include "Epetra_Import.h"
 // #include "epetra_test_err.h"
 
 
@@ -203,7 +205,7 @@ public:
     {
         KRATOS_TRY
         if(!pScheme)
-            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_ERROR << "No scheme provided!";
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -352,14 +354,14 @@ public:
             {
                 EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", A, "matrixA", "lhs_matrix", true);
                 EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", b, "vectorb","rhs_vector",true);
-                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+                KRATOS_ERROR << "Stopping after printing the matrix";
             }
 
             if (this->GetEchoLevel()>3)
             {
                 EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", A, "matrixA", "block_matrix", true);
                 EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", b, "vectorb","rhs_vector",true);
-                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+                KRATOS_ERROR << "Stopping after printing the matrix";
             }
 
             BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
@@ -563,7 +565,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_ERROR << "No degrees of freedom!";
 
         BaseType::mDofSetIsInitialized = true;
 
@@ -778,7 +780,8 @@ public:
                 if(num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 942","");
+                    if(ierr < 0)
+                        KRATOS_ERROR << "Epetra failure found in Agraph.InsertGlobalIndices --> ln 942";
                 }
             }
 // KRATOS_WATCH("assemble conditions");
@@ -802,14 +805,16 @@ public:
                 if(num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 966","");
+                    if(ierr < 0)
+                        KRATOS_ERROR << "Epetra failure found in Agraph.InsertGlobalIndices --> ln 966";
                 }
 
             }
 
             //finalizing graph construction
             int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if(graph_assemble_ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.GlobalAssemble()","");
+            if(graph_assemble_ierr != 0)
+                KRATOS_ERROR << "Epetra failure found in Agraph.GlobalAssemble()";
 
 // KRATOS_WATCH(Agraph);
 
@@ -848,7 +853,7 @@ public:
         {
             if(TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
             {
-                KRATOS_THROW_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
+                KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... ";
             }
         }
 
@@ -902,21 +907,55 @@ public:
         TSystemVectorType& b) override
     {
 
-        KRATOS_WATCH("Inside CalculateReactions()")
-
         TSparseSpace::SetToZero(b);
 
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, r_model_part, b);
 
-        if (!(pScheme->DofImporterIsInitialized()))
-            pScheme->InitializeDofImporter(BaseType::mDofSet,b);
+        //initialize the Epetra importer
+        // TODO: this part of the code has been pasted until a better solution is found
+        int system_size = TSparseSpace::Size(b);
+        int number_of_dofs = BaseType::mDofSet.size();
+        std::vector< int > index_array(number_of_dofs);
+
+        //filling the array with the global ids
+        int counter = 0;
+        for(typename DofsArrayType::iterator i_dof = BaseType::mDofSet.begin(); i_dof != BaseType::mDofSet.end(); ++i_dof)
+        {
+            int id = i_dof->EquationId();
+            if( id < system_size )
+            {
+                index_array[counter] = id;
+                counter += 1;
+            }
+        }
+
+        std::sort(index_array.begin(),index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(),index_array.end());
+        index_array.resize(NewEnd-index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        b.Comm().SumAll(&tot_update_dofs,&check_size,1);
+        if ( (check_size < system_size) &&  (b.Comm().MyPID() == 0) )
+        {
+            std::stringstream Msg;
+            Msg << "Dof count is not correct. There are less dofs than expected." << std::endl;
+            Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+            KRATOS_ERROR << Msg.str();
+        }
+
+        //defining a map as needed
+        Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,b.Comm() );
+
+        //defining the importer class
+        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,b.Map()) );
 
         //defining a temporary vector to gather all of the values needed
-        Epetra_Vector temp_RHS( (pScheme->pGetImporter())->TargetMap() );
+        Epetra_Vector temp_RHS(pDofImporter->TargetMap());
 
         //importing in the new temp_RHS vector the values
-        int ierr = temp_RHS.Import(b, pScheme->pGetImporter(), Insert);
+        int ierr = temp_RHS.Import(b, *pDofImporter, Insert);
         if(ierr != 0)
             KRATOS_ERROR << "Epetra failure found";
 
@@ -938,10 +977,10 @@ public:
             {
                 const int i = (dof_iterator)->EquationId();
                 // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-                (dof_iterator)->GetSolutionStepReactionValue() = -(temp_RHS[i]);
+                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
             }
         }
-
     }
 
     void BuildLHS_CompleteOnFreeRows(
@@ -949,7 +988,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A) override
     {
-        KRATOS_THROW_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
+        KRATOS_ERROR << "method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver";
     }
 
     //**************************************************************************
@@ -992,7 +1031,8 @@ public:
 
         //importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local,dirichlet_importer,Insert);
-        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+        if(ierr != 0)
+            KRATOS_ERROR << "Epetra failure found";
 
         /*        //now fill the local bitarray employed to store the dirichlet rows and cols in local numeration
                 //dirichlet_rows will be numbered according to A.RowMap()
@@ -1306,7 +1346,7 @@ private:
         Element::EquationIdVectorType& EquationId
     )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "This method is not implemented for Trilinos", "");
+        KRATOS_ERROR << "This method is not implemented for Trilinos";
     }
 
     /*@} */
