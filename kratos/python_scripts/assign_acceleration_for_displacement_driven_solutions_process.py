@@ -5,17 +5,17 @@ from math import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVelocityForDisplacementDrivenSolutionsProcess(Model, settings["Parameters"])
+    return AssignAccelerationForDisplacementDrivenSolutionsProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class AssignVelocityForDisplacementDrivenSolutionsProcess(KratosMultiphysics.Process):
+class AssignAccelerationForDisplacementDrivenSolutionsProcess(KratosMultiphysics.Process):
     '''this process fixes the DISPLACEMENT components in case the VELOCITY components are fixed.
     this is needed when the variable to  be solved for is DISPLACEMENT and the user wants to prescribe VELOCITY'''
     
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
         
-        settings.AddEmptyValue("variable_name").SetString("VELOCITY")
+        settings.AddEmptyValue("variable_name").SetString("ACCELERATION")
         self.variable_utils = KratosMultiphysics.VariableUtils()
         
         self.velocity_application_process = assign_vector_components_to_nodes_process.AssignVectorComponentsToNodesProcess(Model,settings)

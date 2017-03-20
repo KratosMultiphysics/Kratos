@@ -623,7 +623,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)
-            
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)            
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
             
@@ -667,6 +669,112 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
             self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)
+
+    def test_assign_acceleration_to_nodes(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_acceleration_for_displacement_driven_solutions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignAccelerationForDisplacementDrivenSolutionsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "value" : ["t",null,"z"],
+                            "interval" : [3.0,4.0]
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        ################### here we are within the interval
+        model_part.CloneTimeStep(3.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
             
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(ACCELERATION_X), True)
+            self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Z), True)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), True)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), True)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_X), 3.0) #t = 3.0
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)            
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(ACCELERATION_X), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_X), 3.0) #t = 3.0
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)   
+            
+        ################### here we are outside of the interval - values do not change but everything is free
+        model_part.CloneTimeStep(8.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(ACCELERATION_X), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_X), 3.0) #t = 3.0
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)   
+        
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(ACCELERATION_X), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Y), False)
+            self.assertEqual(node.IsFixed(ACCELERATION_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_X), 3.0) #t = 3.0
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(ACCELERATION_Z), node.Z)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)               
 if __name__ == '__main__':
     KratosUnittest.main()
