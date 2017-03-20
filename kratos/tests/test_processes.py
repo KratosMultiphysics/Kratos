@@ -474,7 +474,6 @@ class TestProcesses(KratosUnittest.TestCase):
         
     def test_assign_scalar_value_to_conditions(self):
         model_part = ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(NODAL_H)
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -574,7 +573,100 @@ class TestProcesses(KratosUnittest.TestCase):
         for i in range(1,len(model_part.Nodes)):
             self.assertEqual(model_part.GetNode(i).GetSolutionStepValue(NODAL_H), 0.25)
         self.assertEqual(model_part.GetNode(len(model_part.Nodes)).GetSolutionStepValue(NODAL_H), 0.5)
+        
+    def test_assign_velocity_to_nodes(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
 
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_velocity_for_displacement_driven_solutions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignVelocityForDisplacementDrivenSolutionsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "value" : [15.0,20.0,30.0],
+                            "interval" : [3.0,4.0]
+                        }
+                    }
+                    ]
+                }
+            """
+            )
 
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        ################### here we are within the interval
+        model_part.CloneTimeStep(3.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(VELOCITY_X), True)
+            self.assertEqual(node.IsFixed(VELOCITY_Y), True)
+            self.assertEqual(node.IsFixed(VELOCITY_Z), True)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), True)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), True)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), True)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)
+            
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(VELOCITY_X), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Y), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)
+            
+        ################### here we are outside of the interval - values do not change but everything is free
+        model_part.CloneTimeStep(8.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(VELOCITY_X), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Y), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)            
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+            
+        for node in model_part.Nodes:
+            self.assertEqual(node.IsFixed(VELOCITY_X), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Y), False)
+            self.assertEqual(node.IsFixed(VELOCITY_Z), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_X), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Y), False)
+            self.assertEqual(node.IsFixed(DISPLACEMENT_Z), False)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 15.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Y), 20.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_Z), 30.0)
+            
 if __name__ == '__main__':
     KratosUnittest.main()
