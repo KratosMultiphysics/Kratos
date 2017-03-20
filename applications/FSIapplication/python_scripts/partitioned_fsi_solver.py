@@ -25,7 +25,7 @@ class PartitionedFSISolver:
 
         # Initial tests
         start_time_structure = project_parameters["structure_solver_settings"]["problem_data"]["start_time"].GetDouble()
-        start_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["start_step"].GetDouble()
+        start_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["start_time"].GetDouble()
         end_time_structure = project_parameters["structure_solver_settings"]["problem_data"]["end_time"].GetDouble()
         end_time_fluid = project_parameters["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
 
