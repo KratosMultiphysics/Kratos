@@ -315,23 +315,49 @@ protected:
         // Deactivate the full negative distance elements
         for (auto itElement=mrModelPart.ElementsBegin(); itElement!=mrModelPart.ElementsEnd(); itElement++)
         {
+            unsigned int fixed = 0;
             unsigned int inside = 0;
 
             GeometryType& rGeometry = itElement->GetGeometry();
+            const unsigned int NumNodes = rGeometry.size();
 
-            // Check the distance function sign at the element nodes
-            for (unsigned int itNode=0; itNode<rGeometry.size(); itNode++)
+            // Check the distance function sign and fixity at the element nodes
+            if (rGeometry.Dimension() == 2)
             {
-                if(rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
+                for (unsigned int itNode=0; itNode<NumNodes; itNode++)
                 {
-                    inside++;
+                    if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
+                        inside++;
+                    if (rGeometry[itNode].IsFixed(VELOCITY_X) && rGeometry[itNode].IsFixed(VELOCITY_Y))
+                        fixed++;
+                }
+            } else {
+                for (unsigned int itNode=0; itNode<NumNodes; itNode++)
+                {
+                    if (rGeometry[itNode].GetSolutionStepValue(DISTANCE)<0.0)
+                        inside++;
+                    if (rGeometry[itNode].IsFixed(VELOCITY_X) && rGeometry[itNode].IsFixed(VELOCITY_Y) && rGeometry[itNode].IsFixed(VELOCITY_Z))
+                        fixed++;
                 }
             }
 
             // If all the nodes have negative distance value (non-fluid domain) deactivate the element
-            if (inside == rGeometry.size())
+            // If the sum of inside nodes (negative distance) and fixed nodes equals the number of nodes,
+            // deactivate the element as well. In this way non-well defined elements are avoided.
+            if ((inside == NumNodes) || (inside + fixed == NumNodes))
             {
                 itElement->Set(ACTIVE, false);
+
+                // If deactivated, set element DOFs to zero
+                const array_1d<double,3> auxVec = ZeroVector(3);
+                for (unsigned int i=0; i<NumNodes; ++i)
+                {
+                    double& pres = rGeometry[i].GetSolutionStepValue(PRESSURE);
+                    array_1d<double,3>& vel = rGeometry[i].GetSolutionStepValue(VELOCITY);
+
+                    pres = 0.0;
+                    vel = auxVec;
+                }
             }
             // Otherwise, activate the element (it might have been deactivated in a previous time step)
             else
