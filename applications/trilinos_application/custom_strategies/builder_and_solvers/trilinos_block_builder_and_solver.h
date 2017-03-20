@@ -856,11 +856,11 @@ public:
 
 
         //if needed resize the vector for the calculation of reactions
-        if(BaseType::mCalculateReactionsFlag == true)
-        {
-
-            KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
-        }
+        // if(BaseType::mCalculateReactionsFlag == true)
+        // {
+        //
+        //     KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
+        // }
 
         //~ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
@@ -901,6 +901,46 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
+
+        KRATOS_WATCH("Inside CalculateReactions()")
+
+        TSparseSpace::SetToZero(b);
+
+        //refresh RHS to have the correct reactions
+        BuildRHS(pScheme, r_model_part, b);
+
+        if (!(pScheme->DofImporterIsInitialized()))
+            pScheme->InitializeDofImporter(BaseType::mDofSet,b);
+
+        //defining a temporary vector to gather all of the values needed
+        Epetra_Vector temp_RHS( (pScheme->pGetImporter())->TargetMap() );
+
+        //importing in the new temp_RHS vector the values
+        int ierr = temp_RHS.Import(b, pScheme->pGetImporter(), Insert);
+        if(ierr != 0)
+            KRATOS_ERROR << "Epetra failure found";
+
+        double* temp_RHS_values; //DO NOT make delete of this one!!
+        temp_RHS.ExtractView(&temp_RHS_values);
+
+        b.Comm().Barrier();
+
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        // store the RHS values in the reaction variable
+        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for firstprivate(ndofs)
+        for (int k = 0; k<ndofs; k++)
+        {
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+
+            if (dof_iterator->IsFixed())
+            {
+                const int i = (dof_iterator)->EquationId();
+                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+                (dof_iterator)->GetSolutionStepReactionValue() = -(temp_RHS[i]);
+            }
+        }
 
     }
 
