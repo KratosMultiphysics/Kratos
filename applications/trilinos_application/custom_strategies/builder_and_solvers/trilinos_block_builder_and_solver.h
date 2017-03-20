@@ -939,10 +939,8 @@ public:
         b.Comm().SumAll(&tot_update_dofs,&check_size,1);
         if ( (check_size < system_size) &&  (b.Comm().MyPID() == 0) )
         {
-            std::stringstream Msg;
-            Msg << "Dof count is not correct. There are less dofs than expected." << std::endl;
-            Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
-            KRATOS_ERROR << Msg.str();
+            KRATOS_ERROR << "Dof count is not correct. There are less dofs than expected.\n"
+                         << "Expected number of active dofs = " << system_size << " dofs found = " << check_size ;
         }
 
         //defining a map as needed
@@ -957,7 +955,7 @@ public:
         //importing in the new temp_RHS vector the values
         int ierr = temp_RHS.Import(b, *pDofImporter, Insert);
         if(ierr != 0)
-            KRATOS_ERROR << "Epetra failure found";
+            KRATOS_ERROR << "Epetra failure found - error code: " << ierr;
 
         double* temp_RHS_values; //DO NOT make delete of this one!!
         temp_RHS.ExtractView(&temp_RHS_values);
