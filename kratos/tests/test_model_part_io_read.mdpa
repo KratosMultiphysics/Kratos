@@ -41,7 +41,7 @@ Begin Elements Element2D3N
 End Elements
 
 
-Begin Conditions Condition2D
+Begin Conditions LineCondition2D2N
 1    1        1          2
 1800 1        2          3
 1801 1        3          972

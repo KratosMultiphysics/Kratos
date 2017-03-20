@@ -33,7 +33,7 @@ class L2ProjectionDerivativesRecoverer(recoverer.DerivativesRecoverer):
         max_iterations = 1000
         verbosity = 0 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 50
-
+        
         if self.use_lumped_mass_matrix:
             linear_solver = CGSolver()
         else:

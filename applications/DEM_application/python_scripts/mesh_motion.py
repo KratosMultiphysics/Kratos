@@ -50,11 +50,10 @@ def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
 
 def MoveAllMeshes(model_part, time):
 
-    if model_part.NumberOfMeshes() > 1:
+    if model_part.NumberOfMeshes() > 0:
 
         for mesh_number in range(1, model_part.NumberOfMeshes()):
             mesh_nodes         = model_part.GetMesh(mesh_number).Nodes
-            # print model_part.Properties[mesh_number]
             linear_velocity    = model_part.GetMesh(mesh_number)[VELOCITY]
             linear_period      = model_part.GetMesh(mesh_number)[VELOCITY_PERIOD]
             angular_velocity   = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY]

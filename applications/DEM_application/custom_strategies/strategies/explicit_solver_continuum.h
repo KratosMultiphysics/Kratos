@@ -62,19 +62,19 @@ namespace Kratos {
             Timer::PrintTimingInformation();
         }
 
-        virtual void Initialize();
-        virtual double Solve();
+        virtual void Initialize() override;
+        virtual double Solve() override;
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi);
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
-        void ComputeNewNeighboursHistoricalData();
-        void ComputeNewRigidFaceNeighboursHistoricalData();
+        void ComputeNewNeighboursHistoricalData() override;
+        void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements();
         void InitializeContactElements();
         void ContactInitializeSolutionStep();
         void PrepareContactElementsForPrinting();
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
-        void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
+        void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         void Check_MPI(bool& has_mpi);
         virtual void CalculateMaxSearchDistance();
         virtual void MeshRepairOperations();
@@ -82,7 +82,7 @@ namespace Kratos {
         void CalculateMeanContactArea();
         void SetInitialDemContacts();
         void SetInitialFemContacts();
-        void FinalizeSolutionStep();
+        void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
 
@@ -110,7 +110,7 @@ namespace Kratos {
             return r_model_part.Elements();
         }
 
-        virtual ElementsArrayType& GetElements(ModelPart& r_model_part) {
+        virtual ElementsArrayType& GetElements(ModelPart& r_model_part) override {
             return r_model_part.GetCommunicator().LocalMesh().Elements();
         }
 

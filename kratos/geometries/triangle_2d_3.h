@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TRIANGLE_2D_3_H_INCLUDED )
 #define  KRATOS_TRIANGLE_2D_3_H_INCLUDED
 
@@ -221,8 +219,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 3, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -801,9 +798,7 @@ public:
         case 2:
             return( rPoint[1] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" ,
-                                *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -935,6 +930,79 @@ public:
             determinants_of_jacobian[i] = detJ;
 
         return rResult;
+    }
+
+    /**
+     * Determinant of jacobians for given integration method.
+     * This method calculates determinant of jacobian in all
+     * integrations points of given integration method.
+     *
+     * @return Vector of double which is vector of determinants of
+     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
+     * integration point index of given integration method.
+     *
+     * @see Jacobian
+     * @see InverseOfJacobian
+     */
+    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
+    {
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        const double detJ = 2.0*(this->Area());
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = detJ;
+        }
+        return rResult;
+    }
+
+    /**
+     * Determinant of jacobian in specific integration point of
+     * given integration method. This method calculate determinant
+     * of jacobian in given integration point of given integration
+     * method.
+     *
+     * @param IntegrationPointIndex index of integration point which jacobians has to
+     * be calculated in it.
+     *
+     * @param IntegrationPointIndex index of integration point
+     * which determinant of jacobians has to be calculated in it.
+     *
+     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
+     * i \f$ is the given integration point index of given
+     * integration method.
+     *
+     * @see Jacobian
+     * @see InverseOfJacobian
+     */
+    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
+                                          IntegrationMethod ThisMethod ) const
+    {
+        return 2.0*(this->Area());
+    }
+
+    /**
+     * Determinant of jacobian in given point.
+     * This method calculate determinant of jacobian
+     * matrix in given point.
+     * @param rPoint point which determinant of jacobians has to
+     * be calculated in it.
+     *
+     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
+     * point.
+     *
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     *
+     */
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    {
+        return 2.0*(this->Area());
     }
 
 

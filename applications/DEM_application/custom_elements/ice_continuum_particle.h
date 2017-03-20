@@ -27,7 +27,7 @@ namespace Kratos {
         IceContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes) : SphericContinuumParticle(NewId, ThisNodes) {}
         IceContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SphericContinuumParticle(NewId, pGeometry, pProperties) {}
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
             return SphericContinuumParticle::Pointer(new IceContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
         }
@@ -36,7 +36,7 @@ namespace Kratos {
         virtual ~IceContinuumParticle() {};
 
         /// Turn back information as a string
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
             std::stringstream buffer;
             buffer << "IceContinuumParticle" ;
@@ -44,23 +44,23 @@ namespace Kratos {
         }
 
         /// Print information about this object
-        virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "IceContinuumParticle";}
+        virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "IceContinuumParticle";}
 
         /// Print object's data
-        virtual void PrintData(std::ostream& rOStream) const {}    
+        virtual void PrintData(std::ostream& rOStream) const override {}    
 
-        virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+        virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info) override;
         
         private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const
+        virtual void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericContinuumParticle);
         }
 
-        virtual void load(Serializer& rSerializer)
+        virtual void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericContinuumParticle);
         }

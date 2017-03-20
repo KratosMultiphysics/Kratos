@@ -32,10 +32,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
-            "oss_switch": 0,
+            "dynamic_tau": 0.01,
             "echo_level": 0,
-            "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
@@ -50,7 +48,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "tolerance"           : 1e-7,
                 "provide_coordinates" : false,
                 "smoother_type"       : "ilu0",
-                "krylov_type"         : "lgmres",
+                "krylov_type"         : "gmres",
                 "coarsening_type"     : "aggregation",
                 "scaling"             : true,
                 "verbosity"           : 0
@@ -58,12 +56,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "move_mesh_strategy": 0,
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
             "periodic": "periodic",
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false
+            "move_mesh_flag": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -80,14 +80,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"EmbeddedNavierStokes3D4N",
-                "condition_name": "MonolithicWallCondition3D"
+                "condition_name": "NavierStokesWallCondition3D"
                 }
                 """)
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"EmbeddedNavierStokes2D3N",
-                "condition_name": "MonolithicWallCondition2D"
+                "condition_name": "NavierStokesWallCondition2D"
                 }
                 """)
         else:
@@ -105,7 +105,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Add base class variables
         super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
         ## Add specific variables needed for the embedded solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)           # Nodal volume necessary for refinement
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)          # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
@@ -118,7 +117,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
 
-        move_mesh_flag = False
+        # If needed, create the estimate time step utility
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosFluid.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -142,7 +143,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                                                                             self.settings["maximum_iterations"].GetInt(),
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            move_mesh_flag)
+                                                                            self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -150,8 +151,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        #~ self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        #~ self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic embedded solver initialization finished.")
 

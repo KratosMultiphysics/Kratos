@@ -1,0 +1,106 @@
+{
+    "problem_data"             : {
+        "problem_name"        : "2d_joint",
+        "model_part_name"     : "MainModelPart",
+        "domain_size"         : 2,
+        "start_time"          : 0.0,
+        "end_time"            : 25,
+        "time_step"           : 0.1,
+        "streamlines_utility" : false,
+        "parallel_type"       : "OpenMP",
+        "number_of_threads"   : 1,
+        "time_scale"          : "Seconds"
+    },
+    "solver_settings"          : {
+        "solver_type"                   : "dam_mechanical_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "2d_joint",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","PointLoad2D_Point_Load_Auto1"],
+        "mechanical_solver_settings"    : {
+            "solution_type"                      : "Quasi-Static",
+            "strategy_type"                      : "Newton-Raphson",
+            "scheme_type"                        : "Newmark",
+            "convergence_criterion"              : "And_criterion",
+            "displacement_relative_tolerance"    : 0.0001,
+            "displacement_absolute_tolerance"    : 1e-9,
+            "residual_relative_tolerance"        : 0.0001,
+            "residual_absolute_tolerance"        : 1e-9,
+            "max_iteration"                      : 15,
+            "echo_level"                         : 1,
+            "buffer_size"                        : 2,
+            "compute_reactions"                  : true,
+            "reform_dofs_at_each_step"           : false,
+            "move_mesh_flag"                     : true,
+            "block_builder"                      : false,
+            "clear_storage"                      : false,
+            "rayleigh_m"                         : 0.6,
+            "rayleigh_k"                         : 0.6,
+            "nonlocal_damage"                    : false,
+            "linear_solver_settings"             : {
+                "solver_type" : "SuperLUSolver",
+                "scaling"     : false
+            },
+            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
+            "body_domain_sub_model_part_list"    : ["Parts_Parts_Auto1","Parts_Parts_Auto3"],
+            "loads_sub_model_part_list"          : [],
+            "loads_variable_list"                : []
+        }
+    },
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","POINT_LOAD","NODAL_CAUCHY_STRESS_TENSOR"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","DAMAGE_VARIABLE"]
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_process_list" : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "ImposeVectorValueByComponentsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_X"      : true,
+            "is_fixed_Y"      : true,
+            "is_fixed_Z"      : true,
+            "value"           : [0.0,0.0,0.0],
+            "Value_X_Table"   : 0,
+            "Value_Y_Table"   : 0,
+            "Value_Z_Table"   : 0
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "apply_load_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "ApplyLoadVectorDamTableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad2D_Point_Load_Auto1",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : -1.0,
+            "direction"       : [0.0,1.0,0.0],
+            "table"           : 1
+        }
+    }]
+}

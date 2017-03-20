@@ -12,9 +12,9 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 #~ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
     
 # Parsing the parameters
@@ -33,7 +33,6 @@ else:
 
 ## Defining variables ----------------------------------------------------------------------------------------
 
-domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 problem_path = os.getcwd()
 echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
@@ -47,11 +46,10 @@ tol = delta_time*1.0e-10
 
 # Defining the model part
 main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
 main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
-Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 # Construct the solver (main setting methods are located in the solver_module)
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
@@ -66,10 +64,14 @@ solver.ImportModelPart()
 # Add degrees of freedom
 solver.AddDofs()
 
+# Creation of Kratos model
+PoroModel = KratosMultiphysics.Model()
+PoroModel.AddModelPart(main_model_part)
+
 # Build sub_model_parts (save the list of the submodel part in the object Model)
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    Model.update({part_name : main_model_part.GetSubModelPart(part_name)})
+    PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
 # Print model_part and properties
 if(echo_level > 1):
@@ -82,8 +84,8 @@ if(echo_level > 1):
 
 # Construct processes to be applied
 import process_factory
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+list_of_processes = process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
 # Print list of constructed processes
 if(echo_level>1):
@@ -128,14 +130,6 @@ for process in list_of_processes:
 ## Set results when they are written in a single file
 gid_output.ExecuteBeforeSolutionLoop()
 
-# Initialize Fracture Propagation Utility
-FracturePropagation = ProjectParameters["problem_data"]["fracture_propagation"].GetBool()
-if FracturePropagation:
-    import poromechanics_fracture_propagation_utility
-    fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
-                                                                                             problem_name,
-                                                                                             ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
-
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
 while( (time+tol) <= end_time ):
@@ -168,24 +162,8 @@ while( (time+tol) <= end_time ):
     
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
-    
-    # Fracture Propagation Utility
-    IsRemeshed = False
-    if FracturePropagation:
-        if fracture_utility.IsPropagationStep():
-            main_model_part,solver,list_of_processes,gid_output,IsRemeshed = fracture_utility.CheckPropagation(main_model_part,
-                                                                                                               solver,
-                                                                                                               list_of_processes,
-                                                                                                               gid_output)
 
 ## Finalize --------------------------------------------------------------------------------------------------
-
-# Print last step if model was regenerated at the end
-if IsRemeshed:
-    #solver._CheckConvergence()
-    gid_output.ExecuteInitializeSolutionStep()
-    gid_output.ExecuteFinalizeSolutionStep()
-    gid_output.PrintOutput()
 
 # Finalizing output files
 gid_output.ExecuteFinalize()

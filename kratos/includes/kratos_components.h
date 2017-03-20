@@ -202,7 +202,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents;
+    static ComponentsContainerType msComponents ;
 
     ///@}
     ///@name Member Variables
@@ -285,12 +285,12 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
+        KratosComponents<VariableData>::msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
     }
 
     static std::size_t Size()
     {
-        return msComponents.size();
+        return KratosComponents<VariableData>::msComponents.size();
     }
 
 //     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
@@ -452,6 +452,7 @@ private:
 
 }; // Class KratosComponents
 
+ 
 
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
@@ -468,7 +469,7 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
 
 #ifdef KratosCore_EXPORTS
 template<class TComponentType>
-typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents = KratosComponents<TComponentType>::ComponentsContainerType();
 #endif
 
 ///@name Input and output

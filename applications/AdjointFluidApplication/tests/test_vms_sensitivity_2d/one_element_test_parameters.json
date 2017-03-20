@@ -17,7 +17,6 @@
         "oss_switch"                    : 0,
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
-        "time_order"                    : 2,
         "compute_reactions"             : false,
         "divergence_clearance_steps"    : 0,
         "reform_dofs_at_each_step"      : false,
@@ -30,13 +29,6 @@
         "no_skin_parts"                 : [],
         "linear_solver_settings" : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-9,
-            "provide_coordinates" : false,
-            "smoother_type"       : "ilu0",
-            "krylov_type"         : "gmres",
-            "coarsening_type"     : "aggregation",
-            "scaling"             : true,
             "verbosity"           : 0
         },
         "model_import_settings" : {

@@ -131,7 +131,9 @@ public:
                          array_1d<double, TDim + 1 > & N,
                          Element::Pointer& pelement,
                          ResultIteratorType result_begin,
-                         const unsigned int MaxNumberOfResults)
+                         const unsigned int MaxNumberOfResults,
+                         const double Tolerance = 1.0e-5
+                         )
     {
         typedef std::size_t SizeType;
 
@@ -146,7 +148,7 @@ public:
                 Geometry<Node < 3 > >& geom = (*(result_begin + i))->GetGeometry();
 
                 // Find local position
-                bool is_found = CalculatePosition(geom, coords[0], coords[1], coords[2], N);
+                bool is_found = CalculatePosition(geom, coords[0], coords[1], coords[2], N, Tolerance);
 
                 if (is_found == true)
                 {
@@ -169,42 +171,53 @@ public:
     bool FindPointOnMeshSimplified(const array_1d<double, 3 >& coords,
                                    Vector& N,
                                    Element::Pointer& pelement,
-                                   const unsigned int max_results = 1000
+                                   const unsigned int MaxNumberOfResults = 1000,
+                                   const double Tolerance = 1.0e-5
                                    )
     {
-        ResultContainerType results(max_results);
+        ResultContainerType results(MaxNumberOfResults);
+        
         if(N.size() != TDim+1)
+        {
             N.resize(TDim+1,false);
+        }
 
         array_1d<double,TDim+1> aux;
 
-        bool is_found = FindPointOnMesh(coords, aux, pelement, results.begin(), max_results);
+        bool is_found = FindPointOnMesh(coords, aux, pelement, results.begin(), MaxNumberOfResults, Tolerance);
 
         if(is_found == true)
+        {
             noalias(N) = aux;
+        }
 
         return is_found;
     }
     
     //***************************************
     //***************************************
-    inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
-                                  const double xc, const double yc, const double zc,
-                                  array_1d<double, 3 > & N
-                                 )
+    inline bool CalculatePosition(
+        Geometry<Node < 3 > >&geom,
+        const double xc, 
+        const double yc, 
+        const double zc,
+        array_1d<double, 3 > & N,
+        const double Tolerance = 1.0e-5
+        )
     {
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
+        const double x0 = geom[0].X();
+        const double y0 = geom[0].Y();
+        const double x1 = geom[1].X();
+        const double y1 = geom[1].Y();
+        const double x2 = geom[2].X();
+        const double y2 = geom[2].Y();
 
-        double area = CalculateVol(x0, y0, x1, y1, x2, y2); 
+        const double area = CalculateVol(x0, y0, x1, y1, x2, y2); 
+        
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+            KRATOS_ERROR << "Element with zero area found with the current geometry " << geom << std::endl;
         }
         else
         {
@@ -217,8 +230,11 @@ public:
         N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
 
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
+        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) && 
+            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance))) //if the xc yc is inside the triangle return true
+        {
             return true;
+        }
 
         return false;
     }
@@ -226,26 +242,30 @@ public:
     //***************************************
     //***************************************
 
-    inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
-                                  const double xc, const double yc, const double zc,
-                                  array_1d<double, 4 > & N
-                                 )
+    inline bool CalculatePosition(
+        Geometry<Node < 3 > >&geom,
+        const double xc, 
+        const double yc, 
+        const double zc,
+        array_1d<double, 4 > & N,
+        const double Tolerance = 1.0e-5
+        )
     {
 
-        double x0 = geom[0].X();
-        double y0 = geom[0].Y();
-        double z0 = geom[0].Z();
-        double x1 = geom[1].X();
-        double y1 = geom[1].Y();
-        double z1 = geom[1].Z();
-        double x2 = geom[2].X();
-        double y2 = geom[2].Y();
-        double z2 = geom[2].Z();
-        double x3 = geom[3].X();
-        double y3 = geom[3].Y();
-        double z3 = geom[3].Z();
+        const double x0 = geom[0].X();
+        const double y0 = geom[0].Y();
+        const double z0 = geom[0].Z();
+        const double x1 = geom[1].X();
+        const double y1 = geom[1].Y();
+        const double z1 = geom[1].Z();
+        const double x2 = geom[2].X();
+        const double y2 = geom[2].Y();
+        const double z2 = geom[2].Z();
+        const double x3 = geom[3].X();
+        const double y3 = geom[3].Y();
+        const double z3 = geom[3].Z();
 
-        double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        const double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
         double inv_vol = 0.0;
         if (vol == 0.0)
@@ -267,10 +287,12 @@ public:
         N[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
 
 
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >= 0.0 &&
-                N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <= 1.0)
+        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) && (N[3] >= -Tolerance) &&
+            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance)) && (N[3] <= (1.0 + Tolerance)))
             //if the xc yc zc is inside the tetrahedron return true
+        {
             return true;
+        }
 
         return false;
     }
@@ -298,17 +320,17 @@ private:
                                const double x3, const double y3, const double z3
                               )
     {
-        double x10 = x1 - x0;
-        double y10 = y1 - y0;
-        double z10 = z1 - z0;
+        const double x10 = x1 - x0;
+        const double y10 = y1 - y0;
+        const double z10 = z1 - z0;
 
-        double x20 = x2 - x0;
-        double y20 = y2 - y0;
-        double z20 = z2 - z0;
+        const double x20 = x2 - x0;
+        const double y20 = y2 - y0;
+        const double z20 = z2 - z0;
 
-        double x30 = x3 - x0;
-        double y30 = y3 - y0;
-        double z30 = z3 - z0;
+        const double x30 = x3 - x0;
+        const double y30 = y3 - y0;
+        const double z30 = z3 - z0;
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
         return detJ * 0.1666666666666666666667;

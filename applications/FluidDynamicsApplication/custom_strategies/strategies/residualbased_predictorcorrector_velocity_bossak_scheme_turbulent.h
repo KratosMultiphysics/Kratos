@@ -474,7 +474,11 @@ namespace Kratos {
             (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
-
+            
+//             if(LHS_Contribution.size1() != EquationId.size() || LHS_Contribution.size2() != EquationId.size() )
+//                 LHS_Contribution.resize(EquationId.size(),EquationId.size());
+//             if(RHS_Contribution.size() != EquationId.size() | )
+//                 RHS_Contribution.resize(EquationId.size(),EquationId.size());
             //adding the dynamic contributions (statics is already included)
 
             AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);

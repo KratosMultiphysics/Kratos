@@ -20,9 +20,10 @@ class AssignTimeDerivativeProcess(KratosMultiphysics.Process):
             raise Exception("settings must contain an indication of the variable to be solved for")
         
         #create a process to fix the variable with name "variable_name" 
-        aux_settings = KratosMultiphysics.Parameters("""{}""")
-        for key, value in settings.Items():
-            if(key != variable_to_be_solved_for):
+        aux_settings = KratosMultiphysics.Parameters("""{}"""
+            )
+        for key, value in settings.items():
+            if(key != "variable_to_be_solved_for"):
                 aux_settings.AddValue(key, value)
         self.velocity_application_process = assign_vector_components_to_nodes_process.AssignVectorComponentsToNodesProcess(Model,aux_settings)
         
