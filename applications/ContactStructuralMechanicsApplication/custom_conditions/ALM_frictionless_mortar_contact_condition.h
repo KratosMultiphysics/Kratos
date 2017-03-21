@@ -30,6 +30,10 @@
 /* Utilities */
 #include "custom_utilities/logging_settings.hpp"
 
+/* Geometries */
+#include "geometries/line_2d_2.h"
+#include "geometries/triangle_3d_3.h"
+
 namespace Kratos 
 {
 
@@ -73,19 +77,27 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactCondition );
 
-    typedef Condition                                                  BaseType;
+    typedef Condition                                                                    BaseType;
     
-    typedef typename BaseType::VectorType                            VectorType;
+    typedef typename BaseType::VectorType                                              VectorType;
 
-    typedef typename BaseType::MatrixType                            MatrixType;
+    typedef typename BaseType::MatrixType                                              MatrixType;
 
-    typedef typename BaseType::IndexType                              IndexType;
+    typedef typename BaseType::IndexType                                                IndexType;
 
-    typedef typename BaseType::GeometryType::Pointer        GeometryPointerType;
+    typedef typename BaseType::GeometryType::Pointer                          GeometryPointerType;
 
-    typedef typename BaseType::NodesArrayType                    NodesArrayType;
+    typedef typename BaseType::NodesArrayType                                      NodesArrayType;
 
-    typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
+    typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    
+    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    
+    typedef Line2D2<Point<3>>                                                            LineType;
+    
+    typedef Triangle3D3<Point<3>>                                                    TriangleType;
+    
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
     /**
      * Parameters to be used in the Condition as they are.
@@ -1019,33 +1031,35 @@ protected:
         return value;
     }
 
-    // TODO: Remove this later after pooyan accepts the pull request
-    template<class TDataType>
-    static void GeneralizedInvertMatrix(
-        const MatrixType& InputMatrix,
-        MatrixType& InvertedMatrix,
-        TDataType& InputMatrixDet
-        )
+    /*
+     * It returns theintegration method considered
+     */
+    
+    IntegrationMethod GetIntegrationMethod()
     {
-        if (InputMatrix.size1() == InputMatrix.size2())
+        if (mIntegrationOrder == 1)
         {
-            MathUtils<TDataType>::InvertMatrix(InputMatrix, InvertedMatrix, InputMatrixDet);
+            return GeometryData::GI_GAUSS_1;
         }
-        else if (InputMatrix.size1() < InputMatrix.size2()) // Right inverse
+        else if (mIntegrationOrder == 2)
         {
-            const Matrix aux = prod(InputMatrix, trans(InputMatrix));
-            Matrix auxInv;
-            MathUtils<TDataType>::InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
-            InvertedMatrix = prod(trans(InputMatrix), auxInv);
+            return GeometryData::GI_GAUSS_2;
         }
-        else // Left inverse
+        else if (mIntegrationOrder == 3)
         {
-            const Matrix aux = prod(trans(InputMatrix), InputMatrix);
-            Matrix auxInv;
-            MathUtils<TDataType>::InvertMatrix(aux, auxInv, InputMatrixDet);
-	    InputMatrixDet = std::sqrt(InputMatrixDet);
-            InvertedMatrix = prod(auxInv, trans(InputMatrix));
+            return GeometryData::GI_GAUSS_3;
+        }
+        else if (mIntegrationOrder == 4)
+        {
+            return GeometryData::GI_GAUSS_4;
+        }
+        else if (mIntegrationOrder == 5)
+        {
+            return GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            return GeometryData::GI_GAUSS_2;
         }
     }
     
