@@ -92,14 +92,14 @@ class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonol
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                         "element_name": "VMSAdjointElement3D",
-                        "condition_name": "Condition3D3N"
+                        "condition_name": "SurfaceCondition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                         "element_name": "VMSAdjointElement2D",
-                        "condition_name": "Condition2D2N"
+                        "condition_name": "LineCondition2D2N"
                     }
                     """)
             else:

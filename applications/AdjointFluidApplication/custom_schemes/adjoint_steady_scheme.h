@@ -27,7 +27,6 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
-#include "includes/kratos_components.h"
 
 // Application includes
 #include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
@@ -82,12 +81,6 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef Variable<double> VariableType;
-
-    typedef Variable<Matrix> MatrixVariableType;
-
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
 
     ///@}
     ///@name Life Cycle
@@ -172,23 +165,13 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        // access the variables through the core for trilinos application.
-        const VariableWithComponentsType& rSHAPE_SENSITIVITY =
-            KratosComponents<VariableWithComponentsType>::Get(
-                "SHAPE_SENSITIVITY");
-        const VariableWithComponentsType& rADJOINT_VELOCITY =
-            KratosComponents<VariableWithComponentsType>::Get(
-                "ADJOINT_VELOCITY");
-        const VariableType& rADJOINT_PRESSURE =
-            KratosComponents<VariableType>::Get("ADJOINT_PRESSURE");
-
         // initialize the variables to zero.
         for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
         {
             it->Set(BOUNDARY, false);
-            it->FastGetSolutionStepValue(rSHAPE_SENSITIVITY) = rSHAPE_SENSITIVITY.Zero();
-            it->FastGetSolutionStepValue(rADJOINT_VELOCITY) = rADJOINT_VELOCITY.Zero();
-            it->FastGetSolutionStepValue(rADJOINT_PRESSURE) = rADJOINT_PRESSURE.Zero();
+            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
         }
 
         ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
@@ -261,12 +244,8 @@ public:
 
         int ThreadId = OpenMPUtils::ThisThread();
 
-        // access the variables through the core for trilinos application.
-        const MatrixVariableType& rADJOINT_MATRIX_1 =
-            KratosComponents<MatrixVariableType>::Get("ADJOINT_MATRIX_1");
-
         // adjoint system matrix
-        pCurrentElement->Calculate(rADJOINT_MATRIX_1, rLHS_Contribution, rCurrentProcessInfo);
+        pCurrentElement->Calculate(ADJOINT_MATRIX_1, rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
@@ -278,7 +257,7 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // residual form
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId], 0);
+        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointVelocity[ThreadId]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -405,14 +384,6 @@ private:
         std::vector<Vector> CoordAuxVector(NumThreads);
         std::vector<Matrix> ShapeDerivativesMatrix(NumThreads);
 
-        // access the variables through the core for trilinos application.
-        const VariableWithComponentsType& rSHAPE_SENSITIVITY =
-            KratosComponents<VariableWithComponentsType>::Get(
-                "SHAPE_SENSITIVITY");
-        const MatrixVariableType& rSHAPE_DERIVATIVE_MATRIX_1 =
-            KratosComponents<MatrixVariableType>::Get(
-                "SHAPE_DERIVATIVE_MATRIX_1");
-
         const unsigned int DomainSize =
             static_cast<unsigned int>(rProcessInfo[DOMAIN_SIZE]);
 
@@ -425,8 +396,8 @@ private:
             // InitializeSolutionStep()
             for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
                 if (it->FastGetSolutionStepValue(PARTITION_INDEX) != rComm.MyPID())
-                    it->FastGetSolutionStepValue(rSHAPE_SENSITIVITY, 0) =
-                        rSHAPE_SENSITIVITY.Zero();
+                    it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
+                        SHAPE_SENSITIVITY.Zero();
         }
 
 #pragma omp parallel
@@ -452,7 +423,7 @@ private:
 
                 // transposed gradient of local element's residual w.r.t. nodal
                 // coordinates
-                it->Calculate(rSHAPE_DERIVATIVE_MATRIX_1, ShapeDerivativesMatrix[k], rProcessInfo);
+                it->Calculate(SHAPE_DERIVATIVE_MATRIX_1, ShapeDerivativesMatrix[k], rProcessInfo);
 
                 // d (objective) / d (coordinates)
                 mpObjectiveFunction->CalculateSensitivityContribution(
@@ -472,7 +443,7 @@ private:
                     {
                         rGeom[iNode].SetLock();
                         array_1d<double, 3>& rSensitivity =
-                            rGeom[iNode].FastGetSolutionStepValue(rSHAPE_SENSITIVITY);
+                            rGeom[iNode].FastGetSolutionStepValue(SHAPE_SENSITIVITY);
                         for (unsigned int d = 0; d < DomainSize; ++d)
                             rSensitivity[d] += CoordAuxVector[k][CoordIndex++];
                         rGeom[iNode].UnSetLock();
@@ -486,7 +457,7 @@ private:
             }
         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(rSHAPE_SENSITIVITY);
+        rModelPart.GetCommunicator().AssembleCurrentData(SHAPE_SENSITIVITY);
 
         KRATOS_CATCH("")
     }
