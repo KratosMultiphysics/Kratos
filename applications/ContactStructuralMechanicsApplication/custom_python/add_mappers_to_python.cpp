@@ -32,14 +32,8 @@ void  AddCustomMappersToPython()
     using namespace boost::python;
 
     class_<InterfacePreprocessCondition>("InterfacePreprocessCondition", init<>())
-    .def("GenerateInterfacePart",&InterfacePreprocessCondition::GenerateInterfacePart)
-    .def("GenerateLine2NInterfacePart",&InterfacePreprocessCondition::GenerateLine2NInterfacePart)
-    .def("GenerateLine3NInterfacePart",&InterfacePreprocessCondition::GenerateLine3NInterfacePart)
-    .def("GenerateTriangle3NInterfacePart",&InterfacePreprocessCondition::GenerateTriangle3NInterfacePart)
-    .def("GenerateTriangle6NInterfacePart",&InterfacePreprocessCondition::GenerateTriangle6NInterfacePart)
-    .def("GenerateQuadrilateral4NInterfacePart",&InterfacePreprocessCondition::GenerateQuadrilateral4NInterfacePart)
-    .def("GenerateQuadrilateral8NInterfacePart",&InterfacePreprocessCondition::GenerateQuadrilateral8NInterfacePart)
-    .def("GenerateQuadrilateral9NInterfacePart",&InterfacePreprocessCondition::GenerateQuadrilateral9NInterfacePart)
+    .def("GenerateInterfacePart2D",&InterfacePreprocessCondition::GenerateInterfacePart<2>)
+    .def("GenerateInterfacePart3D",&InterfacePreprocessCondition::GenerateInterfacePart<3>)
     ;
 }
 

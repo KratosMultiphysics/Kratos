@@ -48,6 +48,8 @@ class ContactProcess(KratosMultiphysics.Process):
    
         self.main_model_part = model_part[self.params["model_part_name"].GetString()]
 
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
         self.d_model_part = model_part[self.params["destination_model_part_name"].GetString()]
         
@@ -92,10 +94,16 @@ class ContactProcess(KratosMultiphysics.Process):
         final_string = ""
         
         # It should create the conditions automatically
-        initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
-        initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+        if (self.dimension == 2):
+            initial_id = CalculateLastIdCondition(self.main_model_part)
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+            initial_id = CalculateLastIdCondition(self.main_model_part)
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+        else:
+            initial_id = CalculateLastIdCondition(self.main_model_part)
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+            initial_id = CalculateLastIdCondition(self.main_model_part)
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
