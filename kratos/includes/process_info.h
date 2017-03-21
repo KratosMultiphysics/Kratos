@@ -456,20 +456,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "Process Info";
     }
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Current solution step index : " << mSolutionStepIndex << std::endl;
         BaseType::PrintData(rOStream);
@@ -553,7 +553,7 @@ private:
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
@@ -563,7 +563,7 @@ private:
         rSerializer.save("Previous Time Step Info", mpPreviousTimeStepInfo);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );

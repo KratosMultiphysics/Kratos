@@ -1234,13 +1234,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream) const override;
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const;
@@ -1314,9 +1314,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
