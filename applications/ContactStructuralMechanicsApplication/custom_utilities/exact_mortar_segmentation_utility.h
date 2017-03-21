@@ -1009,7 +1009,7 @@ private:
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                     if (Angles[elem - 1] < 0.0)
                     {
-                        v = MasterProjectedPoint[elem].Coordinates() - MasterProjectedPoint[0].Coordinates();
+                        v = PointList[elem].Coordinates() - PointList[0].Coordinates();
                         v /= norm_2(v);
                         n = GetNormalVector2D(v);
                         for (unsigned int auxelem = 0; auxelem <= (elem - 1); auxelem++)
@@ -1509,7 +1509,7 @@ private:
 //                         RotatePoint(aux3, SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
 //                         
 //                         std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
-//                         
+                      
                         // Local points should be calculated in the global space of the XY plane, then move to the plane, then invert the projection to the original geometry (that in the case of the triangle is not necessary), then we can calculate the local points which will be final coordinates                 
                         for ( unsigned int PointNumber = 0; PointNumber < LocalIntegrationSize; PointNumber++ )
                         {                            
@@ -1888,7 +1888,7 @@ private:
                     Angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
                     if (Angles[elem - 1] < 0.0)
                     {
-                        v = MasterProjectedPoint[elem].Coordinates() - MasterProjectedPoint[0].Coordinates();
+                        v = PointList[elem].Coordinates() - PointList[0].Coordinates();
                         v /= norm_2(v);
                         n = GetNormalVector2D(v);
                         for (unsigned int auxelem = 0; auxelem <= (elem - 1); auxelem++)
@@ -1905,7 +1905,7 @@ private:
                 // We recover this point to the triangle plane
                 for (unsigned int i_node = 0; i_node < 3; i_node++)
                 {
-                    RotatePoint( SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    RotatePoint(SlaveGeometry[i_node], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
                 }
                 for (unsigned int i_master = 0; i_master < MasterProjectedPoint.size(); i_master++)
                 {
@@ -1918,6 +1918,18 @@ private:
                 
                 for (unsigned int elem = 0; elem < ListSize - 2; elem++) // NOTE: We always have two points less that the number of nodes
                 {
+//                     // Debug
+//                     PointType aux1;
+//                     aux1.Coordinates() = PointList[0].Coordinates();
+//                     
+//                     PointType aux2;
+//                     aux2.Coordinates() = PointList[IndexVector[elem + 0] + 1].Coordinates();
+//                     
+//                     PointType aux3;
+//                     aux3.Coordinates() = PointList[IndexVector[elem + 1] + 1].Coordinates();
+//                     
+//                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
+                    
                     if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
                     {
                         array_1d<PointType, 3> PointsLocals;
