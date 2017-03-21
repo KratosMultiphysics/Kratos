@@ -47,6 +47,7 @@ namespace Kratos
     typedef Point<3>                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
+    typedef Geometry<PointType>               GeometryPointType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod   IntegrationMethod;
     
@@ -834,12 +835,15 @@ protected:
     /**
      * Calculate condition kinematics
      */
+    
     void CalculateKinematics( 
         GeneralVariables& rVariables,
         const DerivativeData rDerivativeData,
         const array_1d<double, 3> MasterNormal,
-        const PointType& LocalPoint 
-        );
+        const PointType& LocalPointDecomp,
+        const PointType& LocalPointParent,
+        GeometryPointType& GeometryDecomp
+    );
 
     /********************************************************************************/
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
