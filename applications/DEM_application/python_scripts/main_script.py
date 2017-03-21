@@ -135,7 +135,7 @@ class Solution:
         #Setting up the BoundingBox
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
-        dt = DEM_parameters.MaxTimeStep
+        self.dt = DEM_parameters.MaxTimeStep
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
         max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
@@ -144,8 +144,7 @@ class Solution:
         #Strategy Initialization
         os.chdir(self.main_path)
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
-        dt = min(DEM_parameters.MaxTimeStep, self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
-        #dt = DEM_parameters.MaxTimeStep
+        self.dt = min(DEM_parameters.MaxTimeStep, self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # under revision. linked to automatic timestep? Possible modifications of DELTA_TIME
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         if (DEM_parameters.dem_inlet_option):
@@ -171,7 +170,7 @@ class Solution:
 
         self.post_utils = DEM_procedures.PostUtils(DEM_parameters, self.spheres_model_part)
 
-        self.report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
+        self.report.total_steps_expected = int(DEM_parameters.FinalTime / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         
         
@@ -220,19 +219,19 @@ class Solution:
     
     def RunMainTemporalLoop(self):
         
-        step           = 0
-        time           = 0.0
+        self.step           = 0
+        self.time           = 0.0
         time_old_print = 0.0
         
-        while (time < DEM_parameters.FinalTime):
+        while (self.time < DEM_parameters.FinalTime):
             
-            self.InitlializeTimeStep()
+            self.InitializeTimeStep()
 
-            dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
-            time  = time + dt
-            step += 1
+            self.dt    = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+            self.time  = self.time + self.dt
+            self.step += 1
 
-            self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, time,dt,step) 
+            self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time,self.dt,self.step)
             
             self.BeforeSolveOperations()
 
@@ -242,36 +241,36 @@ class Solution:
             
             self.AfterSolveOperations()
 
-            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, time, dt)
+            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
             #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if (DEM_parameters.dem_inlet_option):
                 self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
-            stepinfo = self.report.StepiReport(timer,time,step)
+            stepinfo = self.report.StepiReport(timer,self.time,self.step)
             if stepinfo:
                 self.KRATOSprint(stepinfo)
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
-            self.post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+            self.post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", self.time)
 
             self.materialTest.MeasureForcesAndPressure()
-            self.materialTest.PrintGraph(time)
+            self.materialTest.PrintGraph(self.time)
 
-            self.DEMFEMProcedures.PrintGraph(time)
-            self.DEMFEMProcedures.PrintBallsGraph(time)
+            self.DEMFEMProcedures.PrintGraph(self.time)
+            self.DEMFEMProcedures.PrintBallsGraph(self.time)
 
-            self.DEMEnergyCalculator.CalculateEnergyAndPlot(time)
+            self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
 
             #### GiD IO ##########################################
-            time_to_print = time - time_old_print
+            time_to_print = self.time - time_old_print
 
-            if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
+            if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * self.dt):
                 
-                self.PrintResultsForGid(time)                
-                time_old_print = time
+                self.PrintResultsForGid(self.time)
+                time_old_print = self.time
                 
             self.FinalizeTimeStep()
                 
@@ -298,7 +297,7 @@ class Solution:
         os.chdir(self.main_path)
         
         
-    def InitlializeTimeStep(self):
+    def InitializeTimeStep(self):
         pass
     
     
