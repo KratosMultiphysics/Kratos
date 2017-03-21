@@ -841,6 +841,7 @@ private:
                 (AllInside[2] == true))
             {
                 IntegrationPointsSlave = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+                return true;
             }
             else
             {
@@ -1767,6 +1768,8 @@ private:
                     SlaveGeometry.PointLocalCoordinates(Point, SlaveGeometry[i_node]);
                     ConditionsPointsSlave[0][i_node] = Point;
                 }
+                
+                return true;
             }
             else
             {
