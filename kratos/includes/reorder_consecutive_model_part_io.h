@@ -142,9 +142,9 @@ protected:
     ///@{
 
 
-	virtual SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
-	virtual SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
-	virtual SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+	SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId) override;
+	SizeType ReorderedElementId(ModelPartIO::SizeType ElementId) override;
+	SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId) override;
 
     ///@}
     ///@name Protected  Access
