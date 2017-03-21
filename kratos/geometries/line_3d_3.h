@@ -580,7 +580,7 @@ public:
      * i \f$ is the given integration point index of given
      * integration method.
 
-    /** Inverse of jacobians for given integration method. This method
+    * Inverse of jacobians for given integration method. This method
      * calculate inverse of jacobians matrices in all integrations points of
      * given integration method.
      *
