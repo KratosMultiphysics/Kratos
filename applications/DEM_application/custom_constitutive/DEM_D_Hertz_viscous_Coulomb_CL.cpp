@@ -148,8 +148,8 @@ namespace Kratos {
 
         //Get equivalent Shear Modulus
         const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus); 
+        //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus); // + (2.0 - walls_poisson)/walls_shear_modulus); 
         /*
         const double effective_young = my_young / (1.0 - my_poisson * my_poisson); //Equivalent Young Modulus for RIGID WALLS! 
         const double effective_young = 0.5 * my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus if the wall has the same E of the sphere
@@ -164,7 +164,7 @@ namespace Kratos {
         */        
         //Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius * indentation);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation; 
+        mKn = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
     
@@ -182,7 +182,7 @@ namespace Kratos {
                                                              bool& sliding) {
 
         InitializeContactWithFEM(element, wall, indentation);
-        
+
         LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
 
