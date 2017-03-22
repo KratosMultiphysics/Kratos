@@ -174,7 +174,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(VectorType& Intermediate
 {
     KRATOS_TRY;
 
-    unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
+    const unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
