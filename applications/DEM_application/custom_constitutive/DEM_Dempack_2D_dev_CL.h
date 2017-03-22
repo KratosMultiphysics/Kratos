@@ -15,24 +15,24 @@ namespace Kratos {
 
         DEM_Dempack2D_dev() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
         ~DEM_Dempack2D_dev() {}
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
-        void CalculateContactArea(double radius, double other_radius, double& calculation_area);
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
+        void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

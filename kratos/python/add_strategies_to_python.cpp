@@ -10,13 +10,13 @@
 //  Main authors:    Pooyan Dadvand, Riccardo Rossi
 //
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 
 
 // Project includes
@@ -30,6 +30,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
+#include "solving_strategies/strategies/line_search_strategy.h"
 #include "solving_strategies/strategies/explicit_strategy.h"
 //#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
 
@@ -49,7 +50,6 @@
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_deactivation.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // Linear solvers
@@ -244,7 +244,7 @@ namespace Kratos
 
             typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-            
+
             class_< ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
                     ("ResidualBasedLinearStrategy",init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
                     .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
@@ -252,8 +252,9 @@ namespace Kratos
                     .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
                     ;
 
+            typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
-            class_< ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            class_< ResidualBasedNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
                     ("ResidualBasedNewtonRaphsonStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                     .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
@@ -269,10 +270,15 @@ namespace Kratos
                     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, int, bool, bool, bool, double, double, int
                     >())
                     ;
-                    
-            class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+
+            class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< ResidualBasedNewtonRaphsonStrategyType >, boost::noncopyable >
+                    ("LineSearchStrategy",
+                    init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+                    ;
+
+            class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     bases< BaseSolvingStrategyType >,  boost::noncopyable >
-                    ("Explicit_Strategy", 
+                    ("Explicit_Strategy",
                     init<ModelPart&, int, bool >() )
                     //AssembleLoop loops the elements calling AddExplicitContribution. Using processinfo the element is the one who "decides" which variable to modify.
                     .def("AssembleLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssembleLoop)
@@ -282,15 +288,15 @@ namespace Kratos
                     .def("ExplicitUpdateLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ExplicitUpdateLoop)
                     //initialize and finalize.
                     .def("InitializeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
-                    .def("FinalizeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
+                    .def("FinalizeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
                     ;
 
             //********************************************************************
             //********************************************************************
-		    
+
 	    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
 	    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
-	    
+
             class_< BaseSchemeType, boost::noncopyable >
                     ("Scheme", init< >())
                     .def("Initialize", &BaseSchemeType::Initialize)
@@ -322,7 +328,7 @@ namespace Kratos
                     bases< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >,
                     boost::noncopyable >
                     ("ResidualBasedIncrementalUpdateStaticSchemeSlip", init<unsigned int, unsigned int>());
-		    
+
 	    // Residual Based Bossak Scheme Type
 	    class_< ResidualBasedBossakDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
@@ -330,7 +336,7 @@ namespace Kratos
                 "ResidualBasedBossakDisplacementScheme", init< double >() )
             .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
-	    
+
 	    // Residual Based Newmark Scheme Type
 	    class_< ResidualBasedNewmarkDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
@@ -361,7 +367,7 @@ namespace Kratos
                     boost::noncopyable >
                     ("DisplacementCriteria", init< double, double>())
                     ;
-		    
+
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
@@ -373,7 +379,7 @@ namespace Kratos
                                              bases<ConvergenceCriteria< SparseSpaceType > >,
                                              boost::noncopyable >
                                             ("ResidualCriteria", init<Model::Pointer, double >() );
-			
+
                                     class_< AndCriteria< SparseSpaceType >,
                                              bases<ConvergenceCriteria< SparseSpaceType > >,
                                              boost::noncopyable >
@@ -432,12 +438,6 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             class_< ResidualBasedBlockBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedBlockBuilderAndSolver", init< LinearSolverType::Pointer > ());
 
-
-            typedef ResidualBasedEliminationBuilderAndSolverDeactivation< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverDeactivationType;
-
-            class_< ResidualBasedEliminationBuilderAndSolverDeactivationType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedEliminationBuilderAndSolverDeactivation", init< LinearSolverType::Pointer > ());
-
-
             //********************************************************************
             //********************************************************************
 
@@ -467,4 +467,3 @@ namespace Kratos
     } // namespace Python.
 
 } // Namespace Kratos
-

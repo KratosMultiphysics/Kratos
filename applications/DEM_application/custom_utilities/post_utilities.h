@@ -151,11 +151,11 @@ namespace Kratos {
         }//VelocityTrap
 
 
-        void IntegrationOfForces(ModelPart::NodesContainerType& mesh_nodes , array_1d<double, 3>& total_forces, array_1d<double, 3>& rotation_center,
-                                 array_1d<double, 3>& total_moment) {
+        void IntegrationOfForces(ModelPart::NodesContainerType& mesh_nodes , array_1d<double, 3>& total_forces,
+                                 array_1d<double, 3>& rotation_center, array_1d<double, 3>& total_moment) {
 
             for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = mesh_nodes.ptr_begin();
-                node_pointer_it != mesh_nodes.ptr_end(); ++node_pointer_it) {
+                                                             node_pointer_it != mesh_nodes.ptr_end(); ++node_pointer_it) {
 
                 const array_1d<double, 3>& contact_forces_summed_at_structure_point = (*node_pointer_it)->FastGetSolutionStepValue(CONTACT_FORCES);
                 noalias(total_forces) += contact_forces_summed_at_structure_point;
@@ -170,6 +170,14 @@ namespace Kratos {
             }
         }
 
+        void IntegrationOfElasticForces(ModelPart::NodesContainerType& mesh_nodes, array_1d<double, 3>& total_forces) {
+
+            for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = mesh_nodes.ptr_begin(); node_pointer_it != mesh_nodes.ptr_end(); ++node_pointer_it) {
+
+                const array_1d<double, 3> elastic_forces_added_up_at_node = (*node_pointer_it)->FastGetSolutionStepValue(ELASTIC_FORCES);
+                noalias(total_forces) += elastic_forces_added_up_at_node;
+            }
+        }
         
         array_1d<double, 3> ComputePoisson(ModelPart& rModelPart) {
 

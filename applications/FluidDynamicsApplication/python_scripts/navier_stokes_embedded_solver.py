@@ -32,7 +32,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "dynamic_tau": 0.01,
             "echo_level": 0,
             "time_order": 2,
             "compute_reactions": false,
@@ -80,14 +80,14 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"EmbeddedNavierStokes3D4N",
-                "condition_name": "MonolithicWallCondition3D"
+                "condition_name": "NavierStokesWallCondition3D"
                 }
                 """)
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                 {
                 "element_name":"EmbeddedNavierStokes2D3N",
-                "condition_name": "MonolithicWallCondition2D"
+                "condition_name": "NavierStokesWallCondition2D"
                 }
                 """)
         else:

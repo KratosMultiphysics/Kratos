@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 import os
+import sys
 
 
 def GetFilePath(fileName):
@@ -11,6 +12,10 @@ def GetFilePath(fileName):
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
+    
+    def setUp(self):        
+        if (sys.version_info < (3, 2)):
+            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_model_part_io_read_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")

@@ -325,7 +325,7 @@ private:
         // We first transform into a matrix
         const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(hessian);
         
-        MetricsMathUtils<TDim>::EigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
+        MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
         
         // Recalculate the metric eigen values
         for (unsigned int i = 0; i < TDim; i++)

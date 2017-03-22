@@ -95,6 +95,9 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
 
         #recover_volume_losses  = KratosPfemFluid.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
+        
+        #inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPreMeshingProcess(inlet_management)
 
         remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
@@ -102,6 +105,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
             generate_new_nodes  = KratosPfemFluid.GenerateNewNodesBeforeMeshing(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPreMeshingProcess(generate_new_nodes)
+
 
     #
     def SetPostMeshingProcesses(self):
@@ -138,6 +142,8 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         rebuild_mesh_boundary = KratosPfemBase.BuildMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
+        #inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPostMeshingProcess(inlet_management)
 
         #if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
             #select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)

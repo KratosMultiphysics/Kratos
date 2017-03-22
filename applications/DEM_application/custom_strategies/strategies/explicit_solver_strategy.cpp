@@ -360,6 +360,7 @@ namespace Kratos {
     }//SearchFEMOperations
 
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
+        
         KRATOS_TRY
         // 3. Get and Calculate the forces
         CleanEnergies();
@@ -376,6 +377,7 @@ namespace Kratos {
 
         // 4. Synchronize (should be just FORCE and TORQUE)
         SynchronizeRHS(r_model_part);
+        
         KRATOS_CATCH("")
     }//ForceOperations;
 
@@ -1235,35 +1237,4 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-
-    void ExplicitSolverStrategy::GlobalDamping() {
-        KRATOS_TRY
-
-        ModelPart& r_model_part = GetModelPart();
-        ElementsArrayType& pElements = GetElements(r_model_part);
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int) pElements.size(); k++) {
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-
-            ModelPart::NodeType& pNode = it->GetGeometry()[0];
-
-            array_1d<double, 3>& total_force = pNode.FastGetSolutionStepValue(TOTAL_FORCES);
-            array_1d<double, 3>& velocity = pNode.FastGetSolutionStepValue(VELOCITY);
-
-            const double global_damping = 0.0;
-
-            if (pNode.IsNot(DEMFlags::FIXED_VEL_X)) {
-                total_force[0] = total_force[0] - global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
-            }
-            if (pNode.IsNot(DEMFlags::FIXED_VEL_Y)) {
-                total_force[1] = total_force[1] - global_damping * fabs(total_force[1]) * GeometryFunctions::sign(velocity[1]);
-            }
-            if (pNode.IsNot(DEMFlags::FIXED_VEL_Z)) {
-                total_force[2] = total_force[2] - global_damping * fabs(total_force[2]) * GeometryFunctions::sign(velocity[2]);
-            }
-        }
-        KRATOS_CATCH("")
-    }
-
 }

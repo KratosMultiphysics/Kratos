@@ -230,20 +230,20 @@ public:
         mData.GetValue(rV) = rValue;
     }
 
-    template<class XVariableType, class YVariableType>
-    TableType& GetTable(const XVariableType& XVariable, const YVariableType& YVariable)
+    template<class TXVariableType, class TYVariableType>
+    TableType& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable)
     {
 		return mTables[Key(XVariable, YVariable)];
     }
 
-    template<class XVariableType, class YVariableType>
-    TableType const& GetTable(const XVariableType& XVariable, const YVariableType& YVariable) const
+    template<class TXVariableType, class TYVariableType>
+    TableType const& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
     {
 		return mTables[Key(XVariable.Key(), YVariable.Key())];
     }
 
-    template<class XVariableType, class YVariableType>
-    void SetTable(const XVariableType& XVariable, const YVariableType& YVariable, TableType const& rThisTable)
+    template<class TXVariableType, class TYVariableType>
+    void SetTable(const TXVariableType& XVariable, const TYVariableType& YVariable, TableType const& rThisTable)
     {
 		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
@@ -276,11 +276,17 @@ public:
     ///@name Inquiry
     ///@{
 
-    template<class TVariableType>
-    bool Has(TVariableType const& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
+	template<class TVariableType>
+	bool Has(TVariableType const& rThisVariable) const
+	{
+		return mData.Has(rThisVariable);
+	}
+
+	template<class TXVariableType, class TYVariableType>
+	bool HasTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
+	{
+		return (mTables.find(Key(XVariable.Key(), YVariable.Key())) != mTables.end());
+	}
 
 
     ///@}
@@ -288,19 +294,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "Properties";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream <<  "Properties";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         mData.PrintData(rOStream);
 		rOStream << "This properties contains " << mTables.size() << " tables";
@@ -379,13 +385,13 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);

@@ -74,10 +74,10 @@ class UPwSolver(object):
                 "coarsening_type": "aggregation"
             },
             "problem_domain_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [""],
-            "loads_variable_list": [""]
+            "body_domain_sub_model_part_list": [],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": []
         }
         """)
 
@@ -121,7 +121,7 @@ class UPwSolver(object):
         print("Variables correctly added")
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
     def AddDofs(self):
         
@@ -136,13 +136,13 @@ class UPwSolver(object):
         if(self.settings["solution_type"].GetString() == "Dynamic"):
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
-                node.AddDof(KratosMultiphysics.VELOCITY_X);
-                node.AddDof(KratosMultiphysics.VELOCITY_Y);
-                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                node.AddDof(KratosMultiphysics.VELOCITY_X)
+                node.AddDof(KratosMultiphysics.VELOCITY_Y)
+                node.AddDof(KratosMultiphysics.VELOCITY_Z)
                 # adding ACCELERATION as dofs
-                node.AddDof(KratosMultiphysics.ACCELERATION_X);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
-                node.AddDof(KratosMultiphysics.ACCELERATION_Z);        
+                node.AddDof(KratosMultiphysics.ACCELERATION_X)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z)
                 
         print("DOFs correctly added")
 
@@ -183,7 +183,7 @@ class UPwSolver(object):
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         # Check if everything is assigned correctly
-        self.Solver.Check();
+        self.Solver.Check()
 
         print ("Initialization UPwSolver finished")
     
@@ -248,8 +248,6 @@ class UPwSolver(object):
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
-        aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
         import check_and_prepare_model_process_poro
@@ -260,10 +258,9 @@ class UPwSolver(object):
         poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
 
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
-        
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
+        minimum_buffer_size = self.GetMinimumBufferSize()
+        if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
+            self.main_model_part.SetBufferSize( minimum_buffer_size )
 
     def _ConstructBuilderAndSolver(self, block_builder):
         

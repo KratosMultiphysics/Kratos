@@ -75,7 +75,6 @@ cmake ..  																		                                 \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  											                   \
 -DMESHING_APPLICATION=ON 														                           \
 -DEXTERNAL_SOLVERS_APPLICATION=ON												                       \
--DPFEM_APPLICATION=ON 															                           \
 -DSTRUCTURAL_APPLICATION=ON 													                         \
 -DCONVECTION_DIFFUSION_APPLICATION=ON 											                   \
 -DFLUID_DYNAMICS_APPLICATION=ON 												                       \

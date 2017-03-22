@@ -59,6 +59,9 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
                     AddBodySurfaceToFracturesDict FracturesDict $FractureId $BodySurfacesDict
+
+                    # We need to check that the cross product between the vector in local x and the vector in local y points towards (0,0,1)
+                    CheckJonintOrientation FracturesDict $FractureId
                     
                 } elseif {([lindex $BotLine 2] eq [lindex $TopLine 3]) || ([lindex $BotLine 3] eq [lindex $TopLine 3])} {
                     # Define new fracture
@@ -85,6 +88,9 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
                     AddInterfaceSurfaceToFracturesDict FracturesDict $FractureId [lindex $InterfaceEntities $j] $InterfaceSurface
                     # Set BodySurface
                     AddBodySurfaceToFracturesDict FracturesDict $FractureId $BodySurfacesDict
+
+                    # We need to check that the cross product between the vector in local x and the vector in local y points towards (0,0,1)
+                    CheckJonintOrientation FracturesDict $FractureId
                 }
             }
         }
@@ -128,7 +134,6 @@ proc WriteInitialFracturesData { dir problemtypedir gidpath } {
         
     puts $FileVar2 "GID_OMP_NUM_THREADS [GiD_Set GID_OMP_NUM_THREADS]"
     puts $FileVar2 "AutomaticCorrectSizes [GiD_Set -meshing_parameters_model AutomaticCorrectSizes]"
-    puts $FileVar2 "SplashWindow 0"
     puts $FileVar2 "SizeTransitionsFactor [GiD_Set -meshing_parameters_model SizeTransitionsFactor]"
     puts $FileVar2 "BoundaryWeightedTransition [GiD_Set -meshing_parameters_model BoundaryWeightedTransition]"
     puts $FileVar2 "SurfaceMesher [GiD_Set -meshing_parameters_model SurfaceMesher]"

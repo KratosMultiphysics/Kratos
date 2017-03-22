@@ -144,7 +144,7 @@ public:
     1 -> print basic informations
     2 -> print extra informations
      */
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
       BaseType::SetEchoLevel(Level);
       mpfirst_criterion->SetEchoLevel(Level);
@@ -159,7 +159,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         bool first_criterion_result  = mpfirst_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
         bool second_criterion_result = mpsecond_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);

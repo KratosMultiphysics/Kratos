@@ -51,8 +51,8 @@
             "preconditioner_type": "ILU0Preconditioner"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
-        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Face_Load-auto-1","Face_Load-auto-2"],
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Face_Load-auto-2"],
         "loads_variable_list":                ["FACE_LOAD","FACE_LOAD"]
     },

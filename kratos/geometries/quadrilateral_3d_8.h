@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_QUADRILATERAL_3D_8_H_INCLUDED )
@@ -203,8 +211,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 8, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -243,12 +250,12 @@ public:
      */
     virtual ~Quadrilateral3D8() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
         return GeometryData::Kratos_Quadrilateral;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() override
     {
         return GeometryData::Kratos_Quadrilateral3D8;
     }
@@ -297,12 +304,12 @@ public:
     /**
      * Operations
      */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Quadrilateral3D8( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -324,7 +331,7 @@ public:
      * (comment by janosch)
      */
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
 	    if(rResult.size() != 8)
             rResult.resize( 8, false );
@@ -356,7 +363,7 @@ public:
      * :TODO: the characteristic length is to be reviewed
      * (comment by janosch)
      */
-    virtual double Length() const
+    virtual double Length() const override
     {
         return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
     }
@@ -377,14 +384,14 @@ public:
      * :TODO: the characteristic area is to be reviewed
      * (comment by janosch)
      */
-    virtual double Area() const
+    virtual double Area() const override
     {
         Vector d = this->Points()[2] - this->Points()[0];
         return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
 
-    virtual double Volume() const
+    virtual double Volume() const override
     {
 
         Vector temp;
@@ -417,7 +424,7 @@ public:
      * :TODO: the characteristic domain size is to be reviewed
      * (comment by janosch)
      */
-    virtual double DomainSize() const
+    virtual double DomainSize() const override
     {
         return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
@@ -425,7 +432,7 @@ public:
     /**
               * Returns whether given arbitrary point is inside the Geometry
                           */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() ) override
     {
         PointLocalCoordinates( rResult, rPoint );
 
@@ -437,7 +444,7 @@ public:
     }
 
     virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+            const CoordinatesArrayType& rPoint ) override
     {
         double tol = 1.0e-8;
         int maxiter = 1000;
@@ -580,7 +587,7 @@ public:
      * @see InverseOfJacobian
      */
     virtual JacobiansType& Jacobian( JacobiansType& rResult,
-                                     IntegrationMethod ThisMethod ) const
+                                     IntegrationMethod ThisMethod ) const override
     {
         //getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
@@ -642,7 +649,7 @@ public:
      */
     virtual JacobiansType& Jacobian( JacobiansType& rResult,
                                      IntegrationMethod ThisMethod,
-				     Matrix & DeltaPosition ) const
+				     Matrix & DeltaPosition ) const override
     {
         //getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
@@ -703,7 +710,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         //setting up size of jacobian matrix
         rResult.resize( 3, 2, false );
@@ -758,7 +765,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         //setting up size of jacobian matrix
         rResult.resize( 3, 2, false );
@@ -799,9 +806,9 @@ public:
      * @see InverseOfJacobian
      */
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
+                                           IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -827,9 +834,9 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return 0.0;
     }
 
@@ -853,9 +860,9 @@ public:
      * KLUDGE: PointType needed for proper functionality
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return 0.0;
     }
 
@@ -879,9 +886,9 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
+    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -909,9 +916,9 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -933,9 +940,9 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D8::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Quadrilateral3D8::DeterminantOfJacobian" << "Jacobian is not square"  << std::endl;
         return rResult;
     }
 
@@ -949,7 +956,7 @@ public:
     @see Edges()
     @see Edge()
      */
-    virtual SizeType EdgesNumber() const
+    virtual SizeType EdgesNumber() const override
     {
         return 4;
     }
@@ -965,7 +972,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    virtual GeometriesArrayType Edges( void )
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
@@ -992,7 +999,7 @@ public:
     @see ShapeFunctionLocalGradient
     */
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -1025,8 +1032,7 @@ public:
             return (( 1.0 -rPoint[0] )
                     *( 1.0 - rPoint[1]*rPoint[1] ) ) / 2.0 ;
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" , *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -1043,7 +1049,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
         if(rResult.size() != 8) rResult.resize(8,false);
 
@@ -1091,14 +1097,13 @@ public:
      */
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const
+        IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
@@ -1147,7 +1152,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "2 dimensional quadrilateral with eight nodes in 2D space";
     }
@@ -1158,7 +1163,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    virtual void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "2 dimensional quadrilateral with eight nodes in 2D space";
     }
@@ -1172,7 +1177,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    virtual void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -1232,7 +1237,7 @@ public:
     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
-            const CoordinatesArrayType& rPoint ) const
+            const CoordinatesArrayType& rPoint ) const override
     {
         //setting up result matrix
         rResult.resize( 8, 2, false );
@@ -1278,7 +1283,7 @@ public:
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
      */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
+    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         rResult.resize( 8, 2, false );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
@@ -1356,7 +1361,7 @@ public:
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -1431,7 +1436,7 @@ public:
     * @param rResult a fourth order tensor which contains the third derivatives
     * @param rPoint the given point the third order derivatives are calculated in
      */
-    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
 
         if ( rResult.size() != this->PointsNumber() )
@@ -1551,12 +1556,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
