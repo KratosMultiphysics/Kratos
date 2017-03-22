@@ -141,7 +141,7 @@ public:
     ///@{
     ///this function fills the vector BDF_COEFFICIENTS with the correct values
     ///depending on the time_order chosen
-    virtual void Execute()
+    virtual void Execute() override
     {
         KRATOS_TRY
         
@@ -208,19 +208,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "ComputeBDFCoefficientsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ComputeBDFCoefficientsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
