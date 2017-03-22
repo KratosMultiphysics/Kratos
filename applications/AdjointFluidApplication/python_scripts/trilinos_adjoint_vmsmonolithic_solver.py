@@ -1,15 +1,20 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+## Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
+import KratosMultiphysics.MetisApplication as MetisApplication
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
 
-# Check that KratosMultiphysics was imported in the main script
+## Checks that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
-    return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
+    return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
 
-class AdjointVMSMonolithicSolver:
+import adjoint_vmsmonolithic_solver
+
+class AdjointVMSMonolithicMPISolver(adjoint_vmsmonolithic_solver.AdjointVMSMonolithicSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -18,25 +23,25 @@ class AdjointVMSMonolithicSolver:
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type" : "adjoint_vmsmonolithic_solver",
+            "solver_type": "trilinos_adjoint_vmsmonolithic_solver",
             "scheme_settings" : {
-                "scheme_type" : "bossak"
+                "scheme_type": "bossak"
             },
             "objective_settings" : {
                 "objective_type" : "drag"
             },
-            "model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : "unknown_name"
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
             },
             "linear_solver_settings" : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "MultiLevelSolver"
             },
             "volume_model_part_name" : "volume_model_part",
-            "skin_parts"  : [""],
-            "dynamic_tau" : 0.0,
-            "oss_switch"  : 0,
-            "echo_level"  : 0
+            "skin_parts": [""],
+            "dynamic_tau": 0.0,
+            "oss_switch": 0,
+            "echo_level": 0
         }""")
 
         # overwrite the default settings with user-provided parameters
@@ -44,35 +49,37 @@ class AdjointVMSMonolithicSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory
+        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of AdjointVMSMonolithicSolver finished")
+        if KratosMPI.mpi.rank == 0:
+            print("Construction of AdjointVMSMonolithicMPISolver finished.")
+
 
     def GetMinimumBufferSize(self):
         return 2
 
-    def AddVariables(self):
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        
-        print("variables for the adjoint fluid solver added correctly")
+    def AddVariables(self):
+        ## Add variables from the base class
+        super(AdjointVMSMonolithicMPISolver, self).AddVariables()
+
+        ## Add specific MPI variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        KratosMPI.mpi.world.barrier()
+
+        if KratosMPI.mpi.rank == 0:
+            print("Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
+
 
     def ImportModelPart(self):
 
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # here it would be the place to import restart data if required
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            # here we read the already existing partitions from the primal solution.
+            input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+            mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+            self.settings["model_import_settings"]["input_filename"].SetString(mpi_input_filename)
+            KratosMultiphysics.ModelPartIO(mpi_input_filename).ReadModelPart(self.main_model_part)
 
             # here we shall check that the input read has the shape we like
             aux_params = KratosMultiphysics.Parameters("{}")
@@ -84,26 +91,26 @@ class AdjointVMSMonolithicSolver:
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name": "VMSAdjointElement3D",
-                    "condition_name": "SurfaceCondition3D3N"
+                        "element_name": "VMSAdjointElement3D",
+                        "condition_name": "SurfaceCondition3D3N"
                     }
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
-                    "element_name": "VMSAdjointElement2D",
-                    "condition_name": "LineCondition2D2N"
+                        "element_name": "VMSAdjointElement2D",
+                        "condition_name": "LineCondition2D2N"
                     }
                     """)
             else:
-                raise Exception("domain size is not 2 or 3")
+                raise Exception("domain size is not 2 nor 3")
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
             import check_and_prepare_model_process_fluid
             check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
 
-            #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
+            # here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
                 kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
@@ -119,22 +126,27 @@ class AdjointVMSMonolithicSolver:
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
 
-        print ("Model reading finished.")
+        MetisApplication.SetMPICommunicatorProcess(self.main_model_part).Execute()
+
+        ParallelFillCommunicator = TrilinosApplication.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
+        ParallelFillCommunicator.Execute()
+
+        if KratosMPI.mpi.rank == 0 :
+            print("MPI communicators constructed.")
+            print ("MPI model reading finished.")
 
 
     def AddDofs(self):
+        super(AdjointVMSMonolithicMPISolver, self).AddDofs()
+        KratosMPI.mpi.world.barrier()
 
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.ADJOINT_PRESSURE)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_X)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Z)
-
-        print("DOFs for the VMS adjoint solver added correctly.")
+        if KratosMPI.mpi.rank == 0:
+            print("DOFs for the AdjointVMSMonolithicMPISolver added correctly in all processors.")
 
 
     def Initialize(self):
+
+        self.epetra_comm = TrilinosApplication.CreateCommunicator()
 
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -150,71 +162,44 @@ class AdjointVMSMonolithicSolver:
             raise Exception("invalid objective_type: " + self.settings["objective_settings"]["objective_type"].GetString())
 
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = AdjointFluidApplication.AdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
+            self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.objective_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = AdjointFluidApplication.AdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
+            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyScheme(self.settings["scheme_settings"], self.objective_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+            guess_row_size = 20*4
+        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            guess_row_size = 10*3
 
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part,
-                                                                     self.time_scheme,
-                                                                     self.linear_solver,
-                                                                     builder_and_solver,
-                                                                     False,
-                                                                     False,
-                                                                     False,
-                                                                     False)
+        self.builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(self.epetra_comm,
+                                                                               guess_row_size,
+                                                                               self.trilinos_linear_solver)
+
+        self.solver = TrilinosApplication.TrilinosLinearStrategy(self.main_model_part,
+                                                                 self.time_scheme,
+                                                                 self.trilinos_linear_solver,
+                                                                 self.builder_and_solver,
+                                                                 False,
+                                                                 False,
+                                                                 False,
+                                                                 False)
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Check()
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        print ("Adjoint solver initialization finished.")
+        print ("Monolithic MPI solver initialization finished.")
+
 
     def GetComputingModelPart(self):
         # get the submodelpart generated in CheckAndPrepareModelProcess
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        pass
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def DivergenceClearance(self):
-        pass
-        
-    def SolverInitialize(self):
-        self.solver.Initialize()
-
-    def SolverInitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
-
-    def SolverPredict(self):
-        self.solver.Predict()
-
-    def SolverSolveSolutionStep(self):
-        self.solver.SolveSolutionStep()
-
-    def SolverFinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
 
     def Solve(self):
-        self.solver.Solve()
-
-    def SetEchoLevel(self, level):
-        self.solver.SetEchoLevel(level)
-
-    def Clear(self):
-        self.solver.Clear()
-
-    def Check(self):
-        self.solver.Check()
+        (self.solver).Solve()
