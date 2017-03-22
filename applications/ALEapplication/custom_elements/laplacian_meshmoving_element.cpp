@@ -230,7 +230,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
 void LaplacianMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult,
                                                   ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType LocalSize = NumNodes * dimension;
