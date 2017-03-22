@@ -258,16 +258,27 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
-
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        SizeType Index = iNode * dimension;
-
-        rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
-        rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
-        if (dimension == 3)
-            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
-    }
+ 
+ 
+ 
+ 
+ 
+ unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
+ if (dimension == 2)
+     for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+      {
+          SizeType Index = iNode * dimension;
+          rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
+          rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
+      }
+  else
+     for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+      {
+          SizeType Index = iNode * dimension;
+          rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
+          rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
+          rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z,pos+2);
+      }
 }
 
 } // Namespace Kratos
