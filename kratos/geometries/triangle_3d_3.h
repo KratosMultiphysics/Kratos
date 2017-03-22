@@ -945,7 +945,7 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPoin
+    virtual double DeterminantOfJacobian( IndexType IntegrationPoint,
                                           IntegrationMethod ThisMethod ) const override
     {
         return 2.0*(this->Area());
