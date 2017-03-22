@@ -79,8 +79,8 @@ class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
         self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
 
         # definition of the solvers
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
+        import new_linear_solver_factory
+        self.linear_solver = new_linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
         print("Construction of MeshSolverLaplacian finished")
 
     def Initialize(self):
