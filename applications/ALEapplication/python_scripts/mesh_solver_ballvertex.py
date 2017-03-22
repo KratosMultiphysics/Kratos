@@ -45,7 +45,7 @@ class MeshSolverBallvertex(mesh_solver_base.MeshSolverBase):
 
     def AddVariables(self):
 
-        self.model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        self.model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
         print("Mesh solver variables added correctly.")

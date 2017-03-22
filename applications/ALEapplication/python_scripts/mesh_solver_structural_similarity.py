@@ -5,26 +5,6 @@ from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 CheckForPreviousImport()
 
-#
-# def AddVariables(model_part):
-#
-#     model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT)
-#     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-#     model_part.AddNodalSolutionStepVariable(MESH_REACTION)
-#     model_part.AddNodalSolutionStepVariable(MESH_RHS)
-#
-#     print("Mesh solver variables added correctly.")
-#
-#
-# def AddDofs(model_part):
-#
-#     for node in model_part.Nodes:
-#         node.AddDof(MESH_DISPLACEMENT_X, MESH_REACTION_X)
-#         node.AddDof(MESH_DISPLACEMENT_Y, MESH_REACTION_Y)
-#         node.AddDof(MESH_DISPLACEMENT_Z, MESH_REACTION_Z)
-#
-#     print("Mesh solver DOFs added correctly.")
-
 # import mesh solver base class
 import mesh_solver_base
 
@@ -82,14 +62,6 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
 
         self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.mesh_reform_dofs_each_step, self.mesh_compute_reactions)
         (self.solver).SetEchoLevel(0)
-
-    # def Solve(self):
-    #     if(self.mesh_reform_dofs_each_step):
-    #         (self.neighbour_search).Execute()
-    #     (self.solver).Solve()
-    #
-    # def MoveNodes(self):
-    #     (self.solver).MoveNodes()
 
     def UpdateReferenceMesh(self):
         (self.solver).UpdateReferenceMesh()

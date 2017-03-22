@@ -41,3 +41,6 @@ class MeshSolverBase:
 
     def MoveNodes(self):
         (self.solver).MoveNodes()
+
+    def GetComputingModelPart(self):
+        return self.model_part
