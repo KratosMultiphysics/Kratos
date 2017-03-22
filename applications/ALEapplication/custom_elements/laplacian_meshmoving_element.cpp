@@ -217,15 +217,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Compute LHS
         MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
         noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX), trans(DN_DX));
-        /*
-        VectorType IntermediateDisplacements(NumNodes);
-        
-        CalculateDeltaPosition(IntermediateDisplacements, rCurrentProcessInfo);
 
-        // Compute RHS
-        noalias(rRightHandSideVector) -=
-            prod(rLeftHandSideMatrix, IntermediateDisplacements);
-        */
         // Compute RHS
         double LocalSize = NumNodes * dimension;
         VectorType LastValues = ZeroVector(LocalSize);
