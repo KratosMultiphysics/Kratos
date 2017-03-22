@@ -3,9 +3,14 @@ import numpy as np
 import h5py
 from KratosMultiphysics import *
 
-def GetOldTimeIndicesAndWeights(current_time, times_array):
+def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
     old_index = bi.bisect(times_array, current_time)
     future_index = old_index + 1
+    print('old_index',old_index)
+    print('future_index',future_index)
+    print(times_array[old_index])
+    print(times_array[future_index])
+    cacac
     old_time =  times_array[old_index]
 
     if future_index >= len(times_array):
@@ -13,9 +18,12 @@ def GetOldTimeIndicesAndWeights(current_time, times_array):
         future_index = old_index
         alpha_future = 0
     else:
-        fluid_dt = times_array[future_index] - old_time
-        alpha_old = (current_time - old_time) / fluid_dt
+        alpha_old = max(0, (current_time - old_time) / fluid_dt)
         alpha_future = 1.0 - alpha_old
+    print('old_index',old_index)
+    print('future_index',future_index)
+    print('alpha_old',alpha_old)
+    print('alpha_future',alpha_future)
 
     return old_index, alpha_old, future_index, alpha_future
 
@@ -41,13 +49,15 @@ class FluidHDF5Loader:
         if pp.CFD_DEM.fluid_already_calculated:
 
             with h5py.File(self.file_name, 'r') as f:
-                self.times_str = np.array([key for key in f.keys() if key not in {'density', 'viscosity', 'nodes', 'number of nodes'}])
+                self.times_str = list([str(key) for key in f.keys() if key not in {'density', 'viscosity', 'nodes', 'number of nodes'}])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
                 # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
-
-            self.times     = np.array([float(key) for key in self.times_str])
+                self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
+                self.dt = self.times[-1] - self.times[-2]
+                print(self.times)
+                caca
             self.old_data_array = np.zeros(self.extended_shape)
             self.future_data_array = np.zeros(self.extended_shape)
             self.old_time_index = 0
@@ -142,7 +152,7 @@ class FluidHDF5Loader:
 
     def LoadFluid(self, DEM_time):
         # getting time indices and weights (identifyint the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
-        old_time_index, alpha_old, future_time_index, alpha_future = GetOldTimeIndicesAndWeights(DEM_time, self.times)
+        old_time_index, alpha_old, future_time_index, alpha_future = GetOldTimeIndicesAndWeights(DEM_time, self.times, self.dt)
         old_step_dataset_name    = self.times_str[old_time_index]
         future_step_dataset_name = self.times_str[future_time_index]
         must_load_from_database = not self.old_time_index == old_time_index # old and future time steps must be updated

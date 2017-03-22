@@ -148,6 +148,11 @@ class TestCase(KratosUnittest.TestCase):
             self.removeFile("./test_vms_sensitivity_2d/cylinder_test_0.h5")
             self.removeFile("./test_vms_sensitivity_2d/cylinder_test.dat")
             self.removeFile("./test_vms_sensitivity_2d/cylinder_test.time")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_probe1.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_probe2.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe2.dat")
+            self.removeFile("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat")
 
     def test_SteadyCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

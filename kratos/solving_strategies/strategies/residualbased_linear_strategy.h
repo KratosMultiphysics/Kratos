@@ -294,7 +294,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -308,7 +308,7 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -342,7 +342,7 @@ public:
      */
     //**********************************************************************
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -478,7 +478,7 @@ public:
     }
     //*********************************************************************************
 
-    double GetResidualNorm()
+    double GetResidualNorm() override
     {
         if (TSparseSpace::Size(*mpb) != 0)
             return TSparseSpace::TwoNorm(*mpb);
@@ -495,7 +495,7 @@ public:
 
       This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -628,7 +628,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -661,7 +661,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -728,7 +728,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         // if the preconditioner is saved between solves, it
@@ -754,7 +754,7 @@ private:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
 
