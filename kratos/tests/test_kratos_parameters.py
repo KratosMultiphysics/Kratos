@@ -267,7 +267,18 @@ class TestParameters(KratosUnittest.TestCase):
             self.assertEqual(key, expected_keys[counter])
             counter += 1 
 
-
+    def test_remove_value(self):
+        kp = Parameters(json_string)
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+        print(kp)
+                         
+        kp.RemoveValue("int_value")
+        kp.RemoveValue("level1")
+        
+        print(kp)
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
 
 if __name__ == '__main__':
     KratosUnittest.main()
