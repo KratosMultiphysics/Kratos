@@ -629,6 +629,7 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)            
+        
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
             
