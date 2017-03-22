@@ -358,14 +358,22 @@ void StructuralMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult
     if (rResult.size() != mLocalSize)
         rResult.resize(mLocalSize, false);
 
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        SizeType Index = iNode * dimension;
-        rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X).EquationId();
-        rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y).EquationId();
-        if (dimension == 3)
-            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z).EquationId();
-    }
+    unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
+    if (dimension == 2)
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            SizeType Index = iNode * dimension;
+            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+        }
+    else
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            SizeType Index = iNode * dimension;
+            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
+        }
 }
 
 void StructuralMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
@@ -378,21 +386,20 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
     if (rElementalDofList.size() != mLocalSize)
         rElementalDofList.resize(mLocalSize);
 
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
     if (dimension == 2)
         for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
         {
             SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
+            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
         }
     else
         for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
         {
             SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
-            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z,pos+2);
+            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
+            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
         }
 }
 

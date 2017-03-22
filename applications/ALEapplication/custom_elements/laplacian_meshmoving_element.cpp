@@ -230,22 +230,30 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
 void LaplacianMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult,
                                                   ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& rGeom = this->GetGeometry();
+    GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType LocalSize = NumNodes * dimension;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
-
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        SizeType Index = iNode * dimension;
-        rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X).EquationId();
-        rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y).EquationId();
-        if (dimension == 3)
-            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z).EquationId();
-    }
+    
+    unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
+    if (dimension == 2)
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            SizeType Index = iNode * dimension;
+            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+        }
+    else
+        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            SizeType Index = iNode * dimension;
+            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
+        }
 }
 
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
@@ -259,21 +267,20 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
  
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
     if (dimension == 2)
         for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
         {
             SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
+            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
         }
     else
         for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
         {
             SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X,pos);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y,pos+1);
-            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z,pos+2);
+            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
+            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
         }
 }
 
