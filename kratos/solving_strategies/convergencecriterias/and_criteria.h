@@ -145,7 +145,7 @@ public:
     1 -> print basic informations
     2 -> print extra informations
      */
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
       BaseType::SetEchoLevel(Level);
       mpfirst_criterion->SetEchoLevel(Level);
@@ -160,7 +160,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         bool first_criterion_result  = mpfirst_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
         bool second_criterion_result = mpsecond_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
@@ -170,7 +170,7 @@ public:
     }
 
 
-    void Initialize(ModelPart& r_model_part)
+    void Initialize(ModelPart& r_model_part) override
     {
         mpfirst_criterion->Initialize(r_model_part);
         mpsecond_criterion->Initialize(r_model_part);
@@ -182,7 +182,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         mpfirst_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
         mpsecond_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
@@ -194,7 +194,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         mpfirst_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
         mpsecond_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);

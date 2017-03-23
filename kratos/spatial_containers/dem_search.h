@@ -192,7 +192,7 @@ class DEMSearch : public SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
+          VectorDistanceType& rResultsDistance ) override
       {
           static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
@@ -211,7 +211,7 @@ class DEMSearch : public SpatialSearch
           ElementsContainerType const& StructureElements,
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
-          VectorResultElementsContainerType& rResults )
+          VectorResultElementsContainerType& rResults ) override
       {
           static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults);
       }
@@ -230,7 +230,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
+          VectorDistanceType& rResultsDistance ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
       }
@@ -240,7 +240,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
+          VectorDistanceType& rResultsDistance ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
       }
@@ -288,7 +288,7 @@ class DEMSearch : public SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
+          VectorDistanceType& rResultsDistance ) override
       {
           static_cast<TDerived*>(this)->SearchGeometricalInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
@@ -298,7 +298,7 @@ class DEMSearch : public SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
+          VectorDistanceType& rResultsDistance ) override
       {
           static_cast<TDerived*>(this)->SearchGeometricalInRadiusInclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
@@ -318,7 +318,7 @@ class DEMSearch : public SpatialSearch
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
           std::stringstream buffer;
           buffer << "DemSearch" ;
@@ -327,10 +327,10 @@ class DEMSearch : public SpatialSearch
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DemSearch";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DemSearch";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}

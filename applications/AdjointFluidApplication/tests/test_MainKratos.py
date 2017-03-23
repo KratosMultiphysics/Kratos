@@ -32,6 +32,12 @@ class MainKratos:
 
         self.solver.AddDofs()
 
+        #from gid_output_process import GiDOutputProcess
+        #self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
+        #self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+        #self.ProjectParameters["output_configuration"])
+        #self.gid_output.ExecuteInitialize()
+
         ## Get the list of the skin submodel parts in the object Model
         for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
             skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
@@ -72,6 +78,8 @@ class MainKratos:
 
         time = self.ProjectParameters["problem_data"]["start_step"].GetDouble()
 
+        #self.gid_output.ExecuteBeforeSolutionLoop()
+
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
@@ -83,6 +91,8 @@ class MainKratos:
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
+            
+            #self.gid_output.ExecuteInitializeSolutionStep()
                 
             if self.execute_solve:
                 self.solver.Solve()
@@ -90,8 +100,15 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
             
+            #self.gid_output.ExecuteFinalizeSolutionStep()
+
+            #if self.gid_output.IsOutputStep():
+            #    self.gid_output.PrintOutput()
+            
         for process in self.list_of_processes:
             process.ExecuteFinalize()
+        
+        #self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     raise RuntimeError("This script should only be called from a test file.")

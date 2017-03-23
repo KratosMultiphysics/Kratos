@@ -199,11 +199,11 @@ public:
     /// Destructor. Do nothing!!!
     virtual ~Point3D() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
         return GeometryData::Kratos_Point;
     }
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() override
     {
         return GeometryData::Kratos_Point3D;
     }
@@ -251,13 +251,13 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const
+    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
     {
         return typename BaseType::Pointer(new Point3D(ThisPoints));
     }
 
     
-    virtual Geometry< Point<3> >::Pointer Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const override
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -294,7 +294,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Length() const
+    virtual double Length() const override
     {
         return 0.00;
     }
@@ -310,7 +310,7 @@ public:
     @see Volume()
     @see DomainSize()
     */
-    virtual double Area() const
+    virtual double Area() const override
     {
         return 0.00;
     }
@@ -326,7 +326,7 @@ public:
     @see Area()
     @see Volume()
     */
-    virtual double DomainSize() const
+    virtual double DomainSize() const override
     {
         return 0.00;
     }
@@ -508,12 +508,12 @@ public:
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    virtual SizeType EdgesNumber() const
+    virtual SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    virtual SizeType FacesNumber() const
+    virtual SizeType FacesNumber() const override
     {
         return 0;
     }
@@ -572,7 +572,7 @@ public:
     @see PrintData()
     @see PrintInfo()
     */
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "a point in 3D space";
     }
@@ -583,7 +583,7 @@ public:
     @see PrintData()
     @see Info()
     */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -596,7 +596,7 @@ public:
     @see PrintInfo()
     @see Info()
     */
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "a point in 3D space";
     }
@@ -713,12 +713,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }
