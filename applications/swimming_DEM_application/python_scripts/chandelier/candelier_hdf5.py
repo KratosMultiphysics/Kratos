@@ -41,19 +41,13 @@ class ResultsCandelier:
                 result.attrs['m'] = self.m
 
     def WriteToHDF5(self):
-        with h5py.File(self.path) as f:
+        print(self.times)
+        with h5py.File(self.path, 'r+') as f:
             times = np.array(self.times)
             errors = np.array(self.errors)
             shape = (len(times),)
-
-            try:
-                del f[self.result_code + '/time']
-                del f[self.result_code + '/E(t)']
-            except:
-                pass
-
-            f[self.result_code].create_dataset(name = 'time', data = times, shape = shape, dtype = 'float64')
-            f[self.result_code].create_dataset(name = 'E(t)', data = errors, shape = shape, dtype = 'float64')
+            f[self.result_code].require_dataset(name = 'time', data = times, shape = shape, dtype = 'float64')
+            f[self.result_code].require_dataset(name = 'E(t)', data = errors, shape = shape, dtype = 'float64')
 
     def CalculateError(self, time, coor_calculated):
         coor_theory = np.zeros(3)
