@@ -72,7 +72,7 @@ namespace Kratos
 	void CrBeamElement3D2N::Initialize()
 	{
 		KRATOS_TRY
-			this->mPoisson = GetProperties()[POISSON_RATIO];
+		this->mPoisson = GetProperties()[POISSON_RATIO];
 		this->mArea = GetProperties()[CROSS_AREA];
 		this->mYoungsModulus = GetProperties()[YOUNG_MODULUS];
 		this->mShearModulus = this->mYoungsModulus / (2.0 * (1.0 + this->mPoisson));
