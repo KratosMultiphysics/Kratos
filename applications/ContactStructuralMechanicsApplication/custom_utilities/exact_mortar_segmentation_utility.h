@@ -29,6 +29,7 @@
 #include "geometries/triangle_3d_3.h"
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_3d_4.h"
 
 // /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
 // #include "integration/line_gauss_legendre_integration_points.h"
@@ -189,9 +190,9 @@ public:
      */
     
     inline bool GetExactIntegration(    
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         );
@@ -204,9 +205,9 @@ public:
      */
     
     inline bool GetExactIntegration(    
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         ConditionArrayListType& ConditionsPointsSlave
         );
@@ -636,9 +637,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
@@ -660,11 +661,11 @@ private:
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
         for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
         {
-            const array_1d<double, 3> normal = SlaveGeometry[i_slave].GetValue(NORMAL);
+            const array_1d<double, 3> normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
             
-            ContactUtilities::FastProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
+            ContactUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
             
-            const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
+            const bool inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
             
             if (inside == false)
             {
@@ -692,7 +693,7 @@ private:
             std::vector<double> aux_xi;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
-                const bool inside = ContactUtilities::ProjectIterativeLine2D(SlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, SlaveNormal);
+                const bool inside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), projected_gp_global, SlaveNormal);
                 
                 if (inside == true)
                 {
@@ -740,7 +741,7 @@ private:
         if (total_weight > Tolerance)
         {
             // With the proportion of the weigth you recalculate the integration weight. Change the coordinates of the integration to accomodate
-            const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = SlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
+            const GeometryNodeType::IntegrationPointsArrayType& IntegrationPoints = OriginalSlaveGeometry.IntegrationPoints(mAuxIntegrationMethod);
             IntegrationPointsSlave.resize(IntegrationPoints.size());
             for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
             {
@@ -752,8 +753,8 @@ private:
             }
 
 //             // Debug
-//             std::cout <<  SlaveGeometry[0].X() << " " << SlaveGeometry[0].Y() << " " << SlaveGeometry[1].X() << " " << SlaveGeometry[1].Y() << std::endl;
-//             std::cout <<  MasterGeometry[0].X() << " " << MasterGeometry[0].Y() << " " << MasterGeometry[1].X() << " " << MasterGeometry[1].Y() << std::endl;
+//             std::cout <<  OriginalSlaveGeometry[0].X() << " " << OriginalSlaveGeometry[0].Y() << " " << OriginalSlaveGeometry[1].X() << " " << OriginalSlaveGeometry[1].Y() << std::endl;
+//             std::cout <<  OriginalMasterGeometry[0].X() << " " << OriginalMasterGeometry[0].Y() << " " << OriginalMasterGeometry[1].X() << " " << OriginalMasterGeometry[1].Y() << std::endl;
 //             KRATOS_WATCH(coor_aux);
 // 
 //             std::cout << "IntegrationPoints : " << IntegrationPointsSlave.size( ) << std::endl;
@@ -780,14 +781,31 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
     {
         // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
+        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> PointsArraySlave  (3);
+        std::vector<PointType::Pointer> PointsArrayMaster (3);
+        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        {
+            PointType AuxPoint;
+            
+            AuxPoint.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates();
+            PointsArraySlave[i_node] = boost::make_shared<PointType>(AuxPoint);
+            
+            AuxPoint.Coordinates() = OriginalMasterGeometry[i_node].Coordinates();
+            PointsArrayMaster[i_node] = boost::make_shared<PointType>(AuxPoint);
+        }
+        
+        Triangle3D3 <PointType> SlaveGeometry(  PointsArraySlave  );
+        Triangle3D3 <PointType> MasterGeometry( PointsArrayMaster );
         
         // We define the tolerance
         const double Tolerance = 1.0e-8;
@@ -1131,9 +1149,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         IntegrationPointsType& IntegrationPointsSlave
         )
@@ -1141,6 +1159,23 @@ private:
         // We define the tolerance
         const double Tolerance = 1.0e-8;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
+        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> PointsArraySlave  (4);
+        std::vector<PointType::Pointer> PointsArrayMaster (4);
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            PointType AuxPoint;
+            
+            AuxPoint.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates();
+            PointsArraySlave[i_node] = boost::make_shared<PointType>(AuxPoint);
+            
+            AuxPoint.Coordinates() = OriginalMasterGeometry[i_node].Coordinates();
+            PointsArrayMaster[i_node] = boost::make_shared<PointType>(AuxPoint);
+        }
+        
+        Quadrilateral3D4 <PointType> SlaveGeometry(  PointsArraySlave  );
+        Quadrilateral3D4 <PointType> MasterGeometry( PointsArrayMaster );
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType SlaveCenter = SlaveGeometry.Center();
@@ -1570,12 +1605,11 @@ private:
     /***********************************************************************************/
     /***********************************************************************************/
 
-
     template<>  
     inline bool ExactMortarIntegrationUtility<2,2>::GetExactIntegration(         
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         ConditionArrayListType& ConditionsPointsSlave
         )
@@ -1597,11 +1631,11 @@ private:
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
         for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
         {
-            const array_1d<double, 3> normal = SlaveGeometry[i_slave].GetValue(NORMAL);
+            const array_1d<double, 3> normal = OriginalSlaveGeometry[i_slave].GetValue(NORMAL);
             
-            ContactUtilities::FastProjectDirection(MasterGeometry, SlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
+            ContactUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
             
-            const bool inside = MasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
+            const bool inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
             
             if (inside == false)
             {
@@ -1629,7 +1663,7 @@ private:
             std::vector<double> aux_xi;
             for (unsigned int i_master = 0; i_master < 2; i_master++)
             {
-                const bool inside = ContactUtilities::ProjectIterativeLine2D(SlaveGeometry, MasterGeometry[i_master].Coordinates(), projected_gp_global, SlaveNormal);
+                const bool inside = ContactUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), projected_gp_global, SlaveNormal);
                 
                 if (inside == true)
                 {
@@ -1700,9 +1734,9 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,3>::GetExactIntegration(    
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         ConditionArrayListType& ConditionsPointsSlave
         )
@@ -1712,6 +1746,23 @@ private:
         // We define the tolerance
         const double Tolerance = 1.0e-8;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
+        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> PointsArraySlave  (3);
+        std::vector<PointType::Pointer> PointsArrayMaster (3);
+        for (unsigned int i_node = 0; i_node < 3; i_node++)
+        {
+            PointType AuxPoint;
+            
+            AuxPoint.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates();
+            PointsArraySlave[i_node] = boost::make_shared<PointType>(AuxPoint);
+            
+            AuxPoint.Coordinates() = OriginalMasterGeometry[i_node].Coordinates();
+            PointsArrayMaster[i_node] = boost::make_shared<PointType>(AuxPoint);
+        }
+        
+        Triangle3D3 <PointType> SlaveGeometry(  PointsArraySlave  );
+        Triangle3D3 <PointType> MasterGeometry( PointsArrayMaster );
         
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType SlaveCenter = SlaveGeometry.Center();
@@ -2005,13 +2056,30 @@ private:
 
     template<>  
     inline bool ExactMortarIntegrationUtility<3,4>::GetExactIntegration(   
-        GeometryNodeType& SlaveGeometry,
+        GeometryNodeType& OriginalSlaveGeometry,
         const array_1d<double, 3>& SlaveNormal,
-        GeometryNodeType& MasterGeometry,
+        GeometryNodeType& OriginalMasterGeometry,
         const array_1d<double, 3>& MasterNormal,
         ConditionArrayListType& ConditionsPointsSlave
         )
     {        
+        // We define the auxiliar geometry
+        std::vector<PointType::Pointer> PointsArraySlave  (4);
+        std::vector<PointType::Pointer> PointsArrayMaster (4);
+        for (unsigned int i_node = 0; i_node < 4; i_node++)
+        {
+            PointType AuxPoint;
+            
+            AuxPoint.Coordinates() = OriginalSlaveGeometry[i_node].Coordinates();
+            PointsArraySlave[i_node] = boost::make_shared<PointType>(AuxPoint);
+            
+            AuxPoint.Coordinates() = OriginalMasterGeometry[i_node].Coordinates();
+            PointsArrayMaster[i_node] = boost::make_shared<PointType>(AuxPoint);
+        }
+        
+        Quadrilateral3D4 <PointType> SlaveGeometry(  PointsArraySlave  );
+        Quadrilateral3D4 <PointType> MasterGeometry( PointsArrayMaster );
+        
         // Firt we create an auxiliar plane based in the condition center and its normal
         const PointType SlaveCenter = SlaveGeometry.Center();
         
