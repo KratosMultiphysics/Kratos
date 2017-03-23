@@ -260,6 +260,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -323,7 +324,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)     
 
             # Take time needed for current optimization step
@@ -389,6 +391,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -482,7 +485,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)   
 
             # Take time needed for current optimization step
