@@ -62,7 +62,7 @@ void Membrane1Element::EquationIdVector(
     ProcessInfo& rCurrentProcessInfo)
 
 {
-  KRATOS_TRY
+  KRATOS_TRY;
 
   unsigned int number_of_nodes = GetGeometry().size();
   unsigned int dim = number_of_nodes * 3;
@@ -95,6 +95,9 @@ void Membrane1Element::GetDofList(
     ProcessInfo& rCurrentProcessInfo)
 
 {
+
+    // TODO refered to vms.cpp in FluidDynamicsApplication
+
     ElementalDofList.resize(0);
 
     for (unsigned int i = 0; i < GetGeometry().size(); ++i)
@@ -127,10 +130,16 @@ void Membrane1Element::Initialize()
     mThickness0 = GetProperties()[THICKNESS];
     mThickness = 0.00;
 
-    // temporary set the pre-stress
+    //// temporary set the pre-stress
     mPreStress[0] = GetProperties()[PRESTRESS_11];
     mPreStress[1] = GetProperties()[PRESTRESS_22];
     mPreStress[2] = GetProperties()[PRESTRESS_12];
+
+    // temporary set the pre-stress
+    //mPreStress[0] = 100.0;
+    //mPreStress[1] = 100.0;
+    //mPreStress[2] = 0.0;
+
 
     if (mPreStress[0] != mPreStress[1] || mPreStress[2] != 0.0)
         KRATOS_THROW_ERROR(std::invalid_argument, "Only Isotropic Pre-stress state is considered in the membrane1 implementation! Further implementation not done yet!", "");
@@ -209,6 +218,7 @@ void Membrane1Element::Initialize()
         array_1d<double, 3> e2 = gab_contravariant_2 / lg_contravariant_2;
 
         boost::numeric::ublas::bounded_matrix<double, 2, 2> mG;
+        //boost::numeric::ublas::bounded_matrix<double, 2, 3> mG;
         mG(0, 0) = inner_prod(e1, gab_contravariant_1);
         mG(0, 1) = inner_prod(e1, gab_contravariant_2);
         mG(1, 0) = inner_prod(e2, gab_contravariant_1);
@@ -290,7 +300,8 @@ void Membrane1Element::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo)
 
 {
-    std::cout << "CalculateOnIntegrationPoints not implemented yet" << std::endl;
+    KRATOS_ERROR << "CalculateOnIntegrationPoints not implemented yet" << std::endl;
+    //std::cout << "CalculateOnIntegrationPoints not implemented yet" << std::endl;
 }
 
 //***********************************************************************************
@@ -533,10 +544,12 @@ void Membrane1Element::CalculateAndAddNonlinearKm(
     double weight)
 
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
-        unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = GetGeometry().size();
     Matrix TestK = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+    //TestK = K;
+    //std::cout << " Get to CalculateAndAddNonlinearKm!" << std::endl;
 
     for (unsigned int n = 0; n < number_of_nodes; n++)
     {
@@ -549,21 +562,79 @@ void Membrane1Element::CalculateAndAddNonlinearKm(
                     check = i + 1;
                 for (unsigned int j = 0; j < check; j++)
                 {
-                    //K(3 * n + i, 3 * m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    TestK(3*n + i, 3*m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    //K(3 * m + j, 3 * n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    TestK(3*m + i, 3*n + j) = TestK(3*n + i, 3*m + j);
+                    /*
+                    K(3 * n + i, 3 * m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    K(3 * m + j, 3 * n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    
+                    
+                    TestK(3*n + i, 3*m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;                    
+                    TestK(3 * m + i, 3 * n + j) = TestK(3 * n + i, 3 * m + j);
+                    */
+                    K(3 * n + i, 3 * m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    K(3 * m + i, 3 * n + j) = K(3 * n + i, 3 * m + j);
+
+                    //if((3*m + i) == (3 * n + j))
+                    //    K(3*m + i, 3*n + j) = K(3*n + i, 3*m + j);
+                    //else
+                    //    K(3 * m + j, 3 * n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
                 }
             }
         }
     }
-    //if (this->GetId() == 1)
-        //KRATOS_WATCH(TestK);
+    //if (this->GetId() == 42) {
+    //    std::cout << "############" << std::endl;
+    //    KRATOS_WATCH(TestK);
+    //    std::cout << "============" << std::endl;
+    //    KRATOS_WATCH(K);
+    //    std::cout << "############" << std::endl;
 
-    K = TestK;
+    //}
+
+    //K = TestK;
     KRATOS_CATCH("")
 }
 
+/*
+void Membrane1Element::CalculateAndAddNonlinearKm(
+    Matrix& K,
+    Matrix& B11,
+    Matrix& B22,
+    Matrix& B12,
+    Vector& SD,
+    double weight)
+
+{
+    KRATOS_TRY
+
+        unsigned int number_of_nodes = GetGeometry().size();
+    //Matrix TestK = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+
+    for (unsigned int n = 0; n < number_of_nodes; n++)
+    {
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            for (unsigned int m = 0; m <= n; m++)
+            {
+                int check = 3;
+                if (m == n)
+                    check = i + 1;
+                for (unsigned int j = 0; j < check; j++)
+                {
+                    K(3 * n + i, 3 * m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    //TestK(3*n + i, 3*m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    K(3 * m + j, 3 * n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
+                    //TestK(3*m + i, 3*n + j) = TestK(3*n + i, 3*m + j);
+                }
+            }
+        }
+    }
+    //KRATOS_WATCH(TestK)
+
+    KRATOS_CATCH("")
+}
+
+
+*/
 
 
 //***********************************************************************************
@@ -770,6 +841,7 @@ void Membrane1Element::CalculateAll(
     
 
     // Matrix B(3, MatSize);
+    // change to: array_1d<double, 3> StrainVector;
     Vector StrainVector(3);
     Vector StressVector(3);
 
@@ -792,6 +864,7 @@ void Membrane1Element::CalculateAll(
     }
 
     // Initializing the Nodal coordinates
+    // change to: boost::numeric::ublas::bounded_matrix
     Matrix xyz_reference;   // Nodal coordinates in the reference configuration
     Matrix xyz_actual;      // Nodal coordinates in the actual configuration
 
@@ -870,19 +943,26 @@ void Membrane1Element::CalculateAll(
 
         // Constitutive Matrices D
         Matrix D = ZeroMatrix(3, 3);
-
+        //boost::numeric::ublas::bounded_matrix<double, 3, 3> D;
         //KRATOS_WATCH(StressVector);
 
+        
         Values.SetStrainVector(StrainVector);       // this is the input parameter
         Values.SetStressVector(StressVector);       // this is an output parameter
         Values.SetConstitutiveMatrix(D);            // this is an output parameter
 
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
-
+        /**/
         //KRATOS_WATCH(StressVector);
 
         // Deformations for Non-linear force vector
         Vector StrainDeformation;
+
+        //if (this->GetId() == 42)
+        //{
+        //    std::cout << "before my function!" << std::endl;
+        //    KRATOS_WATCH(D);
+        //}
 
         StrainDeformation = prod(trans(D), CartesianStrainVector);
 
@@ -895,8 +975,9 @@ void Membrane1Element::CalculateAll(
         pre_stress_tensor(2) = mPreStress[2];
 
 
+        // !!!! the thickness is considered at the end by the IntToReferenceWeight !!!
         // pre-integration with thickness
-        pre_stress_tensor *= mThickness0;
+        //pre_stress_tensor *= mThickness0;
 
         //KRATOS_WATCH(pre_stress_tensor);
         //KRATOS_WATCH(StrainDeformation);
@@ -946,11 +1027,23 @@ void Membrane1Element::CalculateAll(
             //KRATOS_WATCH(IntToReferenceWeight);
             CalculateAndAddKm(rLeftHandSideMatrix, B, D, IntToReferenceWeight);
 
+            //if (this->GetId() == 42)
+            //{
+            //    std::cout << "Klinear" << std::endl;
+            //    KRATOS_WATCH(D);
+            //    KRATOS_WATCH(rLeftHandSideMatrix);
+            //}
             // adding non-linear-contribution to stiffness matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
                 Strain_locCartesian_11, Strain_locCartesian_22, Strain_locCartesian_12,
                 StrainDeformation,
                 IntToReferenceWeight);
+
+            //if (this->GetId() == 42)
+            //{
+            //    std::cout << "KNonlinear" << std::endl;
+            //    KRATOS_WATCH(rLeftHandSideMatrix);
+            //}
         }
 
         // RIGHT HAND SIDE VECTOR
@@ -973,7 +1066,11 @@ void Membrane1Element::CalculateAll(
     //    KRATOS_WATCH(rRightHandSideVector);
     //}
 
-
+    //if (this->GetId() == 42)
+    //{
+    //    std::cout << "K" << std::endl;
+    //    KRATOS_WATCH(rLeftHandSideMatrix);
+    //}
     KRATOS_CATCH("")
 }
 
@@ -1139,7 +1236,27 @@ void Membrane1Element::CalculateSecondVariationStrain(Matrix DN_De,
         }
     }
 }
+//************************************************************************************
+//************************************************************************************
+void Membrane1Element::CalculateMembraneElasticityTensor(
+    Matrix& D
+    )
+{
+    double NU = GetProperties()[POISSON_RATIO];
+    double E = GetProperties()[YOUNG_MODULUS];
+    double coeff = E / (1 - NU*NU); 
+    D(0, 0) = coeff;
+    D(0, 1) = NU*coeff;
+    D(0, 2) = 0.0;
 
+    D(1, 0) = NU*coeff;
+    D(1, 1) = coeff;
+    D(1, 2) = 0.0;
+
+    D(2, 0) = 0.0;
+    D(2, 1) = 0.0;
+    D(2, 2) = 0.5*(1 - NU)*coeff;
+}
 
 
 //***********************************************************************************
@@ -1152,7 +1269,7 @@ int  Membrane1Element::Check(const ProcessInfo& rCurrentProcessInfo)
         //verify that the variables are correctly initialized
 
         if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "")
+            KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "");
 
             if (DISPLACEMENT.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "")

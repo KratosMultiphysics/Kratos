@@ -265,6 +265,10 @@ namespace Kratos
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2);
 
+    void CalculateMembraneElasticityTensor(
+        Matrix& D
+        );
+
 
     int  Check(const ProcessInfo& rCurrentProcessInfo);
 
