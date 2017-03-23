@@ -944,7 +944,8 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
+    virtual Vector& DeterminantOfJacobian( Vector& rResult,
+                                           IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
         if(rResult.size() != integration_points_number)
@@ -981,7 +982,7 @@ public:
      * @see InverseOfJacobian
      */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const
+                                          IntegrationMethod ThisMethod ) const override
     {
         return 2.0*(this->Area());
     }
@@ -1000,7 +1001,7 @@ public:
      * @see InverseOfJacobian
      *
      */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
         return 2.0*(this->Area());
     }
