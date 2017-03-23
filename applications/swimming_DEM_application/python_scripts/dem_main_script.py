@@ -5,7 +5,7 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-
+from KratosMultiphysics.SwimmingDEMApplication import *
 import main_script as main
 
 sys.path.insert(0,'')
@@ -16,22 +16,20 @@ BaseSolution = main.Solution
 class Solution(BaseSolution):
 
     def __init__(self):
-        super(Solution,self).__init__()
-        
-        
-        
+        super(Solution, self).__init__()
+
     def SetSolverStrategy(self):
-        import swimming_sphere_strategy as SolverStrategy            
+        import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
-    
+
+    def SelectScheme(self):
+        scheme = super(Solution, self).SelectScheme()
+        if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+            return HybridBashforthScheme()
+        elif DEM_parameters.ElementType == "SwimmingNanoParticle":
+            return TerminalVelocityScheme()
+        else:
+            return None
+
     def SetSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
-    
-    def FinalizeTimeStep(self):
-        super(Solution,self).FinalizeTimeStep()
-
-        
-    def Finalize():
-        super(Solution,self).Finalize()
-
-            

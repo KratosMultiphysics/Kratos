@@ -49,7 +49,7 @@ class Solution(object):
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
-        self.scheme = self.procedures.SetScheme()
+        self.scheme = self.SetScheme()
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
@@ -74,7 +74,28 @@ class Solution(object):
     
     def SetParticleCreatorDestructor(self):
         return ParticleCreatorDestructor()
-    
+
+    def SelectScheme(self):
+        if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+            return ForwardEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+            return SymplecticEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+            return TaylorScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+            return NewmarkBetaScheme(0.5, 0.25)
+        elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+            return VerletVelocityScheme()
+        else:
+            return None
+
+    def SetScheme(self):
+        scheme = self.SelectScheme()
+        if scheme == None:
+            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return scheme
+
     def SetSolverStrategy(self):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
