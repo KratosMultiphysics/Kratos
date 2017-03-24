@@ -10,7 +10,6 @@ def GetOldTimeIndicesAndWeights(current_time, times_array, fluid_dt):
     print('future_index',future_index)
     print(times_array[old_index])
     print(times_array[future_index])
-    cacac
     old_time =  times_array[old_index]
 
     if future_index >= len(times_array):
@@ -56,8 +55,7 @@ class FluidHDF5Loader:
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
                 self.times     = np.array([float(f[key].attrs['time']) for key in self.times_str])
                 self.dt = self.times[-1] - self.times[-2]
-                print(self.times)
-                caca
+
             self.old_data_array = np.zeros(self.extended_shape)
             self.future_data_array = np.zeros(self.extended_shape)
             self.old_time_index = 0
