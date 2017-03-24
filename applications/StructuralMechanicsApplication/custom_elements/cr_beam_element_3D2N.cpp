@@ -792,7 +792,7 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-			const SizeType NumNodes = this->GetGeometry().PointsNumber();
+		const SizeType NumNodes = this->GetGeometry().PointsNumber();
 		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
 		const SizeType LocalSize = NumNodes * dimension * 2;
 
@@ -810,7 +810,9 @@ namespace Kratos
 
 		//Nodal element forces local
 		VectorType nodalForcesLocal_qe = ZeroVector(LocalSize);
-		nodalForcesLocal_qe = prod(this->CalculateTransformationS(), elementForces_t);
+		Matrix TransformationMatrixS = ZeroMatrix(12,6);
+		TransformationMatrixS = this->CalculateTransformationS();
+		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
 
 		mNodalForces = ZeroVector(LocalSize);
 		mNodalForces = nodalForcesLocal_qe;
@@ -841,6 +843,7 @@ namespace Kratos
 
 		//assign global element variables
 		this->mLHS = rLeftHandSideMatrix;
+
 		//add bodyforces 
 		mBodyForces = ZeroVector(12);
 		mBodyForces = this->CalculateBodyForces();

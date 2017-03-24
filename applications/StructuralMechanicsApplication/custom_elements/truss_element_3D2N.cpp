@@ -350,8 +350,6 @@ namespace Kratos
 		mLHS = rLeftHandSideMatrix;
 
 		//create+compute RHS
-		VectorType currentDisp = ZeroVector(LocalSize);
-		this->GetValuesVector(currentDisp);
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
 		//update Residual
@@ -671,11 +669,11 @@ namespace Kratos
 		}
 
 		//2nd fill big rotation matrix
-		MatrixType IninitialCS = ZeroMatrix(3, 3);
+		MatrixType CurrentCS = ZeroMatrix(3, 3);
 		for (uint i = 0; i < 3; i++) {
-			IninitialCS(i, 0) = DirectionVectorX[i];
-			IninitialCS(i, 1) = DirectionVectorY[i];
-			IninitialCS(i, 2) = DirectionVectorZ[i];
+			CurrentCS(i, 0) = DirectionVectorX[i];
+			CurrentCS(i, 1) = DirectionVectorY[i];
+			CurrentCS(i, 2) = DirectionVectorZ[i];
 		}
 
 		rRotationMatrix = ZeroMatrix(6, 6);
@@ -687,7 +685,7 @@ namespace Kratos
 			{
 				for (unsigned int j = 0; j<3; j++)
 				{
-					rRotationMatrix(i + kk, j + kk) = IninitialCS(i, j);
+					rRotationMatrix(i + kk, j + kk) = CurrentCS(i, j);
 				}
 			}
 		}
