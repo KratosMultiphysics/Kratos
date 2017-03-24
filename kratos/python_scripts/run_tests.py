@@ -20,7 +20,7 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v verbosity] [-a app1:[app2:...]]',  # noqa
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(allMPI)\' \'(nightly)\' \'(nightlyMPI)\' \'(small)\' \'(smallMPI)\'',  # noqa
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
     ]
@@ -153,7 +153,7 @@ def main():
     command = sys.executable
 
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small', 'validation']
+    level_values = ['all', 'allMPI', 'nightly', 'nightlyMPI', 'small', 'smallMPI', 'validation', 'validationMPI']
 
     # Set default values
     applications = GetAvailableApplication()
