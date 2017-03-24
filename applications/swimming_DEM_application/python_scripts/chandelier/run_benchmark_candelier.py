@@ -26,12 +26,12 @@ error_names = []
 
 # No history force benchmark
 test = script.Solution(simulation_time = 1.0, basset_force_type = 0)
-error_names.append('No history force')
+error_names.append('No history force, Daitche')
 errors.append(test.Run())
 
 # Second-order accurate Daitche benchmark
 test = script.Solution(simulation_time = 1.0, basset_force_type = 2)
-error_names.append('No history, Daitche')
+error_names.append('All forces, Daitche')
 errors.append(test.Run())
 
 # Output

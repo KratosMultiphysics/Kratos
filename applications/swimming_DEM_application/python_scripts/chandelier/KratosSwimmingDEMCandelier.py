@@ -138,6 +138,7 @@ class Solution:
             concentration = self.pp.initial_concentration
         # NANO END
         self.DS = dem_main_script.Solution()
+
     def Run(self):
         import math
         run_code = swim_proc.CreateRunCode(pp)
@@ -608,9 +609,10 @@ class Solution:
 
         import chandelier_parameters as ch_pp
         import chandelier as ch
+        ch_pp.include_history_force = bool(self.pp.CFD_DEM.basset_force_type)
+
         #import quadrature as quad
         sim = ch.AnalyticSimulator(ch_pp)
-        ch_pp.include_history_force = bool(self.pp.CFD_DEM.basset_force_type)
         post_utils.Writeresults(time)
         coors = [None] * 3
         exact_vel = [None] * 3
