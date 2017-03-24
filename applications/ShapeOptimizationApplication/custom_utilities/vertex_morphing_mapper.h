@@ -131,8 +131,8 @@ public:
 
     // Type definitions for linear algebra including sparse systems
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
-    typedef typename SparseSpaceType::VectorType VectorType;
+    typedef SparseSpaceType::MatrixType SparseMatrixType;
+    typedef SparseSpaceType::VectorType VectorType;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
