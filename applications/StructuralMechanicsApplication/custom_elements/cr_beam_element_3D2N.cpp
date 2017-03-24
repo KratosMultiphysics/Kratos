@@ -541,25 +541,22 @@ namespace Kratos
 		r1 = meanRotationVector[0];
 		r2 = meanRotationVector[1];
 		r3 = meanRotationVector[2];
-		MatrixType RotateInitialMatrix = ZeroMatrix(3, 3);
-		RotateInitialMatrix(0, 0) = (r0*r0) + (r1*r1) - (r2*r2) - (r3*r3);
-		RotateInitialMatrix(0, 1) = 2.00*(r1*r2 - r0*r3);
-		RotateInitialMatrix(0, 2) = 2.00*(r1*r3 + r0*r2);
-		RotateInitialMatrix(1, 0) = 2.00*(r1*r2 + r0*r3);
-		RotateInitialMatrix(1, 1) = (r0*r0) - (r1*r1) + (r2*r2) - (r3*r3);
-		RotateInitialMatrix(1, 2) = 2.00*(r2*r3 - r0*r1);
-		RotateInitialMatrix(2, 0) = 2.00*(r3*r1 - r0*r2);
-		RotateInitialMatrix(2, 1) = 2.00*(r3*r2 + r0*r1);
-		RotateInitialMatrix(2, 2) = (r0*r0) - (r1*r1) - (r2*r2) + (r3*r3);
 
-		MatrixType IninitialCS = ZeroMatrix(3, 3);
-		for (uint i = 0; i < 3; i++) {
-			IninitialCS(i, 0) = mNX0[i];
-			IninitialCS(i, 1) = mNY0[i];
-			IninitialCS(i, 2) = mNZ0[i];
-		}
+		Quaternion<double> q(r0, r1, r2, r3);
+		VectorType rotatedNX0 = mNX0;
+		VectorType rotatedNY0 = mNY0;
+		VectorType rotatedNZ0 = mNZ0;
+		q.RotateVector3(rotatedNX0);
+		q.RotateVector3(rotatedNY0);
+		q.RotateVector3(rotatedNZ0);
+
 		MatrixType RotatedCS = ZeroMatrix(3, 3);
-		RotatedCS = prod(RotateInitialMatrix, IninitialCS);
+		for (uint i = 0; i < 3; i++) {
+			RotatedCS(i, 0) = rotatedNX0[i];
+			RotatedCS(i, 1) = rotatedNY0[i];
+			RotatedCS(i, 2) = rotatedNZ0[i];
+		}
+		
 
 		//rotate basis to element axis + redefine R
 		VectorType n_bisectrix = ZeroVector(3);
