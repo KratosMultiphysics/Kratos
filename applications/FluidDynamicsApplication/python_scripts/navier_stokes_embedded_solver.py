@@ -110,6 +110,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)    # Speed of sound velocity
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE) # Nodal external pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EMBEDDED_WET_VELOCITY)    # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         print("Monolithic embedded fluid solver variables added correctly")
 
