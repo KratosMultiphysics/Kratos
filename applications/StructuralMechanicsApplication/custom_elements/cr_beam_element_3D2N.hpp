@@ -93,6 +93,10 @@ namespace Kratos
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+		void CalculateDampingMatrix(
+			MatrixType& rDampingMatrix,
+			ProcessInfo& rCurrentProcessInfo);
+
 		void GetValuesVector(
 			Vector& rValues,
 			int Step = 0);

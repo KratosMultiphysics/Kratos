@@ -703,6 +703,66 @@ namespace Kratos
 		//rotaional mass neglecte
 		KRATOS_CATCH("")
 	}
+
+	void CrBeamElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+			// 0.-Initialize the DampingMatrix:
+			const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+		// Resizing as needed the LHS
+		const unsigned int MatSize = number_of_nodes * dimension * 2;
+
+		if (rDampingMatrix.size1() != MatSize)
+		{
+			rDampingMatrix.resize(MatSize, MatSize, false);
+		}
+
+		noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+
+		// 1.-Calculate StiffnessMatrix:
+
+		MatrixType StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
+
+		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+
+		// 2.-Calculate MassMatrix:
+
+		MatrixType MassMatrix = ZeroMatrix(MatSize, MatSize);
+
+		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+		// 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+		double alpha = 0.0;
+		if (GetProperties().Has(RAYLEIGH_ALPHA))
+		{
+			alpha = GetProperties()[RAYLEIGH_ALPHA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+		{
+			alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+		}
+
+		double beta = 0.0;
+		if (GetProperties().Has(RAYLEIGH_BETA))
+		{
+			beta = GetProperties()[RAYLEIGH_BETA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+		{
+			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+		}
+
+		// 4.-Compose the Damping Matrix:
+
+		// Rayleigh Damping Matrix: alpha*M + beta*K
+		noalias(rDampingMatrix) += alpha * MassMatrix;
+		noalias(rDampingMatrix) += beta  * StiffnessMatrix;
+		KRATOS_CATCH("")
+	}
+
+
 	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateBodyForces()
 	{
 		KRATOS_TRY
@@ -732,7 +792,7 @@ namespace Kratos
 	void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
+			const SizeType NumNodes = this->GetGeometry().PointsNumber();
 		const uint dimension = this->GetGeometry().WorkingSpaceDimension();
 		const SizeType LocalSize = NumNodes * dimension * 2;
 

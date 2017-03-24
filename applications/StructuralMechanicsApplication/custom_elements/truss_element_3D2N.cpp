@@ -156,6 +156,64 @@ namespace Kratos
 		return LocalStiffnessMatrix;
 		KRATOS_CATCH("")
 	}
+	void TrussElement3D2N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+		// 0.-Initialize the DampingMatrix:
+		const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+		// Resizing as needed the LHS
+		const unsigned int MatSize = number_of_nodes * dimension;
+
+		if (rDampingMatrix.size1() != MatSize)
+		{
+			rDampingMatrix.resize(MatSize, MatSize, false);
+		}
+
+		noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+
+		// 1.-Calculate StiffnessMatrix:
+
+		MatrixType StiffnessMatrix = ZeroMatrix(MatSize, MatSize);
+
+		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+
+		// 2.-Calculate MassMatrix:
+
+		MatrixType MassMatrix = ZeroMatrix(MatSize, MatSize);
+
+		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+		// 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+		double alpha = 0.0;
+		if (GetProperties().Has(RAYLEIGH_ALPHA))
+		{
+			alpha = GetProperties()[RAYLEIGH_ALPHA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+		{
+			alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+		}
+
+		double beta = 0.0;
+		if (GetProperties().Has(RAYLEIGH_BETA))
+		{
+			beta = GetProperties()[RAYLEIGH_BETA];
+		}
+		else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+		{
+			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+		}
+
+		// 4.-Compose the Damping Matrix:
+
+		// Rayleigh Damping Matrix: alpha*M + beta*K
+		noalias(rDampingMatrix) += alpha * MassMatrix;
+		noalias(rDampingMatrix) += beta  * StiffnessMatrix;
+
+		KRATOS_CATCH("")
+	}
 	void TrussElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
@@ -233,6 +291,25 @@ namespace Kratos
 			rValues[index] = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
 			rValues[index + 1] = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
 			rValues[index + 2] = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+		}
+		KRATOS_CATCH("")
+	}
+	void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+	{
+		KRATOS_TRY
+		GeometryType& rGeometry = this->GetGeometry();
+		const uint number_of_nodes = GetGeometry().PointsNumber();
+		const uint dimension = GetGeometry().WorkingSpaceDimension();
+		uint      element_size = number_of_nodes * dimension;
+
+		if (rValues.size() != element_size) rValues.resize(element_size, false);
+
+		for (uint i = 0; i < number_of_nodes; i++)
+		{
+			int index = i * dimension;
+			rValues[index] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+			rValues[index + 1] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
+			rValues[index + 2] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
 		}
 		KRATOS_CATCH("")
 	}
