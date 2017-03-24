@@ -206,7 +206,7 @@ public:
         }
         
         // Reset the weighted variables
-        ContactUtilities::ResetWeightedALMFrictionlessValues( rModelPart ); // FIXME: Just for frictionless case
+        ContactUtilities::ResetWeightedALMFrictionlessValues( rModelPart ); 
         
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -307,7 +307,7 @@ public:
 //         ContactUtilities::ResetVisited(rModelPart);
         
 //         // It recomputes the active/inactive pair
-//         ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );  // FIXME: Just for frictionless case
+//         ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );  
         
         KRATOS_CATCH("");
     }
@@ -384,7 +384,7 @@ public:
         ContactUtilities::ResetVisited(rModelPart);
         
         // It recomputes the active/inactive pair
-        ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );  // FIXME: Just for frictionless case 
+        ContactUtilities::ReComputeActiveInactiveALMFrictionless( rModelPart );   
         
         KRATOS_CATCH("");
     }

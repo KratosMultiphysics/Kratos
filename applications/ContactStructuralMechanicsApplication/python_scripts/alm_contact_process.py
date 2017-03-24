@@ -142,6 +142,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         #print(self.main_model_part)
         
         for cond in self.o_interface.Conditions:
+            cond.Set(KratosMultiphysics.ACTIVE, False) # Master condition are not computed
             interface_computing_model_part.AddCondition(cond)    
         del(cond)
         
