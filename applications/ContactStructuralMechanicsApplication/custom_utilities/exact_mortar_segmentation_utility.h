@@ -688,7 +688,7 @@ private:
         )
     {             
         // We take the geometry GP from the core 
-        const double Tolerance = 1.0e-4;
+        const double Tolerance = 1.0e-6;
 //         const double Tolerance = std::numeric_limits<double>::epsilon();
         
         double total_weight = 0.0;
@@ -697,9 +697,6 @@ private:
         // Declaring auxiliar values
         PointType projected_gp_global;
         GeometryNodeType::CoordinatesArrayType projected_gp_local;
-        
-        // Declare the boolean of full integral
-        bool full_int = true;
         
         // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
         for (unsigned int i_slave = 0; i_slave < 2; i_slave++)
@@ -710,11 +707,7 @@ private:
             
             const bool inside = OriginalMasterGeometry.IsInside( projected_gp_global.Coordinates( ), projected_gp_local, Tolerance );
             
-            if (inside == false)
-            {
-                full_int = false;
-            }
-            else
+            if (inside == true) 
             {
                 if (i_slave == 0)
                 {
@@ -727,7 +720,7 @@ private:
             }
         }
         
-        if (full_int == true)
+        if ((coor_aux[0] == - 1.0 && coor_aux[1] == 1.0) == true)
         {
             total_weight = 2.0;
         }
@@ -761,16 +754,31 @@ private:
             }
             else  if (aux_xi.size() == 2)
             {
-                if (aux_xi[0] < aux_xi[1])
+                if (coor_aux[0] == - 1.0)
                 {
-                    coor_aux[0] = aux_xi[0];
-                    coor_aux[1] = aux_xi[1];
+                    coor_aux[1] = aux_xi[0] < aux_xi[1] ? aux_xi[1] : aux_xi[0];
+                }
+                else if (coor_aux[1] == 1.0)
+                {
+                    coor_aux[0] = aux_xi[0] < aux_xi[1] ? aux_xi[0] : aux_xi[1];
                 }
                 else
                 {
-                    coor_aux[1] = aux_xi[0];
-                    coor_aux[0] = aux_xi[1];
+                    if (aux_xi[0] < aux_xi[1])
+                    {
+                        coor_aux[0] = aux_xi[0];
+                        coor_aux[1] = aux_xi[1];
+                    }
+                    else
+                    {
+                        coor_aux[1] = aux_xi[0];
+                        coor_aux[0] = aux_xi[1];
+                    }
                 }
+            }
+            else
+            {
+                std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
             }
             
             total_weight = coor_aux[1] - coor_aux[0];
@@ -781,7 +789,10 @@ private:
             KRATOS_ERROR << "WAAAAAAAAAAAAARNING!!!!!!!!, wrong order of the coordinates: "<< coor_aux << std::endl;
         }
         
-        if (total_weight > Tolerance)
+//         // Debug
+//         std::cout << "xi1 " << coor_aux[0] << " xi2 " << coor_aux[1] << std::endl;
+        
+        if (total_weight > std::numeric_limits<double>::epsilon())
         {
             ConditionsPointsSlave.resize(1);
             array_1d<PointType, 2> ListPoints;

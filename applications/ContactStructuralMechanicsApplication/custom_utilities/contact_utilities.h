@@ -297,9 +297,24 @@ public:
     {
         ResultingPoint.clear();
         
-        double DeltaXi = 0.5;
+        double OldDeltaXi = 0.0;
+        double DeltaXi    = 0.5;
 
-        GeometryType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+        array_1d<double, 3> CurrentGlobalCoords;
+
+        array_1d<array_1d<double, 3>, 2> normals;
+        normals[0] = GeomOrigin[0].GetValue(NORMAL);
+        normals[1] = GeomOrigin[1].GetValue(NORMAL);
+        
+        boost::numeric::ublas::bounded_matrix<double,2,2> X;
+        boost::numeric::ublas::bounded_matrix<double,2,1> DN;
+        for(unsigned int i=0; i<2;i++)
+        {
+            X(0,i) = GeomOrigin[i].X();
+            X(1,i) = GeomOrigin[i].Y();
+        }
+
+        Matrix J = ZeroMatrix( 1, 1 );
         
         //Newton iteration:
         double tol = 1.0e-8;
@@ -315,7 +330,7 @@ public:
             array_1d<double,3> normal_xi = ZeroVector(3);
             for( unsigned int iNode = 0; iNode < 2; ++iNode )
             {
-                normal_xi += NOrigin[iNode] * GeomOrigin[iNode].GetValue(NORMAL); 
+                normal_xi += NOrigin[iNode] * normals[iNode]; 
             }
             
             normal_xi = normal_xi/norm_2(normal_xi); 
@@ -328,12 +343,23 @@ public:
             
             const array_1d<double,3> vector_points = GeomOrigin.Center() - PointDestiny;
             const double dist = inner_prod(vector_points, Normal)/inner_prod(-normal_xi, Normal); 
-            CurrentGlobalCoords = CurrentGlobalCoords + normal_xi * dist;
+            const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - normal_xi * dist;
             
-            const double RHS = norm_2(CurrentGlobalCoords);
-            const double DeltaRHS = - RHS/(DeltaXi + tol);
+//             // Debug
+//             KRATOS_WATCH(CurrentGlobalCoords)
+//             KRATOS_WATCH(CurrentDestinyGlobalCoords)
             
-            DeltaXi = -RHS/DeltaRHS;
+            // Derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = GeomOrigin.ShapeFunctionsLocalGradients(shape_functions_gradients, ResultingPoint );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
+            Vector RHS = prod(trans(DN),subrange(CurrentDestinyGlobalCoords - CurrentGlobalCoords,0,2));
+            
+            OldDeltaXi = DeltaXi;
+            DeltaXi = RHS[0]/J(0, 0);
+            
             ResultingPoint[0] += DeltaXi;
             
             if (ResultingPoint[0] < -1.0)
@@ -345,12 +371,17 @@ public:
                 ResultingPoint[0] = 1.0;
             }
             
-            if ( RHS < tol )
+//             // Debug
+//             KRATOS_WATCH(ResultingPoint[0])
+//             KRATOS_WATCH(DeltaXi)
+//             KRATOS_WATCH(OldDeltaXi)
+            
+            if ( std::abs(DeltaXi - OldDeltaXi) < tol )
             {
                 return true;
             }
         }
-
+        
         return false;
     }
     
@@ -1287,4 +1318,3 @@ private:
 };// class ContactUtilities
 }
 #endif /* KRATOS_CONTACT_UTILITIES defined */
- 
