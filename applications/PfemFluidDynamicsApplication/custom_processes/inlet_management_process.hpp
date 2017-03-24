@@ -249,8 +249,8 @@ private:
 	std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
     const unsigned int dimension = mrModelPart.ElementsBegin(mMeshId)->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
-    if(dimension==3)
-      maxSeparation=mrRemesh.Refine->CriticalRadius;
+    // if(dimension==3)
+    //   maxSeparation=mrRemesh.Refine->CriticalRadius;
 
     // std::vector<array_1d<double,3> > freeInletPositions;
     // std::vector<array_1d<double,3> > freeInletVelocities;
