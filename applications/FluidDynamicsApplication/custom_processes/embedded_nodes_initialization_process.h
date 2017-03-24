@@ -66,6 +66,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodesInitializationProcess);
 
     typedef Node<3>                     NodeType;
+    typedef NodeType::Pointer    NodePointerType;
     typedef Geometry<NodeType>      GeometryType;
 
     ///@}
@@ -96,7 +97,6 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-
         // Mark the nodes that have switched from structure to fluid during the last step
         for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
         {
@@ -117,7 +117,7 @@ public:
 
                 unsigned int NewNodes = 0;
                 GeometryType& rGeometry = itElement->GetGeometry();
-                unsigned int ElemNumNodes = rGeometry.PointsNumber();
+                const unsigned int ElemNumNodes = rGeometry.PointsNumber();
 
                 // Get the number of nodes that have switch from structure to fluid in the current element
                 for (unsigned int j=0; j<ElemNumNodes; ++j)
@@ -133,7 +133,7 @@ public:
                 // If there is only one unique "new" node in the element, initialize it
                 if (NewNodes == 1)
                 {
-                    unsigned int NewId = 0;
+                    NodeType::Pointer pNode;
                     double p_avg = 0.0;
                     array_1d<double, 3> v_avg;
                     v_avg[0] = 0.0;
@@ -150,24 +150,25 @@ public:
                         }
                         else
                         {
-                            NewId = rGeometry[j].Id();
+                            NodeType::Pointer pAux = rGeometry(j);
+                            std::swap(pAux, pNode);
                         }
                     }
 
                     p_avg /= (ElemNumNodes-1);
                     v_avg /= (ElemNumNodes-1);
 
-                    std::cout << "Structure to fluid initialization of node " << NewId << " in iteration number " << it << "." << std::endl;
+                    // std::cout << "Structure to fluid initialization of node " << NewId << " in iteration number " << it << "." << std::endl;
                     // Once a node is initialized it is marked as non SELECTED,
                     // disregarding the fact that it can be shared by other elements
-                    mrModelPart.GetNode(NewId).Set(SELECTED, false);
+                    pNode->Set(SELECTED, false);
                     // Historical values initialization
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(PRESSURE, 0) = p_avg;
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(PRESSURE, 1) = p_avg;
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(PRESSURE, 2) = p_avg;
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(VELOCITY, 0) = v_avg;
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(VELOCITY, 1) = v_avg;
-                    mrModelPart.GetNode(NewId).FastGetSolutionStepValue(VELOCITY, 2) = v_avg;
+                    pNode->FastGetSolutionStepValue(PRESSURE, 0) = p_avg;
+                    pNode->FastGetSolutionStepValue(PRESSURE, 1) = p_avg;
+                    pNode->FastGetSolutionStepValue(PRESSURE, 2) = p_avg;
+                    pNode->FastGetSolutionStepValue(VELOCITY, 0) = v_avg;
+                    pNode->FastGetSolutionStepValue(VELOCITY, 1) = v_avg;
+                    pNode->FastGetSolutionStepValue(VELOCITY, 2) = v_avg;
 
                 }
             }
@@ -184,16 +185,38 @@ public:
             if (itNode->Is(SELECTED))
             {
                 itNode->Set(SELECTED, false);
-                const unsigned int itNodeId = itNode->Id();
 
-                std::cout << "Node " << itNodeId << " remained without structure to fluid initialization. Initializing it to 0." << std::endl;
+                // std::cout << "Node " << itNode->Id() << " remained without structure to fluid initialization. Initializing it to 0." << std::endl;
 
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(VELOCITY, 0) = v_null;
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(VELOCITY, 1) = v_null;
-                mrModelPart.GetNode(itNodeId).FastGetSolutionStepValue(VELOCITY, 2) = v_null;
+                itNode->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+                itNode->FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+                itNode->FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
+                itNode->FastGetSolutionStepValue(VELOCITY, 0) = v_null;
+                itNode->FastGetSolutionStepValue(VELOCITY, 1) = v_null;
+                itNode->FastGetSolutionStepValue(VELOCITY, 2) = v_null;
+            }
+        }
+    }
+
+    // void ExecuteFinalize() override
+    void ExecuteFinalizeSolutionStep() override
+    {
+        const array_1d<double, 3> aux_zero = ZeroVector(3);
+
+        // Store the positive distance nodes VELOCITY in EMBEDDED_WET_VELOCITY variable. The negative distance
+        // nodes EMBEDDED_WET_VELOCITY is set to zero for visualization purposes
+        for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
+        {
+            const double dist = itNode->FastGetSolutionStepValue(DISTANCE);
+            array_1d<double, 3>& emb_wet_vel = itNode->FastGetSolutionStepValue(EMBEDDED_WET_VELOCITY);
+
+            if (dist >= 0.0)
+            {
+                emb_wet_vel = itNode->FastGetSolutionStepValue(VELOCITY);
+            }
+            else
+            {
+                emb_wet_vel = aux_zero;
             }
         }
     }

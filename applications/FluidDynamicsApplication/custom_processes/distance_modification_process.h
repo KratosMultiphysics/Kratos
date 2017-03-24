@@ -118,7 +118,7 @@ public:
         while (bad_cuts > 0)
         {
             this->ModifyDistance(factor, bad_cuts);
-            std::cout << "Distance modification iteration: " << counter << " Total bad cuts: " << bad_cuts << " Factor: " << factor << std::endl;
+            // std::cout << "Distance modification iteration: " << counter << " Total bad cuts: " << bad_cuts << " Factor: " << factor << std::endl;
             factor /= mFactorCoeff;
             counter++;
         }
@@ -218,9 +218,9 @@ protected:
                 if((d >= 0.0) && (d < tol_d))
                 {
                     // Modify the distance to avoid almost empty fluid elements
-                    std::cout << "Node: " << itNode->Id() << " distance " << d;
+                    // std::cout << "Node: " << itNode->Id() << " distance " << d;
                     d = -0.001*tol_d;
-                    std::cout << " modified to " << d << std::endl;
+                    // std::cout << " modified to " << d << std::endl;
                 }
             }
 
@@ -242,9 +242,9 @@ protected:
                     mModifiedDistancesValues.push_back(d);
 
                     // Modify the distance to avoid almost empty fluid elements
-                    std::cout << "Node: " << itNode->Id() << " distance " << d;
+                    // std::cout << "Node: " << itNode->Id() << " distance " << d;
                     d = -0.001*tol_d;
-                    std::cout << " modified to " << d << std::endl;
+                    // std::cout << " modified to " << d << std::endl;
                 }
             }
 
