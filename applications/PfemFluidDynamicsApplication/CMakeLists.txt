@@ -35,12 +35,6 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 
-	##constitutive laws
-    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_3D_law.cpp
-    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_plastic_3D_law.cpp
-    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_plane_strain_2D_law.cpp
-
-
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_solid_element.cpp
