@@ -11,11 +11,11 @@ import time as timer
 init_time = timer.time()
 import os
 import sys
-
+sys.path.append("/home/gcasas/kratos")
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
-        self.path_to_console_out_file = "console_output.txt"
+        self.path_to_console_out_file = 'console_output.txt'
         self.log = open(self.path_to_console_out_file, "a")
 
     def write(self, message):
@@ -46,7 +46,6 @@ sys.path.insert(0,'')
 # DEM Application
 import dem_main_script
 import DEM_explicit_solver_var as DEM_parameters
-
 # import the configuration data as read from the GiD
 import ProjectParameters as pp # MOD
 import define_output
@@ -78,12 +77,11 @@ else:
     print("Running under OpenMP........")
 
 class Solution:
-    
-    def __init__(self, Nq = 1, m = 10):
+
+    def __init__(self, simulation_time = 100, basset_force_type = 1, Nq = 1, m = 10, number_of_quadrature_steps_in_window = 10):
         self.main_path = os.getcwd()
-        
-        self.pp = pp        
-        self.DS = dem_main_script.Solution()
+
+        self.pp = pp
 
         DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
 
@@ -95,6 +93,7 @@ class Solution:
 
         #G
         self.pp.CFD_DEM = DEM_parameters
+        self.pp.CFD_DEM.FinalTime = simulation_time
         self.pp.CFD_DEM.fluid_already_calculated = 0
         self.pp.CFD_DEM.recovery_echo_level = 1
         self.pp.CFD_DEM.gradient_calculation_type = 5
@@ -102,30 +101,29 @@ class Solution:
         self.pp.CFD_DEM.store_full_gradient = 1
         self.pp.CFD_DEM.laplacian_calculation_type = 0
         self.pp.CFD_DEM.do_search_neighbours = False
-        self.pp.CFD_DEM.faxen_terms_type = 0
-        self.pp.CFD_DEM.material_acceleration_calculation_type = 0
+        self.pp.CFD_DEM.material_acceleration_calculation_type = 2
         self.pp.CFD_DEM.faxen_force_type = 0
         self.pp.CFD_DEM.vorticity_calculation_type = 0
         self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
         self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-        self.pp.CFD_DEM.basset_force_type = 4
+        self.pp.CFD_DEM.basset_force_type = basset_force_type
         self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
         self.pp.CFD_DEM.basset_force_integration_type = 1
         self.pp.CFD_DEM.n_init_basset_steps = 2
-        self.pp.CFD_DEM.time_steps_per_quadrature_step = 1
+        self.pp.CFD_DEM.time_steps_per_quadrature_step = Nq
         self.pp.CFD_DEM.delta_time_quadrature = self.pp.CFD_DEM.time_steps_per_quadrature_step * self.pp.CFD_DEM.MaxTimeStep
         self.pp.CFD_DEM.quadrature_order = 2
         self.pp.CFD_DEM.time_window = 0.5
-        self.pp.CFD_DEM.number_of_exponentials = 10
-        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = 10
+        self.pp.CFD_DEM.number_of_exponentials = m
+        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = number_of_quadrature_steps_in_window
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
         self.pp.CFD_DEM.do_impose_flow_from_field = True
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
-        self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 0
         self.pp.CFD_DEM.print_VORTICITY_option = 0
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = False
+        self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 0
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
@@ -139,12 +137,13 @@ class Solution:
             self.pp.cation_concentration_frequence = 1
             concentration = self.pp.initial_concentration
         # NANO END
-        
+        self.DS = dem_main_script.Solution()
     def Run(self):
+        import math
         run_code = swim_proc.CreateRunCode(pp)
-        self.DS.Initialize()
 
-        # Moving to the recently created folder        
+
+        # Moving to the recently created folder
         os.chdir(self.main_path)
         [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
         swim_proc.CopyInputFilesIntoFolder(self.main_path, post_path)
@@ -200,7 +199,7 @@ class Solution:
 
         # caution with breaking up this block (memory allocation)! {
         solver_module.AddVariables(fluid_model_part, SolverSettings)
-        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.        
+        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
         # }
 
         # introducing input file name
@@ -257,7 +256,10 @@ class Solution:
         # defining a model part for the mixed part
         mixed_model_part = ModelPart("MixedPart")
 
-
+        # self.DS.spheres_model_part.SetBufferSize(1)
+        # self.DS.cluster_model_part.SetBufferSize(1)
+        # self.DS.DEM_inlet_model_part.SetBufferSize(1)
+        # self.DS.rigid_face_model_part.SetBufferSize(1)
         fluid_model_part.SetBufferSize(3)
         solver_module.AddDofs(fluid_model_part, SolverSettings)
         swim_proc.AddExtraDofs(self.pp, fluid_model_part, self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.DEM_inlet_model_part)
@@ -268,7 +270,7 @@ class Solution:
             node.SetValue(Y_WALL, y)
 
         # Creating necessary directories
-        
+
         [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
 
         os.chdir(self.main_path)
@@ -330,7 +332,7 @@ class Solution:
                     fluid_solver.wall_nodes.append(node)
                     node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
                     node.Fix(TURBULENT_VISCOSITY)
-
+        self.DS.Initialize()
         fluid_solver.Initialize()
         print("fluid solver created")
         sys.stdout.flush()
@@ -600,53 +602,52 @@ class Solution:
         swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, self.DS.spheres_model_part, self.pp) # otherwise variables are set to 0 by default
 
 
-		# CANDELIER BEGIN
-		import math
-		import cmath
-		import mpmath
+        # CANDELIER BEGIN
+        import cmath
+        import mpmath
 
-		import chandelier_parameters as ch_pp
-		import chandelier as ch
-		#import quadrature as quad
-		sim = ch.AnalyticSimulator(ch_pp)
+        import chandelier_parameters as ch_pp
+        import chandelier as ch
+        #import quadrature as quad
+        sim = ch.AnalyticSimulator(ch_pp)
+        ch_pp.include_history_force = bool(self.pp.CFD_DEM.basset_force_type)
+        post_utils.Writeresults(time)
+        coors = [None] * 3
+        exact_vel = [None] * 3
+        Dt_DEM_inv = 1.0 / Dt_DEM
+        vel = [0., 0.0, 0.]
+        old_vel = [v for v in vel]
+        H = [0.] * 3
+        H_old = [0.] * 3
+        Delta_H = [0.] * 3
+        exact_Delta_H = [0.] * 3
+        basset_force = [0.] * 3
+        exact_basset_force = [0.] * 3
+        sim.CalculatePosition(coors, 0.0)
+        times = [0.0]
+        radii = [1.0]
+        integrands = []
+        particle_mass = 4. / 3 * math.pi * ch_pp.a ** 3 * ch_pp.rho_p
+        units_coefficient = 6 * ch_pp.a ** 2 * ch_pp.rho_f * math.sqrt(math.pi * ch_pp.nu)
 
-		post_utils.Writeresults(time)
-		coors = [None] * 3
-		exact_vel = [None] * 3
-		Dt_DEM_inv = 1.0 / Dt_DEM
-		vel = [0., 0.0, 0.]
-		old_vel = [v for v in vel]
-		H = [0.] * 3
-		H_old = [0.] * 3
-		Delta_H = [0.] * 3
-		exact_Delta_H = [0.] * 3
-		basset_force = [0.] * 3
-		exact_basset_force = [0.] * 3
-		sim.CalculatePosition(coors, 0.0)
-		times = [0.0]
-		radii = [1.0]
-		integrands = []
-		particle_mass = 4. / 3 * math.pi * ch_pp.a ** 3 * ch_pp.rho_p
-		units_coefficient = 6 * ch_pp.a ** 2 * ch_pp.rho_f * math.sqrt(math.pi * ch_pp.nu)
+        # Impose initial velocity to be the terminal velocity
+        sim.CalculateNonDimensionalVars()
+        terminal_velocity = sim.NDw0 * ch_pp.R * ch_pp.omega
 
-		# Impose initial velocity to be the terminal velocity
-		sim.CalculateNonDimensionalVars()
-		terminal_velocity = sim.NDw0 * ch_pp.R * ch_pp.omega
+        # NODE HISTORY RESULTS BEGIN
+        scalar_vars = []
+        vector_vars = [DISPLACEMENT]
 
-		# NODE HISTORY RESULTS BEGIN
-		scalar_vars = []
-		vector_vars = [DISPLACEMENT]
+        for node in self.DS.spheres_model_part.Nodes:
+            node_to_follow_id = node.Id
+            node.SetSolutionStepValue(VELOCITY_Z, terminal_velocity)
 
-		for node in spheres_model_part.Nodes:
-			node_to_follow_id = node.Id
-			node.SetSolutionStepValue(VELOCITY_Z, terminal_velocity)
+        results_creator = swim_proc.ResultsFileCreator(self.DS.spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
 
-		results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
-
-		import candelier_hdf5
-		results_database = candelier_hdf5.ResultsCandelier(pp, main_path)
-		# NODE HISTORY RESULTS END
-		# CHANDELLIER END
+        import candelier_hdf5
+        results_database = candelier_hdf5.ResultsCandelier(pp, self.main_path)
+        # NODE HISTORY RESULTS END
+        # CHANDELLIER END
 
 
         # ANALYTICS BEGIN
@@ -696,21 +697,21 @@ class Solution:
         if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
             basset_force_tool.FillHinsbergVectors(self.DS.spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
-        for node in spheres_model_part.Nodes:
-			node.SetSolutionStepValue(VELOCITY_Y, ch_pp.u0)
-			node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
-			node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
-			node.Fix(VELOCITY_Z)
-			node.SetSolutionStepValue(VELOCITY_OLD_X, ch_pp.u0)
-			node.SetSolutionStepValue(VELOCITY_OLD_Y, ch_pp.v0)
-			node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
-			node.Fix(VELOCITY_OLD_Z)
-			node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
-			node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
-			node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
-		r = 0
-		x = 0
-		y = 0
+        for node in self.DS.spheres_model_part.Nodes:
+            node.SetSolutionStepValue(VELOCITY_Y, ch_pp.u0)
+            node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
+            node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+            node.Fix(VELOCITY_Z)
+            node.SetSolutionStepValue(VELOCITY_OLD_X, ch_pp.u0)
+            node.SetSolutionStepValue(VELOCITY_OLD_Y, ch_pp.v0)
+            node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+            node.Fix(VELOCITY_OLD_Z)
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+        r = 0
+        x = 0
+        y = 0
 
         while (time <= final_time):
 
@@ -742,7 +743,7 @@ class Solution:
                 sys.stdout.flush()
 
                 if not self.pp.CFD_DEM.drag_force_type == 9:
-					pass
+                    pass
                     #fluid_solver.Solve()
 
             # assessing stationarity
@@ -803,45 +804,45 @@ class Solution:
 
                     else:
                         projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
-				        for node in spheres_model_part.Nodes:
-				            x = node.X
-				            y = node.Y
-				            z = node.Z
-				            r = math.sqrt(x ** 2 + y ** 2)
-				            omega = ch_pp.omega
-				            vx = - omega * y
-				            vy =   omega * x
-				            ax = - x * omega ** 2
-				            ay = - y * omega ** 2
-				            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
-				            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
-				            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
-				            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
-				            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
-				            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)
+                        for node in self.DS.spheres_model_part.Nodes:
+                            x = node.X
+                            y = node.Y
+                            z = node.Z
+                            r = math.sqrt(x ** 2 + y ** 2)
+                            omega = ch_pp.omega
+                            vx = - omega * y
+                            vy =   omega * x
+                            ax = - x * omega ** 2
+                            ay = - y * omega ** 2
+                            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
+                            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
+                            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+                            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
+                            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
+                            node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)
 
                         if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                             self.DS.solver.Solve() # only advance in space
-                        	#projection_module.InterpolateVelocity()
-		                    x = node.X
-		                    y = node.Y
-		                    z = node.Z
-		                    results_database.MakeReading(time_dem, [x, y, z])
-		                    r = math.sqrt(x ** 2 + y ** 2)
-		                    new_vx = - omega * y
-		                    new_vy =   omega * x
-		                    node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
-		                    node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)
-		                else:
-		                    if pp.CFD_DEM.basset_force_type > 0:
-		                        node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
-		                        node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
+                            #projection_module.InterpolateVelocity()
+                            x = node.X
+                            y = node.Y
+                            z = node.Z
+                            results_database.MakeReading(time_dem, [x, y, z])
+                            r = math.sqrt(x ** 2 + y ** 2)
+                            new_vx = - omega * y
+                            new_vy =   omega * x
+                            node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
+                            node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)
+                        else:
+                            if pp.CFD_DEM.basset_force_type > 0:
+                                node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
+                                node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
 
-		                vp_x = node.GetSolutionStepValue(VELOCITY_X)
-		                vp_y = node.GetSolutionStepValue(VELOCITY_Y)
-		                vp_z = node.GetSolutionStepValue(VELOCITY_Z)
-		                integrands.append([vx - vp_x, vy - vp_y, 0.])
+                        vp_x = node.GetSolutionStepValue(VELOCITY_X)
+                        vp_y = node.GetSolutionStepValue(VELOCITY_Y)
+                        vp_z = node.GetSolutionStepValue(VELOCITY_Z)
+                        integrands.append([vx - vp_x, vy - vp_y, 0.])
 
                         if quadrature_counter.Tick():
                             if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
@@ -857,6 +858,10 @@ class Solution:
 
                 if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
                     self.DS.solver.Solve()
+                    for node in self.DS.spheres_model_part.Nodes:
+                        coor_calculated = [node.X, node.Y, node.Z]
+                        radial_error = results_database.CalculateError(time_dem, coor_calculated)
+                        error_time = time_dem
 
                 # Walls movement:
                 mesh_motion.MoveAllMeshes(self.DS.rigid_face_model_part, time, Dt)
@@ -869,7 +874,7 @@ class Solution:
                 if (DEM_parameters.dem_inlet_option):
                     self.DS.DEM_inlet.CreateElementsFromInletMesh(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-                if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":/
+                if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
                     if DEM_parameters.coupling_level_type:
                         projection_module.ComputePostProcessResults(self.DS.spheres_model_part.ProcessInfo)
@@ -881,7 +886,7 @@ class Solution:
                 #first_dem_iter = False
 
             if DEM_parameters.ElementType == "SwimmingNanoParticle":
-                print("concentration: " + str(concentration))
+                caca
 
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
@@ -924,40 +929,42 @@ class Solution:
 
             #out = out + Dt
 
-		results_database.WriteToHDF5()
+        results_database.WriteToHDF5()
         swimming_DEM_gid_io.finalize_results()
-		results_creator.PrintFile()
+        results_creator.PrintFile()
         print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
         simulation_elapsed_time = timer.clock() - simulation_start_time
         print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
         print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
         print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
-        sys.stdout.flush()
+        print()
 
-		dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
+        dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
 
-		with open('radii' + str(int(dt_quad_over_dt)) + '.txt','w') as f:
-			for i in range(len(radii)):
-				f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
-		os.chdir(main_path)
-		sys.stdout.path_to_console_out_file
-		os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
-		import shutil
-		folder_name = post_path + '_FINISHED_AT_t=' + str(round(time, 1))
-		try:
-			shutil.rmtree(folder_name)
-		except OSError:
-			pass
+        with open('radii' + str(int(dt_quad_over_dt)) + '.txt','w') as f:
+            for i in range(len(radii)):
+                f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
+        os.chdir(self.main_path)
+        sys.stdout.path_to_console_out_file
+        # os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
+        import shutil
+        folder_name = post_path + '_FINISHED_AT_t=' + str(round(time, 1))
+        try:
+            shutil.rmtree(folder_name)
+        except OSError:
+            pass
 
-		os.rename(post_path, folder_name)
-		final_position_file = open(folder_name + "/final_position", 'w')
-		final_position_file.write(str(x) + ' ' + str(y))
-		final_position_file.close()
-		from shutil import copyfile
-		copyfile(folder_name + "/final_position", main_path + "/final_position")
-				for i in drag_file_output_list:
-				    i.close()
-            
+        os.rename(post_path, folder_name)
+        final_position_file = open(folder_name + "/final_position", 'w')
+        final_position_file.write(str(x) + ' ' + str(y))
+        final_position_file.close()
+        from shutil import copyfile
+        copyfile(folder_name + "/final_position", self.main_path + "/final_position")
+
+        for i in drag_file_output_list:
+            i.close()
+
+        return radial_error
 
 if __name__=="__main__":
-    Solution().Run()    
+    Solution().Run()

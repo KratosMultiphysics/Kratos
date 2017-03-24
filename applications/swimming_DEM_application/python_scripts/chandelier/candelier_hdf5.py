@@ -18,6 +18,7 @@ class ResultsCandelier:
         self.times = []
         self.errors = []
         ch_pp.include_history_force = bool(pp.CFD_DEM.basset_force_type)
+
         if pp.CFD_DEM.basset_force_type == 2:
             self.method = 'Daitche'
         else:
@@ -41,7 +42,6 @@ class ResultsCandelier:
                 result.attrs['m'] = self.m
 
     def WriteToHDF5(self):
-        print(self.times)
         with h5py.File(self.path, 'r+') as f:
             times = np.array(self.times)
             errors = np.array(self.errors)

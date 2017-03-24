@@ -1583,6 +1583,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetDEM
         }
 
         for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
+
             if (*mDEMCouplingVariables[i] != FLUID_VEL_PROJECTED_RATE){
                 ClearVariable(node_it, mDEMCouplingVariables[i]);
             }
