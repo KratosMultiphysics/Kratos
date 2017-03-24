@@ -272,7 +272,7 @@ public:
     	std::vector<std::size_t> temp_surface_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)

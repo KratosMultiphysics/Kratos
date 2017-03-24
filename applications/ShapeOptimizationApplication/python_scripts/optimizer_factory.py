@@ -260,6 +260,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -323,7 +324,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)     
 
             # Take time needed for current optimization step
@@ -389,6 +391,7 @@ class VertexMorphingMethod:
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
             row.append("\tt_total[s]") 
+            row.append("\ttime_stamp") 
             historyWriter.writerow(row)    
 
         # Miscellaneous working variables for data management
@@ -482,7 +485,8 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
                 row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization)))
+                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
+                row.append("\t"+str(time.ctime()))
                 historyWriter.writerow(row)   
 
             # Take time needed for current optimization step
@@ -573,7 +577,7 @@ class Communicator:
         for func_id in optimizationSettings.constraints:
             self.responseContainer[func_id] = {}          
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
     
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
@@ -588,7 +592,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def deleteAllReportedValues( self ):
         for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "reference_value": None, "gradient": None}  
+            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
 
     # --------------------------------------------------------------------------
     def requestFunctionValueOf( self, functionId ):
@@ -616,7 +620,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def reportFunctionReferenceValue( self, functionId, functionReferenceValue ):
         if functionId in self.responseContainer.keys():
-            self.responseContainer[functionId]["reference"] = functionReferenceValue
+            self.responseContainer[functionId]["referenceValue"] = functionReferenceValue
         else:
             raise NameError("Reported function is not specified: " + functionId)
 
@@ -633,7 +637,7 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def getReportedFunctionReferenceValueOf( self, functionId ):
-        return self.responseContainer[functionId]["reference"]
+        return self.responseContainer[functionId]["referenceValue"]
 
     # --------------------------------------------------------------------------    
     def getReportedGradientOf( self, functionId ):
