@@ -45,13 +45,6 @@
 #include "containers/flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
-#include "custom_constitutive/hypoelastic_3D_law.hpp"
-#include "custom_constitutive/hypoelastic_plastic_3D_law.hpp"
-#include "custom_constitutive/hypoelastic_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/line_2d.h"
