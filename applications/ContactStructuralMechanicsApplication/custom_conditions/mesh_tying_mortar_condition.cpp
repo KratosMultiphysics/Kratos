@@ -175,7 +175,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
                     DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
                     GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
                     
-                    const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp ) * (TDim == 2 ? 2.0 : 1.0);
+                    const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );// * (TDim == 2 ? 2.0 : 1.0);
                     
                     AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
                 }
