@@ -51,8 +51,8 @@ class TestLineExactIntegration1(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertEqual(MatrixSolution[0,0], 0)
-        self.assertEqual(MatrixSolution[0,1], 2)
+        self.assertAlmostEqual(MatrixSolution[0,0], 0)
+        self.assertAlmostEqual(MatrixSolution[0,1], 2)
     
 class TestLineExactIntegration2(KratosUnittest.TestCase):
     def test_execution(self):
@@ -96,8 +96,8 @@ class TestLineExactIntegration2(KratosUnittest.TestCase):
             #print("Integration accomplished", MatrixSolution)
         
         self.assertTrue(solution)
-        self.assertEqual(MatrixSolution[0,0], 0.5)
-        self.assertEqual(MatrixSolution[0,1], 1)
+        self.assertAlmostEqual(MatrixSolution[0,0], 0.5)
+        self.assertAlmostEqual(MatrixSolution[0,1], 1)
     
 ## Test exact integration in 3D
 # TRIANGLE
