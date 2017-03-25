@@ -1256,25 +1256,6 @@ private:
             (AllInside[2] == false) &&
             (AllInside[3] == false))
         {
-            // We check if all the nodes are inside the master element            
-            const PointType MasterCenter = MasterGeometry.Center();
-            
-            const array_1d<double, 3> MasterTangentXi  = (MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates())/norm_2(MasterGeometry[2].Coordinates() - MasterGeometry[0].Coordinates());
-            const array_1d<double, 3> MasterTangentEta = MathUtils<double>::UnitCrossProduct(MasterTangentXi, MasterNormal);
-            
-            for (unsigned int inode = 0; inode < 4; inode++)
-            {
-                SlaveGeometry[inode]  = ContactUtilities::FastProject( MasterCenter,  SlaveGeometry[inode], MasterNormal);
-                MasterGeometry[inode] = ContactUtilities::FastProject( MasterCenter, MasterGeometry[inode], MasterNormal);
-            }
-            
-            // Before clipping we rotate to a XY plane
-            for (unsigned int inode = 0; inode < 4; inode++)
-            {
-                RotatePoint( SlaveGeometry[inode], MasterCenter, MasterTangentXi, MasterTangentEta, false);
-                RotatePoint(MasterGeometry[inode], MasterCenter, MasterTangentXi, MasterTangentEta, false);
-            }
-            
             for (unsigned int inode = 0; inode < 4; inode++)
             {
                 DummyPointsArray[inode] = boost::make_shared<PointType>(MasterGeometry[inode]);
