@@ -957,7 +957,7 @@ public:
                     {
                         const double mu = CondGeometry[itNode].GetValue(WEIGHTED_FRICTION);
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
+                        const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const array_1d<double,3>        nodal_normal = CondGeometry[itNode].GetValue(NORMAL); 
                         
 //                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
@@ -1047,7 +1047,7 @@ public:
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) + epsilon * gn;     
+                        const double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
                         
                         if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
