@@ -25,10 +25,8 @@
 
 // The geometry of the triangle for the "tessellation"
 /* TRIANGLES */
-#include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 /* QUADRILATERALS */
-#include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_3d_4.h"
 
 // /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
