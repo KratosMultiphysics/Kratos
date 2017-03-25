@@ -477,68 +477,6 @@ public:
     }
     
     /**
-     * This functions recovers if the nodes are inside a Quadrilateral conformed with PointType, instead of NodeType (The input ones)
-     * @param SlaveGeometry: The quadrilateral of interest
-     * @param rPoint: The point to study if is inside
-     * @return True if the point is inside the geometry
-     */
-    
-    bool FastIsInsideQuadrilateral2D(
-        Quadrilateral2D4 <PointType>& SlaveGeometry,
-        const GeometryNodeType::CoordinatesArrayType& rPoint
-        )
-    {
-        const double Tolerance = 1.0e-6;
-//         const double Tolerance = std::numeric_limits<double>::epsilon();
-        
-        GeometryNodeType::CoordinatesArrayType rResult;
-        
-        Matrix J;
-
-        rResult.clear();
-        
-        Vector DeltaXi = ZeroVector( 3 );
-        
-        GeometryNodeType::CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
-
-        //Newton iteration:
-
-        const unsigned int maxiter = 30;
-
-        for ( unsigned int k = 0; k < maxiter; k++ )
-        {
-            CurrentGlobalCoords = ZeroVector( 3 );
-            SlaveGeometry.GlobalCoordinates( CurrentGlobalCoords, rResult );
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-            SlaveGeometry.InverseOfJacobian( J, rResult );
-            Matrix Jaux = ZeroMatrix(3, 3);
-            subrange(Jaux, 0, 2, 0, 2) = J;
-            noalias( DeltaXi ) = prod( Jaux, CurrentGlobalCoords );
-            noalias( rResult ) += DeltaXi;
-
-            if ( norm_2( DeltaXi ) > 30 )
-            {
-                break;
-            }
-
-            if ( norm_2( DeltaXi ) <  Tolerance )
-            {
-                break;
-            }
-        }
-        
-        if ( std::abs(rResult[0]) <= (1.0 + Tolerance) )
-        {
-            if ( std::abs(rResult[1]) <= (1.0 + Tolerance) )
-            {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
      * This functions calculates the determinant of a 2D triangle (using points) to check if invert the order
      * @param PointOrig1: First point
      * @param PointOrig2: Second point
@@ -1193,6 +1131,10 @@ private:
         ConditionArrayListType& ConditionsPointsSlave
         )
     {        
+        // We define the tolerance
+        const double Tolerance = 1.0e-8;
+//         const double Tolerance = std::numeric_limits<double>::epsilon();
+        
         // We define the auxiliar geometry
         std::vector<PointType::Pointer> PointsArraySlave  (4);
         std::vector<PointType::Pointer> PointsArrayMaster (4);
@@ -1233,18 +1175,10 @@ private:
             RotatePoint(MasterGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
         }
         
-        std::vector<PointType::Pointer> DummyPointsArray (4);
-        for (unsigned int inode = 0; inode < 4; inode++)
-        {
-            DummyPointsArray[inode] = boost::make_shared<PointType>(SlaveGeometry[inode]);
-        }
-        
-        Quadrilateral2D4 <PointType> DummyQuadrilateral( DummyPointsArray );
-        
         for (unsigned int inode = 0; inode < 4; inode++)
         {
             GeometryNodeType::CoordinatesArrayType rResult;
-            AllInside[inode] = FastIsInsideQuadrilateral2D( DummyQuadrilateral, MasterGeometry[inode].Coordinates( ) ) ;
+            AllInside[inode] = SlaveGeometry.IsInside( MasterGeometry[inode].Coordinates( ), rResult, Tolerance ) ;
         }
         
         // We create the pointlist
@@ -1258,15 +1192,8 @@ private:
         {
             for (unsigned int inode = 0; inode < 4; inode++)
             {
-                DummyPointsArray[inode] = boost::make_shared<PointType>(MasterGeometry[inode]);
-            }
-            
-            Quadrilateral2D4 <PointType> AuxDummyQuadrilateral( DummyPointsArray );
-            
-            for (unsigned int inode = 0; inode < 4; inode++)
-            {
                 GeometryNodeType::CoordinatesArrayType rResult;
-                AllInside[inode] = FastIsInsideQuadrilateral2D( AuxDummyQuadrilateral, SlaveGeometry[inode].Coordinates( ) ) ;
+                AllInside[inode] = MasterGeometry.IsInside( SlaveGeometry[inode].Coordinates( ), rResult, Tolerance ) ;
             }
             
             // The whole slave is inside the master
