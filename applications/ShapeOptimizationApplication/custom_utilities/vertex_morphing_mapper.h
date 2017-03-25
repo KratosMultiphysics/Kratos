@@ -273,11 +273,11 @@ public:
 
                     // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node. 
                     // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
-                    if(damp_in_X == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_X))
+                    if(damp_in_X == true && damping_factor < node_j.GetValue(DAMPING_FACTOR_X))
                         node_j.SetValue(DAMPING_FACTOR_X, damping_factor);     
-                    if(damp_in_Y == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Y))       
+                    if(damp_in_Y == true && damping_factor < node_j.GetValue(DAMPING_FACTOR_Y))       
                         node_j.SetValue(DAMPING_FACTOR_Y, damping_factor);   
-                    if(damp_in_Z == true and damping_factor < node_j.GetValue(DAMPING_FACTOR_Z))       
+                    if(damp_in_Z == true && damping_factor < node_j.GetValue(DAMPING_FACTOR_Z))       
                         node_j.SetValue(DAMPING_FACTOR_Z, damping_factor);                            
                 }
             }
