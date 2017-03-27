@@ -14,7 +14,7 @@
 // External includes
 
 // System includes
-# include "tree_contact_search.h"
+# include "deprecated_tree_contact_search.h"
 
 // TODO: Not clear everything from one step to the other, just check what can you add (this way the process is simplified)
 
@@ -28,7 +28,7 @@ namespace Kratos
 // Use an InterfacePreprocess object to create such a model part from a regular one:
 // InterfaceMapper = InterfacePreprocess()
 // InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
-TreeContactSearch::TreeContactSearch(
+DeprecatedTreeContactSearch::DeprecatedTreeContactSearch(
         ModelPart & rOriginModelPart,
         ModelPart & rDestinationModelPart,
         const unsigned int allocation_size
@@ -73,7 +73,7 @@ TreeContactSearch::TreeContactSearch(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ModelPartSetter(
+void DeprecatedTreeContactSearch::ModelPartSetter(
     ModelPart& rModelPart,
     const bool rActive,
     const bool rSlave,
@@ -108,7 +108,7 @@ void TreeContactSearch::ModelPartSetter(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeMortarConditions(
+void DeprecatedTreeContactSearch::InitializeMortarConditions(
     const double rActiveCheckFactor,
     const double rAugmentationNormal,
     const double rAugmentationTangent,
@@ -125,22 +125,7 @@ void TreeContactSearch::InitializeMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeALMFrictionlessMortarConditions(
-    const double rActiveCheckFactor,
-    const int rIntegrationOrder
-    )
-{
-    // Destination model part
-    InitializeALMFrictionlessConditions(mrDestinationModelPart, rActiveCheckFactor, rIntegrationOrder);
-    
-    // Origin model part
-    InitializeALMFrictionlessConditions(mrOriginModelPart, rActiveCheckFactor, rIntegrationOrder);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::InitializeMeshTyingMortarConditions(
+void DeprecatedTreeContactSearch::InitializeMeshTyingMortarConditions(
     const double rActiveCheckFactor,
     const int rIntegrationOrder
     )
@@ -155,7 +140,7 @@ void TreeContactSearch::InitializeMeshTyingMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 {
     // TODO: Add this in the future
 }
@@ -163,7 +148,7 @@ void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeConditions(
+void DeprecatedTreeContactSearch::InitializeConditions(
     ModelPart & rModelPart,
     const double rActiveCheckFactor,
     const double rAugmentationNormal,
@@ -192,7 +177,7 @@ void TreeContactSearch::InitializeConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeALMFrictionlessConditions(
+void DeprecatedTreeContactSearch::InitializeMeshTyingConditions(
     ModelPart & rModelPart,
     const double rActiveCheckFactor,
     const int rIntegrationOrder
@@ -217,32 +202,7 @@ void TreeContactSearch::InitializeALMFrictionlessConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeMeshTyingConditions(
-    ModelPart & rModelPart,
-    const double rActiveCheckFactor,
-    const int rIntegrationOrder
-    )
-{   
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-//     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-//         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
-        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
-        {
-            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearMortarConditions()
+void DeprecatedTreeContactSearch::TotalClearMortarConditions()
 {
     // Destination model part
     TotalClearConditions(mrDestinationModelPart);
@@ -251,16 +211,7 @@ void TreeContactSearch::TotalClearMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::TotalClearALMFrictionlessMortarConditions()
-{
-    // Destination model part
-    TotalClearALMFrictionlessConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearMeshTyingMortarScalarConditions()
+void DeprecatedTreeContactSearch::TotalClearMeshTyingMortarScalarConditions()
 {
     // Destination model part
     TotalClearMeshTyingScalarConditions(mrDestinationModelPart);
@@ -269,7 +220,7 @@ void TreeContactSearch::TotalClearMeshTyingMortarScalarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::TotalClearMeshTyingMortarComponentsConditions()
+void DeprecatedTreeContactSearch::TotalClearMeshTyingMortarComponentsConditions()
 {
     // Destination model part
     TotalClearMeshTyingComponentsConditions(mrDestinationModelPart);
@@ -278,7 +229,7 @@ void TreeContactSearch::TotalClearMeshTyingMortarComponentsConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearMortarConditions()
+void DeprecatedTreeContactSearch::PartialClearMortarConditions()
 {
     // Destination model part
     PartialClearConditions(mrDestinationModelPart);
@@ -287,16 +238,7 @@ void TreeContactSearch::PartialClearMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearALMFrictionlessMortarConditions()
-{
-    // Destination model part
-    PartialClearALMFrictionlessConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearMeshTyingMortarScalarConditions()
+void DeprecatedTreeContactSearch::PartialClearMeshTyingMortarScalarConditions()
 {
     // Destination model part
     PartialClearMeshTyingScalarConditions(mrDestinationModelPart);
@@ -305,7 +247,7 @@ void TreeContactSearch::PartialClearMeshTyingMortarScalarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
+void DeprecatedTreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
 {
     // Destination model part
     PartialClearMeshTyingComponentsConditions(mrDestinationModelPart);
@@ -314,7 +256,7 @@ void TreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
 {
     ResetContactOperators(rModelPart);
     
@@ -337,30 +279,7 @@ void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::TotalClearALMFrictionlessConditions(ModelPart & rModelPart)
-{
-    ResetContactOperators(rModelPart);
-    
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == true)
-        {
-            itNode->Set( ACTIVE, false );
-            itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPart)
 {
     ResetContactOperators(rModelPart);
     
@@ -383,7 +302,7 @@ void TreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart)
 {
     ResetContactOperators(rModelPart);
     
@@ -406,7 +325,7 @@ void TreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rMod
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
 {
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -426,27 +345,7 @@ void TreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearALMFrictionlessConditions(ModelPart & rModelPart)
-{
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == false)
-        {
-            itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::PartialClearMeshTyingScalarConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::PartialClearMeshTyingScalarConditions(ModelPart & rModelPart)
 {
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -466,7 +365,7 @@ void TreeContactSearch::PartialClearMeshTyingScalarConditions(ModelPart & rModel
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart)
 {
     NodesArrayType& pNode = rModelPart.Nodes();
     
@@ -486,7 +385,7 @@ void TreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rM
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CreatePointListMortar()
+void DeprecatedTreeContactSearch::CreatePointListMortar()
 {
     // Destination model part
     CreatePointListConditions(mrDestinationModelPart, mPointListDestination);
@@ -495,7 +394,7 @@ void TreeContactSearch::CreatePointListMortar()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CreatePointListNodes(
+void DeprecatedTreeContactSearch::CreatePointListNodes(
     ModelPart & rModelPart, 
     PointVector & PoinList
     )
@@ -518,7 +417,7 @@ void TreeContactSearch::CreatePointListNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CreatePointListConditions(
+void DeprecatedTreeContactSearch::CreatePointListConditions(
     ModelPart & rModelPart, 
     PointVector & PoinList
     )
@@ -540,7 +439,7 @@ void TreeContactSearch::CreatePointListConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::UpdatePointListMortar()
+void DeprecatedTreeContactSearch::UpdatePointListMortar()
 {
     // Destination model part
     UpdatePointListConditions(mrDestinationModelPart, mPointListDestination);
@@ -549,7 +448,7 @@ void TreeContactSearch::UpdatePointListMortar()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::UpdatePointListNodes(
+void DeprecatedTreeContactSearch::UpdatePointListNodes(
     ModelPart & rModelPart, 
     PointVector & PoinList
     )
@@ -560,7 +459,7 @@ void TreeContactSearch::UpdatePointListNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::UpdatePointListConditions(
+void DeprecatedTreeContactSearch::UpdatePointListConditions(
     ModelPart & rModelPart, 
     PointVector & PoinList
     )
@@ -587,7 +486,7 @@ void TreeContactSearch::UpdatePointListConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CreateMortarConditions(
+void DeprecatedTreeContactSearch::CreateMortarConditions(
     const double SearchFactor,
     const int type_search
 ) 
@@ -599,19 +498,7 @@ void TreeContactSearch::CreateMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CreateALMFrictionlessMortarConditions(
-    const double SearchFactor,
-    const int type_search
-) 
-{
-    TotalClearALMFrictionlessMortarConditions(); // Clear the conditions
-    UpdateMortarConditions(SearchFactor, type_search);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, using the slave as reference isntead of the master
+void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everything, using the slave as reference isntead of the master
     const double SearchFactor,
     const int type_search
 ) 
@@ -685,7 +572,7 @@ void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, usin
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::CheckMortarConditions()
+void DeprecatedTreeContactSearch::CheckMortarConditions()
 {    
     ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCondDestination.ptr_begin();
@@ -721,7 +608,7 @@ void TreeContactSearch::CheckMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
+void DeprecatedTreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
 {
     ConditionsArrayType& pCond = rModelPart.Conditions();
     
@@ -782,7 +669,7 @@ void TreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool TreeContactSearch::CheckCondition(
+bool DeprecatedTreeContactSearch::CheckCondition(
         std::vector<contact_container> *& ConditionPointers,
         const Condition::Pointer & pCondDestination,
         const Condition::Pointer & pCondOrigin
@@ -808,7 +695,7 @@ bool TreeContactSearch::CheckCondition(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::MortarContainerFiller(
+void DeprecatedTreeContactSearch::MortarContainerFiller(
         Condition::Pointer & pCondDestination,
         const Condition::Pointer & pCondOrigin,
         std::vector<contact_container> *& ConditionPointers,
@@ -822,7 +709,7 @@ void TreeContactSearch::MortarContainerFiller(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ComputeNodesMeanNormal()
+void DeprecatedTreeContactSearch::ComputeNodesMeanNormal()
 {
     ContactUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
 }

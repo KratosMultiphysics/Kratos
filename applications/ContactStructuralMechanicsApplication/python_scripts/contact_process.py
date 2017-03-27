@@ -105,7 +105,7 @@ class ContactProcess(KratosMultiphysics.Process):
             interface_computing_model_part.AddCondition(cond)  
         del(cond)
 
-        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
+        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.DeprecatedTreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             ZeroVector = KratosMultiphysics.Vector(3) 

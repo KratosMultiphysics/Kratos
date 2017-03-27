@@ -100,7 +100,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             interface_computing_model_part.AddCondition(cond)  
         del(cond)
 
-        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
+        self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.DeprecatedTreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         ZeroVector = KratosMultiphysics.Vector(3) 
         ZeroVector[0] = 0.0

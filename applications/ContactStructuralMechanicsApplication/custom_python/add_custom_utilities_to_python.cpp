@@ -24,6 +24,7 @@
 
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
+#include "custom_utilities/deprecated_tree_contact_search.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos
@@ -38,22 +39,30 @@ void  AddCustomUtilitiesToPython()
 //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     
+    class_<DeprecatedTreeContactSearch>("DeprecatedTreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
+    .def("ModelPartSetter",&DeprecatedTreeContactSearch::ModelPartSetter)
+    .def("InitializeMortarConditions",&DeprecatedTreeContactSearch::InitializeMortarConditions)
+    .def("InitializeMeshTyingMortarConditions",&DeprecatedTreeContactSearch::InitializeMeshTyingMortarConditions)
+    .def("TotalClearMortarConditions",&DeprecatedTreeContactSearch::TotalClearMortarConditions)
+    .def("TotalClearMeshTyingMortarScalarConditions",&DeprecatedTreeContactSearch::TotalClearMeshTyingMortarScalarConditions)
+    .def("TotalClearMeshTyingMortarComponentsConditions",&DeprecatedTreeContactSearch::TotalClearMeshTyingMortarComponentsConditions)
+    .def("PartialClearMortarConditions",&DeprecatedTreeContactSearch::PartialClearMortarConditions)
+    .def("PartialClearMeshTyingMortarScalarConditions",&DeprecatedTreeContactSearch::PartialClearMeshTyingMortarScalarConditions)
+    .def("PartialClearMeshTyingMortarComponentsConditions",&DeprecatedTreeContactSearch::PartialClearMeshTyingMortarComponentsConditions)
+    .def("CreatePointListMortar",&DeprecatedTreeContactSearch::CreatePointListMortar)
+    .def("UpdatePointListMortar",&DeprecatedTreeContactSearch::UpdatePointListMortar)
+    .def("CreateMortarConditions",&DeprecatedTreeContactSearch::CreateMortarConditions)
+    .def("UpdateMortarConditions",&DeprecatedTreeContactSearch::UpdateMortarConditions)
+    .def("CheckMortarConditions",&DeprecatedTreeContactSearch::CheckMortarConditions)
+    ;
+    
     class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
     .def("ModelPartSetter",&TreeContactSearch::ModelPartSetter)
-    .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
     .def("InitializeALMFrictionlessMortarConditions",&TreeContactSearch::InitializeALMFrictionlessMortarConditions)
-    .def("InitializeMeshTyingMortarConditions",&TreeContactSearch::InitializeMeshTyingMortarConditions)
-    .def("TotalClearMortarConditions",&TreeContactSearch::TotalClearMortarConditions)
     .def("TotalClearALMFrictionlessMortarConditions",&TreeContactSearch::TotalClearALMFrictionlessMortarConditions)
-    .def("TotalClearMeshTyingMortarScalarConditions",&TreeContactSearch::TotalClearMeshTyingMortarScalarConditions)
-    .def("TotalClearMeshTyingMortarComponentsConditions",&TreeContactSearch::TotalClearMeshTyingMortarComponentsConditions)
-    .def("PartialClearMortarConditions",&TreeContactSearch::PartialClearMortarConditions)
     .def("PartialClearALMFrictionlessMortarConditions",&TreeContactSearch::PartialClearALMFrictionlessMortarConditions)
-    .def("PartialClearMeshTyingMortarScalarConditions",&TreeContactSearch::PartialClearMeshTyingMortarScalarConditions)
-    .def("PartialClearMeshTyingMortarComponentsConditions",&TreeContactSearch::PartialClearMeshTyingMortarComponentsConditions)
     .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
-    .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
     .def("UpdateMortarConditions",&TreeContactSearch::UpdateMortarConditions)
     .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;

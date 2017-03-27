@@ -22,7 +22,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_mappers_to_python.cpp
 
   ## UTILITIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/deprecated_tree_contact_search.cpp
   
   ## CONDITIONS
   # Mortar condition
