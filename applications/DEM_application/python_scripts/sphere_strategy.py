@@ -436,7 +436,7 @@ class ExplicitStrategy:
             gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
             write_gamma = True
 
-        elif (type_of_law == 'Hertz'):
+        elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
             write_gamma = True
 

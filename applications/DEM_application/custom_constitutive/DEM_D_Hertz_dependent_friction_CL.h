@@ -31,9 +31,9 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeDependentContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
+        void InitializeDependentContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, const double indentation);
 
-        void InitializeDependentContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
+        void InitializeDependentContactWithFEM(SphericParticle* const element, DEMWall* const wall, /*double& effective_radius, double& equiv_young,*/ const double indentation, const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -72,35 +72,34 @@ namespace Kratos {
                                                    DEMWall* const wall,
                                                    const double indentation) override;
 
-        void CalculateTangentialForce(const double normal_contact_force,
-                                      const double OldLocalElasticContactForce[3],
-                                      double LocalElasticContactForce[3],
-                                      double ViscoDampingLocalContactForce[3],
-                                      const double LocalDeltDisp[3],            
-                                      bool& sliding,
-                                      SphericParticle* const element1,
-                                      SphericParticle* const element2,
-                                      const double equiv_radius,
-                                      const double equiv_young,
-                                      double indentation,
-                                      double previous_indentation,
-                                      double& AuxElasticShearForce, 
-                                      double& MaximumAdmisibleShearForce);
+        void CalculateDependentTangentialForce(const double normal_contact_force,
+                                               const double OldLocalElasticContactForce[3],
+                                               double LocalElasticContactForce[3],
+                                               double ViscoDampingLocalContactForce[3],
+                                               const double LocalDeltDisp[3],            
+                                               bool& sliding,
+                                               SphericParticle* const element1,
+                                               SphericParticle* const element2,
+                                               const double equiv_radius,
+                                               const double equiv_young,
+                                               double indentation,
+                                               double previous_indentation,
+                                               double& AuxElasticShearForce, 
+                                               double& MaximumAdmisibleShearForce);
         
-        void CalculateTangentialForceWithFEM(const double normal_contact_force,
-                                             const double OldLocalElasticContactForce[3],
-                                             double LocalElasticContactForce[3],
-                                             double ViscoDampingLocalContactForce[3],
-                                             const double LocalDeltDisp[3],            
-                                             bool& sliding,
-                                             SphericParticle* const element,
-                                             DEMWall* const wall,
-                                             const double equiv_radius,
-                                             const double equiv_young,
-                                             double indentation,
-                                             double previous_indentation,
-                                             double& AuxElasticShearForce, 
-                                             double& MaximumAdmisibleShearForce);
+        template <class NeighbourClassType>
+        void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
+                                                   const double OldLocalElasticContactForce[3],
+                                                   double LocalElasticContactForce[3],
+                                                   double ViscoDampingLocalContactForce[3],
+                                                   const double LocalDeltDisp[3],            
+                                                   bool& sliding,
+                                                   SphericParticle* const element,
+                                                   NeighbourClassType* const neighbour,
+                                                   double indentation,
+                                                   double previous_indentation,
+                                                   double& AuxElasticShearForce, 
+                                                   double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
