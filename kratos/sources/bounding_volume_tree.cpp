@@ -25,14 +25,14 @@ const double _26DOP::msDirection[][3] = {  {1, 0, 0}, {0, 1, 0}, {0, 0, 1},
                                            {1, 1, 1}, {-1, 1, 1}, {1, -1, 1}, {1, 1, -1},
                                            {1, 1, 0}, {1, -1, 0}, {1, 0, 1}, {1, 0, -1}, {0, 1, 1}, {0, 1, -1} };
 
-const double (*kDOP::Direction() const)[3] {return msDirection;}
-const double (*_6DOP::Direction() const)[3] {return msDirection;}
-const double (*_8DOP::Direction() const)[3] {return msDirection;}
-const double (*_12DOP::Direction() const)[3] {return msDirection;}
-const double (*_14DOP::Direction() const)[3] {return msDirection;}
-const double (*_18DOP::Direction() const)[3] {return msDirection;}
-const double (*_20DOP::Direction() const)[3] {return msDirection;}
-const double (*_26DOP::Direction() const)[3] {return msDirection;}
+kDOP::Array2DType kDOP::Direction() const {return msDirection;}
+kDOP::Array2DType _6DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _8DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _12DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _14DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _18DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _20DOP::Direction() const {return msDirection;}
+kDOP::Array2DType _26DOP::Direction() const {return msDirection;}
 
 void LineRegressionVolumePartitioner::Partition(ConditionsContainerType& rAllConditions,
                                                 const kDOP& rBoundingVolume,

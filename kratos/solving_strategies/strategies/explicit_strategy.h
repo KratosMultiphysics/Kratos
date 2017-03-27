@@ -286,7 +286,7 @@ inline void CreatePartition(unsigned int number_of_threads, const int number_of_
   
   //********************************************
   //********************************************
-void InitializeSolutionStep()
+void InitializeSolutionStep() override
 {
 	KRATOS_TRY
 
@@ -305,7 +305,7 @@ void InitializeSolutionStep()
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep()
+void FinalizeSolutionStep() override
 {
 	KRATOS_TRY
 

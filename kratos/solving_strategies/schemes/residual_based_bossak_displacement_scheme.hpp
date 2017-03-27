@@ -126,7 +126,7 @@ public:
     /**
      * Clone
      */
-    virtual BaseTypePointer Clone()
+    virtual BaseTypePointer Clone() override
     {
         return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
@@ -174,7 +174,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY;
 
@@ -246,7 +246,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -339,7 +339,7 @@ public:
      * This is intended to be called just once when the strategy is initialized
      * @param rModelPart: The model of the problem to solve
      */
-    void InitializeElements(ModelPart& rModelPart)
+    void InitializeElements(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -370,7 +370,7 @@ public:
      * @param rModelPart: The model of the problem to solve
      */
 
-    void InitializeConditions(ModelPart& rModelPart)
+    void InitializeConditions(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -413,7 +413,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -466,7 +466,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-        )
+        ) override
     {
         KRATOS_TRY;
 
@@ -521,7 +521,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -577,7 +577,7 @@ public:
     void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -591,7 +591,7 @@ public:
     void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -610,7 +610,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -647,7 +647,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
 
         KRATOS_TRY;
@@ -685,7 +685,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -724,7 +724,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -759,7 +759,7 @@ public:
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -775,7 +775,7 @@ public:
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
@@ -788,7 +788,7 @@ public:
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 

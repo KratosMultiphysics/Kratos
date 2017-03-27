@@ -323,7 +323,7 @@ public:
     	}
 
     	// 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
-    	if(std::abs(c)>std::abs(previous_c) and c*previous_c>0)
+    	if(std::abs(c)>std::abs(previous_c) && c*previous_c>0)
     	{
     		std::cout << "Correction scaling needs to increase...." << std::endl;
     		m_correction_scaling = std::min(m_correction_scaling*2,1.0);

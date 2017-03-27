@@ -179,7 +179,7 @@ public:
         guess for iterative linear solvers.
         @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
+    bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB) override
     {
         if (this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -203,7 +203,7 @@ public:
         guess for iterative linear solvers.
         @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
 
         std::cout << "************ DeflatedCGSolver::Solve(SparseMatrixType&, DenseMatrixType&, DenseMatrixType&) not defined! ************" << std::endl;
@@ -227,7 +227,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Deflated Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -236,14 +236,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }

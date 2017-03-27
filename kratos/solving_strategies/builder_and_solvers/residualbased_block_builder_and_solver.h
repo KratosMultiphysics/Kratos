@@ -35,7 +35,7 @@
 #ifdef USE_GOOGLE_HASH
     #include "sparsehash/dense_hash_set" //included in external libraries
 #endif
-
+// #define USE_LOCKS_IN_ASSEMBLY
 // #include <iostream>
 // #include <fstream>
 
@@ -192,7 +192,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         if (!pScheme)
@@ -219,60 +219,64 @@ public:
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
-        for (int k = 0; k < nelements; k++)
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
-            ModelPart::ElementsContainerType::iterator it = el_begin + k;
-
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                element_is_active = (it)->Is(ACTIVE);
-
-            if (element_is_active)
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++)
             {
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-                //assemble the elemental contribution
-#ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    element_is_active = (it)->Is(ACTIVE);
+
+                if (element_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+    #ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+    #else
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+    #endif
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
+
             }
 
-        }
 
-
-        #pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
-        for (int k = 0; k < nconditions; k++)
-        {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
-
-            if (condition_is_active)
+            //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++)
             {
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-                //assemble the elemental contribution
-#ifdef _OPENMP
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*(it.base()));
+                if (condition_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+    #ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+    #else
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+    #endif
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
             }
         }
 
@@ -304,7 +308,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
 		KRATOS_TRY
 
@@ -321,7 +325,7 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -339,7 +343,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -415,7 +419,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -465,7 +469,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -481,7 +485,7 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -509,7 +513,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -533,14 +537,14 @@ public:
 // 			dof_iterator_hash,
 // 			dof_iterator_equal,
 // 			allocator_type 	>  set_type;
-        
+
 #ifdef USE_GOOGLE_HASH
         typedef google::dense_hash_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
 #else
         typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
 #endif
-//         
-        
+//
+
 
         std::vector<set_type> dofs_aux_list(nthreads);
 // 		std::vector<allocator_type> allocators(nthreads);
@@ -562,33 +566,36 @@ public:
         {
             KRATOS_WATCH("Initializing element loop")
         }
-        #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-        for (int i = 0; i < nelements; i++)
+        #pragma omp parallel firstprivate(nelements, ElementalDofList)
         {
-            typename ElementsArrayType::iterator it = pElements.begin() + i;
-            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < nelements; i++)
+            {
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
-            // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+                // gets list of Dof involved on every element
+                pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
 
-            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-        }
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "Initializing condition loop\n" << std::endl;
-        }
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
-        const int nconditions = static_cast<int>(pConditions.size());
-        #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
-        for (int i = 0; i < nconditions; i++)
-        {
-            typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+            }
+            if( this->GetEchoLevel() > 2)
+            {
+                std::cout << "Initializing condition loop\n" << std::endl;
+            }
+            ConditionsArrayType& pConditions = r_model_part.Conditions();
+            const int nconditions = static_cast<int>(pConditions.size());
+            #pragma omp for  schedule(guided, 512)
+            for (int i = 0; i < nconditions; i++)
+            {
+                typename ConditionsArrayType::iterator it = pConditions.begin() + i;
+                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
-            // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+                // gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
 
+            }
         }
 
         if( this->GetEchoLevel() > 2)
@@ -613,7 +620,7 @@ public:
                 }
                 std::cout << "********************" << std::endl;
             }
-            
+
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(new_max); i++)
             {
@@ -623,10 +630,10 @@ public:
                     dofs_aux_list[i+new_max].clear();
                 }
             }
-            
+
             old_max = new_max;
             new_max = ceil(0.5*static_cast<double>(old_max));
-            
+
         }
 
         if( this->GetEchoLevel() > 2)
@@ -665,7 +672,7 @@ public:
         {
             KRATOS_WATCH("Initializing lock array")
         }
-        
+
 #ifdef _OPENMP
         if (mlock_array.size() != 0)
         {
@@ -675,7 +682,7 @@ public:
             }
         }
         mlock_array.resize(BaseType::mDofSet.size());
-        
+
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
         {
             omp_init_lock(&mlock_array[i]);
@@ -685,7 +692,7 @@ public:
         {
             std::cout << "End of setupdofset\n" << std::endl;
         }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -694,7 +701,7 @@ public:
 
     void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
 
         //int free_id = 0;
@@ -726,7 +733,7 @@ public:
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -788,7 +795,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -801,7 +808,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
     }
 
@@ -814,7 +821,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         TSparseSpace::SetToZero(b);
 
@@ -847,7 +854,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         std::size_t system_size = A.size1();
         std::vector<double> scaling_factors (system_size, 0.0f);
@@ -925,7 +932,7 @@ public:
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
      */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 
@@ -940,8 +947,8 @@ public:
         for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             omp_destroy_lock(&mlock_array[i]);
         mlock_array.resize(0);
-#endif 
-        
+#endif
+
     }
 
     /**
@@ -951,7 +958,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part)
+    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part) override
     {
         KRATOS_TRY
 
@@ -1010,7 +1017,7 @@ protected:
         Timer::Start("MatrixStructure");
 
         const std::size_t equation_size = BaseType::mDofSet.size();
-        
+
 #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
         const std::size_t empty_key = 2*equation_size + 10;
@@ -1025,7 +1032,7 @@ protected:
         indices[iii].set_empty_key(empty_key);
 #else
         indices[iii].reserve(40);
-#endif            
+#endif
         }
 
         Element::EquationIdVectorType ids(3, 0);
@@ -1041,13 +1048,13 @@ protected:
             {
 #ifdef _OPENMP
                 omp_set_lock(&mlock_array[ids[i]]);
-#endif 
+#endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
 #ifdef _OPENMP
                 omp_unset_lock(&mlock_array[ids[i]]);
-#endif 
+#endif
             }
 
         }
@@ -1102,7 +1109,7 @@ protected:
                 k++;
             }
 
-			indices[i].clear(); //deallocating the memory 
+			indices[i].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
@@ -1144,7 +1151,7 @@ protected:
         const LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& lock_array
 #endif
     )
@@ -1155,14 +1162,14 @@ protected:
         {
             unsigned int i_global = EquationId[i_local];
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
             omp_set_lock(&lock_array[i_global]);
 #endif
             b[i_global] += RHS_Contribution(i_local);
 
             AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
             omp_unset_lock(&lock_array[i_global]);
 #endif
 
@@ -1171,7 +1178,7 @@ protected:
         }
     }
 
-    
+
     //**************************************************************************
 
     void AssembleRHS(
@@ -1290,51 +1297,55 @@ private:
         // assemble all elements
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
-        int nelements = static_cast<int>(pElements.size());
-        #pragma omp parallel for firstprivate(nelements, RHS_Contribution, EquationId)
-        for(int i=0; i<nelements; i++)
+        const int nelements = static_cast<int>(pElements.size());
+        #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
-            typename ElementsArrayType::iterator it = pElements.begin() + i;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool element_is_active = true;
-            if( (it)->IsDefined(ACTIVE) )
-                element_is_active = (it)->Is(ACTIVE);
-
-            if(element_is_active)
+            #pragma omp for schedule(guided, 512) nowait
+            for(int i=0; i<nelements; i++)
             {
-                //calculate elemental Right Hand Side Contribution
-                pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (it)->IsDefined(ACTIVE) )
+                    element_is_active = (it)->Is(ACTIVE);
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
+                if(element_is_active)
+                {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
             }
-        }
 
-        LHS_Contribution.resize(0, 0, false);
-        RHS_Contribution.resize(0, false);
+            LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
 
-        // assemble all conditions
-        //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        int nconditions = static_cast<int>(ConditionsArray.size());
-        #pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId)
-        for (int i = 0; i<nconditions; i++)
-        {
-            auto it = ConditionsArray.begin() + i;
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if( (it)->IsDefined(ACTIVE) )
-                condition_is_active = (it)->Is(ACTIVE);
-
-            if(condition_is_active)
+            // assemble all conditions
+            //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            //#pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId) schedule(dynamic, 1024)
+            #pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++)
             {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (it)->IsDefined(ACTIVE) )
+                    condition_is_active = (it)->Is(ACTIVE);
 
-                //calculate elemental contribution
-                pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                if(condition_is_active)
+                {
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
             }
         }
 
@@ -1367,7 +1378,16 @@ private:
         //find the first entry
         size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
         size_t last_found = EquationId[0];
+
+#ifndef USE_LOCKS_IN_ASSEMBLY
+        double& r_a = values_vector[last_pos];
+        const double& v_a = Alocal(i_local,0);
+        #pragma omp atomic
+        r_a +=  v_a;
+#else
         values_vector[last_pos] += Alocal(i_local,0);
+#endif
+
 
         //now find all of the other entries
         size_t pos = 0;
@@ -1379,7 +1399,15 @@ private:
             else
                 pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
 
-            values_vector[pos] += Alocal(i_local,j);
+#ifndef USE_LOCKS_IN_ASSEMBLY
+                        double& r = values_vector[pos];
+                        const double& v = Alocal(i_local,j);
+                        #pragma omp atomic
+                        r +=  v;
+#else
+                        values_vector[pos] += Alocal(i_local,j);
+#endif
+
             last_found = id_to_find;
             last_pos = pos;
         }

@@ -319,7 +319,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    virtual void Execute()
+    virtual void Execute() override
     {
         KRATOS_TRY;
 
@@ -2459,19 +2459,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateSignedDistanceTo3DSkinProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
