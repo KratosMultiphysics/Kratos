@@ -292,7 +292,8 @@ public:
         GeometryType& GeomOrigin,
         const GeometryType::CoordinatesArrayType& PointDestiny,
         GeometryType::CoordinatesArrayType& ResultingPoint,
-        const array_1d<double, 3> Normal
+        const array_1d<double, 3> Normal,
+        const double Tolerance = 1.0e-8
         )
     {
         ResultingPoint.clear();
@@ -317,7 +318,6 @@ public:
         Matrix J = ZeroMatrix( 1, 1 );
         
         //Newton iteration:
-        double tol = 1.0e-8;
 
         unsigned int maxiter = 10;
 
@@ -376,7 +376,7 @@ public:
 //             KRATOS_WATCH(DeltaXi)
 //             KRATOS_WATCH(OldDeltaXi)
             
-            if ( std::abs(DeltaXi - OldDeltaXi) < tol )
+            if ( std::abs(DeltaXi - OldDeltaXi) < Tolerance )
             {
                 return true;
             }

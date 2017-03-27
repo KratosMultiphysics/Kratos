@@ -40,6 +40,36 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
+    #if !defined(KEY_COMPAROR) // TODO: USe in combination with the unordered_map (look at the mmg_utility.h)!!!!!
+    #define KEY_COMPAROR
+    struct KeyComparor
+    {
+        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
+        {
+            if(lhs.size() != rhs.size())
+                return false;
+
+            for(unsigned int i=0; i<lhs.size(); i++)
+            {
+                if(lhs[i] != rhs[i]) return false;
+            }
+
+            return true;
+        }
+    };
+    #endif
+    
+    #if !defined(KEY_HASHER)
+    #define KEY_HASHER
+    struct KeyHasher
+    {
+        std::size_t operator()(const vector<int>& k) const
+        {
+            return boost::hash_range(k.begin(), k.end());
+        }
+    };
+    #endif
+    
 ///@}
 ///@name  Enum's
 ///@{

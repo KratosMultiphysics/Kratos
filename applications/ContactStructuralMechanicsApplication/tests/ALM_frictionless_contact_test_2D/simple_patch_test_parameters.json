@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -100,7 +100,7 @@
         }
     }
     ],
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -128,7 +128,7 @@
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
