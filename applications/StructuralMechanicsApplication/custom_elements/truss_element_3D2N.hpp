@@ -147,6 +147,8 @@ namespace Kratos
 		double mPreStress, mArea, mYoungsModulus, mLength, mDensity, mInternalStrainGL, mCurrentLength;
 		MatrixType mLHS;
 		uint mIterCount = 0; 
+		bool mIsCable;
+		bool mIsCompressed;
 
 		TrussElement3D2N() {};
 

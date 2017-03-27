@@ -80,7 +80,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 		const double E = this->mYoungsModulus;
-		const double A = this->mArea;
+		double A = this->mArea;
 		const double S_pre = this->mPreStress;
 		MatrixType LocalStiffnessMatrix = ZeroMatrix(6, 6);
 
@@ -98,6 +98,9 @@ namespace Kratos
 		L4 = L2*L2;
 		//using PK2 -> GreenLagrange
 		K_1 = e_GL*E + S_pre;
+
+		//if cable + compressed -> no contribution to global K
+		if (mIsCable == true && mIsCompressed == true) A = 0;
 
 		LocalStiffnessMatrix(0, 0) = A*L*(K_1 / L2 + E*(dx + du)*(dx + du) / L4); //k11
 		LocalStiffnessMatrix(3, 3) = LocalStiffnessMatrix(0, 0); //k44
@@ -341,7 +344,11 @@ namespace Kratos
 		const SizeType LocalSize = NumNodes * dimension;
 
 		this->Initialize();
-
+		//cable?
+		mIsCable = false;
+		//calculate internal forces
+		VectorType internalForces = ZeroVector(6);
+		this->UpdateInternalForces(internalForces);
 		//resizing the matrices + create memory for LHS
 		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
@@ -353,11 +360,10 @@ namespace Kratos
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
 		//update Residual
-		VectorType internalForces = ZeroVector(6);
-		this->UpdateInternalForces(internalForces);
 		noalias(rRightHandSideVector) -= internalForces;
 		//add bodyforces 
 		noalias(rRightHandSideVector) += this->CalculateBodyForces();
+		if (mIsCable == true && mIsCompressed == true) rRightHandSideVector = ZeroVector(LocalSize);
 		this->mIterCount++;
 		KRATOS_CATCH("")
 	}
@@ -373,10 +379,11 @@ namespace Kratos
 
 		VectorType currentDisp = ZeroVector(LocalSize);
 		this->GetValuesVector(currentDisp, 0);
-		rRightHandSideVector -= prod(this->mLHS, currentDisp);
+		noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
 
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
+		if (mIsCable == true && mIsCompressed == true) rRightHandSideVector = ZeroVector(LocalSize);
 		KRATOS_CATCH("")
 	}
 	void TrussElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -390,7 +397,7 @@ namespace Kratos
 		if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 		////creating LHS
-		rLeftHandSideMatrix = this->mLHS;
+		noalias(rLeftHandSideMatrix) = this->mLHS;
 		KRATOS_CATCH("")
 	}
 
@@ -567,7 +574,8 @@ namespace Kratos
 		double l = this->mCurrentLength;
 		double L = this->mLength;
 		//longitudinal green lagrange strain
-		return ((l * l - L * L) / (2.00 * L * L));
+		double e = ((l * l - L * L) / (2.00 * L * L));
+		return e;
 		KRATOS_CATCH("")
 	}
 
@@ -610,6 +618,10 @@ namespace Kratos
 		double A = mArea;
 		double S_pre = mPreStress;
 		double N = ((E*mInternalStrainGL + S_pre) * l * A) / L0;
+
+		if (N < 0.00) mIsCompressed = true;
+		else mIsCompressed = false;
+
 		//internal force vectors
 		VectorType f_local = ZeroVector(6);
 		f_local[0] = -1.00 * N;

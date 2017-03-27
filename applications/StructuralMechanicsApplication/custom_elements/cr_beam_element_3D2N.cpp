@@ -861,9 +861,9 @@ namespace Kratos
 		this->GetValuesVector(currentDisp, 0);
 		if (rRightHandSideVector.size() != 12) rRightHandSideVector = ZeroVector(12);
 		rRightHandSideVector = ZeroVector(12);
-		rRightHandSideVector -= prod(this->mLHS, currentDisp);
+		noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
 		//add bodyforces 
-		rRightHandSideVector += mBodyForces;
+		noalias(rRightHandSideVector) += mBodyForces;
 		KRATOS_CATCH("")
 
 	}
@@ -872,7 +872,7 @@ namespace Kratos
 		KRATOS_TRY
 		if (rLeftHandSideMatrix.size1() != 12) rLeftHandSideMatrix = ZeroMatrix(12, 12);
 		rLeftHandSideMatrix = ZeroMatrix(12, 12);
-		rLeftHandSideMatrix = this->mLHS;
+		noalias(rLeftHandSideMatrix) = this->mLHS;
 		KRATOS_CATCH("")
 	}
 	CrBeamElement3D2N::VectorType CrBeamElement3D2N::CalculateElementForces()
@@ -1040,7 +1040,7 @@ namespace Kratos
 	double CrBeamElement3D2N::CalculatePsi(double I, double A_eff)
 	{
 		KRATOS_TRY
-			double E = this->mYoungsModulus;
+		double E = this->mYoungsModulus;
 		double L = this->mCurrentLength;
 		double G = this->mShearModulus;
 
