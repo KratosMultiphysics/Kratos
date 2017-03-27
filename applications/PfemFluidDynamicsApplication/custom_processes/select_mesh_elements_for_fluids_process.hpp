@@ -237,7 +237,9 @@ public:
 
 	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
-
+	      // if((numinlet+numrigid)>=nds || (numinlet+numsolid)>=nds){
+	      // 	Alpha*=0;
+	      // }
 	      // if(numinlet==3){
 	      // 	Alpha*=1.5;
 	      // } else if(numinlet==2){
@@ -297,10 +299,10 @@ public:
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
 		  Alpha*=0.85;
 		}else if((numrigid+numisolated+numfreesurf)==nds){
-		  Alpha*=0.925;
-		}else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
-		  Alpha*=0.975;
-		}
+		  Alpha*=0.95;
+		}// else if(numfreesurf==3 || (numisolated+numfreesurf)==3){
+		//   Alpha*=0.975;
+		// }
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
 		}else if(numfreesurf==0 && numisolated==0){

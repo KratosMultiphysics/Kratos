@@ -8,7 +8,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 #dependecies on other application -- TRILINOS specific
 include_directories( ${CMAKE_SOURCE_DIR}/applications/incompressible_fluid_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ALEapplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 
@@ -62,9 +61,6 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/ale_application_variables.cpp
     ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )

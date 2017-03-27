@@ -19,15 +19,17 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/communicator.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "containers/variable.h"
 
 // Application includes
-#include "custom_utilities/objective_function.h"
+#include "../../AdjointFluidApplication/custom_utilities/objective_function.h"
 
 namespace Kratos
 {
@@ -130,7 +132,7 @@ public:
 
         // check domain dimension and element
         const unsigned int WorkingSpaceDimension =
-            rModelPart.GetElement(1).WorkingSpaceDimension();
+            rModelPart.Elements().begin()->WorkingSpaceDimension();
 
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         const unsigned int DomainSize =
@@ -149,19 +151,6 @@ public:
                 mBoundaryModelPartName)
         }
 
-        // initialize the variables to zero.
-        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
-        {
-            it->Set(BOUNDARY, false);
-            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
-            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
-        }
-
-        ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
-        for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
-            it->Set(BOUNDARY, true);
-
         mpObjectiveFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("")
@@ -175,6 +164,19 @@ public:
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // initialize the variables to zero.
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+        {
+            it->Set(BOUNDARY, false);
+            it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) = SHAPE_SENSITIVITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_VELOCITY) = ADJOINT_VELOCITY.Zero();
+            it->FastGetSolutionStepValue(ADJOINT_PRESSURE) = ADJOINT_PRESSURE.Zero();
+        }
+
+        ModelPart& rBoundaryModelPart = rModelPart.GetSubModelPart(mBoundaryModelPartName);
+        for (auto it = rBoundaryModelPart.NodesBegin(); it != rBoundaryModelPart.NodesEnd(); ++it)
+            it->Set(BOUNDARY, true);
 
         mpObjectiveFunction->InitializeSolutionStep(rModelPart);
 
@@ -206,10 +208,27 @@ public:
     {
         KRATOS_TRY
 
-        for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
-            if (it->IsFree() == true)
-                it->GetSolutionStepValue() +=
-                    TSparseSpace::GetValue(rDx, it->EquationId());
+        Communicator& rComm = rModelPart.GetCommunicator();
+
+        if (rComm.TotalProcesses() == 1)
+        {
+            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+                if (it->IsFree() == true)
+                    it->GetSolutionStepValue() +=
+                        TSparseSpace::GetValue(rDx, it->EquationId());
+        }
+        else
+        {
+            for (auto it = rDofSet.begin(); it != rDofSet.end(); ++it)
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == rComm.MyPID())
+                    if (it->IsFree() == true)
+                        it->GetSolutionStepValue() +=
+                            TSparseSpace::GetValue(rDx, it->EquationId());
+
+            // todo: add a function Communicator::SynchronizeDofVariables() to
+            // reduce communication here.
+            rComm.SynchronizeNodalSolutionStepsData();
+        }
 
         KRATOS_CATCH("")
     }
@@ -238,7 +257,7 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // residual form
-        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId], 0);
+        pCurrentElement->GetFirstDerivativesVector(mAdjointVelocity[ThreadId]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointVelocity[ThreadId]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -368,6 +387,19 @@ private:
         const unsigned int DomainSize =
             static_cast<unsigned int>(rProcessInfo[DOMAIN_SIZE]);
 
+        Communicator& rComm = rModelPart.GetCommunicator();
+        if (rComm.TotalProcesses() > 1)
+        {
+            // here we make sure we only add the old shape sensitivity once
+            // when we assemble. this should always be the case for steady
+            // adjoint since we initialize shape sensitivity to zero in
+            // InitializeSolutionStep()
+            for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it)
+                if (it->FastGetSolutionStepValue(PARTITION_INDEX) != rComm.MyPID())
+                    it->FastGetSolutionStepValue(SHAPE_SENSITIVITY) =
+                        SHAPE_SENSITIVITY.Zero();
+        }
+
 #pragma omp parallel
         {
             ModelPart::ElementIterator ElementsBegin;
@@ -424,6 +456,8 @@ private:
                 }
             }
         }
+
+        rModelPart.GetCommunicator().AssembleCurrentData(SHAPE_SENSITIVITY);
 
         KRATOS_CATCH("")
     }
