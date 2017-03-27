@@ -36,7 +36,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
-        "processes_sub_model_part_list"      : ["Parts_Part_foundation",
+        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Part_foundation",
         										"Parts_Part_punch",
         										"DISPLACEMENT_BC_fixed_support",
         										"DISPLACEMENT_BC_rolling_x",
@@ -153,8 +153,7 @@
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "origin_model_part_name"      : "Parts_Part_foundation",
-            "destination_model_part_name" : "Parts_Part_punch",
+            "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
@@ -193,8 +192,7 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/simple_patch_test_3D_results.json",
-            "model_part_name"      : "Parts_Part_foundation",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0
         }
     }
@@ -208,8 +206,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/simple_patch_test_3D_results.json",
-            "model_part_name"      : "Parts_Part_foundation",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0
         }
     }

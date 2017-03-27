@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 0,
+        "echo_level"                         : 1,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -36,7 +36,7 @@
                 "verbosity": 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -91,8 +91,7 @@
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "origin_model_part_name"      : "Parts_Parts_Auto3",
-            "destination_model_part_name" : "Parts_Parts_Auto2",
+            "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
@@ -101,7 +100,7 @@
         }
     }
     ],
-    "json_check_process" : [
+    "_json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -110,8 +109,7 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_patch_test_results.json",
-            "model_part_name"      : "Parts_Parts_Auto3",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
         }
     }
@@ -125,13 +123,12 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/simple_patch_test_results.json",
-            "model_part_name"      : "Parts_Parts_Auto3",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",

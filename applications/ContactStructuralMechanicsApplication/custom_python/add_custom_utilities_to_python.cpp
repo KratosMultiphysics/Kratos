@@ -56,8 +56,10 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&DeprecatedTreeContactSearch::CheckMortarConditions)
     ;
     
-    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
-    .def("ModelPartSetter",&TreeContactSearch::ModelPartSetter)
+    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&>())
+    .def(init<ModelPart&, const unsigned int>())
+    .def(init<ModelPart&, const unsigned int, const double>())
+    .def(init<ModelPart&, const unsigned int, const double, const std::string>())
     .def("InitializeALMFrictionlessMortarConditions",&TreeContactSearch::InitializeALMFrictionlessMortarConditions)
     .def("TotalClearALMFrictionlessMortarConditions",&TreeContactSearch::TotalClearALMFrictionlessMortarConditions)
     .def("PartialClearALMFrictionlessMortarConditions",&TreeContactSearch::PartialClearALMFrictionlessMortarConditions)

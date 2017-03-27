@@ -6,8 +6,7 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Mohamed Khalil
-//                   Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_ALM_CONTACT_SCHEME )

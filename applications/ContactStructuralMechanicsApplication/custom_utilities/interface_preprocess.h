@@ -138,9 +138,8 @@ public:
         rInterfacePart.AddCondition(pCond);
         if (ConditionName.find("Mortar") != std::string::npos)
         {
-                Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
-                pElem = rpElem;
-                // KRATOS_WATCH(pElem->Id());
+//                 KRATOS_WATCH(pElem->Id());
+                pCond->GetValue(ELEMENT_POINTER) = rpElem;
         }
         
         KRATOS_CATCH("");

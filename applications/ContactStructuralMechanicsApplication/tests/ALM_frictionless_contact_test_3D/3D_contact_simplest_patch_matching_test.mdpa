@@ -67,18 +67,6 @@ Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    Begin SubModelPart Interface
-        Begin SubModelPartNodes
-            2
-            6
-            7
-            11
-        End SubModelPartNodes
-        Begin SubModelPartElements
-        End SubModelPartElements
-        Begin SubModelPartConditions
-        End SubModelPartConditions
-    End SubModelPart
 End SubModelPart
 Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
     Begin SubModelPartNodes
@@ -96,19 +84,25 @@ Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    Begin SubModelPart Interface
-        Begin SubModelPartNodes
-            5
-            9
-            10
-            12
-        End SubModelPartNodes
-        Begin SubModelPartElements
-        End SubModelPartElements
-        Begin SubModelPartConditions
-        End SubModelPartConditions
-    End SubModelPart
 End SubModelPart
+
+Begin SubModelPart Contact_Part
+    Begin SubModelPartNodes
+        5
+        9
+        10
+        12
+        2
+        6
+        7
+        11
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
         13
