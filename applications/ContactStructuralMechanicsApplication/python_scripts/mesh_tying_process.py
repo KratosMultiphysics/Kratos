@@ -116,14 +116,14 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         del node
         
         # Setting the master conditions 
-        for cond in self.o_interface.Nodes:
+        for cond in self.o_interface.Conditions:
             cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
         del cond
         
         # Setting the slave conditions 
-        for cond in self.d_interface.Nodes:
+        for cond in self.d_interface.Conditions:
             cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
