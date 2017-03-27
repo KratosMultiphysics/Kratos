@@ -8,13 +8,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
-def CalculateLastIdCondition(model_part):
-    cond_id = 0
-    for condition in model_part.Conditions:
-        cond_id += 1
-
-    return cond_id
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -90,15 +83,11 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         if (self.dimension == 2):
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, self.geometry_element + self.type_variable, False) 
         else:
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, initial_id, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, self.geometry_element + self.type_variable, False) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
@@ -124,7 +113,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
             node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
             node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
-            #node.Set(KratosMultiphysics.SLAVE, True)
         del node
         
         # Setting the master conditions 
@@ -132,7 +120,6 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-            #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
         del cond
         
         # Setting the slave conditions 

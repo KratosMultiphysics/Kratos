@@ -76,7 +76,7 @@ public:
     ///@name Life Cycle
     ///@{
     
-        /// Constructor
+    /// Constructor
     
     /**
      * This is the default constructor
@@ -111,7 +111,6 @@ public:
             ModelPart& rOriginPart,
             ModelPart& rInterfacePart,
             std::string ConditionName,
-            unsigned int CondId,
             std::string final_string,
             const bool simplest_geometry
             );
@@ -164,7 +163,7 @@ public:
     {
         KRATOS_TRY;
 
-        const unsigned int dimension = rOriginPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
                     
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
@@ -223,7 +222,7 @@ public:
     {
         KRATOS_TRY;
         
-        const unsigned int dimension = rOriginPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = mrMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
         
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
@@ -1054,21 +1053,28 @@ private:
         ModelPart& rOriginPart,
         ModelPart& rInterfacePart,
         std::string ConditionName,
-        unsigned int CondId,
         std::string final_string,
         const bool simplest_geometry
         )
     {
         KRATOS_TRY;
         
-        // Store pointers to all interface nodes
-        unsigned int NodesCounter = 0;
-        for (ModelPart::NodesContainerType::const_iterator node_it = rInterfacePart.NodesBegin(); node_it != rInterfacePart.NodesEnd(); node_it++)
-        {
-            NodesCounter++;
-        }
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
         
         unsigned int CondCounter = 0;
+        unsigned int CondId = 0;
+        
+        // We reorder the conditions
+        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
+        auto numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            CondId += 1;
+            itCondition->SetId(CondId);
+        }
         
         // Generate Conditions from original the edges that can be considered interface
         for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
@@ -1133,7 +1139,7 @@ private:
       
         // NOTE: Reorder ID if parallellization
       
-        PrintNodesAndConditions(NodesCounter, CondCounter);
+        PrintNodesAndConditions(numNodes, CondCounter);
       
         KRATOS_CATCH("");
     }
@@ -1146,21 +1152,28 @@ private:
         ModelPart& rOriginPart,
         ModelPart& rInterfacePart,
         std::string ConditionName,
-        unsigned int CondId,
         std::string final_string,
         const bool simplest_geometry
         )
     {
         KRATOS_TRY;
         
-        // Store pointers to all interface nodes
-        unsigned int NodesCounter = 0;
-        for (ModelPart::NodesContainerType::const_iterator node_it = rInterfacePart.NodesBegin(); node_it != rInterfacePart.NodesEnd(); node_it++)
-        {
-            NodesCounter++;
-        }
+        NodesArrayType& pNode = mrMainModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
         
         unsigned int CondCounter = 0;
+        unsigned int CondId = 0;
+        
+        // We reorder the conditions
+        ConditionsArrayType& pCondition = mrMainModelPart.Conditions();
+        auto numConditions = pCondition.end() - pCondition.begin();
+        
+        for(unsigned int i = 0; i < numConditions; i++) 
+        {
+            auto itCondition = pCondition.begin() + i;
+            CondId += 1;
+            itCondition->SetId(CondId);
+        }
         
         // Generate Conditions from original the faces that can be considered interface
         for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
@@ -1350,7 +1363,7 @@ private:
       
         // NOTE: Reorder ID if parallellization
       
-        PrintNodesAndConditions(NodesCounter, CondCounter);
+        PrintNodesAndConditions(numNodes, CondCounter);
       
         KRATOS_CATCH("");
     }

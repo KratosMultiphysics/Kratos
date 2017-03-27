@@ -8,13 +8,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
-def CalculateLastIdCondition(model_part):
-    cond_id = 0
-    for condition in model_part.Conditions:
-        cond_id += 1
-
-    return cond_id
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -95,15 +88,11 @@ class ContactProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         if (self.dimension == 2):
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
         else:
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
-            initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, initial_id, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, final_string, self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, final_string, self.simplify_geometry) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
