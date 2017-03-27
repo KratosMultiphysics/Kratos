@@ -75,7 +75,6 @@
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
-            "simplify_geometry"           : false,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }

@@ -96,8 +96,7 @@ public:
     /// Constructor
     
     /**
-     * @param SlaveGeometry: The geometry of the slave condition
-     * @param SlaveNormal: The normal of the slave condition
+     * This is the default constructor
      * @param IntegrationOrder: The integration order to consider
      */
     
@@ -907,7 +906,7 @@ private:
                 }
                 else
                 {
-                    std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
+                    KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
                 }
             }
             else  if (aux_xi.size() == 2)
@@ -936,7 +935,7 @@ private:
             }
             else
             {
-                std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
+                KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN!!!!" << std::endl;
             }
             
             total_weight = coor_aux[1] - coor_aux[0];

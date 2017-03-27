@@ -8,8 +8,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
-# TODO: Finish me!!!!!
-
 def CalculateLastIdCondition(model_part):
     cond_id = 0
     for condition in model_part.Conditions:
@@ -36,7 +34,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
-            "simplify_geometry"           : false,
             "normal_variation"            : false,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
@@ -60,7 +57,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
         self.max_number_results       = self.params["max_number_results"].GetInt() 
-        self.simplify_geometry        = self.params["simplify_geometry"].GetBool()
         self.normal_variation         = self.params["normal_variation"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
@@ -116,7 +112,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
-        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
         
         if self.params["contact_type"].GetString() == "Frictionless":
             condition_name = "ALMFrictionlessMortarContact"
@@ -127,14 +123,14 @@ class ALMContactProcess(KratosMultiphysics.Process):
         # It should create the conditions automatically
         if (self.dimension == 2):
             initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, initial_id, "", self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.o_model_part, self.o_interface, condition_name, initial_id, "", False) 
             initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, initial_id, "", self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart2D(self.d_model_part, self.d_interface, condition_name, initial_id, "", False) 
         else:
             initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, initial_id, "", self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.o_model_part, self.o_interface, condition_name, initial_id, "", False) 
             initial_id = CalculateLastIdCondition(self.main_model_part)
-            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, initial_id, "", self.simplify_geometry) 
+            self.Preprocess.GenerateInterfacePart3D(self.d_model_part, self.d_interface, condition_name, initial_id, "", False) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)

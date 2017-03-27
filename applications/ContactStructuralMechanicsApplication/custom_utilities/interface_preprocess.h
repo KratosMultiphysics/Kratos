@@ -69,9 +69,27 @@ public:
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
     
+    /// Pointer definition of ExactMortarIntegrationUtility
+    KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
+    
     ///@}
     ///@name Life Cycle
     ///@{
+    
+        /// Constructor
+    
+    /**
+     * This is the default constructor
+     * @param rModelPart: The model part to consider
+     */
+    
+    InterfacePreprocessCondition(ModelPart& rMainModelPrt)
+    :mrMainModelPart(rMainModelPrt)
+    {
+    }
+    
+    /// Destructor.
+    virtual ~InterfacePreprocessCondition() {}
     
     ///@}
     ///@name Operators
@@ -995,10 +1013,13 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+    
     ///@}
     ///@name Member Variables
     ///@{
 
+    ModelPart&  mrMainModelPart;
+    
     ///@}
     ///@name Private Operators
     ///@{

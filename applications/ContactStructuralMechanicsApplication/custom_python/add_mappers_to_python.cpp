@@ -31,7 +31,7 @@ void  AddCustomMappersToPython()
 
     using namespace boost::python;
 
-    class_<InterfacePreprocessCondition>("InterfacePreprocessCondition", init<>())
+    class_<InterfacePreprocessCondition>("InterfacePreprocessCondition", init<ModelPart&>())
     .def("GenerateInterfacePart2D",&InterfacePreprocessCondition::GenerateInterfacePart<2>)
     .def("GenerateInterfacePart3D",&InterfacePreprocessCondition::GenerateInterfacePart<3>)
     ;

@@ -81,7 +81,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
-        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.Preprocess = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
         
         condition_name = "MeshTyingMortar"
         

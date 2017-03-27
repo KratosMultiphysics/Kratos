@@ -83,7 +83,7 @@ class ContactProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
-        self.Preprocess  = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.Preprocess  = KratosMultiphysics.ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             condition_name = "MortarContact"
