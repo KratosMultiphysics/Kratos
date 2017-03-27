@@ -1,1 +1,1 @@
-/home/gcasas/kratos/applications/swimming_DEM_application/python_scripts/chandelier/run_benchmark_candelier.py
+../../python_scripts/chandelier/run_benchmark_candelier.py

@@ -52,7 +52,6 @@ class AnalyticSimulator:
     def CalculateABC(self):
         include_lift = self.pp.include_lift
         include_history_force = self.pp.include_history_force
-        print('HDJSHJDSDHSHLDSLHDSHLDSHLKDHSLDHSLHSLDHLDHSL', include_history_force)
 
         Cs = self.pp.Cs
         gamma = self.gamma

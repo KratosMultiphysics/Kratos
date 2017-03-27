@@ -1,7 +1,7 @@
 import KratosSwimmingDEMCandelier as script
+import os
 
 def PrintMessage(run_name, radial_error, tolerance):
-        # Printing summary begins
         run_name += ': '
         run_name += ': '
         error_message = 'relative radial error: '
@@ -18,7 +18,6 @@ def PrintMessage(run_name, radial_error, tolerance):
         run_name = run_name.ljust(max_len) + veredict_msg
         print(run_name)
         print(error_message)
-        # Printing summary ends
 
 tolerance = 1e-4
 errors = []
@@ -28,6 +27,8 @@ error_names = []
 test = script.Solution(simulation_time = 1.0, basset_force_type = 0)
 error_names.append('No history force, Daitche')
 errors.append(test.Run())
+
+os.remove('candelier_results.h5py')
 
 # Second-order accurate Daitche benchmark
 test = script.Solution(simulation_time = 1.0, basset_force_type = 2)
@@ -41,6 +42,6 @@ print('Candelier tests results')
 print('-----------------------')
 
 for i, e in enumerate(errors):
-    PrintMessage(error_names[i], errors[i], tolerance)
+    PrintMessage(error_names[i], e, tolerance)
 print('-----------------------')
 print()
