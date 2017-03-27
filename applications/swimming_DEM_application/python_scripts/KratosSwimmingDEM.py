@@ -26,7 +26,7 @@ class Logger(object):
         #this flush method is needed for python 3 compatibility.
         #this handles the flush command by doing nothing.
         #you might want to specify some extra behavior here.
-        pass    
+        pass
 
 sys.stdout = Logger()
 import math
@@ -82,7 +82,7 @@ class Solution:
     def __init__(self):
         self.main_path = os.getcwd()
         
-        self.pp = pp        
+        self.pp = pp
         self.DS = dem_main_script.Solution()
 
         DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
@@ -103,7 +103,6 @@ class Solution:
         self.pp.CFD_DEM.laplacian_calculation_type = 0
         self.pp.CFD_DEM.do_search_neighbours = False
         self.pp.CFD_DEM.faxen_terms_type = 0
-        self.pp.CFD_DEM.vorticity_calculation_type = 5
         self.pp.CFD_DEM.material_acceleration_calculation_type = 1
         self.pp.CFD_DEM.faxen_force_type = 0
         self.pp.CFD_DEM.vorticity_calculation_type = 5
@@ -145,7 +144,7 @@ class Solution:
 
         self.DS.Initialize()
 
-        # Moving to the recently created folder        
+        # Moving to the recently created folder
         os.chdir(self.main_path)
         [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
         swim_proc.CopyInputFilesIntoFolder(self.main_path, post_path)
@@ -201,7 +200,7 @@ class Solution:
 
         # caution with breaking up this block (memory allocation)! {
         solver_module.AddVariables(fluid_model_part, SolverSettings)
-        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.        
+        vars_man.AddNodalVariables(fluid_model_part, self.pp.fluid_vars)  #     MOD.
         # }
 
         # introducing input file name
@@ -771,7 +770,7 @@ class Solution:
                 if (DEM_parameters.dem_inlet_option):
                     self.DS.DEM_inlet.CreateElementsFromInletMesh(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-                if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":/
+                if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
                     if DEM_parameters.coupling_level_type:
                         projection_module.ComputePostProcessResults(self.DS.spheres_model_part.ProcessInfo)
@@ -838,6 +837,5 @@ class Solution:
         for i in drag_file_output_list:
             i.close()
             
-
 if __name__=="__main__":
-    Solution().Run()    
+    Solution().Run()
