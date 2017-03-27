@@ -12,8 +12,6 @@
 #if !defined(KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
 
-// TODO: Clean all this!!!!!
-
 // System includes
 
 // External includes
@@ -23,10 +21,12 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include <unordered_map>
 
 namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
+// typedef std::unordered_map<Condition::Pointer, bool> ContactMap;
 
 struct contact_container 
 {
@@ -64,6 +64,7 @@ struct contact_container
 // CONDITIONS
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions
+// KRATOS_DEFINE_VARIABLE( ContactMap, CONTACT_SETS )                                                                              // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                                                                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                                                                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                                                                       // Mortar Contact Operator
