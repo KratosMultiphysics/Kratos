@@ -29,7 +29,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"             : "",
+            "model_part_name"             : "Structure",
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
             "contact_type"                : "Frictionless",
@@ -39,7 +39,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "simplify_geometry"           : false,
             "normal_variation"            : false,
             "type_search"                 : "InRadius",
-            "integration_type"            : "Collocation",
             "integration_order"           : 5
         }
         """)
@@ -63,7 +62,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.max_number_results       = self.params["max_number_results"].GetInt() 
         self.simplify_geometry        = self.params["simplify_geometry"].GetBool()
         self.normal_variation         = self.params["normal_variation"].GetBool()
-        self.integration_type         = self.params["integration_type"].GetString() 
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -167,7 +165,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
-                #node.Set(KratosMultiphysics.SLAVE, True)
             del node
             
             # Setting the master conditions 
@@ -175,7 +172,6 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-                #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
             del cond
             
             # Setting the slave conditions 
