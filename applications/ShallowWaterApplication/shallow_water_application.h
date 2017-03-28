@@ -26,6 +26,7 @@
 
 
 #include "includes/variables.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
