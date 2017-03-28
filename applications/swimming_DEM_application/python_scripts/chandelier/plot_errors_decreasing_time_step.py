@@ -110,7 +110,7 @@ for line in reversed(E):
 
 plt.xlabel('$\mathrm{d}t$', fontsize = 0.75 * font_size)
 plt.ylabel('$E(100)$', fontsize = 0.75 * font_size)
-plt.legend(loc='upper left',prop={'size':25})
+plt.legend(loc='upper left', prop={'size':25})
 plt.semilogx()
 plt.semilogy()
 figure = plt.gcf() # get current figure

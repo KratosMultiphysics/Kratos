@@ -30,7 +30,7 @@ else:
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
 
 
-class Solution:
+class Solution(object):
     
     def __init__(self):
         
@@ -49,10 +49,21 @@ class Solution:
         self.report        = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest  = DEM_procedures.MaterialTest()
-        self.scheme = self.procedures.SetScheme()
+        self.scheme = self.SetScheme()
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint   = self.procedures.KRATOSprint
+        
+        # Prepare modelparts
+        self.spheres_model_part    = ModelPart("SpheresPart")
+        self.rigid_face_model_part = ModelPart("RigidFacePart")
+        self.cluster_model_part    = ModelPart("ClusterPart")
+        self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
+        self.mapping_model_part    = ModelPart("MappingPart")
+        self.contact_model_part    = ModelPart("ContactPart")
+        self.all_model_parts = DEM_procedures.SetOfModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.mapping_model_part, self.contact_model_part)
+                
+        self.solver = self.SetSolver()
         
         
     def SetProcedures(self):
@@ -63,7 +74,28 @@ class Solution:
     
     def SetParticleCreatorDestructor(self):
         return ParticleCreatorDestructor()
-    
+
+    def SelectScheme(self):
+        if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+            return ForwardEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+            return SymplecticEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+            return TaylorScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+            return NewmarkBetaScheme(0.5, 0.25)
+        elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+            return VerletVelocityScheme()
+        else:
+            return None
+
+    def SetScheme(self):
+        scheme = self.SelectScheme()
+        if scheme == None:
+            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return scheme
+
     def SetSolverStrategy(self):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
@@ -83,6 +115,10 @@ class Solution:
             self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
             
         return SolverStrategy
+    
+    
+    def SetSolver(self):
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
 
     def Run(self):        
@@ -96,16 +132,6 @@ class Solution:
         
     def Initialize(self):                
         
-        # Prepare modelparts
-        self.spheres_model_part    = ModelPart("SpheresPart")
-        self.rigid_face_model_part = ModelPart("RigidFacePart")
-        self.cluster_model_part    = ModelPart("ClusterPart")
-        self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
-        self.mapping_model_part    = ModelPart("MappingPart")
-        self.contact_model_part    = ModelPart("ContactPart")
-        self.all_model_parts = DEM_procedures.SetOfModelParts(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.mapping_model_part, self.contact_model_part)
-                
-        self.solver = self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
         
