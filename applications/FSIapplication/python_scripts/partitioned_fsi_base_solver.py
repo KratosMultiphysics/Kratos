@@ -225,6 +225,7 @@ class PartitionedFSIBaseSolver:
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         # Mesh solver variables addition
         self.mesh_solver.AddVariables()
 

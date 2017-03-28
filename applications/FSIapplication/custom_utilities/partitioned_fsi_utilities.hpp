@@ -169,14 +169,12 @@ public:
 
     /**
      * This function sets the variable data contained in a vector over the the
-     * fluid interface. The variable can be fixed or not.
+     * fluid interface.
      * @param rVariable: variable to be set
-     * @param FixVariable: decide wether the variable is fixed or not
      * @param rFluidInterfaceDataVector: vector containing the data values to be set
      */
-    void SetAndFixFluidInterfaceVectorVariable(const Variable<array_1d<double, 3 > >& rVariable,
-                                               const bool FixVariable,
-                                               const VectorType& rFluidInterfaceDataVector)
+    void SetFluidInterfaceVectorVariable(const Variable<array_1d<double, 3 > >& rVariable,
+                                         const VectorType& rFluidInterfaceDataVector)
     {
         // Initialize the variable value
         VariableUtils().SetToZero_VectorVar(rVariable, mrFluidInterfaceModelPart.Nodes());
@@ -193,6 +191,20 @@ public:
                 value_to_set[jj] = rFluidInterfaceDataVector[base_i+jj];
             }
         }
+    }
+
+    /**
+     * This function sets the variable data contained in a vector over the the
+     * fluid interface. The variable can be fixed or not.
+     * @param rVariable: variable to be set
+     * @param rFluidInterfaceDataVector: vector containing the data values to be set
+     * @param FixVariable: if true, fixes the variable in the fluid interface model part
+     */
+    void SetAndFixFluidInterfaceVectorVariable(const Variable<array_1d<double, 3 > >& rVariable,
+                                               const VectorType& rFluidInterfaceDataVector,
+                                               const bool FixVariable)
+    {
+        this->SetFluidInterfaceVectorVariable(rVariable, rFluidInterfaceDataVector);
 
         // If needed, apply fixity to rVariable
         if (FixVariable)
@@ -213,23 +225,24 @@ public:
     }
 
     /**
-     * This function computes the velocity residual vector over the fluid interface.
-     * The velocity residual is defined as the fluid velocity value minus the velocity
-     * value mapped from the structure (stored in the VECTOR_PROJECTED variable).
+     * This function computes (and stores in a vector) the residual of a vector variable over the fluid interface.
+     * The residual is defined as the OriginalVariable value minus the ModifiedVariable value.
      * The nodal values of the residual are stored in the FSI_INTERFACE_RESIDUAL variable.
      * Besides, the norm of the residual vector is stored in the ProcessInfo using
      * the FSI_INTERFACE_RESIDUAL_NORM variable.
      * @param fluid_interface_residual: reference to the residual vector
      */
-    void ComputeFluidInterfaceVelocityResidual(VectorType& fluid_interface_residual) // TODO: MPI parallelization
+    void ComputeFluidInterfaceVectorResidual(const Variable<array_1d<double, 3 > >& rOriginalVariable,
+                                             const Variable<array_1d<double, 3 > >& rModifiedVariable,
+                                             VectorType& fluid_interface_residual) // TODO: MPI parallelization
     {
         fluid_interface_residual = ZeroVector(this->GetFluidInterfaceResidualSize());
 
         // Compute node-by-node residual
-        // this->ComputeNodeByNodeResidual(VELOCITY, VECTOR_PROJECTED, FSI_INTERFACE_RESIDUAL);
+        // this->ComputeNodeByNodeResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
 
         // Compute consitent residual
-        this->ComputeConsistentResidual(VELOCITY, VECTOR_PROJECTED, FSI_INTERFACE_RESIDUAL);
+        this->ComputeConsistentResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
 
         // Assemble the final consistent residual values
         #pragma omp parallel for
@@ -366,10 +379,10 @@ private:
             ModelPart::NodeIterator it_node = mrFluidInterfaceModelPart.NodesBegin()+k;
             array_1d<double, 3>& rErrorStorage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
 
-            const array_1d<double, 3>& velocity_fluid = it_node->FastGetSolutionStepValue(rOriginalVariable);
-            const array_1d<double, 3>& velocity_fluid_projected = it_node->FastGetSolutionStepValue(rModifiedVariable);
+            const array_1d<double, 3>& value_fluid = it_node->FastGetSolutionStepValue(rOriginalVariable);
+            const array_1d<double, 3>& value_fluid_projected = it_node->FastGetSolutionStepValue(rModifiedVariable);
 
-            rErrorStorage = velocity_fluid - velocity_fluid_projected;
+            rErrorStorage = value_fluid - value_fluid_projected;
         }
     }
 
@@ -401,12 +414,12 @@ private:
             VectorType ResVect = ZeroVector(BlockSize*NumNodes);
             for (int jj = 0; jj < static_cast<int>(NumNodes); ++jj)
             {
-                const array_1d<double, 3>& velocity_fluid = rGeom[jj].FastGetSolutionStepValue(rOriginalVariable);
-                const array_1d<double, 3>& velocity_fluid_projected = rGeom[jj].FastGetSolutionStepValue(rModifiedVariable);
+                const array_1d<double, 3>& value_fluid = rGeom[jj].FastGetSolutionStepValue(rOriginalVariable);
+                const array_1d<double, 3>& value_fluid_projected = rGeom[jj].FastGetSolutionStepValue(rModifiedVariable);
 
                 for (int kk = 0; kk < static_cast<int>(TDim); ++kk)
                 {
-                    ResVect[jj*BlockSize+kk] = velocity_fluid[kk] - velocity_fluid_projected[kk];
+                    ResVect[jj*BlockSize+kk] = value_fluid[kk] - value_fluid_projected[kk];
                 }
             }
 
