@@ -20,21 +20,21 @@
 namespace Kratos
 {
   // --------------------------------------------------------------------------
-  std::vector<Face>& BrepModel::GetFaceVector()
+  std::vector<BrepFace>& BrepModel::GetFaceVector()
   {
     //std::cout << "m_faces.size(): " << m_faces.size() << std::endl;
-    return m_faces;
+    return m_brep_faces;
   }
 
-  std::vector<Edge>& BrepModel::GetEdgeVector()
+  std::vector<BrepEdge>& BrepModel::GetEdgeVector()
   {
-    return m_edges;
+    return m_brep_edges;
   }
   // --------------------------------------------------------------------------
   ///Constructor
   BrepModel::BrepModel(unsigned int& brep_id, FacesVector& faces, EdgesVector& edges)
-    : m_faces(faces),
-    m_edges(edges),
+    : m_brep_faces(faces),
+    m_brep_edges(edges),
     IndexedObject(brep_id),
     Flags()
   {

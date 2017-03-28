@@ -9,8 +9,9 @@ file(GLOB KRATOS_NURBS_BREP_APPLICATION_PYTHON_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp")
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES 
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp")
+                                                #"${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep/*.cpp")
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 

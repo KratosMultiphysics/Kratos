@@ -1,5 +1,5 @@
-#if !defined(KRATOS_FACE_TRIM_H_INCLUDED )
-#define  KRATOS_FACE_TRIM_H_INCLUDED
+#if !defined(KRATOS_BREP_FACE_TRIM_H_INCLUDED )
+#define  KRATOS_BREP_FACE_TRIM_H_INCLUDED
 
 
 // ------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class FaceTrim
+  class BrepFaceTrim
   {
   public:
     ///@name Type Definitions
@@ -41,25 +41,25 @@ namespace Kratos
     //typedef std::vector<TrimmingCurve> TrimmingCurveVector;
     
     /// Pointer definition of KratosNurbsBrepApplication
-    //KRATOS_CLASS_POINTER_DEFINITION(FaceTrim);
+    //KRATOS_CLASS_POINTER_DEFINITION(BrepFaceTrim);
 
     ///@}
     ///@name Life Cycle 
     ///@{ 
 
     /// Constructor.
-    FaceTrim(unsigned int face_id, 
+    BrepFaceTrim(unsigned int face_id, 
       unsigned int trim_index, 
       bool relative_direction);
 
     /// Destructor.
-    virtual ~FaceTrim();
+    virtual ~BrepFaceTrim();
 
     /// Copy constructor.
-    //FaceTrim(FaceTrim const& rOther);
+    //BrepFaceTrim(BrepFaceTrim const& rOther);
 
     /// Assignment operator.
-    //FaceTrim& operator=(FaceTrim const& rOther);
+    //BrepFaceTrim& operator=(BrepFaceTrim const& rOther);
     ///@} 
   protected:
 
@@ -78,8 +78,8 @@ namespace Kratos
 
     ///@}    
 
-  }; // Class FaceTrim 
+  }; // Class BrepFaceTrim 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FACE_TRIM_H_INCLUDED  defined
+#endif // KRATOS_BREP_FACE_TRIM_H_INCLUDED  defined

@@ -1,5 +1,5 @@
-#if !defined(KRATOS_BOUNDARY_LOOP_H_INCLUDED )
-#define  KRATOS_BOUNDARY_LOOP_H_INCLUDED
+#if !defined(KRATOS_BREP_BOUNDARY_LOOP_H_INCLUDED )
+#define  KRATOS_BREP_BOUNDARY_LOOP_H_INCLUDED
 
 
 
@@ -15,7 +15,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "TrimmingCurve.h"
+#include "BrepTrimmingCurve.h"
 
 
 namespace Kratos
@@ -38,16 +38,16 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class BoundaryLoop
+  class BrepBoundaryLoop
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<TrimmingCurve> TrimmingCurveVector;
+    typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
     
     /// Pointer definition of KratosNurbsBrepApplication
-    KRATOS_CLASS_POINTER_DEFINITION(BoundaryLoop);
+    KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
 
     ///@}
     ///@name Life Cycle 
@@ -58,16 +58,16 @@ namespace Kratos
     std::vector<array_1d<double, 2>> GetBoundaryPolygon();
 
     /// Constructor.
-    BoundaryLoop(TrimmingCurveVector& trimming_curves, bool is_outer_loop);
+    BrepBoundaryLoop(BrepTrimmingCurveVector& brep_trimming_curves, bool is_outer_loop);
 
     /// Destructor.
-    virtual ~BoundaryLoop();
+    virtual ~BrepBoundaryLoop();
 
     /// Copy constructor.
-    //BoundaryLoop(BoundaryLoop const& rOther);
+    //BrepBoundaryLoop(BrepBoundaryLoop const& rOther);
 
     /// Assignment operator.
-    //BoundaryLoop& operator=(BoundaryLoop const& rOther);
+    //BrepBoundaryLoop& operator=(BrepBoundaryLoop const& rOther);
     ///@} 
   protected:
 
@@ -75,7 +75,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{ 
 
-    TrimmingCurveVector m_trimming_curves;
+    BrepTrimmingCurveVector m_brep_trimming_curves;
     bool m_is_outer_loop;
 
   
@@ -86,8 +86,8 @@ namespace Kratos
 
     ///@}    
 
-  }; // Class BoundaryLoop 
+  }; // Class BrepBoundaryLoop 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BOUNDARY_LOOP_H_INCLUDED  defined
+#endif // KRATOS_BREP_BOUNDARY_LOOP_H_INCLUDED  defined

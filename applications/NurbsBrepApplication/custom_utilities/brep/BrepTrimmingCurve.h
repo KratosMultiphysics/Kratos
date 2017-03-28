@@ -1,5 +1,5 @@
-#if !defined(KRATOS_TRIMMING_CURVE_H_INCLUDED )
-#define  KRATOS_TRIMMING_CURVE_H_INCLUDED
+#if !defined(KRATOS_BREP_TRIMMING_CURVE_H_INCLUDED )
+#define  KRATOS_BREP_TRIMMING_CURVE_H_INCLUDED
 
 
 // ------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
-#include "nurbs_utilities.h"
+#include "../nurbs_utilities.h"
 
 
 namespace Kratos
@@ -40,7 +40,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class TrimmingCurve
+  class BrepTrimmingCurve
   {
   public:
     ///@name Type Definitions
@@ -49,7 +49,7 @@ namespace Kratos
     typedef std::vector<array_1d<double, 4>> ControlPointVector;
     
     /// Pointer definition of KratosNurbsBrepApplication
-    KRATOS_CLASS_POINTER_DEFINITION(TrimmingCurve);
+    KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
 
     ///@}
     ///@name Life Cycle 
@@ -62,18 +62,18 @@ namespace Kratos
     /// Constructor.
     //TODO: pass by reference not by value
     //TODO: why control points have size 4??? pass them as kratos nodes
-    TrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
+    BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
       unsigned int p, ControlPointVector& control_points,
       Vector& active_range);
 
     /// Destructor.
-    virtual ~TrimmingCurve();
+    virtual ~BrepTrimmingCurve();
 
     /// Copy constructor.
-    //TrimmingCurve(TrimmingCurve const& rOther);
+    //BrepTrimmingCurve(BrepTrimmingCurve const& rOther);
 
     /// Assignment operator.
-    //TrimmingCurve& operator=(TrimmingCurve const& rOther);
+    //BrepTrimmingCurve& operator=(BrepTrimmingCurve const& rOther);
     ///@} 
   protected:
 
@@ -95,8 +95,8 @@ namespace Kratos
 
     ///@}    
 
-  }; // Class TrimmingCurve 
+  }; // Class BrepTrimmingCurve 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIMMING_CURVE_H_INCLUDED  defined
+#endif // KRATOS_BREP_TRIMMING_CURVE_H_INCLUDED  defined

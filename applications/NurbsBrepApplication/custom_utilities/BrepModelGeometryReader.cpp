@@ -39,8 +39,8 @@ namespace Kratos
       Parameters& brep_json = m_cad_geometry_in_json["breps"][brep_i];
       unsigned int brep_brep_id = brep_json["brep_id"].GetInt();
 
-      FacesVector faces_vector;
-      EdgesVector edges_vector;
+      BrepFacesVector faces_vector;
+      BrepEdgesVector edges_vector;
 
       // loop over faces
       for (int i = 0; i < brep_json["faces"].size(); i++)
@@ -121,7 +121,7 @@ namespace Kratos
         // 2. step: boundary loops
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        TrimmingLoopVector trimming_loops;
+        BrepTrimmingLoopVector trimming_loops;
         //TrimmingCurveVector trimming_curves;
 
         // For better reading
@@ -130,7 +130,7 @@ namespace Kratos
         // Loop over all boundary loops
         for (int loop_idx = 0; loop_idx < boundary_dict.size(); loop_idx++)
         {
-          TrimmingCurveVector loop_curves;
+          BrepTrimmingCurveVector loop_curves;
 
           // Loop over all curves
           for (int edge_idx = 0; edge_idx < boundary_dict[loop_idx]["trimming_curves"].size(); edge_idx++)
@@ -180,14 +180,14 @@ namespace Kratos
             //std::cout << "Test Point boundary vertices" << std::endl;
 
             // Create and store edge
-            TrimmingCurve new_boundary_curve(curve_index, curve_direction, boundary_knot_vector_u, boundary_p, boundary_control_points, active_range);
+            BrepTrimmingCurve new_boundary_curve(curve_index, curve_direction, boundary_knot_vector_u, boundary_p, boundary_control_points, active_range);
 
             loop_curves.push_back(new_boundary_curve);
           }
           bool is_outer_loop = true;
           if (boundary_dict[loop_idx]["loop_type"].GetString() == "inner")
             is_outer_loop = false;
-          BoundaryLoop loop(loop_curves, is_outer_loop);
+          BrepBoundaryLoop loop(loop_curves, is_outer_loop);
           trimming_loops.push_back(loop);
           // Read loop type
           //std::string loop_type = extractString(boundary_dict[loop_idx]["loop_type"]);
@@ -201,14 +201,14 @@ namespace Kratos
         }
 
         // create face
-        Face face(face_id, trimming_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids);
+        BrepFace face(face_id, trimming_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids);
         faces_vector.push_back(face);
       }
 
       // loop over edges
       for (int i = 0; i < brep_json["edges"].size(); i++)
       {
-        FaceTrimVector face_trims_vector;
+        BrepFaceTrimVector face_trims_vector;
 
         unsigned int edge_id = brep_json["edges"][i]["brep_id"].GetInt();
         Vector first_boundary_vertex = ZeroVector(3);
@@ -246,10 +246,10 @@ namespace Kratos
 
           bool relative_direction = brep_json["edges"][i]["face_trims"][j]["relative_direction"].GetBool();
 
-          FaceTrim trim(face_id, trim_index, relative_direction);
+          BrepFaceTrim trim(face_id, trim_index, relative_direction);
           face_trims_vector.push_back(trim);
         }
-        Edge edge(edge_id, boundary_vertices, face_trims_vector);
+        BrepEdge edge(edge_id, boundary_vertices, face_trims_vector);
         edges_vector.push_back(edge);
       }
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

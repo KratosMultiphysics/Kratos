@@ -15,8 +15,8 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "Face.h"
-#include "Edge.h"
+#include "BrepFace.h"
+#include "BrepEdge.h"
 
 // ==============================================================================
 
@@ -46,8 +46,8 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<BrepFace> FacesVector;
+    typedef std::vector<BrepEdge> EdgesVector;
     
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
@@ -84,8 +84,8 @@ namespace Kratos
     ///@} 
     ///@name Member Variables
     ///@{ 
-    FacesVector m_faces;
-    EdgesVector m_edges;
+    FacesVector m_brep_faces;
+    EdgesVector m_brep_edges;
     ///@}    
 
   }; // Class BrepModel 

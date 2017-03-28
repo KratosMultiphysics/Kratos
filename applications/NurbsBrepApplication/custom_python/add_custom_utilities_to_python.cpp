@@ -26,7 +26,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/BrepModel.h"
+#include "custom_utilities/brep/BrepModel.h"
 #include "custom_utilities/NurbsBrepModeler.h"
 #include "custom_utilities/BrepModelGeometryReader.h"
 
@@ -47,8 +47,8 @@ namespace Python
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     typedef std::vector<BrepModel> BrepModelVector;
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<BrepFace> BrepFacesVector;
+    typedef std::vector<BrepEdge> BrepEdgesVector;
 
     class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelGeometryReader&, ModelPart&>());
       //.def("SetUp", &NurbsBrepModeler::SetUp)

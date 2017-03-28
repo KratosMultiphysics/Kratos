@@ -12,7 +12,7 @@
 //
 
 // Project includes
-#include "Face.h"
+#include "BrepFace.h"
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
@@ -20,16 +20,16 @@
 namespace Kratos
 {
   // --------------------------------------------------------------------------
-  Vector& Face::GetUKnotVector()
+  Vector& BrepFace::GetUKnotVector()
   {
     return m_knot_vector_u;
   }
-  Vector& Face::GetVKnotVector()
+  Vector& BrepFace::GetVKnotVector()
   {
     return m_knot_vector_u;
   }
   // --------------------------------------------------------------------------
-  void Face::MapNodeNewtonRaphson(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& model_part)
+  void BrepFace::MapNodeNewtonRaphson(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& model_part)
   {
     std::cout << "test hier" << std::endl;
     // Initialize P: point on the mesh
@@ -107,7 +107,7 @@ namespace Kratos
     //m_patches[patch_itr_of_nearest_point].GetSurface().FlagControlPointsForMapping(span_u_of_np, span_v_of_np, u_of_nearest_point, v_of_nearest_point);
   }
 
-  bool Face::CheckIfPointIsInside(Vector node_parameters)
+  bool BrepFace::CheckIfPointIsInside(Vector node_parameters)
   {
     // Boost is used to check whether point of interest is inside given polygon or not
     // Type definitions to use boost functionalities
@@ -163,7 +163,7 @@ namespace Kratos
   ///  \author     Daniel Baumgärtner (12/2016)
   //
   //########################################################################################
-  void Face::EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v, ModelPart& model_part)
+  void BrepFace::EvaluateSurfacePoint(Node<3>::Pointer& rSurfacePoint, double u, double v, ModelPart& model_part)
   {
     Point<3> new_point(0, 0, 0);
     //rSurfacePoint->X() = 0;
@@ -228,7 +228,7 @@ namespace Kratos
   //
   //########################################################################################	
 
-  void Face::EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v, ModelPart& model_part)
+  void BrepFace::EvaluateGradientsForClosestPointSearch(Vector QminP, Matrix& Hessian, Vector& Gradient, double& u, double& v, ModelPart& model_part)
   {
     // The derivatives of the basis functions are evaluated
     Matrix dR;
@@ -308,7 +308,7 @@ namespace Kratos
   ///  \author     Daniel Baumgärtner (12/2016)
   //
   //########################################################################################
-  void Face::EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R, ModelPart& model_part)
+  void BrepFace::EvaluateNURBSFunctions(int span_u, int span_v, double _u, double _v, Matrix& R, ModelPart& model_part)
   {
     if (span_u == -1) span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, _u);
     if (span_v == -1) span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, _v);
@@ -368,7 +368,7 @@ namespace Kratos
   //
   //########################################################################################
 
-  void Face::EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR, ModelPart& model_part)
+  void BrepFace::EvaluateNURBSFunctionsDerivatives(int span_u, int span_v, double _u, double _v, Matrix& _dR, Matrix& _ddR, ModelPart& model_part)
   {
     if (span_u == -1) span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, _u);
     if (span_v == -1) span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, _v);
@@ -454,7 +454,7 @@ namespace Kratos
   ///  \author     from M.Breitenberger in Carat (12/2009)
   //
   //########################################################################################
-  void Face::EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR, ModelPart& model_part)
+  void BrepFace::EvaluateNURBSFunctionsAndDerivative(int span_u, int span_v, double _u, double _v, Matrix& R, std::vector<Matrix>& dR, ModelPart& model_part)
   {
     if (span_u == -1) span_u = NurbsUtilities::find_knot_span(m_p, m_knot_vector_u, _u);
     if (span_v == -1) span_v = NurbsUtilities::find_knot_span(m_q, m_knot_vector_v, _v);
@@ -512,7 +512,7 @@ namespace Kratos
 
 
   ///Constructor
-  Face::Face(unsigned int brep_id,
+  BrepFace::BrepFace(unsigned int brep_id,
     TrimmingLoopVector& trimming_loops,
     Vector& knot_vector_u, Vector& knot_vector_v,
     unsigned int& p, unsigned int& q, IntVector& control_point_ids)
@@ -527,7 +527,7 @@ namespace Kratos
   {
   }
 ///Destructor
-Face::~Face()
+BrepFace::~BrepFace()
 {}
 
 }  // namespace Kratos.

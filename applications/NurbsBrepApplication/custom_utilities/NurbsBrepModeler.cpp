@@ -46,7 +46,7 @@ namespace Kratos
 
       for (unsigned int face_itr = 0; face_itr < m_brep_model_vector[brep_itr].GetFaceVector().size(); face_itr++)
       {
-        Face& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
+        BrepFace& face = m_brep_model_vector[brep_itr].GetFaceVector()[face_itr];
         unsigned int face_id = face.GetId();
 
         Vector& knot_vector_u = face.GetUKnotVector();
@@ -103,11 +103,11 @@ namespace Kratos
     unsigned int nodes = model_part.NumberOfNodes();
   }
 
-  Face& NurbsBrepModeler::GetFace(const unsigned int face_id)
+  BrepFace& NurbsBrepModeler::GetFace(const unsigned int face_id)
   {
     for (unsigned int i = 0; i < m_brep_model_vector.size(); i++)
     {
-      FacesVector& face_vector = m_brep_model_vector[i].GetFaceVector();
+      BrepFacesVector& face_vector = m_brep_model_vector[i].GetFaceVector();
       for (unsigned int j = 0; j < face_vector.size(); j++)
       {
         if (face_vector[j].GetId() == face_id)
@@ -156,7 +156,7 @@ namespace Kratos
     std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
     std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
 
-    Face& face = GetFace(face_id_of_nearest_point);
+    BrepFace& face = GetFace(face_id_of_nearest_point);
 
     face.MapNodeNewtonRaphson(node, node_on_geometry, m_model_part);
 

@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "TrimmingCurve.h"
+#include "BrepTrimmingCurve.h"
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
@@ -26,7 +26,7 @@
 namespace Kratos
 {
 // --------------------------------------------------------------------------
-  std::vector<array_1d<double, 2>> TrimmingCurve::CreatePolygon(unsigned int& number_polygon_points)
+  std::vector<array_1d<double, 2>> BrepTrimmingCurve::CreatePolygon(unsigned int& number_polygon_points)
   {
     std::vector<array_1d<double, 2>> polygon;
     polygon.resize(number_polygon_points);
@@ -55,7 +55,7 @@ namespace Kratos
     return polygon;
   }
 
-  void TrimmingCurve::EvaluateCurvePoint(Point<3>& rCurvePoint, double parameter_u)
+  void BrepTrimmingCurve::EvaluateCurvePoint(Point<3>& rCurvePoint, double parameter_u)
   {
     const unsigned int R_Dim = 3;
 
@@ -104,14 +104,14 @@ namespace Kratos
     //}
   }
 
-  unsigned int& TrimmingCurve::GetIndex()
+  unsigned int& BrepTrimmingCurve::GetIndex()
   {
     return m_trim_index;
   }
 
 
 //Constructor
-  TrimmingCurve::TrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
+  BrepTrimmingCurve::BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
     unsigned int p, ControlPointVector& control_points,
     Vector& active_range)
     : m_knot_vector_u(knot_vector_u),
@@ -123,7 +123,7 @@ namespace Kratos
   {
   }
 //Destructor
-TrimmingCurve::~TrimmingCurve()
+BrepTrimmingCurve::~BrepTrimmingCurve()
 {}
 
 }  // namespace Kratos.

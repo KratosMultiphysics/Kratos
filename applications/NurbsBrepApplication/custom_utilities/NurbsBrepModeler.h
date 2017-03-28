@@ -33,7 +33,7 @@
 //#include "nurbs_utilities.h"
 
 #include "BrepModelGeometryReader.h"
-#include "BrepModel.h"
+#include "brep/BrepModel.h"
 
 namespace Kratos
 {
@@ -79,8 +79,8 @@ namespace Kratos
     typedef std::vector<double>                          DistanceVector;
     typedef std::vector<double>::iterator                DistanceIterator;
 
-    typedef std::vector<Face> FacesVector;
-    typedef std::vector<Edge> EdgesVector;
+    typedef std::vector<BrepFace> BrepFacesVector;
+    typedef std::vector<BrepEdge> BrepEdgesVector;
 
     typedef std::vector<BrepModel> BrepModelVector;
 
@@ -145,7 +145,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{ 
     void CreateMeshedPoints(ModelPart& model_part);
-    Face& GetFace(const unsigned int face_id);
+    BrepFace& GetFace(const unsigned int face_id);
     //Tree< KDTreePartition<BucketType> > CreateSearchTree(ModelPart model_part);
     void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry);
     ///@} 

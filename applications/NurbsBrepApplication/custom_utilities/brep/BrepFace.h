@@ -1,5 +1,5 @@
-#if !defined(KRATOS_FACE_H_INCLUDED )
-#define  KRATOS_FACE_H_INCLUDED
+#if !defined(KRATOS_BREP_FACE_H_INCLUDED )
+#define  KRATOS_BREP_FACE_H_INCLUDED
 
 
 
@@ -22,9 +22,9 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "TrimmingCurve.h"
-#include "BoundaryLoop.h"
-#include "nurbs_utilities.h"
+#include "BrepTrimmingCurve.h"
+#include "BrepBoundaryLoop.h"
+#include "../nurbs_utilities.h"
 #include "../../kratos/includes/node.h"
 
 #include "nurbs_brep_application.h"
@@ -52,18 +52,18 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class Face : public IndexedObject, public Flags
+  class BrepFace : public IndexedObject, public Flags
   {
   public:
     ///@name Type Definitions
     ///@{
 
     typedef std::vector<int> IntVector;
-    typedef std::vector<BoundaryLoop> TrimmingLoopVector;
-    typedef std::vector<TrimmingCurve> TrimmingCurveVector;
+    typedef std::vector<BrepBoundaryLoop> TrimmingLoopVector;
+    typedef std::vector<BrepTrimmingCurve> TrimmingCurveVector;
     
-    /// Pointer definition of KratosNurbsTestcaseApplication
-    KRATOS_CLASS_POINTER_DEFINITION(Face);
+    /// Pointer definition of KratosNurbsBrepApplication
+    KRATOS_CLASS_POINTER_DEFINITION(BrepFace);
 
     ///@}
     ///@name Life Cycle 
@@ -82,19 +82,19 @@ namespace Kratos
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
-    Face(unsigned int brep_id,
+    BrepFace(unsigned int brep_id,
       TrimmingLoopVector& trimming_loops,
       Vector& knot_vector_u, Vector& knot_vector_v,
       unsigned int& p, unsigned int& q, IntVector& control_point_ids);
 
     /// Destructor.
-    virtual ~Face();
+    virtual ~BrepFace();
 
     /// Copy constructor.
-    //Face(Face const& rOther);
+    //BrepFace(BrepFace const& rOther);
 
     /// Assignment operator.
-    //Face& operator=(Face const& rOther);
+    //BrepFace& operator=(BrepFace const& rOther);
     ///@} 
   protected:
 
@@ -120,8 +120,8 @@ namespace Kratos
 
     ///@}    
 
-  }; // Class Face 
+  }; // Class BrepFace 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FACE_H_INCLUDED  defined
+#endif // KRATOS_BREP_FACE_H_INCLUDED  defined
