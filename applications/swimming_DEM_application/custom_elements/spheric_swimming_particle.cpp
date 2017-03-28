@@ -76,7 +76,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
     ComputeBassetForce(node, basset_force, r_current_process_info);
 
-    // Adding all forces except Basset's, since they get averaged in time in a different way
+    // Adding all forces except Basset's, since they might get averaged in time in a different way
     noalias(non_contact_force) += drag_force
                                 + virtual_mass_force
                                 + saffman_lift_force
@@ -99,6 +99,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     noalias(non_contact_force) += basset_force;
     non_contact_force *= force_reduction_coeff; //TODO: put noalias here?
     mFirstStep = false;
+
     KRATOS_CATCH( "" )
 }
 //**************************************************************************************************************************************************
