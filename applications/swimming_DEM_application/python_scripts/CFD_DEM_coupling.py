@@ -70,17 +70,26 @@ class ProjectionModule:
 
     def ApplyForwardCoupling(self, alpha = None):
         if self.do_impose_flow_from_field:
-            self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
+            self.ImposeFluidFlowOnParticles()
         elif alpha == None:
-            self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+            self.ProjectFromNewestFluid()
         else:
-            self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+            self.ProjectFromFluid(alpha)
+
+    def ApplyForwardCouplingOfVelocityOnly(self):
+        if self.do_impose_flow_from_field:
+            self.ImposeVelocityOnDEMFromField()
+        else:
+            self.InterpolateVelocity()
 
     def ProjectFromFluid(self, alpha):
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
+    def InterpolateVelocity(self):
+        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ImposeFluidFlowOnParticles(self):
         self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
@@ -100,8 +109,6 @@ class ProjectionModule:
 
         print("\nFinished projecting from particles to the fluid...")
         sys.stdout.flush()
-    def InterpolateVelocity(self):
-        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

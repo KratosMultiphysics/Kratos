@@ -428,12 +428,7 @@ class Solution:
             elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
                 DEM_parameters.meso_scale_length  = 1.0
 
-            field_utility = None
-
-            if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-                flow_field = ConstantVelocityField(0.00001, 0, 0)
-                space_time_set = SpaceTimeSet()
-                field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+            field_utility = self.GetFieldUtility()
 
             projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp, field_utility)
             projection_module.UpdateDatabase(h_min)
@@ -728,7 +723,7 @@ class Solution:
 
                         if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                             self.DS.solver.Solve() # only advance in space
-                            projection_module.InterpolateVelocity()
+                            projection_module.ApplyForwardCouplingOfVelocityOnly()
 
                         if quadrature_counter.Tick():
                             if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
@@ -821,6 +816,16 @@ class Solution:
 
         for i in drag_file_output_list:
             i.close()
+
+    def GetFieldUtility(self):
+        field_utility = None
+
+        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            flow_field = ConstantVelocityField(0.00001, 0, 0)
+            space_time_set = SpaceTimeSet()
+            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+
+        return field_utility
 
 if __name__=="__main__":
     Solution().Run()

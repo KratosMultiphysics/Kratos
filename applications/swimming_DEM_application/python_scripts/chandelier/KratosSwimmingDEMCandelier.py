@@ -66,7 +66,9 @@ else:
     import DEM_material_test_script
     print("Running under OpenMP........")
 
-class Solution:
+import KratosSwimmingDEM as base_script
+
+class Solution(base_script.Solution):
 
     def __init__(self, simulation_time = 100, basset_force_type = 1, Nq = 1, m = 10, number_of_quadrature_steps_in_window = 10):
         import dem_main_script
@@ -418,7 +420,9 @@ class Solution:
             elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
                 DEM_parameters.meso_scale_length  = 1.0
 
-            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp)
+            field_utility = self.GetFieldUtility()
+
+            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp, field_utility)
             projection_module.UpdateDatabase(h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
@@ -782,7 +786,7 @@ class Solution:
 
                         if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                             self.DS.solver.Solve() # only advance in space
-                            #projection_module.InterpolateVelocity()
+                            #projection_module.ApplyForwardCouplingOfVelocityOnly()
                             x = node.X
                             y = node.Y
                             z = node.Z
