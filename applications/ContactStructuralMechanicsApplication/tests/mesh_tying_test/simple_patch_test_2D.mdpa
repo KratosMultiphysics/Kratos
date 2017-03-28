@@ -94,21 +94,6 @@ Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    
-    Begin SubModelPart Interface
-        Begin SubModelPartNodes
-            5
-            7
-            10
-            15
-            22
-        End SubModelPartNodes
-        Begin SubModelPartElements
-        End SubModelPartElements
-        Begin SubModelPartConditions
-        End SubModelPartConditions
-    End SubModelPart
-
 End SubModelPart
 Begin SubModelPart Parts_Parts_Auto3 // Group Parts Auto3 // Subtree Parts
     Begin SubModelPartNodes
@@ -130,18 +115,6 @@ Begin SubModelPart Parts_Parts_Auto3 // Group Parts Auto3 // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    
-    Begin SubModelPart Interface
-        Begin SubModelPartNodes
-            9
-            11
-            16
-        End SubModelPartNodes
-        Begin SubModelPartElements
-        End SubModelPartElements
-        Begin SubModelPartConditions
-        End SubModelPartConditions
-    End SubModelPart
 
 End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
@@ -175,6 +148,22 @@ Begin SubModelPart IMPOSE_DISP_Auto1 // Group Load on lines Auto1
         20
         23
         24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Tying_Part
+    Begin SubModelPartNodes
+        5
+        7
+        10
+        15
+        22
+        9
+        11
+        16
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

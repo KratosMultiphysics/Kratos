@@ -125,21 +125,6 @@ void DeprecatedTreeContactSearch::InitializeMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DeprecatedTreeContactSearch::InitializeMeshTyingMortarConditions(
-    const double rActiveCheckFactor,
-    const int rIntegrationOrder
-    )
-{
-    // Destination model part
-    InitializeMeshTyingConditions(mrDestinationModelPart, rActiveCheckFactor, rIntegrationOrder);
-    
-    // Origin model part
-    InitializeMeshTyingConditions(mrOriginModelPart, rActiveCheckFactor, rIntegrationOrder);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void DeprecatedTreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 {
     // TODO: Add this in the future
@@ -177,31 +162,6 @@ void DeprecatedTreeContactSearch::InitializeConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DeprecatedTreeContactSearch::InitializeMeshTyingConditions(
-    ModelPart & rModelPart,
-    const double rActiveCheckFactor,
-    const int rIntegrationOrder
-    )
-{   
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-//     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-    {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-//         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
-        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
-        {
-            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void DeprecatedTreeContactSearch::TotalClearMortarConditions()
 {
     // Destination model part
@@ -211,46 +171,10 @@ void DeprecatedTreeContactSearch::TotalClearMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DeprecatedTreeContactSearch::TotalClearMeshTyingMortarScalarConditions()
-{
-    // Destination model part
-    TotalClearMeshTyingScalarConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::TotalClearMeshTyingMortarComponentsConditions()
-{
-    // Destination model part
-    TotalClearMeshTyingComponentsConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void DeprecatedTreeContactSearch::PartialClearMortarConditions()
 {
     // Destination model part
     PartialClearConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::PartialClearMeshTyingMortarScalarConditions()
-{
-    // Destination model part
-    PartialClearMeshTyingScalarConditions(mrDestinationModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::PartialClearMeshTyingMortarComponentsConditions()
-{
-    // Destination model part
-    PartialClearMeshTyingComponentsConditions(mrDestinationModelPart);
 }
 
 /***********************************************************************************/
@@ -279,93 +203,7 @@ void DeprecatedTreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DeprecatedTreeContactSearch::TotalClearMeshTyingScalarConditions(ModelPart & rModelPart)
-{
-    ResetContactOperators(rModelPart);
-    
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == true)
-        {
-            itNode->Set( ACTIVE, false );
-            itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER, 0) = 0.0;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart)
-{
-    ResetContactOperators(rModelPart);
-    
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == true)
-        {
-            itNode->Set( ACTIVE, false );
-            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void DeprecatedTreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
-{
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == false)
-        {
-            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::PartialClearMeshTyingScalarConditions(ModelPart & rModelPart)
-{
-    NodesArrayType& pNode = rModelPart.Nodes();
-    
-    auto numNodes = pNode.end() - pNode.begin();
-    
-    #pragma omp parallel for 
-    for(unsigned int i = 0; i < numNodes; i++) 
-    {
-        auto itNode = pNode.begin() + i;
-        if (itNode->Is(ACTIVE) == false)
-        {
-            itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER, 0) = 0.0;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void DeprecatedTreeContactSearch::PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart)
 {
     NodesArrayType& pNode = rModelPart.Nodes();
     

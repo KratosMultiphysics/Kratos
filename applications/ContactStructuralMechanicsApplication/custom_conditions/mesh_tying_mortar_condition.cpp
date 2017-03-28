@@ -85,8 +85,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     // Pointer to the reference element 
 //     mThisSlaveElement = this->GetValue(ELEMENT_POINTER);
     
-    // Populate of the vector of master elements (it is supposed to be constant)
-    const std::vector<contact_container> * all_containers = this->GetValue( CONTACT_CONTAINERS );
+    // Populate of the vector of master elements (it is supposed to be constant)    
+    ConditionMap *& AllConditionSets = this->GetValue( CONTACT_SETS );
     
     mIntegrationOrder = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
 
@@ -98,9 +98,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     // Create and initialize condition variables:#pragma omp critical
     GeneralVariables rVariables;
     
-    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
+    for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
     {
-        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
+        Condition::Pointer pCond = ipair->first;
         
 //          // Reading integration points
 //         IntegrationPointsType IntegrationPointsSlave;
@@ -612,7 +612,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
+//     this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
     
 //     // We calculate the Equation ID, LHS and RHS of the slave parent element
 //     boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
@@ -828,8 +828,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
        
     /// SLAVE CONDITION ///
     GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, LocalPoint.Coordinates() );
-    rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
-//     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
+//     rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
+    rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /// MASTER CONDITION ///
     this->MasterShapeFunctionValue( rVariables, LocalPoint);

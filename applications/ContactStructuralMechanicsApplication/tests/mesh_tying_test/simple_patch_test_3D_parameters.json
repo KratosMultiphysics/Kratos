@@ -36,7 +36,8 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
-        "processes_sub_model_part_list"      : ["Parts_Part_foundation",
+        "processes_sub_model_part_list"      : ["Tying_Part",
+                                                                                        "Parts_Part_foundation",
         										"Parts_Part_punch",
         										"DISPLACEMENT_BC_fixed_support",
         										"DISPLACEMENT_BC_rolling_x",
@@ -152,8 +153,7 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "origin_model_part_name"      : "Parts_Part_foundation",
-            "destination_model_part_name" : "Parts_Part_punch",
+            "contact_model_part"          : "Tying_Part",
             "type_variable"               : "Components",
             "geometry_element"            : "Hexahedron",
             "search_factor"               : 2.0,
@@ -164,7 +164,7 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -185,7 +185,7 @@
         },
         "point_data_configuration"  : []
     },
-    "json_check_process" : [
+    "_json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -194,8 +194,7 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "mesh_tying_test/simple_patch_test_3D_results.json",
-            "model_part_name"      : "Parts_Part_foundation",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Tying_Part",
             "time_frequency"       : 1.0
         }
     }
@@ -209,8 +208,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "mesh_tying_test/simple_patch_test_3D_results.json",
-            "model_part_name"      : "Parts_Part_foundation",
-            "sub_model_part_name"  : "Interface",
+            "model_part_name"      : "Tying_Part",
             "time_frequency"       : 1.0
         }
     }

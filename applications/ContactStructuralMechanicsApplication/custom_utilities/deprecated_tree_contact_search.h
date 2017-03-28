@@ -344,15 +344,6 @@ public:
         );
     
     /**
-     * This function initializes the Mesh Tying mortar conditions already created 
-     */
-    
-    void InitializeMeshTyingMortarConditions(
-        const double rActiveCheckFactor,
-        const int rIntegrationOrder
-        );
-    
-    /**
      * This function initializes nodes 
      */
     
@@ -369,48 +360,30 @@ public:
         const double rAugmentationTangent,
         const int rIntegrationOrder
         );
-
-    /**
-     * This function initializes Mesh Tying conditions
-     */
-        
-    void InitializeMeshTyingConditions(
-        ModelPart & rModelPart, 
-        const double rActiveCheckFactor,
-        const int rIntegrationOrder
-        );
     
     /**
      * This function clears the mortar conditions already created 
      */
     
     void TotalClearMortarConditions();
-    void TotalClearMeshTyingMortarScalarConditions();
-    void TotalClearMeshTyingMortarComponentsConditions();
-    
+
     /**
      * This function clears the mortar conditions already created 
      */
     
     void PartialClearMortarConditions();
-    void PartialClearMeshTyingMortarScalarConditions();
-    void PartialClearMeshTyingMortarComponentsConditions();
     
     /**
      * This function clears conditions already created 
      */
     
     void TotalClearConditions(ModelPart & rModelPart);
-    void TotalClearMeshTyingScalarConditions(ModelPart & rModelPart);
-    void TotalClearMeshTyingComponentsConditions(ModelPart & rModelPart);
     
     /**
      * This function clears partially the conditions already created 
      */
     
     void PartialClearConditions(ModelPart & rModelPart);
-    void PartialClearMeshTyingScalarConditions(ModelPart & rModelPart);
-    void PartialClearMeshTyingComponentsConditions(ModelPart & rModelPart);
       
     /**
      * This function creates a lists  points ready for the Mortar method

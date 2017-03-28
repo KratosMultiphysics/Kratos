@@ -151,7 +151,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             del cond
             
             self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeALMFrictionlessMortarConditions()
+            self.contact_search.InitializeMortarConditions()
         
     def ExecuteBeforeSolutionLoop(self):
         if self.params["contact_type"].GetString() == "Frictionless":  

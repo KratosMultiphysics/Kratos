@@ -371,7 +371,7 @@ public:
      * This function initializes the ALM frictionless mortar conditions already created 
      */
     
-    void InitializeALMFrictionlessMortarConditions()
+    void InitializeMortarConditions()
     {
         // Iterate in the conditions
         ConditionsArrayType& pConditions = mrMainModelPart.GetSubModelPart("Contact").Conditions();
@@ -391,6 +391,50 @@ public:
      * This function clears the mortar conditions already created 
      */
     
+    void TotalClearScalarMortarConditions()
+    {
+        ResetContactOperators(mrMainModelPart.GetSubModelPart("Contact"));
+        
+        NodesArrayType& pNode = mrMainModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                itNode->Set( ACTIVE, false );
+                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            }
+        }  
+    }
+    
+    void TotalClearComponentsMortarConditions()
+    {
+        ResetContactOperators(mrMainModelPart.GetSubModelPart("Contact"));
+        
+        NodesArrayType& pNode = mrMainModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            
+            if (itNode->Is(ACTIVE) == true)
+            {
+                itNode->Set( ACTIVE, false );
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+        }  
+    }
+    
+    /**
+     * This function clears the ALM frictionless mortar conditions already created 
+     */
+    
     void TotalClearALMFrictionlessMortarConditions()
     {
         ResetContactOperators(mrMainModelPart.GetSubModelPart("Contact"));
@@ -406,13 +450,49 @@ public:
             if (itNode->Is(ACTIVE) == true)
             {
                 itNode->Set( ACTIVE, false );
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
         }  
     }
     
     /**
      * This function clears the mortar conditions already created 
+     */
+    
+    void PartialClearScalarMortarConditions()
+    {
+        NodesArrayType& pNode = mrMainModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+            }
+        } 
+    }
+    
+    void PartialClearComponentsMortarConditions()
+    {
+        NodesArrayType& pNode = mrMainModelPart.GetSubModelPart("Contact").Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = ZeroVector(3);
+            }
+        } 
+    }
+    
+    /**
+     * This function clears the ALM frictionless mortar conditions already created 
      */
     
     void PartialClearALMFrictionlessMortarConditions()
@@ -426,7 +506,7 @@ public:
             auto itNode = pNode.begin() + i;
             if (itNode->Is(ACTIVE) == false)
             {
-                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
             }
         } 
     }
@@ -560,18 +640,6 @@ public:
         
         // Calculate the mean of the normal in all the nodes (FIXME: this is supposed to be done in the strategy)
         ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart.GetSubModelPart("Contact")); 
-    }
-    
-    /**
-     * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
-     * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @return The mortar conditions alreay created
-     */
-        
-    void CreateALMFrictionlessMortarConditions(const double SearchFactor)
-    {
-        TotalClearALMFrictionlessMortarConditions(); // Clear the conditions
-        UpdateMortarConditions(SearchFactor);
     }
     
     /**

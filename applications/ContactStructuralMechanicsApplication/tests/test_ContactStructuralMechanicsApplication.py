@@ -109,7 +109,7 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
-            TSimplePatchTestThreeDMeshTying,
+            #TSimplePatchTestThreeDMeshTying,
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,
             TSimplePatchNotMatchingATestContact,
