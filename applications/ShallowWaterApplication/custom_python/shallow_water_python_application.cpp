@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author:  $
-//   Date:                $Date: $
-//   Revision:            $Revision: 1.3 $
+//   Last modified by:    $Author: Miguel Maso Sotomayor $
+//   Date:                $Date: 27-03-2017 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -86,7 +86,10 @@ namespace Python
 	AddCustomUtilitiesToPython();
 
 	//registering variables in python
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
+	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX) // TODO: Remove variable ??
+	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(ETA)         // Water surface elevation (eta)
+	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(BATHYMETRY)  // Bathymetry (H)
+	//~ KRATOS_REGISTER_IN_PYTHON_VARIABLE(TOTAL_DEPTH) // Total depth (h=H+eta)
 
 
   }
