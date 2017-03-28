@@ -68,6 +68,14 @@ class ProjectionModule:
         else:
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
+    def ApplyForwardCoupling(self, alpha = None):
+        if self.do_impose_flow_from_field:
+            self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
+        elif alpha == None:
+            self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+        else:
+            self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+
     def ProjectFromFluid(self, alpha):
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 

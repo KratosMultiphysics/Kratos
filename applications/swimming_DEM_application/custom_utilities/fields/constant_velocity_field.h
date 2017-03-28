@@ -39,7 +39,7 @@ KRATOS_CLASS_POINTER_DEFINITION(ConstantVelocityField);
 
 ConstantVelocityField():VelocityField(), mVx(0.0), mVy(0.0), mVz(0.0) {}
 
-ConstantVelocityField(const double a, const double b, const double c):VelocityField(), mVx(a), mVy(b), mVz(c) {}
+ConstantVelocityField(const double vx, const double vy, const double vz):VelocityField(), mVx(vx), mVy(vy), mVz(vz) {}
 
 
 /// Destructor.

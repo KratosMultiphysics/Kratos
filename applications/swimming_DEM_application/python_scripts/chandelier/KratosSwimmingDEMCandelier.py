@@ -114,7 +114,7 @@ class Solution:
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = number_of_quadrature_steps_in_window
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = True
+        self.pp.CFD_DEM.do_impose_flow_from_field = False
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VORTICITY_option = 0
@@ -759,10 +759,10 @@ class Solution:
                 if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
                     if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
-                        projection_module.ProjectFromNewestFluid()
+                        projection_module.ApplyForwardCoupling()
 
                     else:
-                        projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
+                        projection_module.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
                         for node in self.DS.spheres_model_part.Nodes:
                             x = node.X
                             y = node.Y
