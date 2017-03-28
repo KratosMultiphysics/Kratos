@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: Miguel Masó Sotomayor $
-//   Date:                $Date: 8-III-2017 $
-//   Revision:            $Revision: 1.1 $
+//   Last modified by:    $Author:  $
+//   Date:                $Date: $
+//   Revision:            $Revision: 1.3 $
 //
 //
 
@@ -86,7 +86,7 @@ namespace Python
 	AddCustomUtilitiesToPython();
 
 	//registering variables in python
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(POINT_HEAT_SOURCE);
+//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
   }
