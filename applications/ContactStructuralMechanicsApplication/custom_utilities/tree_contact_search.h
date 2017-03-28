@@ -40,7 +40,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    #if !defined(KEY_COMPAROR) // TODO: USe in combination with the unordered_map (look at the mmg_utility.h)!!!!!
+    #if !defined(KEY_COMPAROR) 
     #define KEY_COMPAROR
     struct KeyComparor
     {

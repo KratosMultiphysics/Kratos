@@ -25,8 +25,30 @@
 
 namespace Kratos
 {
+
+#if !defined(CONDITION_POINTER_HASHER) // TODO: Use a template for shared pointers
+#define CONDITION_POINTER_HASHER
+struct ConditionPointerHasher
+{
+    size_t operator()(const Condition::Pointer& pCond) const
+    {
+        return (size_t)pCond.get(); 
+    }
+};
+#endif
+#if !defined(CONDITION_POINTER_COMPARATOR)
+#define CONDITION_POINTER_COMPARATOR
+struct ConditionPointerComparator
+{
+    bool operator()(const Condition::Pointer& first, const Condition::Pointer& second) const
+    {
+        return *first == *second;
+    }
+};
+#endif
+
 typedef array_1d<double,3> Vector3;
-// typedef std::unordered_map<Condition::Pointer, bool> ContactMap;
+typedef std::unordered_map<Condition::Pointer, bool, ConditionPointerHasher, ConditionPointerComparator > ConditionHashMap;
 
 struct contact_container 
 {
@@ -43,7 +65,6 @@ struct contact_container
     
     void print()
     {
-//        KRATOS_WATCH(condition);
        std::cout << " The condition: " << condition->Id() << " is MASTER: " << condition->Is(MASTER) << "ACTIVE: " << active_pair << std::endl;
        std::cout << std::endl;
     }
@@ -61,10 +82,64 @@ struct contact_container
     }
 };
 
+struct ConditionMap : ConditionHashMap
+{
+    ~ConditionMap(){}
+    
+    typedef ConditionHashMap BaseType;
+    
+    void RemoveCondition(Condition::Pointer pCond)
+    {
+        BaseType::iterator Set = find(pCond);
+        if(Set != end())
+        {
+            erase(Set);
+        }
+    }
+    
+    void AddNewCondition(Condition::Pointer pCond)
+    {
+        insert({pCond, true}); // True by default when adding a new one
+    }
+    
+    void SetActive(Condition::Pointer pCond, const bool Active)
+    {
+        BaseType::iterator Set = find(pCond);
+        if(Set != end())
+        {
+            Set->second = Active;
+        }
+    }
+    
+    bool IsActive(Condition::Pointer pCond)
+    {
+        BaseType::const_iterator Set = find(pCond);
+        return (Set->second);
+    }
+    
+    void print()
+    {
+        for ( auto it = begin(); it != end(); ++it )
+        {
+            std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
+        }
+    }
+    
+    void save( Serializer& rSerializer ) const
+    {
+        // TODO: Fill if necessary
+    }
+
+    void load( Serializer& rSerializer )
+    {
+        // TODO: Fill if necessary
+    }
+};
+
 // CONDITIONS
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions
-// KRATOS_DEFINE_VARIABLE( ContactMap, CONTACT_SETS )                                                                              // An unordened map of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( ConditionMap*, CONTACT_SETS )                                                                              // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                                                                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                                                                       // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                                                                       // Mortar Contact Operator
