@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: Miguel Masó Sotomayor $
-//   Date:                $Date: 8-03-2017 $
-//   Revision:            $Revision: 1.1 $
+//   Last modified by:    $Author:  $
+//   Date:                $Date:  $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
@@ -61,8 +61,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-
-#include "custom_utilities/calculate_mean_temp.h"
 
 
 
@@ -82,9 +80,7 @@ namespace Python
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		class_<CalculateMeanTemperature > ("CalculateMeanTemperature", init<ModelPart& >()) // The input parameters is a model part 
-                   .def("Execute", &CalculateMeanTemperature::Calculate)  //when we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here 
-                   ; 
+
   }
 	
 

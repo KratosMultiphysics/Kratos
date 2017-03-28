@@ -17,20 +17,22 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/line_2d.h"
-#include "geometries/point_2d.h"
 #include "shallow_water_application.h"
 #include "includes/variables.h"
 
 
 namespace Kratos
 {
-	KRATOS_CREATE_VARIABLE(double, POINT_HEAT_SOURCE)
-	// CONDUCTIVITY and TEMPERATURE are already included in kernel
+	//Example
+// 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR)
+//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
+//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
+//
 
- 	KratosShallowWaterApplication::KratosShallowWaterApplication():  //constructor
-		mPoisson2D   ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType (3) ) ) ),
-		mPointSource ( 0, Element::GeometryType::Pointer( new Point2D <Node<3>    >( Element::GeometryType::PointsArrayType (1) ) ) )
+ 	KratosShallowWaterApplication::KratosShallowWaterApplication()
  	{}
  	
  	void KratosShallowWaterApplication::Register()
@@ -39,12 +41,10 @@ namespace Kratos
  		KratosApplication::Register();
  		std::cout << "Initializing KratosShallowWaterApplication... " << std::endl;
  
-		// Registering variables
- 		KRATOS_REGISTER_VARIABLE( POINT_HEAT_SOURCE );
+// 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
+// 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
+// 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 
-		// Registering elements and conditions
-		KRATOS_REGISTER_ELEMENT( "Poisson2D", mPoisson2D );
-		KRATOS_REGISTER_CONDITION( "PointSource", mPointSource )
  
  	}
 

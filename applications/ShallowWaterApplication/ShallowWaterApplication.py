@@ -1,7 +1,7 @@
 from KratosShallowWaterApplication import *
 application = KratosShallowWaterApplication()
 application_name = "KratosShallowWaterApplication"
-application_folder = "ShallowWaterApplication"
+application_folder = "shallow_water_application"
 
 # The following lines are common for all applications
 from . import application_importer
