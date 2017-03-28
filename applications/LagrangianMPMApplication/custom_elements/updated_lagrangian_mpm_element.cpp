@@ -31,6 +31,9 @@
 #include "geometries/geometry.h"
 //#include "custom_geometries/meshless_geometry.h"
 
+#include <iostream>
+#include <fstream>
+
 namespace Kratos
 {
 
@@ -84,8 +87,9 @@ void UpdatedLagrangianMPMElement::Initialize()
     KRATOS_TRY
 
 
-    const unsigned int dim = GetDomainSize();
-
+    //const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int dim = 2;
     mDeterminantF0 = 1;
 
     mDeformationGradientF0 = identity_matrix<double> (dim);
@@ -100,6 +104,8 @@ void UpdatedLagrangianMPMElement::Initialize()
 
 void UpdatedLagrangianMPMElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+
     GeneralVariables Variables;
 
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
@@ -108,6 +114,7 @@ void UpdatedLagrangianMPMElement::InitializeSolutionStep( ProcessInfo& rCurrentP
             GetGeometry(), Variables.N, rCurrentProcessInfo );
 
     mFinalizedStep = false;
+    KRATOS_CATCH( "" )
 }
 ////************************************************************************************
 ////************************************************************************************
@@ -155,13 +162,19 @@ void UpdatedLagrangianMPMElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
 
     //call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-    
+
+
+
     //****************** update the postion of the MPM particle
     array_1d<double,3> delta_displacement = ZeroVector(3);
     for(unsigned int i=0; i<GetGeometry().size(); i++)
+    {
         delta_displacement += Variables.N[i]*(GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1));
-    
+
+    }
     noalias(this->GetValue(GAUSS_POINT_COORDINATES)) += delta_displacement;
+    //this->GetValue(GAUSS_POINT_COORDINATES) += delta_displacement;
+
 
 
     mFinalizedStep = true;
@@ -182,12 +195,13 @@ void UpdatedLagrangianMPMElement::FinalizeStepVariables( GeneralVariables & rVar
 //**************************************************************************************
 void UpdatedLagrangianMPMElement::InitializeMaterial()
 {
-    KRATOS_TRY
+    KRATOS_TRY;
     //array_1d<double,3>& xg = this->GetValue(GAUSS_POINT_COORDINATES);
 
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
     //ProcessInfo& rCurrentProcessInfo = (mpModelPart)->GetProcessInfo();
 
     GeneralVariables Variables;
@@ -202,6 +216,8 @@ void UpdatedLagrangianMPMElement::InitializeMaterial()
 
     this->GetGeometryData(Variables.integration_weight,Variables.N,Variables.DN_DX);
 
+
+
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
 
@@ -212,10 +228,16 @@ void UpdatedLagrangianMPMElement::InitializeMaterial()
 
     }
     else
-        KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
+    {
+        KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() );
         //std::cout<< "in initialize material "<<std::endl;
-        KRATOS_CATCH( "" )
+
     }
+
+
+    KRATOS_CATCH( "" );
+
+}
 //************************************************************************************
 //************************************************************************************
 
@@ -223,7 +245,8 @@ void UpdatedLagrangianMPMElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
     
     //array_1d<double,3>& xg = this->GetValue(GAUSS_COORD_COORDINATES);
 
@@ -254,7 +277,11 @@ void UpdatedLagrangianMPMElement::CalculateLocalSystem(MatrixType& rLeftHandSide
         ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
+
+
+
     unsigned int matrix_size = number_of_nodes * dim;
     if (rLeftHandSideMatrix.size1() != matrix_size)
         rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
@@ -292,7 +319,8 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
     KRATOS_TRY
 
 	const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     //create and initialize element variables:
@@ -328,12 +356,59 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
     this->SetGeneralVariables(Variables,Values);
 //KRATOS_WATCH(__LINE__);
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
     
     Vector disp0 = ZeroVector(matrix_size);
     Vector disp1 = ZeroVector(matrix_size);
     GetValuesVector(disp0,0);
     GetValuesVector(disp1,1);
     Variables.integration_weight *= Variables.detFT; 
+
+
+
+    //update of effective radius
+    //double GAUSS_AREA_NEW = Variables.integration_weight;
+    //this->GetValue(EFFECTIVE_RADIUS) = sqrt(2*GAUSS_AREA_NEW)/2;
+    //this->GetValue(SEARCH_RADIUS) = 4*this->GetValue(EFFECTIVE_RADIUS);
+
+    //KRATOS_WATCH(this->GetValue(EFFECTIVE_RADIUS));
+
+    //FILE *fp;
+    std::ofstream outfile;
+    outfile.open("1.txt");
+
+    if(this->Id() == 8)
+    {
+         outfile<<"Element_id:"<<this->Id()<<std::endl;
+        //fp = fopen("1.txt","a");
+        //fprintf(fp,"%I\n",this->Id());
+
+         //KRATOS_WATCH(Variables.integration_weight);
+        for(unsigned int i=0; i<GetGeometry().size(); i++)
+        {
+            //KRATOS_WATCH(GetGeometry()[i].Id());
+            //KRATOS_WATCH(GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT));
+
+            //KRATOS_WATCH(GetGeometry()[i].GetDof(DISPLACEMENT_Y).IsFixed());
+
+            //if(fp!=NULL)
+            //{
+
+                //fprintf(fp,"%I",GetGeometry()[i].Id());
+                outfile<<"node_id:"<<GetGeometry()[i].Id()<<std::endl;
+                outfile<<"Displacement:"<<GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT)<<std::endl;
+                outfile<<"ISFixed:"<<GetGeometry()[i].GetDof(DISPLACEMENT_Y).IsFixed()<<std::endl;
+                //fprintf(fp,"%d\n",GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT));
+                //std::fout<<"IsFixed"<<GetGeometry()[i].GetDof(DISPLACEMENT_Y).IsFixed()<<std::endl;
+            //}
+        }
+
+        //fclose(fp);
+        //outfile.close();
+      }
+
+
+/*
     if (this->Id() == 1)
     {
 		//std::cout<<"rVariables.N "<<Variables.N<<std::endl;
@@ -343,7 +418,7 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
 		std::cout<<"rVariables.StrainVector "<<Variables.StrainVector<<std::endl;
 		std::cout<<"B*GetValuesVector "<< prod(Variables.B,(disp0-disp1))<<std::endl;
 		//std::cout<<"rVariables.ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
-	}
+    }*/
 //KRATOS_WATCH(__LINE__);
     this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables);
 //KRATOS_WATCH(__LINE__);
@@ -388,7 +463,8 @@ void UpdatedLagrangianMPMElement::CalculateAndAddKuug(MatrixType& rLeftHandSideM
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix tmp = rVariables.integration_weight *  prod( StressTensor, trans( rVariables.DN_DX ) );
     Matrix ReducedKg = prod( rVariables.DN_DX, tmp );
@@ -412,7 +488,8 @@ Vector& UpdatedLagrangianMPMElement::CalculateVolumeForce( Vector& rVolumeForce,
     KRATOS_TRY
 
     //const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension       = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
 
     rVolumeForce = ZeroVector(dimension);
 
@@ -439,7 +516,8 @@ void UpdatedLagrangianMPMElement::CalculateAndAddExternalForces(VectorType& rRig
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
 
 
 
@@ -454,6 +532,10 @@ void UpdatedLagrangianMPMElement::CalculateAndAddExternalForces(VectorType& rRig
         }
 
     }
+
+    //KRATOS_WATCH(rVariables.N);
+    //KRATOS_WATCH(rVolumeForce);
+    //KRATOS_WATCH(rVariables.integration_weight);
 //     if (this->Id() == 1)
 //     {
 // 		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
@@ -472,11 +554,12 @@ void UpdatedLagrangianMPMElement::CalculateAndAddInternalForces(VectorType& rRig
     VectorType InternalForces = rVariables.integration_weight * prod( trans( rVariables.B ), rVariables.StressVector );
 
     noalias( rRightHandSideVector ) -= InternalForces;
+    /*
     if (this->Id() == 1)
     {
 		std::cout<<"rVariables.integration_weight "<<rVariables.integration_weight<<std::endl;
 		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-	}
+    }*/
 
     KRATOS_CATCH( "" )
 }
@@ -485,7 +568,8 @@ void UpdatedLagrangianMPMElement::CalculateAndAddInternalForces(VectorType& rRig
 void UpdatedLagrangianMPMElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
     unsigned int voigtsize  = 3;
 
     if( dimension == 3 )
@@ -534,7 +618,7 @@ void UpdatedLagrangianMPMElement::InitializeGeneralVariables (GeneralVariables& 
     //CurrentDisp is the variable unknown. It represents the nodal delta displacement. When it is predicted is equal to zero.
 
     rVariables.DeltaPosition.resize(number_of_nodes, dimension);
-    CalculateDeltaPosition(rVariables.DeltaPosition);
+    //CalculateDeltaPosition(rVariables.DeltaPosition);
 
 
 
@@ -552,22 +636,71 @@ void UpdatedLagrangianMPMElement::SetGeneralVariables(GeneralVariables& rVariabl
     //Variables.detF is the determinant of the incremental total deformation gradient
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
+    if(rVariables.detF<0.1)
+    {
+
+        std::cout<<" Element: "<<this->Id()<<std::endl;
+        std::cout<<" Element position "<<this->GetValue(GAUSS_POINT_COORDINATES)<<std::endl;
+        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        Geometry< Node<3> > geom = this->GetGeometry();
+        KRATOS_WATCH( number_of_nodes );
+
+        array_1d<double, 3> DeltaDisplacement;
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+            array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+            std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
+            //std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
+            DeltaDisplacement  = CurrentDisplacement-PreviousDisplacement;
+
+        }
+
+        double MaxDelta = DeltaDisplacement[0];
+
+        for ( unsigned int i = 1; i < number_of_nodes; i++ )
+        {
+            if(DeltaDisplacement[i] > MaxDelta)
+            {
+                MaxDelta = DeltaDisplacement[i];
+            }
+
+        }
+        for ( unsigned int i = 1; i < number_of_nodes; i++ )
+        {
+            if(MaxDelta == DeltaDisplacement[i])
+            {
+                geom[i].Set(TO_ERASE, true);
+            }
+
+        }
+
+
+        //KRATOS_THROW_ERROR( std::invalid_argument," MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+    }
+
+
+
     if(rVariables.detF<0)
     {
 
         std::cout<<" Element: "<<this->Id()<<std::endl;
         std::cout<<" Element position "<<this->GetValue(GAUSS_POINT_COORDINATES)<<std::endl;
-        //unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        KRATOS_WATCH( number_of_nodes );
 
-        //for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        //{
-            //array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-            //array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            //array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            ////array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-            //std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+            array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+            std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
             //std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
-        //}
+        }
 
         //for ( unsigned int i = 0; i < number_of_nodes; i++ )
         //{
@@ -582,6 +715,8 @@ void UpdatedLagrangianMPMElement::SetGeneralVariables(GeneralVariables& rVariabl
                 //std::cout<<" ---Contact_Force: NULL "<<std::endl;
             //}
         //}
+
+        //this->Set(TO_ERASE, true);
 
         KRATOS_THROW_ERROR( std::invalid_argument," MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
@@ -609,12 +744,13 @@ void UpdatedLagrangianMPMElement::SetGeneralVariables(GeneralVariables& rVariabl
 //************************************************************************************
 
 
-void UpdatedLagrangianMPMElement::CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianMPMElement::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
 
     //Define the stress measure
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -633,30 +769,32 @@ void UpdatedLagrangianMPMElement::CalculateKinematics(GeneralVariables& rVariabl
 
     Matrix GradientDisp = ZeroMatrix(dimension, dimension);
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
-    GradientDisp = prod(trans(rVariables.DeltaPosition),GetValue(SHAPE_FUNCTIONS_DERIVATIVES)); //here I'm using DN_DX of the previous time step
+    GradientDisp = prod(trans(rVariables.DeltaPosition),this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES)); //here I'm using DN_DX of the previous time step
 
 //     KRATOS_WATCH( norm_frobenius(GradientDisp - rVariables.DN_DX) );
 
     noalias( rVariables.F ) = (I + GradientDisp);
-    if (this->Id() == 1)
+
+    if (this->Id() == 2)
     {
-		std::cout<< "rVariables.DeltaPosition "<< rVariables.DeltaPosition<<std::endl;
-		std::cout<< "rVariables.DN_DX "<< rVariables.DN_DX<<std::endl;
-		std::cout<< "GradientDisp "<< GradientDisp <<std::endl;
-		std::cout<< "rVariables.F "<< rVariables.F <<std::endl;
-	}
+        //std::cout<< "rVariables.DeltaPosition "<< rVariables.DeltaPosition<<std::endl;
+        //std::cout<< "rVariables.N "<< rVariables.N<<std::endl;
+        //std::cout<< "rVariables.DN_DX "<< rVariables.DN_DX<<std::endl;
+        //std::cout<< "GradientDisp "<< GradientDisp <<std::endl;
+        //std::cout<< "rVariables.F "<< rVariables.F <<std::endl;
+    }
     Matrix InvF;
 
     MathUtils<double>::InvertMatrix( rVariables.F, InvF, rVariables.detF );
     //Compute cartesian derivatives [dN/dx_n+1]
     //rVariables.DN_DX = prod( rVariables.DN_DX, InvF); //overwrites DX now is the current position dx
-    rVariables.DN_DX = prod( GetValue(SHAPE_FUNCTIONS_DERIVATIVES), InvF);
+    rVariables.DN_DX = prod( this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES), InvF);
     //Determinant of the Deformation Gradient F_n
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
 
-
+    //KRATOS_WATCH(this->GetGeometry().size());
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -674,7 +812,8 @@ void UpdatedLagrangianMPMElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension       = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
 
     rB.clear(); //set all components to zero
 
@@ -739,7 +878,8 @@ Matrix& UpdatedLagrangianMPMElement::CalculateDeltaPosition(Matrix & rDeltaPosit
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    //unsigned int dimension = GetDomainSize();//GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = 2;
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
@@ -747,10 +887,10 @@ Matrix& UpdatedLagrangianMPMElement::CalculateDeltaPosition(Matrix & rDeltaPosit
     {
         const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-        if (GetGeometry()[i].Id() ==6)
+        if (GetGeometry()[i].Id() ==1)
         {
-			std::cout << "PreviousDisplacement "<<PreviousDisplacement<<std::endl;
-			std::cout << "CurrentDisplacement "<<CurrentDisplacement<<std::endl;
+            //std::cout << "PreviousDisplacement "<<PreviousDisplacement<<std::endl;
+            //std::cout << "CurrentDisplacement "<<CurrentDisplacement<<std::endl;
         }
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -767,7 +907,8 @@ Matrix& UpdatedLagrangianMPMElement::CalculateDeltaPosition(Matrix & rDeltaPosit
 void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     if (rMassMatrix.size1() != matrix_size)
@@ -795,11 +936,276 @@ void UpdatedLagrangianMPMElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 //     KRATOS_WATCH(rMassMatrix);
 
 }
+
+//************************************************************************************
+//************************************************************************************
+
+    void UpdatedLagrangianMPMElement::Calculate( const Variable<Matrix >& rVariable,Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+
+
+        KRATOS_TRY;
+        //this is if you need to compute a variable
+        const unsigned int number_of_nodes = GetGeometry().size();
+        //const unsigned int dim = GetDomainSize();
+        const unsigned int dim = 2;
+
+
+        unsigned int StrainSize;
+
+        if ( dim == 2 )
+            StrainSize = 3;
+        else
+            StrainSize = 6;
+        Geometry< Node<3> >& geom = this->GetGeometry();
+        //KRATOS_WATCH("BBBBBBBBBBBBBBBBBBB");
+
+        //create and initialize element variables:
+        GeneralVariables Variables;
+
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+
+
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,rCurrentProcessInfo);
+
+    //KRATOS_WATCH(__LINE__);
+        //set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables,Values);
+    //KRATOS_WATCH(__LINE__);
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+         //displacements Vector values;
+         //boost::numeric::ublas::vector<double> values;
+
+         //unsigned int MatSize = number_of_nodes * dim;
+
+
+         //Matrix Output0;
+
+        if (rVariable == NODAL_STRESS)
+        {
+           //for(Geometry< Node<3> >::iterator inode = rGeom.begin(); inode!=rGeom.end(); inode++)
+           for(unsigned int i = 0; i < geom.size(); i++)
+           {
+               geom[i].FastGetSolutionStepValue(NODAL_STRESS).resize(1,StrainSize,false);
+
+
+
+               if ( Output.size2() != StrainSize ){
+                   Output.resize(1,StrainSize,false);}
+
+
+                for(unsigned int k = 0; k < StrainSize; k++)
+                {
+
+                    Output(0,k) = Variables.integration_weight*Variables.N[i]*Variables.StressVector[k];
+                   //row(Output,i) = A*Ng[i]*StressVector[k];
+
+                }
+
+
+                geom[i].FastGetSolutionStepValue(NODAL_STRESS) += Output;
+
+               //std::cout << geom[i].FastGetSolutionStepValue(NODAL_STRESS) << std::endl;
+            }
+
+
+
+         }
+        else if (rVariable == NODAL_STRAIN)
+        {
+
+
+           //Matrix Output1;
+           for(unsigned int i = 0; i < geom.size(); i++)
+           {
+               geom[i].FastGetSolutionStepValue(NODAL_STRAIN).resize(1,StrainSize,false);
+               //geom[i].FastGetSolutionStepValue(NODAL_STRESS) = ZeroMatrix(1,StrainSize);
+
+
+               if ( Output.size2() != StrainSize ){
+                    Output.resize(1,StrainSize,false);
+                    Output = ZeroMatrix(1,StrainSize);}
+
+                for(unsigned int k = 0; k < StrainSize; k++)
+                {
+
+                    Output(0,k) = Variables.integration_weight*Variables.N[i]*Variables.StrainVector[k];
+
+
+                }
+
+
+                geom[i].FastGetSolutionStepValue(NODAL_STRAIN) += Output;
+                //KRATOS_WATCH(geom[i].FastGetSolutionStepValue(NODAL_STRAIN));
+
+           }
+
+        }
+
+
+         KRATOS_CATCH("");
+
+    }
+
+    void UpdatedLagrangianMPMElement::Calculate( const Variable<double >& rVariable,double& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+
+
+        KRATOS_TRY;
+        //this is if you need to compute a variable
+        const unsigned int number_of_nodes = GetGeometry().size();
+        //const unsigned int dim = GetDomainSize();
+        const unsigned int dim = 2;
+        unsigned int matrix_size = number_of_nodes * dim;
+
+        //create and initialize element variables:
+        GeneralVariables Variables;
+
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+
+
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,rCurrentProcessInfo);
+
+    //KRATOS_WATCH(__LINE__);
+        //set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables,Values);
+    //KRATOS_WATCH(__LINE__);
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+
+
+         Geometry< Node<3> >& geom = this->GetGeometry();
+
+         if (rVariable == NODAL_AREA)
+         {
+
+
+           //for(Geometry< Node<3> >::iterator inode = rGeom.begin(); inode!=rGeom.end(); inode++)
+           for(unsigned int i = 0; i < geom.size(); i++)
+           {
+
+               //geom[i].FastGetSolutionStepValue(NODAL_AREA) = 0;
+
+           //for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+           //{
+               //GetGeometry()[i].FastGetSolutionStepValue(NODAL_STRESS) += A*Ng[i]*StressVector;
+               //GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += A*Ng[i];
+
+
+
+               double aux = Variables.integration_weight*Variables.N[i];
+               //KRATOS_WATCH(Variables.N[i]);
+
+               //Output += aux;
+
+               geom[i].FastGetSolutionStepValue(NODAL_AREA) += aux;
+               //std::cout << aux << std::endl;
+
+               //std::cout << mTotalDomainSize << std::endl;
+               //std::cout << Ng[i] << std::endl;
+
+
+               //KRATOS_WATCH(geom[i].FastGetSolutionStepValue(NODAL_AREA));
+
+
+
+            }
+
+
+
+         }
+
+/*
+         else if ( rVariable==NODE_EQUIVALENT_PLASTIC_STRAIN )
+         {
+             //rVariable = PLASTIC_STRAIN;
+             //Output = mConstitutiveLawVector[0]->GetValue( PLASTIC_STRAIN, Output );
+
+
+             for(unsigned int i = 0; i < geom.size(); i++)
+             {
+
+                 double aux = EQ_PLASTIC_STRAIN*Variables.N[i];
+                 //KRATOS_WATCH(aux);
+
+                 geom[i].FastGetSolutionStepValue(NODE_EQUIVALENT_PLASTIC_STRAIN) += aux;
+
+
+              }
+
+         }
+
+
+
+
+         else if ( rVariable == DAMAGE )
+         {
+
+              Output = mConstitutiveLawVector[0]-> GetValue( DAMAGE,Output);
+
+              for(unsigned int i = 0; i < geom.size(); i++)
+              {
+
+
+                  //Output = Output*Ng[i];
+                  geom[i].FastGetSolutionStepValue(DAMAGE) += Output;
+                  //std::cout << aux << std::endl;
+
+                  //KRATOS_WATCH(geom[i].FastGetSolutionStepValue(DAMAGE));
+
+               }
+
+
+
+
+         }
+*/
+
+         KRATOS_CATCH("");
+
+    }
+
+
+
 //*********************************************************************************************************************
 void UpdatedLagrangianMPMElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     if ( rResult.size() != matrix_size )
@@ -823,13 +1229,14 @@ void UpdatedLagrangianMPMElement::EquationIdVector( EquationIdVectorType& rResul
 void UpdatedLagrangianMPMElement::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
 {
     ElementalDofList.resize( 0 );
+    const unsigned int dim = 2;
 
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
     {
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
 
-        if ( GetDomainSize() == 3 )
+        if ( dim == 3 )
         {
             ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
         }
@@ -839,7 +1246,8 @@ void UpdatedLagrangianMPMElement::GetDofList( DofsVectorType& ElementalDofList, 
 void UpdatedLagrangianMPMElement::GetValuesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -863,7 +1271,8 @@ void UpdatedLagrangianMPMElement::GetValuesVector( Vector& values, int Step )
 void UpdatedLagrangianMPMElement::GetFirstDerivativesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -886,7 +1295,8 @@ void UpdatedLagrangianMPMElement::GetFirstDerivativesVector( Vector& values, int
 void UpdatedLagrangianMPMElement::GetSecondDerivativesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetDomainSize();
+    //const unsigned int dim = GetDomainSize();
+    const unsigned int dim = 2;
     unsigned int matrix_size = number_of_nodes * dim;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -919,7 +1329,9 @@ int  UpdatedLagrangianMPMElement::Check( const ProcessInfo& rCurrentProcessInfo 
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetDomainSize();
+    //unsigned int dimension = GetDomainSize();
+    //const unsigned int dimension = GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int dimension = 2;
 
     //verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;

@@ -34,6 +34,8 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/nodal_values_utility.h"
+
 
 
 namespace Kratos
@@ -52,6 +54,11 @@ namespace Python
 // 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 // 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+      class_<Nodal_Values_Utility>
+      ( "Nodal_Values_Utility", init<ModelPart&, int >() )
+      .def( "CalculateNodalVarialbes", &Nodal_Values_Utility::CalculateNodalVarialbes )
+      .def( "CalculateNodalArea", &Nodal_Values_Utility::CalculateNodalArea )
+      ;
 
   }
 

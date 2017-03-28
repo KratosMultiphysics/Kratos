@@ -46,8 +46,8 @@ namespace Kratos
 class LinearMLSKernel
 {
 public:
-
-    static void ComputeKernel(double r, double h, double &kernel)
+    //KernelGaussian
+    static void ComputeKernel(double r, double h, double& kernel)
     {
 
         double q;
@@ -77,9 +77,82 @@ public:
         //return w;
     }
 
+    //KernelC2
+    /*static void ComputeKernel(double r, double h, double& kernel)
+    {
+        kernel=0.0;
+        double q;
+        q= r/h;
+        if (q<0.0) {std::cout<<"WARNING: q is negative";}
+        else if (q>=0.0 && q<1.0) {kernel=(10.0/(7.0*PI*h*h)) * (1.0-1.5*pow(q,2)+0.75*pow(q,3)); }
+        else if (q>=1.0 && q<2.0) {kernel=(10.0/(7.0*PI*h*h)) * (0.25 * pow(2.0-q,3));}
+        else if (q>=2.0) {kernel=0.0;}
+
+
+        //return Kernel;
+    }
+
+    static void ComputeKernelDerivative(array_1d<double,2> rvec, double h, array_1d<double,2>& w)
+    {
+        double r = norm_2(rvec);
+
+        double q;
+        q=r/h;
+        double KernelValue=0.0;
+
+        if (q<0.0) {std::cout<<"WARNING: q is negative (GRADIENT) ";}
+        else if (q>=0.0 && q<1.0) {KernelValue=(10.0/(7.0*PI*h*h)) * (-3.0 * q * (1.0/h) + 2.25 * q * q * (1.0/h)); }
+        else if (q>=1.0 && q<2.0) {KernelValue=(10.0/(7.0*PI*h*h)) * (-0.75 * (1.0/h) * pow(2.0-q,2) );}
+        else if (q>=2.0) {KernelValue=0;}
+
+        //array_1d<double,3> w;
+        if (r==0.0) {noalias(w)=ZeroVector(3); } // To avoid having nan
+        else noalias(w) = (KernelValue/r)*rvec;
+
+        //return w;
+    }*/
+
+    //KernelQuintic
+    /*static void ComputeKernel(double r, double h, double& Kernel)
+    {
+
+        double q;
+        q=r/h;
+
+        //Calculate the Value
+        Kernel=0.0;
 
 
 
+        if (q<0.0) {std::cout<<"WARNING: q is negative";}
+        else if (q>=0.0 && q<1.0) {Kernel=(7.0/(478.0*PI*h*h)) * (pow(3.0-q,5) - 6.0*pow(2.0-q,5) + 15.0*pow(1.0-q,5)); }
+        else if (q>=1.0 && q<2.0) {Kernel=(7.0/(478.0*PI*h*h)) * (pow(3.0-q,5) - 6.0*pow(2.0-q,5)); }
+        else if (q>=2.0 && q<3.0) {Kernel=(7.0/(478.0*PI*h*h)) * (pow(3.0-q,5)); }
+        else if (q>=3.0) {Kernel=0.0;}
+
+        //return Kernel;
+    }
+
+    static void ComputeKernelDerivative(array_1d<double,2> rvec, double h, array_1d<double,2>& w)
+    {
+        double r = norm_2(rvec);
+
+        double KernelValue=0.0;
+        double q;
+        q=r/h;
+
+        if (q<0.0) {std::cout<<"WARNING: q is negative (GRADIENT) ";}
+        else if (q>=0.0 && q<1.0) {KernelValue=(7.0/(478.0*PI*h*h)) * ( ( 5.0 * pow(3.0-q,4) * (-1.0/h) ) - ( 30.0 * pow(2.0-q,4) * (-1.0/h) ) + ( 75.0 * pow(1.0-q,4) * (-1.0/h) ) ); }
+        else if (q>=1.0 && q<2.0) {KernelValue=(7.0/(478.0*PI*h*h)) * ( ( 5.0 * pow(3.0-q,4) * (-1.0/h) ) - ( 30.0 * pow(2.0-q,4) * (-1.0/h) ) ) ; }
+        else if (q>=2.0 && q<3.0) {KernelValue=(7.0/(478.0*PI*h*h)) * ( ( 5.0 * pow(3.0-q,4) * (-1.0/h) ) ) ;}
+        else if (q>=3.0) {KernelValue=0;}
+
+        //array_1d<double,3> w;
+        if (r==0.0) {noalias(w)=ZeroVector(3); } // To avoid having nan
+        else noalias(w) = (KernelValue/r)*rvec;
+
+        //return w;
+    }*/
 
     ///A is the area we associate to the point
     ///N is a vector such that N(j) is the shape function associated to node j
@@ -298,6 +371,270 @@ public:
 
     }
 };
+
+/*class LinearULFLME
+{
+public:
+
+    static void ComputeGamma(Vector& p_a, const Matrix& Coordinates, Matrix& hgam,Vector& dgam,const array_1d<double,2>& x,const double& beta, Vector& lam)
+    {
+
+        KRATOS_TRY;
+        const unsigned int dim = 2;
+
+        Vector sum1,sum2,temp;
+        //array_1d<double,dim> dgam;
+
+        double Z,gam;
+        Matrix xx(Coordinates.size1(),dim),xx1(Coordinates.size1(),dim),xx2(Coordinates.size1(),dim),hgam0(dim,dim);
+        Vector dgam0;
+
+
+
+        Z = 0;
+        gam = 0;
+        sum1 = zero_vector<double> (Coordinates.size1());
+        sum2 = zero_vector<double> (Coordinates.size1());
+        temp = zero_vector<double> (Coordinates.size1());
+        dgam = zero_vector<double> (dim);
+        dgam0 = zero_vector<double> (dim);
+        xx = ZeroMatrix(Coordinates.size1(),dim);
+        xx1 = ZeroMatrix(Coordinates.size1(),dim);
+        xx2 = ZeroMatrix(Coordinates.size1(),dim);
+        hgam = ZeroMatrix(dim,dim);
+        hgam0 = ZeroMatrix(dim,dim);
+
+        //lam = zero_vector<double> (dim);
+
+        for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+        {
+           for(unsigned int d = 0; d < dim; d++)
+           {
+                //sum1(ii) += pow((x(d)-Coordinates(ii,d)),2);
+                sum1(ii) += ((x(d)-Coordinates(ii,d))*(x(d)-Coordinates(ii,d)));
+                sum2(ii) += lam(d)*(x(d)-Coordinates(ii,d));
+            }
+        }
+        //KRATOS_WATCH(sum1);
+        //KRATOS_WATCH(sum2);
+
+
+        for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+        {
+            temp(ii) = exp(-beta*sum1(ii) + sum2(ii));
+            Z += temp(ii);
+        }
+
+
+
+        for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+        {
+            p_a(ii) = temp(ii)/Z;
+        }
+
+        gam = log(Z);
+
+        //KRATOS_WATCH(p_a);
+
+        for(unsigned int d = 0; d < dim; d++)
+        {
+           for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+           {
+
+                dgam0(d) += (x(d)-Coordinates(ii,d));
+
+            }
+
+        }
+
+        dgam0 /= Coordinates.size1();
+
+        for(unsigned int d = 0; d < dim; d++)
+        {
+           for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+           {
+                //dgam(d) += (x(d)-Coordinates(ii,d))*p_a(ii);
+                dgam(d) += (x(d)-Coordinates(ii,d)-dgam0(d))*p_a(ii);
+
+            }
+
+
+        }
+
+        dgam += dgam0;
+
+        //dgam =  prod(trans(xx),p_a);
+        //KRATOS_WATCH(dgam);
+
+        for(unsigned int d1 = 0; d1 < dim; d1++)
+        {
+           for(unsigned int d2 = 0; d2 < dim; d2++)
+           {
+
+               for(unsigned int ii = 0; ii < Coordinates.size1(); ii++)
+               {
+                   //xx1(ii,d1) = x(d1)-Coordinates(ii,d1);
+                   //xx2(ii,d2) = x(d2)-Coordinates(ii,d2);
+
+                   //hgam0(ii,d1) = p_a(ii)*xx1(ii,d1);
+
+
+
+                   //hgam0(d1,d2) += p_a(ii)*(x(d1)-Coordinates(ii,d1))*(x(d2)-Coordinates(ii,d2));
+                   hgam0(d1,d2) += p_a(ii)*(x(d1)-Coordinates(ii,d1)-dgam0(d1))*(x(d2)-Coordinates(ii,d2)-dgam0(d2));
+
+               }
+
+
+               //hgam(d1,d2) =  hgam0(d1,d2) - dgam(d1)*dgam(d2);
+               hgam(d1,d2) =  hgam0(d1,d2) - (dgam(d1)-dgam0(d1))*(dgam(d2)-dgam0(d2));
+
+            }
+        }
+
+
+
+
+        //hgam = hgam0 - dgam0;
+        //hgam = prod(trans(hgam0), xx2) - dgam0;
+
+        //KRATOS_WATCH(hgam);
+
+
+        KRATOS_CATCH("");
+
+
+    }
+
+
+
+
+
+
+
+    ///A is the area we associate to the point
+    ///N is a vector such that N(j) is the shape function associated to node j
+    ///DN_DX(i,k) is the derivative of the shape function of node i, component k
+    ///coordinates, is a input matrix with the coordinates of all of the points in the cloud, Coordinates(i,k) is the component k of the i-th node in the cloud
+    ///nn, is number of gauss points in the cloud
+    // only 2d now
+
+    static void ComputeLMEShapef( Vector& Ng, Matrix& DN_DX, const Matrix& Coordinates, const array_1d<double,2>& x, const double& h)
+    {
+        KRATOS_TRY;
+
+
+        const unsigned int dim = 2;
+        double gamma = 1.8;
+        //This sets the numerical threshold for the support of the shape functions
+        double target_zero = 1.e-5;
+        //This is the tolerance for the Newton iteration to compute the shape functions
+        double TolLag = 1.e-6;
+
+        double blk_spacing = h;
+
+        double beta = gamma/(blk_spacing*blk_spacing);
+        //beta=beta_(i);
+
+        Vector lam,R,dlam;
+
+        lam = zero_vector<double> (dim);
+        R = 10*unit_vector<double> ( dim );
+        dlam = 10*unit_vector<double> ( dim );
+
+        unsigned int niter,niter_mean;
+        niter = 0;
+        niter_mean = 0;
+
+        //Newton iteration
+        bool iflag = 0;
+
+
+        Matrix M = ZeroMatrix(2,2);
+        Matrix Inverted_M = ZeroMatrix(2,2);
+
+        while (norm_2(R)>TolLag)
+        {
+            LinearULFLME::ComputeGamma(Ng,Coordinates,M,R,x,beta,lam);
+
+            //KRATOS_WATCH(norm_2(R));
+
+
+            //KRATOS_WATCH(Ng);
+            //KRATOS_WATCH(J);
+            //KRATOS_WATCH(R);
+
+            double determinant_M = MathUtils<double>::Det2(M);
+            MathUtils<double>::InvertMatrix(M,Inverted_M,determinant_M);
+            if(fabs(determinant_M) < 1e-8)
+            {
+                iflag = 1;
+                //std::cout << "Newton Failed, near to singular matrix" << std::endl;
+            }
+
+
+
+
+            dlam = -prod(Inverted_M,R);
+
+            for(unsigned int d = 0; d < dim; d++)
+            {
+                lam(d) += dlam(d);
+            }
+            //lam += dlam;
+            niter++;
+
+
+
+            //KRATOS_WATCH(determinant_M);
+
+            if (niter>100)
+            {
+                iflag = 1;
+                std::cout << "Newton Failed 2, no convergence in 100 iterations" << std::endl;
+            }
+
+
+        }
+
+
+
+        //Spacial Gradients
+        DN_DX = ZeroMatrix(Coordinates.size1(),dim);
+        Matrix xx3;
+        Vector pa_0;
+
+        xx3 = ZeroMatrix(Coordinates.size1(),dim);
+        pa_0 = zero_vector<double> (dim);
+
+        for (unsigned int ia=0;ia<Coordinates.size1(); ia++)
+        {
+            for(unsigned int d = 0; d < dim; d++)
+            {
+                 //xx3(ia,d) = x(d)-Coordinates(ia,d);
+                 pa_0(d) = Ng(ia)*(x(d)-Coordinates(ia,d));
+
+                 //DN_DX(ia,d) = Ng(ia)*(x(d)-Coordinates(ia,d));
+            }
+
+            row(DN_DX,ia) = -prod(Inverted_M,pa_0);
+
+
+        }
+
+
+        //DN_DX = -prod(pa_0,Inverted_M);
+
+
+        //niter_mean = niter_mean + niter;
+
+        //KRATOS_WATCH(DN_DX);
+        //KRATOS_WATCH(pa_0);
+
+        KRATOS_CATCH("");
+
+    }
+};*/
 
 }  // namespace Kratos.
 

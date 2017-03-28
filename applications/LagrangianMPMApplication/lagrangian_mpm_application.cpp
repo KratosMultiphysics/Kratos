@@ -42,6 +42,16 @@ void KratosLagrangianMPMApplication::Register()
     KRATOS_REGISTER_VARIABLE(   EFFECTIVE_RADIUS )
     KRATOS_REGISTER_VARIABLE(   SHAPE_FUNCTIONS )
     KRATOS_REGISTER_VARIABLE(   SHAPE_FUNCTIONS_DERIVATIVES )
+    
+     KRATOS_REGISTER_VARIABLE( INCREMENTAL_DISP )
+
+    KRATOS_REGISTER_VARIABLE( NODAL_STRESS )
+    KRATOS_REGISTER_VARIABLE( NODAL_STRAIN )
+    //KRATOS_REGISTER_VARIABLE( NODAL_AREA)
+
+    KRATOS_REGISTER_VARIABLE( CENTER_ID )
+
+    //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_DISPLACEMENT )
 
     KRATOS_REGISTER_ELEMENT("MeshlessBaseElement",mMeshlessBaseElement); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianMPMElement",mUpdatedLagrangianMPMElement); //this is the name the element should have according to the naming convention
