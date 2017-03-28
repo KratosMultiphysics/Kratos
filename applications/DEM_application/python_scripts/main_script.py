@@ -33,8 +33,6 @@ else:
 class Solution(object):
 
     def __init__(self):
-        self.variables_have_been_added = False
-        self.model_parts_have_been_read = False
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
@@ -142,14 +140,11 @@ class Solution(object):
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.scheme, self.all_model_parts, DEM_parameters)
-        self.variables_have_been_added = True
 
     def Initialize(self):
-        if not self.variables_have_been_added:
-            self.AddVariables()
+        self.AddVariables()
 
-        if not self.model_parts_have_been_read:
-            self.ReadModelParts()
+        self.ReadModelParts()
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
