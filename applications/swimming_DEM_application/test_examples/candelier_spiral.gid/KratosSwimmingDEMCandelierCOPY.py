@@ -29,6 +29,7 @@ class Logger(object):
         pass
 
 sys.stdout = Logger()
+import math
 simulation_start_time = timer.clock()
 
 # Kratos
@@ -49,6 +50,14 @@ import DEM_explicit_solver_var as DEM_parameters
 import ProjectParameters as pp # MOD
 import define_output
 
+# setting the domain size for the problem to be solved
+domain_size = pp.domain_size
+
+import swimming_dem_parameters
+import swimming_DEM_procedures as swim_proc
+import CFD_DEM_coupling
+import variables_management as vars_man
+import embedded
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -70,12 +79,6 @@ else:
 class Solution:
 
     def __init__(self, simulation_time = 100, basset_force_type = 1, Nq = 1, m = 10, number_of_quadrature_steps_in_window = 10):
-        import dem_main_script
-        import DEM_explicit_solver_var as DEM_parameters
-        # import the configuration data as read from the GiD
-        import ProjectParameters as pp # MOD
-        import define_output
-        import math
         self.main_path = os.getcwd()
 
         self.pp = pp
@@ -138,21 +141,8 @@ class Solution:
 
     def Run(self):
         import math
-        import swimming_dem_parameters
-        import swimming_DEM_procedures as swim_proc
-        import CFD_DEM_coupling
-        import variables_management as vars_man
-        import embedded
-        import dem_main_script
-        import DEM_explicit_solver_var as DEM_parameters
-        # import the configuration data as read from the GiD
-        import ProjectParameters as pp # MOD
-        import define_output
-
-        # setting the domain size for the problem to be solved
-        domain_size = pp.domain_size
-
         run_code = swim_proc.CreateRunCode(pp)
+
 
         # Moving to the recently created folder
         os.chdir(self.main_path)
@@ -197,10 +187,13 @@ class Solution:
         if "DISTANCE" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
+        #
+        #
         # importing the solvers needed
         SolverSettings = self.pp.FluidSolverConfiguration
         solver_module = import_solver(SolverSettings)
 
+        #
         # importing variables
         print('Adding nodal variables to the fluid_model_part')  #     MOD.
         sys.stdout.flush()
@@ -946,7 +939,7 @@ class Solution:
         print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
         print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
         print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
-        print()        
+        print()
 
         dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
 

@@ -1327,10 +1327,9 @@ def Run(debug_mode = False):
     return Benchmark.text_to_print
 
 if __name__ == '__main__':    
-    #print(Run(True))        
+    #print(Run(True))
     text_to_print = Run(False)
     f = open("hydrodynamic_forces.txt",'w')
     f.write(text_to_print)
     f.close
-    
     
