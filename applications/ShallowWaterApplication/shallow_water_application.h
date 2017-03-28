@@ -23,11 +23,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+
+
 #include "includes/variables.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "custom_elements/poisson_2d.h"
-#include "custom_conditions/pointsource.h"
 
 
 namespace Kratos
@@ -37,7 +35,9 @@ namespace Kratos
 	///@{ 
 
 	// Variables definition 
-	KRATOS_DEFINE_VARIABLE(double, POINT_HEAT_SOURCE)
+//	KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
+//	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
+//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 
 
 	///@} 
@@ -56,6 +56,9 @@ namespace Kratos
 	///@name Kratos Classes
 	///@{
 
+	/// Short class definition.
+	/** Detail class definition.
+	*/
 	class KratosShallowWaterApplication : public KratosApplication
 	{
 	public:
@@ -66,6 +69,9 @@ namespace Kratos
 		/// Pointer definition of KratosShallowWaterApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosShallowWaterApplication);
 
+		///@}
+		///@name Life Cycle 
+		///@{ 
 
 		/// Default constructor.
 		KratosShallowWaterApplication();
@@ -78,6 +84,10 @@ namespace Kratos
 		///@name Operators 
 		///@{
 
+
+		///@}
+		///@name Operations
+		///@{
 
 		virtual void Register();
 
@@ -208,9 +218,6 @@ namespace Kratos
 		///@}    
 		///@name Un accessible methods 
 		///@{ 
-	
-		const Poisson2D mPoisson2D;      // Steady state heat transfer element (Poisson)
-		const PointSource mPointSource;  // and condition for steady state heat transfer (Poisson)
 
 		/// Assignment operator.
 		KratosShallowWaterApplication& operator=(KratosShallowWaterApplication const& rOther);
