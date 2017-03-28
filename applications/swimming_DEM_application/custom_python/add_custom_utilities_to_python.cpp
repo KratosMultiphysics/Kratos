@@ -404,7 +404,7 @@ using namespace boost::python;
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
-        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMVariablesToImpose)
         ;
 
     class_<DerivativeRecoveryMeshingTools> ("DerivativeRecoveryMeshingTools", init<>())

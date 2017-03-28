@@ -33,3 +33,10 @@ class Solution(BaseSolution):
 
     def SetSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
+
+    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        fluid_mp = self.all_model_parts.Get('FluidPart')
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(fluid_mp)
+        super(Solution, self).ReadModelParts(max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
