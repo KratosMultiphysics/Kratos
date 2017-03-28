@@ -15,7 +15,7 @@ import sys
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
-        self.path_to_console_out_file = "console_output.txt"
+        self.path_to_console_out_file = 'console_output.txt'
         self.log = open(self.path_to_console_out_file, "a")
 
     def write(self, message):
@@ -29,7 +29,6 @@ class Logger(object):
         pass
 
 sys.stdout = Logger()
-import math
 simulation_start_time = timer.clock()
 
 # Kratos
@@ -46,19 +45,9 @@ sys.path.insert(0,'')
 # DEM Application
 import dem_main_script
 import DEM_explicit_solver_var as DEM_parameters
-
 # import the configuration data as read from the GiD
 import ProjectParameters as pp # MOD
 import define_output
-
-# setting the domain size for the problem to be solved
-domain_size = pp.domain_size
-
-import swimming_dem_parameters
-import swimming_DEM_procedures as swim_proc
-import CFD_DEM_coupling
-import variables_management as vars_man
-import embedded
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -78,12 +67,17 @@ else:
     print("Running under OpenMP........")
 
 class Solution:
-    
+
     def __init__(self):
+        import dem_main_script
+        import DEM_explicit_solver_var as DEM_parameters
+        # import the configuration data as read from the GiD
+        import ProjectParameters as pp # MOD
+        import define_output
+        import math
         self.main_path = os.getcwd()
-        
+
         self.pp = pp
-        self.DS = dem_main_script.Solution()
 
         DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
 
@@ -120,7 +114,7 @@ class Solution:
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = False
+        self.pp.CFD_DEM.do_impose_flow_from_field = True
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
@@ -129,20 +123,37 @@ class Solution:
         # Making the fluid step an exact multiple of the DEM step
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
+        self.domain_size = 3
         #Z
         # NANO BEGIN
         if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            self.pp.CFD_DEM.basset_force_type = 0
             self.pp.CFD_DEM.PostCationConcentration = True
             self.pp.initial_concentration = 1.0
             self.pp.final_concentration = 0.01
             self.pp.fluid_speed = 1e-14
             self.pp.cation_concentration_frequence = 1
-            concentration = self.pp.initial_concentration
+            self.pp.CFD_DEM.drag_force_type = 9
         # NANO END
-        
-    def Run(self):
 
-        self.DS.Initialize()
+        # defining a model part for the fluid part
+        self.DS = dem_main_script.Solution()
+        self.DS.all_model_parts.Add(ModelPart("FluidPart"))
+
+    def Run(self):
+        import math
+        import swimming_dem_parameters
+        import swimming_DEM_procedures as swim_proc
+        import CFD_DEM_coupling
+        import variables_management as vars_man
+        import embedded
+        import dem_main_script
+        import DEM_explicit_solver_var as DEM_parameters
+        # import the configuration data as read from the GiD
+        import ProjectParameters as pp # MOD
+        import define_output
+      
+        concentration = self.pp.initial_concentration
 
         # Moving to the recently created folder
         os.chdir(self.main_path)
@@ -178,22 +189,18 @@ class Solution:
                                 "BUOYANCY"   : BUOYANCY,   #    MOD.
                                 "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
                                 "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-
-        # defining a model part for the fluid part
-        fluid_model_part = ModelPart("FluidPart")
+        
+        fluid_model_part = self.DS.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(REACTION)
         if "DISTANCE" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-        #
-        #
         # importing the solvers needed
         SolverSettings = self.pp.FluidSolverConfiguration
         solver_module = import_solver(SolverSettings)
 
-        #
         # importing variables
         print('Adding nodal variables to the fluid_model_part')  #     MOD.
         sys.stdout.flush()
@@ -216,29 +223,6 @@ class Solution:
         #                               F L U I D    B L O C K    E N D S
         #_____________________________________________________________________________________________________________________________________
 
-
-        #Getting chosen scheme:
-        if DEM_parameters.IntegrationScheme == 'Forward_Euler':
-            scheme = ForwardEulerScheme()
-        elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
-            if self.pp.CFD_DEM.basset_force_type > 0:
-                scheme = SymplecticEulerOldVelocityScheme()
-            else:
-                scheme = SymplecticEulerScheme()
-        elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
-            scheme = TaylorScheme()
-        elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
-            scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
-            scheme = VerletVelocityScheme()
-        elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-            scheme = HybridBashforthScheme()
-        else:
-            self.DS.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
-
-        if DEM_parameters.ElementType == "SwimmingNanoParticle":
-            scheme = TerminalVelocityScheme()
-
         # Add variables
 
         vars_man.AddNodalVariables(self.DS.spheres_model_part, self.pp.dem_vars)
@@ -257,7 +241,6 @@ class Solution:
         # defining a model part for the mixed part
         mixed_model_part = ModelPart("MixedPart")
 
-
         fluid_model_part.SetBufferSize(3)
         solver_module.AddDofs(fluid_model_part, SolverSettings)
         swim_proc.AddExtraDofs(self.pp, fluid_model_part, self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.DEM_inlet_model_part)
@@ -268,7 +251,7 @@ class Solution:
             node.SetValue(Y_WALL, y)
 
         # Creating necessary directories
-        
+
         [post_path, data_and_results, graphs_path, MPI_results] = self.DS.procedures.CreateDirectories(str(self.main_path), str(DEM_parameters.problem_name))
 
         os.chdir(self.main_path)
@@ -331,6 +314,7 @@ class Solution:
                     node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
                     node.Fix(TURBULENT_VISCOSITY)
 
+        self.DS.Initialize()
         fluid_solver.Initialize()
         print("fluid solver created")
         sys.stdout.flush()
@@ -444,7 +428,7 @@ class Solution:
             elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
                 DEM_parameters.meso_scale_length  = 1.0
 
-            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, domain_size, self.pp)
+            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp)
             projection_module.UpdateDatabase(h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
@@ -468,7 +452,6 @@ class Solution:
         if (DEM_parameters.embedded_option):
             calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.DS.rigid_face_model_part, fluid_model_part)
             calculate_distance_process.Execute()
-
 
         self.DS.KRATOSprint("Initialization Complete" + "\n")
 
@@ -635,11 +618,6 @@ class Solution:
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
         recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
 
-        number=0
-        for node in fluid_model_part.Nodes:
-            number += 1
-        #Z
-
         N_steps = int(final_time / Dt_DEM) + 20
 
         if self.pp.CFD_DEM.basset_force_type > 0:
@@ -724,6 +702,7 @@ class Solution:
                 self.DS.rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
                 self.DS.cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
                 # NANO BEGIN
+
                 if cation_concentration_counter.Tick():
                     concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- alpha * time_dem)
 
@@ -767,7 +746,7 @@ class Solution:
                 #### TIME CONTROL ##################################
 
                 # adding DEM elements by the inlet:
-                if (DEM_parameters.dem_inlet_option):
+                if DEM_parameters.dem_inlet_option:
                     self.DS.DEM_inlet.CreateElementsFromInletMesh(self.DS.spheres_model_part, self.DS.cluster_model_part, self.DS.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
                 if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
@@ -779,7 +758,7 @@ class Solution:
                     out = 0
 
                 out = out + Dt_DEM
-                #first_dem_iter = False
+                first_dem_iter = False
 
             if DEM_parameters.ElementType == "SwimmingNanoParticle":
                 print("concentration: " + str(concentration))
@@ -793,14 +772,12 @@ class Solution:
             os.chdir(post_path)
 
             # applying DEM-to-fluid coupling
-
             if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
                 projection_module.ProjectFromParticles()
 
             # coupling checks (debugging)
-
             if debug_info_counter.Tick():
-                dem_volume_tool.UpdateDataAndPrint(DEM_parameters.fluid_domain_volume)
+                self.spheres_model_part.UpdateDataAndPrint(DEM_parameters.fluid_domain_volume)
 
             # printing if required
 
@@ -836,6 +813,6 @@ class Solution:
 
         for i in drag_file_output_list:
             i.close()
-            
+
 if __name__=="__main__":
     Solution().Run()

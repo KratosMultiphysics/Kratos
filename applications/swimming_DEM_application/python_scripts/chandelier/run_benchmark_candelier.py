@@ -28,8 +28,6 @@ test = script.Solution(simulation_time = 1.0, basset_force_type = 0)
 error_names.append('No history force, Daitche')
 errors.append(test.Run())
 
-os.remove('candelier_results.h5py')
-
 # Second-order accurate Daitche benchmark
 test = script.Solution(simulation_time = 1.0, basset_force_type = 2)
 error_names.append('All forces, Daitche')

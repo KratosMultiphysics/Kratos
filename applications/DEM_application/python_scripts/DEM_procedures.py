@@ -68,13 +68,24 @@ class MdpaCreator(object):
 
 
 class SetOfModelParts(object):
-    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part):
-        self.spheres_model_part    = spheres_model_part
-        self.rigid_face_model_part = rigid_face_model_part
-        self.cluster_model_part    = cluster_model_part
-        self.DEM_inlet_model_part  = DEM_inlet_model_part
-        self.mapping_model_part    = mapping_model_part
-        self.contact_model_part    = contact_model_part
+    def __init__(self, model_parts_list):
+        names = [l.Name for l in model_parts_list]
+        self.model_parts = dict()
+        for mp in model_parts_list:
+            self.model_parts[mp.Name] = mp
+
+        self.spheres_model_part    = self.Get("SpheresPart")
+        self.rigid_face_model_part = self.Get("RigidFacePart")
+        self.cluster_model_part    = self.Get("ClusterPart")
+        self.DEM_inlet_model_part  = self.Get("DEMInletPart")
+        self.mapping_model_part    = self.Get("MappingPart")
+        self.contact_model_part    = self.Get("ContactPart")
+
+    def Get(self, name):
+        return self.model_parts[name]
+
+    def Add(self, model_part):
+        self.model_parts[model_part.Name] = model_part
 
 class GranulometryUtils(object):
 
@@ -311,10 +322,10 @@ class Procedures(object):
         
     def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get('SpheresPart')
+        cluster_model_part = all_model_parts.Get('ClusterPart')
+        DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
+        rigid_face_model_part = all_model_parts.Get('RigidFacePart')
         
         self.solver=solver
         self.scheme=scheme
@@ -462,13 +473,13 @@ class Procedures(object):
 
     def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
         
-        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.spheres_model_part)
-        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(all_model_parts.spheres_model_part)
-        max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.rigid_face_model_part)
-        max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.cluster_model_part)
-        max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
+        max_candidates = []
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("SpheresPart")))
+        max_candidates.append(creator_destructor.FindMaxElementIdInModelPart(all_model_parts.Get("SpheresPart")))
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("RigidFacePart")))
+        max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("ClusterPart")))
         
-        return max_Id
+        return max(max_candidates)
 
     def ModelData(self, spheres_model_part, solver):
         
@@ -706,7 +717,7 @@ class Procedures(object):
         
         bounding_box_time_limits = []
         if (self.DEM_parameters.BoundingBoxOption == "ON"):
-            self.SetBoundingBox(all_model_parts.spheres_model_part, all_model_parts.cluster_model_part, all_model_parts.rigid_face_model_part, creator_destructor)
+            self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), creator_destructor)
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
 
@@ -890,9 +901,9 @@ class DEMFEMProcedures(object):
         
     def MoveAllMeshes(self, all_model_parts, time, dt):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
@@ -935,10 +946,10 @@ class DEMFEMProcedures(object):
 
     def UpdateTimeInModelParts(self, all_model_parts, time,dt,step):  
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         
         spheres_model_part.ProcessInfo[TIME]          = time
         spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
@@ -1344,8 +1355,8 @@ class DEMIo(object):
         
     def ShowPrintingResultsOnScreen(self, all_model_parts):
         self.KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfElements(0)) + " elements)")
-        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfNodes(0)) + " nodes)")
+        self.KRATOSprint("                        ("+ str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
+        self.KRATOSprint("                        ("+ str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
         self.KRATOSprint("")
         
     def Initialize(self, DEM_parameters):
@@ -1643,12 +1654,12 @@ class DEMIo(object):
 
     def PrintResults(self, all_model_parts, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         
-        spheres_model_part = all_model_parts.spheres_model_part
-        cluster_model_part = all_model_parts.cluster_model_part
-        DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
-        rigid_face_model_part = all_model_parts.rigid_face_model_part
-        contact_model_part = all_model_parts.contact_model_part
-        mapping_model_part = all_model_parts.mapping_model_part
+        spheres_model_part = all_model_parts.Get("SpheresPart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part =all_model_parts.Get("RigidFacePart")
+        contact_model_part = all_model_parts.Get("ContactPart")
+        mapping_model_part = all_model_parts.Get("MappingPart")
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(spheres_model_part,
