@@ -44,14 +44,14 @@ class ProjectionModule:
 
         # telling the projector which variables we are interested in modifying
 
-        for var in pp.coupling_dem_vars:
+        for var in pp.coupling_dem_vars:            
             self.projector.AddDEMCouplingVariable(var)
 
         for var in pp.coupling_fluid_vars:
             self.projector.AddFluidCouplingVariable(var)
 
         for var in pp.coupling_dem_vars:
-            if var == FLUID_VEL_PROJECTED or var == FLUID_ACCEL_PROJECTED or var == FLUID_VEL_LAPL_PROJECTED or var == FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED:
+            if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
             self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
 
