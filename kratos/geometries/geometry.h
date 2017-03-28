@@ -1307,7 +1307,7 @@ public:
     /** Jacobian in given point. This method calculate jacobian
     matrix in given point.
 
-    @param rPoint point which jacobians has to
+    @param rCoordinates point which jacobians has to
     be calculated in it.
 
     @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -1331,6 +1331,44 @@ public:
                 for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
                 {
                     rResult(k,m) += (( *this )[i]).Coordinates()[k]*shape_functions_gradients(i,m);
+                }
+            }
+        }
+
+        return rResult;
+    }
+    
+    /** Jacobian in given point. This method calculate jacobian
+    matrix in given point.
+
+    @param rCoordinates point which jacobians has to
+    be calculated in it.
+    
+    @param DeltaPosition Matrix with the nodes position increment which describes
+    the configuration where the jacobian has to be calculated.
+
+    @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
+
+    @see DeterminantOfJacobian
+    @see InverseOfJacobian
+    */
+    
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& DeltaPosition ) const
+    {
+        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+
+        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
+        ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
+
+        rResult.clear();
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
+            {
+                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
+                {
+                    rResult(k,m) += ( (( *this )[i]).Coordinates()[k] - DeltaPosition(i,k))*shape_functions_gradients(i,m);
                 }
             }
         }
@@ -1423,7 +1461,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 
@@ -1443,7 +1481,7 @@ public:
     {
         Matrix J;
         this->Jacobian( J, rPoint);
-        return MathUtils<double>::Det(J);
+        return MathUtils<double>::GeneralizedDet(J);
     }
 
 
@@ -1979,7 +2017,7 @@ public:
      *
      * @see Name()
      */
-    virtual std::string Info() const {
+    virtual std::string Info() const override {
       std::stringstream buffer;
       buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
@@ -2009,7 +2047,7 @@ public:
      * @see PrintName()
      * @see PrintData()
      */
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    virtual void PrintInfo(std::ostream& rOStream) const override {
       rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
     }
 
@@ -2034,7 +2072,7 @@ public:
      * @see PrintInfo()
      * @see PrintName()
      */
-    virtual void PrintData( std::ostream& rOStream ) const {
+    virtual void PrintData( std::ostream& rOStream ) const override {
       if(mpGeometryData) {
         mpGeometryData->PrintData( rOStream );
       }
@@ -2307,13 +2345,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
 //                 rSerializer.save( "Geometry Data", mpGeometryData );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );

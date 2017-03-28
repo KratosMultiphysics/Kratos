@@ -144,54 +144,54 @@ public:
     ///@name Operations
     ///@{
 
-    void* Clone(const void* pSource) const
+    void* Clone(const void* pSource) const override
     {
         return new TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
-    void* Copy(const void* pSource, void* pDestination) const
+    void* Copy(const void* pSource, void* pDestination) const override
     {
         return new(pDestination) TDataType(*static_cast<const TDataType* >(pSource) );
     }
 
-    void Assign(const void* pSource, void* pDestination) const
+    void Assign(const void* pSource, void* pDestination) const override
     {
         (*static_cast<TDataType* >(pDestination) ) = (*static_cast<const TDataType* >(pSource) );
     }
 
-    void AssignZero(void* pDestination) const
+    void AssignZero(void* pDestination) const override
     {
         //(*static_cast<TDataType* >(pDestination) ) = mZero;
         new (pDestination) TDataType(mZero);
     }
 
-    void Delete(void* pSource) const
+    void Delete(void* pSource) const override
     {
         delete static_cast<TDataType* >(pSource);
     }
 
-    void Destruct(void* pSource) const
+    void Destruct(void* pSource) const override
     {
         static_cast<TDataType* >(pSource)->~TDataType();
     }
 
-    void Print(const void* pSource, std::ostream& rOStream) const
+    void Print(const void* pSource, std::ostream& rOStream) const override
     {
         rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
     }
 
-    virtual void Save(Serializer& rSerializer, void* pData) const
+    virtual void Save(Serializer& rSerializer, void* pData) const override
     {
         // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
         rSerializer.save("Data",*static_cast<TDataType* >(pData));
     }
 
-    virtual void Allocate(void** pData) const
+    virtual void Allocate(void** pData) const override
     {
         *pData = new TDataType;
     }
 
-    virtual void Load(Serializer& rSerializer, void* pData) const
+    virtual void Load(Serializer& rSerializer, void* pData) const override
     {
         rSerializer.load("Data",*static_cast<TDataType* >(pData));
     }
@@ -220,7 +220,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << Name() << " variable";
@@ -228,7 +228,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Name() << " variable";
     }
@@ -308,13 +308,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
         rSerializer.save("Zero",mZero);
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
         rSerializer.load("Zero",mZero);

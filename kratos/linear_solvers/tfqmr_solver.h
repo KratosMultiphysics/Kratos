@@ -121,7 +121,7 @@ public:
         @param rX. Solution vector. it's also the initial
         guess for iterative linear solvers.
         @param rB. Right hand side vector*/
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -154,7 +154,7 @@ public:
         @param rX. Solution vector. it's also the initial
         guess for iterative linear solvers.
         @param rB. Right hand side vector*/
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         /*            GetTimeTable()->Start(Info()); */
 
@@ -190,7 +190,7 @@ public:
 
 
     /// Return information about this object.
-    std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Tranpose-free QMR linear solver with " << BaseType::GetPreconditioner()->Info();
@@ -198,7 +198,7 @@ public:
     }
 
     /// Print information about this object.
-    void  PrintInfo(std::ostream& OStream) const
+    void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Tranpose-free QMR linear solver with ";
         BaseType::GetPreconditioner()->PrintInfo(OStream);
@@ -206,7 +206,7 @@ public:
 
 
     /// Print object's data.
-    void  PrintData(std::ostream& OStream) const
+    void  PrintData(std::ostream& OStream) const override
     {
         BaseType::PrintData(OStream);
     }
