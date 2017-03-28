@@ -125,7 +125,9 @@ class Solution:
         self.pp.viscosity_modification_type = 0.0
         #Z
 
+        # defining a model part for the fluid part
         self.DS = dem_main_script.Solution()
+        self.DS.all_model_parts.Add(ModelPart("FluidPart"))
 
     def Run(self):
         import math
@@ -178,8 +180,7 @@ class Solution:
                                 "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
                                 "LIFT_FORCE" : LIFT_FORCE} #    MOD.
 
-        # defining a model part for the fluid part
-        fluid_model_part = ModelPart("FluidPart")
+        fluid_model_part = self.DS.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(REACTION)

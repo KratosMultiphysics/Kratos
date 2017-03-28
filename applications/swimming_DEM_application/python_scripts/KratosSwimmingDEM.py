@@ -135,7 +135,10 @@ class Solution:
             self.pp.cation_concentration_frequence = 1
             self.pp.CFD_DEM.drag_force_type = 9
         # NANO END
+
+        # defining a model part for the fluid part
         self.DS = dem_main_script.Solution()
+        self.DS.all_model_parts.Add(ModelPart("FluidPart"))
 
     def Run(self):
         import math
@@ -149,7 +152,7 @@ class Solution:
         # import the configuration data as read from the GiD
         import ProjectParameters as pp # MOD
         import define_output
-
+      
         concentration = self.pp.initial_concentration
 
         # Moving to the recently created folder
@@ -186,9 +189,8 @@ class Solution:
                                 "BUOYANCY"   : BUOYANCY,   #    MOD.
                                 "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
                                 "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-
-        # defining a model part for the fluid part
-        fluid_model_part = ModelPart("FluidPart")
+        
+        fluid_model_part = self.DS.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
             fluid_model_part.AddNodalSolutionStepVariable(REACTION)
@@ -274,7 +276,7 @@ class Solution:
         self.demio.SetOutputName(DEM_parameters.problem_name)
 
         os.chdir(post_path)
-        self.DS.all_model_parts.Add(fluid_model_part)
+
         self.demio.InitializeMesh(self.DS.all_model_parts)
 
 
@@ -311,7 +313,6 @@ class Solution:
                     fluid_solver.wall_nodes.append(node)
                     node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
                     node.Fix(TURBULENT_VISCOSITY)
-
 
         self.DS.Initialize()
         fluid_solver.Initialize()
