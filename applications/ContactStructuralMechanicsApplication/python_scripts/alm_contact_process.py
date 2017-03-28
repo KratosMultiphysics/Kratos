@@ -20,6 +20,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : "Contact_Part",
