@@ -79,7 +79,7 @@ public:
      * This function fills the contact_container for the Mortar condition
      * @param ContactPoint: The destination point
      * @param Geom1 and Geom2: The geometries of the slave and master respectively
-     * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
+     * @param ContactNormal1 and ContactNormal2: The normals of the slave and master respectively
      * @param IntegrationOrder: The integration order   
      * @return contact_container: Once has been filled
      */
@@ -87,15 +87,15 @@ public:
     static inline bool ContactContainerFiller(
             GeometryType& Geom1, // SLAVE
             GeometryType& Geom2, // MASTER
-            const array_1d<double, 3> & contact_normal1, // SLAVE
-            const array_1d<double, 3> & contact_normal2, // MASTER
+            const array_1d<double, 3> & ContactNormal1, // SLAVE
+            const array_1d<double, 3> & ContactNormal2, // MASTER
             const double ActiveCheckFactor
             )
     {
         // Define the basic information
         const unsigned int number_nodes = Geom1.PointsNumber();
         
-        bool cond_active = false;
+        bool ConditionIsActive = false;
         
         for (unsigned int index = 0; index < number_nodes; index++)
         {
@@ -105,7 +105,7 @@ public:
                 double aux_dist = 0.0;
                 if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
                 {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, ContactNormal1);
                 }
                 else
                 {
@@ -122,36 +122,54 @@ public:
                 if (aux_dist <= dist_tol && Geom2.IsInside(ProjectedPoint, result))
                 { 
                     Geom1[index].Set(ACTIVE, true);
-                    cond_active = true;
+                    ConditionIsActive = true;
                 }
              }
              else
              {
-                 cond_active = true;
+                 ConditionIsActive = true;
              }
          }
          
-         return cond_active;
+         return ConditionIsActive;
     }
     
     static inline void ContactContainerFiller(
         std::vector<contact_container> *& ConditionPointers,
-        Condition::Pointer & pCond_1,       // SLAVE
-        const Condition::Pointer & pCond_2, // MASTER
-        const array_1d<double, 3> & contact_normal1, // SLAVE
-        const array_1d<double, 3> & contact_normal2, // MASTER
+        Condition::Pointer & pCond1,       // SLAVE
+        const Condition::Pointer & pCond2, // MASTER
+        const array_1d<double, 3> & ContactNormal1, // SLAVE
+        const array_1d<double, 3> & ContactNormal2, // MASTER
         const double ActiveCheckFactor
         )
     {
-        const bool cond_active = ContactContainerFiller(pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
+        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
         
-        if (cond_active == true)
+        if (ConditionIsActive == true)
         {
-            pCond_1->Set(ACTIVE, true);
+            pCond1->Set(ACTIVE, true);
             contact_container aux_contact_container;
-            aux_contact_container.condition   = pCond_2;
+            aux_contact_container.condition   = pCond2;
             aux_contact_container.active_pair = true;
             ConditionPointers->push_back(aux_contact_container);
+        }
+    }
+    
+    static inline void ContactContainerFiller(
+        ConditionMap *& ConditionPointers,
+        Condition::Pointer & pCond1,       // SLAVE
+        const Condition::Pointer & pCond2, // MASTER
+        const array_1d<double, 3> & ContactNormal1, // SLAVE
+        const array_1d<double, 3> & ContactNormal2, // MASTER
+        const double ActiveCheckFactor
+        )
+    {
+        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
+        
+        if (ConditionIsActive == true)
+        {
+            pCond1->Set(ACTIVE, true);
+            ConditionPointers->AddNewCondition(pCond2);
         }
     }
     

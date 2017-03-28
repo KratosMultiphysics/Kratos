@@ -40,36 +40,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    #if !defined(KEY_COMPAROR) 
-    #define KEY_COMPAROR
-    struct KeyComparor
-    {
-        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
-        {
-            if(lhs.size() != rhs.size())
-                return false;
-
-            for(unsigned int i=0; i<lhs.size(); i++)
-            {
-                if(lhs[i] != rhs[i]) return false;
-            }
-
-            return true;
-        }
-    };
-    #endif
-    
-    #if !defined(KEY_HASHER)
-    #define KEY_HASHER
-    struct KeyHasher
-    {
-        std::size_t operator()(const vector<int>& k) const
-        {
-            return boost::hash_range(k.begin(), k.end());
-        }
-    };
-    #endif
-    
 ///@}
 ///@name  Enum's
 ///@{
@@ -412,8 +382,8 @@ public:
         {
             auto itCond = pConditions.begin() + i;
             
-            itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-//             itCond->GetValue(CONTACT_CONTAINERS)->reserve(mAllocationSize); 
+            itCond->GetValue(CONTACT_SETS) = new ConditionMap;
+//             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
         }
     }
     
@@ -560,27 +530,25 @@ public:
             {   
 //                 KRATOS_WATCH(NumberPointsFound); 
                 
+                ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
+                
                 for(unsigned int i = 0; i < NumberPointsFound; i++)
                 {   
-                    Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
+                    Condition::Pointer pCondOrigin = PointsFound[i]->GetCondition();
                     
-                    std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-                    
-                    const bool ToCheckCond = CheckCondition(ConditionPointersDestination, pCondDestination, (*itCond.base()));
-                    
-                    if (ToCheckCond == true) 
+                    if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
                     {    
                         // If not active we check if can be potentially in contact
-                        ContactUtilities::ContactContainerFiller(ConditionPointersDestination, pCondDestination, (*itCond.base()), pCondDestination->GetValue(NORMAL), itCond->GetValue(NORMAL), mActiveCheckFactor); 
+                        ContactUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
                     }
                     
                     if (ConditionPointersDestination->size() > 0)
-                    {
-                        pCondDestination->Set(ACTIVE, true);
+                    {                        
+                        itCond->Set(ACTIVE, true);
                         for (unsigned int inode = 0; inode < itCond->GetGeometry().size(); inode++)
                         {
-                            pCondDestination->GetGeometry()[inode].Set(ACTIVE, true);
-                            pCondDestination->GetGeometry()[inode].Set(SLAVE, true);
+                            itCond->GetGeometry()[inode].Set(ACTIVE, true);
+                            itCond->GetGeometry()[inode].Set(SLAVE, true);
                         }
                     }
                 }
@@ -625,14 +593,9 @@ public:
             {
                 KRATOS_WATCH(itCond->GetGeometry());
                 
-                std::vector<contact_container> *& ConditionPointersDestination = itCond->GetValue(CONTACT_CONTAINERS);
+                ConditionMap *& ConditionPointersDestination = itCond->GetValue(CONTACT_SETS);
                 KRATOS_WATCH(ConditionPointersDestination->size());
-                
-                for (unsigned int i = 0; i < ConditionPointersDestination->size(); i++)
-                {
-                    (*ConditionPointersDestination)[i].print();
-                    KRATOS_WATCH(((*ConditionPointersDestination)[i].condition)->GetGeometry());
-                } 
+                ConditionPointersDestination->print();
             }
         }
         
@@ -669,35 +632,24 @@ public:
             
             if (itCond->Is(ACTIVE) == true)
             {            
-                std::vector<contact_container> *& ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
                                 
                 if (ConditionPointers != NULL)
                 {
-                    std::vector<contact_container> AuxConditionPointers;
-                    for (unsigned int ipair = 0; ipair < (*ConditionPointers).size(); ipair++)
-                    {
-                        contact_container AuxContactContainer = (*ConditionPointers)[ipair];
-                        
-                        if (AuxContactContainer.active_pair == false)
+                    for ( auto ipair = ConditionPointers->begin(); ipair != ConditionPointers->end(); ++ipair )
+                    {                        
+                        if (ipair->second == false)
                         {
                             // Last oportunity for the condition pair
-                            const bool CondActive = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),   (AuxContactContainer.condition)->GetGeometry(), 
-                                                                                            itCond->GetValue(NORMAL), (AuxContactContainer.condition)->GetValue(NORMAL), 
+                            const bool CondActive = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
+                                                                                            itCond->GetValue(NORMAL), (ipair->first)->GetValue(NORMAL), 
                                                                                             mActiveCheckFactor);
-                            if (CondActive == true) // Still paired
+                            if (CondActive == false) // Not paired anymore paired
                             {
-                                AuxContactContainer.active_pair = true; 
-                                AuxConditionPointers.push_back(AuxContactContainer);
+                                ConditionPointers->erase(ipair);
                             }
                         }
-                        else // It is already active pair, we append
-                        {
-                            AuxConditionPointers.push_back(AuxContactContainer);
-                        }
                     } 
-                    
-                    // Now we copy the final result
-                    *ConditionPointers = AuxConditionPointers;
                     
                     // All the pairs has been removed
                     if ((*ConditionPointers).size() == 0)
@@ -715,54 +667,42 @@ public:
     
     /**
      * It check the conditions if they are correctly detected
-     * @return ConditionPointers: A vector containing the pointers to the conditions 
-     * @param pCondDestination: The pointer to the condition in the destination model part
-     * @param pCondOrigin: The pointer to the condition in the destination model part  
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @param pCond1: The pointer to the condition in the destination model part
+     * @param pCond2: The pointer to the condition in the destination model part  
      */
     
-    bool CheckCondition( // TODO: IDEA: Use a std::map to avoid repetition
-        std::vector<contact_container> *& ConditionPointers,
-        const Condition::Pointer & pCondDestination,
-        const Condition::Pointer & pCondOrigin
+    bool CheckCondition(
+        ConditionMap *& ConditionPointers1,
+        const Condition::Pointer & pCond1,
+        const Condition::Pointer & pCond2
         )
     {
-        bool AuxBool = (pCondDestination != pCondOrigin) && (pCondDestination->GetValue(ELEMENT_POINTER) != pCondOrigin->GetValue(ELEMENT_POINTER)); // Avoiding "auto self-contact" and "auto element contact"
-        
-        // Avoid conditions oriented in the same direction
-        const double Tolerance = 1.0e-16;
-        if (norm_2(pCondDestination->GetValue(NORMAL) - pCondOrigin->GetValue(NORMAL)) < Tolerance)
+        if (((pCond1 != pCond2) && (pCond1->GetValue(ELEMENT_POINTER) != pCond2->GetValue(ELEMENT_POINTER))) == false) // Avoiding "auto self-contact" and "auto element contact"
         {
             return false;
         }
         
-        // FIXME: Change this for and std::map
-        if (AuxBool == true)
+        // Avoid conditions oriented in the same direction
+        const double Tolerance = 1.0e-16;
+        if (norm_2(pCond1->GetValue(NORMAL) - pCond2->GetValue(NORMAL)) < Tolerance)
         {
-            for (unsigned int pair = 0; pair < ConditionPointers->size(); pair++)
-            {
-                if ((*ConditionPointers)[pair].condition == pCondOrigin)
-                {
-                    AuxBool = false;
-                    break;
-                }
-            }
+            return false;
         }
         
-        if (AuxBool == true)
+        if (ConditionPointers1->find(pCond2) != ConditionPointers1->end())
         {
-            std::vector<contact_container> *& ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
-            
-            for (unsigned int pair = 0; pair < ConditionPointersOrigin->size(); pair++)
-            {
-                if ((*ConditionPointersOrigin)[pair].condition == pCondDestination)
-                {
-                    AuxBool = false;
-                    break;
-                }
-            }
+            return false;
         }
         
-        return AuxBool;
+        ConditionMap *& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+        
+        if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+        {
+            return false;
+        }
+        
+        return true;
     }
     
     ///@}
@@ -832,20 +772,13 @@ protected:
             {
                 itCond->Set(ACTIVE, false);
                 
-                std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+                ConditionMap *& ConditionPointers = itCond->GetValue(CONTACT_SETS);
                 
                 if (ConditionPointers != NULL)
                 {
-                    for (unsigned int i = 0; i < ConditionPointers->size();i++)
-                    {
-                        (*ConditionPointers)[i].clear();
-                    } 
-                    
                     ConditionPointers->clear();
 //                     ConditionPointers->reserve(mAllocationSize); 
                 }
-//                 delete ConditionPointers;
-//                 itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
             }
         }   
     }

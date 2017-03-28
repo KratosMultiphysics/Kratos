@@ -122,6 +122,8 @@ struct ConditionMap : ConditionHashMap
         for ( auto it = begin(); it != end(); ++it )
         {
             std::cout << "The condition " << (it->first)->Id() << " is ACTIVE: " << it->second;
+            
+            KRATOS_WATCH((it->first)->GetGeometry());
         }
     }
     
