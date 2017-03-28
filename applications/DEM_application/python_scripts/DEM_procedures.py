@@ -68,13 +68,24 @@ class MdpaCreator(object):
 
 
 class SetOfModelParts(object):
-    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part):
-        self.spheres_model_part    = spheres_model_part
-        self.rigid_face_model_part = rigid_face_model_part
-        self.cluster_model_part    = cluster_model_part
-        self.DEM_inlet_model_part  = DEM_inlet_model_part
-        self.mapping_model_part    = mapping_model_part
-        self.contact_model_part    = contact_model_part
+    def __init__(self, model_parts_list):
+        names = [l.Name for l in model_parts_list]
+        self.model_parts = dict()
+        for mp in model_parts_list:
+            self.model_parts[mp.Name] = mp
+
+        self.spheres_model_part    = self.Get("SpheresPart")
+        self.rigid_face_model_part = self.Get("RigidFacePart")
+        self.cluster_model_part    = self.Get("ClusterPart")
+        self.DEM_inlet_model_part  = self.Get("DEMInletPart")
+        self.mapping_model_part    = self.Get("MappingPart")
+        self.contact_model_part    = self.Get("ContactPart")
+
+    def Get(self, name):
+        return self.model_parts[name]
+
+    def Add(self, model_part):
+        self.model_parts[model_part.Name] = model_part
 
 class GranulometryUtils(object):
 
@@ -311,7 +322,7 @@ class Procedures(object):
         
     def AddAllVariablesInAllModelParts(self, solver, scheme, all_model_parts, DEM_parameters):
         
-        spheres_model_part = all_model_parts.spheres_model_part
+        spheres_model_part = all_model_parts.Get('SpheresPart')
         cluster_model_part = all_model_parts.cluster_model_part
         DEM_inlet_model_part = all_model_parts.DEM_inlet_model_part
         rigid_face_model_part = all_model_parts.rigid_face_model_part
