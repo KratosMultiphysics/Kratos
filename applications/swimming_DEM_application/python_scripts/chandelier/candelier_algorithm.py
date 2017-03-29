@@ -3,8 +3,8 @@ import swimming_DEM_algorithm
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self):
-        BaseAlgorithm.__init__(self)
+    def __init__(self, pp):
+        BaseAlgorithm.__init__(self, pp)
 
     def GetFluidSolveCounter(self, pp):
         return SDP.Counter(is_dead = True)
