@@ -14,13 +14,96 @@ BaseAlgorithm = DEM_algorithm.Solution
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, pp):
+        self.StartTimer()
         self.pp = pp
+        self.SetBetaParamters()
+
+    def CreateParts(self):
+        # Order must be respected here
+        BaseAlgorithm.__init__(self)
+        # defining a fluid model
+        self.all_model_parts.Add(ModelPart("FluidPart"))
+        # defining a model part for the mixed part
+        self.all_model_parts.Add(ModelPart("MixedPart"))
+
+    def StartTimer(self):
         import time as timer
         self.timer = timer
         self.simulation_start_time = timer.time()
-        BaseAlgorithm.__init__(self)
-        # defining a model part for the mixed part
-        self.mixed_model_part = ModelPart("MixedPart")
+
+    def SetBetaParamters(self): # These are input parameters that have not yet been transferred to the interface
+        # import the configuration data as read from the GiD
+        self.main_path = os.getcwd()
+        self.pp.main_path = os.getcwd()
+
+
+
+        ##############################################################################
+        #                                                                            #
+        #    INITIALIZE                                                              #
+        #                                                                            #
+        ##############################################################################
+
+        #G
+        self.pp.CFD_DEM = DEM_parameters
+        self.pp.CFD_DEM.fluid_already_calculated = 0
+        self.pp.CFD_DEM.recovery_echo_level = 1
+        self.pp.CFD_DEM.gradient_calculation_type = 1
+        self.pp.CFD_DEM.pressure_grad_recovery_type = 1
+        self.pp.CFD_DEM.store_full_gradient = 0
+        self.pp.CFD_DEM.laplacian_calculation_type = 0
+        self.pp.CFD_DEM.do_search_neighbours = False
+        self.pp.CFD_DEM.faxen_terms_type = 0
+        self.pp.CFD_DEM.material_acceleration_calculation_type = 1
+        self.pp.CFD_DEM.faxen_force_type = 0
+        self.pp.CFD_DEM.vorticity_calculation_type = 5
+        self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
+        self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
+        self.pp.CFD_DEM.basset_force_integration_type = 2
+        self.pp.CFD_DEM.n_init_basset_steps = 0
+        self.pp.CFD_DEM.time_steps_per_quadrature_step = 1
+        self.pp.CFD_DEM.delta_time_quadrature = self.pp.CFD_DEM.time_steps_per_quadrature_step * self.pp.CFD_DEM.MaxTimeStep
+        self.pp.CFD_DEM.quadrature_order = 2
+        self.pp.CFD_DEM.time_window = 0.1
+        self.pp.CFD_DEM.number_of_exponentials = 10
+        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
+        self.pp.CFD_DEM.print_steps_per_plot_step = 1
+        self.pp.CFD_DEM.PostCationConcentration = False
+        self.pp.CFD_DEM.do_impose_flow_from_field = True
+        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
+        self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
+        self.pp.CFD_DEM.print_VORTICITY_option = 1
+        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+        # Making the fluid step an exact multiple of the DEM step
+        self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
+        self.pp.viscosity_modification_type = 0.0
+        self.domain_size = 3
+        #Z
+        # NANO BEGIN
+        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            self.pp.CFD_DEM.basset_force_type = 0
+            self.pp.CFD_DEM.PostCationConcentration = True
+            self.pp.initial_concentration = 1.0
+            self.pp.final_concentration = 0.01
+            self.pp.fluid_speed = 1e-14
+            self.pp.cation_concentration_frequence = 1
+            self.pp.CFD_DEM.drag_force_type = 9
+        # NANO END
+
+        # defining and adding imposed porosity fields
+        import swimming_DEM_procedures as SDP
+        self.pp.fluid_fraction_fields = []
+        field1 = SDP.FluidFractionFieldUtility.LinearField(0.0,
+                                                          [0.0, 0.0, 0.0],
+                                                          [-1.0, -1.0, 0.15],
+                                                          [1.0, 1.0, 0.3])
+        from math import pi
+        self.pp.CFD_DEM.fluid_domain_volume = 0.5 ** 2 * 2 * pi # write down the volume you know it has
+
+        self.pp.fluid_fraction_fields.append(field1)
 
     def Initialize(self):
         BaseAlgorithm.Initialize(self)
@@ -140,35 +223,35 @@ class Algorithm(BaseAlgorithm):
         print()
         sys.stdout.flush()
 
-    def GetFluidSolveCounter(self, pp):
-        return SDP.Counter(is_dead = (pp.CFD_DEM.drag_force_type == 9))
+    def GetFluidSolveCounter(self):
+        return SDP.Counter(is_dead = (self.pp.CFD_DEM.drag_force_type == 9))
 
-    def GetEmbeddedCounter(self, pp):
-        return SDP.Counter(1, 3, pp.CFD_DEM.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+    def GetEmbeddedCounter(self):
+        return SDP.Counter(1, 3, self.pp.CFD_DEM.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 
-    def GetBackwardCouplingCounter(self, pp):
-        return SDP.Counter(1, 1, pp.CFD_DEM.coupling_level_type > 1)
+    def GetBackwardCouplingCounter(self):
+        return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type > 1)
 
-    def GetBackwardCouplingCounter(self, pp):
-        return SDP.Counter(1, 1, pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+    def GetBackwardCouplingCounter(self):
+        return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 
-    def GetStationarityCounter(self, pp):
-        return SDP.Counter(pp.CFD_DEM.time_steps_per_stationarity_step, 1, pp.CFD_DEM.stationary_problem_option)
+    def GetStationarityCounter(self):
+        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_stationarity_step, 1, self.pp.CFD_DEM.stationary_problem_option)
 
-    def GetPrintCounter(self, pp):
+    def GetPrintCounter(self):
         return SDP.Counter(1, 1, 10) # still unused
 
-    def GetDebugInfo(self, pp):
-        return SDP.Counter(pp.CFD_DEM.debug_tool_cycle, 1, pp.CFD_DEM.print_debug_info_option)
+    def GetDebugInfo(self):
+        return SDP.Counter(self.pp.CFD_DEM.debug_tool_cycle, 1, self.pp.CFD_DEM.print_debug_info_option)
 
-    def GetParticlesResultsCounter(self, pp):
-        return SDP.Counter(pp.CFD_DEM.print_particles_results_cycle, 1, pp.CFD_DEM.print_particles_results_option)
+    def GetParticlesResultsCounter(self):
+        return SDP.Counter(self.pp.CFD_DEM.print_particles_results_cycle, 1, self.pp.CFD_DEM.print_particles_results_option)
 
-    def HistoryForceQuadratureCounter(self, pp):
-        return SDP.Counter(pp.CFD_DEM.time_steps_per_quadrature_step, 1, pp.CFD_DEM.basset_force_type)
+    def HistoryForceQuadratureCounter(self):
+        return SDP.Counter(self.pp.CFD_DEM.time_steps_per_quadrature_step, 1, self.pp.CFD_DEM.basset_force_type)
 
-    def GetRunCode(self, pp):
-        return SDP.CreateRunCode(pp)
+    def GetRunCode(self):
+        return SDP.CreateRunCode(self.pp)
 
     def ActivateTurbulenceModel(self):
         fluid_model_part = self.all_model_parts.Get('FluidPart')

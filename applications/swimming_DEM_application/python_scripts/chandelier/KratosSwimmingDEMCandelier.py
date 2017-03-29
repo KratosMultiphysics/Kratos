@@ -73,67 +73,10 @@ class Solution(base_script.Solution):
         self.main_path = os.getcwd()
         self.pp = pp
         self.pp.main_path = os.getcwd()
-
-
-
-        ##############################################################################
-        #                                                                            #
-        #    INITIALIZE                                                              #
-        #                                                                            #
-        ##############################################################################
-
-        #G
         self.pp.CFD_DEM = DEM_parameters
-        self.pp.CFD_DEM.FinalTime = simulation_time
-        self.pp.CFD_DEM.fluid_already_calculated = 0
-        self.pp.CFD_DEM.recovery_echo_level = 1
-        self.pp.CFD_DEM.gradient_calculation_type = 5
-        self.pp.CFD_DEM.pressure_grad_recovery_type = 1
-        self.pp.CFD_DEM.store_full_gradient = 1
-        self.pp.CFD_DEM.laplacian_calculation_type = 0
-        self.pp.CFD_DEM.do_search_neighbours = False
-        self.pp.CFD_DEM.material_acceleration_calculation_type = 2
-        self.pp.CFD_DEM.faxen_force_type = 0
-        self.pp.CFD_DEM.vorticity_calculation_type = 0
-        self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-        self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-        self.pp.CFD_DEM.basset_force_type = basset_force_type
-        self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
-        self.pp.CFD_DEM.basset_force_integration_type = 1
-        self.pp.CFD_DEM.n_init_basset_steps = 2
-        self.pp.CFD_DEM.time_steps_per_quadrature_step = Nq
-        self.pp.CFD_DEM.delta_time_quadrature = self.pp.CFD_DEM.time_steps_per_quadrature_step * self.pp.CFD_DEM.MaxTimeStep
-        self.pp.CFD_DEM.quadrature_order = 2
-        self.pp.CFD_DEM.time_window = 0.5
-        self.pp.CFD_DEM.number_of_exponentials = m
-        self.pp.CFD_DEM.number_of_quadrature_steps_in_window = number_of_quadrature_steps_in_window
-        self.pp.CFD_DEM.print_steps_per_plot_step = 1
-        self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = False
-        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
-        self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
-        self.pp.CFD_DEM.print_VORTICITY_option = 0
-        self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = False
-        self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 0
-        # Making the fluid step an exact multiple of the DEM step
-        self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
-        self.pp.viscosity_modification_type = 0.0
-        #Z
-
-        # defining a model part for the fluid part
         self.alg = candelier_algorithm.Algorithm(self.pp)
-        self.alg.all_model_parts.Add(ModelPart("FluidPart"))
-
-        # defining and adding imposed porosity fields
-        import swimming_DEM_procedures as SDP
-        self.pp.fluid_fraction_fields = []
-        field1 = SDP.FluidFractionFieldUtility.LinearField(0.0,
-                                                          [0.0, 0.0, 0.0],
-                                                          [-1.0, -1.0, 0.15],
-                                                          [1.0, 1.0, 0.3])
-        self.pp.CFD_DEM.fluid_domain_volume = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
-
-        self.pp.fluid_fraction_fields.append(field1)
+        self.alg.CreateParts()
+        self.alg.SetCustomBetaParamters(simulation_time, basset_force_type, Nq, m, number_of_quadrature_steps_in_window)
 
     def Run(self):
         import math
@@ -144,7 +87,7 @@ class Solution(base_script.Solution):
         # import the configuration data as read from the GiD
         import define_output
 
-        run_code = self.alg.GetRunCode(self.pp)
+        run_code = self.alg.GetRunCode()
 
         # Moving to the recently created folder
         os.chdir(self.main_path)
@@ -186,6 +129,7 @@ class Solution(base_script.Solution):
         SolverSettings = self.pp.FluidSolverConfiguration
         # solver_module = import_solver(SolverSettings)
         fluid_model_part = self.alg.all_model_parts.Get('FluidPart')
+        mixed_model_part = self.alg.all_model_parts.Get('MixedPart')
         self.alg.fluid_solver = self.alg.solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
         Dt_DEM = self.pp.CFD_DEM.MaxTimeStep
@@ -213,7 +157,7 @@ class Solution(base_script.Solution):
                                                                            self.pp.GiDWriteMeshFlag,
                                                                            self.pp.GiDWriteConditionsFlag)
 
-        swimming_DEM_gid_io.initialize_swimming_DEM_results(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, self.alg.mixed_model_part)
+        swimming_DEM_gid_io.initialize_swimming_DEM_results(self.alg.spheres_model_part, self.alg.cluster_model_part, self.alg.rigid_face_model_part, mixed_model_part)
 
         # define the drag computation list
         drag_list = define_output.DefineDragList()
@@ -282,7 +226,7 @@ class Solution(base_script.Solution):
                                                        self.alg.spheres_model_part,
                                                        self.alg.cluster_model_part,
                                                        self.alg.rigid_face_model_part,
-                                                       self.alg.mixed_model_part)
+                                                       mixed_model_part)
 
         # creating an IOTools object to perform other printing tasks
         io_tools = swim_proc.IOTools(self.pp)
@@ -387,15 +331,15 @@ class Solution(base_script.Solution):
         ######################################################################################################################################
 
         # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean, dead_or_not)
-        fluid_solve_counter          = self.alg.GetFluidSolveCounter(self.pp)
-        embedded_counter             = self.alg.GetEmbeddedCounter(self.pp)
-        DEM_to_fluid_counter         = self.alg.GetBackwardCouplingCounter(self.pp)
-        derivative_recovery_counter  = self.alg.GetBackwardCouplingCounter(self.pp)
-        stationarity_counter         = self.alg.GetStationarityCounter(self.pp)
-        print_counter                = self.alg.GetPrintCounter(self.pp)
-        debug_info_counter           = self.alg.GetDebugInfo(self.pp)
-        particles_results_counter    = self.alg.GetParticlesResultsCounter(self.pp)
-        quadrature_counter           = self.alg.HistoryForceQuadratureCounter(self.pp)
+        fluid_solve_counter          = self.alg.GetFluidSolveCounter()
+        embedded_counter             = self.alg.GetEmbeddedCounter()
+        DEM_to_fluid_counter         = self.alg.GetBackwardCouplingCounter()
+        derivative_recovery_counter  = self.alg.GetBackwardCouplingCounter()
+        stationarity_counter         = self.alg.GetStationarityCounter()
+        print_counter                = self.alg.GetPrintCounter()
+        debug_info_counter           = self.alg.GetDebugInfo()
+        particles_results_counter    = self.alg.GetParticlesResultsCounter()
+        quadrature_counter           = self.alg.HistoryForceQuadratureCounter()
         mat_deriv_averager           = swim_proc.Averager(1, 3)
         laplacian_averager           = swim_proc.Averager(1, 3)
 
