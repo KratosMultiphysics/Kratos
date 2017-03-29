@@ -377,9 +377,13 @@ namespace Kratos
 		if (rRightHandSideVector.size() != LocalSize) rRightHandSideVector = ZeroVector(LocalSize);
 		rRightHandSideVector = ZeroVector(LocalSize);
 
-		VectorType currentDisp = ZeroVector(LocalSize);
-		this->GetValuesVector(currentDisp, 0);
-		noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
+		//VectorType currentDisp = ZeroVector(LocalSize);
+		//this->GetValuesVector(currentDisp, 0);
+		//noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
+
+		VectorType internalForces = ZeroVector(6);
+		this->UpdateInternalForces(internalForces);
+		noalias(rRightHandSideVector) -= internalForces;
 
 		//add bodyforces 
 		noalias(rRightHandSideVector) += this->CalculateBodyForces();
@@ -571,8 +575,8 @@ namespace Kratos
 	double TrussElement3D2N::CalculateGreenLagrangeStrain()
 	{
 		KRATOS_TRY
-		double l = this->mCurrentLength;
-		double L = this->mLength;
+		double l = this->CalculateCurrentLength();
+		double L = this->CalculateReferenceLength();
 		//longitudinal green lagrange strain
 		double e = ((l * l - L * L) / (2.00 * L * L));
 		return e;
