@@ -857,11 +857,25 @@ namespace Kratos
 	{
 		KRATOS_TRY
 		//needed for Reacion Forces
-		VectorType currentDisp = ZeroVector(12);
-		this->GetValuesVector(currentDisp, 0);
 		if (rRightHandSideVector.size() != 12) rRightHandSideVector = ZeroVector(12);
 		rRightHandSideVector = ZeroVector(12);
-		noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
+		//VectorType currentDisp = ZeroVector(12);
+		//this->GetValuesVector(currentDisp, 0);
+		//noalias(rRightHandSideVector) -= prod(this->mLHS, currentDisp);
+		
+		this->UpdateIncrementDeformation();
+		Matrix TransformationMatrix = ZeroMatrix(12);
+		this->CalculateTransformationMatrix(TransformationMatrix);
+		VectorType elementForces_t = ZeroVector(6);
+		elementForces_t = this->CalculateElementForces();
+		VectorType nodalForcesLocal_qe = ZeroVector(12);
+		Matrix TransformationMatrixS = ZeroMatrix(12, 6);
+		TransformationMatrixS = this->CalculateTransformationS();
+		nodalForcesLocal_qe = prod(TransformationMatrixS, elementForces_t);
+		VectorType nodalForcesGlobal_q = ZeroVector(12);
+		nodalForcesGlobal_q = prod(TransformationMatrix, nodalForcesLocal_qe);
+		noalias(rRightHandSideVector) -= nodalForcesGlobal_q;
+
 		//add bodyforces 
 		noalias(rRightHandSideVector) += mBodyForces;
 		KRATOS_CATCH("")
@@ -1085,6 +1099,8 @@ namespace Kratos
 		mTotalNodalPosistion[3] = GetGeometry()[1].X0() + actualDeformation[6];
 		mTotalNodalPosistion[4] = GetGeometry()[1].Y0() + actualDeformation[7];
 		mTotalNodalPosistion[5] = GetGeometry()[1].Z0() + actualDeformation[8];
+
+		this->mCurrentLength = this->CalculateCurrentLength();
 		KRATOS_CATCH("")
 	}
 	void CrBeamElement3D2N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
@@ -1095,21 +1111,22 @@ namespace Kratos
 			const unsigned int&  write_points_number = GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_3);
 		if (rOutput.size() != write_points_number) rOutput.resize(write_points_number);
 
-		VectorType LocalForces = ZeroVector(12);
-
-		VectorType CurrentDisplacement = ZeroVector(12);
-		this->GetValuesVector(CurrentDisplacement, 0);
-
-		VectorType LocalDisplacement = ZeroVector(12);
-		noalias(LocalDisplacement) = prod(Matrix(trans(mRotationMatrix)), CurrentDisplacement);
-
-		//calculate Body Forces here ngelected atm
-		Vector BodyForces = ZeroVector(12);
-		//this->CalculateLocalBodyForce(LocalForceVector, rVolumeForce);
-
+		this->UpdateIncrementDeformation();
+		//calculate Transformation Matrix
+		Matrix TransformationMatrix = ZeroMatrix(12);
+		this->CalculateTransformationMatrix(TransformationMatrix);
+		//deformation modes
+		VectorType elementForces_t = ZeroVector(6);
+		elementForces_t = this->CalculateElementForces();
 		VectorType Stress = ZeroVector(12);
-		noalias(Stress) = prod(mlocalStiffness, LocalDisplacement);
-		Stress -= BodyForces;
+		Matrix TransformationMatrixS = ZeroMatrix(12, 6);
+		TransformationMatrixS = this->CalculateTransformationS();
+		Stress = prod(TransformationMatrixS, elementForces_t);
+
+		////calculate Body Forces here ngelected atm
+		//Vector BodyForces = ZeroVector(12);
+		//this->CalculateLocalBodyForce(LocalForceVector, rVolumeForce);
+		//Stress -= BodyForces;
 
 		if (rVariable == MOMENT)
 		{
