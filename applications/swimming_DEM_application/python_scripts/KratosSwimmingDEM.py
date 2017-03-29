@@ -152,7 +152,7 @@ class Solution:
         # import the configuration data as read from the GiD
         import ProjectParameters as pp # MOD
         import define_output
-      
+
         concentration = self.pp.initial_concentration
 
         # Moving to the recently created folder
@@ -189,7 +189,7 @@ class Solution:
                                 "BUOYANCY"   : BUOYANCY,   #    MOD.
                                 "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
                                 "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-        
+
         fluid_model_part = self.DS.all_model_parts.Get('FluidPart')
 
         if "REACTION" in self.pp.nodal_results:
@@ -428,7 +428,9 @@ class Solution:
             elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
                 DEM_parameters.meso_scale_length  = 1.0
 
-            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp)
+            field_utility = self.GetFieldUtility()
+
+            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp, field_utility)
             projection_module.UpdateDatabase(h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
@@ -714,14 +716,14 @@ class Solution:
                 if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
                     if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
-                        projection_module.ProjectFromNewestFluid()
+                        projection_module.ApplyForwardCoupling()
 
                     else:
-                        projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
+                        projection_module.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
 
                         if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                             self.DS.solver.Solve() # only advance in space
-                            projection_module.InterpolateVelocity()
+                            projection_module.ApplyForwardCouplingOfVelocityOnly()
 
                         if quadrature_counter.Tick():
                             if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
@@ -736,7 +738,8 @@ class Solution:
                 self.DS.cluster_model_part.ProcessInfo[TIME]    = time_dem
 
                 if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
-                    self.DS.solver.Solve()
+                    # self.DS.solver.Solve()
+                    pass
 
                 # Walls movement:
                 mesh_motion.MoveAllMeshes(self.DS.rigid_face_model_part, time, Dt)
@@ -813,6 +816,16 @@ class Solution:
 
         for i in drag_file_output_list:
             i.close()
+
+    def GetFieldUtility(self):
+        field_utility = None
+
+        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            flow_field = ConstantVelocityField(0.00001, 0, 0)
+            space_time_set = SpaceTimeSet()
+            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+
+        return field_utility
 
 if __name__=="__main__":
     Solution().Run()
