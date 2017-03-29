@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/fluid_field_utility.h"
 #include "custom_utilities/fields/vector_field.h"
 #include "custom_utilities/fields/velocity_field.h"
+#include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
@@ -172,12 +173,14 @@ using namespace boost::python;
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
         ;
 
+    class_<ConstantVelocityField, bases<VelocityField> > ("ConstantVelocityField", init<const double, const double, const double>())
+        ;
+
     class_<CellularFlowField, bases<VelocityField> > ("CellularFlowField",  init<const double, const double, const double, const double>())
         ;
 
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
         ;
-
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())
         ;
@@ -396,8 +399,8 @@ using namespace boost::python;
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
-        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromField)
+        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
+        .def("ImposeVelocityOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ComputePostProcessResults)

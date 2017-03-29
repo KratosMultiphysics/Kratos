@@ -66,7 +66,9 @@ else:
     import DEM_material_test_script
     print("Running under OpenMP........")
 
-class Solution:
+import KratosSwimmingDEM as base_script
+
+class Solution(base_script.Solution):
 
     def __init__(self, simulation_time = 100, basset_force_type = 1, Nq = 1, m = 10, number_of_quadrature_steps_in_window = 10):
         import dem_main_script
@@ -114,7 +116,7 @@ class Solution:
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = number_of_quadrature_steps_in_window
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = True
+        self.pp.CFD_DEM.do_impose_flow_from_field = False
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VORTICITY_option = 0
@@ -418,7 +420,9 @@ class Solution:
             elif self.DS.spheres_model_part.NumberOfElements(0) == 0:
                 DEM_parameters.meso_scale_length  = 1.0
 
-            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp)
+            field_utility = self.GetFieldUtility()
+
+            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.DS.spheres_model_part, self.DS.rigid_face_model_part, pp.domain_size, self.pp, field_utility)
             projection_module.UpdateDatabase(h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
@@ -759,10 +763,10 @@ class Solution:
                 if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
                     if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
-                        projection_module.ProjectFromNewestFluid()
+                        projection_module.ApplyForwardCoupling()
 
                     else:
-                        projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
+                        projection_module.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
                         for node in self.DS.spheres_model_part.Nodes:
                             x = node.X
                             y = node.Y
@@ -782,7 +786,7 @@ class Solution:
 
                         if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                             self.DS.solver.Solve() # only advance in space
-                            #projection_module.InterpolateVelocity()
+                            #projection_module.ApplyForwardCouplingOfVelocityOnly()
                             x = node.X
                             y = node.Y
                             z = node.Z
