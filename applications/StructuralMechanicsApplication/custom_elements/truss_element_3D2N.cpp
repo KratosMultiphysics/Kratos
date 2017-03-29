@@ -576,7 +576,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 		double l = this->CalculateCurrentLength();
-		double L = this->CalculateReferenceLength();
+		double L = this->mLength;
 		//longitudinal green lagrange strain
 		double e = ((l * l - L * L) / (2.00 * L * L));
 		return e;
