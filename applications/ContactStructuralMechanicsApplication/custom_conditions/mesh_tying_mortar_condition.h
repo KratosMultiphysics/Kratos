@@ -134,13 +134,6 @@ public:
         // Determinant of slave cell's jacobian
         double DetJSlave;
         
-        /*
-         * Jacobians in current configuration on all integration points of slave segment
-         * Only those two variables contain info on all GP
-         * other variables contain info only on the currently-calculated GP
-         */
-        MatrixType j_Slave;
-        
         /********************************************************/
         /******************** STRUCT METHODS ********************/
         /********************************************************/
@@ -158,9 +151,6 @@ public:
             
             // Jacobian of slave
             DetJSlave = 0.0;
-           
-            // Jacobians on all integration points
-            j_Slave = ZeroMatrix(TDim, TDim - 1);
         }
 
         /* Setters and getters for the master element */
@@ -193,8 +183,6 @@ public:
 //             LOG_VECTOR_PRETTY( N_Master );
             KRATOS_WATCH( Phi_LagrangeMultipliers );
 //             LOG_VECTOR_PRETTY( Phi_LagrangeMultipliers );
-            KRATOS_WATCH( j_Slave );
-//             LOG_MATRIX_PRETTY( j_Slave );
             KRATOS_WATCH( DetJSlave );
         }
     };
@@ -593,113 +581,6 @@ protected:
             KRATOS_WATCH(MOperator);
 //             LOG_MATRIX_PRETTY(MOperator);
         }
-    };
-
-        
-    /*
-     * Colocation Integration
-     */
-    struct ColocationIntegration
-    {
-    private:
-        GeometryType::IntegrationPointsArrayType mIntegrationPoints;
-        
-    public:
-        void Initialize( const unsigned int num_integration_points_per_local_dim )
-        {   
-            if (TDim == 2)
-            {
-                const unsigned int num_integration_points = num_integration_points_per_local_dim;
-                mIntegrationPoints.resize( num_integration_points, false );
-            
-                const double elem_local_length = 2.0;
-                const double colocation_weight = elem_local_length / num_integration_points;
-                
-                for ( unsigned int i_col_point = 0; i_col_point < num_integration_points; ++i_col_point )
-                {
-                    const double xi = 0.5 * colocation_weight * ( 2 * i_col_point + 1 ) - 1;
-                    mIntegrationPoints[i_col_point] = IntegrationPoint<2>( xi, colocation_weight );
-                }
-
-            }
-            else
-            {
-                if (NumNodes == 3)
-                {
-                    unsigned int num_integration_points = 0;
-                    for ( unsigned int i_xi = 0; i_xi < num_integration_points_per_local_dim; ++i_xi )
-                    {
-                        for ( unsigned int j_eta = i_xi; j_eta < num_integration_points_per_local_dim; ++j_eta )
-                        {
-                            num_integration_points += 1;
-                        }
-                    }
-                     
-                    mIntegrationPoints.clear( );
-                    mIntegrationPoints.resize( num_integration_points, false );
-                    const double elem_local_length = 0.5;   // both xi and eta local coords span between -1 and 1
-                    const double colocation_weight = elem_local_length / num_integration_points;
-                    
-                    double xi = 0, eta = 0;
-                    unsigned int i_col_pt = 0;
-                    for ( unsigned int i_xi = 0; i_xi < num_integration_points_per_local_dim; ++i_xi )
-                    {
-                        xi = 1.0/(3.0 * num_integration_points_per_local_dim) + (i_xi - 1) * (1.0/(1.0 * num_integration_points_per_local_dim));
-                        for ( unsigned int j_eta = i_xi; j_eta < num_integration_points_per_local_dim; ++j_eta )
-                        {
-                            eta =  1.0/(3.0 * num_integration_points_per_local_dim) + (j_eta - 1) * (1.0/(1.0 * num_integration_points_per_local_dim));
-                            mIntegrationPoints[i_col_pt] = IntegrationPoint<2>( xi, eta, colocation_weight ); 
-                            i_col_pt += 1.0;
-                        }
-                    }
-                }
-                else if (NumNodes == 4)
-                {
-                    const unsigned int num_integration_points = num_integration_points_per_local_dim * num_integration_points_per_local_dim;
-                    mIntegrationPoints.clear( );
-                    mIntegrationPoints.resize( num_integration_points, false );
-                    const double elem_local_length = 2.0;   // both xi and eta local coords span between -1 and 1
-                    const double colocation_weight = elem_local_length / num_integration_points_per_local_dim;
-                    
-                    double xi = 0, eta = 0;
-                    unsigned int i_col_pt = 0;
-                    for ( unsigned int i_xi = 0; i_xi < num_integration_points_per_local_dim; ++i_xi )
-                    {
-                        xi = 0.5 * colocation_weight * ( 2 * i_xi + 1 ) - 1;
-                        for ( unsigned int j_eta = 0; j_eta < num_integration_points_per_local_dim; ++j_eta )
-                        {
-                            i_col_pt = i_xi * num_integration_points_per_local_dim + j_eta;
-                            eta = 0.5 * colocation_weight * ( 2 * j_eta + 1 ) - 1;
-                            mIntegrationPoints[i_col_pt] = IntegrationPoint<2>( xi, eta, colocation_weight*colocation_weight ); // w_xi * w_eta
-                        }
-                    }
-                }
-                else
-                {
-                     KRATOS_ERROR << " Collocation not defined. TNumNodes: " << NumNodes << std::endl;
-                }
-            }
-        }
-        
-        const GeometryType::IntegrationPointsArrayType IntegrationPoints( )
-        {
-            return mIntegrationPoints;
-        }
-        
-        void SetIntegrationPoints( GeometryType::IntegrationPointsArrayType rIntegrationPoints)
-        {
-            mIntegrationPoints = rIntegrationPoints;
-        }
-        
-        void print( )
-        {
-            std::cout << "mIntegrationPoints : " << mIntegrationPoints.size( ) << std::endl;
-            for ( unsigned int i_vec = 0; i_vec < mIntegrationPoints.size( ); ++i_vec )
-            {
-                KRATOS_WATCH( mIntegrationPoints[i_vec] );
-            }
-        }
-        
     };
     
     ///@}

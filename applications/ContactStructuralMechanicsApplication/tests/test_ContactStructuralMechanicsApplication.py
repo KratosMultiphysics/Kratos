@@ -18,6 +18,7 @@ from TestExactIntegration import TestTriangleExactIntegration3 as TTestTriangleE
 from TestExactIntegration import TestQuadrilateralExactIntegration1 as TTestQuadrilateralExactIntegration1
 from TestExactIntegration import TestQuadrilateralExactIntegration2 as TTestQuadrilateralExactIntegration2
 from SmallTests import SimplePatchTestTwoDMeshTying as TSimplePatchTestTwoDMeshTying
+from SmallTests import SimplestPatchTestThreeDMeshTying as TSimplestPatchTestThreeDMeshTying
 from SmallTests import SimplePatchTestThreeDMeshTying as TSimplePatchTestThreeDMeshTying
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimpleSlopePatchTestContact as TSimpleSlopePatchTestContact
@@ -68,6 +69,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TTestQuadrilateralExactIntegration1('test_execution'))
     smallSuite.addTest(TTestQuadrilateralExactIntegration2('test_execution'))
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
+    smallSuite.addTest(TSimplestPatchTestThreeDMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestContact('test_execution'))
@@ -109,6 +111,7 @@ def AssambleTestSuites():
             TTestQuadrilateralExactIntegration1,
             TTestQuadrilateralExactIntegration2,
             TSimplePatchTestTwoDMeshTying,
+            TSimplestPatchTestThreeDMeshTying,
             #TSimplePatchTestThreeDMeshTying,
             TSimplePatchTestContact,
             TSimpleSlopePatchTestContact,

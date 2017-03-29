@@ -9,7 +9,7 @@ separate_derivatives = True
 impose_partion_of_unity = False
 
 dim_combinations = [2,2,2,2,3,3,3,3]
-nnodeselement_combinations = [3,3,4,4,4,4,6,6]
+nnodeselement_combinations = [3,3,4,4,4,4,8,8]
 tensor_combinations = [1,2,1,2,1,3,1,3]
 
 lhs_string = ""
@@ -60,10 +60,6 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     DOperator = DefineMatrix('DOperator',nnodes,nnodes) 
     MOperator = DefineMatrix('MOperator',nnodes,nnodes) 
 
-    # Defining the normal gap
-    Du1Mu2 = DOperator * u1 - MOperator * u2
-    Dw1Mw2 = DOperator * w1 - MOperator * w2
-
     # Define dofs & test function vector
     dofs = Matrix( zeros(number_dof, 1) )
     testfunc = Matrix( zeros(number_dof, 1) )
@@ -110,12 +106,20 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     rv_galerkin = 0
     for node in range(nnodes):
         if (tensor == 1):
-            rv_galerkin += Dw1Mw2[node] * lm[node]
-            rv_galerkin += Du1Mu2[node] * wlm[node]
+            # Defining the normal gap
+            Du1Mu2 = DOperator * u1 - MOperator * u2
+            Dw1Mw2 = DOperator * w1 - MOperator * w2
+            # Defining the functional
+            rv_galerkin -= Dw1Mw2[node] * lm[node]
+            rv_galerkin -= Du1Mu2[node] * wlm[node]
         else:
             for dvalue in range(dim):
-                rv_galerkin += Dw1Mw2[node, dvalue] * lm[node, dvalue]
-                rv_galerkin += Du1Mu2[node, dvalue] * wlm[node, dvalue]
+                # Defining the normal gap
+                Du1Mu2 = DOperator * u1.col(dvalue) - MOperator * u2.col(dvalue)
+                Dw1Mw2 = DOperator * w1.col(dvalue) - MOperator * w2.col(dvalue)
+                # Defining the functional
+                rv_galerkin -= Dw1Mw2[node] * lm[node, dvalue]
+                rv_galerkin -= Du1Mu2[node] * wlm[node, dvalue]
 
     if(do_simplifications):
         rv_galerkin = simplify(rv_galerkin)
@@ -171,13 +175,12 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
 ################################# FINAL SAVING ##############################
 #############################################################################
 
-out = open("lhs.txt",'w')
-out.write(lhs_string)
-out.close()
-
-out = open("rhs.txt",'w')
-out.write(rhs_string)
-out.close()
+input = open("mesh_tying_mortar_condition_template.cpp",'r').read()
+outputstring = input.replace("// replace_lhs", lhs_string)
+outputstring = outputstring.replace("// replace_rhs", rhs_string)
+output = open("mesh_tying_mortar_condition.cpp",'w')
+output.write(outputstring)
+output.close()
 
 print("Strings have been replaced...")
 

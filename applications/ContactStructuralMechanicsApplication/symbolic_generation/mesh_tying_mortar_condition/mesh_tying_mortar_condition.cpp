@@ -602,10 +602,10 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
 //         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
         
-        const unsigned int NumberOfIntegrationPoints = IntegrationPointsSlave.size();
+        const unsigned int NumberOfINtegrationPoints = IntegrationPointsSlave.size();
         
         // Integrating the mortar operators
-        for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < NumberOfINtegrationPoints; PointNumber++ )
         {            
             // Calculate the kinematic variables
             this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
@@ -613,7 +613,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
             this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
         }
                 
-        if (NumberOfIntegrationPoints > 0)
+        if (NumberOfINtegrationPoints > 0)
         {
 //             // Debug
 //             std::cout << "--------------------------------------------------" << std::endl;
@@ -654,16 +654,6 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
             }
         }
     }
-    
-    // Debug
-//     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-// //     KRATOS_WATCH(rRightHandSideVector);
-//     LOG_VECTOR_PRETTY( rRightHandSideVector );
-    
-//     // Debug
-//     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );  
-// //     KRATOS_WATCH(rLeftHandSideMatrix);
-//     LOG_MATRIX_PRETTY( rLeftHandSideMatrix );
     
     KRATOS_CATCH( "" );
 }
@@ -895,6 +885,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
 }
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
+/***********************************************************************************/
+
+
+/***********************************************************************************/
 /***********************************************************************************/
 
 template< >
@@ -3769,6 +3763,10 @@ boost::numeric::ublas::bounded_matrix<double, 36, 36> MeshTyingMortarCondition<3
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 template<>
 array_1d<double, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalRHS<6>(
@@ -4504,7 +4502,7 @@ template class MeshTyingMortarCondition<2, 4, ScalarValue>;   // 2DLine/Quadrila
 template class MeshTyingMortarCondition<2, 4, Vector2DValue>; // 2DLine/Quadrilateral for scalar variables
 template class MeshTyingMortarCondition<3, 4, ScalarValue>;   // 3D Triangle/Tetrahedron for scalar variables
 template class MeshTyingMortarCondition<3, 4, Vector3DValue>; // 3D Triangle/Tetrahedron for components variables
-template class MeshTyingMortarCondition<3, 8, ScalarValue>;   // 3D Quadrilateral/Hexahedra for scalar variables
-template class MeshTyingMortarCondition<3, 8, Vector3DValue>; // 3D Quadrilateral/Hexahedra for components variables
+template class MeshTyingMortarCondition<3, 6, ScalarValue>;   // 3D Quadrilateral/Hexahedra for scalar variables
+template class MeshTyingMortarCondition<3, 6, Vector3DValue>; // 3D Quadrilateral/Hexahedra for components variables
 
 } // Namespace Kratos

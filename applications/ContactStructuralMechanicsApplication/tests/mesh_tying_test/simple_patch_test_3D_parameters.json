@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 0,
+        "echo_level"                         : 1,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -29,7 +29,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "split_factor"						 : 0.0,
         "max_number_splits"					 : 0,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 1,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,

@@ -1465,6 +1465,34 @@ Begin SubModelPart Parts_Part_foundation // Group Part_foundation // Subtree Par
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart Tying_Part
+    Begin SubModelPartNodes
+        195
+        240
+        241
+        278
+        290
+        292
+        332
+        333
+        371
+        196
+        242
+        243
+        285
+        296
+        297
+        337
+        338
+        372
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart Parts_Part_punch // Group Part_punch // Subtree Parts
     Begin SubModelPartNodes
        196
@@ -1797,32 +1825,6 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_BC_no_rot_y_punch_2 // Group BC_fix_rot_y // Subtree DISPLACEMENT
     Begin SubModelPartNodes
        395
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart Tying_Part
-    Begin SubModelPartNodes
-        195
-        240
-        241
-        278
-        290
-        292
-        332
-        333
-        371	  
-        196
-        242
-        243
-        285
-        296
-        297
-        337
-        338
-        372
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

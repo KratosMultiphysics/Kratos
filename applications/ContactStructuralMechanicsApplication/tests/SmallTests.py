@@ -45,6 +45,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 class SimplePatchTestTwoDMeshTying(StructuralMechanichsTestFactory):
     file_name = "mesh_tying_test/simple_patch_test_2D"
     
+class SimplestPatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
+    file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_test"
+    
 class SimplePatchTestThreeDMeshTying(StructuralMechanichsTestFactory):
     file_name = "mesh_tying_test/simple_patch_test_3D"
     
