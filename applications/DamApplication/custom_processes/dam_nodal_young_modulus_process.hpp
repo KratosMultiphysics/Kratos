@@ -26,8 +26,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DamNodalYoungModulusProcess);
     
-    typedef Table<double,double> TableType;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
