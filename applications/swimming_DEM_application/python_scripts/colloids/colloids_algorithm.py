@@ -12,8 +12,15 @@ class Algorithm(BaseAlgorithm):
 
     def SetBetaParamters(self):
         BaseAlgorithm.SetBetaParamters(self)
-        self.pp.CFD_DEM.alpha = 1000.0
+        self.pp.CFD_DEM.alpha = 1000
         self.pp.IntegrationScheme = 'TerminalVelocityScheme'
+        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp.CFD_DEM.PostCationConcentration = True
+        self.pp.initial_concentration = 1.0
+        self.pp.final_concentration = 0.01
+        self.pp.fluid_speed = 1e-6
+        self.pp.cation_concentration_frequence = 1
+        self.pp.CFD_DEM.drag_force_type = 9
 
     def PerformInitialDEMStepOperations(self, time = None):
         if self.cation_concentration_counter.Tick():

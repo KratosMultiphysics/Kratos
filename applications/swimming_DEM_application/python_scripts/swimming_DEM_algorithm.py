@@ -82,17 +82,6 @@ class Algorithm(BaseAlgorithm):
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
-        #Z
-        # NANO BEGIN
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            self.pp.CFD_DEM.basset_force_type = 0
-            self.pp.CFD_DEM.PostCationConcentration = True
-            self.pp.initial_concentration = 1.0
-            self.pp.final_concentration = 0.01
-            self.pp.fluid_speed = 1e-14
-            self.pp.cation_concentration_frequence = 1
-            self.pp.CFD_DEM.drag_force_type = 9
-        # NANO END
 
         # defining and adding imposed porosity fields
         import swimming_DEM_procedures as SDP

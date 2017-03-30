@@ -812,7 +812,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
 
-        if (indentation > 0.0) {
+        if (indentation > 0.0) {            
             double OldLocalElasticContactForce[3] = {0.0};
             RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);// still in global coordinates
             // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary

@@ -16,12 +16,15 @@ void NanoParticle::Initialize(const ProcessInfo& r_process_info) {
     SphericParticle::Initialize(r_process_info);
     double added_mass_coefficient = 1.0;
     SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
+    SetSearchRadius(2e-6);
+    SetInteractionRadius(2e-6);
 }
 
 void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                              array_1d<double, 3>& additionally_applied_moment,
                              const ProcessInfo& r_current_process_info,
-                             const array_1d<double,3>& gravity){
+                             const array_1d<double,3>& gravity)
+{
     KRATOS_TRY
     array_1d<double, 3> brownian_motion_force; brownian_motion_force.clear();
     array_1d<double, 3> van_der_waals_force; van_der_waals_force.clear();
@@ -43,7 +46,10 @@ double NanoParticle::CalculateVolume()
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
 }
 
-void NanoParticle::SetInteractionRadius(const double radius){}
+void NanoParticle::SetInteractionRadius(const double radius)
+{
+
+}
 
 double NanoParticle::GetInteractionRadius()
 {
