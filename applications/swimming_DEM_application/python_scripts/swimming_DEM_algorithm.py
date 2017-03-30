@@ -221,15 +221,18 @@ class Algorithm(BaseAlgorithm):
 
     def SelectScheme(self):
         scheme = BaseAlgorithm.SelectScheme(self)
-        if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-            return HybridBashforthScheme()
-        elif DEM_parameters.ElementType == "SwimmingNanoParticle":
-            return TerminalVelocityScheme()
+        if scheme == None:
+            if self.pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+                return HybridBashforthScheme()
+            elif self.pp.CFD_DEM.IntegrationScheme == "TerminalVelocityScheme":
+                return TerminalVelocityScheme()
+            else:
+                return None
         else:
-            return None
+            return scheme
 
     def SetSolver(self):
-        return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
+        return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.pp.CFD_DEM, self.procedures)
 
 
     def TellTime(self, time):

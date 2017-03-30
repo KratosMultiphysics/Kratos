@@ -13,6 +13,7 @@ class Algorithm(BaseAlgorithm):
     def SetBetaParamters(self):
         BaseAlgorithm.SetBetaParamters(self)
         self.pp.CFD_DEM.alpha = 1000.0
+        self.pp.IntegrationScheme = 'TerminalVelocityScheme'
 
     def PerformInitialDEMStepOperations(self, time = None):
         if self.cation_concentration_counter.Tick():

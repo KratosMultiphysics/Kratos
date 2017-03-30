@@ -35,15 +35,15 @@ namespace Kratos {
         /// Destructor.
         virtual ~TerminalVelocityScheme();
 
-//        DEMIntegrationScheme* CloneRaw() const override {
-//            DEMIntegrationScheme* cloned_scheme(new TerminalVelocityScheme(*this));
-//            return cloned_scheme;
-//        }
+        DEMIntegrationScheme* CloneRaw() const override {
+            DEMIntegrationScheme* cloned_scheme(new TerminalVelocityScheme(*this));
+            return cloned_scheme;
+        }
 
-//         DEMIntegrationScheme::Pointer CloneShared() const override {
-//            DEMIntegrationScheme::Pointer cloned_scheme(new TerminalVelocityScheme(*this));
-//            return cloned_scheme;
-//        }
+         DEMIntegrationScheme::Pointer CloneShared() const override {
+            DEMIntegrationScheme::Pointer cloned_scheme(new TerminalVelocityScheme(*this));
+            return cloned_scheme;
+        }
 
         void UpdateTranslationalVariables(
             int StepFlag,
