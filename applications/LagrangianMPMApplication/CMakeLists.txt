@@ -14,6 +14,8 @@ set( KRATOS_LAGRANGIAN_MPM_APPLICATION_SOURCES
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_mpm_element.cpp
+     #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition_y.cpp
+     #${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition_x.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition_0.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce2D.cpp

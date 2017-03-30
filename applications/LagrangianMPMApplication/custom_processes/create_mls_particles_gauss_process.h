@@ -33,6 +33,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "lagrangian_mpm_application_variables.h"
+#include "lagrangian_mpm_application.h"
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
@@ -147,7 +148,7 @@ public:
             iel->Set(TO_ERASE, true);
         mrModelPart.RemoveElements( TO_ERASE );
 
-        for(auto icond = mrModelPart.ElementsBegin(); icond!=mrModelPart.ElementsEnd(); icond++)
+       for(auto icond = mrModelPart.ConditionsBegin(); icond!=mrModelPart.ConditionsEnd(); icond++)
             icond->Set(TO_ERASE, true);
         mrModelPart.RemoveConditions( TO_ERASE );
 
@@ -171,6 +172,10 @@ public:
 
             unsigned int idcount = 0;
             double area;
+
+            double search_radius = 0.0;
+            double effective_radius = 0.0;
+            double mlength = 0.0;
 
             Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(mPropertyId);
 
@@ -201,8 +206,14 @@ public:
                 area = geom.Area();
                 tot_area += area;
 
-                double search_radius = 2.0*lmax;
-                double effective_radius = lmax;
+                //double search_radius = 2.0*lmax;
+                //double effective_radius = lmax;
+
+                search_radius = 2.0*lmax;
+                effective_radius= lmax/2;
+                mlength = geom.Length();
+
+                //KRATOS_WATCH(mlength);
 
                 //create an auxiliary point
                 Node<3> aux_node(0,0.0,0.0,0.0);
@@ -224,6 +235,7 @@ public:
                     double IntegrationWeight = integration_points[PointNumber].Weight();
 
                     double Agauss = IntegrationWeight*detJ0[PointNumber];
+                    //KRATOS_WATCH(Agauss);
 
                     idcount += 1;
 
@@ -238,7 +250,7 @@ public:
                     //Node<3> search_coordinates(0,coordinates_of_gauss[0],coordinates_of_gauss[1],coordinates_of_gauss[2]);
                     aux_node.Coordinates() = coordinates_of_gauss;
                     unsigned int nresults = bins.SearchInRadius(aux_node,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
-
+                    //KRATOS_WATCH(nresults);
                     //once you have the list of points use them to build a geometry
                     Geometry< Node<3> >::Pointer pgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
                     unsigned int counter = 0;
@@ -256,6 +268,7 @@ public:
                     p_element->SetValue(EFFECTIVE_RADIUS, effective_radius);
                     p_element->SetValue(SEARCH_RADIUS, search_radius);
 
+
                     //set the constitutive law
                     std::vector< ConstitutiveLaw::Pointer > constitutive_law_vec(1);
                     constitutive_law_vec[0] = properties->GetValue(CONSTITUTIVE_LAW);
@@ -264,14 +277,365 @@ public:
             }
             KRATOS_WATCH(mrModelPart);
 
-        }
 
 
 
-        KRATOS_CATCH("");
-    }
+
+            for(ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin();
+                inode!=mrModelPart.NodesEnd(); inode++)
+            {
+                unsigned int MaximumNumberOfResults = 1000;
+                std::vector<NodePointerType>                            results(MaximumNumberOfResults);
+                std::vector<double>                                     distances(MaximumNumberOfResults);
+                //double search_radius = 4.8;
+                //double effective_radius = 0.7;
+                //double search_radius = 0.0003;
+                //double effective_radius_lm = effective_radius/3;
+                 //inode->IsFixed(DISPLACEMENT_X) &&
+
+                if(inode->IsFixed(DISPLACEMENT_X) && inode->IsFixed(DISPLACEMENT_Y))
+                {
+                    inode->Free(DISPLACEMENT_X);
+                    inode->Free(DISPLACEMENT_Y);
+
+                    idcount += 1;
 
 
+                    array_1d<double,3> coordinates_of_node = ZeroVector(3);
+
+
+
+                    unsigned int center_id = inode->Id();
+
+
+                    //coordinates_of_node = inode->Coordinates();
+                    //Node<3> search_coordinates(0,coordinates_of_node[0],coordinates_of_node[1],coordinates_of_node[2]);
+                    //KRATOS_WATCH("--1--");
+
+                    //KRATOS_WATCH(coordinates_of_node);
+
+                    unsigned int nresults = bins.SearchInRadius(*inode,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+
+                    //once you have the list of points use them to build a geometry
+                    Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+                    //first of all add the "central" node
+                    pcgeom->push_back( *(inode.base()) );
+                     //KRATOS_WATCH((inode)->Id())
+
+                    unsigned int counter=0;
+                    for(NodesContainerType::iterator ir = results.begin(); ir != results.end(); ++ir)
+                    {
+
+                        if(counter++ < nresults)
+                        {
+                            if(center_id != (*ir)->Id() )
+                            {
+                                //KRATOS_WATCH((*ir)->Id())
+                                pcgeom->push_back( *(ir.base()));
+                                //KRATOS_WATCH(*it);
+                            }
+                        }
+
+                    }
+
+                    //KRATOS_WATCH("--2--");
+                    Condition::Pointer p_condition = Condition::Pointer(new LagrangeMultiplierCondition2D0(idcount, pcgeom, properties));
+                    mrModelPart.AddCondition(p_condition);
+
+                    //KRATOS_WATCH("--3--");
+
+                    //temp_condition_container.push_back(p_condition);
+                    //p_condition->SetValue(TEMP_POS, coordinates_of_node);
+                    //p_condition->SetValue(NODAL_AREA, Agauss);
+                    p_condition->SetValue(SEARCH_RADIUS, search_radius);
+                    p_condition->SetValue(EFFECTIVE_RADIUS, effective_radius);
+                    p_condition->SetValue(CENTER_ID, center_id);
+                   // KRATOS_WATCH(*p_condition);
+
+                }
+
+                /*if(inode->Y() >= 1.01)
+                {
+                    //if(inode->IsFixed(DISPLACEMENT_X) && inode->IsFixed(DISPLACEMENT_Y))
+                    //{
+                        //inode->Free(DISPLACEMENT_X);
+                        //inode->Free(DISPLACEMENT_Y);
+
+                        idcount += 1;
+
+
+                        array_1d<double,3> coordinates_of_node = ZeroVector(3);
+
+
+
+                        unsigned int center_id = inode->Id();
+
+
+                        //coordinates_of_node = inode->Coordinates();
+                        //Node<3> search_coordinates(0,coordinates_of_node[0],coordinates_of_node[1],coordinates_of_node[2]);
+                        //KRATOS_WATCH("--1--");
+
+                        //KRATOS_WATCH(coordinates_of_node);
+
+                        unsigned int nresults = bins.SearchInRadius(*inode,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+
+                        //once you have the list of points use them to build a geometry
+                        Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+                        //first of all add the "central" node
+                        pcgeom->push_back( *(inode.base()) );
+                         //KRATOS_WATCH((inode)->Id())
+
+                        unsigned int counter=0;
+                        for(NodesContainerType::iterator ir = results.begin(); ir != results.end(); ++ir)
+                        {
+
+                            if(counter++ < nresults)
+                            {
+                                if(center_id != (*ir)->Id() )
+                                {
+                                    //KRATOS_WATCH((*ir)->Id())
+                                    pcgeom->push_back( *(ir.base()));
+                                    //KRATOS_WATCH(*it);
+                                }
+                            }
+
+                        }
+
+                        //KRATOS_WATCH("--2--");
+                        Condition::Pointer p_condition = Condition::Pointer(new LagrangeMultiplierCondition2D(idcount, pcgeom, properties));
+                        mrModelPart.AddCondition(p_condition);
+
+                        //KRATOS_WATCH("--3--");
+
+                        p_condition->SetValue(SEARCH_RADIUS, search_radius);
+                        p_condition->SetValue(EFFECTIVE_RADIUS, effective_radius);
+                        p_condition->SetValue(CENTER_ID, center_id);
+                       // KRATOS_WATCH(*p_condition);
+                    //}
+
+
+                }*/
+                //if((inode->Y()) == 0)
+                /*if(inode->IsFixed(DISPLACEMENT_X) && inode->IsFixed(DISPLACEMENT_Y))
+                {
+
+
+
+                    inode->Free(DISPLACEMENT_X);
+                    inode->Free(DISPLACEMENT_Y);
+
+                    idcount += 1;
+
+
+                    array_1d<double,3> coordinates_of_node = ZeroVector(3);
+
+
+
+                    unsigned int center_id = inode->Id();
+
+
+                    //coordinates_of_node = inode->Coordinates();
+                    //Node<3> search_coordinates(0,coordinates_of_node[0],coordinates_of_node[1],coordinates_of_node[2]);
+                    KRATOS_WATCH("--1--");
+
+                    //KRATOS_WATCH(coordinates_of_node);
+
+                    unsigned int nresults = bins.SearchInRadius(*inode,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+
+                    //once you have the list of points use them to build a geometry
+                    Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+                    //first of all add the "central" node
+                    pcgeom->push_back( *(inode.base()) );
+                     //KRATOS_WATCH((inode)->Id())
+
+                    unsigned int counter=0;
+                    for(NodesContainerType::iterator ir = results.begin(); ir != results.end(); ++ir)
+                    {
+
+                        if(counter++ < nresults)
+                        {
+                            if(center_id != (*ir)->Id() )
+                            {
+                                //KRATOS_WATCH((*ir)->Id())
+                                pcgeom->push_back( *(ir.base()));
+                                //KRATOS_WATCH(*it);
+                            }
+                        }
+
+                    }
+
+                    KRATOS_WATCH("--2--");
+                    Condition::Pointer p_condition = Condition::Pointer(new LagrangeMultiplierCondition2D0(idcount, pcgeom, properties));
+                    mrModelPart.AddCondition(p_condition);
+
+                    KRATOS_WATCH("--3--");
+
+                    //temp_condition_container.push_back(p_condition);
+                    //p_condition->SetValue(TEMP_POS, coordinates_of_node);
+                    //p_condition->SetValue(NODAL_AREA, Agauss);
+                    p_condition->SetValue(EFFECTIVE_RADIUS, effective_radius);
+                    p_condition->SetValue(SEARCH_RADIUS, search_radius);
+                   // KRATOS_WATCH(*p_condition);
+
+                }*/
+
+
+/*
+
+                if((inode->Y()) == 0.0)
+                {
+                    inode->Free(DISPLACEMENT_X);
+                    inode->Free(DISPLACEMENT_Y);
+
+                    idcount += 1;
+
+
+                    array_1d<double,3> coordinates_of_node = ZeroVector(3);
+
+
+
+                    unsigned int center_id = inode->Id();
+
+
+                    //coordinates_of_node = inode->Coordinates();
+                    //Node<3> search_coordinates(0,coordinates_of_node[0],coordinates_of_node[1],coordinates_of_node[2]);
+                    KRATOS_WATCH("--1--");
+
+                    //KRATOS_WATCH(coordinates_of_node);
+
+                    unsigned int nresults = bins.SearchInRadius(*inode,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+
+                    //once you have the list of points use them to build a geometry
+                    Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+                    //first of all add the "central" node
+                    pcgeom->push_back( *(inode.base()) );
+                     //KRATOS_WATCH((inode)->Id())
+
+                    unsigned int counter=0;
+                    for(NodesContainerType::iterator ir = results.begin(); ir != results.end(); ++ir)
+                    {
+
+                        if(counter++ < nresults)
+                        {
+                            if(center_id != (*ir)->Id() )
+                            {
+                                //KRATOS_WATCH((*ir)->Id())
+                                pcgeom->push_back( *(ir.base()));
+                                //KRATOS_WATCH(*it);
+                            }
+                        }
+
+                    }
+
+                    KRATOS_WATCH("--2--");
+                    Condition::Pointer p_condition = Condition::Pointer(new LagrangeMultiplierCondition2DY(idcount, pcgeom, properties));
+                    mrModelPart.AddCondition(p_condition);
+
+                    KRATOS_WATCH("--3--");
+
+                    //temp_condition_container.push_back(p_condition);
+                    //p_condition->SetValue(TEMP_POS, coordinates_of_node);
+                    //p_condition->SetValue(NODAL_AREA, Agauss);
+                    p_condition->SetValue(EFFECTIVE_RADIUS, effective_radius);
+                   // KRATOS_WATCH(*p_condition);
+
+                }
+
+                if((inode->X()) == 0.0)
+                {
+                    inode->Free(DISPLACEMENT_X);
+                    inode->Free(DISPLACEMENT_Y);
+
+                    idcount += 1;
+
+
+                    array_1d<double,3> coordinates_of_node = ZeroVector(3);
+
+
+
+                    unsigned int center_id = inode->Id();
+
+
+                    //coordinates_of_node = inode->Coordinates();
+                    //Node<3> search_coordinates(0,coordinates_of_node[0],coordinates_of_node[1],coordinates_of_node[2]);
+                    KRATOS_WATCH("--1--");
+
+                    //KRATOS_WATCH(coordinates_of_node);
+
+                    unsigned int nresults = bins.SearchInRadius(*inode,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+
+                    //once you have the list of points use them to build a geometry
+                    Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+                    //first of all add the "central" node
+                    pcgeom->push_back( *(inode.base()) );
+                     //KRATOS_WATCH((inode)->Id())
+
+                    unsigned int counter=0;
+                    for(NodesContainerType::iterator ir = results.begin(); ir != results.end(); ++ir)
+                    {
+
+                        if(counter++ < nresults)
+                        {
+                            if(center_id != (*ir)->Id() )
+                            {
+                                //KRATOS_WATCH((*ir)->Id())
+                                pcgeom->push_back( *(ir.base()));
+                                //KRATOS_WATCH(*it);
+                            }
+                        }
+
+                    }
+
+                    KRATOS_WATCH("--2--");
+                    Condition::Pointer p_condition = Condition::Pointer(new LagrangeMultiplierCondition2DX(idcount, pcgeom, properties));
+                    mrModelPart.AddCondition(p_condition);
+
+                    KRATOS_WATCH("--3--");
+
+                    //temp_condition_container.push_back(p_condition);
+                    //p_condition->SetValue(TEMP_POS, coordinates_of_node);
+                    //p_condition->SetValue(NODAL_AREA, Agauss);
+                    p_condition->SetValue(EFFECTIVE_RADIUS, effective_radius);
+                   // KRATOS_WATCH(*p_condition);
+
+                }*/
+                //KRATOS_WATCH(inode->FastGetSolutionStepValue(FORCE_Y));
+                //if(inode->GetSolutionStepValue(FORCE_Y) != 0)
+                /*if(inode->X() == 7.0)
+                //if(inode->Y() > 1.0 && inode->X() == 0.5)
+                {
+                    idcount += 1;
+                    Geometry< Node<3> >::Pointer pfgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+                    pfgeom->push_back( *(inode.base()));
+                    Condition::Pointer pf_condition = Condition::Pointer(new PointForce2D(idcount, pfgeom, properties));
+                    mrModelPart.AddCondition(pf_condition);
+
+                    //KRATOS_WATCH(*p_condition);
+                    //temp_condition_container.push_back(p_condition);
+                }*/
+
+            }
+
+               //temp_condition_container.swap(mrModelPart.Conditions());
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+     }
+     KRATOS_CATCH("");
+
+
+}
 
 
 

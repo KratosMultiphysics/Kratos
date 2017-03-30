@@ -74,6 +74,8 @@ public:
         ModelPart::ElementsContainerType                        temp_container;
         ModelPart::ConditionsContainerType                      temp_condition_container;
 
+
+
         BinsDynamic<3, NodeType, NodesContainerType> bins(mr_model_part.NodesArray().begin(),mr_model_part.NodesArray().end());
 
         //creating an auxiliary node for searching purposes
@@ -92,11 +94,17 @@ public:
 
             double search_radius = iel->GetValue(SEARCH_RADIUS);//0.02;
 
+
+
             //get the coordinates of the gauss point as  the sum of N[i]*xnode
             const array_1d<double,3>& coordinates_of_gauss = iel->GetValue(GAUSS_POINT_COORDINATES);
-
+        //KRATOS_WATCH(search_radius);
+        //KRATOS_WATCH(coordinates_of_gauss);
             aux_node.Coordinates() =  coordinates_of_gauss;
             unsigned int nresults = bins.SearchInRadius(aux_node,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+        //KRATOS_WATCH("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+
+            //Geometry< Node<3> >::Pointer pngeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
 
             unsigned int counter=0;
             for(NodesContainerType::iterator it = results.begin(); it != results.end(); ++it)
@@ -108,7 +116,72 @@ public:
                 counter += 1;
             }
 
+            //pngeom.swap(pgeom);
+
         }
+
+        //creating an auxiliary node for searching purposes
+        Node<3> auxc_node(0,0.0,0.0,0.0);
+        for(ModelPart::ConditionsContainerType::iterator icon = mr_model_part.ConditionsBegin();
+                icon!=mr_model_part.ConditionsEnd(); icon++)
+        {
+            unsigned int MaximumNumberOfResults = 1000;
+            std::vector<NodePointerType>                            results(MaximumNumberOfResults);
+            std::vector<double>                                     distances(MaximumNumberOfResults);
+
+            //get the coordinates of the gauss point as  the sum of N[i]*xnode
+            const array_1d<double,3> xc = icon->GetGeometry()[0].Coordinates();
+            Geometry< Node<3> > rGeom = icon->GetGeometry();
+                   //KRATOS_WATCH(xc);
+            auxc_node.Coordinates() =  xc;
+            Geometry< Node<3> >::Pointer pcgeom = icon->pGetGeometry();
+            pcgeom->clear();
+
+            //Geometry< Node<3> >::Pointer pcgeom = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >());
+
+            for(Geometry< Node<3> >::iterator inode = rGeom.begin(); inode!=rGeom.end(); inode++)
+            {
+                if(inode->Id() == icon->GetValue(CENTER_ID))
+                {
+                    pcgeom->push_back(*(inode.base())) ;
+                }
+
+
+            }
+
+
+            //Geometry< Node<3> >::Pointer pcgeom = icon->pGetGeometry();
+
+
+
+            double search_radius = icon->GetValue(SEARCH_RADIUS);//0.02;
+
+
+
+
+
+
+        //KRATOS_WATCH(search_radius);
+        //KRATOS_WATCH(auxc_node);
+
+            unsigned int nresults = bins.SearchInRadius(auxc_node,search_radius,results.begin(),distances.begin(),MaximumNumberOfResults);
+
+            //KRATOS_WATCH(nresults);
+            unsigned int counter=0;
+            for(NodesContainerType::iterator it = results.begin(); it != results.end(); ++it)
+            {
+
+                if(counter< nresults)
+                {
+                    pcgeom->push_back( *(it.base()));
+                }
+                counter += 1;
+            }
+
+
+
+        }
+
 
         KRATOS_CATCH("");
     }
