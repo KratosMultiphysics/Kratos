@@ -51,6 +51,7 @@ damping_regions = [ ["support", True, True, True, "cosine", 85 ],
 #                    ... ]
 # options for damping function: "cosine"
 #                               "linear"
+#                               "quartic"
 
 # ================================================================================================================
 # Optimization algorithm 
