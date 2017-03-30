@@ -108,7 +108,7 @@ class Algorithm(BaseAlgorithm):
     def SetCustomBetaParamters(self, dictionary):
         if len(dictionary) == 0:
             return
-        else:
+        else: # assign the specified values to the specified variables
             var_names = [k for k in dictionary.keys()]
             var_values = [k for k in dictionary.values()]
             for name, value in zip(var_names, var_values):
@@ -117,17 +117,27 @@ class Algorithm(BaseAlgorithm):
     def SetUpResultsDatabase(self):
         pass
 
-    def Initialize(self):
-        BaseAlgorithm.Initialize(self)
-        self.fluid_solver.Initialize()
+    def ReadModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):
+        self.ReadFluidModelPart()
+        fluid_mp = self.all_model_parts.Get('FluidPart')
+        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
+        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
+        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(fluid_mp)
+        self.ReadDEMModelParts(max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
+
+    def ReadFluidModelPart(self):
         os.chdir(self.pp.main_path)
         model_part_io_fluid = ModelPartIO(self.pp.problem_name)
         model_part_io_fluid.ReadModelPart(self.all_model_parts.Get('FluidPart'))
-        print("fluid solver created")
-        sys.stdout.flush()
+
+    def ReadDEMModelParts(self, starting_node_Id = 0, starting_elem_Id = 0, starting_cond_Id = 0):
+        BaseAlgorithm.ReadModelParts(self, starting_node_Id, starting_elem_Id, starting_cond_Id)
+
+    def Initialize(self):
+        self.fluid_solver.Initialize()
+        BaseAlgorithm.Initialize(self)
 
     def AddExtraVariables(self):
-
         import variables_management as vars_man
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
@@ -214,12 +224,6 @@ class Algorithm(BaseAlgorithm):
     def SetSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, DEM_parameters, self.procedures)
 
-    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        fluid_mp = self.all_model_parts.Get('FluidPart')
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(fluid_mp)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(fluid_mp)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(fluid_mp)
-        BaseAlgorithm.ReadModelParts(self, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
 
     def TellTime(self, time):
         print("\n", "TIME = ", time)
