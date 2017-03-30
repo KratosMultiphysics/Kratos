@@ -114,7 +114,6 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
     ModelPart& r_dem_model_part)
 {
     KRATOS_TRY
-
     r_flow.ImposeFieldOnNodes(r_dem_model_part, mDEMVariablesToBeImposed);
 
     KRATOS_CATCH("")
