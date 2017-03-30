@@ -60,20 +60,19 @@ else:
     print("Running under OpenMP........")
 
 class Solution:
-
-    def __init__(self):
-        import swimming_DEM_algorithm
+    import swimming_DEM_algorithm
+    def __init__(self, algorithm = swimming_DEM_algorithm, varying_parameters = dict()):
         import DEM_explicit_solver_var as DEM_parameters
-        # import the configuration data as read from the GiD
-        import ProjectParameters as pp # MOD
+        import ProjectParameters as pp
         import define_output
         import math
         self.main_path = os.getcwd()
         self.pp = pp
         self.pp.main_path = os.getcwd()
         self.pp.CFD_DEM = DEM_parameters
-        self.alg = swimming_DEM_algorithm.Algorithm(self.pp)   
-        self.alg.CreateParts()     
+        self.alg = algorithm.Algorithm(self.pp)
+        self.alg.CreateParts()
+        self.alg.SetCustomBetaParamters(varying_parameters)
 
     def Run(self):
         import math
@@ -245,10 +244,10 @@ class Solution:
             elif self.alg.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM.meso_scale_length  = 1.0
 
-            field_utility = self.GetFieldUtility()
+            field_utility = self.alg.GetFieldUtility()
 
-            projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.alg.spheres_model_part, self.alg.rigid_face_model_part, self.pp.domain_size, self.pp, field_utility)
-            projection_module.UpdateDatabase(h_min)
+            self.alg.projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, self.alg.spheres_model_part, self.alg.rigid_face_model_part, self.pp.domain_size, self.pp, field_utility)
+            self.alg.projection_module.UpdateDatabase(h_min)
 
         # creating a custom functions calculator for the implementation of additional custom functions
         custom_functions_tool = swim_proc.FunctionsCalculator(self.pp)
@@ -385,6 +384,7 @@ class Solution:
 
         swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, self.alg.spheres_model_part, self.pp) # otherwise variables are set to 0 by default
 
+        self.alg.SetUpResultsDatabase()
 
         # ANALYTICS BEGIN
         self.pp.CFD_DEM.perform_analytics_option = False
@@ -416,7 +416,6 @@ class Solution:
 
         # NANO END
 
-        #G
 
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
         recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
@@ -427,6 +426,8 @@ class Solution:
             basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
         if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
             basset_force_tool.FillHinsbergVectors(self.alg.spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
+
+        self.alg.PerformZeroStepInitializations()
 
         post_utils.Writeresults(time)
 
@@ -483,7 +484,7 @@ class Solution:
             if output_time <= out and self.pp.CFD_DEM.coupling_scheme_type == "UpdatedDEM":
 
                 if self.pp.CFD_DEM.coupling_level_type > 0:
-                    projection_module.ComputePostProcessResults(self.alg.spheres_model_part.ProcessInfo)
+                    self.alg.projection_module.ComputePostProcessResults(self.alg.spheres_model_part.ProcessInfo)
 
                 post_utils.Writeresults(time)
                 out = 0
@@ -516,14 +517,18 @@ class Solution:
                 if time >= self.pp.CFD_DEM.interaction_start_time and self.pp.CFD_DEM.coupling_level_type and (self.pp.CFD_DEM.project_at_every_substep_option or first_dem_iter):
 
                     if self.pp.CFD_DEM.coupling_scheme_type == "UpdatedDEM":
-                        projection_module.ApplyForwardCoupling()
+                        self.alg.ApplyForwardCoupling()
 
                     else:
-                        projection_module.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
+                        self.alg.ApplyForwardCoupling((time_final_DEM_substepping - time_dem) / Dt)
 
-                        if self.pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+                        if self.alg.pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
                             self.alg.solver.Solve() # only advance in space
-                            projection_module.ApplyForwardCouplingOfVelocityOnly()
+                            self.alg.ApplyForwardCouplingOfVelocityOnly(time_dem)
+                        else:
+                            if self.alg.pp.CFD_DEM.basset_force_type > 0:
+                                node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
+                                node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
                         if quadrature_counter.Tick():
                             if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
@@ -537,9 +542,8 @@ class Solution:
                 self.alg.rigid_face_model_part.ProcessInfo[TIME] = time_dem
                 self.alg.cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-                if not self.pp.CFD_DEM.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
-                    # self.alg.solver.Solve()
-                    pass
+                if not self.pp.CFD_DEM.flow_in_porous_DEM_medium_option or self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle": # in porous flow particles remain static
+                    self.alg.DEMSolve(time_dem)
 
                 # Walls movement:
                 mesh_motion.MoveAllMeshes(self.alg.rigid_face_model_part, time, Dt)
@@ -555,7 +559,7 @@ class Solution:
                 if output_time <= out and self.pp.CFD_DEM.coupling_scheme_type == "UpdatedFluid":
 
                     if self.pp.CFD_DEM.coupling_level_type:
-                        projection_module.ComputePostProcessResults(self.alg.spheres_model_part.ProcessInfo)
+                        self.alg.projection_module.ComputePostProcessResults(self.alg.spheres_model_part.ProcessInfo)
 
                     post_utils.Writeresults(time_dem)
                     out = 0
@@ -576,11 +580,11 @@ class Solution:
 
             # applying DEM-to-fluid coupling
             if DEM_to_fluid_counter.Tick() and time >= self.pp.CFD_DEM.interaction_start_time:
-                projection_module.ProjectFromParticles()
+                self.alg.projection_module.ProjectFromParticles()
 
             # coupling checks (debugging)
             if debug_info_counter.Tick():
-                self.spheres_model_part.UpdateDataAndPrint(self.pp.CFD_DEM.fluid_domain_volume)
+                dem_volume_tool.UpdateDataAndPrint(self.pp.CFD_DEM.fluid_domain_volume)
 
             # printing if required
 
@@ -590,21 +594,14 @@ class Solution:
                 PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
         swimming_DEM_gid_io.finalize_results()
-
         self.alg.TellFinalSummary(step, time, DEM_step)
+
+        self.alg.PerformFinalOperations(time_dem)
 
         for i in drag_file_output_list:
             i.close()
 
-    def GetFieldUtility(self):
-        field_utility = None
-
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            flow_field = ConstantVelocityField(0.00001, 0, 0)
-            space_time_set = SpaceTimeSet()
-            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
-
-        return field_utility
+        return self.alg.GetReturnValue()
 
 if __name__=="__main__":
     Solution().Run()

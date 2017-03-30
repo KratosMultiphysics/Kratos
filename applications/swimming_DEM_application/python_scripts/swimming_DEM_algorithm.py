@@ -105,6 +105,18 @@ class Algorithm(BaseAlgorithm):
 
         self.pp.fluid_fraction_fields.append(field1)
 
+    def SetCustomBetaParamters(self, dictionary):
+        if len(dictionary) == 0:
+            return
+        else:
+            var_names = [k for k in dictionary.keys()]
+            var_values = [k for k in dictionary.values()]
+            for name, value in zip(var_names, var_values):
+                globals()['self.pp.CFD_DEM.' + name] = value
+
+    def SetUpResultsDatabase(self):
+        pass
+
     def Initialize(self):
         BaseAlgorithm.Initialize(self)
         self.fluid_solver.Initialize()
@@ -180,6 +192,11 @@ class Algorithm(BaseAlgorithm):
 
         self.KRATOSprint("\nInitializing Problem...")
 
+    def DEMSolve(self, time = 'None'): # time is passed in case it is needed
+        self.solver.Solve()
+
+    def PerformZeroStepInitializations(self):
+        pass
 
     def SetSolverStrategy(self):
         import swimming_sphere_strategy as SolverStrategy
@@ -277,3 +294,25 @@ class Algorithm(BaseAlgorithm):
                     self.fluid_solver.wall_nodes.append(node)
                     node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
                     node.Fix(TURBULENT_VISCOSITY)
+
+    def GetFieldUtility(self):
+        field_utility = None
+
+        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+            flow_field = ConstantVelocityField(0.00001, 0, 0)
+            space_time_set = SpaceTimeSet()
+            field_utility = FluidFieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
+
+        return field_utility
+
+    def GetResultsCreator(self):
+        return None
+
+    def ApplyForwardCoupling(self, alpha = 'None'):
+        self.projection_module.ApplyForwardCoupling(alpha)
+
+    def ApplyForwardCouplingOfVelocityOnly(self):
+        self.projection_module.ApplyForwardCouplingOfVelocityOnly()
+
+    def PerformFinalOperations(self, time = None):
+        pass
