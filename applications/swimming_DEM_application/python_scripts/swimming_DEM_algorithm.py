@@ -17,6 +17,7 @@ class Algorithm(BaseAlgorithm):
         self.StartTimer()
         self.pp = pp
         self.SetBetaParamters()
+        self.SetDoSolveDEMVariable()
 
     def CreateParts(self):
         # Order must be respected here
@@ -104,6 +105,9 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.fluid_domain_volume = 0.5 ** 2 * 2 * pi # write down the volume you know it has
 
         self.pp.fluid_fraction_fields.append(field1)
+
+    def SetDoSolveDEMVariable(self):
+        self.pp.do_solve_dem = not self.pp.CFD_DEM.flow_in_porous_DEM_medium_option
 
     def SetCustomBetaParamters(self, dictionary):
         if len(dictionary) == 0:
@@ -206,6 +210,9 @@ class Algorithm(BaseAlgorithm):
         self.solver.Solve()
 
     def PerformZeroStepInitializations(self):
+        pass
+
+    def PerformInitialDEMStepOperations(self, time = None):
         pass
 
     def SetSolverStrategy(self):

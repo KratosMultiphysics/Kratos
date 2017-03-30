@@ -64,8 +64,6 @@ class Solution:
     def __init__(self, algorithm = swimming_DEM_algorithm, varying_parameters = dict()):
         import DEM_explicit_solver_var as DEM_parameters
         import ProjectParameters as pp
-        import define_output
-        import math
         self.main_path = os.getcwd()
         self.pp = pp
         self.pp.main_path = os.getcwd()
@@ -267,7 +265,7 @@ class Solution:
 
         # creating a distance calculation process for the embedded technology
         # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
-        if (self.pp.CFD_DEM.embedded_option):
+        if self.pp.CFD_DEM.embedded_option:
             calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(self.alg.rigid_face_model_part, fluid_model_part)
             calculate_distance_process.Execute()
 
@@ -339,27 +337,6 @@ class Solution:
         mat_deriv_averager           = swim_proc.Averager(1, 3)
         laplacian_averager           = swim_proc.Averager(1, 3)
 
-        # NANO BEGIN
-        frequence = 1
-
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            frequence = self.pp.cation_concentration_frequence
-
-        cation_concentration_counter = swim_proc.Counter(frequence, 1, self.pp.CFD_DEM.drag_force_type == 9)
-        # NANO END
-
-        #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
-
-        #for node in fluid_model_part.Nodes:
-            #node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
-            #node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
-            #node.SetSolutionStepValue(BODY_FORCE_Z, 0, - 9.81)
-        #import meshing_utils
-
-        #meshing_utils.ModifyRadiusesGivenPorosity(model_part, porosity, tol)
-        #Z
-
-
         ##############################################################################
         #                                                                            #
         #    MAIN LOOP                                                               #
@@ -406,16 +383,6 @@ class Solution:
             print(gauge.variables)
             print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
         # ANALYTICS END
-
-        # NANO BEGIN
-        if self.pp.CFD_DEM.drag_force_type == 9:
-            alpha = 1000.0
-
-            for node in self.alg.spheres_model_part.Nodes:
-                node.SetSolutionStepValue(CATION_CONCENTRATION, self.pp.initial_concentration)
-
-        # NANO END
-
 
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
         recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
@@ -504,15 +471,8 @@ class Solution:
                 self.alg.spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
                 self.alg.rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
                 self.alg.cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
-                # NANO BEGIN
 
-                if cation_concentration_counter.Tick():
-                    concentration = self.pp.final_concentration + (self.pp.initial_concentration - self.pp.final_concentration) * math.exp(- alpha * time_dem)
-
-                    for node in self.alg.spheres_model_part.Nodes:
-                        node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
-                # NANO END
-                # applying fluid-to-DEM coupling if required
+                self.alg.PerformInitialDEMStepOperations(time_dem)
 
                 if time >= self.pp.CFD_DEM.interaction_start_time and self.pp.CFD_DEM.coupling_level_type and (self.pp.CFD_DEM.project_at_every_substep_option or first_dem_iter):
 
@@ -542,7 +502,7 @@ class Solution:
                 self.alg.rigid_face_model_part.ProcessInfo[TIME] = time_dem
                 self.alg.cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-                if not self.pp.CFD_DEM.flow_in_porous_DEM_medium_option or self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle": # in porous flow particles remain static
+                if self.alg.pp.do_solve_dem:
                     self.alg.DEMSolve(time_dem)
 
                 # Walls movement:
@@ -566,9 +526,6 @@ class Solution:
 
                 out = out + Dt_DEM
                 first_dem_iter = False
-
-            if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-                print("concentration: " + str(concentration))
 
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
@@ -594,12 +551,13 @@ class Solution:
                 PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
         swimming_DEM_gid_io.finalize_results()
-        self.alg.TellFinalSummary(step, time, DEM_step)
 
         self.alg.PerformFinalOperations(time_dem)
 
         for i in drag_file_output_list:
             i.close()
+
+        self.alg.TellFinalSummary(step, time, DEM_step)
 
         return self.alg.GetReturnValue()
 
