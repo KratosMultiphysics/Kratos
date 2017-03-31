@@ -83,6 +83,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* Weighted values */
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                        // The integrated scalar residual  
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_VECTOR_RESIDUAL )                        // The integrated vector residual    
     
     /* Matrix to store the derivatives of the normal */
     KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                    // Directional derivative of the normal

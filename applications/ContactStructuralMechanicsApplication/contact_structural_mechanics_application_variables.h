@@ -142,35 +142,37 @@ struct ConditionMap : ConditionHashMap
 
 // CONDITIONS
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
-KRATOS_DEFINE_VARIABLE( ConditionMap*, CONTACT_SETS )                                                                              // An unordened map of which contains the structure which defines the contact conditions
-KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                                                                     // A pointer to the element belonging to this condition
-KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                                                                       // The integration order computed in the contact
-KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                                                                       // Mortar Contact Operator
-KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                                                           // The factor employed to serach an active/inactive node
+KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )   // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
+KRATOS_DEFINE_VARIABLE( ConditionMap*, CONTACT_SETS )                           // An unordened map of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                     // A pointer to the element belonging to this condition
+KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
+KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                       // Mortar Contact Operator
+KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                           // The factor employed to serach an active/inactive node
 
 /* The complementary values */
 // NOTE: This will be eventually not necessary
-KRATOS_DEFINE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                                                                    // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
-KRATOS_DEFINE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                                                                   // The constant that is considered for the check if the node is slip/stick
+KRATOS_DEFINE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                    // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+KRATOS_DEFINE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                   // The constant that is considered for the check if the node is slip/stick
 
 /* Weighted values */
-KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                                                                  // The integrated gap employed in mortar formulation
-KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SLIP )                                                                                 // The integrated slip employed in mortar formulation
+KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                  // The integrated gap employed in mortar formulation
+KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SLIP )                                 // The integrated slip employed in mortar formulation
+KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                      // The integrated scalar residual  
+KRATOS_DEFINE_VARIABLE( Vector3, WEIGHTED_VECTOR_RESIDUAL )                     // The integrated vector residual         
 
 /* Matrix to store the derivatives of the normal */
-KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                                                                  // Directional derivative of the normal
+KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                  // Directional derivative of the normal
 
 /* Auxiliar booleans to store the change in active/inactive slip/stick */
-KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                                                                 // Auxiliar boolean to check if the node is active or not
-KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                                                                   // Auxiliar boolean to check if the node is stick or not
+KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                // Auxiliar boolean to check if the node is active or not
+KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                  // Auxiliar boolean to check if the node is stick or not
 
 /* For ALM mortar condition */
-KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                                                                                // The penalty factor for the ALM
-KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                                                                  // The scale factor for the ALM
+KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                               // The penalty factor for the ALM
+KRATOS_DEFINE_VARIABLE( double, SCALE_FACTOR )                                 // The scale factor for the ALM
 
 /* For mesh tying mortar condition */
-KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                                                                           // The variable name for the mesh tying  
+KRATOS_DEFINE_VARIABLE( std::string, TYING_VARIABLE )                          // The variable name for the mesh tying  
 
 }       
 
