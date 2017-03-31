@@ -205,17 +205,21 @@ public:
 
         // Store the positive distance nodes VELOCITY in EMBEDDED_WET_VELOCITY variable. The negative distance
         // nodes EMBEDDED_WET_VELOCITY is set to zero for visualization purposes
+        // The same is done for the PRESSURE using the EMBEDDED_WET_PRESSURE variable
         for (ModelPart::NodeIterator itNode=mrModelPart.NodesBegin(); itNode!=mrModelPart.NodesEnd(); ++itNode)
         {
             const double dist = itNode->FastGetSolutionStepValue(DISTANCE);
+            double& emb_wet_pres = itNode->FastGetSolutionStepValue(EMBEDDED_WET_PRESSURE);
             array_1d<double, 3>& emb_wet_vel = itNode->FastGetSolutionStepValue(EMBEDDED_WET_VELOCITY);
 
             if (dist >= 0.0)
             {
+                emb_wet_pres = itNode->FastGetSolutionStepValue(PRESSURE);
                 emb_wet_vel = itNode->FastGetSolutionStepValue(VELOCITY);
             }
             else
             {
+                emb_wet_pres = 0.0;
                 emb_wet_vel = aux_zero;
             }
         }
