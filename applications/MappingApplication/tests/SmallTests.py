@@ -82,12 +82,15 @@ class NearestElementMapperTest2DFactory(KratosUnittest.TestCase):
         pass
 
 class MapperTestsFactory(KratosUnittest.TestCase):
-  
     def setUp(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             output_post = True # set to "True" if GiD output is wanted
-            self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(output_post)
+            self.set_up_test_1 = False # set to "True" to print the coordinates and the prescribed values
+            self.set_up_test_2 = False # set to "True" to print the mapped Values
+            self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(output_post, 
+                                                                           self.set_up_test_1,
+                                                                           self.set_up_test_2)
 
     def test_execution(self):
         # Within this location context:
@@ -103,10 +106,10 @@ class MapperTestsFactory(KratosUnittest.TestCase):
                 self.test_object.TestMapConstantVectorValues(3.0)
                 self.test_object.TestInverseMapConstantVectorValues(4.0)
 
-                # self.test_object.TestMapNonConstantScalarValues(5.0)
-                # self.test_object.TestInverseMapNonConstantScalarValues(6.0)
+                self.test_object.TestMapNonConstantScalarValues(5.0)
+                self.test_object.TestInverseMapNonConstantScalarValues(6.0)
 
-                # self.test_object.TestMapNonConstantVectorValues(7.0)
+                self.test_object.TestMapNonConstantVectorValues(7.0)
                 self.test_object.TestInverseMapNonConstantVectorValues(8.0)
 
                 print("succssful") # this is only printed in case the test fails
@@ -114,7 +117,10 @@ class MapperTestsFactory(KratosUnittest.TestCase):
                 self.test_object.FinalizeGiD()
 
     def tearDown(self):
-        pass
+        if (self.set_up_test_1 or self.set_up_test_2):
+            err # needed to get the output
+        else:
+            pass
         
 
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):
@@ -131,4 +137,4 @@ class MapperTests(MapperTestsFactory):
     file_name_5 = "NearestElement_surface"
     file_name_6 = "NearestElement_volume"
     
-    file_name_list = [file_name_1]
+    file_name_list = [file_name_1, file_name_2, file_name_3]
