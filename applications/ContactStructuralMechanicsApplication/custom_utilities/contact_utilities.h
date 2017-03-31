@@ -973,7 +973,7 @@ public:
                 {
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
-                        const double mu = CondGeometry[itNode].GetValue(WEIGHTED_FRICTION);
+                        const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); 
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
                         const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                         const array_1d<double,3>        nodal_normal = CondGeometry[itNode].GetValue(NORMAL); 
@@ -1136,7 +1136,6 @@ public:
                 }
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
-                itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
             }
         }
     }

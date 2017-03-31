@@ -155,8 +155,6 @@ KRATOS_DEFINE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                   
 /* Weighted values */
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                                                                  // The integrated gap employed in mortar formulation
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_SLIP )                                                                                 // The integrated slip employed in mortar formulation
-// NOTE: I don't have clear about this
-KRATOS_DEFINE_VARIABLE( double, WEIGHTED_FRICTION )                                                                             // The integrated friction employed in mortar formulation
 
 /* Matrix to store the derivatives of the normal */
 KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                                                                  // Directional derivative of the normal

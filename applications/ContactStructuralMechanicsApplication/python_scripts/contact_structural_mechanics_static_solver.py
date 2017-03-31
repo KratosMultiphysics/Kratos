@@ -104,14 +104,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         if  self.settings["compute_mortar_contact"].GetInt() > 0: # FIXME: Change this for strings!!!!
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                                             # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)                                                         # Add nodal area
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)                 # Add weighted gap
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE)              # Auxiliar active
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR)          # Active check factor
             if  self.settings["compute_mortar_contact"].GetInt() == 1:
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP)            # Add weighted slip
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION)        # Add weighted friction
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add lagrange multiplier
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP)            # Auxiliar slip
             elif  self.settings["compute_mortar_contact"].GetInt() == 2:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)                                          # Add normal contact stress
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)                                                        # Add nodal size variable

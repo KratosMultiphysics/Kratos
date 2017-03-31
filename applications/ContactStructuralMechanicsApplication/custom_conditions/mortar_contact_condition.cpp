@@ -245,7 +245,6 @@ void MortarContactCondition<TDim,TNumNodes>::FinalizeNonLinearIteration( Process
                     const double int_aux = IntegrationWeight * rVariables.DetJSlave * rVariables.Phi_LagrangeMultipliers[iNode];
                     aux_int_gap[iNode]      +=  IntegrationPointGap  * int_aux;
                     aux_int_slip[iNode]     +=  IntegrationPointSlip * int_aux;
-                    aux_int_friction[iNode] +=  rVariables.mu          * int_aux;
                 }
             }
         }
@@ -261,8 +260,6 @@ void MortarContactCondition<TDim,TNumNodes>::FinalizeNonLinearIteration( Process
                 GetGeometry()[iNode].GetValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
                 #pragma omp atomic 
                 GetGeometry()[iNode].GetValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
-                #pragma omp atomic 
-                GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION) += aux_int_friction[iNode]; 
             }
         }
         else

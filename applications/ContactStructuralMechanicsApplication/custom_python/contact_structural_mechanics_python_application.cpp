@@ -55,7 +55,6 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )          // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )                 // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SLIP )                // The integrated slip employed in mortar formulation
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_FRICTION )            // The integrated friction employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUXILIAR_ACTIVE )              // Auxiliar boolean to check if the node is active or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUXILIAR_SLIP )                // Auxiliar boolean to check if the node is stick or not
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )          // The factor employed to search an active/inactive node
