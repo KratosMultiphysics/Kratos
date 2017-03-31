@@ -1,8 +1,8 @@
 # ==============================================================================
 #  TopologyOptimizationApplication
 #
-#  License:		    BSD License
-#					license: TopologyOptimizationApplication/license.txt
+#  License:         BSD License
+#                   license: TopologyOptimizationApplication/license.txt
 #
 #  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 #                   Octaviano Malfavón Farías
