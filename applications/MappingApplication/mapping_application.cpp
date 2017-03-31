@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand@{KRATOS_APP_AUTHOR}
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
 
 
@@ -39,6 +39,8 @@ void KratosMappingApplication::Register() {
 
  	std::cout << "Initializing KratosMappingApplication... " << std::endl;
 
+  KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
+  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
 
 }
 }  // namespace Kratos.

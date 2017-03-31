@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
 
 #if !defined(KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED )
@@ -24,7 +24,8 @@
 
 namespace Kratos
 {
-
+    KRATOS_DEFINE_VARIABLE(double, NEIGHBOR_RANK);
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NEIGHBOR_COORDINATES);
 }
 
 #endif	/* KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED */
