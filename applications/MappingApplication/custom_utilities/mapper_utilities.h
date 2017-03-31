@@ -162,9 +162,10 @@ namespace Kratos
                   }
               }
           } else {
-              std::cout << "MAPPER WARNING, no conditions for search radius "
-                        << "computations found, using nodes (less efficient)"
-                        << std::endl;
+              // TODO modify and use again
+              // std::cout << "MAPPER WARNING, no conditions for search radius "
+              //           << "computations found, using nodes (less efficient)"
+              //           << std::endl;
               // TODO modify loop such that it loop only once over the nodes
               for (auto& node_1 : model_part.GetCommunicator().LocalMesh().Nodes()) {
                   double node_1_x = node_1.X();

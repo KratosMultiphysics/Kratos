@@ -84,41 +84,38 @@ class NearestElementMapperTest2DFactory(KratosUnittest.TestCase):
 class MapperTestsFactory(KratosUnittest.TestCase):
   
     def setUp(self):
-        self.test_list = []
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             output_post = True # set to "True" if GiD output is wanted
-
-            for file_name in self.file_name_list:
-                # Get the ProjectParameters file
-                # Create the test
-                self.test_list.append(ExecuteMapperTests.KratosExecuteMapperTests(output_post,
-                                                                                  file_name))
+            self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(output_post)
 
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # the numeric values are the output times for GiD
-            for test in self.test_list:
-                test.TestMapConstantScalarValues(1.0)
-                test.TestInverseMapConstantScalarValues(2.0)
+            for file_name in self.file_name_list:
+                print("Testing Test \"" + file_name + "\" ... ", end='') # this is only printed in case the test fails
+                self.test_object.SetUpMapper(file_name)
 
-                test.TestMapConstantVectorValues(3.0)
-                test.TestInverseMapConstantVectorValues(4.0)
+                self.test_object.TestMapConstantScalarValues(1.0)
+                self.test_object.TestInverseMapConstantScalarValues(2.0)
 
-                # test.TestMapNonConstantScalarValues(5.0)
-                # test.TestInverseMapNonConstantScalarValues(6.0)
+                self.test_object.TestMapConstantVectorValues(3.0)
+                self.test_object.TestInverseMapConstantVectorValues(4.0)
 
-                # test.TestMapNonConstantVectorValues(7.0)
-                # test.TestInverseMapNonConstantVectorValues(8.0)
+                # self.test_object.TestMapNonConstantScalarValues(5.0)
+                # self.test_object.TestInverseMapNonConstantScalarValues(6.0)
+
+                # self.test_object.TestMapNonConstantVectorValues(7.0)
+                self.test_object.TestInverseMapNonConstantVectorValues(8.0)
+
+                print("succssful") # this is only printed in case the test fails
+
+                self.test_object.FinalizeGiD()
 
     def tearDown(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # the numeric values are the output times for GiD
-            for test in self.test_list:
-                test.FinalizeGiD()
-
+        pass
+        
 
 class NearestNeighborTest_1(NearestNeighborMapperTestFactory):
     file_name = "Mapper_Test_1/Mapper_Test_1"
@@ -129,8 +126,9 @@ class NearestElementTest2D_1(NearestElementMapperTest2DFactory):
 class MapperTests(MapperTestsFactory):
     file_name_1 = "NearestNeighbor_line"
     file_name_2 = "NearestNeighbor_surface"
-    file_name_3 = "NearestElement_line"
-    file_name_4 = "NearestElement_surface"
+    file_name_3 = "NearestNeighbor_volume"
+    file_name_4 = "NearestElement_line"
+    file_name_5 = "NearestElement_surface"
+    file_name_6 = "NearestElement_volume"
     
-    file_name_list = [file_name_1, file_name_2, file_name_3, file_name_4]
-    file_name_list = [file_name_1, file_name_2]
+    file_name_list = [file_name_1]
