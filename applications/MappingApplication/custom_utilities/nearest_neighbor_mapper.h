@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
 
 #if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
@@ -64,18 +64,17 @@ public:
   ///@{
 
   NearestNeighborMapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                        Parameters& i_json_parameters) : Mapper(
-                        i_model_part_origin, i_model_part_destination, i_json_parameters) {
+                        Parameters& rJsonParameters) : Mapper(
+                        i_model_part_origin, i_model_part_destination, rJsonParameters) {
       m_p_mapper_communicator->InitializeOrigin(MapperUtilities::Node);
       m_p_mapper_communicator->InitializeDestination(MapperUtilities::Node);
       m_p_mapper_communicator->Initialize();
 
       m_p_inverse_mapper.reset(); // explicitly specified to be safe
 
-      if (i_json_parameters["non_conforming_interface"].GetBool()) {
-          KRATOS_ERROR << "MappingApplication; NearestNeighborMapper; invalid "
-                       << "option specified for this mapper: "
-                       << "\"non_conforming_interface\"" << std::endl;
+      if (rJsonParameters["approximation_tolerance"].GetDouble() >= 0.0f) {
+          KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" " 
+                       << "specified for Nearest Neighbor Mapper" << std::endl;
       }
   }
 
