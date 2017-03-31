@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 
 #if !defined(KRATOS_INTERFACE_OBJECT_MANAGER_BASE_H_INCLUDED )
 #define  KRATOS_INTERFACE_OBJECT_MANAGER_BASE_H_INCLUDED
