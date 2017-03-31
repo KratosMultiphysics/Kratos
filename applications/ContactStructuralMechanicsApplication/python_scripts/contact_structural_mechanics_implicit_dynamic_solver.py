@@ -99,7 +99,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             
         if  self.settings["compute_mortar_contact"].GetInt() > 0: # FIXME: Change this for strings!!!!
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)                                                             # Add normal
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)                                                         # Add nodal area
             if  self.settings["compute_mortar_contact"].GetInt() == 1:
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)                                     # Add lagrange multiplier
             elif  self.settings["compute_mortar_contact"].GetInt() == 2:
