@@ -538,7 +538,7 @@ namespace Kratos
               for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
                   const Geometry< Node<3> >& condition_geometry = condition.GetGeometry();
 
-                  Matrix shape_functions = condition_geometry.ShapeFunctionsValues(integration_method);
+                  Matrix shape_functions = condition_geometry.ShapeFunctionsValues(integration_method); // TODO "ShapeFunctionsValues" seems to not be implemented for every geometry!!!
 
                   const int num_gauss_points = shape_functions.size1();
                   const int num_nodes = shape_functions.size2();
