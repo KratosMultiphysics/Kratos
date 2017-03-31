@@ -85,7 +85,7 @@ class MapperTestsFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            output_post = True # set to "True" if GiD output is wanted
+            output_post = False # set to "True" if GiD output is wanted
             self.set_up_test_1 = False # set to "True" to print the coordinates and the prescribed values
             self.set_up_test_2 = False # set to "True" to print the mapped Values
             self.test_object = ExecuteMapperTests.KratosExecuteMapperTests(output_post, 
