@@ -26,21 +26,23 @@
 namespace Kratos
 {
 
-#if !defined(CONDITION_POINTER_HASHER) // TODO: Use a template for shared pointers
-#define CONDITION_POINTER_HASHER
-struct ConditionPointerHasher
+#if !defined(SHARED_POINTER_HASHER)
+#define SHARED_POINTER_HASHER
+template<class TSharedPointer>
+struct SharedPointerHasher
 {
-    size_t operator()(const Condition::Pointer& pCond) const
+    size_t operator()(const TSharedPointer& pCond) const
     {
         return (size_t)pCond.get(); 
     }
 };
 #endif
-#if !defined(CONDITION_POINTER_COMPARATOR)
-#define CONDITION_POINTER_COMPARATOR
-struct ConditionPointerComparator
+#if !defined(SHARED_POINTER_COMPARATOR)
+#define SHARED_POINTER_COMPARATOR
+template<class TSharedPointer>
+struct SharedPointerComparator
 {
-    bool operator()(const Condition::Pointer& first, const Condition::Pointer& second) const
+    bool operator()(const TSharedPointer& first, const TSharedPointer& second) const
     {
         return *first == *second;
     }
@@ -48,7 +50,7 @@ struct ConditionPointerComparator
 #endif
 
 typedef array_1d<double,3> Vector3;
-typedef std::unordered_map<Condition::Pointer, bool, ConditionPointerHasher, ConditionPointerComparator > ConditionHashMap;
+typedef std::unordered_map<Condition::Pointer, bool, SharedPointerHasher<Condition::Pointer>, SharedPointerComparator<Condition::Pointer> > ConditionHashMap;
 
 struct contact_container // TODO: Remove this, deprecated
 {
