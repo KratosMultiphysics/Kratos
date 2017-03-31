@@ -14,6 +14,9 @@ class SwimmingStrategy(BaseStrategy):
         if name == 'Hybrid_Bashforth':
             class_name = 'HybridBashforthScheme'
 
+        if name == 'TerminalVelocityScheme':
+            class_name = 'TerminalVelocityScheme'
+
         return class_name
 
     def GetSchemeInstance(self, class_name): # parent counterpart must not be called due to different 'globals()'
@@ -32,12 +35,12 @@ class SwimmingStrategy(BaseStrategy):
         print('self.Parameters.IntegrationScheme',self.Parameters.IntegrationScheme)
         print('self.Parameters.do_search_neighbours',self.Parameters.do_search_neighbours)
 
-        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+        if self.Parameters.IntegrationScheme == 'Verlet_Velocity':
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
 
-        elif (self.Parameters.IntegrationScheme == 'Hybrid_Bashforth'):
+        elif self.Parameters.IntegrationScheme == 'Hybrid_Bashforth':
             self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                               self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
