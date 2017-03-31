@@ -196,45 +196,93 @@ namespace Kratos
           return num_nodes_origin / num_nodes_destination;
       }
 
-      static bool ProjectPointToLine(Condition* p_condition,
-                                     array_1d<double, 3> global_coords,
-                                     array_1d<double,2>& local_coords,
-                                     double& distance,
+      static bool ProjectPointToLine(Condition* pCondition,
+                                     array_1d<double, 3> GlobalCoords,
+                                     array_1d<double,2>& rLocalCoords,
+                                     double& rDistance,
                                      array_1d<double,3>& normal) {
-          Point<3> point_to_project(global_coords);
+          // Point<3> point_to_project(global_coords);
 
-          Point<3> point_projected;
-          Point<3> point_in_plane = p_condition->GetGeometry()[0];
+          // Point<3> point_projected;
+          // Point<3> point_in_plane = p_condition->GetGeometry()[0];
 
-          array_1d<double,3> vector_points;
-          noalias(vector_points) = point_to_project.Coordinates() - point_in_plane.Coordinates();
+          // array_1d<double,3> vector_points;
+          // noalias(vector_points) = point_to_project.Coordinates() - point_in_plane.Coordinates();
 
-          CalculateLineNormal(p_condition, normal);
+          // CalculateLineNormal(p_condition, normal);
 
-          distance = inner_prod(vector_points, normal);
+          // distance = inner_prod(vector_points, normal);
 
-          point_projected.Coordinates() = point_to_project.Coordinates() - normal * distance;
+          // point_projected.Coordinates() = point_to_project.Coordinates() - normal * distance;
 
-          distance = fabs(distance);
+          // distance = fabs(distance);
 
-          array_1d<double, 3> point_projected_local_coords;
-          point_projected_local_coords = p_condition->GetGeometry().PointLocalCoordinates(point_projected_local_coords,point_projected);
+          // array_1d<double, 3> point_projected_local_coords;
+          // point_projected_local_coords = p_condition->GetGeometry().PointLocalCoordinates(point_projected_local_coords,point_projected);
 
-          local_coords[0] = point_projected_local_coords[0];
-          local_coords[1] = 0.0;
+          // local_coords[0] = point_projected_local_coords[0];
+          // local_coords[1] = 0.0;
 
-          std::cout << "Point to project: [" << global_coords[0] << " " << global_coords[1] << " " << global_coords[2] << "], local points: [" <<
-          p_condition->GetGeometry()[0].X() << " " << p_condition->GetGeometry()[0].Y() << " " << p_condition->GetGeometry()[0].Z() << "] ["<<
-          p_condition->GetGeometry()[1].X() << " " << p_condition->GetGeometry()[1].Y() << " " << p_condition->GetGeometry()[1].Z() << "] local coord: " <<
-          local_coords[0] << std::endl;
+          // std::cout << "Point to project: [" << global_coords[0] << " " << global_coords[1] << " " << global_coords[2] << "], local points: [" <<
+          // p_condition->GetGeometry()[0].X() << " " << p_condition->GetGeometry()[0].Y() << " " << p_condition->GetGeometry()[0].Z() << "] ["<<
+          // p_condition->GetGeometry()[1].X() << " " << p_condition->GetGeometry()[1].Y() << " " << p_condition->GetGeometry()[1].Z() << "] local coord: " <<
+          // local_coords[0] << std::endl;
 
 
-          if (-1.0-MapperUtilities::tol_local_coords < local_coords[0] && local_coords[0] < 1.0+MapperUtilities::tol_local_coords) {
-              return true;
-          } else {
-              return false;
+          // if (-1.0-MapperUtilities::tol_local_coords < local_coords[0] && local_coords[0] < 1.0+MapperUtilities::tol_local_coords) {
+          //     return true;
+          // } else {
+          //     return false;
+          // }
+
+          //**********************************************************************
+          // xi,yi are Nodal Coordinates, n is the destination condition's unit normal
+          // and d is the distance along n from the point to its projection in the condition
+          // | DestX-0.5(x1+x2) |   | 0.5(x2-x1)  nx |   | Chi |
+          // |                  | = |                | . |     |    
+          // | DestY-0.5(y1+y2) |   | 0.5(y2-y1)  ny |   |  d  |
+
+          Matrix transform_matrix(2, 2, false);
+          Matrix inv_transform_matrix(2, 2, false);
+          double det;
+
+          array_1d<double, 2> RHS;
+          array_1d<double, 2> result_vec;
+          
+
+          RHS[0] = GlobalCoords[0] - 0.5 * (pCondition->GetGeometry()[0].X() + pCondition->GetGeometry()[1].X());
+          RHS[1] = GlobalCoords[1] - 0.5 * (pCondition->GetGeometry()[0].Y() + pCondition->GetGeometry()[1].Y());
+
+          transform_matrix(0, 0) = 0.5 * (pCondition->GetGeometry()[1].X() - pCondition->GetGeometry()[0].X());
+          transform_matrix(1, 0) = 0.5 * (pCondition->GetGeometry()[1].Y() - pCondition->GetGeometry()[0].Y());
+          
+          array_1d<double,3> rNormal;
+          CalculateLineNormal(pCondition, rNormal);
+          transform_matrix(0, 1) = rNormal[0];
+          transform_matrix(1, 1) = rNormal[1];
+
+          MathUtils<double>::InvertMatrix2(transform_matrix,inv_transform_matrix,det);
+          noalias(result_vec) = prod(inv_transform_matrix, RHS);
+          
+          rLocalCoords[0] = result_vec[0];
+          rLocalCoords[1] = 0.0f;
+          rLocalCoords[2] = 0.0f;
+
+          rDistance = result_vec[1];
+
+          // std::cout << "Point to project: [" << GlobalCoords[0] << " " << GlobalCoords[1] << " " << GlobalCoords[2] << "], local points: [" <<
+          // pCondition->GetGeometry()[0].X() << " " << pCondition->GetGeometry()[0].Y() << " " << pCondition->GetGeometry()[0].Z() << "] ["<<
+          // pCondition->GetGeometry()[1].X() << " " << pCondition->GetGeometry()[1].Y() << " " << pCondition->GetGeometry()[1].Z() << "] local coord: " <<
+          // rLocalCoords[0]  << std::endl;
+
+          bool is_inside = false;
+
+          if (rLocalCoords[0] >= -1.0f-MapperUtilities::tol_local_coords) {
+              if (rLocalCoords[0] <= 1.0f+MapperUtilities::tol_local_coords) {
+                  is_inside = true;
+              }
           }
-
+          return is_inside;
       }
 
       static bool ProjectPointToTriangle(Condition* p_condition,

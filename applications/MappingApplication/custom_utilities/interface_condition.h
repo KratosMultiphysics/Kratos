@@ -128,6 +128,8 @@ namespace Kratos
               KRATOS_ERROR << "MappingApplication; InterfaceCondition; \"EvaluateResult\" Unsupported Geometry!" << std::endl;
           }
 
+          projection_distance = fabs(projection_distance);
+
           if (is_inside) {
               if (projection_distance < min_distance){
                   min_distance = projection_distance;

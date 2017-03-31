@@ -28,8 +28,7 @@
 #include "mapper_utilities.h"
 
 #include "custom_utilities/nearest_neighbor_mapper.h"
-// #include "custom_utilities/nearest_element_mapper.h"
-// #include "custom_utilities/approximate_mortar_mapper.h"
+#include "custom_utilities/nearest_element_mapper.h"
 
 
 namespace Kratos
@@ -359,12 +358,12 @@ namespace Kratos
               m_p_mapper = Mapper::Pointer(new NearestNeighborMapper(*m_p_interface_model_part_origin,
                                                                      *m_p_interface_model_part_destination,
                                                                      m_json_parameters));
-          } /*else if (m_mapper_type == "NearestElement") {
+          } else if (m_mapper_type == "NearestElement") {
               m_p_mapper = Mapper::Pointer(new NearestElementMapper(*m_p_interface_model_part_origin,
                                                                     *m_p_interface_model_part_destination,
                                                                     m_json_parameters));
 
-          } *//*else if (m_mapper_type == "Barycentric") {
+          } /*else if (m_mapper_type == "Barycentric") {
               m_p_mapper = Mapper::Pointer(new BarycentricMapper(*m_p_interface_model_part_origin,
                                                                  *m_p_interface_model_part_destination,
                                                                  m_json_parameters));
@@ -373,11 +372,6 @@ namespace Kratos
               m_p_mapper = Mapper::Pointer(new RBFMapper(*m_p_interface_model_part_origin,
                                                          *m_p_interface_model_part_destination,
                                                          m_json_parameters));
-
-          } *//*else if (m_mapper_type == "ApproximateMortar") {
-              m_p_mapper = Mapper::Pointer(new ApproximateMortarMapper(*m_p_interface_model_part_origin,
-                                                                       *m_p_interface_model_part_destination,
-                                                                       m_json_parameters));
 
           } *//*else if (m_mapper_type == "Mortar") {
               m_p_mapper = Mapper::Pointer(new MortarMapper(*m_p_interface_model_part_origin,
@@ -390,9 +384,7 @@ namespace Kratos
                                                          m_json_parameters));
 
           } */else {
-              KRATOS_ERROR << "MappingApplication; MapperFactory; "
-                           << "\"ConstructMapper\" Selected Mapper "
-                           << "not implemented" << std::endl;
+              KRATOS_ERROR << "Selected Mapper not implemented" << std::endl;
           }
 
           double elapsed_time = MapperUtilities::GetCurrentTime() - start_time;
