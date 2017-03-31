@@ -68,7 +68,7 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // CONDITIONS // TODO: Clean all this mesh
     /* Mortar method general variables */
-    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions
+    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
     KRATOS_REGISTER_VARIABLE( CONTACT_SETS )                                    // An unordened map of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
@@ -90,15 +90,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* Auxiliar booleans to store the change in active/inactive slip/stick */
     KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                                 // Auxiliar boolean to check if the node is active or not
     KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                                   // Auxiliar boolean to check if the node is stick or not        
-    
-    /* The GP values should be removed (to much information to store)*/
-    // NOTE: This should be removed
-    KRATOS_REGISTER_VARIABLE( GAP_GP )                                          // A double storing the gap of the GP
-    KRATOS_REGISTER_VARIABLE( SLIP_GP )                                         // A double storing the slip of the GP
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                    // For getting the normal in the GP
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                   // For getting the tangent in the GP
     
     /* For ALM mortar condition */
     KRATOS_REGISTER_VARIABLE( PENALTY_FACTOR )                                  // The penalty factor for the ALM

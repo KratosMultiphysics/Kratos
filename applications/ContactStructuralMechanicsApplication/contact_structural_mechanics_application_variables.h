@@ -50,7 +50,7 @@ struct ConditionPointerComparator
 typedef array_1d<double,3> Vector3;
 typedef std::unordered_map<Condition::Pointer, bool, ConditionPointerHasher, ConditionPointerComparator > ConditionHashMap;
 
-struct contact_container 
+struct contact_container // TODO: Remove this, deprecated
 {
     Condition::Pointer condition;
     bool             active_pair;
@@ -140,7 +140,7 @@ struct ConditionMap : ConditionHashMap
 
 // CONDITIONS
 /* Mortar method */ 
-KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )                                                   // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
 KRATOS_DEFINE_VARIABLE( ConditionMap*, CONTACT_SETS )                                                                              // An unordened map of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                                                                     // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                                                                       // The integration order computed in the contact
@@ -162,15 +162,6 @@ KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                  
 /* Auxiliar booleans to store the change in active/inactive slip/stick */
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                                                                                 // Auxiliar boolean to check if the node is active or not
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                                                                   // Auxiliar boolean to check if the node is stick or not
-
-/* The GP values should be removed (to much information to store)*/
-// NOTE: This should be removed
-KRATOS_DEFINE_VARIABLE( double, GAP_GP )                                                                                        // A double storing the gap of the GP
-KRATOS_DEFINE_VARIABLE( double, SLIP_GP )                                                                                       // A double storing the slip of the GP
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, NORMAL_GP )                    // For getting the normal in the GP
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, TANGENT_GP )                   // For getting the tangent in the GP
 
 /* For ALM mortar condition */
 KRATOS_DEFINE_VARIABLE( double, PENALTY_FACTOR )                                                                                // The penalty factor for the ALM

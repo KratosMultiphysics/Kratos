@@ -18,7 +18,7 @@ typedef array_1d<double,3> Vector3;
 
 // CONDITIONS
 /* Mortar method general variables */
-KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )     // A vector of which contains the structure which defines the contact conditions
+KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS )     // A vector of which contains the structure which defines the contact conditions // TODO: Remove this, deprecated
 KRATOS_CREATE_VARIABLE( ConditionMap*, CONTACT_SETS )                              // An unordered map of which contains the structure which defines the contact conditions
 KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                      // A pointer to the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact
@@ -40,15 +40,6 @@ KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                  
 /* Auxiliar booleans to store the change in active/inactive slip/stick */
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_ACTIVE )                                   // Auxiliar boolean to check if the node is active or not
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                     // Auxiliar boolean to check if the node is stick or not
-
-/* The GP values should be removed (to much information to store)*/
-// NOTE: This should be removed
-KRATOS_CREATE_VARIABLE( double, GAP_GP )                                          // A double storing the gap of the GP
-KRATOS_CREATE_VARIABLE( double, SLIP_GP )                                         // A double storing the slip of the GP
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )             // For getting the normal contact stress in the GP
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP )         // For getting the tangential contact stress in the GP
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                            // For getting the normal in the GP
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                           // For getting the tangent in the GP
 
 /* For ALM mortar condition */
 KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )                                  // The penalty factor for the ALM
