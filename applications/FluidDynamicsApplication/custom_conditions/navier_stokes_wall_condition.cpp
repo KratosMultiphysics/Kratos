@@ -120,7 +120,42 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution
                                                                                  const ConditionDataStruct& data)
 {
     const unsigned int LocalSize = TDim+1;
+    const GeometryType& rGeom = this->GetGeometry();
+
     noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
+
+    // Gauss pt. velocity inflow correction
+    array_1d<double,3> Vel(3,0.0);       // Gauss pt. velocity
+    array_1d<double,TNumNodes> rho_vect; // Gauss pt. velocity
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rho_vect[i] = rGeom[i].FastGetSolutionStepValue(DENSITY);
+        Vel += data.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+    }
+
+    const double rho = inner_prod(data.N, rho_vect);  // Gauss pt. density
+
+    double Proj = 0.0;
+    // double Proj = Vel[0]*data.Normal[0] + Vel[1]*data.Normal[1] + Vel[2]*data.Normal[2];
+
+    if (Proj < 0)
+    {
+        const double W = data.wGauss*rho*Proj;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            double row = i*LocalSize;
+            for (unsigned int j = 0; j < TNumNodes; j++)
+            {
+                double col = j*LocalSize;
+                for (unsigned int d = 0; d < TDim; d++)
+                {
+                    double Tij = W*data.N[i]*data.N[j];
+                    lhs_gauss(row+d,col+d) -= Tij;
+                }
+            }
+        }
+    }
 }
 
 /// Computes the Gauss pt. RHS contribution
@@ -135,15 +170,16 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
     const unsigned int LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
 
+
     // Initialize the local RHS
-    rhs_gauss = ZeroVector(TNumNodes*LocalSize);
+    noalias(rhs_gauss) = ZeroVector(TNumNodes*LocalSize);
+
 
     // Gauss pt. Neumann BC contribution
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         //unsigned int row = i*LocalSize;
-        const NodeType& rConstNode = rGeom[i];
-        const double pext = rConstNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+        const double pext = rGeom[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
         for (unsigned int j = 0; j < TNumNodes; j++)
         {
@@ -151,6 +187,40 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
             for (unsigned int d = 0; d < TDim;d++)
             {
                 rhs_gauss[row+d] -= data.wGauss*data.N[j]*data.N[i]*pext*data.Normal[d];
+            }
+        }
+    }
+
+
+    // Gauss pt. velocity inflow correction
+    array_1d<double,3> Vel(3,0.0);       // Gauss pt. velocity
+    array_1d<double,TNumNodes> rho_vect; // Gauss pt. velocity
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rho_vect[i] = rGeom[i].FastGetSolutionStepValue(DENSITY);
+        Vel += data.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+    }
+
+    const double rho = inner_prod(data.N, rho_vect);  // Gauss pt. density
+
+    double Proj = 0.0;
+    // double Proj = Vel[0]*data.Normal[0] + Vel[1]*data.Normal[1] + Vel[2]*data.Normal[2];
+
+    if (Proj < 0)
+    {
+        const double W = data.wGauss*rho*Proj;
+        for (unsigned int i = 0; i < TNumNodes; i++)
+        {
+            double row = i*LocalSize;
+            for (unsigned int j = 0; j < TNumNodes; j++)
+            {
+                const array_1d<double,3>& rVel = rGeom[j].FastGetSolutionStepValue(VELOCITY);
+                for (unsigned int d = 0; d < TDim; d++)
+                {
+                    double Tij = W*data.N[i]*data.N[j];
+                    rhs_gauss[row+d] += Tij*rVel[d];
+                }
             }
         }
     }
