@@ -14,6 +14,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+#include "utilities/activation_utilities.h"
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -47,7 +48,7 @@ public:
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Height_Dam"                                       : 0.0,
-                "Number_of_phases                                  : 0.0
+                "Number_of_phases"                                 : 0.0
             }  )" );
         
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -67,6 +68,7 @@ public:
 
         mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
   
+
         KRATOS_CATCH("");
     }
 
@@ -78,9 +80,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void ExecuteInitialize()
     {
-        
         KRATOS_TRY;
         
         const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
@@ -103,48 +104,47 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  
- void ExecuteInitializeSolutionStep()
-        {
-        
-        KRATOS_TRY;
-        
-        const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
-
-        int direction;
-        
-        if( mgravity_direction == "X")
-            direction = 1;
-        else if( mgravity_direction == "Y")
-            direction = 2;
-        else
-            direction = 3;
-
-        double time = mr_model_part.GetProcessInfo()[TIME];
-        time = time/mtime_unit_converter;
-
-        double current_height = mreference_coordinate + (mheight/mphases)*time;
-
-        if (nelements != 0)
-        {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+    void ExecuteInitializeSolutionStep()
+    {
             
-            #pragma omp parallel for
-            for(int k = 0; k<nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                const Geometry< Node<3> >& geom = it->GetGeometry();
-                const unsigned int& Dim  = geom.WorkingSpaceDimension();
-                Vector central_position = geom.Center();
-                central_position.resize(Dim);
+            KRATOS_TRY;
+            
+            const int nelements = mr_model_part.GetMesh(mmesh_id).Elements().size();
+            int direction;
+            
+            if( mgravity_direction == "X")
+                direction = 0;
+            else if( mgravity_direction == "Y")
+                direction = 1;
+            else
+                direction = 2;
 
-                if((central_position(direction) >= mreference_coordinate) && (central_position(direction) <= current_height) )
+            double time = mr_model_part.GetProcessInfo()[TIME];
+            time = time/mtime_unit_converter;
+
+            double current_height = mreference_coordinate + (mheight/mphases)*time;
+
+            if (nelements != 0)
+            {
+                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+                
+                #pragma omp parallel for
+                for(int k = 0; k<nelements; k++)
                 {
-                    it->Set(ACTIVE, true);
+                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                    const Geometry< Node<3> >& geom = it->GetGeometry();
+                    const unsigned int& Dim  = geom.WorkingSpaceDimension();
+                    Vector central_position = geom.Center();
+                    central_position.resize(Dim);            
+
+                    if((central_position(direction) >= mreference_coordinate) && (central_position(direction) <= current_height) )
+                    {
+                        it->Set(ACTIVE, true);
+                    }
                 }
             }
-        }
-        
-        KRATOS_CATCH("");
+            
+            KRATOS_CATCH("");
     }
    
 
