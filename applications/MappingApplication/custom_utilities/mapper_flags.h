@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 
 #if !defined(KRATOS_MAPPER_FLAGS_H_INCLUDED )
 #define  KRATOS_MAPPER_FLAGS_H_INCLUDED
@@ -70,6 +70,7 @@ namespace Kratos
       KRATOS_DEFINE_LOCAL_FLAG( REMESHED );
       KRATOS_DEFINE_LOCAL_FLAG( NON_CONFORMING_INTERFACE );
       KRATOS_DEFINE_LOCAL_FLAG( INTERPOLATE_VALUES );
+      KRATOS_DEFINE_LOCAL_FLAG( NON_HISTORICAL_DATA );
 
       ///@}
       ///@name Life Cycle

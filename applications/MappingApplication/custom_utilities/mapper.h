@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 
 #if !defined(KRATOS_MAPPER_H_INCLUDED )
 #define  KRATOS_MAPPER_H_INCLUDED
@@ -25,8 +25,6 @@
 #include "mapper_communicator.h"
 #include "mapper_utilities.h"
 #include "mapper_flags.h"
-
-#include <omp.h>
 
 // For MPI-parallel Mapper
 #ifdef KRATOS_USING_MPI
@@ -175,15 +173,15 @@ protected:
   ///@{
 
   // Constructor, can only be called by derived classes (actual mappers)
-  Mapper(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-         Parameters i_json_parameters) :
-  	  m_model_part_origin(i_model_part_origin),
-      m_model_part_destination(i_model_part_destination),
-      m_json_parameters(i_json_parameters) {
+  Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+         Parameters JsonParameters) :
+  	  m_model_part_origin(rModelPartOrigin),
+      m_model_part_destination(rModelPartDestination),
+      m_json_parameters(JsonParameters) {
 
       ComputeNumberOfNodesAndConditions();
 
-      m_echo_level = i_json_parameters["echo_level"].GetInt();
+      m_echo_level = JsonParameters["echo_level"].GetInt();
 
       // Create the mapper communicator
       #ifdef KRATOS_USING_MPI // mpi-parallel compilation
