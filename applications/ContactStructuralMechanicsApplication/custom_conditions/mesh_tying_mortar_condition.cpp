@@ -191,6 +191,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIt
 {
     KRATOS_TRY;
     
+    // Debug
     if (TTensor == 1)
     {
         for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
@@ -266,6 +267,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
 //         
 //     }
     
+    // Debug
     // Create and initialize condition variables:
     GeneralVariables rVariables;
     
@@ -4267,7 +4269,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::EquationIdVector(
     KRATOS_TRY;  
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = MatrixSize * mPairSize; 
     
     if (rResult.size() != ConditionSize)
     {
@@ -4378,7 +4380,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::GetDofList(
     // TODO: You need the utility to get the dof
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = MatrixSize * mPairSize; 
     
     if (rConditionalDofList.size() != ConditionSize)
     {
@@ -4526,22 +4528,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateOnIntegratio
     )
 {
     KRATOS_TRY;
-
-//     // Create and initialize condition variables:
-//     GeneralVariables rVariables;
-//     
-//     // Initialize the current DoF data
-//     DofData rDofData;
-//                                                
-//     const unsigned int number_of_integration_pts =IntegrationPointsSlave.size();
-//     if ( rOutput.size( ) != number_of_integration_pts )
-//     {
-//         rOutput.resize( number_of_integration_pts, false );
-//     }
-//     
-//     const std::vector<double> zero_vector (number_of_integration_pts, 0.0);
-//     rOutput = zero_vector;
-// 
+    
     // TODO: Add eventually
     
     KRATOS_CATCH( "" );
@@ -4558,24 +4545,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateOnIntegratio
     )
 {
     KRATOS_TRY;
-    
-//     // Create and initialize condition variables:
-//     GeneralVariables rVariables;
-//     
-//     // Initialize the current contact data
-//     DofData rDofData;
-//                                                                                                                         
-//     const unsigned int number_of_integration_pts = IntegrationPointsSlave.size();
-//     if ( rOutput.size() != number_of_integration_pts )
-//     {
-//         rOutput.resize( number_of_integration_pts );
-//     }
-//     
-//     const array_1d<double, 3> zero_vector = ZeroVector(3);
-//     for (unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++)
-//     {
-//         rOutput[PointNumber] = zero_vector;
-//     }
     
     // TODO: Add eventually
     

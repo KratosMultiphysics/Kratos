@@ -95,7 +95,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     mPairSize = 0;
     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
-    // Create and initialize condition variables:#pragma omp critical
+    // Create and initialize condition variables:
     GeneralVariables rVariables;
     
     for (auto ipair = AllConditionSets->begin(); ipair != AllConditionSets->end(); ++ipair )
@@ -191,7 +191,23 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeNonLinearIt
 {
     KRATOS_TRY;
     
-    // NOTE: Add things if necessary
+    // Debug
+    if (TTensor == 1)
+    {
+        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+        {
+            #pragma omp critical 
+            GetGeometry()[iNode].GetValue(WEIGHTED_SCALAR_RESIDUAL) = 0.0; 
+        } 
+    }
+    else
+    {
+        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+        {
+            #pragma omp critical 
+            GetGeometry()[iNode].GetValue(WEIGHTED_VECTOR_RESIDUAL) = ZeroVector(3); 
+        } 
+    }
         
     KRATOS_CATCH( "" );
 }
@@ -250,6 +266,96 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
 //     {
 //         
 //     }
+    
+    // Debug
+    // Create and initialize condition variables:
+    GeneralVariables rVariables;
+    
+    // Create the current DoF data
+    DofData rDofData;
+    
+    // Create the mortar operators
+    MortarConditionMatrices rThisMortarConditionMatrices;
+                                            
+    // Initialize the DoF data
+    this->InitializeDofData(rDofData, rCurrentProcessInfo);
+    
+    // Compute Ae and its derivative
+//     this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
+    
+    // Iterate over the master segments
+    for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
+    {                                                           
+        // Initialize general variables for the current master element
+        this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
+        
+        // Update master pair info
+        rDofData.UpdateMasterPair(mThisMasterConditions[PairIndex]);
+        
+        // Initialize the mortar operators
+        rThisMortarConditionMatrices.Initialize();
+        
+        // Get the integration points
+        const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
+        
+        const unsigned int NumberOfIntegrationPoints = IntegrationPointsSlave.size();
+        
+        // Integrating the mortar operators
+        for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
+        {            
+            // Calculate the kinematic variables
+            this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
+            
+            this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
+        }
+                
+        if (NumberOfIntegrationPoints > 0)
+        {
+            // Setting the weighted residual
+            // Mortar condition matrices - DOperator and MOperator
+            const bounded_matrix<double, NumNodes, NumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
+            const bounded_matrix<double, NumNodes, NumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
+    
+            for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+            {            
+                if (TTensor == 1)
+                {
+                    // Initialize values
+                    const array_1d<double, NumNodes> u1 = ContactUtilities::GetVariableVector<NumNodes>(this->GetGeometry(), TEMPERATURE, 0);
+                    const array_1d<double, NumNodes> u2 = ContactUtilities::GetVariableVector<NumNodes>(mThisMasterConditions[PairIndex]->GetGeometry(), TEMPERATURE, 0);
+                    
+                    const array_1d<double, NumNodes> Du1Mu2 = prod(DOperator, u1) - prod(MOperator, u2); 
+                    
+                    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+                    {
+                        #pragma omp atomic 
+                        GetGeometry()[iNode].GetValue(WEIGHTED_SCALAR_RESIDUAL) += Du1Mu2[iNode]; 
+                    }
+                }
+                else
+                {
+                    // Initialize values
+                    const bounded_matrix<double, NumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(this->GetGeometry(), DISPLACEMENT, 0);
+                    const bounded_matrix<double, NumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(mThisMasterConditions[PairIndex]->GetGeometry(), DISPLACEMENT, 0);
+                    
+                    const bounded_matrix<double, NumNodes, TDim> Du1Mu2 = prod(DOperator, u1) - prod(MOperator, u2); 
+            
+                    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+                    {
+                        array_1d<double, 3> auxvector = ZeroVector(3);
+                        
+                        for (unsigned int iDim = 0; iDim < TDim; iDim++)
+                        {
+                            auxvector[iDim] = Du1Mu2(iNode, iDim);
+                        }
+                        
+                        #pragma omp critical 
+                        GetGeometry()[iNode].GetValue(WEIGHTED_VECTOR_RESIDUAL) += auxvector; 
+                    } 
+                }
+            }
+        }
+    }
     
     KRATOS_CATCH( "" );
 }
@@ -473,26 +579,26 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::InitializeSystemMatri
     Flags& rCalculationFlags 
     )
 {
-    const unsigned int condition_size = this->CalculateConditionSize( );
+    const unsigned int ConditionSize = this->CalculateConditionSize( );
     
     // Resizing as needed the LHS
     if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != condition_size )
+        if ( rLeftHandSideMatrix.size1() != ConditionSize )
         {
-            rLeftHandSideMatrix.resize( condition_size, condition_size, false );
+            rLeftHandSideMatrix.resize( ConditionSize, ConditionSize, false );
         }
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size ); // Resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix( ConditionSize, ConditionSize ); // Resetting LHS
     }
 
     // Resizing as needed the RHS
     if ( rCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size() != condition_size )
+        if ( rRightHandSideVector.size() != ConditionSize )
         {
-            rRightHandSideVector.resize( condition_size, false );
+            rRightHandSideVector.resize( ConditionSize, false );
         }
-        rRightHandSideVector = ZeroVector( condition_size ); // Resetting RHS
+        rRightHandSideVector = ZeroVector( ConditionSize ); // Resetting RHS
     }
 }
 
@@ -534,9 +640,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateDampingMatri
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 const unsigned int MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateConditionSize( )
 {
-    const unsigned int condition_size = mPairSize * MatrixSize;
+    const unsigned int ConditionSize = mPairSize * MatrixSize;
     
-    return condition_size;
+    return ConditionSize;
 }
 
 /***********************************************************************************/
@@ -550,7 +656,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
 {
     KRATOS_TRY;
     
-    // Create and initialize condition variables:#pragma omp critical
+    // Create and initialize condition variables:
     GeneralVariables rVariables;
     
     // Create the current DoF data
@@ -602,10 +708,10 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
 //         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
         
-        const unsigned int NumberOfINtegrationPoints = IntegrationPointsSlave.size();
+        const unsigned int NumberOfIntegrationPoints = IntegrationPointsSlave.size();
         
         // Integrating the mortar operators
-        for ( unsigned int PointNumber = 0; PointNumber < NumberOfINtegrationPoints; PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
         {            
             // Calculate the kinematic variables
             this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
@@ -613,7 +719,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
             this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
         }
                 
-        if (NumberOfINtegrationPoints > 0)
+        if (NumberOfIntegrationPoints > 0)
         {
 //             // Debug
 //             std::cout << "--------------------------------------------------" << std::endl;
@@ -654,6 +760,16 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
             }
         }
     }
+    
+    // Debug
+//     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+// //     KRATOS_WATCH(rRightHandSideVector);
+//     LOG_VECTOR_PRETTY( rRightHandSideVector );
+    
+//     // Debug
+//     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );  
+// //     KRATOS_WATCH(rLeftHandSideMatrix);
+//     LOG_MATRIX_PRETTY( rLeftHandSideMatrix );
     
     KRATOS_CATCH( "" );
 }
@@ -909,11 +1025,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::EquationIdVector(
     KRATOS_TRY;  
     
     // Calculates the size of the system
-    const unsigned int condition_size = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
     
-    if (rResult.size() != condition_size)
+    if (rResult.size() != ConditionSize)
     {
-        rResult.resize( condition_size, false );
+        rResult.resize( ConditionSize, false );
     }
     
     unsigned int index = 0;
@@ -1020,11 +1136,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::GetDofList(
     // TODO: You need the utility to get the dof
     
     // Calculates the size of the system
-    const unsigned int condition_size = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
     
-    if (rConditionalDofList.size() != condition_size)
+    if (rConditionalDofList.size() != ConditionSize)
     {
-        rConditionalDofList.resize( condition_size );
+        rConditionalDofList.resize( ConditionSize );
     }
     
     unsigned int index = 0;

@@ -102,24 +102,21 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     #############################################################################
     #############################################################################
 
+    # Defining the residual
+    Du1Mu2 = DOperator * u1 - MOperator * u2
+    Dw1Mw2 = DOperator * w1 - MOperator * w2
+
     # Compute galerkin functional 
     rv_galerkin = 0
-    for node in range(nnodes):
-        if (tensor == 1):
-            # Defining the normal gap
-            Du1Mu2 = DOperator * u1 - MOperator * u2
-            Dw1Mw2 = DOperator * w1 - MOperator * w2
+    if (tensor == 1):
+        # Defining the functional
+        rv_galerkin -= (Dw1Mw2.transpose() * lm)[0,0]
+        rv_galerkin -= (Du1Mu2.transpose() * wlm)[0,0]
+    else:
+        for dvalue in range(dim):
             # Defining the functional
-            rv_galerkin -= Dw1Mw2[node] * lm[node]
-            rv_galerkin -= Du1Mu2[node] * wlm[node]
-        else:
-            for dvalue in range(dim):
-                # Defining the normal gap
-                Du1Mu2 = DOperator * u1.col(dvalue) - MOperator * u2.col(dvalue)
-                Dw1Mw2 = DOperator * w1.col(dvalue) - MOperator * w2.col(dvalue)
-                # Defining the functional
-                rv_galerkin -= Dw1Mw2[node] * lm[node, dvalue]
-                rv_galerkin -= Du1Mu2[node] * wlm[node, dvalue]
+            rv_galerkin -= ((Dw1Mw2.col(dvalue)).transpose() * lm.col(dvalue))[0,0]
+            rv_galerkin -= ((Du1Mu2.col(dvalue)).transpose() * wlm.col(dvalue))[0,0]
 
     if(do_simplifications):
         rv_galerkin = simplify(rv_galerkin)
