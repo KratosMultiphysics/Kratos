@@ -4245,7 +4245,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::EquationIdVector(
     KRATOS_TRY;  
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = MatrixSize * mPairSize; 
     
     if (rResult.size() != ConditionSize)
     {
@@ -4356,7 +4356,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::GetDofList(
     // TODO: You need the utility to get the dof
     
     // Calculates the size of the system
-    const unsigned int ConditionSize = TTensor * (NumNodes + NumNodes + NumNodes) * mPairSize; 
+    const unsigned int ConditionSize = MatrixSize * mPairSize; 
     
     if (rConditionalDofList.size() != ConditionSize)
     {
