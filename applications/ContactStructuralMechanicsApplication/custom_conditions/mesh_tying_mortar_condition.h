@@ -923,6 +923,10 @@ protected:
                 {
                     De(i,i) = detJ * N1[i];
                 }
+                else
+                {
+                    De(i,j) = 0.0;
+                }
             }
         }
         
