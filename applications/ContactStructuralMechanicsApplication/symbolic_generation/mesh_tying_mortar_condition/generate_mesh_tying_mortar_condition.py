@@ -18,9 +18,8 @@ lhs_template_begin_string = "\n/************************************************
 lhs_template_end_string = "\n\n    return lhs;\n}\n"
 
 rhs_string = ""
-rhs_template_begin_scalar_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\narray_1d<double, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const unsigned int& rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const array_1d<double, NumNodes> u1 = ContactUtilities::GetVariableVector<NumNodes>(this->GetGeometry(), TEMPERATURE, 0);\n    const array_1d<double, NumNodes> u2 = ContactUtilities::GetVariableVector<NumNodes>(CurrentMasterElement, TEMPERATURE, 0);\n\n    const array_1d<double, NumNodes> lm = ContactUtilities::GetVariableVector<NumNodes>(this->GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); \n\n    // Mortar operators\n    const bounded_matrix<double, NumNodes, NumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, NumNodes, NumNodes> DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
-rhs_template_begin_vector_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\narray_1d<double, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const unsigned int& rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Master segment info\n    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();\n\n    // Initialize values\n    const bounded_matrix<double, NumNodes, TDim> u1 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(this->GetGeometry(), DISPLACEMENT, 0);\n    const bounded_matrix<double, NumNodes, TDim> u2 = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(CurrentMasterElement, DISPLACEMENT, 0);\n\n    const bounded_matrix<double, NumNodes, TDim> lm = ContactUtilities::GetVariableMatrix<TDim,NumNodes>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); \n\n    // Mortar operators\n    const bounded_matrix<double, NumNodes, NumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, NumNodes, NumNodes> DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\narray_1d<double, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const unsigned int& rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Initialize values\n    const bounded_matrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const bounded_matrix<double, NumNodes, TTensor> u2 = rDofData.u2;\n\n    const bounded_matrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const bounded_matrix<double, NumNodes, NumNodes> MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, NumNodes, NumNodes> DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
 rhs_template_end_string = "\n\n    return rhs;\n}\n"
 
@@ -35,27 +34,16 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
             nnodes = 4
             
     number_dof = tensor * (3 * nnodes)
-
-    if tensor == 1:
-        #Defining the unknowns
-        u1 = DefineVector('u1',nnodes) #u1(i,j) is displacement of node i component j at domain 1
-        u2 = DefineVector('u2',nnodes) #u2(i,j) is displacement of node i component j at domain 2
-        lm = DefineVector('lm',nnodes) 
-        
-        # Define test functions
-        w1 = DefineVector('w1',nnodes)
-        w2 = DefineVector('w2',nnodes)
-        wlm = DefineVector('wlm',nnodes)
-    else:
-        #Defining the unknowns
-        u1 = DefineMatrix('u1',nnodes,dim) #u1(i,j) is displacement of node i component j at domain 1
-        u2 = DefineMatrix('u2',nnodes,dim) #u2(i,j) is displacement of node i component j at domain 2
-        lm = DefineMatrix('lm',nnodes,dim) 
-        
-        # Define test functions
-        w1 = DefineMatrix('w1',nnodes,dim)
-        w2 = DefineMatrix('w2',nnodes,dim)
-        wlm = DefineMatrix('wlm',nnodes, dim)
+    
+    #Defining the unknowns
+    u1 = DefineMatrix('u1',nnodes,tensor) #u1(i,j) is displacement of node i component j at domain 1
+    u2 = DefineMatrix('u2',nnodes,tensor) #u2(i,j) is displacement of node i component j at domain 2
+    lm = DefineMatrix('lm',nnodes,tensor) 
+    
+    # Define test functions
+    w1 = DefineMatrix('w1',nnodes,tensor)
+    w2 = DefineMatrix('w2',nnodes,tensor)
+    wlm = DefineMatrix('wlm',nnodes, tensor)
             
     DOperator = DefineMatrix('DOperator',nnodes,nnodes) 
     MOperator = DefineMatrix('MOperator',nnodes,nnodes) 
@@ -64,35 +52,23 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     dofs = Matrix( zeros(number_dof, 1) )
     testfunc = Matrix( zeros(number_dof, 1) )
     count = 0
-    if (tensor == 1):
-        for i in range(0,nnodes):
-                dofs[count] = u2[i]
-                testfunc[count] = w2[i]
-                count+=1
-        for i in range(0,nnodes):
-                dofs[count] = u1[i]
-                testfunc[count] = w1[i]
-                count+=1
-        for i in range(0,nnodes):
-            dofs[count] = lm[i]
-            testfunc[count] = wlm[i]
+
+    for i in range(0,nnodes):
+        for k in range(0,tensor):
+            dofs[count] = u2[i,k]
+            testfunc[count] = w2[i,k]
             count+=1
-    else:
-        for i in range(0,nnodes):
-            for k in range(0,dim):
-                dofs[count] = u2[i,k]
-                testfunc[count] = w2[i,k]
-                count+=1
-        for i in range(0,nnodes):
-            for k in range(0,dim):
-                dofs[count] = u1[i,k]
-                testfunc[count] = w1[i,k]
-                count+=1
-        for i in range(0,nnodes):
-            for k in range(0,dim):
-                dofs[count] = lm[i,k]
-                testfunc[count] = wlm[i,k]
-                count+=1
+    for i in range(0,nnodes):
+        for k in range(0,tensor):
+            dofs[count] = u1[i,k]
+            testfunc[count] = w1[i,k]
+            count+=1
+    for i in range(0,nnodes):
+        for k in range(0,tensor):
+            dofs[count] = lm[i,k]
+            testfunc[count] = wlm[i,k]
+            count+=1
+            
     print("dofs = ",dofs)
     print("testfunc = ",testfunc)
 
@@ -108,15 +84,11 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
 
     # Compute galerkin functional 
     rv_galerkin = 0
-    if (tensor == 1):
+
+    for dvalue in range(tensor):
         # Defining the functional
-        rv_galerkin -= (Dw1Mw2.transpose() * lm)[0,0]
-        rv_galerkin -= (Du1Mu2.transpose() * wlm)[0,0]
-    else:
-        for dvalue in range(dim):
-            # Defining the functional
-            rv_galerkin -= ((Dw1Mw2.col(dvalue)).transpose() * lm.col(dvalue))[0,0]
-            rv_galerkin -= ((Du1Mu2.col(dvalue)).transpose() * wlm.col(dvalue))[0,0]
+        rv_galerkin -= ((Dw1Mw2.col(dvalue)).transpose() * lm.col(dvalue))[0,0]
+        rv_galerkin -= ((Du1Mu2.col(dvalue)).transpose() * wlm.col(dvalue))[0,0]
 
     if(do_simplifications):
         rv_galerkin = simplify(rv_galerkin)
@@ -139,10 +111,7 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
     lhs_string += lhs_out
     lhs_string += lhs_template_end_string
     
-    if (tensor == 1):
-        rhs_string += rhs_template_begin_scalar_string
-    else:
-        rhs_string += rhs_template_begin_vector_string
+    rhs_string += rhs_template_begin_string
     rhs_string += rhs_out
     rhs_string += rhs_template_end_string
 

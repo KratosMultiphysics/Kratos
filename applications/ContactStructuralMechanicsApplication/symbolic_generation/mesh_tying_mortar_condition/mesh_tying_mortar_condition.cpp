@@ -3894,26 +3894,23 @@ array_1d<double, 6> MeshTyingMortarCondition<2,3,ScalarValue>::CalculateLocalRHS
 {
     array_1d<double,6> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const array_1d<double, 2> u1 = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), TEMPERATURE, 0);
-    const array_1d<double, 2> u2 = ContactUtilities::GetVariableVector<2>(CurrentMasterElement, TEMPERATURE, 0);
+    const bounded_matrix<double, 2, ScalarValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 2, ScalarValue> u2 = rDofData.u2;
 
-    const array_1d<double, 2> lm = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
     const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
 
 
-    rhs[0]=MOperator(0,0)*lm[0] + MOperator(1,0)*lm[1];
-    rhs[1]=MOperator(0,1)*lm[0] + MOperator(1,1)*lm[1];
-    rhs[2]=-(DOperator(0,0)*lm[0] + DOperator(1,0)*lm[1]);
-    rhs[3]=-(DOperator(0,1)*lm[0] + DOperator(1,1)*lm[1]);
-    rhs[4]=-DOperator(0,0)*u1[0] - DOperator(0,1)*u1[1] + MOperator(0,0)*u2[0] + MOperator(0,1)*u2[1];
-    rhs[5]=-DOperator(1,0)*u1[0] - DOperator(1,1)*u1[1] + MOperator(1,0)*u2[0] + MOperator(1,1)*u2[1];
+    rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
+    rhs[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0);
+    rhs[2]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0));
+    rhs[3]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
+    rhs[4]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
+    rhs[5]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
 
 
     return rhs;
@@ -3933,14 +3930,11 @@ array_1d<double, 12> MeshTyingMortarCondition<2,3,Vector2DValue>::CalculateLocal
 {
     array_1d<double,12> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const bounded_matrix<double, 2, 2> u1 = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(), DISPLACEMENT, 0);
-    const bounded_matrix<double, 2, 2> u2 = ContactUtilities::GetVariableMatrix<2,2>(CurrentMasterElement, DISPLACEMENT, 0);
+    const bounded_matrix<double, 2, Vector2DValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 2, Vector2DValue> u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, 2> lm = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
@@ -3978,26 +3972,23 @@ array_1d<double, 6> MeshTyingMortarCondition<2,4,ScalarValue>::CalculateLocalRHS
 {
     array_1d<double,6> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const array_1d<double, 2> u1 = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), TEMPERATURE, 0);
-    const array_1d<double, 2> u2 = ContactUtilities::GetVariableVector<2>(CurrentMasterElement, TEMPERATURE, 0);
+    const bounded_matrix<double, 2, ScalarValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 2, ScalarValue> u2 = rDofData.u2;
 
-    const array_1d<double, 2> lm = ContactUtilities::GetVariableVector<2>(this->GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
     const bounded_matrix<double, 2, 2> DOperator = rMortarConditionMatrices.DOperator;
 
 
-    rhs[0]=MOperator(0,0)*lm[0] + MOperator(1,0)*lm[1];
-    rhs[1]=MOperator(0,1)*lm[0] + MOperator(1,1)*lm[1];
-    rhs[2]=-(DOperator(0,0)*lm[0] + DOperator(1,0)*lm[1]);
-    rhs[3]=-(DOperator(0,1)*lm[0] + DOperator(1,1)*lm[1]);
-    rhs[4]=-DOperator(0,0)*u1[0] - DOperator(0,1)*u1[1] + MOperator(0,0)*u2[0] + MOperator(0,1)*u2[1];
-    rhs[5]=-DOperator(1,0)*u1[0] - DOperator(1,1)*u1[1] + MOperator(1,0)*u2[0] + MOperator(1,1)*u2[1];
+    rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
+    rhs[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0);
+    rhs[2]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0));
+    rhs[3]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
+    rhs[4]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
+    rhs[5]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
 
 
     return rhs;
@@ -4017,14 +4008,11 @@ array_1d<double, 12> MeshTyingMortarCondition<2,4,Vector2DValue>::CalculateLocal
 {
     array_1d<double,12> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const bounded_matrix<double, 2, 2> u1 = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(), DISPLACEMENT, 0);
-    const bounded_matrix<double, 2, 2> u2 = ContactUtilities::GetVariableMatrix<2,2>(CurrentMasterElement, DISPLACEMENT, 0);
+    const bounded_matrix<double, 2, Vector2DValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 2, Vector2DValue> u2 = rDofData.u2;
 
-    const bounded_matrix<double, 2, 2> lm = ContactUtilities::GetVariableMatrix<2,2>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 2, 2> MOperator = rMortarConditionMatrices.MOperator;
@@ -4062,29 +4050,26 @@ array_1d<double, 9> MeshTyingMortarCondition<3,4,ScalarValue>::CalculateLocalRHS
 {
     array_1d<double,9> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const array_1d<double, 3> u1 = ContactUtilities::GetVariableVector<3>(this->GetGeometry(), TEMPERATURE, 0);
-    const array_1d<double, 3> u2 = ContactUtilities::GetVariableVector<3>(CurrentMasterElement, TEMPERATURE, 0);
+    const bounded_matrix<double, 3, ScalarValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 3, ScalarValue> u2 = rDofData.u2;
 
-    const array_1d<double, 3> lm = ContactUtilities::GetVariableVector<3>(this->GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 3, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
     const bounded_matrix<double, 3, 3> DOperator = rMortarConditionMatrices.DOperator;
 
 
-    rhs[0]=MOperator(0,0)*lm[0] + MOperator(1,0)*lm[1] + MOperator(2,0)*lm[2];
-    rhs[1]=MOperator(0,1)*lm[0] + MOperator(1,1)*lm[1] + MOperator(2,1)*lm[2];
-    rhs[2]=MOperator(0,2)*lm[0] + MOperator(1,2)*lm[1] + MOperator(2,2)*lm[2];
-    rhs[3]=-(DOperator(0,0)*lm[0] + DOperator(1,0)*lm[1] + DOperator(2,0)*lm[2]);
-    rhs[4]=-(DOperator(0,1)*lm[0] + DOperator(1,1)*lm[1] + DOperator(2,1)*lm[2]);
-    rhs[5]=-(DOperator(0,2)*lm[0] + DOperator(1,2)*lm[1] + DOperator(2,2)*lm[2]);
-    rhs[6]=-DOperator(0,0)*u1[0] - DOperator(0,1)*u1[1] - DOperator(0,2)*u1[2] + MOperator(0,0)*u2[0] + MOperator(0,1)*u2[1] + MOperator(0,2)*u2[2];
-    rhs[7]=-DOperator(1,0)*u1[0] - DOperator(1,1)*u1[1] - DOperator(1,2)*u1[2] + MOperator(1,0)*u2[0] + MOperator(1,1)*u2[1] + MOperator(1,2)*u2[2];
-    rhs[8]=-DOperator(2,0)*u1[0] - DOperator(2,1)*u1[1] - DOperator(2,2)*u1[2] + MOperator(2,0)*u2[0] + MOperator(2,1)*u2[1] + MOperator(2,2)*u2[2];
+    rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
+    rhs[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0);
+    rhs[2]=MOperator(0,2)*lm(0,0) + MOperator(1,2)*lm(1,0) + MOperator(2,2)*lm(2,0);
+    rhs[3]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0) + DOperator(2,0)*lm(2,0));
+    rhs[4]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0) + DOperator(2,1)*lm(2,0));
+    rhs[5]=-(DOperator(0,2)*lm(0,0) + DOperator(1,2)*lm(1,0) + DOperator(2,2)*lm(2,0));
+    rhs[6]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) - DOperator(0,2)*u1(2,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0) + MOperator(0,2)*u2(2,0);
+    rhs[7]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) - DOperator(1,2)*u1(2,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0) + MOperator(1,2)*u2(2,0);
+    rhs[8]=-DOperator(2,0)*u1(0,0) - DOperator(2,1)*u1(1,0) - DOperator(2,2)*u1(2,0) + MOperator(2,0)*u2(0,0) + MOperator(2,1)*u2(1,0) + MOperator(2,2)*u2(2,0);
 
 
     return rhs;
@@ -4104,14 +4089,11 @@ array_1d<double, 27> MeshTyingMortarCondition<3,4,Vector3DValue>::CalculateLocal
 {
     array_1d<double,27> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const bounded_matrix<double, 3, 3> u1 = ContactUtilities::GetVariableMatrix<3,3>(this->GetGeometry(), DISPLACEMENT, 0);
-    const bounded_matrix<double, 3, 3> u2 = ContactUtilities::GetVariableMatrix<3,3>(CurrentMasterElement, DISPLACEMENT, 0);
+    const bounded_matrix<double, 3, Vector3DValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 3, Vector3DValue> u2 = rDofData.u2;
 
-    const bounded_matrix<double, 3, 3> lm = ContactUtilities::GetVariableMatrix<3,3>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 3, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 3, 3> MOperator = rMortarConditionMatrices.MOperator;
@@ -4164,32 +4146,29 @@ array_1d<double, 12> MeshTyingMortarCondition<3,8,ScalarValue>::CalculateLocalRH
 {
     array_1d<double,12> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const array_1d<double, 4> u1 = ContactUtilities::GetVariableVector<4>(this->GetGeometry(), TEMPERATURE, 0);
-    const array_1d<double, 4> u2 = ContactUtilities::GetVariableVector<4>(CurrentMasterElement, TEMPERATURE, 0);
+    const bounded_matrix<double, 4, ScalarValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 4, ScalarValue> u2 = rDofData.u2;
 
-    const array_1d<double, 4> lm = ContactUtilities::GetVariableVector<4>(this->GetGeometry(), SCALAR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 4, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
     const bounded_matrix<double, 4, 4> DOperator = rMortarConditionMatrices.DOperator;
 
 
-    rhs[0]=MOperator(0,0)*lm[0] + MOperator(1,0)*lm[1] + MOperator(2,0)*lm[2] + MOperator(3,0)*lm[3];
-    rhs[1]=MOperator(0,1)*lm[0] + MOperator(1,1)*lm[1] + MOperator(2,1)*lm[2] + MOperator(3,1)*lm[3];
-    rhs[2]=MOperator(0,2)*lm[0] + MOperator(1,2)*lm[1] + MOperator(2,2)*lm[2] + MOperator(3,2)*lm[3];
-    rhs[3]=MOperator(0,3)*lm[0] + MOperator(1,3)*lm[1] + MOperator(2,3)*lm[2] + MOperator(3,3)*lm[3];
-    rhs[4]=-(DOperator(0,0)*lm[0] + DOperator(1,0)*lm[1] + DOperator(2,0)*lm[2] + DOperator(3,0)*lm[3]);
-    rhs[5]=-(DOperator(0,1)*lm[0] + DOperator(1,1)*lm[1] + DOperator(2,1)*lm[2] + DOperator(3,1)*lm[3]);
-    rhs[6]=-(DOperator(0,2)*lm[0] + DOperator(1,2)*lm[1] + DOperator(2,2)*lm[2] + DOperator(3,2)*lm[3]);
-    rhs[7]=-(DOperator(0,3)*lm[0] + DOperator(1,3)*lm[1] + DOperator(2,3)*lm[2] + DOperator(3,3)*lm[3]);
-    rhs[8]=-DOperator(0,0)*u1[0] - DOperator(0,1)*u1[1] - DOperator(0,2)*u1[2] - DOperator(0,3)*u1[3] + MOperator(0,0)*u2[0] + MOperator(0,1)*u2[1] + MOperator(0,2)*u2[2] + MOperator(0,3)*u2[3];
-    rhs[9]=-DOperator(1,0)*u1[0] - DOperator(1,1)*u1[1] - DOperator(1,2)*u1[2] - DOperator(1,3)*u1[3] + MOperator(1,0)*u2[0] + MOperator(1,1)*u2[1] + MOperator(1,2)*u2[2] + MOperator(1,3)*u2[3];
-    rhs[10]=-DOperator(2,0)*u1[0] - DOperator(2,1)*u1[1] - DOperator(2,2)*u1[2] - DOperator(2,3)*u1[3] + MOperator(2,0)*u2[0] + MOperator(2,1)*u2[1] + MOperator(2,2)*u2[2] + MOperator(2,3)*u2[3];
-    rhs[11]=-DOperator(3,0)*u1[0] - DOperator(3,1)*u1[1] - DOperator(3,2)*u1[2] - DOperator(3,3)*u1[3] + MOperator(3,0)*u2[0] + MOperator(3,1)*u2[1] + MOperator(3,2)*u2[2] + MOperator(3,3)*u2[3];
+    rhs[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
+    rhs[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0) + MOperator(3,1)*lm(3,0);
+    rhs[2]=MOperator(0,2)*lm(0,0) + MOperator(1,2)*lm(1,0) + MOperator(2,2)*lm(2,0) + MOperator(3,2)*lm(3,0);
+    rhs[3]=MOperator(0,3)*lm(0,0) + MOperator(1,3)*lm(1,0) + MOperator(2,3)*lm(2,0) + MOperator(3,3)*lm(3,0);
+    rhs[4]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0) + DOperator(2,0)*lm(2,0) + DOperator(3,0)*lm(3,0));
+    rhs[5]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0) + DOperator(2,1)*lm(2,0) + DOperator(3,1)*lm(3,0));
+    rhs[6]=-(DOperator(0,2)*lm(0,0) + DOperator(1,2)*lm(1,0) + DOperator(2,2)*lm(2,0) + DOperator(3,2)*lm(3,0));
+    rhs[7]=-(DOperator(0,3)*lm(0,0) + DOperator(1,3)*lm(1,0) + DOperator(2,3)*lm(2,0) + DOperator(3,3)*lm(3,0));
+    rhs[8]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) - DOperator(0,2)*u1(2,0) - DOperator(0,3)*u1(3,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0) + MOperator(0,2)*u2(2,0) + MOperator(0,3)*u2(3,0);
+    rhs[9]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) - DOperator(1,2)*u1(2,0) - DOperator(1,3)*u1(3,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0) + MOperator(1,2)*u2(2,0) + MOperator(1,3)*u2(3,0);
+    rhs[10]=-DOperator(2,0)*u1(0,0) - DOperator(2,1)*u1(1,0) - DOperator(2,2)*u1(2,0) - DOperator(2,3)*u1(3,0) + MOperator(2,0)*u2(0,0) + MOperator(2,1)*u2(1,0) + MOperator(2,2)*u2(2,0) + MOperator(2,3)*u2(3,0);
+    rhs[11]=-DOperator(3,0)*u1(0,0) - DOperator(3,1)*u1(1,0) - DOperator(3,2)*u1(2,0) - DOperator(3,3)*u1(3,0) + MOperator(3,0)*u2(0,0) + MOperator(3,1)*u2(1,0) + MOperator(3,2)*u2(2,0) + MOperator(3,3)*u2(3,0);
 
 
     return rhs;
@@ -4209,14 +4188,11 @@ array_1d<double, 36> MeshTyingMortarCondition<3,8,Vector3DValue>::CalculateLocal
 {
     array_1d<double,36> rhs;
 
-    // Master segment info
-    GeometryType& CurrentMasterElement = mThisMasterConditions[rMasterElementIndex]->GetGeometry();
-
     // Initialize values
-    const bounded_matrix<double, 4, 3> u1 = ContactUtilities::GetVariableMatrix<3,4>(this->GetGeometry(), DISPLACEMENT, 0);
-    const bounded_matrix<double, 4, 3> u2 = ContactUtilities::GetVariableMatrix<3,4>(CurrentMasterElement, DISPLACEMENT, 0);
+    const bounded_matrix<double, 4, Vector3DValue> u1 = rDofData.u1;
+    const bounded_matrix<double, 4, Vector3DValue> u2 = rDofData.u2;
 
-    const bounded_matrix<double, 4, 3> lm = ContactUtilities::GetVariableMatrix<3,4>(this->GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+    const bounded_matrix<double, 4, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const bounded_matrix<double, 4, 4> MOperator = rMortarConditionMatrices.MOperator;
