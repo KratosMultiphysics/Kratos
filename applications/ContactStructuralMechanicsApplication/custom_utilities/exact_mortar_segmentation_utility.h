@@ -722,7 +722,7 @@ public:
                 return false;
             }
         }
-        else if(ListSize > 0 && ListSize <= 2)
+        else if(ListSize == 2) // NOTE: If 1 could be because there is an intersection of just one node (concident node)
         {
             unsigned int AuxSum = 0;
             for (unsigned int iter = 0; iter < TNumNodes; iter++)
@@ -731,8 +731,10 @@ public:
             }
             if (AuxSum < 2)
             {
-                KRATOS_WATCH(Geometry1);
-                KRATOS_WATCH(Geometry2);
+                KRATOS_WATCH(ListSize);
+                KRATOS_WATCH(AuxSum);
+//                 KRATOS_WATCH(Geometry1);
+//                 KRATOS_WATCH(Geometry2);
                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
             }
         }
