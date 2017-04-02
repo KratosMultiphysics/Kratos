@@ -199,13 +199,22 @@ public:
     ///@{
 
     /// Default constructor
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(): Condition() {}
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(): Condition() 
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 1
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry){}
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry)
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 2
-    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties ){}
+    AugmentedLagrangianMethodFrictionlessMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties )
+    {
+        mIntegrationOrder = 2; // Default value
+    }
 
     ///Copy constructor
     AugmentedLagrangianMethodFrictionlessMortarContactCondition( AugmentedLagrangianMethodFrictionlessMortarContactCondition const& rOther){}
