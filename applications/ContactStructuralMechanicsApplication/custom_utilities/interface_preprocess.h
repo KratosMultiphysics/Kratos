@@ -138,8 +138,28 @@ public:
         rInterfacePart.AddCondition(pCond);
         if (ConditionName.find("Mortar") != std::string::npos)
         {
-//                 KRATOS_WATCH(pElem->Id());
-                pCond->GetValue(ELEMENT_POINTER) = rpElem;
+            pCond->GetValue(ELEMENT_POINTER) = rpElem;
+            
+            // We set the condition as master or slave (master by default)
+            if (ConditionName.find("ALM") != std::string::npos || ConditionName.find("MeshTying") != std::string::npos)
+            {
+                bool IsSlave = true;
+                for (unsigned int iNode = 0; iNode < pCond->GetGeometry().size(); iNode++)
+                {
+                    if (pCond->GetGeometry()[iNode].Is(SLAVE) == false)
+                    {
+                        IsSlave = false;
+                    }
+                }
+                if (IsSlave == true)
+                {
+                    pCond->Set(SLAVE, true);
+                }
+                else
+                {
+                    pCond->Set(MASTER, true);
+                }
+            }
         }
         
         KRATOS_CATCH("");

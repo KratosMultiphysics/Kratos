@@ -23,7 +23,8 @@ class MeshTyingProcess(KratosMultiphysics.Process):
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : "Contact_Part",
+            "mesh_tying_model_part"          : "Contact_Part",
+            "assume_master_slave"         : "",
             "type_variable"               : "Components",
             "geometry_element"            : "Quadrilateral",
             "search_factor"               : 1.5,
@@ -43,7 +44,11 @@ class MeshTyingProcess(KratosMultiphysics.Process):
 
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-        self.contact_model_part = model_part[self.params["contact_model_part"].GetString()]
+        self.mesh_tying_model_part = model_part[self.params["mesh_tying_model_part"].GetString()]
+        
+        if (self.params["assume_master_slave"].GetString() != ""):
+            for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
+                node.Set(KratosMultiphysics.SLAVE, True)
         
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
@@ -66,7 +71,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         for prop in computing_model_part.GetProperties():
             prop[KratosMultiphysics.ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.integration_order
             
-        for node in self.contact_model_part.Nodes:
+        for node in self.mesh_tying_model_part.Nodes:
             node.Set(KratosMultiphysics.INTERFACE, True)
         del(node)
         
@@ -79,18 +84,23 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         if (self.dimension == 2):
-            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.contact_model_part, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, condition_name, self.geometry_element + self.type_variable, False) 
         else:
-            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.contact_model_part, condition_name, self.geometry_element + self.type_variable, False) 
+            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.mesh_tying_model_part, condition_name, self.geometry_element + self.type_variable, False) 
+
+        # When all conditions are simultaneously master and slave
+        if (self.params["assume_master_slave"].GetString() == ""):
+            for cond in self.mesh_tying_model_part.Conditions:
+                cond.Set(KratosMultiphysics.SLAVE, True)
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
         
         # We copy the conditions to the ContactSubModelPart
-        for cond in self.contact_model_part.Conditions:
+        for cond in self.mesh_tying_model_part.Conditions:
             interface_model_part.AddCondition(cond)    
         del(cond)
-        for node in self.contact_model_part.Nodes:
+        for node in self.mesh_tying_model_part.Nodes:
             interface_model_part.AddNode(node, 0)    
         del(node)
         
@@ -102,7 +112,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         ZeroVector[2] = 0.0
         
         # Initilialize weighted variables and LM
-        for node in self.contact_model_part.Nodes:
+        for node in self.mesh_tying_model_part.Nodes:
             if (self.type_variable == "Scalar"):
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
             else:
@@ -114,7 +124,7 @@ class MeshTyingProcess(KratosMultiphysics.Process):
         del node
         
         # Setting the conditions 
-        for cond in self.contact_model_part.Conditions:
+        for cond in self.mesh_tying_model_part.Conditions:
             cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
             cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 

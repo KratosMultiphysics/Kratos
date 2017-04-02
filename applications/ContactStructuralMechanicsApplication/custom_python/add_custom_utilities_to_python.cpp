@@ -35,10 +35,6 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
     class_<DeprecatedTreeContactSearch>("DeprecatedTreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
     .def("ModelPartSetter",&DeprecatedTreeContactSearch::ModelPartSetter)
     .def("InitializeMortarConditions",&DeprecatedTreeContactSearch::InitializeMortarConditions)

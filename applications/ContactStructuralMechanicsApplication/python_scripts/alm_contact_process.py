@@ -24,7 +24,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : "Contact_Part",
-            "assume_master_slave"         : [],
+            "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
@@ -45,7 +45,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         self.contact_model_part = model_part[self.params["contact_model_part"].GetString()]
-        self.submodelpart_list = self.__generate_submodelpartlist_list_from_input(self.params["assume_master_slave"])
+        
+        if (self.params["assume_master_slave"].GetString() != ""):
+            for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
+                node.Set(KratosMultiphysics.SLAVE, True)
         
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
@@ -115,6 +118,11 @@ class ALMContactProcess(KratosMultiphysics.Process):
         else:
             self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.contact_model_part, condition_name, "", False) 
 
+        # When all conditions are simultaneously master and slave
+        if (self.params["assume_master_slave"].GetString() == ""):
+            for cond in self.contact_model_part.Conditions:
+                cond.Set(KratosMultiphysics.SLAVE, True)
+            
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)
 

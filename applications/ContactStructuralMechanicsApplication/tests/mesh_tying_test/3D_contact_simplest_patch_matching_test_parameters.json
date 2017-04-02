@@ -69,7 +69,7 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "contact_model_part"          : "Tying_Part",
+            "mesh_tying_model_part"       : "Tying_Part",
             "type_variable"               : "Components",
             "geometry_element"            : "Hexahedron",
             "search_factor"               : 2.0,
