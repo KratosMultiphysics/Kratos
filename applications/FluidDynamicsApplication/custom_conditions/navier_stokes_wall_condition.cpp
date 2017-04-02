@@ -139,19 +139,43 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
     rhs_gauss = ZeroVector(TNumNodes*LocalSize);
 
     // Gauss pt. Neumann BC contribution
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i=0; i<TNumNodes; ++i)
     {
         //unsigned int row = i*LocalSize;
-        const NodeType& rConstNode = rGeom[i];
-        const double pext = rConstNode.FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+        const double pext = rGeom[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
-        for (unsigned int j = 0; j < TNumNodes; j++)
+        for (unsigned int j=0; j<TNumNodes; ++j)
         {
             unsigned int row = j*LocalSize;
-            for (unsigned int d = 0; d < TDim;d++)
+            for (unsigned int d=0; d<TDim; ++d)
             {
                 rhs_gauss[row+d] -= data.wGauss*data.N[j]*data.N[i]*pext*data.Normal[d];
             }
+        }
+    }
+
+    // Compute Gauss pt. velocity norm and velocity projection
+    array_1d<double, 3> vGauss = ZeroVector(3);
+    for (unsigned int i=0; i<TNumNodes; ++i)
+    {
+        const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+        vGauss += data.N[i]*rVelNode;
+    }
+
+    const double vGaussNorm = norm_2(vGauss);
+    const double vGaussProj = inner_prod(vGauss, data.Normal);
+
+    // Gauss pt. outflow condition contribution
+    const double U_0 = 2.5;          // TODO: Check how to compute this value
+    const double delta = 1e-4;       // TODO: This regularization value has to be further discussed
+    const double S_0 = 0.5*(1-tanh(vGaussProj/U_0/delta));
+
+    for (unsigned int i=0; i<TNumNodes; ++i)
+    {
+        unsigned int row = i*LocalSize;
+        for (unsigned int d=0; d<TDim; ++d)
+        {
+            rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*vGaussNorm*S_0*data.Normal[d];
         }
     }
 }
