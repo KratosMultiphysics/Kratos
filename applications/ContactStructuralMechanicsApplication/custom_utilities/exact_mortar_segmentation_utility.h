@@ -577,7 +577,7 @@ public:
                         );
                     
                     if (intersected == true)
-                    {
+                    {                        
                         bool AddPoint = true;
                         for (unsigned int iter = 0; iter < PointList.size(); iter++)
                         {
@@ -722,19 +722,63 @@ public:
                 return false;
             }
         }
-        else if(ListSize == 2) // NOTE: If 1 could be because there is an intersection of just one node (concident node)
+        else if(ListSize == 1 || ListSize == 2) 
         {
             unsigned int AuxSum = 0;
-            for (unsigned int iter = 0; iter < TNumNodes; iter++)
+            for (unsigned int isum = 0; isum < AllInside.size(); isum++)
             {
-                AuxSum += AllInside[iter];
+                AuxSum += AllInside[isum];
             }
-            if (AuxSum < 2)
+            
+            if (AuxSum == ListSize) // NOTE: One or two can be due to concident nodes on the edges
             {
-                KRATOS_WATCH(ListSize);
-                KRATOS_WATCH(AuxSum);
+                ConditionsPointsSlave.clear();
+//                 ConditionsPointsSlave.resize(0, false);
+                return false;
+            }
+            else
+            {
+//                 // Debug
 //                 KRATOS_WATCH(Geometry1);
 //                 KRATOS_WATCH(Geometry2);
+//                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
+//                 {
+//                     KRATOS_WATCH(PointList[ipoint]);
+//                 }
+                
+//                 // Debug (Mathematica plot!!!)
+//                 for (unsigned int isum = 0; isum < AllInside.size(); isum++)
+//                 {
+//                     KRATOS_WATCH(AllInside[isum]);
+//                 }
+//                 
+//                 PointType aux1;
+//                 aux1.Coordinates() = Geometry1[0].Coordinates();
+//                 
+//                 PointType aux2;
+//                 aux2.Coordinates() = Geometry1[1].Coordinates();
+//                 
+//                 PointType aux3;
+//                 aux3.Coordinates() = Geometry1[2].Coordinates();
+//                 
+//                 PointType aux4;
+//                 aux4.Coordinates() = Geometry2[0].Coordinates();
+//                 
+//                 PointType aux5;
+//                 aux5.Coordinates() = Geometry2[1].Coordinates();
+//                 
+//                 PointType aux6;
+//                 aux6.Coordinates() = Geometry2[2].Coordinates();
+//                 
+//                 std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
+//                 
+//                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
+//                 {
+//                     std::cout << ",Graphics[{PointSize[Large],Point[{" << PointList[ipoint].X() << "," << PointList[ipoint].Y() << "}]}]";
+//                 }
+//                     
+//                 std::cout << "]" << std::endl;
+                
                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
             }
         }
@@ -1020,7 +1064,17 @@ private:
         for (unsigned int inode = 0; inode < 3; inode++)
         {
             MasterGeometry[inode] = ContactUtilities::FastProject(SlaveCenter, MasterGeometry[inode], SlaveNormal);
-            
+        }
+        
+        // Before clipping we rotate to a XY plane
+        for (unsigned int inode = 0; inode < 3; inode++)
+        {
+            RotatePoint( SlaveGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+            RotatePoint(MasterGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
+        }
+        
+        for (unsigned int inode = 0; inode < 3; inode++)
+        {
             GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
         
             AllInside[inode] = SlaveGeometry.IsInside( MasterGeometry[inode].Coordinates( ), ProjectedGPLocal, Tolerance) ;
@@ -1034,18 +1088,10 @@ private:
             (AllInside[1] == false) &&
             (AllInside[2] == false))
         {            
-            // We check if all the nodes are inside the master element
-            array_1d<PointType, 3> SlaveProjectedPoint;
-            
-            const PointType MasterCenter = MasterGeometry.Center();
-            
             for (unsigned int inode = 0; inode < 3; inode++)
             {
-                SlaveProjectedPoint[inode] = ContactUtilities::FastProject(MasterCenter, SlaveGeometry[inode], MasterNormal);
-                
-                GeometryNodeType::CoordinatesArrayType ProjectedGPLocal;
-            
-                AllInside[inode] = MasterGeometry.IsInside( SlaveProjectedPoint[inode].Coordinates( ), ProjectedGPLocal, Tolerance) ;
+                GeometryNodeType::CoordinatesArrayType rResult;
+                AllInside[inode] = MasterGeometry.IsInside( SlaveGeometry[inode].Coordinates( ), rResult, Tolerance ) ;
             }
             
             // The whole slave is inside the master
@@ -1057,6 +1103,8 @@ private:
 
                 for (unsigned int inode = 0; inode < 3; inode++)
                 {
+                    RotatePoint( SlaveGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+                    
                     PointType Point;
                     SlaveGeometry.PointLocalCoordinates(Point, SlaveGeometry[inode]);
                     ConditionsPointsSlave[0][inode] = Point;
@@ -1069,9 +1117,6 @@ private:
                 // Before clipping we rotate to a XY plane
                 for (unsigned int inode = 0; inode < 3; inode++)
                 {
-                    RotatePoint( SlaveGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-                    RotatePoint(MasterGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-                    
                     if (AllInside[inode] == true)
                     {
                         PointList.push_back(SlaveGeometry[inode]);
@@ -1102,9 +1147,6 @@ private:
             // Before clipping we rotate to a XY plane
             for (unsigned int inode = 0; inode < 3; inode++)
             {
-                RotatePoint( SlaveGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-                RotatePoint(MasterGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, false);
-                
                 if (AllInside[inode] == true)
                 {
                     PointList.push_back(MasterGeometry[inode]);
