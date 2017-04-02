@@ -192,13 +192,22 @@ public:
     ///@{
 
     /// Default constructor
-    MeshTyingMortarCondition(): Condition() {}
+    MeshTyingMortarCondition(): Condition() 
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 1
-    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry){}
+    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry)
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 2
-    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties ){}
+    MeshTyingMortarCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties )
+    {
+        mIntegrationOrder = 2; // Default value
+    }
 
     ///Copy constructor
     MeshTyingMortarCondition( MeshTyingMortarCondition const& rOther){}
