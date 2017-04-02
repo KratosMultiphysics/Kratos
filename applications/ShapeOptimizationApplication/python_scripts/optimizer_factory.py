@@ -28,10 +28,13 @@ from gid_output import GiDOutput
 import csv
 import math
 import time
+import json
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-    if  optimizationSettings.design_control == "vertex_morphing":
+    optimizationSettings = json.load(optimizationSettings)
+
+    if  optimizationSettings["design_variables"]["design_control_type"].GetString() == "vertex_morphing":
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
     else:
@@ -42,7 +45,16 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def __init__( self, inputModelPart, optimizationSettings ):
 
-        self.communicator = Communicator( optimizationSettings ); 
+        self.optimizationSettings = optimizationSettings
+        self.createListOfObjectives()
+        self.createListOfConstraints()
+        self.communicator = Communicator( self.listOfObjectives, self.listOfConstraints ); 
+
+
+        self.inputModelPart = inputModelPart
+        self.designHistoryFile = self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file
+
+
 
         self.gidIO = GiDOutput( optimizationSettings.design_surface_submodel_part_name,
                                 optimizationSettings.VolumeOutput,
@@ -51,13 +63,19 @@ class VertexMorphingMethod:
                                 optimizationSettings.GiDWriteMeshFlag,
                                 optimizationSettings.GiDWriteConditionsFlag)
 
-        self.inputModelPart = inputModelPart
-        self.optimizationSettings = optimizationSettings
-        self.objectives = optimizationSettings.objectives
-        self.constraints = optimizationSettings.constraints
-        self.designHistoryFile = self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file
 
         self.addVariablesNeededForOptimization()
+
+    # --------------------------------------------------------------------------
+    def createListOfObjectives( self ):
+        self.listOfObjectives = []
+        for objectiveIterator in range(self.optimizationSettings["objectives"].size()):
+            self.listOfObjectives.append(self.optimizationSettings["objectives"][objectiveIterator])
+    # --------------------------------------------------------------------------
+    def createListOfConstraints( self ):
+        self.listOfConstraints = []
+        for constraintIterator in range(self.optimizationSettings["constraints"].size()):
+            self.listOfConstraints.append(self.optimizationSettings["constraints"][constraintIterator])
 
     # --------------------------------------------------------------------------
     def addVariablesNeededForOptimization( self ):
@@ -522,20 +540,22 @@ class VertexMorphingMethod:
 # ==============================================================================
 class Communicator:
     # --------------------------------------------------------------------------
-    def __init__( self, optimizationSettings ):
-        self.initializeListOfRequests( optimizationSettings )
-        self.initializeListOfResponses( optimizationSettings )
+    def __init__( self, listOfObjectives, listOfConstraints ):
+        self.listOfObjectives = listOfObjectives
+        self.listOfConstraints = listOfConstraints
+        self.initializeListOfRequests()
+        self.initializeListOfResponses()
 
     # --------------------------------------------------------------------------
-    def initializeListOfRequests( self, optimizationSettings ):
+    def initializeListOfRequests( self ):
         self.listOfRequests = {}
-        for functionId in optimizationSettings.objectives:
-            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
+        for objective in self.listOfObjectives:
+            self.listOfRequests[objective["name"]] = {"calculateValue": False, "calculateGradient": False}
         for functionId in optimizationSettings.constraints:
             self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
-    def initializeListOfResponses( self, optimizationSettings ):
+    def initializeListOfResponses( self ):
         self.responseContainer = {}       
         for func_id in optimizationSettings.objectives:
             self.responseContainer[func_id] = {}

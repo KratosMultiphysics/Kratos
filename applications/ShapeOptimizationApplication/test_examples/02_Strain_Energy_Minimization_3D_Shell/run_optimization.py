@@ -10,16 +10,10 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # For time measures
 import time as timer
 
-# For optimization
-import optimization_settings as optimizationSettings
-import optimizer_factory as optimizerFactory
-import response_function_factory as responseFunctionFactory
-
 # ======================================================================================================================================
 # Model part & solver
 # ======================================================================================================================================
 
-#import define_output
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
@@ -35,11 +29,13 @@ Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main
 
 # Create an optimizer 
 # Note that internally variables related to the optimizer are added to the model part
-optimizer = optimizerFactory.CreateOptimizer( main_model_part, optimizationSettings )
+optimizerFactory = __import__("optimizer_factory")
+optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters["optimization_settings"] )
 
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
-responseFunctionSolver = responseFunctionFactory.CreateSolver( main_model_part, optimizationSettings )
+responseFunctionFactory = __import__("response_function_factory")
+responseFunctionSolver = responseFunctionFactory.CreateSolver( main_model_part, ProjectParameters["optimization_settings"] )
 
 # Create solver to perform structural analysis
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())

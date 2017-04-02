@@ -105,5 +105,69 @@
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
+    },
+    "optimization_settings" : {
+        "objectives" : [{ 
+                "name"          : "strain_energy",
+                "gradient_mode" : "semi_analytic", 
+                "step_size"     : 1e-8 
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "design_control_type"       : "vertex_morphing", 
+            "input_model_part_name"     : "3D_Shell",
+            "design_submodel_part_name" : "design_surface",
+            "domain_size"               : 3,
+            "filter" : {
+                "filter_function" : "linear",
+                "filter_size"     : 3
+            },
+            "damping" : {
+                "perform_damping" : true,
+                "damping_regions" : [{ 
+                        "model_part_name"  : "support_edges",
+                        "damp_X"           : false, 
+                        "damp_Y"           : true,
+                        "damp_Z"           : true,
+                        "damping_function" : "linear",
+                        "damping_radius"   : 3 
+                    },{ 
+                        "model_part_name"  : "side_edges",
+                        "damp_X"           : false, 
+                        "damp_Y"           : false,
+                        "damp_Z"           : true,
+                        "damping_function" : "linear", 
+                        "damping_radius"   : 3 
+                }]
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 300,
+            "relative_tolerance" : 1e-1
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : true,
+            "step_size"                  : 0.1
+        },
+        "ouptut" : {
+            "output_directory" : "Optimization_Results",
+            "output_writer" : {
+                "format"                 : "GID",
+                "VolumeOutput"           : true,
+                "GiDPostMode"            : "Binary",
+                "GiDWriteMeshFlag"       : true,
+                "GiDWriteConditionsFlag" : true,
+                "GiDMultiFileFlag"       : "Single"
+            },
+            "nodal_results": [ "NORMALIZED_SURFACE_NORMAL",
+                                "OBJECTIVE_SENSITIVITY",
+                                "MAPPED_OBJECTIVE_SENSITIVITY",
+                                "DESIGN_UPDATE",
+                                "DESIGN_CHANGE_ABSOLUTE",
+                                "SHAPE_UPDATE",
+                                "SHAPE_CHANGE_ABSOLUTE" ]        
+        }                  
     }
 }
