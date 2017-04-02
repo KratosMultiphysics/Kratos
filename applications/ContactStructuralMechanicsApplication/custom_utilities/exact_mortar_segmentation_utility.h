@@ -722,66 +722,67 @@ public:
                 return false;
             }
         }
-        else if(ListSize == 1 || ListSize == 2) 
-        {
-            unsigned int AuxSum = 0;
-            for (unsigned int isum = 0; isum < AllInside.size(); isum++)
-            {
-                AuxSum += AllInside[isum];
-            }
-            
-            if (AuxSum == ListSize) // NOTE: One or two can be due to concident nodes on the edges
-            {
-                ConditionsPointsSlave.clear();
-//                 ConditionsPointsSlave.resize(0, false);
-                return false;
-            }
-            else
-            {
-//                 // Debug
-//                 KRATOS_WATCH(Geometry1);
-//                 KRATOS_WATCH(Geometry2);
-//                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
-//                 {
-//                     KRATOS_WATCH(PointList[ipoint]);
-//                 }
-                
+//         else if(ListSize == 1 || ListSize == 2) // NOTE: Activate this in case you consider that your are missing something important
+//         {
+//             unsigned int AuxSum = 0;
+//             for (unsigned int isum = 0; isum < AllInside.size(); isum++)
+//             {
+//                 AuxSum += AllInside[isum];
+//             }
+//             
+//             if (AuxSum == ListSize) // NOTE: One or two can be due to concident nodes on the edges
+//             {
+//                 ConditionsPointsSlave.clear();
+// //                 ConditionsPointsSlave.resize(0, false);
+//                 return false;
+//             }
+//             else
+//             {
+// //                 // Debug
+// //                 KRATOS_WATCH(Geometry1);
+// //                 KRATOS_WATCH(Geometry2);
+// //                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
+// //                 {
+// //                     KRATOS_WATCH(PointList[ipoint]);
+// //                 }
+//                 
 //                 // Debug (Mathematica plot!!!)
-//                 for (unsigned int isum = 0; isum < AllInside.size(); isum++)
-//                 {
-//                     KRATOS_WATCH(AllInside[isum]);
-//                 }
+// //                 for (unsigned int isum = 0; isum < AllInside.size(); isum++)
+// //                 {
+// //                     KRATOS_WATCH(AllInside[isum]);
+// //                 }
+// //                 
+// //                 PointType aux1;
+// //                 aux1.Coordinates() = Geometry1[0].Coordinates();
+// //                 
+// //                 PointType aux2;
+// //                 aux2.Coordinates() = Geometry1[1].Coordinates();
+// //                 
+// //                 PointType aux3;
+// //                 aux3.Coordinates() = Geometry1[2].Coordinates();
+// //                 
+// //                 PointType aux4;
+// //                 aux4.Coordinates() = Geometry2[0].Coordinates();
+// //                 
+// //                 PointType aux5;
+// //                 aux5.Coordinates() = Geometry2[1].Coordinates();
+// //                 
+// //                 PointType aux6;
+// //                 aux6.Coordinates() = Geometry2[2].Coordinates();
+// //                 
+// //                 std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
+// //                 
+// //                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
+// //                 {
+// //                     std::cout << ",Graphics[{PointSize[Large],Point[{" << PointList[ipoint].X() << "," << PointList[ipoint].Y() << "}]}]";
+// //                 }
+// //                     
+// //                 std::cout << "]" << std::endl;
 //                 
-//                 PointType aux1;
-//                 aux1.Coordinates() = Geometry1[0].Coordinates();
-//                 
-//                 PointType aux2;
-//                 aux2.Coordinates() = Geometry1[1].Coordinates();
-//                 
-//                 PointType aux3;
-//                 aux3.Coordinates() = Geometry1[2].Coordinates();
-//                 
-//                 PointType aux4;
-//                 aux4.Coordinates() = Geometry2[0].Coordinates();
-//                 
-//                 PointType aux5;
-//                 aux5.Coordinates() = Geometry2[1].Coordinates();
-//                 
-//                 PointType aux6;
-//                 aux6.Coordinates() = Geometry2[2].Coordinates();
-//                 
-//                 std::cout << "Show[Graphics[{EdgeForm[Thick], Red ,Triangle[{{" << aux1.X() << "," << aux1.Y() << "},{" << aux2.X() << "," << aux2.Y() << "},{" << aux3.X() << "," << aux3.Y() << "}}]}],Graphics[{EdgeForm[Thick], Blue ,Triangle[{{" << aux4.X() << "," << aux4.Y() << "},{" << aux5.X() << "," << aux5.Y() << "},{" << aux6.X() << "," << aux6.Y() << "}}]}]";
-//                 
-//                 for (unsigned int ipoint = 0; ipoint < ListSize; ipoint++)
-//                 {
-//                     std::cout << ",Graphics[{PointSize[Large],Point[{" << PointList[ipoint].X() << "," << PointList[ipoint].Y() << "}]}]";
-//                 }
-//                     
-//                 std::cout << "]" << std::endl;
-                
-                KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
-            }
-        }
+//                 std::cout << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN (check if it is the edge)" << std::endl; 
+// // //                 KRATOS_ERROR << "WARNING: THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
+//             }
+//         }
         else // No intersection
         {
             ConditionsPointsSlave.clear();
