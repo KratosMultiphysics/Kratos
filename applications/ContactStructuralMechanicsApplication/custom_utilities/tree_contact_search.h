@@ -341,7 +341,6 @@ public:
         {
             auto itNode = pNode.begin() + i;
             itNode->Set(ACTIVE, false);
-            itNode->Set(SLAVE, false);
         }
         
         // Iterate in the conditions
@@ -628,7 +627,6 @@ public:
                         for (unsigned int inode = 0; inode < itCond->GetGeometry().size(); inode++)
                         {
                             itCond->GetGeometry()[inode].Set(ACTIVE, true);
-                            itCond->GetGeometry()[inode].Set(SLAVE, true);
                         }
                     }
                 }
@@ -677,7 +675,7 @@ public:
             
             if (itNode->Is(ACTIVE) == true)
             {
-                std::cout << "Node: " << itNode->Id() << " is active. SLAVE: " << itNode->Is(SLAVE) << std::endl;
+                std::cout << "Node: " << itNode->Id() << " is active" << std::endl;
             }
         }
     }

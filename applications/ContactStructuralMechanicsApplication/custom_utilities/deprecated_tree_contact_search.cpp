@@ -438,7 +438,7 @@ void DeprecatedTreeContactSearch::CheckMortarConditions()
     {         
         if (node_it->Is(ACTIVE) == true)
         {
-            std::cout << "Node: " << node_it->Id() << " is active. SLAVE: " << node_it->Is(SLAVE) << std::endl;
+            std::cout << "Node: " << node_it->Id() << " is active" << std::endl;
         }
     }
 }

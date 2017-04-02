@@ -120,25 +120,22 @@ public:
             for(unsigned int i = 0; i < numNodes; i++) 
             {
                 auto itNode = pNode.begin() + i;
-                if (itNode->Is(SLAVE))
+                if (itNode->Is(ACTIVE))
                 {
-                    if (itNode->Is(ACTIVE))
-                    {
-                        itNode->GetValue(AUXILIAR_ACTIVE) = true;
-                    }
-                    else
-                    {
-                        itNode->GetValue(AUXILIAR_ACTIVE) = false;
-                    }
-                    
-                    if (itNode->Is(SLIP))
-                    {
-                        itNode->GetValue(AUXILIAR_SLIP) = true;
-                    }
-                    else
-                    {
-                        itNode->GetValue(AUXILIAR_SLIP) = false;
-                    }
+                    itNode->GetValue(AUXILIAR_ACTIVE) = true;
+                }
+                else
+                {
+                    itNode->GetValue(AUXILIAR_ACTIVE) = false;
+                }
+                
+                if (itNode->Is(SLIP))
+                {
+                    itNode->GetValue(AUXILIAR_SLIP) = true;
+                }
+                else
+                {
+                    itNode->GetValue(AUXILIAR_SLIP) = false;
                 }
             }
             
@@ -146,67 +143,65 @@ public:
             return false;
         }
         
-        bool is_converged        = true;
-        bool active_is_converged = true;
-        bool slip_is_converged   = true;
+        bool IsConverged       = true;
+        bool ActiveIsConverged = true;
+        bool SlipIsConverged   = true;
         
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
         auto numNodes = pNode.end() - pNode.begin();
         
-//         #pragma omp parallel for // TODO:Ask how to paralellize this!! (think about doing something of create differents vectors and sum)
+//         #pragma omp parallel for
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-            if (itNode->Is(SLAVE))
+
+            // NORMAL DIRECTION
+            bool AuxBoolNormal;
+            if (itNode->Is(ACTIVE))
             {
-                // NORMAL DIRECTION
-                bool aux_bool_normal;
-                if (itNode->Is(ACTIVE))
-                {
-                    aux_bool_normal = true;
-                }
-                else
-                {
-                    aux_bool_normal = false;
-                }
-                if (itNode->GetValue(AUXILIAR_ACTIVE) != aux_bool_normal)
-                {                            
-                    itNode->GetValue(AUXILIAR_ACTIVE) = aux_bool_normal;
-                    active_is_converged = false;
-                }
-                
-                // TANGENT DIRECTION
-                bool aux_bool_tangent;
-                if (itNode->Is(SLIP))
-                {
-                    aux_bool_tangent = true;
-                }
-                else
-                {
-                    aux_bool_tangent = false;
-                }
-                if (itNode->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
-                {                            
-                    itNode->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
-                    slip_is_converged = false;
-                }
-                
-                is_converged = active_is_converged && slip_is_converged;
+                AuxBoolNormal = true;
             }
+            else
+            {
+                AuxBoolNormal = false;
+            }
+            if (itNode->GetValue(AUXILIAR_ACTIVE) != AuxBoolNormal)
+            {                            
+                itNode->GetValue(AUXILIAR_ACTIVE) = AuxBoolNormal;
+                ActiveIsConverged = false;
+            }
+            
+            // TANGENT DIRECTION
+            bool AuxBoolTangent;
+            if (itNode->Is(SLIP))
+            {
+                AuxBoolTangent = true;
+            }
+            else
+            {
+                AuxBoolTangent = false;
+            }
+            if (itNode->GetValue(AUXILIAR_SLIP) != AuxBoolTangent)
+            {                            
+                itNode->GetValue(AUXILIAR_SLIP) = AuxBoolTangent;
+                SlipIsConverged = false;
+            }
+            
+            IsConverged = ActiveIsConverged && SlipIsConverged;
         }
         
         if (this->GetEchoLevel() > 0)
         {
-            if (is_converged == true)
+            if (IsConverged == true)
             {
                 std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
             }
-            else if ((not active_is_converged && slip_is_converged ) == true)
+            else if ((not ActiveIsConverged && SlipIsConverged ) == true)
             {
                 std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
             }
-            else if ((active_is_converged && not slip_is_converged ) == true)
+            else if ((ActiveIsConverged && not SlipIsConverged ) == true)
             {
                 std::cout << "Convergence is not achieved in STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
             }
@@ -216,7 +211,7 @@ public:
             }
         }
         
-        return is_converged;
+        return IsConverged;
     }
 
     /***********************************************************************************/
@@ -321,7 +316,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool       mInitialPreviousState;
+    bool mInitialPreviousState;
     
     ///@}
     ///@name Private Operators

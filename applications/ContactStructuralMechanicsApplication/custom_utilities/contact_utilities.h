@@ -168,7 +168,6 @@ public:
         
         if (ConditionIsActive == true)
         {
-            pCond1->Set(ACTIVE, true);
             ConditionPointers->AddNewCondition(pCond2);
         }
     }
@@ -946,13 +945,13 @@ public:
         
         for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
         {
-            bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                condition_is_active = (itCond)->Is(ACTIVE);
+                ConditionIsActive = (itCond)->Is(ACTIVE);
             }
             
-            if ( condition_is_active == true )
+            if ( ConditionIsActive == true )
             {
                 // Recompute Active/Inactive nodes
                 double cn = 0.0;
@@ -1037,13 +1036,13 @@ public:
         
         for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
         {
-            bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
+            bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                condition_is_active = (itCond)->Is(ACTIVE);
+                ConditionIsActive = (itCond)->Is(ACTIVE);
             }
             
-            if ( condition_is_active == true )
+            if ( ConditionIsActive == true )
             {
                 // Recompute Active/Inactive nodes
                 double epsilon = 0.0;
@@ -1103,11 +1102,8 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-
-            if (itNode->Is(SLAVE))
-            {   
-                itNode->Set(VISITED, false);
-            }
+            
+            itNode->Set(VISITED, false);
         }
     }
     
@@ -1128,15 +1124,11 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            if (itNode->Is(SLAVE))
-            {   
-                if (itNode->Is(ACTIVE) == false)
-                {
-                    itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
-                }
-                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
-                itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
             }
+            itNode->GetValue(WEIGHTED_GAP)      = 0.0;
         }
     }
     
@@ -1157,14 +1149,12 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            if (itNode->Is(SLAVE))
-            {   
-                if (itNode->Is(ACTIVE) == false)
-                {
-                    itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
-                }
-                itNode->GetValue(WEIGHTED_GAP) = 0.0;
+            if (itNode->Is(ACTIVE) == false)
+            {
+                itNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS, 0) = 0.0;
             }
+            
+            itNode->GetValue(WEIGHTED_GAP) = 0.0;
         }
     }
     

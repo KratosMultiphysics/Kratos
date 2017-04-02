@@ -1,4 +1,3 @@
- 
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library 
 import KratosMultiphysics 
@@ -13,6 +12,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ALMContactProcess(Model, settings["Parameters"])
 
+# NOTE: To gain efficency we can do the distinction between MASTER and SLAVE (the automatic search is expensive). Maybe looking to the submodelparts the nodes belong
 class ALMContactProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
@@ -24,6 +24,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : "Contact_Part",
+            "assume_master_slave"         : [],
             "contact_type"                : "Frictionless",
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
@@ -44,6 +45,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         self.contact_model_part = model_part[self.params["contact_model_part"].GetString()]
+        self.submodelpart_list = self.__generate_submodelpartlist_list_from_input(self.params["assume_master_slave"])
         
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
@@ -158,15 +160,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.TotalClearALMFrictionlessMortarConditions()
     
     def ExecuteInitializeSolutionStep(self):
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
-
         if self.params["contact_type"].GetString() == "Frictionless":    
             self.contact_search.UpdateMortarConditions(self.search_factor)
             #self.contact_search.CheckMortarConditions()
-            
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
         
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -179,8 +175,18 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.UpdatePointListMortar()
             self.contact_search.PartialClearALMFrictionlessMortarConditions()
             
-        #for cond in self.d_interface.Conditions:
-            #print(cond.Is(KratosMultiphysics.ACTIVE))
-            
     def ExecuteFinalize(self):
         pass
+    
+    def __generate_submodelpartlist_list_from_input(self,param):
+      '''Parse a list of submodelparts from input.'''
+      # At least verify that the input is a string
+      if not param.IsArray():
+          raise Exception("{0} Error: Submodelpart list is unreadable".format(self.__class__.__name__))
+
+      submodelpart_list = []
+
+      for i in range( 0,param.size()):
+          submodelpart_list.append(param[i].GetString())
+     
+      return submodelpart_list
