@@ -72,16 +72,16 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            #TSimpleMeshMovingTest,
-            #TDynamicBossakTests,
-            #TDynamicNewmarkTests,
-            #TSprismMembranePatchTests,
-            #TSprismBendingPatchTests,
-            #TShellQ4ThickBendingRollUpTests,
-            #TShellQ4ThickDrillingRollUpTests,
-            #TShellT3ThinBendingRollUpTests,
-            #TShellT3ThinDrillingRollUpTests,
-            #TShellT3IsotropicScordelisTests,
+            TSimpleMeshMovingTest,
+            TDynamicBossakTests,
+            TDynamicNewmarkTests,
+            TSprismMembranePatchTests,
+            TSprismBendingPatchTests,
+            TShellQ4ThickBendingRollUpTests,
+            TShellQ4ThickDrillingRollUpTests,
+            TShellT3ThinBendingRollUpTests,
+            TShellT3ThinDrillingRollUpTests,
+            TShellT3IsotropicScordelisTests,
             T3D2NTrussTest,
             T3D2NBeamCrTest
             ######TSprismPanTests

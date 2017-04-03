@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "linear_3D2NBeamCr_test",
+        "problem_name"    : "nonlinear_3D2NBeamCr_test",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.1,
@@ -12,18 +12,18 @@
         "solver_type"                        : "structural_mechanics_static_solver",
         "echo_level"                         : 0,
         "solution_type"                      : "Static",
-        "analysis_type"                      : "Linear",
+        "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
+            "input_filename" : "3D2N_BEAMCR_test/nonlinear_3D2NBeamCr_test"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
         "convergence_criterion"              : "Residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"        : 1e-9,
+        "displacement_relative_tolerance"    : 1e-12,
+        "displacement_absolute_tolerance"    : 1e-12,
+        "residual_relative_tolerance"        : 1e-12,
+        "residual_absolute_tolerance"        : 1e-12,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
             "solver_type" : "Super_LU",
@@ -87,7 +87,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
-            "modulus"          : 4000000,
+            "modulus"          : 400000,
             "direction"       : [0,-1,0]
         }
     }],
