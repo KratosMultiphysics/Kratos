@@ -53,7 +53,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.pressure_grad_recovery_type = 1
         self.pp.CFD_DEM.store_full_gradient = 0
         self.pp.CFD_DEM.laplacian_calculation_type = 0
-        self.pp.CFD_DEM.do_search_neighbours = False
+        self.pp.CFD_DEM.do_search_neighbours = True
         self.pp.CFD_DEM.faxen_terms_type = 0
         self.pp.CFD_DEM.material_acceleration_calculation_type = 1
         self.pp.CFD_DEM.faxen_force_type = 0
@@ -252,7 +252,7 @@ class Algorithm(BaseAlgorithm):
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type > 1)
 
-    def GetBackwardCouplingCounter(self):
+    def GetRecoveryCounter(self):
         return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 
     def GetStationarityCounter(self):

@@ -328,7 +328,7 @@ class Solution:
         fluid_solve_counter          = self.alg.GetFluidSolveCounter()
         embedded_counter             = self.alg.GetEmbeddedCounter()
         DEM_to_fluid_counter         = self.alg.GetBackwardCouplingCounter()
-        derivative_recovery_counter  = self.alg.GetBackwardCouplingCounter()
+        derivative_recovery_counter  = self.alg.GetRecoveryCounter()
         stationarity_counter         = self.alg.GetStationarityCounter()
         print_counter                = self.alg.GetPrintCounter()
         debug_info_counter           = self.alg.GetDebugInfo()
@@ -530,7 +530,7 @@ class Solution:
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
             # measuring mean velocities in a certain control volume (the 'velocity trap')
-            if (self.pp.CFD_DEM.VelocityTrapOption):
+            if self.pp.CFD_DEM.VelocityTrapOption:
                 post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
             os.chdir(post_path)
