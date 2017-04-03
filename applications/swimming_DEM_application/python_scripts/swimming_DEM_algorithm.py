@@ -72,7 +72,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = True
+        self.pp.CFD_DEM.do_impose_flow_from_field = False
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
@@ -198,6 +198,9 @@ class Algorithm(BaseAlgorithm):
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
         self.solver.Solve()
 
+    def FluidSolve(self, time = 'None'):
+        self.fluid_solver.Solve()
+
     def PerformZeroStepInitializations(self):
         pass
 
@@ -314,7 +317,7 @@ class Algorithm(BaseAlgorithm):
     def ApplyForwardCoupling(self, alpha = 'None'):
         self.projection_module.ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityOnly(self):
+    def ApplyForwardCouplingOfVelocityOnly(self, time = None):
         self.projection_module.ApplyForwardCouplingOfVelocityOnly()
 
     def PerformFinalOperations(self, time = None):
