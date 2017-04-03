@@ -30,6 +30,12 @@ class ALMContactProcess(KratosMultiphysics.Process):
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "normal_variation"            : false,
+            "manual_ALM"                  : false,
+            "manual_ALM_parameters"       :
+            {
+                "penalty"                   : 0.0,
+                "scale_factor"              : 1.0
+            },
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }
@@ -69,31 +75,32 @@ class ALMContactProcess(KratosMultiphysics.Process):
         if (self.normal_variation == True):
             computing_model_part.Set(KratosMultiphysics.INTERACTION, True)
 
-        # Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
-        find_nodal_h.Execute()
+        if (self.params["manual_ALM"].GetBool() == False):
+            # Computing the scale factors or the penalty parameters (10 * E_mean/h_mean)
+            find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
+            find_nodal_h.Execute()
 
-        import statistics as stat
-        nodal_h_values = []
-        for node in computing_model_part.Nodes:
-            nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
+            import statistics as stat
+            nodal_h_values = []
+            for node in computing_model_part.Nodes:
+                nodal_h_values.append(node.GetSolutionStepValue(KratosMultiphysics.NODAL_H))
+                
+            mean_h = stat.mean(nodal_h_values)
+                
+            elem_E_values = []
+            for elem in computing_model_part.Elements:
+                prop = elem.Properties
+                elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
+                
+            mean_E = stat.mean(elem_E_values)
             
-        mean_h = stat.mean(nodal_h_values)
-            
-        elem_E_values = []
-        for elem in computing_model_part.Elements:
-            prop = elem.Properties
-            elem_E_values.append(prop[KratosMultiphysics.YOUNG_MODULUS])
-            
-        mean_E = stat.mean(elem_E_values)
-        
-        # Penalty and scalar factor
-        penalty = 10.0 * mean_E/mean_h
-        scale_factor = 10.0 * mean_E/mean_h
-        
-        ## Debug
-        #penalty = 0.0
-        #scale_factor = 1.0
+            # Penalty and scalar factor
+            penalty = 10.0 * mean_E/mean_h
+            scale_factor = 10.0 * mean_E/mean_h
+        else:
+            # Penalty and scalar factor
+            penalty = self.params["manual_ALM_parameters"]["penalty"].GetDouble()
+            scale_factor = self.params["manual_ALM_parameters"]["scale_factor"].GetDouble()
         
         for prop in computing_model_part.GetProperties():
             prop[KratosMultiphysics.ContactStructuralMechanicsApplication.PENALTY_FACTOR] = penalty
@@ -152,14 +159,14 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
-            del node
+            del(node)
             
             # Setting the conditions 
             for cond in self.contact_model_part.Conditions:
                 cond.SetValue(KratosMultiphysics.NORMAL,      ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector) 
                 cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
-            del cond
+            del(cond)
             
             self.contact_search.CreatePointListMortar()
             self.contact_search.InitializeMortarConditions()
