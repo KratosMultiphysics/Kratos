@@ -239,10 +239,10 @@ public:
         fluid_interface_residual = ZeroVector(this->GetFluidInterfaceResidualSize());
 
         // Compute node-by-node residual
-        // this->ComputeNodeByNodeResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
+        this->ComputeNodeByNodeResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
 
         // Compute consitent residual
-        this->ComputeConsistentResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
+        // this->ComputeConsistentResidual(rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
 
         // Assemble the final consistent residual values
         #pragma omp parallel for
