@@ -93,11 +93,11 @@ public:
             )
     {
         // Define the basic information
-        const unsigned int number_nodes = Geom1.PointsNumber();
+        const unsigned int NumberNodes = Geom1.PointsNumber();
         
         bool ConditionIsActive = false;
         
-        for (unsigned int index = 0; index < number_nodes; index++)
+        for (unsigned int index = 0; index < NumberNodes; index++)
         {
             if (Geom1[index].Is(ACTIVE) == false)
             {
@@ -148,10 +148,10 @@ public:
         if (ConditionIsActive == true)
         {
             pCond1->Set(ACTIVE, true);
-            contact_container aux_contact_container;
-            aux_contact_container.condition   = pCond2;
-            aux_contact_container.active_pair = true;
-            ConditionPointers->push_back(aux_contact_container);
+            contact_container AuxContactContainer;
+            AuxContactContainer.condition   = pCond2;
+            AuxContactContainer.active_pair = true;
+            ConditionPointers->push_back(AuxContactContainer);
         }
     }
     
@@ -660,13 +660,13 @@ public:
             {
                 ConditionNormal(*(itCond.base()));
                 
-                const unsigned int number_nodes = itCond->GetGeometry().PointsNumber();
-                const double & rArea = itCond->GetGeometry().Area()/number_nodes;
+                const unsigned int NumberNodes = itCond->GetGeometry().PointsNumber();
+                const double & rArea = itCond->GetGeometry().Area()/NumberNodes;
                 const array_1d<double, 3> & rNormal     = itCond->GetValue(NORMAL);
                 const array_1d<double, 3> & rTangentXi  = itCond->GetValue(TANGENT_XI);
                 const array_1d<double, 3> & rTangentEta = itCond->GetValue(TANGENT_ETA);
                 
-                for (unsigned int i = 0; i < number_nodes; i++)
+                for (unsigned int i = 0; i < NumberNodes; i++)
                 {
                     itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
                     noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rArea * rNormal;
@@ -681,12 +681,12 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-            const double total_area = itNode->GetValue(NODAL_AREA);
-            if (total_area > Tolerance)
+            const double TotalArea = itNode->GetValue(NODAL_AREA);
+            if (TotalArea > Tolerance)
             {
-                itNode->GetValue(NORMAL)      /= total_area;
-                itNode->GetValue(TANGENT_XI)  /= total_area;
-                itNode->GetValue(TANGENT_ETA) /= total_area;
+                itNode->GetValue(NORMAL)      /= TotalArea;
+                itNode->GetValue(TANGENT_XI)  /= TotalArea;
+                itNode->GetValue(TANGENT_ETA) /= TotalArea;
             }
         }
         
@@ -698,20 +698,20 @@ public:
         {
             auto itNode = pNode.begin() + i;
 
-//             const double total_area        = itNode->GetValue(NODAL_AREA);
-//             itNode->GetValue(NORMAL)      /= total_area;
-//             itNode->GetValue(TANGENT_XI)  /= total_area;
-//             itNode->GetValue(TANGENT_ETA) /= total_area;
+//             const double TotalArea        = itNode->GetValue(NODAL_AREA);
+//             itNode->GetValue(NORMAL)      /= TotalArea;
+//             itNode->GetValue(TANGENT_XI)  /= TotalArea;
+//             itNode->GetValue(TANGENT_ETA) /= TotalArea;
 
-            const double norm_normal     = norm_2(itNode->GetValue(NORMAL));
-            const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
-            const double norm_tangenteta = norm_2(itNode->GetValue(TANGENT_ETA));
+            const double NormNormal     = norm_2(itNode->GetValue(NORMAL));
+            const double NormTangentXi  = norm_2(itNode->GetValue(TANGENT_XI));
+            const double NormTangentEta = norm_2(itNode->GetValue(TANGENT_ETA));
             
-            if (norm_normal > Tolerance)
+            if (NormNormal > Tolerance)
             {
-                itNode->GetValue(NORMAL)      /= norm_normal;
-                itNode->GetValue(TANGENT_XI)  /= norm_tangentxi;
-                itNode->GetValue(TANGENT_ETA) /= norm_tangenteta;
+                itNode->GetValue(NORMAL)      /= NormNormal;
+                itNode->GetValue(TANGENT_XI)  /= NormTangentXi;
+                itNode->GetValue(TANGENT_ETA) /= NormTangentEta;
             }
         }
     }
@@ -939,12 +939,14 @@ public:
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
        
-        ConditionsArrayType& pCond = rModelPart.GetSubModelPart("Contact").Conditions();
-        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
-        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
-        
-        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
         {
+            auto itCond = pConditions.begin() + i;
+            
             bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (itCond)->IsDefined(ACTIVE) == true)
             {
@@ -974,19 +976,19 @@ public:
                     {
                         const double mu = itCond->GetProperties().GetValue(FRICTION_COEFFICIENT); 
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                        const array_1d<double,3>        nodal_normal = CondGeometry[itNode].GetValue(NORMAL); 
+                        const array_1d<double,3> LagrangeMultiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                        const array_1d<double,3> NodalNormal = CondGeometry[itNode].GetValue(NORMAL); 
                         
-//                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-//                         const double augmented_normal_presssure = lambda_n + cn * gn;           
+//                         const double LambdaNormal = inner_prod(LagrangeMultiplier, NodalNormal);
+//                         const double AugmentedNormalPressure = LambdaNormal + cn * gn;           
                         
-                        double augmented_normal_presssure = inner_prod(lagrange_multiplier, nodal_normal);
+                        double AugmentedNormalPressure = inner_prod(LagrangeMultiplier, NodalNormal);
                         if (gn < 0.0) // NOTE: Penetration
                         {
-                            augmented_normal_presssure += cn * gn;     
+                            AugmentedNormalPressure += cn * gn;     
                         }
                         
-                        if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[itNode].Set(ACTIVE, true);
                         }
@@ -996,15 +998,15 @@ public:
 //                             CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
                         }
                         
-                        const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
-                        const array_1d<double, 3> nodal_tangent_eta = CondGeometry[itNode].GetValue(TANGENT_ETA);
-                        const double tangent_xi_lm  = inner_prod(nodal_tangent_xi,  lagrange_multiplier);
-                        const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
-                        const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+                        const array_1d<double, 3> NodalTangentXi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
+                        const array_1d<double, 3> NodalTangentEta = CondGeometry[itNode].GetValue(TANGENT_ETA);
+                        const double TangentXiLM  = inner_prod(NodalTangentXi,  LagrangeMultiplier);
+                        const double TangentEtaLM = inner_prod(NodalTangentEta, LagrangeMultiplier);
+                        const double LambdaTangent = std::sqrt(TangentXiLM * TangentXiLM + TangentEtaLM * TangentEtaLM); 
                         
-                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * augmented_normal_presssure;
+                        const double AugmentedTangentPressure = std::abs(LambdaTangent + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) + mu * AugmentedNormalPressure;
                         
-                        if (augmented_tangent_presssure < 0.0) // TODO: Check if it is minor equal or just minor
+                        if (AugmentedTangentPressure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
                             CondGeometry[itNode].Set(SLIP, false);
                         }
@@ -1030,12 +1032,14 @@ public:
     {
         // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
        
-        ConditionsArrayType& pCond = rModelPart.GetSubModelPart("Contact").Conditions();
-        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
-        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
-        
-        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
+        ConditionsArrayType& pConditions = rModelPart.GetSubModelPart("Contact").Conditions();
+        auto numConditions = pConditions.end() - pConditions.begin();
+
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numConditions; i++) 
         {
+            auto itCond = pConditions.begin() + i;
+            
             bool ConditionIsActive = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (itCond)->IsDefined(ACTIVE) == true)
             {
@@ -1051,7 +1055,7 @@ public:
                     epsilon = itCond->GetProperties().GetValue(PENALTY_FACTOR); 
                 }
                 
-                double k = 0.0;
+                double k = 1.0;
                 if (itCond->GetProperties().Has(SCALE_FACTOR) == true)
                 {
                     k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
@@ -1064,9 +1068,9 @@ public:
                     if (CondGeometry[itNode].Is(VISITED) == false)
                     {
                         const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
-                        const double augmented_normal_presssure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
+                        const double AugmentedNormalPressure = k * CondGeometry[itNode].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * gn;     
                         
-                        if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
+                        if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[itNode].Set(ACTIVE, true);
                         }
@@ -1077,7 +1081,7 @@ public:
                         }
                         
 //                         // Debug 
-//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << augmented_normal_presssure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
+//                         std::cout << CondGeometry[itNode].Id() << " Gap: " << gn  << " Pressure: " << AugmentedNormalPressure << " Active: " << CondGeometry[itNode].Is(ACTIVE) << std::endl;
                         
                         CondGeometry[itNode].Set(VISITED, true);
                     }
