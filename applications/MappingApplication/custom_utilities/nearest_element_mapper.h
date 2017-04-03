@@ -8,6 +8,10 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED )
 #define  KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED

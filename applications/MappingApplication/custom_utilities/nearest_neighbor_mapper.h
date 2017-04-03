@@ -9,6 +9,9 @@
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
 #define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
