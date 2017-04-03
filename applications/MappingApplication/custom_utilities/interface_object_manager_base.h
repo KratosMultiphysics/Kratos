@@ -273,6 +273,11 @@ namespace Kratos
                        << "class called!" << std::endl;
       }
 
+      virtual void FillSendBufferWithResults(int* send_buffer, const int send_buffer_size,
+                                             const std::vector<int>& pairing_indices) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
+      }
+
       virtual void StoreTempSearchResults(CandidateManager& candidate_manager,
                                           const std::vector<InterfaceObject::Pointer> temp_closest_results,
                                           const std::vector<std::vector<double>> temp_shape_functions,
@@ -311,7 +316,7 @@ namespace Kratos
               if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
                   buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i]);
               } else {
-                  buffer[i] = interface_obj->GetObjectValue(variable);
+                  buffer[i] = interface_obj->GetObjectValue(variable, options);
               }
               ++i;
           }
@@ -377,6 +382,19 @@ namespace Kratos
           KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerBase; "
                        << "\"ProcessMatchInformation\" of the base "
                        << "class called!" << std::endl;
+      }
+
+      // Functions used for Debugging
+      void WriteNeighborRankAndCoordinates() {
+          for (auto& interface_obj : m_interface_objects) {
+              interface_obj->WriteRankAndCoordinatesToVariable(m_comm_rank); 
+          }
+      }
+
+      void PrintNeighbors() {
+          for (auto& interface_obj : m_interface_objects) {
+              interface_obj->PrintNeighbors(m_comm_rank); 
+          }
       }
 
       ///@}

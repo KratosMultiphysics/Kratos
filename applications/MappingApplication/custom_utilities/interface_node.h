@@ -101,34 +101,62 @@ namespace Kratos
       }
 
       // Scalars
-      double GetObjectValue(const Variable<double>& variable) override {
-          return mpNode->FastGetSolutionStepValue(variable);
+      double GetObjectValue(const Variable<double>& variable,
+                            const Kratos::Flags& options) override {
+          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              return mpNode->GetValue(variable);
+          } else {
+              return mpNode->FastGetSolutionStepValue(variable);
+          }
       }
 
       void SetObjectValue(const Variable<double>& variable,
                           const double value,
                           const Kratos::Flags& options,
                           const double factor) override {
-          if (options.Is(MapperFlags::ADD_VALUES)) {
-              mpNode->FastGetSolutionStepValue(variable) += value * factor;
-          } else {
-              mpNode->FastGetSolutionStepValue(variable) = value * factor;
-          }
+          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              if (options.Is(MapperFlags::ADD_VALUES)) {
+                  double old_value = mpNode->GetValue(variable);
+                  mpNode->SetValue(variable, old_value + value * factor);
+              } else {
+                  mpNode->SetValue(variable, value * factor);
+              }
+          } else { // Variable with history
+              if (options.Is(MapperFlags::ADD_VALUES)) {
+                  mpNode->FastGetSolutionStepValue(variable) += value * factor;
+              } else {
+                  mpNode->FastGetSolutionStepValue(variable) = value * factor;
+              }
+          }   
       }
 
       // Vectors
-      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable) override {
-          return mpNode->FastGetSolutionStepValue(variable);
+      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable,
+                                        const Kratos::Flags& options) override {
+          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              return mpNode->GetValue(variable);
+          } else {
+              return mpNode->FastGetSolutionStepValue(variable);
+          }
       }
 
       void SetObjectValue(const Variable< array_1d<double,3> >& variable,
                           const array_1d<double,3>& value,
                           const Kratos::Flags& options,
                           const double factor) override {
-          if (options.Is(MapperFlags::ADD_VALUES)) {
-              mpNode->FastGetSolutionStepValue(variable) += value * factor;
+          if (options.Is(MapperFlags::NON_HISTORICAL_DATA)) {
+              if (options.Is(MapperFlags::ADD_VALUES)) {
+                  array_1d<double,3> old_value = mpNode->GetValue(variable);
+                  mpNode->SetValue(variable, old_value + value * factor);
+              } else {
+                  mpNode->SetValue(variable, value * factor);
+              }
           } else {
-              mpNode->FastGetSolutionStepValue(variable) = value * factor;
+              if (options.Is(MapperFlags::ADD_VALUES)) {
+                  mpNode->FastGetSolutionStepValue(variable) += value * factor;
+              } else {
+                  mpNode->FastGetSolutionStepValue(variable) = value * factor;
+              }
           }
       }
 

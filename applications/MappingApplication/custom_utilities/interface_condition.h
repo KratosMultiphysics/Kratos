@@ -139,7 +139,7 @@ namespace Kratos
           return is_closer;
       }
 
-            bool ComputeApproximation(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
+      bool ComputeApproximation(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
                                 double Distance, std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
           double distance_point = std::numeric_limits<double>::max();
@@ -171,26 +171,86 @@ namespace Kratos
           return is_closer;
       }
 
+      
+      // Scalars
+      double GetObjectValue(const Variable<double>& rVariable,
+                            const Kratos::Flags& options) override {
+          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+              << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
 
-      double GetObjectValueInterpolated(const Variable<double>& variable,
-                                        std::vector<double>& shape_function_values) override {
+          return mpCondition->GetValue(rVariable);
+      }
+
+      void SetObjectValue(const Variable<double>& rVariable,
+                          const double value,
+                          const Kratos::Flags& options,
+                          const double factor) override {
+          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+              << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
+
+          if (options.Is(MapperFlags::ADD_VALUES)) {
+              double old_value = mpCondition->GetValue(rVariable);
+              mpCondition->SetValue(rVariable, old_value + value * factor);
+          } else {
+              mpCondition->SetValue(rVariable, value * factor);
+          } 
+      }
+
+      double GetObjectValueInterpolated(const Variable<double>& rVariable,
+                                        std::vector<double>& rShapeFunctionValues) override {
           double interpolated_value = 0.0f;
+          double shape_fct_value = 0.0f;
+          
+          // std::cout << "\n\n" << std::endl;
+
           for (int i = 0; i < mNumPoints; ++i) {
-              interpolated_value += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable) * shape_function_values[i];
+              shape_fct_value += rShapeFunctionValues[i];
+              // std::cout << "rShapeFunctionValues[i] " << rShapeFunctionValues[i] << std::endl;
+              // std::cout << "val " << mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable) << std::endl;
+
+
+
+              interpolated_value += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
           }
+          // std::cout << "[ " << this->X() << " " << this->Y() << " " << this->Z() << " ]" << std::endl;
+          // std::cout << "Interpolated Value = " << interpolated_value << " ; shape_fct_value = " << shape_fct_value << "\n" << std::endl;
           return interpolated_value;
       }
 
-      array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& variable,
-                                                    std::vector<double>& shape_function_values) override {
+      // Vectors
+      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                                        const Kratos::Flags& options) override {
+          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+              << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
+          
+          return mpCondition->GetValue(rVariable);
+      }
+
+      void SetObjectValue(const Variable< array_1d<double,3> >& rVariable,
+                          const array_1d<double,3>& value,
+                          const Kratos::Flags& options,
+                          const double factor) override {
+          KRATOS_ERROR_IF_NOT(options.Is(MapperFlags::NON_HISTORICAL_DATA))
+              << "Only Non-Historical Variables are accessible for Conditions" << std::endl;
+
+          if (options.Is(MapperFlags::ADD_VALUES)) {
+              array_1d<double,3> old_value = mpCondition->GetValue(rVariable);
+              mpCondition->SetValue(rVariable, old_value + value * factor);
+          } else {
+              mpCondition->SetValue(rVariable, value * factor);
+          }
+      }
+
+      array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& rVariable,
+                                                    std::vector<double>& rShapeFunctionValues) override {
           array_1d<double,3> interpolated_value;
           interpolated_value[0] = 0.0f;
           interpolated_value[1] = 0.0f;
           interpolated_value[2] = 0.0f;
           for (int i = 0; i < mNumPoints; ++i) {
-              interpolated_value[0] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[0] * shape_function_values[i];
-              interpolated_value[1] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[1] * shape_function_values[i];
-              interpolated_value[2] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[2] * shape_function_values[i];
+              interpolated_value[0] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
+              interpolated_value[1] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
+              interpolated_value[2] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
           }
           return interpolated_value;
       }

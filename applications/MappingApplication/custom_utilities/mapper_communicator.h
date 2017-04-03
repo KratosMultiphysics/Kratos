@@ -72,14 +72,16 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      MapperCommunicator(ModelPart& i_model_part_origin, ModelPart& i_model_part_destination,
-                         Parameters& i_json_parameters) :
-            m_model_part_origin(i_model_part_origin),
-            m_model_part_destination(i_model_part_destination) {
+      MapperCommunicator(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+                         Parameters& rJsonParameters) :
+            mrModelPartOrigin(rModelPartOrigin),
+            mrModelPartDestination(rModelPartDestination) {
 
-          m_initial_search_radius = i_json_parameters["search_radius"].GetDouble();
-          m_max_search_iterations = i_json_parameters["search_iterations"].GetInt();
-          m_echo_level = i_json_parameters["echo_level"].GetInt();
+          mInitialSearchRadius = rJsonParameters["search_radius"].GetDouble();
+          mMaxSearchIterations = rJsonParameters["search_iterations"].GetInt();
+          mApproximationTolerance = rJsonParameters["approximation_tolerance"].GetDouble();
+
+          mEchoLevel = rJsonParameters["echo_level"].GetInt();
       }
 
       /// Destructor.
@@ -95,108 +97,108 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_origin,
-                      GeometryData::IntegrationMethod i_integration_method_origin = GeometryData::NumberOfIntegrationMethods) {
+      virtual void InitializeOrigin(MapperUtilities::InterfaceObjectConstructionType InterfaceObjectTypeOrigin,
+                      GeometryData::IntegrationMethod IntegrationMethodOrigin = GeometryData::NumberOfIntegrationMethods) {
 
-          m_p_interface_object_manager_origin = InterfaceObjectManagerBase::Pointer(
-              new InterfaceObjectManagerSerial(m_model_part_origin, MyPID(),
+          mpInterfaceObjectManagerOrigin = InterfaceObjectManagerBase::Pointer(
+              new InterfaceObjectManagerSerial(mrModelPartOrigin, MyPID(),
                                                TotalProcesses(),
-                                               i_interface_object_type_origin,
-                                               i_integration_method_origin,
-                                               m_echo_level) );
+                                               InterfaceObjectTypeOrigin,
+                                               IntegrationMethodOrigin,
+                                               mEchoLevel) );
 
           // Save for updating the interface
-          m_interface_object_type_origin = i_interface_object_type_origin;
-          m_integration_method_origin = i_integration_method_origin;
+          mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
+          mIntegrationMethodOrigin = IntegrationMethodOrigin;
       }
 
-      virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType i_interface_object_type_destination,
-                      GeometryData::IntegrationMethod i_integration_method_destination = GeometryData::NumberOfIntegrationMethods) {
+      virtual void InitializeDestination(MapperUtilities::InterfaceObjectConstructionType InterfaceObjectTypeDestination,
+                      GeometryData::IntegrationMethod IntegrationMethodDestination = GeometryData::NumberOfIntegrationMethods) {
 
-          m_p_interface_object_manager_destination = InterfaceObjectManagerBase::Pointer(
-              new InterfaceObjectManagerSerial(m_model_part_destination, MyPID(),
+          mpInterfaceObjectManagerDestination = InterfaceObjectManagerBase::Pointer(
+              new InterfaceObjectManagerSerial(mrModelPartDestination, MyPID(),
                                                TotalProcesses(),
-                                               i_interface_object_type_destination,
-                                               i_integration_method_destination,
-                                               m_echo_level) );
+                                               InterfaceObjectTypeDestination,
+                                               IntegrationMethodDestination,
+                                               mEchoLevel) );
 
           // Save for updating the interface
-          m_interface_object_type_destination = i_interface_object_type_destination;
-          m_integration_method_destination = i_integration_method_destination;
+          mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;
+          mIntegrationMethodDestination = IntegrationMethodDestination;
       }
 
       void Initialize() {
           InitializeSearchStructure();
-          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
+          InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
       }
 
-      void UpdateInterface(Kratos::Flags& options, double i_initial_search_radius) {
-          if (options.Is(MapperFlags::REMESHED)) { // recompute the managers and the search structure
-              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
-              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
+      void UpdateInterface(Kratos::Flags& rOptions, double i_initial_search_radius) {
+          if (rOptions.Is(MapperFlags::REMESHED)) { // recompute the managers and the search structure
+              InitializeOrigin(mInterfaceObjectTypeOrigin, mIntegrationMethodOrigin);
+              InitializeDestination(mInterfaceObjectTypeDestination, mIntegrationMethodDestination);
               InitializeSearchStructure();
           } else { // clear the managers
               // TODO does the same for now, since the InterfaceObjects do not use the refs to their
               // original entities, so their position is not updated!
-              InitializeOrigin(m_interface_object_type_origin, m_integration_method_origin);
-              InitializeDestination(m_interface_object_type_destination, m_integration_method_destination);
+              InitializeOrigin(mInterfaceObjectTypeOrigin, mIntegrationMethodOrigin);
+              InitializeDestination(mInterfaceObjectTypeDestination, mIntegrationMethodDestination);
               InitializeSearchStructure();
-              // m_p_interface_object_manager_origin->Clear();
-              // m_p_interface_object_manager_destination->Clear();
+              // mpInterfaceObjectManagerOrigin->Clear();
+              // mpInterfaceObjectManagerDestination->Clear();
               // InitializeSearchStructure();
           }
 
           if (i_initial_search_radius < 0.0f) {
-              i_initial_search_radius = MapperUtilities::ComputeSearchRadius(m_model_part_origin,
-                                                                             m_model_part_destination);
+              i_initial_search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                                                             mrModelPartDestination);
           }
-          m_initial_search_radius = i_initial_search_radius; // update the search radius
+          mInitialSearchRadius = i_initial_search_radius; // update the search radius
 
-          InvokeSearch(m_initial_search_radius, m_max_search_iterations);
+          InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
       }
 
 
 
       // Interface function for mapper developers; scalar version
-      virtual void TransferNodalData(const Variable<double>& origin_variable,
-                                     const Variable<double>& destination_variable,
-                                     Kratos::Flags& options,
-                                     double factor = 1.0f) {
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
+      virtual void TransferNodalData(const Variable<double>& rOriginVariable,
+                                     const Variable<double>& rDestinationVariable,
+                                     Kratos::Flags& rOptions,
+                                     double Factor = 1.0f) {
+          TransferDataSerial(rOriginVariable, rDestinationVariable,
+                             rOptions, Factor);
       }
 
       // Interface function for mapper developers; vector version
-      virtual void TransferNodalData(const Variable< array_1d<double,3> >& origin_variable,
-                                     const Variable< array_1d<double,3> >& destination_variable,
-                                     Kratos::Flags& options,
-                                     double factor = 1.0f) {
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
+      virtual void TransferNodalData(const Variable< array_1d<double,3> >& rOriginVariable,
+                                     const Variable< array_1d<double,3> >& rDestinationVariable,
+                                     Kratos::Flags& rOptions,
+                                     double Factor = 1.0f) {
+          TransferDataSerial(rOriginVariable, rDestinationVariable,
+                             rOptions, Factor);
       }
 
       // Interface function for mapper developers; scalar version
-      virtual void TransferInterpolatedData(const Variable<double>& origin_variable,
-                                            const Variable<double>& destination_variable,
-                                            Kratos::Flags& options,
-                                            double factor = 1.0f) {
-          options.Set(MapperFlags::INTERPOLATE_VALUES);
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
+      virtual void TransferInterpolatedData(const Variable<double>& rOriginVariable,
+                                            const Variable<double>& rDestinationVariable,
+                                            Kratos::Flags& rOptions,
+                                            double Factor = 1.0f) {
+          rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
+          TransferDataSerial(rOriginVariable, rDestinationVariable,
+                             rOptions, Factor);
       }
 
       // Interface function for mapper developers; vector version
-      virtual void TransferInterpolatedData(const Variable< array_1d<double,3> >& origin_variable,
-                                            const Variable< array_1d<double,3> >& destination_variable,
-                                            Kratos::Flags& options,
-                                            double factor = 1.0f) {
-          options.Set(MapperFlags::INTERPOLATE_VALUES);
-          TransferDataSerial(origin_variable, destination_variable,
-                             options, factor);
+      virtual void TransferInterpolatedData(const Variable< array_1d<double,3> >& rOriginVariable,
+                                            const Variable< array_1d<double,3> >& rDestinationVariable,
+                                            Kratos::Flags& rOptions,
+                                            double Factor = 1.0f) {
+          rOptions.Set(MapperFlags::INTERPOLATE_VALUES);
+          TransferDataSerial(rOriginVariable, rDestinationVariable,
+                             rOptions, Factor);
       }
 
       // Interface function for mapper developer
-      virtual void TransferShapeFunctions(Kratos::Flags& options) {
+      virtual void TransferShapeFunctions(Kratos::Flags& rOptions) {
 
 
       }
@@ -212,19 +214,19 @@ namespace Kratos
       }
 
       InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerOrigin() {
-          return m_p_interface_object_manager_origin;
+          return mpInterfaceObjectManagerOrigin;
       }
 
       InterfaceObjectManagerBase::Pointer GetInterfaceObjectManagerDestination() {
-          return m_p_interface_object_manager_destination;
+          return mpInterfaceObjectManagerDestination;
       }
 
-      void PrintTime(const std::string& mapper_name,
-                     const std::string& function_name,
-                     const double& elapsed_time) {
-          if (m_echo_level == 1 && MyPID() == 0) {
-              std::cout  << "MAPPER TIMER: \"" << mapper_name << "\", \"" << function_name
-                        << "\" took " <<  elapsed_time << " seconds" << std::endl;
+      void PrintTime(const std::string& rMapperName,
+                     const std::string& rFunctionName,
+                     const double& rElapsedTime) {
+          if (mEchoLevel == 1 && MyPID() == 0) {
+              std::cout  << "MAPPER TIMER: \"" << rMapperName << "\", \"" << rFunctionName
+                        << "\" took " <<  rElapsedTime << " seconds" << std::endl;
           }
       }
 
@@ -271,23 +273,24 @@ namespace Kratos
       ///@}
       ///@name Protected member Variables
       ///@{
-      ModelPart& m_model_part_origin;
-      ModelPart& m_model_part_destination;
+      ModelPart& mrModelPartOrigin;
+      ModelPart& mrModelPartDestination;
 
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_origin;
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_destination;
+      InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerOrigin;
+      InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerDestination;
 
-      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_origin;
-      GeometryData::IntegrationMethod m_integration_method_origin;
-      MapperUtilities::InterfaceObjectConstructionType m_interface_object_type_destination;
-      GeometryData::IntegrationMethod m_integration_method_destination;
+      MapperUtilities::InterfaceObjectConstructionType mInterfaceObjectTypeOrigin;
+      GeometryData::IntegrationMethod mIntegrationMethodOrigin;
+      MapperUtilities::InterfaceObjectConstructionType mInterfaceObjectTypeDestination;
+      GeometryData::IntegrationMethod mIntegrationMethodDestination;
 
-      InterfaceSearchStructure::Pointer m_p_search_structure;
+      InterfaceSearchStructure::Pointer mpSearchStructure;
 
-      double m_initial_search_radius;
-      int m_max_search_iterations;
+      double mInitialSearchRadius;
+      int mMaxSearchIterations;
+      double mApproximationTolerance;
 
-      int m_echo_level = 0;
+      int mEchoLevel = 0;
 
       ///@}
       ///@name Protected Operators
@@ -299,13 +302,23 @@ namespace Kratos
       ///@{
 
       template <typename T>
-      void ExchangeDataLocal(const Variable< T >& origin_variable,
-                             const Variable< T >& destination_variable,
-                             Kratos::Flags& options,
-                             const double factor) {
+      void ExchangeDataLocal(const Variable< T >& rOriginVariable,
+                             const Variable< T >& rDestinationVariable,
+                             Kratos::Flags& rOptions,
+                             const double Factor) {
           std::vector< T > values;
-          m_p_interface_object_manager_origin->FillBufferWithValues(values, origin_variable, options);
-          m_p_interface_object_manager_destination->ProcessValues(values, destination_variable, options, factor);
+          mpInterfaceObjectManagerOrigin->FillBufferWithValues(values, rOriginVariable, rOptions);
+          mpInterfaceObjectManagerDestination->ProcessValues(values, rDestinationVariable, rOptions, Factor);
+      }
+
+      // Function used for Debugging
+      void PrintPairs() {
+          mpInterfaceObjectManagerOrigin->WriteNeighborRankAndCoordinates();
+          Kratos::Flags options = Kratos::Flags();
+          options.Set(MapperFlags::NON_HISTORICAL_DATA);
+          TransferNodalData(NEIGHBOR_RANK, NEIGHBOR_RANK, options);
+          TransferNodalData(NEIGHBOR_COORDINATES, NEIGHBOR_COORDINATES, options);
+          mpInterfaceObjectManagerDestination->PrintNeighbors();
       }
 
       ///@}
@@ -345,26 +358,29 @@ namespace Kratos
       ///@{
 
       virtual void InitializeSearchStructure() {
-          m_p_search_structure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
-            m_p_interface_object_manager_destination, m_p_interface_object_manager_origin, m_echo_level) );
+          mpSearchStructure = InterfaceSearchStructure::Pointer ( new InterfaceSearchStructure(
+            mpInterfaceObjectManagerDestination, mpInterfaceObjectManagerOrigin, mEchoLevel) );
       }
 
       virtual void InvokeSearch(const double i_initial_search_radius,
                                 const int i_max_search_iterations) {
-          m_p_search_structure->Search(i_initial_search_radius,
+          mpSearchStructure->Search(i_initial_search_radius,
                                        i_max_search_iterations);
+          if (mEchoLevel > 3) {
+              PrintPairs();
+          }                
       }
 
       template <typename T>
-      void TransferDataSerial(const Variable< T >& origin_variable,
-                              const Variable< T >& destination_variable,
-                              Kratos::Flags& options,
-                              double factor) {
-          if (options.Is(MapperFlags::SWAP_SIGN)) {
-              factor *= (-1);
+      void TransferDataSerial(const Variable< T >& rOriginVariable,
+                              const Variable< T >& rDestinationVariable,
+                              Kratos::Flags& rOptions,
+                              double Factor) {
+          if (rOptions.Is(MapperFlags::SWAP_SIGN)) {
+              Factor *= (-1);
           }
 
-          ExchangeDataLocal(origin_variable, destination_variable, options, factor);
+          ExchangeDataLocal(rOriginVariable, rDestinationVariable, rOptions, Factor);
       }
 
       ///@}

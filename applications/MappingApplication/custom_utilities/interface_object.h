@@ -184,9 +184,9 @@ namespace Kratos
 
       // These functions have to be duplicated because virtual templates are not possible in C++
       // Scalars
-      virtual double GetObjectValue(const Variable<double>& variable) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectValue, "
-                       << "double\" of the base class called!" << std::endl;
+      virtual double GetObjectValue(const Variable<double>& variable,
+                                    const Kratos::Flags& options) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void SetObjectValue(const Variable<double>& variable,
@@ -202,9 +202,9 @@ namespace Kratos
       }
 
       // Vectors
-      virtual array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectValue, "
-                       << "double<3>\" of the base class called!" << std::endl;
+      virtual array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable,
+                                                const Kratos::Flags& options) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void SetObjectValue(const Variable< array_1d<double,3> >& variable,

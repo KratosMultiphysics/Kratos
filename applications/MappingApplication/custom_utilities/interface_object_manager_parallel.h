@@ -71,16 +71,14 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceObjectManagerParallel(ModelPart& i_model_part, int i_comm_rank, int i_comm_size,
+      InterfaceObjectManagerParallel(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
                                      MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                     GeometryData::IntegrationMethod i_integration_method, int i_echo_level) :
-                                     InterfaceObjectManagerBase(i_model_part, i_comm_rank, i_comm_size,
+                                     GeometryData::IntegrationMethod i_integration_method, const int i_echo_level) :
+                                     InterfaceObjectManagerBase(rModelPart, i_comm_rank, i_comm_size,
                                      i_interface_object_type, i_integration_method, i_echo_level) {}
 
       /// Destructor.
-      virtual ~InterfaceObjectManagerParallel() {
-          delete [] m_bounding_box;
-      }
+      virtual ~InterfaceObjectManagerParallel() {  }
 
 
       ///@}
@@ -107,7 +105,7 @@ namespace Kratos
           }
       }
 
-      void ComputeCandidatePartitions(CandidateManager& candidate_manager, int* local_comm_list,
+      void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* local_comm_list,
                                       int* local_memory_size_array,
                                       double* global_bounding_boxes,
                                       const bool last_iteration) override {
@@ -120,7 +118,7 @@ namespace Kratos
                   }
                   if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
                       if (interface_obj->IsInBoundingBox(bounding_box)) {
-                          candidate_manager.candidate_send_objects[partition_index].push_back(interface_obj);
+                          rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
                           ++local_memory_size_array[partition_index];
                           interface_obj->SetIsBeingSent();
@@ -129,7 +127,7 @@ namespace Kratos
                   }
               }
 
-              if (m_echo_level > 2) {
+              if (m_echo_level > 3) {
                   PrintCandidatePartitions(interface_obj, partition_list); // For debugging
               }
 
@@ -145,7 +143,7 @@ namespace Kratos
                                 << std::endl;
 
                       for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
-                          candidate_manager.candidate_send_objects[partition_index].push_back(interface_obj);
+                          rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
                           ++local_memory_size_array[partition_index];
                       }
@@ -167,31 +165,31 @@ namespace Kratos
           partition_list.clear();
       }
 
-      void PrepareMatching(CandidateManager& candidate_manager, int* local_comm_list,
+      void PrepareMatching(CandidateManager& rCandidateManager, int* local_comm_list,
                            int* local_memory_size_array) override {
           for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
-              if (candidate_manager.candidate_send_objects.count(partition_index) > 0) {
-                  candidate_manager.matching_information.reserve(candidate_manager.candidate_send_objects.at(partition_index).size());
-                  for (auto interface_obj : candidate_manager.candidate_send_objects.at(partition_index)) {
+              if (rCandidateManager.candidate_send_objects.count(partition_index) > 0) {
+                  rCandidateManager.matching_information.reserve(rCandidateManager.candidate_send_objects.at(partition_index).size());
+                  for (auto interface_obj : rCandidateManager.candidate_send_objects.at(partition_index)) {
                       if (interface_obj->HasNeighborInPartition(partition_index)) {
                           m_send_objects[partition_index].push_back(interface_obj);
-                          candidate_manager.matching_information[partition_index].push_back(1);
+                          rCandidateManager.matching_information[partition_index].push_back(1);
                           local_comm_list[partition_index] = 1;
                           ++local_memory_size_array[partition_index];
                       } else {
-                          candidate_manager.matching_information[partition_index].push_back(0);
+                          rCandidateManager.matching_information[partition_index].push_back(0);
                       }
                   }
               }
           }
       }
 
-      void FillSendBufferWithMatchInformation(CandidateManager& candidate_manager,
+      void FillSendBufferWithMatchInformation(CandidateManager& rCandidateManager,
                                               int* send_buffer, int& send_buffer_size,
                                               const int comm_partner) override {
           int i = 0;
-          if (candidate_manager.matching_information.count(comm_partner) > 0) {
-              for (auto info : candidate_manager.matching_information.at(comm_partner)) {
+          if (rCandidateManager.matching_information.count(comm_partner) > 0) {
+              for (auto info : rCandidateManager.matching_information.at(comm_partner)) {
                   send_buffer[i] = info;
                   ++i;
               }
@@ -199,12 +197,12 @@ namespace Kratos
           send_buffer_size = i;
       }
 
-      void FillBufferLocalSearch(CandidateManager& candidate_manager,
+      void FillBufferLocalSearch(CandidateManager& rCandidateManager,
                                  InterfaceObjectConfigure::ContainerType& send_objects,
                                  int& num_objects) override {
           int i = 0;
-          if (candidate_manager.candidate_send_objects.count(m_comm_rank) > 0) {
-              for (auto interface_obj : candidate_manager.candidate_send_objects.at(m_comm_rank)) {
+          if (rCandidateManager.candidate_send_objects.count(m_comm_rank) > 0) {
+              for (auto interface_obj : rCandidateManager.candidate_send_objects.at(m_comm_rank)) {
                   send_objects[i] = interface_obj;
                   ++i;
               }
@@ -212,12 +210,12 @@ namespace Kratos
           num_objects = i;
       }
 
-      void FillSendBufferRemoteSearch(CandidateManager& candidate_manager,
+      void FillSendBufferRemoteSearch(CandidateManager& rCandidateManager,
                                       double* send_buffer, int& send_buffer_size,
                                       const int comm_partner) override {
           int i = 0;
-          if (candidate_manager.candidate_send_objects.count(comm_partner) > 0) {
-              for (auto interface_obj : candidate_manager.candidate_send_objects.at(comm_partner)){
+          if (rCandidateManager.candidate_send_objects.count(comm_partner) > 0) {
+              for (auto interface_obj : rCandidateManager.candidate_send_objects.at(comm_partner)){
                   send_buffer[(i*3) + 0] = interface_obj->X();
                   send_buffer[(i*3) + 1] = interface_obj->Y();
                   send_buffer[(i*3) + 2] = interface_obj->Z();
@@ -227,12 +225,12 @@ namespace Kratos
           send_buffer_size = 3 * i;
       }
 
-      void PostProcessReceivedResults(CandidateManager& candidate_manager,
+      void PostProcessReceivedResults(CandidateManager& rCandidateManager,
                                       const std::vector<double>& distances,
                                       const int comm_partner) override {
           int i = 0;
-          if (candidate_manager.candidate_send_objects.count(comm_partner) > 0) {
-              for (auto interface_obj : candidate_manager.candidate_send_objects.at(comm_partner)) {
+          if (rCandidateManager.candidate_send_objects.count(comm_partner) > 0) {
+              for (auto interface_obj : rCandidateManager.candidate_send_objects.at(comm_partner)) {
                   if (distances[i] > -0.5f) // failed search has value "-1"
                       interface_obj->ProcessDistance(distances[i], comm_partner);
                   ++i;
@@ -240,12 +238,12 @@ namespace Kratos
           }
       }
 
-      void PostProcessReceivedResults(CandidateManager& candidate_manager,
+      void PostProcessReceivedResults(CandidateManager& rCandidateManager,
                                       const double* distances,
                                       const int comm_partner) override {
           int i = 0;
-          if (candidate_manager.candidate_send_objects.count(comm_partner) > 0) {
-              for (auto interface_obj : candidate_manager.candidate_send_objects.at(comm_partner)) {
+          if (rCandidateManager.candidate_send_objects.count(comm_partner) > 0) {
+              for (auto interface_obj : rCandidateManager.candidate_send_objects.at(comm_partner)) {
                   if (distances[i] > -0.5f) // failed search has value "-1"
                       interface_obj->ProcessDistance(distances[i], comm_partner);
                   ++i;
@@ -273,31 +271,36 @@ namespace Kratos
               send_buffer[i] = min_distances[i];
       }
 
-      void StoreTempSearchResults(CandidateManager& candidate_manager,
+      void FillSendBufferWithResults(int* send_buffer, const int send_buffer_size,
+                                     const std::vector<int>& pairing_indices) override {
+          for (int i = 0; i < send_buffer_size; ++i)
+              send_buffer[i] = pairing_indices[i];
+      }
+
+      void StoreTempSearchResults(CandidateManager& rCandidateManager,
                                   std::vector<InterfaceObject::Pointer> temp_closest_results,
                                   std::vector<std::vector<double>> temp_shape_functions,
                                   std::vector<array_1d<double,2>> temp_local_coordinates,
                                   const int comm_partner) override {
-          MapInsertElement(candidate_manager.candidate_receive_objects, comm_partner, temp_closest_results);
-          MapInsertElement(candidate_manager.candidate_local_coordinates, comm_partner, temp_local_coordinates);
-          MapInsertElement(candidate_manager.candidate_shape_functions, comm_partner, temp_shape_functions);
+          MapInsertElement(rCandidateManager.candidate_receive_objects, comm_partner, temp_closest_results);
+          MapInsertElement(rCandidateManager.candidate_local_coordinates, comm_partner, temp_local_coordinates);
+          MapInsertElement(rCandidateManager.candidate_shape_functions, comm_partner, temp_shape_functions);
       }
 
-      void ProcessMatchInformation(CandidateManager& candidate_manager,
+      void ProcessMatchInformation(CandidateManager& rCandidateManager,
                                    int* buffer, const int buffer_size,
                                    const int comm_partner) override {
           for (int i = 0; i < buffer_size; ++i) {
               if (buffer[i] == 1) { // Match
                   if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-                      if (!candidate_manager.candidate_receive_objects.at(comm_partner)[i]) {
-                          KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                                       << "\"ProcessMatchInformation\": interface_obj pointer mismatch"
+                      if (!rCandidateManager.candidate_receive_objects.at(comm_partner)[i]) {
+                          KRATOS_ERROR << "interface_obj pointer mismatch"
                                        << std::endl;
                       }
                   }
-                  m_receive_objects[comm_partner].push_back(candidate_manager.candidate_receive_objects.at(comm_partner)[i]);
-                  m_shape_functions[comm_partner].push_back(candidate_manager.candidate_shape_functions.at(comm_partner)[i]);
-                  m_local_coordinates[comm_partner].push_back(candidate_manager.candidate_local_coordinates.at(comm_partner)[i]);
+                  m_receive_objects[comm_partner].push_back(rCandidateManager.candidate_receive_objects.at(comm_partner)[i]);
+                  m_shape_functions[comm_partner].push_back(rCandidateManager.candidate_shape_functions.at(comm_partner)[i]);
+                  m_local_coordinates[comm_partner].push_back(rCandidateManager.candidate_local_coordinates.at(comm_partner)[i]);
               }
           }
       }
@@ -343,9 +346,9 @@ namespace Kratos
 
           for (auto interface_obj : interface_objects) {
               if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i]);
+                  buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i]);
               } else {
-                  buffer[i] = interface_obj->GetObjectValue(variable);
+                  buffer[i] = interface_obj->GetObjectValue(variable, options);
               }
               ++i;
           }
@@ -354,9 +357,7 @@ namespace Kratos
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
               if (buffer_size != i) {
-                  KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                               << "\"FillSendBufferWithValues, double\": size mismatch"
-                               << std::endl;
+                  KRATOS_ERROR << "size mismatch" << std::endl;
               }
           }
       }
@@ -372,13 +373,13 @@ namespace Kratos
 
           for (auto interface_obj : interface_objects) {
               if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  buffer[(i*3) + 0] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i])[0];
-                  buffer[(i*3) + 1] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i])[1];
-                  buffer[(i*3) + 2] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(m_comm_rank)[i])[2];
+                  buffer[(i*3) + 0] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[0];
+                  buffer[(i*3) + 1] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[1];
+                  buffer[(i*3) + 2] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[2];
               } else {
-                  buffer[(i*3) + 0] = interface_obj->GetObjectValue(variable)[0];
-                  buffer[(i*3) + 1] = interface_obj->GetObjectValue(variable)[1];
-                  buffer[(i*3) + 2] = interface_obj->GetObjectValue(variable)[2];
+                  buffer[(i*3) + 0] = interface_obj->GetObjectValue(variable, options)[0];
+                  buffer[(i*3) + 1] = interface_obj->GetObjectValue(variable, options)[1];
+                  buffer[(i*3) + 2] = interface_obj->GetObjectValue(variable, options)[2];
               }
               ++i;
           }
@@ -387,9 +388,7 @@ namespace Kratos
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
               if (buffer_size != i*3) {
-                  KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                               << "\"FillSendBufferWithValues, double<3>\": size mismatch"
-                               << std::endl;
+                  KRATOS_ERROR << "size mismatch" << std::endl;
               }
           }
       }
@@ -404,9 +403,8 @@ namespace Kratos
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
               if (static_cast<int>(interface_objects.size()) != buffer_size) {
-                  KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                               << "\"ProcessValues, double\": Wrong number of results "
-                               << "received!; interface_objects.size() = " << interface_objects.size()
+                  KRATOS_ERROR << "Wrong number of results received!; "
+                               << "interface_objects.size() = " << interface_objects.size()
                                << ", buffer_size = " << buffer_size << std::endl;
               }
           }
@@ -423,8 +421,7 @@ namespace Kratos
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
               if (buffer_size % 3 != 0) {
-                  KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                               << "\"ProcessValues, double<3>\": Uneven number of results "
+                  KRATOS_ERROR << "Uneven number of results "
                                << "received!; buffer_size modulo 3 = "
                                << buffer_size % 3 << std::endl;
               }
@@ -439,9 +436,8 @@ namespace Kratos
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
               if (static_cast<int>(interface_objects.size()) != num_values) {
-                 KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerParallel; "
-                              << "\"ProcessValues, double<3>\": Wrong number of results "
-                              << "received!; interface_objects.size() = "
+                 KRATOS_ERROR << "Wrong number of results received!; "
+                              << "interface_objects.size() = "
                               << interface_objects.size() << ", num_values = "
                               << num_values << std::endl;
               }
@@ -540,8 +536,6 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-      double* m_bounding_box = new double[6] {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
-                                                // xmax, xmin,  ymax, ymin,  zmax, zmin
 
 
       ///@}
