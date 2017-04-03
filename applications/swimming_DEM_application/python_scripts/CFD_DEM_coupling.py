@@ -44,14 +44,14 @@ class ProjectionModule:
 
         # telling the projector which variables we are interested in modifying
 
-        for var in pp.coupling_dem_vars:
+        for var in pp.coupling_dem_vars:            
             self.projector.AddDEMCouplingVariable(var)
 
         for var in pp.coupling_fluid_vars:
             self.projector.AddFluidCouplingVariable(var)
 
         for var in pp.coupling_dem_vars:
-            if var == FLUID_VEL_PROJECTED or var == FLUID_ACCEL_PROJECTED or var == FLUID_VEL_LAPL_PROJECTED or var == FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED:
+            if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
             self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
 
@@ -68,11 +68,28 @@ class ProjectionModule:
         else:
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
+    def ApplyForwardCoupling(self, alpha = None):
+        if self.do_impose_flow_from_field:
+            self.ImposeFluidFlowOnParticles()
+        elif alpha == None:
+            self.ProjectFromNewestFluid()
+        else:
+            self.ProjectFromFluid(alpha)
+
+    def ApplyForwardCouplingOfVelocityOnly(self):
+        if self.do_impose_flow_from_field:
+            self.ImposeVelocityOnDEMFromField()
+        else:
+            self.InterpolateVelocity()
+
     def ProjectFromFluid(self, alpha):
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
+    def InterpolateVelocity(self):
+        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ImposeFluidFlowOnParticles(self):
         self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
@@ -92,8 +109,6 @@ class ProjectionModule:
 
         print("\nFinished projecting from particles to the fluid...")
         sys.stdout.flush()
-    def InterpolateVelocity(self):
-        self.projector.InterpolateVelocity(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)

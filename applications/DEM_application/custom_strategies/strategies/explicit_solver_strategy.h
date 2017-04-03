@@ -205,6 +205,7 @@ namespace Kratos {
         void UpdateMaxIdOfCreatorDestructor();
         void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         virtual void Initialize();
+        virtual void DisplayThreadInfo();
         virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();

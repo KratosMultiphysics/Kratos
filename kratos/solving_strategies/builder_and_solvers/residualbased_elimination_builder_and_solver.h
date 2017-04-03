@@ -194,7 +194,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 			if (!pScheme)
@@ -300,7 +300,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -357,7 +357,7 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -415,7 +415,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -491,7 +491,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -552,7 +552,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -568,7 +568,7 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
                     
@@ -652,7 +652,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -801,7 +801,7 @@ public:
 
     void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
         // Set equation id for degrees of freedom
         // the free degrees of freedom are positioned at the beginning of the system,
@@ -833,7 +833,7 @@ public:
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -906,7 +906,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, r_model_part, b);
@@ -939,7 +939,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
     }
 
@@ -947,7 +947,7 @@ public:
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
      */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 
@@ -970,7 +970,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 

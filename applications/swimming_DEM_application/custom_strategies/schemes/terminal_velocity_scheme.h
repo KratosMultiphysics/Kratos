@@ -1,5 +1,5 @@
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Author: Guillermo Casas gcasas@cimne.upc.edu
 //
 
 #if !defined(KRATOS_TERMINAL_VELOCITY_SCHEME_H_INCLUDED )
@@ -12,16 +12,15 @@
 
 // Project includes
 
-#include "../DEM_application/custom_strategies/schemes/dem_integration_scheme.h"
+#include "../DEM_application/custom_strategies/schemes/symplectic_euler_scheme.h"
+
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-#include "swimming_DEM_application.h"
 
 namespace Kratos {
 
-    class TerminalVelocityScheme : public DEMIntegrationScheme
+    class TerminalVelocityScheme : public SymplecticEulerScheme
     {
     public:
 
@@ -31,10 +30,20 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(TerminalVelocityScheme);
 
         /// Default constructor.
-        TerminalVelocityScheme();
+        TerminalVelocityScheme(){};
 
         /// Destructor.
         virtual ~TerminalVelocityScheme();
+
+        DEMIntegrationScheme* CloneRaw() const override {
+            DEMIntegrationScheme* cloned_scheme(new TerminalVelocityScheme(*this));
+            return cloned_scheme;
+        }
+
+         DEMIntegrationScheme::Pointer CloneShared() const override {
+            DEMIntegrationScheme::Pointer cloned_scheme(new TerminalVelocityScheme(*this));
+            return cloned_scheme;
+        }
 
         void UpdateTranslationalVariables(
             int StepFlag,

@@ -39,5 +39,27 @@ class MeshSolverBase:
 
         (self.solver).Solve()
 
+        
+
     def MoveNodes(self):
         (self.solver).MoveNodes()
+
+    def ImportModelPart(self):
+        
+        print("::[Mechanical Solver]:: Model reading starts.")
+
+        self.computing_model_part_name = "computing_domain" #this submodelpart will be labeled with KratosMultiphysics.ACTIVE flag, you can recover it checking the flag.
+        
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            
+            # Model part reading
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.model_part)
+            print("    Import input model part.")
+
+            # Set and fill buffer
+            #self._SetAndFillBuffer()
+
+
+    def GetComputingModelPart(self):
+        #return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+        return self.model_part

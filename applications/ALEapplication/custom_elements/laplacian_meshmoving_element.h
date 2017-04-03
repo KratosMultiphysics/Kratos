@@ -46,18 +46,13 @@
  *  Revision:            $Revision: 1.5 $
  * ***************************************************************************/
 
-
-#if !defined( KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED )
-#define  KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED
-
-
+#if !defined(KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED)
+#define KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED
 
 // System includes
 
-
 // External includes
 //#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -67,15 +62,16 @@
 
 /// This class implements a laplacian mesh-updating scheme
 /**
- * This mesh-updating scheme solves the Laplace equation in order to update the mesh.
+ * This mesh-updating scheme solves the Laplace equation in order to update the
+ * mesh.
  * to distribute the motion of the structure into the fluid flow domain.
- * It can be used for a) quadrilateral, b) triangular, c) tetrahedral and d) hexaedral elements,
+ * It can be used for a) quadrilateral, b) triangular, c) tetrahedral and d)
+ * hexaedral elements,
  * working best for b) and c),
 */
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -91,10 +87,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-//template< unsigned int TDim >
-class LaplacianMeshMovingElement
-        : public Element
+// template< unsigned int TDim >
+class LaplacianMeshMovingElement : public Element
 {
 public:
     ///@name Type Definitions
@@ -118,8 +112,7 @@ public:
 
     ///@name Life Cycle
     /// Default constructor.
-    LaplacianMeshMovingElement(IndexType NewId,
-                               GeometryType::Pointer pGeometry);
+    LaplacianMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Default constructor.
     LaplacianMeshMovingElement(IndexType NewId,
@@ -128,18 +121,24 @@ public:
 
     /// Destructor.
     virtual ~LaplacianMeshMovingElement()
-    {}
+    {
+    }
     ///@{
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
 
-    BaseType::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties) const;
+    BaseType::Pointer Create(IndexType NewId,
+                             NodesArrayType const& rThisNodes,
+                             PropertiesType::Pointer pProperties) const;
+
+    BaseType::Pointer Create(IndexType NewId,
+                             GeometryType::Pointer pGeom,
+                             PropertiesType::Pointer pProperties) const;
 
     void Initialize();
 
@@ -151,9 +150,10 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateDeltaPosition(VectorType& IntermediateDisplacements, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDeltaPosition(VectorType& IntermediateDisplacements,
+                                ProcessInfo& rCurrentProcessInfo);
 
     ///@{
 
@@ -161,11 +161,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -188,11 +186,9 @@ protected:
     ///@name Protected Operators
     ///@{
     ///@}
-
     ///@name Protected Operations
     ///@{
-    void GetDisplacementValues(VectorType& rValues,
-        const int Step = 0);
+    void GetDisplacementValues(VectorType& rValues, const int Step = 0);
     ///@}
 
     ///@name Protected  Access
@@ -224,7 +220,9 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-    LaplacianMeshMovingElement() {}
+    LaplacianMeshMovingElement()
+    {
+    }
     ///@}
 
     ///@name Private Operators
@@ -260,8 +258,6 @@ private:
 
 ///@}
 
-
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED  defined
