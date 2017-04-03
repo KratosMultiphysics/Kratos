@@ -32,8 +32,6 @@ import json
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-    optimizationSettings = json.load(optimizationSettings)
-
     if  optimizationSettings["design_variables"]["design_control_type"].GetString() == "vertex_morphing":
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
@@ -44,58 +42,55 @@ def CreateOptimizer( inputModelPart, optimizationSettings ):
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def __init__( self, inputModelPart, optimizationSettings ):
-
-        self.optimizationSettings = optimizationSettings
-        self.createListOfObjectives()
-        self.createListOfConstraints()
-        self.communicator = Communicator( self.listOfObjectives, self.listOfConstraints ); 
-
-
+        
         self.inputModelPart = inputModelPart
-        self.designHistoryFile = self.optimizationSettings.design_history_directory+"/"+self.optimizationSettings.design_history_file
+        self.optimizationSettings = optimizationSettings
 
+        self.gidIO = self.createGiDIO( optimizationSettings )
+        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )
+        self.communicator = Communicator( optimizationSettings )
 
-
-        self.gidIO = GiDOutput( optimizationSettings.design_surface_submodel_part_name,
-                                optimizationSettings.VolumeOutput,
-                                optimizationSettings.GiDPostMode,
-                                optimizationSettings.GiDMultiFileFlag,
-                                optimizationSettings.GiDWriteMeshFlag,
-                                optimizationSettings.GiDWriteConditionsFlag)
-
-
-        self.addVariablesNeededForOptimization()
+        self.addVariablesNeededForOptimization( inputModelPart )
 
     # --------------------------------------------------------------------------
-    def createListOfObjectives( self ):
-        self.listOfObjectives = []
-        for objectiveIterator in range(self.optimizationSettings["objectives"].size()):
-            self.listOfObjectives.append(self.optimizationSettings["objectives"][objectiveIterator])
+    def createGiDIO( self, optimizationSettings ):
+        resultsDirectory = optimizationSettings["ouptut"]["output_directory"].GetString()
+        designHistoryFilename = optimizationSettings["ouptut"]["design_history_filename"].GetString()
+        designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
+        gidIO = GiDOutput( designHistoryFilenameWithPath,
+                           optimizationSettings["ouptut"]["output_type"]["VolumeOutput"].GetBool(),
+                           optimizationSettings["ouptut"]["output_type"]["GiDPostMode"].GetString(),
+                           optimizationSettings["ouptut"]["output_type"]["GiDMultiFileFlag"].GetString(),
+                           optimizationSettings["ouptut"]["output_type"]["GiDWriteMeshFlag"].GetBool(),
+                           optimizationSettings["ouptut"]["output_type"]["GiDWriteConditionsFlag"].GetBool() )
+        return gidIO
+    
     # --------------------------------------------------------------------------
-    def createListOfConstraints( self ):
-        self.listOfConstraints = []
-        for constraintIterator in range(self.optimizationSettings["constraints"].size()):
-            self.listOfConstraints.append(self.optimizationSettings["constraints"][constraintIterator])
+    def createCompleteOptimizationLogFilename( self, optimizationSettings ):
+        resultsDirectory = optimizationSettings["ouptut"]["output_directory"].GetString()
+        optimizationLogFilename = optimizationSettings["ouptut"]["optimization_log_filename"].GetString()
+        completeOptimizationLogFilename = resultsDirectory+"/"+optimizationLogFilename+".csv"
+        return completeOptimizationLogFilename
 
     # --------------------------------------------------------------------------
-    def addVariablesNeededForOptimization( self ):
-        self.inputModelPart.AddNodalSolutionStepVariable(NORMAL)
-        self.inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        self.inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        self.inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        self.inputModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        self.inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        self.inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        self.inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        self.inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
-        self.inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
-        self.inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
-        self.inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
-        self.inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
-        self.inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
-        self.inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
+    def addVariablesNeededForOptimization( self, inputModelPart ):
+        inputModelPart.AddNodalSolutionStepVariable(NORMAL)
+        inputModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
+        inputModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
+        inputModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
+        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
+        inputModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
+        inputModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
+        inputModelPart.AddNodalSolutionStepVariable(DESIGN_UPDATE)
+        inputModelPart.AddNodalSolutionStepVariable(DESIGN_CHANGE_ABSOLUTE)  
+        inputModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
+        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
+        inputModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+        inputModelPart.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
+        inputModelPart.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
+        inputModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
+        inputModelPart.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
@@ -113,7 +108,7 @@ class VertexMorphingMethod:
     def optimize( self ):
         
         print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.optimizationSettings.optimization_algorithm)
+        print("> Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
         print("> ==============================================================================================================\n")
 
         print(time.ctime())
@@ -233,7 +228,7 @@ class VertexMorphingMethod:
             break
 
         # Initialize file where design evolution is recorded
-        with open(self.designHistoryFile, 'w') as csvfile:
+        with open(self.optimizationLogFile, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -298,7 +293,7 @@ class VertexMorphingMethod:
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
             runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)
-            with open(self.designHistoryFile, 'a') as csvfile:
+            with open(self.optimizationLogFile, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(optimizationIteration)+"\t")
@@ -361,7 +356,7 @@ class VertexMorphingMethod:
             break            
 
         # Initialize file where design evolution is recorded
-        with open(self.designHistoryFile, 'w') as csvfile:
+        with open(self.optimizationLogFile, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append("itr\t")
@@ -452,7 +447,7 @@ class VertexMorphingMethod:
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
             runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)            
-            with open(self.designHistoryFile, 'a') as csvfile:
+            with open(self.optimizationLogFile, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
                 row = []
                 row.append(str(optimizationIteration)+"\t")
@@ -540,29 +535,46 @@ class VertexMorphingMethod:
 # ==============================================================================
 class Communicator:
     # --------------------------------------------------------------------------
-    def __init__( self, listOfObjectives, listOfConstraints ):
-        self.listOfObjectives = listOfObjectives
-        self.listOfConstraints = listOfConstraints
-        self.initializeListOfRequests()
-        self.initializeListOfResponses()
+    def __init__( self, optimizationSettings ):
+        self.listOfRequests = self.initializeListOfRequests( optimizationSettings )
+        self.listOfResponses = self.initializeListOfResponses( optimizationSettings )
 
     # --------------------------------------------------------------------------
-    def initializeListOfRequests( self ):
-        self.listOfRequests = {}
-        for objective in self.listOfObjectives:
-            self.listOfRequests[objective["name"]] = {"calculateValue": False, "calculateGradient": False}
-        for functionId in optimizationSettings.constraints:
-            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
+    def initializeListOfRequests( self, optimizationSettings ):
+
+        listOfRequests = {}
+        numberOfObjectives = optimizationSettings["objectives"].size()
+        numberOfConstraints = optimizationSettings["constraints"].size()
+
+        for objectiveNumber in range(numberOfObjectives):
+            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
+            listOfRequests[objectiveId] = {"calculateValue": False, "calculateGradient": False}
+
+        for constraintNumber in range(numberOfConstraints):
+            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
+            listOfRequests[constraintId] = {"calculateValue": False, "calculateGradient": False}
+
+        return listOfRequests
 
     # --------------------------------------------------------------------------
-    def initializeListOfResponses( self ):
-        self.responseContainer = {}       
-        for func_id in optimizationSettings.objectives:
-            self.responseContainer[func_id] = {}
-        for func_id in optimizationSettings.constraints:
-            self.responseContainer[func_id] = {}          
-        for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
+    def initializeListOfResponses( self, optimizationSettings ):
+        
+        listOfResponses = {}  
+        numberOfObjectives = optimizationSettings["objectives"].size()
+        numberOfConstraints = optimizationSettings["constraints"].size()
+
+        for objectiveNumber in range(numberOfObjectives):
+            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
+            listOfResponses[objectiveId] = {}
+
+        for constraintNumber in range(numberOfConstraints):
+            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
+            listOfResponses[constraintId] = {}  
+
+        for responseId in listOfResponses:
+            listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None} 
+
+        return listOfResponses
     
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
@@ -571,62 +583,62 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def deleteAllRequests( self ):
-        for functionId in self.listOfRequests:
-            self.listOfRequests[functionId] = {"calculateValue": False, "calculateGradient": False}
+        for responseId in self.listOfRequests:
+            self.listOfRequests[responseId] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
     def deleteAllReportedValues( self ):
-        for func_id in self.responseContainer:
-            self.responseContainer[func_id] = {"value": None, "referenceValue": None, "gradient": None}  
+        for responseId in self.listOfResponses:
+            self.listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None}  
 
     # --------------------------------------------------------------------------
-    def requestFunctionValueOf( self, functionId ):
-        self.listOfRequests[functionId]["calculateValue"] = True
+    def requestFunctionValueOf( self, responseId ):
+        self.listOfRequests[responseId]["calculateValue"] = True
 
     # --------------------------------------------------------------------------
-    def requestGradientOf( self, functionId ):
-        self.listOfRequests[functionId]["calculateGradient"] = True
+    def requestGradientOf( self, responseId ):
+        self.listOfRequests[responseId]["calculateGradient"] = True
 
     # --------------------------------------------------------------------------
-    def isRequestingFunctionValueOf( self, functionId ):
-        return self.listOfRequests[functionId]["calculateValue"]
+    def isRequestingFunctionValueOf( self, responseId ):
+        return self.listOfRequests[responseId]["calculateValue"]
 
     # --------------------------------------------------------------------------
-    def isRequestingGradientOf( self, functionId ):
-        return self.listOfRequests[functionId]["calculateGradient"]
+    def isRequestingGradientOf( self, responseId ):
+        return self.listOfRequests[responseId]["calculateGradient"]
 
     # --------------------------------------------------------------------------
-    def reportFunctionValue( self, functionId, functionValue ):
-        if functionId in self.responseContainer.keys():
-            self.responseContainer[functionId]["value"] = functionValue
+    def reportFunctionValue( self, responseId, functionValue ):
+        if responseId in self.listOfResponses.keys():
+            self.listOfResponses[responseId]["value"] = functionValue
         else:
-            raise NameError("Reported function is not specified: " + functionId)
+            raise NameError("Reported function is not specified: " + responseId)
 
     # --------------------------------------------------------------------------
-    def reportFunctionReferenceValue( self, functionId, functionReferenceValue ):
-        if functionId in self.responseContainer.keys():
-            self.responseContainer[functionId]["referenceValue"] = functionReferenceValue
+    def reportFunctionReferenceValue( self, responseId, functionReferenceValue ):
+        if responseId in self.listOfResponses.keys():
+            self.listOfResponses[responseId]["referenceValue"] = functionReferenceValue
         else:
-            raise NameError("Reported function is not specified: " + functionId)
+            raise NameError("Reported function is not specified: " + responseId)
 
     # --------------------------------------------------------------------------
-    def reportGradient( self, functionId, gradient ):
-        if functionId in self.responseContainer.keys():        
-            self.responseContainer[functionId]["gradient"] = gradient
+    def reportGradient( self, responseId, gradient ):
+        if responseId in self.listOfResponses.keys():        
+            self.listOfResponses[responseId]["gradient"] = gradient
         else:
-            raise NameError("Reported function is not specified: " + functionId)
+            raise NameError("Reported function is not specified: " + responseId)
 
     # --------------------------------------------------------------------------
-    def getReportedFunctionValueOf( self, functionId ):
-        return self.responseContainer[functionId]["value"]
+    def getReportedFunctionValueOf( self, responseId ):
+        return self.listOfResponses[responseId]["value"]
 
     # --------------------------------------------------------------------------
-    def getReportedFunctionReferenceValueOf( self, functionId ):
-        return self.responseContainer[functionId]["referenceValue"]
+    def getReportedFunctionReferenceValueOf( self, responseId ):
+        return self.listOfResponses[responseId]["referenceValue"]
 
     # --------------------------------------------------------------------------    
-    def getReportedGradientOf( self, functionId ):
-        return self.responseContainer[functionId]["gradient"]
+    def getReportedGradientOf( self, responseId ):
+        return self.listOfResponses[responseId]["gradient"]
 
     # --------------------------------------------------------------------------
 
