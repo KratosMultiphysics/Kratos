@@ -85,3 +85,9 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
+    
+class Fofi4PointTentnoCableTests(StructuralMechanichsTestFactory):
+    file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
+    
+class MembraneQ4PointLoadTests(StructuralMechanichsTestFactory):
+    file_name = "membrane_test/membrane_Q4_PointLoad_test"

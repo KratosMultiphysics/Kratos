@@ -135,12 +135,6 @@ void Membrane1Element::Initialize()
     mPreStress[1] = GetProperties()[PRESTRESS_22];
     mPreStress[2] = GetProperties()[PRESTRESS_12];
 
-    // temporary set the pre-stress
-    //mPreStress[0] = 100.0;
-    //mPreStress[1] = 100.0;
-    //mPreStress[2] = 0.0;
-
-
     if (mPreStress[0] != mPreStress[1] || mPreStress[2] != 0.0)
         KRATOS_THROW_ERROR(std::invalid_argument, "Only Isotropic Pre-stress state is considered in the membrane1 implementation! Further implementation not done yet!", "");
 
@@ -162,7 +156,6 @@ void Membrane1Element::Initialize()
 
     mG_Vector.resize(integration_points.size(), ZeroMatrix(2, 2));
 
-    //std::cout << "Membrane1Element::Initialize(): 1 " << this->GetId() << std::endl;
     
     // Calculating geometry tensors in reference configuration on Integration points
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
@@ -593,49 +586,6 @@ void Membrane1Element::CalculateAndAddNonlinearKm(
     //K = TestK;
     KRATOS_CATCH("")
 }
-
-/*
-void Membrane1Element::CalculateAndAddNonlinearKm(
-    Matrix& K,
-    Matrix& B11,
-    Matrix& B22,
-    Matrix& B12,
-    Vector& SD,
-    double weight)
-
-{
-    KRATOS_TRY
-
-        unsigned int number_of_nodes = GetGeometry().size();
-    //Matrix TestK = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
-
-    for (unsigned int n = 0; n < number_of_nodes; n++)
-    {
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            for (unsigned int m = 0; m <= n; m++)
-            {
-                int check = 3;
-                if (m == n)
-                    check = i + 1;
-                for (unsigned int j = 0; j < check; j++)
-                {
-                    K(3 * n + i, 3 * m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    //TestK(3*n + i, 3*m + j) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    K(3 * m + j, 3 * n + i) += (SD[0] * B11(3 * n + i, 3 * m + j) + SD[1] * B22(3 * n + i, 3 * m + j) + SD[2] * B12(3 * n + i, 3 * m + j))*weight;
-                    //TestK(3*m + i, 3*n + j) = TestK(3*n + i, 3*m + j);
-                }
-            }
-        }
-    }
-    //KRATOS_WATCH(TestK)
-
-    KRATOS_CATCH("")
-}
-
-
-*/
-
 
 //***********************************************************************************
 //***********************************************************************************

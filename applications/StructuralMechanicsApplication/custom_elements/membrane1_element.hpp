@@ -24,6 +24,13 @@
 
 namespace Kratos
 {
+
+/** \brief MembraneElement3D
+* This is a 3D nonlinear isoparametric membrane element, which deals with large displacements
+* Its functionalities for Formfinding (Updated Reference Strategy) and Cutting Pattern are
+* implemented based on the dissertations of Roland Wuechner, Johannes Linhard, and Falko Dieringer
+* at TUM
+*/
   class Membrane1Element
     : public Element
   {

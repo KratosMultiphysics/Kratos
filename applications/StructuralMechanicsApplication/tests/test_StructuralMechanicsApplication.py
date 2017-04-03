@@ -20,6 +20,8 @@ from SmallTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollU
 from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
 from SmallTests import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
 from SmallTests import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
+from SmallTests import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
+from SmallTests import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -54,6 +56,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     smallSuite.addTest(TEigenQ4Thick2x2PlateTests('test_execution'))
     smallSuite.addTest(TEigenTL3D8NCubeTests('test_execution'))
+    smallSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
+    smallSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -68,6 +72,8 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TFofi4PointTentnoCableTests,
+            TMembraneQ4PointLoadTests,
             TSimpleMeshMovingTest,
             TDynamicBossakTests,
             TDynamicNewmarkTests,
