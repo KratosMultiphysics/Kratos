@@ -186,16 +186,3 @@ class ALMContactProcess(KratosMultiphysics.Process):
             
     def ExecuteFinalize(self):
         pass
-    
-    def __generate_submodelpartlist_list_from_input(self,param):
-      '''Parse a list of submodelparts from input.'''
-      # At least verify that the input is a string
-      if not param.IsArray():
-          raise Exception("{0} Error: Submodelpart list is unreadable".format(self.__class__.__name__))
-
-      submodelpart_list = []
-
-      for i in range( 0,param.size()):
-          submodelpart_list.append(param[i].GetString())
-     
-      return submodelpart_list
