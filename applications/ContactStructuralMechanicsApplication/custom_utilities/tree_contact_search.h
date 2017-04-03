@@ -169,12 +169,9 @@ public:
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
-            
-            if (itCond->Is(SLAVE) == true)
-            {
-                itCond->GetValue(CONTACT_SETS) = new ConditionMap;
-//                 itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
-            }
+
+            itCond->GetValue(CONTACT_SETS) = new ConditionMap;
+//             itCond->GetValue(CONTACT_SETS)->reserve(mAllocationSize); 
         }
     }
     
@@ -455,6 +452,12 @@ public:
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pConditions.begin() + i;
+            
+            if (itCond->Is(MASTER) == true && itCond->Is(ACTIVE) == true)
+            {
+                KRATOS_WATCH(itCond->Id());
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN" << std::endl; 
+            }
             
             if (itCond->Is(SLAVE) == true && itCond->Is(ACTIVE) == true)
             {
