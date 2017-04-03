@@ -85,3 +85,10 @@ class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
 
 class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
+
+class Simple3D2NTrussTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_TRUSS_test/linear_3D2NTruss_test"
+
+class Simple3D2NBeamCrTest(StructuralMechanichsTestFactory):
+    file_name = "3D2N_BEAMCR_test/linear_3D2NBeamCr_test"
+     
