@@ -32,6 +32,7 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
