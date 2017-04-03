@@ -8,6 +8,10 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_MAPPER_MPI_COMMUNICATOR_H_INCLUDED )
 #define  KRATOS_MAPPER_MPI_COMMUNICATOR_H_INCLUDED
@@ -96,7 +100,8 @@ namespace Kratos
                                                  TotalProcesses(),
                                                  InterfaceObjectTypeOrigin,
                                                  IntegrationMethodOrigin,
-                                                 mEchoLevel) );
+                                                 mEchoLevel,
+                                                 mApproximationTolerance) );
 
           mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
           mIntegrationMethodOrigin = IntegrationMethodOrigin;
@@ -110,7 +115,8 @@ namespace Kratos
                                                  TotalProcesses(),
                                                  InterfaceObjectTypeDestination,
                                                  IntegrationMethodDestination,
-                                                 mEchoLevel) );
+                                                 mEchoLevel,
+                                                 mApproximationTolerance) );
 
           mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;
           mIntegrationMethodDestination = IntegrationMethodDestination;

@@ -442,10 +442,11 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      InterfaceObjectManagerBase(ModelPart& i_model_part, int i_comm_rank, int i_comm_size,
+      InterfaceObjectManagerBase(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
                                  MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                 GeometryData::IntegrationMethod i_integration_method, int i_echo_level) :
-                                 m_model_part(i_model_part) {
+                                 GeometryData::IntegrationMethod i_integration_method, const int i_echo_level,
+                                 const double ApproximationTolerance) :
+                                 m_model_part(rModelPart) {
 
           m_comm_rank = i_comm_rank;
           m_comm_size = i_comm_size;
@@ -453,13 +454,12 @@ namespace Kratos
           m_echo_level = i_echo_level;
 
           if (i_interface_object_type == MapperUtilities::Node) {
-              InitializeInterfaceNodeManager(i_model_part, i_comm_rank, i_comm_size);
+              InitializeInterfaceNodeManager(rModelPart);
           } else if (i_interface_object_type == MapperUtilities::Condition_Center ||
                      i_interface_object_type == MapperUtilities::Condition_Gauss_Point) {
-              InitializeInterfaceConditionManager(i_model_part, i_comm_rank, i_comm_size, i_integration_method);
+              InitializeInterfaceConditionManager(rModelPart, i_integration_method);
           } else {
-              KRATOS_ERROR << "MappingApplication; InterfaceObjectManagerBase; \"CreateInterfaceObjectManager\" "
-                           << "type of interface object construction not implemented" << std::endl;
+              KRATOS_ERROR << "Type of interface object construction not implemented" << std::endl;
           }
       }
 
@@ -526,7 +526,7 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-      void InitializeInterfaceNodeManager(ModelPart& model_part, int comm_rank, int comm_size) {
+      void InitializeInterfaceNodeManager(ModelPart& model_part) {
           m_interface_objects.resize(model_part.GetCommunicator().LocalMesh().NumberOfNodes());
 
           int i = 0;
@@ -536,7 +536,7 @@ namespace Kratos
           }
       }
 
-      void InitializeInterfaceConditionManager(ModelPart& model_part, int comm_rank, int comm_size,
+      void InitializeInterfaceConditionManager(ModelPart& model_part,
                                                GeometryData::IntegrationMethod integration_method) {
           bool construct_with_center;
           int size_factor = 1;

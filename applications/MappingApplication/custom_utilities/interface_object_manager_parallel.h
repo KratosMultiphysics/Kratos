@@ -73,9 +73,10 @@ namespace Kratos
 
       InterfaceObjectManagerParallel(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
                                      MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                     GeometryData::IntegrationMethod i_integration_method, const int i_echo_level) :
+                                     GeometryData::IntegrationMethod i_integration_method, const int i_echo_level,
+                                     const double ApproximationTolerance) :
                                      InterfaceObjectManagerBase(rModelPart, i_comm_rank, i_comm_size,
-                                     i_interface_object_type, i_integration_method, i_echo_level) {}
+                                     i_interface_object_type, i_integration_method, i_echo_level, ApproximationTolerance) {}
 
       /// Destructor.
       virtual ~InterfaceObjectManagerParallel() {  }

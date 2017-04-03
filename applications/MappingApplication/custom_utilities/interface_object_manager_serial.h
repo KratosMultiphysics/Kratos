@@ -70,12 +70,13 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceObjectManagerSerial(ModelPart& i_model_part, int i_comm_rank, int i_comm_size,
+      InterfaceObjectManagerSerial(ModelPart& rModelPart, int i_comm_rank, int i_comm_size,
                                    MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                   GeometryData::IntegrationMethod i_integration_method, int i_echo_level) :
+                                   GeometryData::IntegrationMethod i_integration_method, const int i_echo_level,
+                                   const double ApproximationTolerance) :
                                    InterfaceObjectManagerBase(
-                                   i_model_part, i_comm_rank, i_comm_size, i_interface_object_type,
-                                   i_integration_method, i_echo_level) { }
+                                   rModelPart, i_comm_rank, i_comm_size, i_interface_object_type,
+                                   i_integration_method, i_echo_level, ApproximationTolerance) { }
 
       /// Destructor.
       virtual ~InterfaceObjectManagerSerial() { }

@@ -105,7 +105,8 @@ namespace Kratos
                                                TotalProcesses(),
                                                InterfaceObjectTypeOrigin,
                                                IntegrationMethodOrigin,
-                                               mEchoLevel) );
+                                               mEchoLevel,
+                                               mApproximationTolerance) );
 
           // Save for updating the interface
           mInterfaceObjectTypeOrigin = InterfaceObjectTypeOrigin;
@@ -120,7 +121,8 @@ namespace Kratos
                                                TotalProcesses(),
                                                InterfaceObjectTypeDestination,
                                                IntegrationMethodDestination,
-                                               mEchoLevel) );
+                                               mEchoLevel,
+                                               mApproximationTolerance) );
 
           // Save for updating the interface
           mInterfaceObjectTypeDestination = InterfaceObjectTypeDestination;
