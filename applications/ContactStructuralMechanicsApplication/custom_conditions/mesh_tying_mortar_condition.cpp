@@ -285,7 +285,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
     
     // Iterate over the master segments
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
-    {                                                           
+    {
+        // The normal of the master condition
+        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+        
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
@@ -304,7 +307,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
         for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
         {            
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
+            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
             
             this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
         }
@@ -694,7 +697,10 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
     // Iterate over the master segments
 //     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
-    {                                                           
+    {
+        // The normal of the master condition
+        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+        
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
         
@@ -714,7 +720,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
         for ( unsigned int PointNumber = 0; PointNumber < NumberOfIntegrationPoints; PointNumber++ )
         {            
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
+            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
             
             this->CalculateMortarOperators(rThisMortarConditionMatrices, rVariables, IntegrationPointsSlave[PointNumber].Weight());
         }
@@ -815,7 +821,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
 //     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
-    {   
+    {
+        // The normal of the master condition
+        const array_1d<double, 3> MasterNormal = mThisMasterConditions[PairIndex]->GetValue(NORMAL);
+        
         // Get the integration points
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
 //         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
@@ -827,7 +836,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
         for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
         {            
             // Calculate the kinematic variables
-            this->CalculateKinematics( rVariables, rDofData, PointNumber, IntegrationPointsSlave );
+            this->CalculateKinematics( rVariables, rDofData, MasterNormal, PointNumber, IntegrationPointsSlave );
             
             const double& IntegrationWeight = IntegrationPointsSlave[PointNumber].Weight();
             TotalWeight += IntegrationWeight;
@@ -886,6 +895,7 @@ template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics( 
     GeneralVariables& rVariables,
     const DofData rDofData,
+    const array_1d<double, 3> MasterNormal,
     const double& rPointNumber,
     const IntegrationPointsType& IntegrationPointsSlave
     )
@@ -898,12 +908,12 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
 //     rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
-    /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, LocalPoint);
-    
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     rVariables.DetJSlave = 1.0;
 //     rVariables.DetJSlave = GetGeometry( ).DeterminantOfJacobian( LocalPoint );
+    
+    /// MASTER CONDITION ///
+    this->MasterShapeFunctionValue( rVariables, MasterNormal, LocalPoint);
 }
  
 /***********************************************************************************/
@@ -913,25 +923,25 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
 template< unsigned int TDim, unsigned int TNumNodesElem, TensorValue TTensor>
 void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
+    const array_1d<double, 3> MasterNormal,
     const PointType& LocalPoint 
     )
 {    
-    GeometryType& master_seg = rVariables.GetMasterElement( );
+    GeometryType& MasterSegment = rVariables.GetMasterElement( );
 
-    PointType projected_gp_global;
-    const array_1d<double,3> normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
+    PointType ProjectedGPGlobal;
+    const array_1d<double,3> GPNormal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
     
-    GeometryType::CoordinatesArrayType slave_gp_global;
-    double aux_dist = 0.0;
-    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, -normal ); // The opposite direction
+    GeometryType::CoordinatesArrayType SlaveGPGlobal;
+    this->GetGeometry( ).GlobalCoordinates( SlaveGPGlobal, LocalPoint );
+    ContactUtilities::FastProjectDirection( MasterSegment, SlaveGPGlobal, ProjectedGPGlobal, MasterNormal, -GPNormal ); // The opposite direction
     
-    GeometryType::CoordinatesArrayType projected_gp_local;
+    GeometryType::CoordinatesArrayType ProjectedGPLocal;
     
-    master_seg.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
+    MasterSegment.PointLocalCoordinates(ProjectedGPLocal, ProjectedGPGlobal.Coordinates( ) ) ;
     
     // SHAPE FUNCTIONS 
-    master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
+    MasterSegment.ShapeFunctionsValues( rVariables.N_Master, ProjectedGPLocal );         
 }
 
 /***********************************************************************************/

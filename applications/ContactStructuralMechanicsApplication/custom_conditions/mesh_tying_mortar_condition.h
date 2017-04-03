@@ -750,6 +750,7 @@ protected:
     void CalculateKinematics( 
         GeneralVariables& rVariables,
         const DofData rDofData,
+        const array_1d<double, 3> MasterNormal,
         const double& rPointNumber,
         const IntegrationPointsType& IntegrationPointsSlave
         );
@@ -893,6 +894,7 @@ protected:
      */
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
+        const array_1d<double, 3> MasterNormal,
         const PointType& local_point 
     );
 
