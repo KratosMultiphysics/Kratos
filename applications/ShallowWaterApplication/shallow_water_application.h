@@ -1,6 +1,6 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last Modified by:    $Author: Miguel Masó Sotomayor $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //
@@ -24,9 +24,10 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-
+// Application includes
 #include "includes/variables.h"
 #include "shallow_water_application_variables.h"
+#include "custom_elements/helmholtz.h"
 
 
 namespace Kratos
