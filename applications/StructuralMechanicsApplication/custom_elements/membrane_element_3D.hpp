@@ -9,8 +9,8 @@
 //  Main authors:    Long Chen
 //
 
-#if !defined(KRATOS_MEMBRANE1_ELEMENT_H_INCLUDED )
-#define  KRATOS_MEMBRANE1_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED )
+#define  KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED
 
 
 
@@ -26,27 +26,27 @@ namespace Kratos
 {
 
 /** \brief MembraneElement3D
-* This is a 3D nonlinear isoparametric membrane element, which deals with large displacements
-* Its functionalities for Formfinding (Updated Reference Strategy) and Cutting Pattern are
+* This is a 3D nonlinear isoparametric membrane element, which deals with large displacements.
+* Its functionalities for Formfinding (using Updated Reference Strategy) and Cutting Pattern are
 * implemented based on the dissertations of Roland Wuechner, Johannes Linhard, and Falko Dieringer
 * at TUM
 */
-  class Membrane1Element
+  class MembraneElement3D
     : public Element
   {
   public:
 
     // Counted pointer of MembraneElement
-    KRATOS_CLASS_POINTER_DEFINITION(Membrane1Element);
+    KRATOS_CLASS_POINTER_DEFINITION(MembraneElement3D);
 
     // Constructor using an array of nodes
-    Membrane1Element(IndexType NewId, GeometryType::Pointer pGeometry);
+    MembraneElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor using an array of nodes with properties
-    Membrane1Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MembraneElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~Membrane1Element();
+    virtual ~MembraneElement3D();
 
 
     // Name Operations
@@ -211,7 +211,7 @@ namespace Kratos
       boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
       Matrix& msG);
 
-    void Membrane1Element::CalculateB(
+    void MembraneElement3D::CalculateB(
         Matrix& B,
         boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
         const Matrix& DN_De,
@@ -286,7 +286,7 @@ namespace Kratos
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    Membrane1Element() {}
+    MembraneElement3D() {}
 
     void save(Serializer& rSerializer) const
     {
@@ -332,4 +332,4 @@ namespace Kratos
 
 }	// namespace Kratos.
 
-#endif // KRATOS_MEMBRANE1_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED  defined 

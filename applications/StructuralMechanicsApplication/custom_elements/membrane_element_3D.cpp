@@ -17,20 +17,20 @@
 
 
 // Project includes
-#include "custom_elements/membrane1_element.hpp"
+#include "custom_elements/membrane_element_3D.hpp"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
 // Constructor
-Membrane1Element::Membrane1Element( IndexType NewId, GeometryType::Pointer pGeometry )
+MembraneElement3D::MembraneElement3D( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
 }
 
 // Constructor
-Membrane1Element::Membrane1Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+MembraneElement3D::MembraneElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element( NewId, pGeometry, pProperties )
 {
 }
@@ -38,26 +38,26 @@ Membrane1Element::Membrane1Element(IndexType NewId, GeometryType::Pointer pGeome
 //***********************************************************************************
 //***********************************************************************************
 
-Element::Pointer Membrane1Element::Create(
+Element::Pointer MembraneElement3D::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 
 {
-    return boost::make_shared< Membrane1Element >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return boost::make_shared< MembraneElement3D >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //***********************************************************************************
 //***********************************************************************************
 // Destructor
-Membrane1Element::~Membrane1Element()
+MembraneElement3D::~MembraneElement3D()
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::EquationIdVector(
+void MembraneElement3D::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 
@@ -90,7 +90,7 @@ void Membrane1Element::EquationIdVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::GetDofList(
+void MembraneElement3D::GetDofList(
     DofsVectorType& ElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 
@@ -111,11 +111,11 @@ void Membrane1Element::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::Initialize()
+void MembraneElement3D::Initialize()
 
 {
 
-    //std::cout << "Membrane1Element::Initialize(): start" << this->GetId() << std::endl;
+    //std::cout << "MembraneElement3D::Initialize(): start" << this->GetId() << std::endl;
     KRATOS_TRY
 
     // reading integration points and local gradients
@@ -162,7 +162,7 @@ void Membrane1Element::Initialize()
     {
         // getting information for integration
         double IntegrationWeight = integration_points[PointNumber].Weight();
-        //std::cout << "Membrane1Element::Initialize(): 2 " << this->GetId() << std::endl;
+        //std::cout << "MembraneElement3D::Initialize(): 2 " << this->GetId() << std::endl;
         // base vectors
         array_1d<double, 3> g1;
         array_1d<double, 3> g2;
@@ -255,7 +255,7 @@ void Membrane1Element::Initialize()
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateRightHandSide(
+void MembraneElement3D::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 
@@ -271,7 +271,7 @@ void Membrane1Element::CalculateRightHandSide(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateLocalSystem(
+void MembraneElement3D::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
@@ -287,7 +287,7 @@ void Membrane1Element::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateOnIntegrationPoints(
+void MembraneElement3D::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -300,14 +300,14 @@ void Membrane1Element::CalculateOnIntegrationPoints(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateMassMatrix(
+void MembraneElement3D::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
 
-    //std::cout << "Membrane1Element::CalculateMassMatrix : this is the same as MembraneElement" << std::endl;
+    //std::cout << "MembraneElement3D::CalculateMassMatrix : this is the same as MembraneElement" << std::endl;
     //rMassMatrix.resize(0,0);
     // LUMPED MASS MATRIX
     unsigned int number_of_nodes = GetGeometry().size();
@@ -341,7 +341,7 @@ void Membrane1Element::CalculateMassMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateDampingMatrix(
+void MembraneElement3D::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo)
 
@@ -349,7 +349,7 @@ void Membrane1Element::CalculateDampingMatrix(
     KRATOS_TRY
 
     // LUMPED DAMPING MATRIX
-    std::cout << "Membrane1Element::CalculateDampingMatrix : this is the same as MembraneElement" << std::endl;
+    std::cout << "MembraneElement3D::CalculateDampingMatrix : this is the same as MembraneElement" << std::endl;
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
 
@@ -381,7 +381,7 @@ void Membrane1Element::CalculateDampingMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::FinalizeSolutionStep(
+void MembraneElement3D::FinalizeSolutionStep(
     ProcessInfo& rCurrentProcessInfo)
 {
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
@@ -412,7 +412,7 @@ void Membrane1Element::FinalizeSolutionStep(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::GetValuesVector(
+void MembraneElement3D::GetValuesVector(
     Vector& values,
     int Step)
 
@@ -436,7 +436,7 @@ void Membrane1Element::GetValuesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::GetFirstDerivativesVector(
+void MembraneElement3D::GetFirstDerivativesVector(
     Vector& values,
     int Step)
 
@@ -461,7 +461,7 @@ void Membrane1Element::GetFirstDerivativesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::GetSecondDerivativesVector(
+void MembraneElement3D::GetSecondDerivativesVector(
     Vector& values,
     int Step)
 
@@ -491,7 +491,7 @@ void Membrane1Element::GetSecondDerivativesVector(
 //***********************************************************************************
 
 
-void Membrane1Element::CrossProduct(
+void MembraneElement3D::CrossProduct(
     array_1d<double, 3>& cross,
     array_1d<double, 3>& a,
     array_1d<double, 3>& b)
@@ -505,7 +505,7 @@ void Membrane1Element::CrossProduct(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateAndAddKm(
+void MembraneElement3D::CalculateAndAddKm(
     Matrix& K,
     Matrix& B,
     Matrix& D,
@@ -528,7 +528,7 @@ void Membrane1Element::CalculateAndAddKm(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateAndAddNonlinearKm(
+void MembraneElement3D::CalculateAndAddNonlinearKm(
     Matrix& K,
     Matrix& B11,
     Matrix& B22,
@@ -589,7 +589,7 @@ void Membrane1Element::CalculateAndAddNonlinearKm(
 
 //***********************************************************************************
 //***********************************************************************************
-void Membrane1Element::ClearNodalForces()
+void MembraneElement3D::ClearNodalForces()
 {
     KRATOS_TRY
 
@@ -620,7 +620,7 @@ void Membrane1Element::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateQ(
+void MembraneElement3D::CalculateQ(
     boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
     Matrix& mG)
 
@@ -644,7 +644,7 @@ void Membrane1Element::CalculateQ(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateB(
+void MembraneElement3D::CalculateB(
     Matrix& B,
     boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
     const Matrix& DN_De,
@@ -686,7 +686,7 @@ void Membrane1Element::CalculateB(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateStrain(
+void MembraneElement3D::CalculateStrain(
     Vector& StrainVector,
     array_1d<double, 3>& gab,
     array_1d<double, 3>& gab0)
@@ -704,7 +704,7 @@ void Membrane1Element::CalculateStrain(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateAndAdd_BodyForce(
+void MembraneElement3D::CalculateAndAdd_BodyForce(
     const Vector& N,
     const ProcessInfo& rCurrentProcessInfo,
     array_1d<double, 3>& BodyForce,
@@ -737,7 +737,7 @@ void Membrane1Element::CalculateAndAdd_BodyForce(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateAndAdd_PressureForce(
+void MembraneElement3D::CalculateAndAdd_PressureForce(
     VectorType& residualvector,
     const Vector& N,
     const array_1d<double, 3>& v3,
@@ -765,7 +765,7 @@ void Membrane1Element::CalculateAndAdd_PressureForce(
 //***********************************************************************************
 //***********************************************************************************
 
-void Membrane1Element::CalculateAll(
+void MembraneElement3D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -775,7 +775,7 @@ void Membrane1Element::CalculateAll(
 {
     KRATOS_TRY
 
-    //std::cout << "Membrane1Element::CalculateAll" << std::endl;
+    //std::cout << "MembraneElement3D::CalculateAll" << std::endl;
 
     
     // Initializing all needed variables
@@ -1027,7 +1027,7 @@ void Membrane1Element::CalculateAll(
 //***********************************************************************************
 //***********************************************************************************
 //
-//void Membrane1Element::Calculate_GlobalStressVector(
+//void MembraneElement3D::Calculate_GlobalStressVector(
 //    array_1d<double, 6>& GlobalVector,
 //    Vector& LocalStressVector,
 //    array_1d<double, 3>& v1,
@@ -1061,7 +1061,7 @@ void Membrane1Element::CalculateAll(
 ////***********************************************************************************
 //
 ////auxiliary function needed in the calculation of output stresses
-//inline array_1d<double, 6> Membrane1Element::VoigtTensorComponents(
+//inline array_1d<double, 6> MembraneElement3D::VoigtTensorComponents(
 //    array_1d<double, 3>& a,
 //    array_1d<double, 3>& b)
 //
@@ -1080,7 +1080,7 @@ void Membrane1Element::CalculateAll(
 
 //************************************************************************************
 //************************************************************************************
-void Membrane1Element::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+void MembraneElement3D::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -1101,7 +1101,7 @@ void Membrane1Element::GetValueOnIntegrationPoints(const Variable<Matrix>& rVari
 }
 //***********************************************************************************
 //***********************************************************************************
-void Membrane1Element::CalculateMetricDeformed(unsigned int& PointNumber, Matrix DN_De,
+void MembraneElement3D::CalculateMetricDeformed(unsigned int& PointNumber, Matrix DN_De,
     array_1d<double, 3>& gab,
     array_1d<double, 3>& g1,
     array_1d<double, 3>& g2)
@@ -1143,7 +1143,7 @@ void Membrane1Element::CalculateMetricDeformed(unsigned int& PointNumber, Matrix
 
 //***********************************************************************************
 //***********************************************************************************
-void Membrane1Element::CalculateSecondVariationStrain(Matrix DN_De,
+void MembraneElement3D::CalculateSecondVariationStrain(Matrix DN_De,
     Matrix & Strain_locCartesian11, 
     Matrix & Strain_locCartesian22, 
     Matrix & Strain_locCartesian12, 
@@ -1188,7 +1188,7 @@ void Membrane1Element::CalculateSecondVariationStrain(Matrix DN_De,
 }
 //************************************************************************************
 //************************************************************************************
-void Membrane1Element::CalculateMembraneElasticityTensor(
+void MembraneElement3D::CalculateMembraneElasticityTensor(
     Matrix& D
     )
 {
@@ -1212,7 +1212,7 @@ void Membrane1Element::CalculateMembraneElasticityTensor(
 //***********************************************************************************
 //***********************************************************************************
 
-int  Membrane1Element::Check(const ProcessInfo& rCurrentProcessInfo)
+int  MembraneElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

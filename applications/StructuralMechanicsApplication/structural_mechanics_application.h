@@ -31,7 +31,7 @@
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
-#include "custom_elements/membrane1_element.hpp"
+#include "custom_elements/membrane_element_3D.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 
@@ -226,8 +226,8 @@ private:
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
 	const MembraneElement mMembraneElement3D4N;
-	const Membrane1Element mMembrane1Element3D3N;
-	const Membrane1Element mMembrane1Element3D4N;	
+	const MembraneElement3D mMembrane1Element3D3N;
+	const MembraneElement3D mMembrane1Element3D4N;	
     
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
