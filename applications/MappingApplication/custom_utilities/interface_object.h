@@ -121,9 +121,9 @@ namespace Kratos
 
       void ProcessDistance(double distance, int rank) {
           m_neighbor_found = true;
-          if (distance < m_min_distance_neighbor) {
-              m_min_distance_neighbor = distance;
-              m_neighbor_rank = rank;
+          if (distance < mMinDistanceNeighbor) {
+              mMinDistanceNeighbor = distance;
+              mNeighborRank = rank;
           }
       }
 
@@ -142,7 +142,7 @@ namespace Kratos
       bool HasNeighborInPartition(const int partition_index) {
           bool return_value = false;
           if (m_neighbor_found) {
-              if (m_neighbor_rank == partition_index)
+              if (mNeighborRank == partition_index)
                   return_value = true;
           }
           return return_value;
@@ -169,10 +169,10 @@ namespace Kratos
       // }
 
       int GetNeighborRank() {
-          return m_neighbor_rank;
+          return mNeighborRank;
       }
 
-      virtual bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
+      virtual bool EvaluateResult(const array_1d<double, 3> global_coords, double& min_distance,
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
@@ -334,11 +334,10 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      double m_min_distance_neighbor;
+      double mMinDistanceNeighbor;
       int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
       bool m_neighbor_found;
-      bool m_is_being_sent;
-      int m_neighbor_rank;
+      int mNeighborRank;
 
       ///@}
       ///@name Private Operators
@@ -350,10 +349,10 @@ namespace Kratos
       ///@{
 
       void SetInitialValuesToMembers() {
-          m_min_distance_neighbor = std::numeric_limits<double>::max();
+          mMinDistanceNeighbor = std::numeric_limits<double>::max();
+          mPairingStatus = this->GetIndexNoNeighbor();
           m_neighbor_found = false;
-          m_is_being_sent = false;
-          m_neighbor_rank = 0;
+          mNeighborRank = 0;
       }
 
       ///@}

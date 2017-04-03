@@ -533,7 +533,9 @@ namespace Kratos
 
           if (construct_with_center) { // construct with condition center point
               for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
-                  m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, condition.GetGeometry().Center()) ));
+                  m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
+                                                              condition.GetGeometry().Center(),
+                                                              ApproximationTolerance) ));
               }
           } else { // construct with condition gauss points
               for (auto& condition : model_part.GetCommunicator().LocalMesh().Conditions()) {
@@ -558,7 +560,9 @@ namespace Kratos
                       }
                       // TODO check again if this is whole computation of the GPs is correct
 
-                      m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, gauss_point_global_coords) ));
+                      m_interface_objects.push_back(InterfaceObject::Pointer( new InterfaceCondition(condition, 
+                                                              gauss_point_global_coords,
+                                                              ApproximationTolerance) ));
                   }
               }
           }

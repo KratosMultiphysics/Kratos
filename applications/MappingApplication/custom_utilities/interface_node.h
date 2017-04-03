@@ -72,7 +72,7 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      InterfaceNode(Node<3>& i_node) : InterfaceObject(i_node),  mpNode(&i_node) {  }
+      InterfaceNode(Node<3>& rNode) : InterfaceObject(rNode),  mpNode(&rNode) {  }
 
       /// Destructor.
       virtual ~InterfaceNode() { }
@@ -87,13 +87,13 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
-                          double distance, array_1d<double,2>& local_coords,
-                          std::vector<double>& shape_function_values) override { // I am an object in the bins
+      bool EvaluateResult(const array_1d<double, 3> GlobalCooords, double& rMinDistance,
+                          double Distance, array_1d<double,2>& local_coords,
+                          std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
 
-          if (distance < min_distance){
-              min_distance = distance;
+          if (Distance < rMinDistance){
+              rMinDistance = Distance;
               is_closer = true;
           }
 

@@ -73,14 +73,14 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      InterfaceCondition(Condition& i_condition, array_1d<double, 3> coords) :
-          InterfaceObject(coords), mpCondition(&i_condition) {
+      InterfaceCondition(Condition& rCondition, array_1d<double, 3> Coords, const double ApproximationTolerance) :
+          InterfaceObject(Coords), mpCondition(&rCondition), mApproximationTolerance(ApproximationTolerance) {
 
           // in case some calculations have to be done in order to construct the base element (e.g. element center),
           // then first call the empty standard constructor, then do the calculations and populate
           // the base class stuff, although populating the derived class (i.e. "this") should also be ok
 
-          mGeometryFamily = i_condition.GetGeometry().GetGeometryFamily();
+          mGeometryFamily = mpCondition->GetGeometry().GetGeometryFamily();
           mNumPoints = mpCondition->GetGeometry().PointsNumber();
       }
 
@@ -97,45 +97,48 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
-                          double distance, array_1d<double,2>& local_coords,
-                          std::vector<double>& shape_function_values) override { // I am an object in the bins
-          // distance is the distance to the center and not the projection distance, therefore it is unused
+      bool EvaluateResult(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
+                          double Distance, array_1d<double,2>& local_coords,
+                          std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
+          // Distance is the distance to the center and not the projection distance, therefore it is unused
           bool is_closer = false;
-          bool is_inside;
+          bool is_inside = false;
           double projection_distance;
           array_1d<double,2> projection_local_coords;
 
-          if (mGeometryFamily == GeometryData::Kratos_Linear) { // I am a line condition
-              is_inside = MapperUtilities::ProjectPointToLine(mpCondition, global_coords,
+          if (mGeometryFamily == GeometryData::Kratos_Linear 
+              && mNumPoints == 2) { // I am a linear line condition
+              is_inside = MapperUtilities::ProjectPointToLine(mpCondition, GlobalCoords,
                                                               projection_local_coords,
-                                                              projection_distance, m_normal);
-          } else if (mGeometryFamily == GeometryData::Kratos_Triangle) { // I am a triangular condition
-              is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, global_coords,
+                                                              projection_distance);
+          } else if (mGeometryFamily == GeometryData::Kratos_Triangle 
+                     && mNumPoints == 3) { // I am a linear triangular condition
+              is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, GlobalCoords,
                                                                   projection_local_coords,
-                                                                  projection_distance, m_normal);
-          } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral) { // I am a quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToQuaddrilateral(mpCondition, global_coords,
-                                                                        projection_local_coords,
-                                                                        projection_distance, m_normal);
+                                                                  projection_distance);
+          } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
+                     && mNumPoints == 4) { // I am a linear quadrilateral condition
+              is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpCondition, GlobalCoords,
+                                                                       projection_local_coords,
+                                                                       projection_distance);
           } else {
-              KRATOS_ERROR << "MappingApplication; InterfaceCondition; \"EvaluateResult\" Unsupported Geometry!" << std::endl;
+              std::cout << "MappingApplication, Used Geometry is not implemented, " 
+                        << "using an approximation" << std::endl;
+              return false;
           }
 
           projection_distance = fabs(projection_distance);
 
           if (is_inside) {
-              if (projection_distance < min_distance){
-                  min_distance = projection_distance;
-                  local_coords = projection_local_coords;
-                  shape_function_values.resize(mNumPoints);
+              if (projection_distance < rMinDistance){
+                  rMinDistance = projection_distance;
+                  rShapeFunctionValues.resize(mNumPoints);
                   for (int i = 0; i < mNumPoints; ++i) {
-                      shape_function_values[i] = mpCondition->GetGeometry().ShapeFunctionValue(i, local_coords);
+                      rShapeFunctionValues[i] = mpCondition->GetGeometry().ShapeFunctionValue(i, projection_local_coords);
                   }
                   is_closer = true;
               }
           }
-
           return is_closer;
       }
 
@@ -376,9 +379,6 @@ namespace Kratos
       GeometryData::KratosGeometryFamily mGeometryFamily;
       int mNumPoints;
       double mApproximationTolerance = 0.0f;
-      
-      array_1d<double,3> m_normal;
-      static constexpr double tol = 1e-4;
 
 
       ///@}
