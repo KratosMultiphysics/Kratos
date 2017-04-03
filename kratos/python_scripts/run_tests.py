@@ -246,9 +246,9 @@ def main():
     # Set timeout of the different levels
     signalTime = int(-1)
     if level == 'small':
-        signalTime = int(1)
+        signalTime = int(60)
     elif level == 'nightly':
-        signalTime = int(1)
+        signalTime = int(900)
 
     # Define the command
     cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
