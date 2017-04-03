@@ -206,7 +206,20 @@ void Helmholtz<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,3,3>& 
     //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
     //~ // const double tau2 = (h*h)/(c1*tau1);
 
-    //substitute_lhs_2D
+    const double clhs0 =             H_depth*h;
+const double clhs1 =             -clhs0*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1));
+const double clhs2 =             -clhs0*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
+const double clhs3 =             -clhs0*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
+            lhs(0,0)=-clhs0*(pow(DN(0,0), 2) + pow(DN(0,1), 2));
+            lhs(0,1)=clhs1;
+            lhs(0,2)=clhs2;
+            lhs(1,0)=clhs1;
+            lhs(1,1)=-clhs0*(pow(DN(1,0), 2) + pow(DN(1,1), 2));
+            lhs(1,2)=clhs3;
+            lhs(2,0)=clhs2;
+            lhs(2,1)=clhs3;
+            lhs(2,2)=-clhs0*(pow(DN(2,0), 2) + pow(DN(2,1), 2));
+
 
 }
 
@@ -320,7 +333,13 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
     //~ // const double tau2 = (h*h)/(c1*tau1);
 
-    //substitute_rhs_2D
+    const double crhs0 =             H_depth*h;
+const double crhs1 =             DN(0,0)*eta[0] + DN(1,0)*eta[1] + DN(2,0)*eta[2];
+const double crhs2 =             DN(0,1)*eta[0] + DN(1,1)*eta[1] + DN(2,1)*eta[2];
+            rhs[0]=crhs0*(DN(0,0)*crhs1 + DN(0,1)*crhs2);
+            rhs[1]=crhs0*(DN(1,0)*crhs1 + DN(1,1)*crhs2);
+            rhs[2]=crhs0*(DN(2,0)*crhs1 + DN(2,1)*crhs2);
+
 }
 
 

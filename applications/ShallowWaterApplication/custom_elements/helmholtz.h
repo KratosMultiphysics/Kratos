@@ -59,7 +59,7 @@ namespace Kratos
 * symbolic implementation is defined in the file:
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TNumVar >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
+template< unsigned int TDim, unsigned int TNumVar, unsigned int TNumNodes = TDim + 1, unsigned int TDofSize = TNumNodes*TNumVar >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
 class Helmholtz : public Element
 {
 public:
@@ -71,8 +71,9 @@ public:
 
     struct ElementDataStruct
     {
-        bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;   // TODO: ??
-        array_1d<double,TNumNodes> eta, etan, etann, H, h;              // Eelvation, Bathymetry and depth
+        //~ bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;   // TODO: ??
+        bounded_matrix<double, TNumNodes, TDim> f;
+        array_1d<double,TNumNodes> eta, etan, etann, H_depth, h_depth;              // Eelvation, Bathymetry and depth. n denotes previous time step.
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;   // Shape function spatial derivatives
         array_1d<double, TNumNodes > N;                   // Shape functions
@@ -138,7 +139,7 @@ public:
     {
         KRATOS_TRY
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TNumVar);
+        constexpr unsigned int MatrixSize = TNumNodes*TNumVar;
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
@@ -188,7 +189,7 @@ public:
     {
         KRATOS_TRY
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TNumVar);
+        constexpr unsigned int MatrixSize = TNumNodes*TNumVar;
 
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
@@ -394,8 +395,8 @@ protected:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
-    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ElementDataStruct& data);
+    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*TNumVar,TNumNodes*TNumVar>& lhs, const ElementDataStruct& data);
+    void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*TNumVar>& rhs, const ElementDataStruct& data);
 
     double SubscaleErrorEstimate(const ElementDataStruct& data);
 
@@ -446,26 +447,26 @@ protected:
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
 
-            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+            //~ const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+            //~ const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            //~ const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+            //~ const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
+            //~ const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+//~ 
+            //~ for(unsigned int k=0; k<TDim; k++)
+            //~ {
+                //~ rData.v(i,k)   = vel[k];
+                //~ rData.vn(i,k)  = vel_n[k];
+                //~ rData.vnn(i,k) = vel_nn[k];
+                //~ rData.vmesh(i,k) = vel_mesh[k];
+                //~ rData.f(i,k)   = body_force[k];
+            //~ }
 
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                rData.v(i,k)   = vel[k];
-                rData.vn(i,k)  = vel_n[k];
-                rData.vnn(i,k) = vel_nn[k];
-                rData.vmesh(i,k) = vel_mesh[k];
-                rData.f(i,k)   = body_force[k];
-            }
-
-            rData.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            rData.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-            rData.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-            rData.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            rData.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+            rData.eta[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA);
+            rData.etan[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA,1);
+            rData.etann[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA,2);
+            rData.H_depth[i] = this->GetGeometry()[i].FastGetSolutionStepValue(BATHYMETRY);
+            rData.h_depth[i] = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_DEPTH);
         }
 
     }
@@ -578,11 +579,17 @@ protected:
 
     }
 
-    // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
-    virtual double ComputeEffectiveViscosity(const Vector& rStrain, const Vector& rStress)
+    //~ // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
+    //~ virtual double ComputeEffectiveViscosity(const Vector& rStrain, const Vector& rStress)
+    //~ {
+        //~ return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
+    //~ }
+    
+    // Computes total depth as h_depth = eta + H_depth
+    virtual double ComputeTotalDepth(const double& rEta, const double& rH_depth)
     {
-        return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
-    }
+		return rEta + rH_depth;
+	}
     
     ///@}
     ///@name Protected  Access
@@ -676,4 +683,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_SYMBOLIC_3D_INCLUDED  defined
+#endif // KRATOS_HELMHOLTZ_ELEMENT_SYMBOLIC_3D_INCLUDED  defined

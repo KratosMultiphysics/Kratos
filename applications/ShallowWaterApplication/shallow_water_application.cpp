@@ -1,6 +1,6 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last Modified by:    $Author: Miguel Masó Sotomayor $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.3 $
 //
