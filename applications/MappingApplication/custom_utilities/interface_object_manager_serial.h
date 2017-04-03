@@ -94,16 +94,6 @@ namespace Kratos
       // **********************************************************************
       // Side we want to find neighbors for aka destination *******************
       // **********************************************************************
-      void CheckResults() override {
-          for (auto& interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborFound()) {
-                  std::cout << "MAPPER WARNING,\tPoint has not found a neighbor, [ "
-                            << interface_obj->X() << " | " << interface_obj->Y() << " | "
-                            << interface_obj->Z() << " ]" << std::endl;
-              }
-          }
-      }
-
       void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& candidate_send_objects) override {
           InitializeSizes();
           for (auto interface_obj : m_interface_objects) {
@@ -139,14 +129,6 @@ namespace Kratos
                   m_shape_functions[m_comm_rank].push_back(temp_shape_functions[i]);
               }
           }
-      }
-
-      std::vector<InterfaceObject::Pointer>& GetDestinationInterfaceObjects() override {
-          return m_send_objects[m_comm_rank];
-      }
-
-      std::vector<InterfaceObject::Pointer>& GetOriginInterfaceObjects() override {
-          return m_receive_objects[m_comm_rank];
       }
 
       ///@}

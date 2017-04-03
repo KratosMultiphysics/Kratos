@@ -127,13 +127,17 @@ namespace Kratos
           }
       }
 
+      int GetPairingStatus() {
+          return mPairingStatus;
+      }
+
       bool NeighborFound() {
           return m_neighbor_found;
       }
 
-      // double MinDistance() {
-      //     return m_min_distance_neighbor;
-      // }
+      bool NeighborOrApproximationFound() {
+          return m_neighbor_found;
+      }
 
       bool HasNeighborInPartition(const int partition_index) {
           bool return_value = false;
@@ -156,13 +160,13 @@ namespace Kratos
           return 2;
       }
 
-      void SetIsBeingSent() {
-          m_is_being_sent = true;
-      }
+      // void SetIsBeingSent() {
+      //     m_is_being_sent = true;
+      // }
 
-      bool GetIsBeingSent() {
-          return m_is_being_sent;
-      }
+      // bool GetIsBeingSent() {
+      //     return m_is_being_sent;
+      // }
 
       int GetNeighborRank() {
           return m_neighbor_rank;
@@ -171,8 +175,7 @@ namespace Kratos
       virtual bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"EvaluateResult\" "
-                       << "of the base class called!" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
           return false;
       }
 
@@ -198,8 +201,7 @@ namespace Kratos
 
       virtual double GetObjectValueInterpolated(const Variable<double>& rVariable,
                                                 std::vector<double>& rShapeFunctionValues) {
-          rShapeFunctionValues[100000000] = 0.0f;
-          KRATOS_ERROR << "Base class function called! XXX" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // Vectors
@@ -333,6 +335,7 @@ namespace Kratos
       ///@{
 
       double m_min_distance_neighbor;
+      int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
       bool m_neighbor_found;
       bool m_is_being_sent;
       int m_neighbor_rank;

@@ -79,7 +79,7 @@ namespace Kratos
                                      i_interface_object_type, i_integration_method, i_echo_level, ApproximationTolerance) {}
 
       /// Destructor.
-      virtual ~InterfaceObjectManagerParallel() {  }
+      virtual ~InterfaceObjectManagerParallel() { }
 
 
       ///@}
@@ -94,18 +94,6 @@ namespace Kratos
       // **********************************************************************
       // Side we want to find neighbors for aka destination *******************
       // **********************************************************************
-      void CheckResults() override {
-          for (auto& interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborFound()) {
-                  std::cout << "MAPPER WARNING, Rank " << m_comm_rank
-                            << "\tPoint has not found a neighbor, [ "
-                            << interface_obj->X() << " | "
-                            << interface_obj->Y() << " | "
-                            << interface_obj->Z() << " ]" << std::endl;
-              }
-          }
-      }
-
       void ComputeCandidatePartitions(CandidateManager& rCandidateManager, int* local_comm_list,
                                       int* local_memory_size_array,
                                       double* global_bounding_boxes,
@@ -122,25 +110,24 @@ namespace Kratos
                           rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
                           ++local_memory_size_array[partition_index];
-                          interface_obj->SetIsBeingSent();
                           partition_list.push_back(partition_index); // For debugging
                       }
                   }
               }
 
-              if (m_echo_level > 3) {
+              if (mEchoLevel > 3) {
                   PrintCandidatePartitions(interface_obj, partition_list); // For debugging
               }
 
               if (last_iteration) {
-                  // Robustness check, if interface_obj is sent to at least one partition
-                  if (!interface_obj->GetIsBeingSent()) {
+                  // Robustness check, if interface_obj has not found a neighbor, it is sent to every partition
+                  if (!interface_obj->NeighborFound()) {
                       // Send interface_obj to all Partitions
                       std::cout << "MAPPER WARNING, Rank " << m_comm_rank
                                 << ", interface_obj [ " << interface_obj->X()
                                 << " " << interface_obj->Y() << " "
-                                << interface_obj->Z() << " ] was not in a "
-                                << "bounding box and is sent to all partitions!"
+                                << interface_obj->Z() << " ] has not found "
+                                << "a neighbor yet and is sent to all partitions!"
                                 << std::endl;
 
                       for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
