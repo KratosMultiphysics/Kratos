@@ -122,6 +122,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         if (self.params["assume_master_slave"].GetString() == ""):
             for cond in self.contact_model_part.Conditions:
                 cond.Set(KratosMultiphysics.SLAVE, True)
+            del(cond)
             
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(computing_model_part)

@@ -561,11 +561,14 @@ public:
             return false;
         }
         
-        ConditionMap *& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
-        
-        if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+        if (pCond2->Is(SLAVE) == true) // Otherwise will not be necessary to check
         {
-            return false;
+            ConditionMap *& ConditionPointers2 = pCond2->GetValue(CONTACT_SETS);
+            
+            if (ConditionPointers2->find(pCond1) != ConditionPointers2->end())
+            {
+                return false;
+            }
         }
         
         return true;
