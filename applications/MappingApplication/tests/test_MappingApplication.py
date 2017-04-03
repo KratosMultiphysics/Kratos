@@ -49,8 +49,8 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TNearestElementTest2D_1,
             TNearestNeighborTest_1,
-            # TNearestElementTest2D_1,
             TMapperTests
         ])
     )

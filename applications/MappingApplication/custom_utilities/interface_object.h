@@ -196,9 +196,10 @@ namespace Kratos
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual double GetObjectValueInterpolated(const Variable<double>& variable,
-                                                std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "Base class function called!" << std::endl;
+      virtual double GetObjectValueInterpolated(const Variable<double>& rVariable,
+                                                std::vector<double>& rShapeFunctionValues) {
+          rShapeFunctionValues[100000000] = 0.0f;
+          KRATOS_ERROR << "Base class function called! XXX" << std::endl;
       }
 
       // Vectors

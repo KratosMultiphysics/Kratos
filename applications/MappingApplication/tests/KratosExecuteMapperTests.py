@@ -67,8 +67,6 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         project_parameters = Parameters(parameter_file.read())
         self.results =       Parameters(result_file.read())
 
-        
-
         mapper_settings = project_parameters["mapper_settings"][0]
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper

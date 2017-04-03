@@ -95,7 +95,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void UpdateInterface(Kratos::Flags& options, double search_radius) override {
+      void UpdateInterface(Kratos::Flags options, double search_radius) override {
           m_p_mapper_communicator->UpdateInterface(options, search_radius);
           if (m_p_inverse_mapper) {
               m_p_inverse_mapper->UpdateInterface(options, search_radius);
@@ -109,7 +109,7 @@ namespace Kratos
       /* This function maps from Origin to Destination */
       void Map(const Variable<double>& origin_variable,
                const Variable<double>& destination_variable,
-               Kratos::Flags& options) override {
+               Kratos::Flags options) override {
           m_p_mapper_communicator->TransferInterpolatedData(origin_variable,
                                                             destination_variable,
                                                             options);
@@ -118,7 +118,7 @@ namespace Kratos
       /* This function maps from Origin to Destination */
       void Map(const Variable< array_1d<double,3> >& origin_variable,
                const Variable< array_1d<double,3> >& destination_variable,
-               Kratos::Flags& options) override {
+               Kratos::Flags options) override {
           m_p_mapper_communicator->TransferInterpolatedData(origin_variable,
                                                             destination_variable,
                                                             options);
@@ -127,7 +127,7 @@ namespace Kratos
       /* This function maps from Destination to Origin */
       void InverseMap(const Variable<double>& origin_variable,
                       const Variable<double>& destination_variable,
-                      Kratos::Flags& options) override {
+                      Kratos::Flags options) override {
           // Construct the inverse mapper if it hasn't been done before
           // It is constructed with the order of the model_parts changed!
           if (!m_p_inverse_mapper) {
@@ -141,7 +141,7 @@ namespace Kratos
       /* This function maps from Destination to Origin */
       void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
                       const Variable< array_1d<double,3> >& destination_variable,
-                      Kratos::Flags& options) override {
+                      Kratos::Flags options) override {
           // Construct the inverse mapper if it hasn't been done before
           // It is constructed with the order of the model_parts changed!
           if (!m_p_inverse_mapper) {

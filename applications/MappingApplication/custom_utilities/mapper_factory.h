@@ -353,12 +353,12 @@ namespace Kratos
 
           if (mMapperType == "NearestNeighbor") {
               mpMapper = Mapper::Pointer(new NearestNeighborMapper(*mpInterfaceModelPartOrigin,
-                                                                     *mpInterfaceModelPartDestination,
-                                                                     mrJsonParameters));
+                                                                   *mpInterfaceModelPartDestination,
+                                                                    mrJsonParameters));
           } else if (mMapperType == "NearestElement") {
               mpMapper = Mapper::Pointer(new NearestElementMapper(*mpInterfaceModelPartOrigin,
-                                                                    *mpInterfaceModelPartDestination,
-                                                                    mrJsonParameters));
+                                                                  *mpInterfaceModelPartDestination,
+                                                                   mrJsonParameters));
 
           } /*else if (mMapperType == "Barycentric") {
               mpMapper = Mapper::Pointer(new BarycentricMapper(*mpInterfaceModelPartOrigin,

@@ -86,27 +86,27 @@ public:
   ///@name Operations
   ///@{
 
-  virtual void UpdateInterface(Kratos::Flags& options, double search_radius) = 0;
+  virtual void UpdateInterface(Kratos::Flags options, double search_radius) = 0;
 
   /* This function maps from Origin to Destination */
   virtual void Map(const Variable<double>& origin_variable,
                    const Variable<double>& destination_variable,
-                   Kratos::Flags& options) = 0;
+                   Kratos::Flags options) = 0;
 
   /* This function maps from Origin to Destination */
   virtual void Map(const Variable< array_1d<double,3> >& origin_variable,
                    const Variable< array_1d<double,3> >& destination_variable,
-                   Kratos::Flags& options) = 0;
+                   Kratos::Flags options) = 0;
 
   /* This function maps from Destination to Origin */
   virtual void InverseMap(const Variable<double>& origin_variable,
                           const Variable<double>& destination_variable,
-                          Kratos::Flags& options) = 0;
+                          Kratos::Flags options) = 0;
 
   /* This function maps from Destination to Origin */
   virtual void InverseMap(const Variable< array_1d<double,3> >& origin_variable,
                           const Variable< array_1d<double,3> >& destination_variable,
-                          Kratos::Flags& options) = 0;
+                          Kratos::Flags options) = 0;
 
   MapperCommunicator::Pointer GetMapperCommunicator() {
       return m_p_mapper_communicator;
