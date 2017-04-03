@@ -75,12 +75,12 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer i_interface_object_manager,
-                               InterfaceObjectManagerBase::Pointer i_interface_object_manager_bins,
-                               int i_echo_level) :
-                               m_p_interface_object_manager(i_interface_object_manager),
-                               m_p_interface_object_manager_bins(i_interface_object_manager_bins) {
-          m_echo_level = i_echo_level;
+      InterfaceSearchStructure(InterfaceObjectManagerBase::Pointer pInterfaceObjectManager,
+                               InterfaceObjectManagerBase::Pointer pInterfaceObjectManagerBins,
+                               int EchoLevel) :
+                               mpInterfaceObjectManager(pInterfaceObjectManager),
+                               mpInterfaceObjectManagerBins(pInterfaceObjectManagerBins) {
+          mEchoLevel = EchoLevel;
           Initialize();
       }
 
@@ -98,12 +98,16 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      void Search(const double i_search_radius, const int i_max_search_iterations) {
-          m_search_radius = i_search_radius;
-          m_max_search_iterations = i_max_search_iterations;
+      void Search(const double SearchRadius, const int MaxSearchIterations) {
+          mSearchRadius = SearchRadius;
+          mMaxSearchIterations = MaxSearchIterations;
           int increase_factor = 4;
           int num_iteration = 1;
           bool last_iteration = false;
+
+          if (mMaxSearchIterations == 1) { // in case only one search iteration is conducted
+              last_iteration = true;
+          }
 
           // First Iteration is done outside the search loop bcs it has
           // to be done in any case
@@ -113,30 +117,27 @@ namespace Kratos
           // projection, more search iterations are necessary
           ConductSearchIteration(last_iteration);
 
-          while (num_iteration < m_max_search_iterations && !m_p_interface_object_manager->AllNeighborsFound()) {
-              m_search_radius *= increase_factor;
+          while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound()) {
+              mSearchRadius *= increase_factor;
               ++num_iteration;
 
-              if (num_iteration == m_max_search_iterations) {
+              if (num_iteration == mMaxSearchIterations) {
                   last_iteration = true;
               }
 
-              if (m_comm_rank == 0) {
+              if (mEchoLevel > 1 && mCommRank == 0) {
                   std::cout << "MAPPER WARNING, search radius was increased, "
                             << "another search iteration is conducted, "
                             << "search iteration " << num_iteration << " / "
-                            << m_max_search_iterations << ", search radius "
-                            << m_search_radius << std::endl;
+                            << mMaxSearchIterations << ", search radius "
+                            << mSearchRadius << std::endl;
               }
 
               ConductSearchIteration(last_iteration);
           }
-
-          m_p_interface_object_manager->CheckResults();
-
-          // TODO
-          // PrintPairs(); // makes only sense in serial, since there is no information locally existing abt the neighbor
-          // Might be implemented at some point...
+          if (mEchoLevel > 1) {
+              mpInterfaceObjectManager->CheckResults();
+          }
       }
 
 
@@ -185,19 +186,19 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager;
-      InterfaceObjectManagerBase::Pointer m_p_interface_object_manager_bins;
+      InterfaceObjectManagerBase::Pointer mpInterfaceObjectManager;
+      InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerBins;
 
-      BinsObjectDynamic<InterfaceObjectConfigure>::Pointer m_p_local_bin_structure;
-      int m_local_bin_structure_size;
+      BinsObjectDynamic<InterfaceObjectConfigure>::Pointer mpLocalBinStructure;
+      int mLocalBinStructureSize;
 
-      double m_search_radius;
-      int m_max_search_iterations;
+      double mSearchRadius;
+      int mMaxSearchIterations;
 
-      int m_comm_rank = 0; // default, for serial version
-      int m_comm_size = 1; // default, for serial version
+      int mCommRank = 0; // default, for serial version
+      int mCommSize = 1; // default, for serial version
 
-      int m_echo_level = 0;
+      int mEchoLevel = 0;
 
       ///@}
       ///@name Protected Operators
@@ -216,9 +217,9 @@ namespace Kratos
           // It must be executable by serial and parallel version!
           // interface_objects_size must be passed bcs interface_objects might contain old entries (it has the max receive buffer size as size)!
 
-          if (m_p_local_bin_structure) { // this partition has a bin structure
-              InterfaceObjectConfigure::ResultContainerType neighbor_results(m_local_bin_structure_size);
-              std::vector<double> neighbor_distances(m_local_bin_structure_size);
+          if (mpLocalBinStructure) { // this partition has a bin structure
+              InterfaceObjectConfigure::ResultContainerType neighbor_results(mLocalBinStructureSize);
+              std::vector<double> neighbor_distances(mLocalBinStructureSize);
 
               InterfaceObjectConfigure::IteratorType interface_object_itr;
               InterfaceObjectConfigure::ResultIteratorType results_itr;
@@ -227,14 +228,14 @@ namespace Kratos
             //   Searching the neighbors
               for (int i = 0; i < interface_objects_size; ++i){
                   interface_object_itr = interface_objects.begin() + i;
-                  double search_radius = m_search_radius; // reset search radius
+                  double search_radius = mSearchRadius; // reset search radius
 
                   results_itr = neighbor_results.begin();
                   distance_itr = neighbor_distances.begin();
 
-                  std::size_t number_of_results = m_p_local_bin_structure->SearchObjectsInRadius(
+                  std::size_t number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
                               *interface_object_itr, search_radius, results_itr,
-                              distance_itr, m_local_bin_structure_size);
+                              distance_itr, mLocalBinStructureSize);
 
                   if (number_of_results > 0) { // neighbors were found
                       SelectBestResult(interface_object_itr, neighbor_results,
@@ -313,19 +314,19 @@ namespace Kratos
       ///@{
 
       void Initialize() { // build the local bin-structure
-          InterfaceObjectConfigure::ContainerType interface_objects_bins = m_p_interface_object_manager_bins->GetInterfaceObjects();
+          InterfaceObjectConfigure::ContainerType interface_objects_bins = mpInterfaceObjectManagerBins->GetInterfaceObjects();
 
-          m_local_bin_structure_size = interface_objects_bins.size();
+          mLocalBinStructureSize = interface_objects_bins.size();
 
-          if (m_local_bin_structure_size > 0) { // only construct the bins if the partition has a part of the interface
-              m_p_local_bin_structure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
+          if (mLocalBinStructureSize > 0) { // only construct the bins if the partition has a part of the interface
+              mpLocalBinStructure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
                   new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
           }
       }
 
       virtual void ConductSearchIteration(const bool last_iteration) {
           InterfaceObjectConfigure::ContainerType interface_objects;
-          m_p_interface_object_manager->GetInterfaceObjectsSerialSearch(interface_objects);
+          mpInterfaceObjectManager->GetInterfaceObjectsSerialSearch(interface_objects);
 
           int num_objects = interface_objects.size();
 
@@ -335,31 +336,10 @@ namespace Kratos
           std::vector<std::vector<double>> shape_functions(num_objects);
 
           FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
-                             min_distances, local_coordinates, shape_functions, m_comm_rank);
+                             min_distances, local_coordinates, shape_functions, mCommRank);
 
-          m_p_interface_object_manager_bins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
-          m_p_interface_object_manager->PostProcessReceivedResults(min_distances, interface_objects);
-      }
-
-      virtual void PrintPairs() {
-          std::vector<InterfaceObject::Pointer> interface_objects = m_p_interface_object_manager->GetDestinationInterfaceObjects();
-          int num_objects = interface_objects.size();
-
-          std::vector<InterfaceObject::Pointer> interface_objects_bins = m_p_interface_object_manager_bins->GetOriginInterfaceObjects();
-          if (num_objects != static_cast<int>(interface_objects_bins.size()))
-              KRATOS_ERROR << "MappingApplication; InterfaceSearchStructure; \"PrintPairs\" size mismatch!" << std::endl;
-          for (int i = 0; i < num_objects; ++i) {
-              if (interface_objects_bins[i] == nullptr) {
-                  std::cout << "InterfaceObject 1 ";
-                  interface_objects[i]->PrintMatchInfo();
-                  std::cout << " has not found a match! " << std::endl;
-              } else {
-                  interface_objects[i]->PrintMatchInfo();
-                  std::cout << " paired with ";
-                  interface_objects_bins[i]->PrintMatchInfo();
-                  std::cout << std::endl;
-              }
-          }
+          mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
+          mpInterfaceObjectManager->PostProcessReceivedResults(min_distances, interface_objects);
       }
 
 

@@ -72,7 +72,7 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      InterfaceNode(Node<3>& i_node) : InterfaceObject(i_node),  m_p_node(&i_node) {  }
+      InterfaceNode(Node<3>& i_node) : InterfaceObject(i_node),  mpNode(&i_node) {  }
 
       /// Destructor.
       virtual ~InterfaceNode() { }
@@ -87,49 +87,6 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      int GetObjectId() override {
-          return m_p_node->Id();
-      }
-
-      void PrintMatchInfo() override {
-          std::cout << "InteraceNode; Id = " << GetObjectId()
-                    << "; Coordinates = [" << this->X() << " "
-                    << this->Y() << " " << this->Z() << "]";
-      }
-
-      // Scalars
-      double GetObjectValue(const Variable<double>& variable) override {
-          return m_p_node->FastGetSolutionStepValue(variable);
-      }
-
-      void SetObjectValue(const Variable<double>& variable,
-                          const double value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          if (options.Is(MapperFlags::ADD_VALUES)) {
-              m_p_node->FastGetSolutionStepValue(variable) += value * factor;
-          } else {
-              m_p_node->FastGetSolutionStepValue(variable) = value * factor;
-          }
-      }
-
-      // Vectors
-      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable) override {
-          return m_p_node->FastGetSolutionStepValue(variable);
-      }
-
-      void SetObjectValue(const Variable< array_1d<double,3> >& variable,
-                          const array_1d<double,3>& value,
-                          const Kratos::Flags& options,
-                          const double factor) override {
-          if (options.Is(MapperFlags::ADD_VALUES)) {
-              m_p_node->FastGetSolutionStepValue(variable) += value * factor;
-          } else {
-              m_p_node->FastGetSolutionStepValue(variable) = value * factor;
-          }
-      }
-
-
       bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
                           double distance, array_1d<double,2>& local_coords,
                           std::vector<double>& shape_function_values) override { // I am an object in the bins
@@ -141,6 +98,63 @@ namespace Kratos
           }
 
           return is_closer;
+      }
+
+      // Scalars
+      double GetObjectValue(const Variable<double>& variable) override {
+          return mpNode->FastGetSolutionStepValue(variable);
+      }
+
+      void SetObjectValue(const Variable<double>& variable,
+                          const double value,
+                          const Kratos::Flags& options,
+                          const double factor) override {
+          if (options.Is(MapperFlags::ADD_VALUES)) {
+              mpNode->FastGetSolutionStepValue(variable) += value * factor;
+          } else {
+              mpNode->FastGetSolutionStepValue(variable) = value * factor;
+          }
+      }
+
+      // Vectors
+      array_1d<double,3> GetObjectValue(const Variable< array_1d<double,3> >& variable) override {
+          return mpNode->FastGetSolutionStepValue(variable);
+      }
+
+      void SetObjectValue(const Variable< array_1d<double,3> >& variable,
+                          const array_1d<double,3>& value,
+                          const Kratos::Flags& options,
+                          const double factor) override {
+          if (options.Is(MapperFlags::ADD_VALUES)) {
+              mpNode->FastGetSolutionStepValue(variable) += value * factor;
+          } else {
+              mpNode->FastGetSolutionStepValue(variable) = value * factor;
+          }
+      }
+
+      // Functions used for Debugging
+      int GetObjectId() override {
+          return mpNode->Id();
+      }
+
+      void PrintNeighbors(const int CommRank) override {
+          array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
+          double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
+          
+          PrintMatchInfo("InterfaceNode", GetObjectId(), CommRank, 
+                         neighbor_comm_rank, neighbor_coordinates);
+      }
+
+      void WriteRankAndCoordinatesToVariable(const int CommRank) override {
+          // This function writes the coordinates and the rank of the 
+          // InterfaceObject to the variables "NEIGHBOR_COORDINATES" 
+          // and "NEIGHBOR_RANK", for debugging
+          array_1d<double,3> neighbor_coordinates;
+          neighbor_coordinates[0] = this->X();
+          neighbor_coordinates[1] = this->Y();
+          neighbor_coordinates[2] = this->Z();
+          mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+          mpNode->SetValue(NEIGHBOR_RANK, CommRank);
       }
 
       ///@}
@@ -225,7 +239,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      Node<3>* m_p_node;
+      Node<3>* mpNode;
 
       ///@}
       ///@name Private Operators

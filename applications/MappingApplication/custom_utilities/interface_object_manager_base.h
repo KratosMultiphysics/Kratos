@@ -567,6 +567,15 @@ namespace Kratos
           }
       }
 
+      void PrintInterfaceObjects() {
+          for (auto& r_interface_obj : m_interface_objects) {
+              std::cout << "Rank " << m_comm_rank << " , Interface Object " << " [ "
+                        << r_interface_obj->X() << " "
+                        << r_interface_obj->Y() << " "
+                        << r_interface_obj->Z() << "]" << std::endl;
+          }
+      }
+
       ///@}
       ///@name Private  Access
       ///@{

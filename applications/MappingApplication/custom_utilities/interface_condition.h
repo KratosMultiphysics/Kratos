@@ -74,14 +74,14 @@ namespace Kratos
 
       /// Default constructor.
       InterfaceCondition(Condition& i_condition, array_1d<double, 3> coords) :
-          InterfaceObject(coords), m_p_condition(&i_condition) {
+          InterfaceObject(coords), mpCondition(&i_condition) {
 
           // in case some calculations have to be done in order to construct the base element (e.g. element center),
           // then first call the empty standard constructor, then do the calculations and populate
           // the base class stuff, although populating the derived class (i.e. "this") should also be ok
 
-          m_geometry_family = i_condition.GetGeometry().GetGeometryFamily();
-          m_num_points = m_p_condition->GetGeometry().PointsNumber();
+          mGeometryFamily = i_condition.GetGeometry().GetGeometryFamily();
+          mNumPoints = mpCondition->GetGeometry().PointsNumber();
       }
 
       /// Destructor.
@@ -97,16 +97,6 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      int GetObjectId() override {
-          return m_p_condition->Id();
-      }
-
-      void PrintMatchInfo() override {
-          std::cout << "InteraceCondition; Id = " << GetObjectId()
-                    << "; Coordinates = [" << this->X() << " "
-                    << this->Y() << " " << this->Z() << "]";
-      }
-
       bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
                           double distance, array_1d<double,2>& local_coords,
                           std::vector<double>& shape_function_values) override { // I am an object in the bins
@@ -116,16 +106,16 @@ namespace Kratos
           double projection_distance;
           array_1d<double,2> projection_local_coords;
 
-          if (m_geometry_family == GeometryData::Kratos_Linear) { // I am a line condition
-              is_inside = MapperUtilities::ProjectPointToLine(m_p_condition, global_coords,
+          if (mGeometryFamily == GeometryData::Kratos_Linear) { // I am a line condition
+              is_inside = MapperUtilities::ProjectPointToLine(mpCondition, global_coords,
                                                               projection_local_coords,
                                                               projection_distance, m_normal);
-          } else if (m_geometry_family == GeometryData::Kratos_Triangle) { // I am a triangular condition
-              is_inside = MapperUtilities::ProjectPointToTriangle(m_p_condition, global_coords,
+          } else if (mGeometryFamily == GeometryData::Kratos_Triangle) { // I am a triangular condition
+              is_inside = MapperUtilities::ProjectPointToTriangle(mpCondition, global_coords,
                                                                   projection_local_coords,
                                                                   projection_distance, m_normal);
-          } else if (m_geometry_family == GeometryData::Kratos_Quadrilateral) { // I am a quadrilateral condition
-              is_inside = MapperUtilities::ProjectPointToQuaddrilateral(m_p_condition, global_coords,
+          } else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral) { // I am a quadrilateral condition
+              is_inside = MapperUtilities::ProjectPointToQuaddrilateral(mpCondition, global_coords,
                                                                         projection_local_coords,
                                                                         projection_distance, m_normal);
           } else {
@@ -138,23 +128,46 @@ namespace Kratos
               if (projection_distance < min_distance){
                   min_distance = projection_distance;
                   local_coords = projection_local_coords;
-                  shape_function_values.resize(m_num_points);
-                  for (int i = 0; i < m_num_points; ++i) {
-                      shape_function_values[i] = m_p_condition->GetGeometry().ShapeFunctionValue(i, local_coords);
+                  shape_function_values.resize(mNumPoints);
+                  for (int i = 0; i < mNumPoints; ++i) {
+                      shape_function_values[i] = mpCondition->GetGeometry().ShapeFunctionValue(i, local_coords);
                   }
                   is_closer = true;
               }
           }
-          // array_1d<double,2> local_coords_temppppp;
-          // local_coords_temppppp[0] = 0.5;
-          // local_coords_temppppp[1] = 0.0;
-          // int num_objects = m_p_condition->GetGeometry().PointsNumber();
-          // shape_function_values.resize(num_objects);
-          // for (int i = 0; i < num_objects; ++i) {
-          //     shape_function_values[i] = m_p_condition->GetGeometry().ShapeFunctionValue(i, local_coords);
-          //     KRATOS_WATCH(shape_function_values[i])
-          // }
 
+          return is_closer;
+      }
+
+            bool ComputeApproximation(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
+                                double Distance, std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
+          bool is_closer = false;
+          double distance_point = std::numeric_limits<double>::max();
+          int closest_point_index = -1;
+          // Loop over all points of the geometry
+          for (int i = 0; i < mNumPoints; ++i) {
+              distance_point = sqrt(pow(GlobalCoords[0] - mpCondition->GetGeometry().GetPoint(i).X() , 2) +
+                                    pow(GlobalCoords[1] - mpCondition->GetGeometry().GetPoint(i).Y() , 2) +
+                                    pow(GlobalCoords[2] - mpCondition->GetGeometry().GetPoint(i).Z() , 2));
+
+              if (distance_point < rMinDistance && distance_point <= mApproximationTolerance) {
+                  rMinDistance = distance_point;
+                  closest_point_index = i;
+                  is_closer = true;
+              }
+          }
+
+          if (is_closer) {
+              rShapeFunctionValues.resize(mNumPoints);
+              for (int i = 0; i < mNumPoints; ++i) { 
+                  if (i == closest_point_index) {
+                      rShapeFunctionValues[i] = 1.0f;
+                  } else {
+                      rShapeFunctionValues[i] = 0.0f;
+                  }
+              }
+          }
+          
           return is_closer;
       }
 
@@ -162,8 +175,8 @@ namespace Kratos
       double GetObjectValueInterpolated(const Variable<double>& variable,
                                         std::vector<double>& shape_function_values) override {
           double interpolated_value = 0.0f;
-          for (int i = 0; i < m_num_points; ++i) {
-              interpolated_value += m_p_condition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable) * shape_function_values[i];
+          for (int i = 0; i < mNumPoints; ++i) {
+              interpolated_value += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable) * shape_function_values[i];
           }
           return interpolated_value;
       }
@@ -174,12 +187,37 @@ namespace Kratos
           interpolated_value[0] = 0.0f;
           interpolated_value[1] = 0.0f;
           interpolated_value[2] = 0.0f;
-          for (int i = 0; i < m_num_points; ++i) {
-              interpolated_value[0] += m_p_condition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[0] * shape_function_values[i];
-              interpolated_value[1] += m_p_condition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[1] * shape_function_values[i];
-              interpolated_value[2] += m_p_condition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[2] * shape_function_values[i];
+          for (int i = 0; i < mNumPoints; ++i) {
+              interpolated_value[0] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[0] * shape_function_values[i];
+              interpolated_value[1] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[1] * shape_function_values[i];
+              interpolated_value[2] += mpCondition->GetGeometry().GetPoint(i).FastGetSolutionStepValue(variable)[2] * shape_function_values[i];
           }
           return interpolated_value;
+      }
+
+      // Functions used for Debugging
+      int GetObjectId() override {
+          return mpCondition->Id();
+      }
+
+      void PrintNeighbors(const int CommRank) override {
+          array_1d<double, 3> neighbor_coordinates = mpCondition->GetValue(NEIGHBOR_COORDINATES);
+          double neighbor_comm_rank = mpCondition->GetValue(NEIGHBOR_RANK);
+
+          PrintMatchInfo("InterfaceCondition", GetObjectId(), CommRank, 
+                         neighbor_comm_rank, neighbor_coordinates);
+      }
+
+      void WriteRankAndCoordinatesToVariable(const int CommRank) override {
+          // This function writes the coordinates and the rank of the 
+          // InterfaceObject to the variables "NEIGHBOR_COORDINATES" 
+          // and "NEIGHBOR_RANK", for debugging
+          array_1d<double,3> neighbor_coordinates;
+          neighbor_coordinates[0] = this->X();
+          neighbor_coordinates[1] = this->Y();
+          neighbor_coordinates[2] = this->Z();
+          mpCondition->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+          mpCondition->SetValue(NEIGHBOR_RANK, CommRank);
       }
 
       ///@}
@@ -274,9 +312,11 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-      Condition* m_p_condition;
-      GeometryData::KratosGeometryFamily m_geometry_family;
-      int m_num_points;
+      Condition* mpCondition;
+      GeometryData::KratosGeometryFamily mGeometryFamily;
+      int mNumPoints;
+      double mApproximationTolerance = 0.0f;
+      
       array_1d<double,3> m_normal;
       static constexpr double tol = 1e-4;
 

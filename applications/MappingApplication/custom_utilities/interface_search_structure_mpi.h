@@ -71,22 +71,22 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      InterfaceSearchStructureMPI(InterfaceObjectManagerBase::Pointer i_interface_object_manager,
-                                  InterfaceObjectManagerBase::Pointer i_interface_object_manager_bins,
-                                  ModelPart& i_model_part_bins, int i_comm_rank, int i_comm_size,
-                                  int i_echo_level) :
-                                  InterfaceSearchStructure( i_interface_object_manager,
-                                  i_interface_object_manager_bins, i_echo_level) {
-          m_comm_rank = i_comm_rank;
-          m_comm_size = i_comm_size;
+      InterfaceSearchStructureMPI(InterfaceObjectManagerBase::Pointer pInterfaceObjectManager,
+                                  InterfaceObjectManagerBase::Pointer pInterfaceObjectManagerBins,
+                                  ModelPart& rModelPartBins, int CommRank, int CommSize,
+                                  int EchoLevel) :
+                                  InterfaceSearchStructure( pInterfaceObjectManager,
+                                  pInterfaceObjectManagerBins, EchoLevel) {
+          mCommRank = CommRank;
+          mCommSize = CommSize;
 
-          MapperUtilitiesMPI::ComputeLocalBoundingBox(i_model_part_bins,
-                                                      m_local_bounding_box);
+          MapperUtilitiesMPI::ComputeLocalBoundingBox(rModelPartBins,
+                                                      mLocalBoundingBox);
       }
 
       /// Destructor.
       virtual ~InterfaceSearchStructureMPI() {
-        delete [] m_local_bounding_box;
+          delete [] mLocalBoundingBox;
       }
 
 
@@ -182,7 +182,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      double* m_local_bounding_box = new double[6] {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
+      double* mLocalBoundingBox = new double[6] {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
                                                   // xmax, xmin,  ymax, ymin,  zmax, zmin
 
       int m_send_buffer_size;
@@ -200,47 +200,47 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
-      void ConductSearchIteration(const bool last_iteration) override {
+      void ConductSearchIteration(const bool LastIteration) override {
           CandidateManager candidate_manager;
-          FindNeighborCandidates(candidate_manager, last_iteration);
+          FindNeighborCandidates(candidate_manager, LastIteration);
           SelectNeighbors(candidate_manager);
       }
 
       void PrepareSearching(CandidateManager& candidate_manager, int& max_send_buffer_size,
                             int& max_receive_buffer_size, bool& local_search_required,
                             GraphType& domains_colored_graph, int& max_colors,
-                            const bool last_iteration) {
-          double* global_bounding_boxes = new double[6 * m_comm_size];
-          MapperUtilitiesMPI::ComputeGlobalBoundingBoxes(m_local_bounding_box,
-                                                         m_search_radius,
-                                                         m_comm_rank,
-                                                         m_echo_level,
+                            const bool LastIteration) {
+          double* global_bounding_boxes = new double[6 * mCommSize];
+          MapperUtilitiesMPI::ComputeGlobalBoundingBoxes(mLocalBoundingBox,
+                                                         mSearchRadius,
+                                                         mCommRank,
+                                                         mEchoLevel,
                                                          global_bounding_boxes);
 
-          int* local_comm_list = new int[m_comm_size]();
-          int* local_memory_size_array = new int[m_comm_size]();
+          int* local_comm_list = new int[mCommSize]();
+          int* local_memory_size_array = new int[mCommSize]();
 
-          m_p_interface_object_manager->ComputeCandidatePartitions(candidate_manager,local_comm_list,
+          mpInterfaceObjectManager->ComputeCandidatePartitions(candidate_manager,local_comm_list,
                                                                    local_memory_size_array,
                                                                    global_bounding_boxes,
-                                                                   last_iteration);
+                                                                   LastIteration);
 
-          if (local_comm_list[m_comm_rank] == 1)
+          if (local_comm_list[mCommRank] == 1)
               local_search_required = true;
 
           MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
                                                     m_send_buffer_size,
                                                     m_receive_buffer_size,
-                                                    m_comm_rank, m_comm_size);
+                                                    mCommRank, mCommSize);
           // Buffers are switched for sending back the results, therefore we have to assign the maximum!
           // In one direction 3 coordinates are sent, whereras only one distance is sent back
           max_send_buffer_size = std::max(m_send_buffer_size * 3, m_receive_buffer_size);
           max_receive_buffer_size = std::max(m_receive_buffer_size * 3, m_send_buffer_size);
 
-          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, m_comm_size,
+          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize,
                                                    domains_colored_graph, max_colors);
           // Output the colored Graph
-          if (m_comm_rank == 0 && m_echo_level > 1) {
+          if (mCommRank == 0 && mEchoLevel > 2) {
               MapperUtilitiesMPI::PrintGraph(domains_colored_graph, max_colors);
           }
 
@@ -250,7 +250,7 @@ namespace Kratos
       }
 
       void FindNeighborCandidates(CandidateManager& candidate_manager,
-                                  const bool last_iteration) {
+                                  const bool LastIteration) {
           // This function finds neighbors of the nodes in point_comm_manager in point_comm_manager_bins
           int max_send_buffer_size;
           int max_receive_buffer_size;
@@ -260,7 +260,7 @@ namespace Kratos
 
           PrepareSearching(candidate_manager, max_send_buffer_size,
                            max_receive_buffer_size, local_search_required,
-                           domains_colored_graph, max_colors, last_iteration);
+                           domains_colored_graph, max_colors, LastIteration);
 
           double* send_buffer = new double[max_send_buffer_size];
           double* receive_buffer = new double[max_receive_buffer_size];
@@ -278,35 +278,35 @@ namespace Kratos
 
           // search in local partition
           if (local_search_required) { // search in own partition is required
-              m_p_interface_object_manager->FillBufferLocalSearch(candidate_manager, remote_p_interface_object_list, num_objects);
+              mpInterfaceObjectManager->FillBufferLocalSearch(candidate_manager, remote_p_interface_object_list, num_objects);
 
               FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                 min_distances, local_coordinates, shape_functions, m_comm_rank);
+                                 min_distances, local_coordinates, shape_functions, mCommRank);
 
-              m_p_interface_object_manager_bins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
-                                                                      shape_functions, local_coordinates, m_comm_rank);
-              m_p_interface_object_manager->PostProcessReceivedResults(candidate_manager, min_distances, m_comm_rank);
+              mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
+                                                                      shape_functions, local_coordinates, mCommRank);
+              mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, min_distances, mCommRank);
           }
 
           // search in remote partitions
           for (int i = 0; i < max_colors; ++i) { // loop over communication steps
-              int comm_partner = domains_colored_graph(m_comm_rank, i); // get the partner rank
+              int comm_partner = domains_colored_graph(mCommRank, i); // get the partner rank
               if (comm_partner != -1) {
-                  m_p_interface_object_manager->FillSendBufferRemoteSearch(candidate_manager, send_buffer,
+                  mpInterfaceObjectManager->FillSendBufferRemoteSearch(candidate_manager, send_buffer,
                                                                          send_buffer_size, comm_partner);
 
                   MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size,
                                                   receive_buffer_size, max_send_buffer_size,
                                                   max_receive_buffer_size, comm_partner);
 
-                  m_p_interface_object_manager_bins->ProcessReceiveBuffer(remote_p_interface_object_list, receive_buffer,
+                  mpInterfaceObjectManagerBins->ProcessReceiveBuffer(remote_p_interface_object_list, receive_buffer,
                                                                         receive_buffer_size, num_objects);
 
                   // Perform local Search
                   FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                     min_distances, local_coordinates, shape_functions, m_comm_rank);
+                                     min_distances, local_coordinates, shape_functions, mCommRank);
 
-                  m_p_interface_object_manager_bins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
+                  mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
                                                                           shape_functions, local_coordinates, comm_partner);
 
                   // Send results back / receive results (distances)
@@ -314,12 +314,12 @@ namespace Kratos
                   receive_buffer_size = send_buffer_size / 3;
                   send_buffer_size = tmp_var;
 
-                  m_p_interface_object_manager_bins->FillSendBufferWithResults(send_buffer, send_buffer_size, min_distances);
+                  mpInterfaceObjectManagerBins->FillSendBufferWithResults(send_buffer, send_buffer_size, min_distances);
 
                   MPI_Sendrecv(send_buffer, send_buffer_size, MPI_DOUBLE, comm_partner, 0, receive_buffer,
                                receive_buffer_size, MPI_DOUBLE, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-                  m_p_interface_object_manager->PostProcessReceivedResults(candidate_manager, receive_buffer, comm_partner);
+                  mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, receive_buffer, comm_partner);
 
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop communications
@@ -335,28 +335,29 @@ namespace Kratos
                             GraphType& domains_colored_graph,
                             int& max_colors) {
           // This function finds neighbors of the nodes in point_comm_manager in point_comm_manager_bins
-          int* local_comm_list = new int[m_comm_size]();
-          int* local_memory_size_array = new int[m_comm_size]();
+          int* local_comm_list = new int[mCommSize]();
+          int* local_memory_size_array = new int[mCommSize]();
 
-          m_p_interface_object_manager->PrepareMatching(candidate_manager,
+          mpInterfaceObjectManager->PrepareMatching(candidate_manager,
                                                       local_comm_list,
                                                       local_memory_size_array);
 
-          if (local_comm_list[m_comm_rank] == 1)
+          if (local_comm_list[mCommRank] == 1) {
               local_search_required = true;
+          }
 
           // Compute Buffer Sizes for Mapping
           MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
                                                     m_send_buffer_size,
                                                     m_receive_buffer_size,
-                                                    m_comm_rank, m_comm_size);
+                                                    mCommRank, mCommSize);
 
-          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, m_comm_size, domains_colored_graph, max_colors);
+          MapperUtilitiesMPI::ComputeColoringGraph(local_comm_list, mCommSize, domains_colored_graph, max_colors);
 
           m_domains_colored_graph = domains_colored_graph; // save it for the mapping
           m_max_colors = max_colors;
           // Output the colored Graph
-          if (m_comm_rank == 0 && m_echo_level > 1) {
+          if (mCommRank == 0 && mEchoLevel > 2) {
               MapperUtilitiesMPI::PrintGraph(domains_colored_graph, max_colors);
           }
           delete [] local_comm_list;
@@ -382,24 +383,24 @@ namespace Kratos
 
           // search in local partition
           if (local_search_required) { // search in own partition is required
-              m_p_interface_object_manager->FillSendBufferWithMatchInformation(candidate_manager, send_buffer,
-                                                                             send_buffer_size, m_comm_rank);
-              m_p_interface_object_manager_bins->ProcessMatchInformation(candidate_manager, send_buffer,
-                                                                       send_buffer_size, m_comm_rank);
+              mpInterfaceObjectManager->FillSendBufferWithMatchInformation(candidate_manager, send_buffer,
+                                                                             send_buffer_size, mCommRank);
+              mpInterfaceObjectManagerBins->ProcessMatchInformation(candidate_manager, send_buffer,
+                                                                       send_buffer_size, mCommRank);
           }
 
           // search in remote partitions
           for (int i = 0; i < max_colors; ++i) { // loop over communication steps
-              int comm_partner = domains_colored_graph(m_comm_rank, i); // get the partner rank
+              int comm_partner = domains_colored_graph(mCommRank, i); // get the partner rank
               if (comm_partner != -1) {
-                  m_p_interface_object_manager->FillSendBufferWithMatchInformation(candidate_manager, send_buffer,
+                  mpInterfaceObjectManager->FillSendBufferWithMatchInformation(candidate_manager, send_buffer,
                                                                                  send_buffer_size, comm_partner);
 
                   MapperUtilitiesMPI::MpiSendRecv(send_buffer, receive_buffer, send_buffer_size,
                                                   receive_buffer_size, max_send_buffer_init_size,
                                                   max_receive_buffer_init_size, comm_partner);
 
-                  m_p_interface_object_manager_bins->ProcessMatchInformation(candidate_manager, receive_buffer,
+                  mpInterfaceObjectManagerBins->ProcessMatchInformation(candidate_manager, receive_buffer,
                                                                            receive_buffer_size, comm_partner);
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop communications

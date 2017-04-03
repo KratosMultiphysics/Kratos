@@ -29,6 +29,7 @@
 // Project includes
 #include "includes/define.h"
 #include "mapper_utilities.h"
+#include "../mapping_application_variables.h"
 
 
 namespace Kratos
@@ -70,16 +71,16 @@ namespace Kratos
       ///@}
       ///@name Life Cycle
       ///@{
-
+      // TODO hide constructors that are only called from the derived classes
       InterfaceObject() : Point<3>(0.0f, 0.0f, 0.0f) {  // Default Constructor
           SetInitialValuesToMembers();
       }
 
-      InterfaceObject(Node<3>& i_node) : Point<3>(i_node) { // constuct from node
+      InterfaceObject(Node<3>& rNode) : Point<3>(rNode){ // constuct from node
           SetInitialValuesToMembers();
       }
 
-      InterfaceObject(array_1d<double, 3> coords) : Point<3>(coords) { // constuct from coordinate-array
+      InterfaceObject(array_1d<double, 3> Coords) : Point<3>(Coords) { // constuct from coordinate-array
           SetInitialValuesToMembers();
       }
 
@@ -104,13 +105,13 @@ namespace Kratos
           SetInitialValuesToMembers();
       }
 
-      bool IsInBoundingBox(double* bounding_box[]){
+      bool IsInBoundingBox(double* pBoundingBox[]){
           // xmax, xmin,  ymax, ymin,  zmax, zmin
           bool is_inside = false;
 
-          if (this->X() < *bounding_box[0] && this->X() > *bounding_box[1]) { // check x-direction
-              if (this->Y() < *bounding_box[2] && this->Y() > *bounding_box[3]) { // check y-direction
-                  if (this->Z() < *bounding_box[4] && this->Z() > *bounding_box[5]) { // check z-direction
+          if (this->X() < *pBoundingBox[0] && this->X() > *pBoundingBox[1]) { // check x-direction
+              if (this->Y() < *pBoundingBox[2] && this->Y() > *pBoundingBox[3]) { // check y-direction
+                  if (this->Z() < *pBoundingBox[4] && this->Z() > *pBoundingBox[5]) { // check z-direction
                       is_inside = true;
                   }
               }
@@ -143,6 +144,18 @@ namespace Kratos
           return return_value;
       }
 
+      int GetIndexNoNeighbor() {
+          return 0;
+      }
+
+      int GetIndexApproximation() {
+          return 1;
+      }
+
+      int GetIndexNeighborFound() {
+          return 2;
+      }
+
       void SetIsBeingSent() {
           m_is_being_sent = true;
       }
@@ -155,22 +168,17 @@ namespace Kratos
           return m_neighbor_rank;
       }
 
-      virtual int GetObjectId() {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"GetObjectId\" "
-                       << "of the base class called!" << std::endl;
-          return -1;
-      }
-
-      virtual void PrintMatchInfo() {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"PrintMatchInfo\" "
-                       << "of the base class called!" << std::endl;
-      }
-
       virtual bool EvaluateResult(array_1d<double, 3> global_coords, double& min_distance,
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
           KRATOS_ERROR << "MappingApplication; InterfaceObject; \"EvaluateResult\" "
                        << "of the base class called!" << std::endl;
+          return false;
+      }
+
+      virtual bool ComputeApproximation(array_1d<double, 3> global_coords, double& min_distance,
+                                        double distance, std::vector<double>& shape_function_values) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
           return false;
       }
 
@@ -185,15 +193,12 @@ namespace Kratos
                                   const double value,
                                   const Kratos::Flags& options,
                                   const double factor) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"SetObjectValue, "
-                       << "double\" of the base class called!" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual double GetObjectValueInterpolated(const Variable<double>& variable,
                                                 std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; "
-                       << "\"GetObjectValueInterpolated, double\" of the base "
-                       << "class called!" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       // Vectors
@@ -206,15 +211,26 @@ namespace Kratos
                                   const array_1d<double,3>& value,
                                   const Kratos::Flags& options,
                                   const double factor) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; \"SetObjectValue, "
-                       << "double<3>\" of the base class called!" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual array_1d<double,3> GetObjectValueInterpolated(const Variable< array_1d<double,3> >& variable,
                                                             std::vector<double>& shape_function_values) {
-          KRATOS_ERROR << "MappingApplication; InterfaceObject; "
-                       << "\"GetObjectValueInterpolated, double<3>\" of the base "
-                       << "class called!" << std::endl;
+          KRATOS_ERROR << "Base class function called!" << std::endl;
+      }
+
+      // Functions used for Debugging
+      virtual int GetObjectId() {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
+          return -1;
+      }
+
+      virtual void PrintNeighbors(const int CommRank) {
+          KRATOS_ERROR << "Base class function called!" << std::endl;
+      }
+      
+      virtual void WriteRankAndCoordinatesToVariable(const int CommRank) { 
+          KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       ///@}
@@ -271,6 +287,22 @@ namespace Kratos
       ///@}
       ///@name Protected Operations
       ///@{
+
+      void PrintMatchInfo(const std::string& rInterfaceObjectType, const int Id, 
+                          const int CommRank, const int NeighborCommRank, 
+                          array_1d<double, 3>& rNeighborCoordinates)   {
+
+          std::cout << rInterfaceObjectType << " [" 
+                    << this->X() << " "
+                    << this->Y() << " " 
+                    << this->Z() << "], "
+                     << "Rank " << CommRank
+                    << ", Id " << Id << " || Neighbor ["
+                    << rNeighborCoordinates[0] << " " 
+                    << rNeighborCoordinates[1] << " "
+                    << rNeighborCoordinates[2] << "], Rank "
+                    << NeighborCommRank << std::endl;
+      }
 
 
       ///@}
