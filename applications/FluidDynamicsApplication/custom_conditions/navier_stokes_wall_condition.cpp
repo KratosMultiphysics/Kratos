@@ -154,11 +154,14 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
         }
     }
 
-    // Compute Gauss pt. velocity norm and velocity projection
+    // Compute Gauss pt. density, velocity norm and velocity projection
+    double rhoGauss = 0.0;
     array_1d<double, 3> vGauss = ZeroVector(3);
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
+        const double& rRho = rGeom[i].FastGetSolutionStepValue(DENSITY);
         const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+        rhoGauss += data.N[i]*rRho;
         vGauss += data.N[i]*rVelNode;
     }
 
@@ -166,16 +169,19 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
     const double vGaussProj = inner_prod(vGauss, data.Normal);
 
     // Gauss pt. outflow condition contribution
-    const double U_0 = 2.5;          // TODO: Check how to compute this value
-    const double delta = 1e-4;       // TODO: This regularization value has to be further discussed
+    const double delta = data.delta;
+    const double U_0 = data.charVel;
     const double S_0 = 0.5*(1-tanh(vGaussProj/U_0/delta));
 
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
-        unsigned int row = i*LocalSize;
-        for (unsigned int d=0; d<TDim; ++d)
+        if (rGeom[i].Is(OUTLET))
         {
-            rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*vGaussNorm*S_0*data.Normal[d];
+            unsigned int row = i*LocalSize;
+            for (unsigned int d=0; d<TDim; ++d)
+            {
+                rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*vGaussNorm*rhoGauss*S_0*data.Normal[d];
+            }
         }
     }
 }
