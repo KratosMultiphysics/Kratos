@@ -638,7 +638,7 @@ public:
         NodesArrayType& pNode = rModelPart.Nodes();
         auto numNodes = pNode.end() - pNode.begin();
         
-//         #pragma omp parallel for // NOTE: Giving problems!!
+        #pragma omp parallel for
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
@@ -652,11 +652,13 @@ public:
         ConditionsArrayType& pCond = rModelPart.Conditions();
         auto numConditions = pCond.end() - pCond.begin();
         
-//         #pragma omp parallel for // NOTE: Don't parallelize, you are accesing to the nodes (try with atomic)
+        #pragma omp parallel for
         for(unsigned int i = 0; i < numConditions; i++) 
         {
             auto itCond = pCond.begin() + i;
+            
             if (itCond->Is(ACTIVE) || itCond->Is(MASTER))
+//             if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) // NOTE: This can produce troubles, nodal normals are affected by the neighbour conditions (which can be innactive)
             {
                 ConditionNormal(*(itCond.base()));
                 
@@ -668,9 +670,13 @@ public:
                 
                 for (unsigned int i = 0; i < NumberNodes; i++)
                 {
+                    #pragma omp atomic
                     itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rArea * rNormal;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rArea * rTangentXi;
+                    #pragma omp critical
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rArea * rTangentEta;
                 }
             }
@@ -697,11 +703,6 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-
-//             const double TotalArea        = itNode->GetValue(NODAL_AREA);
-//             itNode->GetValue(NORMAL)      /= TotalArea;
-//             itNode->GetValue(TANGENT_XI)  /= TotalArea;
-//             itNode->GetValue(TANGENT_ETA) /= TotalArea;
 
             const double NormNormal     = norm_2(itNode->GetValue(NORMAL));
             const double NormTangentXi  = norm_2(itNode->GetValue(TANGENT_XI));
@@ -1061,6 +1062,7 @@ public:
                     k = itCond->GetProperties().GetValue(SCALE_FACTOR); 
                 }
 
+                bool DeactivateCondition = true; // If all nodes are inactive we deactivate the condition
                 GeometryType & CondGeometry = itCond->GetGeometry();
                 
                 for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
@@ -1073,6 +1075,7 @@ public:
                         if (AugmentedNormalPressure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[itNode].Set(ACTIVE, true);
+                            DeactivateCondition = false; // The condition is active
                         }
                         else
                         {
@@ -1085,6 +1088,12 @@ public:
                         
                         CondGeometry[itNode].Set(VISITED, true);
                     }
+                }
+                
+                // We deactivate the condition if necessary
+                if (DeactivateCondition == true)
+                {
+                    itCond->Set(ACTIVE, false);
                 }
             }
         }

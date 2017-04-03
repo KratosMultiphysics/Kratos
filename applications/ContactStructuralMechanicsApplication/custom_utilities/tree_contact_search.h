@@ -314,7 +314,7 @@ public:
         {
             auto itCond = pConditions.begin() + i;
             
-            if (itCond->Is(MASTER))
+            if (itCond->Is(MASTER) == true)
             {
                 Point<3> Center;
                 double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
@@ -339,7 +339,7 @@ public:
         {
             auto itCond = pConditions.begin() + i;
             
-            if (itCond->Is(MASTER))
+            if (itCond->Is(MASTER) == true)
             {
                 Point<3> Center;
                 const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
