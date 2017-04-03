@@ -13,12 +13,9 @@
 #define KRATOS_CONTACT_UTILITIES
 
 #include "utilities/math_utils.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_2d_3.h"
 #include "utilities/openmp_utils.h"
 
 namespace Kratos
@@ -93,6 +90,7 @@ public:
             )
     {
         // Define the basic information
+        const double Tolerance = std::numeric_limits<double>::epsilon();
         const unsigned int NumberNodes = Geom1.PointsNumber();
         
         bool ConditionIsActive = false;
@@ -102,24 +100,24 @@ public:
             if (Geom1[index].Is(ACTIVE) == false)
             {
                 Point<3> ProjectedPoint;
-                double aux_dist = 0.0;
-                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+                double AuxDistance = 0.0;
+                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < Tolerance)
                 {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, ContactNormal1);
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, AuxDistance, ContactNormal1);
                 }
                 else
                 {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, AuxDistance, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
                 }  
               
                 // TODO: Think about this
-                double dist_tol = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
-//                 double dist_tol = ActiveCheckFactor * Geom1.Length();
-//                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
+                const double DistanceTolerance = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
+//                 double DistanceTolerance = ActiveCheckFactor * Geom1.Length();
+//                 DistanceTolerance = (DistanceTolerance <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):DistanceTolerance;
                 
-                array_1d<double, 3> result;
-                // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
-                if (aux_dist <= dist_tol && Geom2.IsInside(ProjectedPoint, result))
+                array_1d<double, 3> Result;
+                // NOTE: We don't use std::abs() because if the AuxDistance is negative is penetrating, in fact we just consider DistanceTolerance > 0 to have some tolerance and for the static schemes
+                if (AuxDistance <= DistanceTolerance && Geom2.IsInside(ProjectedPoint, Result))
                 { 
                     Geom1[index].Set(ACTIVE, true);
                     ConditionIsActive = true;
@@ -179,38 +177,45 @@ public:
      * @param Normal: The normal of the geometry
      * @param Vector: The direction to project
      * @return PointProjected: The point pojected over the plane
+     * @return Distance: The distnace between surfaces
      */
 
-    static inline void FastProjectDirection(
+    static inline double FastProjectDirection(
         const GeometryType& Geom,
         const Point<3>& PointDestiny,
         Point<3>& PointProjected,
         const array_1d<double,3>& Normal,
         const array_1d<double,3>& Vector
         )
-    {        
+    {    
+        // We define the tolerance
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
+        // We define the distance
+        double Distance = 0.0;
+        
+        const array_1d<double,3> VectorPoints = Geom[0].Coordinates() - PointDestiny.Coordinates();
 
         if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
         {
-            const double dist = inner_prod(vector_points, Normal)/norm_2(Normal);
+            Distance = inner_prod(VectorPoints, Normal)/norm_2(Normal);
 
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
             std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
         }
         else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
         {
-            const double dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
+            Distance = inner_prod(VectorPoints, Normal)/inner_prod(Vector, Normal); 
 
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * Distance;
         }
         else
         {
             PointProjected.Coordinates() = PointDestiny.Coordinates();
             std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
         }
+        
+        return Distance;
     }
     
     /**
@@ -219,82 +224,44 @@ public:
      * @param PointDestiny: The point to be projected
      * @param Vector: The direction to project
      * @return PointProjected: The point pojected over the plane
-     * @return dist: The distance between the point and the plane
+     * @return Distance: The distance between the point and the plane
      */
 
     static inline void ProjectDirection(
         const GeometryType& Geom,
         const Point<3>& PointDestiny,
         Point<3>& PointProjected,
-        double& dist,
+        double& Distance,
         const array_1d<double,3>& Vector
         )
     {        
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
         array_1d<double,3> Normal;
         
         GeometryNormal(Normal, Geom);
         
-//         const array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
-        const array_1d<double,3> vector_points = Geom[0].Coordinates() - PointDestiny.Coordinates();
-
-        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
-        {
-            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
-
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
-        }
-        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
-        {
-            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
-
-            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
-        }
-        else
-        {
-            PointProjected.Coordinates() = PointDestiny.Coordinates();
-            dist = 0.0;
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
-        }
+        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
     }
     
     static inline void ProjectCoordDirection(
         const GeometryType& Geom,
         const GeometryType::CoordinatesArrayType& CoordDestiny,
         GeometryType::CoordinatesArrayType& CoordProjected,
-        double& dist,
+        double& Distance,
         const array_1d<double,3>& Vector
         )
     {        
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        
         array_1d<double,3> Normal;
         
         GeometryNormal(Normal, Geom);
         
-        const array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
-
-        if( norm_2( Vector ) < Tolerance && norm_2( Normal ) > Tolerance )
-        {
-            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
-
-            CoordProjected = CoordDestiny + Vector * dist;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition normal vector instead." << std::endl;
-        }
-        else if (std::abs(inner_prod(Vector, Normal) ) > Tolerance)
-        {
-            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
-
-            CoordProjected = CoordDestiny + Vector * dist;
-        }
-        else
-        {
-            CoordProjected = CoordDestiny;
-            dist = 0.0;
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
-        }
+        Point<3> PointDestiny;
+        PointDestiny.Coordinates() = CoordDestiny;
+        
+        Point<3> PointProjected;
+        
+        Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
+        
+        CoordProjected = PointProjected.Coordinates();
     }
     
     /**
@@ -358,8 +325,8 @@ public:
                 CurrentGlobalCoords += NOrigin[iNode] * GeomOrigin[iNode].Coordinates(); 
             }
             
-            const array_1d<double,3> vector_points = GeomOrigin.Center() - PointDestiny;
-            const double dist = inner_prod(vector_points, Normal)/inner_prod(-normal_xi, Normal); 
+            const array_1d<double,3> VectorPoints = GeomOrigin.Center() - PointDestiny;
+            const double dist = inner_prod(VectorPoints, Normal)/inner_prod(-normal_xi, Normal); 
             const array_1d<double, 3> CurrentDestinyGlobalCoords = PointDestiny - normal_xi * dist;
             
 //             // Debug
@@ -408,22 +375,22 @@ public:
      * @param PointDestiny: The point to be projected
      * @param Normal: The normal of the plane
      * @return PointProjected: The point pojected over the plane
-     * @return dist: The distance between the point and the plane
+     * @return Distance: The distance between the point and the plane
      */
     
     static inline void Project(
         const Point<3>& PointOrigin,
         const Point<3>& PointDestiny,
         Point<3>& PointProjected,
-        double& dist,
+        double& Distance,
         const array_1d<double,3>& Normal
         )
     {
-        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-        dist = inner_prod(vector_points, Normal); 
+        Distance = inner_prod(VectorPoints, Normal); 
 
-        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
     }
     
     static inline Point<3> FastProject(
@@ -432,12 +399,12 @@ public:
         const array_1d<double,3>& Normal
         )
     {
-        array_1d<double,3> vector_points = PointDestiny.Coordinates() - PointOrigin.Coordinates();
+        array_1d<double,3> VectorPoints = PointDestiny.Coordinates() - PointOrigin.Coordinates();
 
-        const double dist = inner_prod(vector_points, Normal); 
+        const double Distance = inner_prod(VectorPoints, Normal); 
         
         Point<3> PointProjected;
-        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * dist;
+        PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
         
         return PointProjected;
     }
@@ -453,11 +420,9 @@ public:
         const Point<3>& PointDestiny
         )
     {
-        const double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
+        return std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
                                     + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
                                     + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
-        
-        return dist;
     }
 
     /**
@@ -476,16 +441,16 @@ public:
         Center = pCond->GetGeometry().Center();
         
         // TODO: Add calculation of radius to geometry.h 
-        array_1d<double, 3> aux_vector;
+        array_1d<double, 3> AuxVector;
         for(unsigned int i = 0; i < pCond->GetGeometry().PointsNumber(); i++)
         {
-            noalias(aux_vector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
+            noalias(AuxVector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
             
-            const double tmp = inner_prod(aux_vector, aux_vector);
+            const double AuxRadius = inner_prod(AuxVector, AuxVector);
 
-            if(tmp > Radius)
+            if(AuxRadius > Radius)
             {
-                Radius = tmp;
+                Radius = AuxRadius;
             }
         }
 
@@ -521,20 +486,20 @@ public:
         const GeometryType & Geom
         )
     {
-        array_1d<double,3> normal = ZeroVector(3);
+        array_1d<double,3> Normal = ZeroVector(3);
         for( unsigned int iNode = 0; iNode < Geom.PointsNumber(); ++iNode )
         {
-            normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
+            Normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
         }
         
         const double Tolerance = std::numeric_limits<double>::epsilon();
         
-        if (norm_2(normal) > Tolerance)
+        if (norm_2(Normal) > Tolerance)
         {
-            normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+            Normal = Normal/norm_2(Normal); // It is suppossed to be already unitary (just in case)
         }
         
-        return normal;
+        return Normal;
     }
     
     /**
