@@ -11,7 +11,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shallow_water_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/helmholtz.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
 )
 

@@ -15,8 +15,8 @@
 namespace Kratos
 {
 // Water depth and bathymetry data
-KRATOS_CREATE_VARIABLE(int,PATCH_INDEX) // TODO: Remove variable ??
-KRATOS_CREATE_VARIABLE(double,ETA)         // Water surface elevation (eta)
+KRATOS_CREATE_VARIABLE(int,PATCH_INDEX)    // TODO: Remove variable ??
+KRATOS_CREATE_VARIABLE(double,ELEVATION)   // Free surface elevation (eta)
 KRATOS_CREATE_VARIABLE(double,BATHYMETRY)  // Bathymetry (H)
-KRATOS_CREATE_VARIABLE(double,TOTAL_DEPTH) // Total depth (h=H+eta)
+KRATOS_CREATE_VARIABLE(double,DEPTH)       // Depth (h=H+eta)
 }
