@@ -38,7 +38,8 @@
 #include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
 //#include "custom_elements/vel_enriched_2fluid_2d.h"
 //#include "custom_elements/vel_enriched_2fluid_2d_nopressure.h"
-
+#include "custom_elements/qfluid_2d.h"
+#include "custom_elements/qfluid_3d.h"
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
 #include "custom_conditions/fixed_velocity_3d.h" //the condition
 #include "custom_conditions/fixed_pressure_2d.h" //the condition
@@ -275,6 +276,9 @@ namespace Kratos
   		//const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
 		//const VelocityEnrichedPFEM22DNoPressure   mVelocityEnrichedPFEM22DNoPressure; 
  		
+		const QFluid2D mQFluid2D;
+    		const QFluid3D mQFluid3D;
+
 		const FixedVelocity2D   mFixedVelocity2D; 
 		const FixedVelocity3D   mFixedVelocity3D;
  		const FixedPressure2D   mFixedPressure2D; 

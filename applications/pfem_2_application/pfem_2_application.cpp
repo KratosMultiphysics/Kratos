@@ -31,7 +31,7 @@
 
 namespace Kratos
 {
-	//Example
+	//Example   
  	KRATOS_CREATE_VARIABLE(double, PRESS_GRADIENT_JUMP)
 	KRATOS_CREATE_VARIABLE(double, PRESS_DISCONTINUITY);
 	KRATOS_CREATE_VARIABLE(double, INV_LAPLACIAN_ENRICH)
@@ -106,7 +106,10 @@ namespace Kratos
  			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
  			mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
  			mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+    			mQFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+			mQFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+
  	{}
  	
  	void KratosPFEM2Application::Register()
@@ -130,6 +133,9 @@ namespace Kratos
  		KRATOS_REGISTER_CONDITION("FixedPressure2D", mFixedPressure2D);
  		KRATOS_REGISTER_CONDITION("FixedPressure3D", mFixedPressure3D);
  		KRATOS_REGISTER_CONDITION("MonolithicAutoSlipInlet3D", mMonolithicAutoSlipInlet3D);
+
+		KRATOS_REGISTER_ELEMENT("QFluid3D", mQFluid3D);
+    		KRATOS_REGISTER_ELEMENT("QFluid2D", mQFluid2D);
  				
  		KRATOS_REGISTER_VARIABLE( PRESS_GRADIENT_JUMP )
  		KRATOS_REGISTER_VARIABLE(PRESS_DISCONTINUITY);
