@@ -47,7 +47,7 @@ void  AddCustomUtilitiesToPython()
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, double, bool, boost::python::list>())
+    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, boost::python::dict, Parameters&>())
         .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
         .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
         .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
@@ -56,7 +56,7 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, boost::python::dict, boost::python::dict, double, bool>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, Parameters&>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------

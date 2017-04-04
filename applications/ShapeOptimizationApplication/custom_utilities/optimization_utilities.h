@@ -76,18 +76,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ==========================================================================
-    // Type definitions for better reading later
-    // ==========================================================================
     typedef array_1d<double,3> array_3d;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointTypePointer;
-    typedef std::vector<PointType::Pointer> PointVector;
-    typedef std::vector<PointType::Pointer>::iterator PointIterator;
-    typedef std::vector<double> DistanceVector;
-    typedef std::vector<double>::iterator DistanceIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
 
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
@@ -97,38 +86,16 @@ public:
     ///@{
 
     /// Default constructor.
-    OptimizationUtilities( ModelPart& model_part,
-                           boost::python::dict py_objectives,
-                           boost::python::dict py_constraints,
-                           double step_size,
-                           bool normalize_search_direction )
-        : mr_opt_model_part(model_part),
-          m_step_size(step_size),
-          m_normalize_search_direction(normalize_search_direction)
+    OptimizationUtilities( ModelPart& designSurface, Parameters& optimizationSettings )
+        : mrDesignSurface( designSurface ),
+          mStepSize( optimizationSettings["line_search"]["step_size"].GetDouble() ),
+          mNormalizeSearchDirection( optimizationSettings["line_search"]["normalize_search_direction"].GetBool() )
     {
         // Set precision for output
         std::cout.precision(12);
 
-        // Create a map between python dict string ids and C++ map integer ids
-
-        // Create map for all objectives
-        boost::python::list py_F_ids = py_objectives.keys();
-        for (unsigned int i = 0; i < boost::python::len(py_F_ids); ++i)
-        {
-            boost::python::extract<const char*> py_F_id(py_F_ids[i]);
-            py2cpp_F_id[py_F_id] = i;
-        }
-
-        // Create map for all constraints
-        boost::python::list py_C_ids = py_constraints.keys();
-        for (unsigned int i = 0; i < boost::python::len(py_C_ids); ++i)
-        {
-            boost::python::extract<const char*> py_C_id(py_C_ids[i]);
-            py2cpp_C_id[py_C_id] = i;
-        }
-
         // Initialize variables
-        m_correction_scaling = 0.1;
+        mCorrectionScaling = 0.1;
     }
 
     /// Destructor.
@@ -146,6 +113,12 @@ public:
     ///@name Operations
     ///@{
 
+    // --------------------------------------------------------------------------
+    void setPrecisionForOutput()
+    {
+        std::cout.precision(12);
+    }        
+
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
@@ -154,11 +127,11 @@ public:
         KRATOS_TRY;
 
         // Computation of update of design variable. Normalization is applied if specified.
-        if(m_normalize_search_direction)
+        if(mNormalizeSearchDirection)
         {
             // Compute max norm of search direction
             double max_norm_search_dir = 0.0;
-            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
                 array_3d search_dir = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
@@ -169,9 +142,9 @@ public:
             max_norm_search_dir = sqrt(max_norm_search_dir);
 
             // Compute update
-            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
-                array_3d design_update = m_step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir );
+                array_3d design_update = mStepSize * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir );
                 noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
 
                 // Sum design updates to obtain control point position
@@ -181,9 +154,9 @@ public:
         else
         {
             // Compute update
-            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
             {
-                array_3d design_update = m_step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) );
+                array_3d design_update = mStepSize * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) );
                 noalias(node_i->FastGetSolutionStepValue(DESIGN_UPDATE)) = design_update;
 
                 // Sum design updates to obtain control point position
@@ -205,7 +178,7 @@ public:
         std::cout << "\n> No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
         // search direction is negative of filtered gradient
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
             node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
         }
@@ -225,7 +198,7 @@ public:
 
         // Compute norm of constraint gradient
         double norm_2_dCds_i = 0.0;
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
         	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
@@ -234,7 +207,7 @@ public:
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
         	array_3d dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
         	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
@@ -242,7 +215,7 @@ public:
         }
 
         // Compute and assign projected search direction
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
         {
         	array_3d dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
         	array_3d dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
@@ -265,7 +238,7 @@ public:
         // Calucation of vector norms 
     	double norm_correction_term = 0.0;
     	double norm_search_direction = 0.0;
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+    	for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
     	{
     		array_3d correction_term = c * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
     		norm_correction_term += inner_prod(correction_term,correction_term);
@@ -283,7 +256,7 @@ public:
     	// 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
     	if(c*previous_c<0)
     	{
-    		m_correction_scaling *= 0.5;
+    		mCorrectionScaling *= 0.5;
     		std::cout << "Correction scaling needs to decrease...." << std::endl;
     	}
 
@@ -291,15 +264,15 @@ public:
     	if(std::abs(c)>std::abs(previous_c) && c*previous_c>0)
     	{
     		std::cout << "Correction scaling needs to increase...." << std::endl;
-    		m_correction_scaling = std::min(m_correction_scaling*2,1.0);
+    		mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
     	}
-    	double correction_factor = m_correction_scaling * norm_search_direction / norm_correction_term;
+    	double correction_factor = mCorrectionScaling * norm_search_direction / norm_correction_term;
 
         // Rewrite value in container to keep track of the value in python
-    	py_correction_scaling[0] = m_correction_scaling;
+    	py_correction_scaling[0] = mCorrectionScaling;
 
         // Perform correction
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+    	for (ModelPart::NodeIterator node_i = mrDesignSurface.NodesBegin(); node_i != mrDesignSurface.NodesEnd(); ++node_i)
     	{
     		array_3d correction_term = correction_factor * c * node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             // KRATOS_WATCH(correction_term);
@@ -398,16 +371,14 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mr_opt_model_part;
-    std::map<const char*,unsigned int> py2cpp_F_id;
-    std::map<const char*,unsigned int> py2cpp_C_id;
-    double m_step_size;
-    bool m_normalize_search_direction;
+    ModelPart& mrDesignSurface;
+    double mStepSize;
+    bool mNormalizeSearchDirection;
 
     // ==============================================================================
     // For running penalized projection method
     // ==============================================================================
-    double m_correction_scaling;
+    double mCorrectionScaling;
 
     ///@}
     ///@name Private Operators

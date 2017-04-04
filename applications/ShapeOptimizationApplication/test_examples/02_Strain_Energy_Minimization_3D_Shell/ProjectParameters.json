@@ -115,30 +115,30 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_control_type"       : "vertex_morphing", 
+            "variable_type"             : "vertex_morphing", 
             "input_model_part_name"     : "3D_Shell",
             "design_submodel_part_name" : "design_surface",
             "domain_size"               : 3,
             "filter" : {
-                "filter_function" : "linear",
-                "filter_size"     : 3
+                "filter_function_type" : "linear",
+                "filter_radius"        : 3
             },
             "damping" : {
                 "perform_damping" : true,
                 "damping_regions" : [{ 
-                        "model_part_name"  : "support_edges",
-                        "damp_X"           : false, 
-                        "damp_Y"           : true,
-                        "damp_Z"           : true,
-                        "damping_function" : "linear",
-                        "damping_radius"   : 3 
+                        "sub_model_part_name"   : "support_edges",
+                        "damp_X"                : false, 
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 3 
                     },{ 
-                        "model_part_name"  : "side_edges",
-                        "damp_X"           : false, 
-                        "damp_Y"           : false,
-                        "damp_Z"           : true,
-                        "damping_function" : "linear", 
-                        "damping_radius"   : 3 
+                        "sub_model_part_name"   : "side_edges",
+                        "damp_X"                : false, 
+                        "damp_Y"                : false,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear", 
+                        "damping_radius"        : 3 
                 }]
             }
         },

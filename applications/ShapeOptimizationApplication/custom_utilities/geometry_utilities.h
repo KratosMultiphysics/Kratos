@@ -110,11 +110,10 @@ public:
     ///@{
 
     /// Default constructor.
-    GeometryUtilities( ModelPart& model_part )
-        : mr_model_part(model_part)
+    GeometryUtilities( ModelPart& modelPart )
+        : mrModelPart( modelPart )
     {
-        // Set precision for output
-        std::cout.precision(12);
+        setPrecisionForOutput();
     }
 
     /// Destructor.
@@ -133,18 +132,23 @@ public:
     ///@{
 
     // ==============================================================================
+    void setPrecisionForOutput()
+    {
+        std::cout.precision(12);
+    }
 
+    // --------------------------------------------------------------------------
     void compute_unit_surface_normals()
     {
         KRATOS_TRY;
 
         // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
         NormalCalculationUtils normal_util = NormalCalculationUtils();
-        const unsigned int domain_size = mr_model_part.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        normal_util.CalculateOnSimplex(mr_model_part,domain_size);
+        const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        normal_util.CalculateOnSimplex(mrModelPart,domain_size);
 
         // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             // Normalize normal and assign to solution step value
             array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
@@ -161,7 +165,7 @@ public:
         KRATOS_TRY;
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
             // We compute dFdX_n = (dFdX \cdot n) * n
             array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
@@ -196,14 +200,14 @@ public:
     {
     	KRATOS_TRY;
 
-    	if(mr_model_part.HasSubModelPart(NewSubModelPartName))
+    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
     	{
     		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
     		return;
     	}
 
     	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mr_model_part.CreateSubModelPart(NewSubModelPartName);
+    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
 
     	// Some type-definitions
     	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
@@ -212,7 +216,7 @@ public:
     	hashmap n_faces_map;
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mr_model_part.ElementsBegin(); itElem != mr_model_part.ElementsEnd(); itElem++)
+    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
     	{
     		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
@@ -248,7 +252,7 @@ public:
     	}
 
     	// Add nodes and remove double entries
-    	mr_model_part.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
 
     	KRATOS_CATCH("");
     }
@@ -343,7 +347,7 @@ private:
     // ==============================================================================
     // Initialized by class constructor
     // ==============================================================================
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     ///@}
     ///@name Private Operators

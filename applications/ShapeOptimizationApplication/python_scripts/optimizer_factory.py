@@ -32,7 +32,7 @@ import json
 
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
-    if  optimizationSettings["design_variables"]["design_control_type"].GetString() == "vertex_morphing":
+    if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
         communicator = Communicator( optimizationSettings )
         optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings, communicator )
         return optimizer
@@ -124,13 +124,16 @@ class VertexMorphingMethod:
         self.outputInformationAboutResponseFunctions()
 
         self.designSurface = self.getDesignSurfaceFromInputModelPart()
-        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, optimizationSettings ) 
+        self.listOfDampingRegions = self.getListOfDampingRegions()
+
+        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, self.listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
         iteratorForInitialDesign = 0
-        self.gidIO.initialize_results(self.designSurface)
-        self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.optimizationSettings.nodal_results, [])   
+        self.gidIO.initialize_results( self.designSurface )
+        self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
+        self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.nodalResults, [])   
 
-        self.optimizationTools = OptimizationUtilities( self.designSurface, optimizationSettings )
+        self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
         self.runSpecifiedOptimizationAlgorithm()
 
         self.gidIO.finalize_results()
@@ -147,7 +150,7 @@ class VertexMorphingMethod:
 
         print("\n> The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
-            print(self.optimizationSettings["objectives"][objectiveNumber],"\n")
+            print(self.optimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
             print("> The following constraints are defined:\n")
@@ -157,42 +160,40 @@ class VertexMorphingMethod:
             print("> No constraints defined.\n")     
     
     # --------------------------------------------------------------------------
-    def getDesignSurfaceFromInputModelPart ( self ):
-        if self.inputModelPart.HasSubModelPart( self.optimizationSettings.design_surface_submodel_part_name):
-            optimizationModel = self.inputModelPart.GetSubModelPart( self.optimizationSettings.design_surface_submodel_part_name )
+    def getDesignSurfaceFromInputModelPart( self ):
+        nameOfDesingSurface = self.optimizationSettings["design_variables"]["design_submodel_part_name"].GetString()
+        if self.inputModelPart.HasSubModelPart( nameOfDesingSurface ):
+            optimizationModel = self.inputModelPart.GetSubModelPart( nameOfDesingSurface )
             print("> The following design surface was defined:\n\n",optimizationModel)
             return optimizationModel
         else:
             raise RuntimeError("Sub-model part specified for optimization does not exist!")
 
-    # # --------------------------------------------------------------------------
-    # def createContainerWithDampingRegionsAndSettings ( self ):
-    #     damping_regions = []
-    #     print("> The following damping regions are defined: \n")
-    #     for region in self.optimizationSettings.damping_regions:
-    #         sub_mdpa_name = region[0]
-    #         damp_in_X = region[1]
-    #         damp_in_Y = region[2]
-    #         damp_in_Z = region[3]
-    #         damping_function = region[4]
-    #         damping_radius = region[5]
-    #         if self.inputModelPart.HasSubModelPart(sub_mdpa_name):
-    #             print(region)
-    #             damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
-    #                                     damp_in_X, 
-    #                                     damp_in_Y, 
-    #                                     damp_in_Z, 
-    #                                     damping_function, 
-    #                                     damping_radius] )
-    #         else:
-    #             raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)         
-    #     return damping_regions
+    # --------------------------------------------------------------------------
+    def getListOfDampingRegions( self ):
+        listOfDampingRegions = {}
+        print("> The following damping regions are defined: \n")
+        for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
+            regionName = self.optimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
+            if self.inputModelPart.HasSubModelPart(regionName):
+                print(regionName)
+                listOfDampingRegions[regionName] = self.inputModelPart.GetSubModelPart(regionName)
+            else:
+                raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)         
+        return listOfDampingRegions
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
+    def generateListOfNodalResults( self, outputSettings ):
+        listOfNodalResults = []
+        for nodalResultNumber in range(outputSettings["nodal_results"].size()):
+            listOfNodalResults.append( outputSettings["nodal_results"][nodalResultNumber].GetString() )
+        return listOfNodalResults
+
+    # --------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
-        if self.optimizationSettings.optimization_algorithm == "steepest_descent":
+        if self.optimizationSettings["optimization_algorithm"]["name"].GetString() == "steepest_descent":
            self.runSteepestDescentAlgorithm()
-        elif self.optimizationSettings.optimization_algorithm == "penalized_projection":
+        elif self.optimizationSettings["optimization_algorithm"]["name"].GetString() == "penalized_projection":
            self.runPenalizedProjectionAlgorithm()           
         else:
             sys.exit("Specified optimization_algorithm not implemented!")
@@ -200,17 +201,17 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def runSteepestDescentAlgorithm( self ):
 
+        # README!!!
+        # Note that the current implementation assumes that only one scalar objective is present
+
         # Flags to trigger proper function calls
         constraints_given = False
 
         # Tools to perform geometric operations
-        geometryTools = GeometryUtilities( optimizationSettings )
+        geometryTools = GeometryUtilities( self.designSurface )
 
-        # Get Id of objective
-        onlyObjectiveFunction = None
-        for objectiveFunctionId in self.objectives:
-            onlyObjectiveFunction = objectiveFunctionId
-            break
+        # Get Id of objective (right now only one objective is considered!!)
+        onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
         # Initialize file where design evolution is recorded
         with open(self.optimizationLogFile, 'w') as csvfile:
@@ -231,7 +232,8 @@ class VertexMorphingMethod:
         previousValueOfObjectiveFunction = 0.0
 
         # Start optimization loop
-        for optimizationIteration in range(1,self.optimizationSettings.max_opt_iterations+1):
+        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1 
+        for optimizationIteration in range(1,maxOptimizationIterations):
 
             # Some output
             print("\n>===================================================================")
@@ -273,7 +275,7 @@ class VertexMorphingMethod:
                 print("> Relative change of objective function = ",round(relativeChangeOfObjectiveValue,6)," [%]") 
 
             # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.designSurface, self.optimizationSettings.nodal_results, [])   
+            self.gidIO.write_results(optimizationIteration, self.designSurface, self.nodalResults, [])   
 
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
@@ -285,7 +287,7 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(valueOfObjectiveFunction))+"\t")
                 row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
                 row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-                row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
+                row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
                 row.append("\t"+str(time.ctime()))
@@ -299,13 +301,14 @@ class VertexMorphingMethod:
             if optimizationIteration > 1 :
 
                 # Check if maximum iterations were reached
-                if optimizationIteration == self.optimizationSettings.max_opt_iterations:
+                if optimizationIteration == maxOptimizationIterations:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if abs(relativeChangeOfObjectiveValue) < self.optimizationSettings.relative_tolerance_objective:
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
+                relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
+                if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                     break
 
                 # Check if value of objective increases
@@ -328,17 +331,14 @@ class VertexMorphingMethod:
         # Flags to trigger proper function calls
         constraints_given = True
 
+        # Tools to perform geometric operations
+        geometryTools = GeometryUtilities( self.designSurface )        
+
         # Get Id of objective
-        onlyObjectiveFunction = None
-        for objectiveFunctionId in self.objectives:
-            onlyObjectiveFunction = objectiveFunctionId
-            break
+        onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
         # Get Id of constraint
-        onlyConstraintFunction = None
-        for constraintFunctionId in self.constraints:
-            onlyConstraintFunction = constraintFunctionId
-            break            
+        onlyConstraintFunction = self.optimizationSettings["constraints"][0]["identifier"].GetString()         
 
         # Initialize file where design evolution is recorded
         with open(self.optimizationLogFile, 'w') as csvfile:
@@ -363,7 +363,8 @@ class VertexMorphingMethod:
         previousValueOfConstraintFunction = 0.0        
 
         # Start optimization loop
-        for optimizationIteration in range(1,self.optimizationSettings.max_opt_iterations+1):
+        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1 
+        for optimizationIteration in range(1,maxOptimizationIterations):
 
             # Some output
             print("\n>===================================================================")
@@ -427,7 +428,7 @@ class VertexMorphingMethod:
             print("\n> Current value of constraint function = ",round(valueOfConstraintFunction,12))     
 
             # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.designSurface, self.optimizationSettings.nodal_results, [])   
+            self.gidIO.write_results(optimizationIteration, self.designSurface, self.nodalResults, [])   
 
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
@@ -446,7 +447,7 @@ class VertexMorphingMethod:
                     percentageOfReference = 100*(valueOfConstraintFunction / referenceValueOfConstraintFunction)
                     row.append("\t"+str("%.6f"%(percentageOfReference)))
                 row.append("\t"+str("%.12f"%(correctionScaling[0]))+"\t")
-                row.append("\t"+str(self.optimizationSettings.step_size)+"\t")
+                row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
                 row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
                 row.append("\t"+str(time.ctime()))
@@ -460,13 +461,14 @@ class VertexMorphingMethod:
             if optimizationIteration>1:
 
                 # Check if maximum iterations were reached
-                if optimizationIteration==self.optimizationSettings.max_opt_iterations:
+                if optimizationIteration == maxOptimizationIterations:
                     print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
-                if abs(relativeChangeOfObjectiveValue)<self.optimizationSettings.relative_tolerance_objective:
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.optimizationSettings.relative_tolerance_objective,"%.")
+                relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
+                if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                     break
 
                 # Check if value of objective increases
