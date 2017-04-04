@@ -263,13 +263,16 @@ namespace Kratos
                            domains_colored_graph, max_colors, LastIteration);
 
           double* send_buffer = new double[max_send_buffer_size];
+          int* send_buffer_int = new int[max_send_buffer_size];
           double* receive_buffer = new double[max_receive_buffer_size];
+          int* receive_buffer_int = new int[max_receive_buffer_size];
 
           InterfaceObjectConfigure::ContainerType remote_p_interface_object_list(m_receive_buffer_size);
           std::vector<InterfaceObject::Pointer> candidate_receive_objects(m_receive_buffer_size);
           std::vector<double> min_distances(m_receive_buffer_size);
           std::vector<array_1d<double,2>> local_coordinates(m_receive_buffer_size);
           std::vector<std::vector<double>> shape_functions(m_receive_buffer_size);
+          std::vector<int> pairing_indices(m_receive_buffer_size);
           // auto local_coordinates = boost::shared_ptr<std::vector<array_1d<double,2>>>(new std::vector<array_1d<double,2>>(max_receive_buffer_size));
 
           int send_buffer_size;
@@ -281,11 +284,12 @@ namespace Kratos
               mpInterfaceObjectManager->FillBufferLocalSearch(candidate_manager, remote_p_interface_object_list, num_objects);
 
               FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                 min_distances, local_coordinates, shape_functions);
+                                 min_distances, local_coordinates, shape_functions, pairing_indices);
 
               mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
                                                                       shape_functions, local_coordinates, mCommRank);
-              mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, min_distances, mCommRank);
+              mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, min_distances, 
+                                                                   pairing_indices, mCommRank);
           }
 
           // search in remote partitions
@@ -304,7 +308,7 @@ namespace Kratos
 
                   // Perform local Search
                   FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                     min_distances, local_coordinates, shape_functions);
+                                     min_distances, local_coordinates, shape_functions, pairing_indices);
 
                   mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
                                                                           shape_functions, local_coordinates, comm_partner);
@@ -315,17 +319,23 @@ namespace Kratos
                   send_buffer_size = tmp_var;
 
                   mpInterfaceObjectManagerBins->FillSendBufferWithResults(send_buffer, send_buffer_size, min_distances);
-
                   MPI_Sendrecv(send_buffer, send_buffer_size, MPI_DOUBLE, comm_partner, 0, receive_buffer,
                                receive_buffer_size, MPI_DOUBLE, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-                  mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, receive_buffer, comm_partner);
+                  mpInterfaceObjectManagerBins->FillSendBufferWithResults(send_buffer_int, send_buffer_size, pairing_indices);
+                  MPI_Sendrecv(send_buffer_int, send_buffer_size, MPI_INT, comm_partner, 0, receive_buffer_int,
+                               receive_buffer_size, MPI_INT, comm_partner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+                  mpInterfaceObjectManager->PostProcessReceivedResults(candidate_manager, receive_buffer, 
+                                                                       receive_buffer_int, comm_partner);
 
               } // if I am communicating in this loop (comm_partner != -1)
           } // loop communications
 
           delete [] send_buffer;
+          delete [] send_buffer_int;
           delete [] receive_buffer;
+          delete [] receive_buffer_int;
 
           MPI_Barrier(MPI_COMM_WORLD);
       }

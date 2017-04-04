@@ -119,12 +119,13 @@ namespace Kratos
           return is_inside;
       }
 
-      void ProcessDistance(double Distance, int Rank) {
-          m_neighbor_found = true;
-          if (Distance < mMinDistanceNeighbor) {
+      void ProcessSearchResult(const double Distance, const int PairingStatus, const int Rank) {
+          if (mPairingStatus < PairingStatus || (mPairingStatus == PairingStatus 
+                                                 && Distance < mMinDistanceNeighbor)) {
+              mPairingStatus = PairingStatus;
               mMinDistanceNeighbor = Distance;
               mNeighborRank = Rank;
-          }
+          }   
       }
 
       int GetPairingStatus() {
@@ -132,16 +133,24 @@ namespace Kratos
       }
 
       bool NeighborFound() {
-          return m_neighbor_found;
+          if (mPairingStatus == this->GetIndexNeighborFound())  {
+              return true;
+          } else {
+              return false;
+          }
       }
 
       bool NeighborOrApproximationFound() {
-          return m_neighbor_found;
+          if (mPairingStatus >= this->GetIndexApproximation())  {
+              return true;
+          } else {
+              return false;
+          }
       }
 
       bool HasNeighborInPartition(const int PartitionIndex) {
           bool return_value = false;
-          if (m_neighbor_found) {
+          if (mPairingStatus == this->GetIndexNeighborFound()) {
               if (mNeighborRank == PartitionIndex)
                   return_value = true;
           }
@@ -336,7 +345,7 @@ namespace Kratos
 
       double mMinDistanceNeighbor;
       int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
-      bool m_neighbor_found;
+      // bool m_neighbor_found;
       int mNeighborRank;
 
       ///@}
@@ -351,7 +360,7 @@ namespace Kratos
       void SetInitialValuesToMembers() {
           mMinDistanceNeighbor = std::numeric_limits<double>::max();
           mPairingStatus = this->GetIndexNoNeighbor();
-          m_neighbor_found = false;
+          // m_neighbor_found = false;
           mNeighborRank = 0;
       }
 

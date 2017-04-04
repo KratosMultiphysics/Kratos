@@ -175,8 +175,9 @@ namespace Kratos
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual void PostProcessReceivedResults(const std::vector<double>& distances,
-                                              const InterfaceObjectConfigure::ContainerType& candidate_send_objects) {
+      virtual void PostProcessReceivedResults(const InterfaceObjectConfigure::ContainerType& rCandidateSendObjects,
+                                              const std::vector<double>& rDistances,
+                                              const std::vector<int>& rPairingIndices) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -218,14 +219,16 @@ namespace Kratos
       }
 
       virtual void PostProcessReceivedResults(CandidateManager& rCandidateManager,
-                                              const std::vector<double>& distances,
-                                              const int comm_partner) {
+                                              const std::vector<double>& rDistances,
+                                              const std::vector<int>& rPairingIndices,
+                                              const int CommPartner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
       virtual void PostProcessReceivedResults(CandidateManager& rCandidateManager,
-                                              const double* distances,
-                                              const int comm_partner) {
+                                              const double* pDistances,
+                                              const int* pPairingIndices,
+                                              const int CommPartner) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
@@ -240,13 +243,13 @@ namespace Kratos
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      virtual std::vector<InterfaceObject::Pointer>& GetDestinationInterfaceObjects() {
-          KRATOS_ERROR << "Base class function called!" << std::endl;
-      }
+      // virtual std::vector<InterfaceObject::Pointer>& GetDestinationInterfaceObjects() {
+      //     KRATOS_ERROR << "Base class function called!" << std::endl;
+      // }
 
-      virtual std::vector<InterfaceObject::Pointer>& GetOriginInterfaceObjects() {
-          KRATOS_ERROR << "Base class function called!" << std::endl;
-      }
+      // virtual std::vector<InterfaceObject::Pointer>& GetOriginInterfaceObjects() {
+      //     KRATOS_ERROR << "Base class function called!" << std::endl;
+      // }
 
       // ***** InterfaceObjectManagerParallel *****
       virtual void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& remote_p_point_list,

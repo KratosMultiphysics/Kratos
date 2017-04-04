@@ -94,21 +94,22 @@ namespace Kratos
       // **********************************************************************
       // Side we want to find neighbors for aka destination *******************
       // **********************************************************************
-      void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& candidate_send_objects) override {
+      void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& rCandidateSendObjects) override {
           InitializeSizes();
           for (auto interface_obj : m_interface_objects) {
               if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
-                  candidate_send_objects.push_back(interface_obj);
+                  rCandidateSendObjects.push_back(interface_obj);
               }
           }
       }
 
-      void PostProcessReceivedResults(const std::vector<double>& distances,
-                                      const InterfaceObjectConfigure::ContainerType& candidate_send_objects) override {
+      void PostProcessReceivedResults(const InterfaceObjectConfigure::ContainerType& rCandidateSendObjects,
+                                      const std::vector<double>& rDistances,
+                                      const std::vector<int>& rPairingIndices) override {
           int i = 0;
-          for (auto interface_obj : candidate_send_objects) {
-              if (distances[i] > -0.5f) { // failed search has value "-1"
-                  interface_obj->ProcessDistance(distances[i], m_comm_rank);
+          for (auto interface_obj : rCandidateSendObjects) {
+              if (rDistances[i] > -0.5f) { // failed search has value "-1"
+                  interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], m_comm_rank);
                   m_send_objects[m_comm_rank].push_back(interface_obj);
               }
               ++i;
