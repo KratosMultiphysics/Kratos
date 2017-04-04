@@ -33,7 +33,8 @@ import json
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
     if  optimizationSettings["design_variables"]["design_control_type"].GetString() == "vertex_morphing":
-        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
+        communicator = Communicator( optimizationSettings )
+        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings, communicator )
         return optimizer
     else:
         sys.exit( "Specified design_control not implemented" )
@@ -41,34 +42,41 @@ def CreateOptimizer( inputModelPart, optimizationSettings ):
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__( self, inputModelPart, optimizationSettings ):
+    def __init__( self, inputModelPart, optimizationSettings, communicator ):
         
         self.inputModelPart = inputModelPart
         self.optimizationSettings = optimizationSettings
+        self.communicator = communicator
 
+        self.createFolderToStoreOptimizationResults( optimizationSettings )
         self.gidIO = self.createGiDIO( optimizationSettings )
-        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )
-        self.communicator = Communicator( optimizationSettings )
+        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )   
 
         self.addVariablesNeededForOptimization( inputModelPart )
+    
+    # --------------------------------------------------------------------------
+    def createFolderToStoreOptimizationResults ( self, optimizationSettings ):
+        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
+        os.system( "rm -rf " + resultsDirectory )
+        os.system( "mkdir -p " + resultsDirectory )
 
     # --------------------------------------------------------------------------
     def createGiDIO( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["ouptut"]["output_directory"].GetString()
-        designHistoryFilename = optimizationSettings["ouptut"]["design_history_filename"].GetString()
+        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
+        designHistoryFilename = optimizationSettings["output"]["design_history_filename"].GetString()
         designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
         gidIO = GiDOutput( designHistoryFilenameWithPath,
-                           optimizationSettings["ouptut"]["output_type"]["VolumeOutput"].GetBool(),
-                           optimizationSettings["ouptut"]["output_type"]["GiDPostMode"].GetString(),
-                           optimizationSettings["ouptut"]["output_type"]["GiDMultiFileFlag"].GetString(),
-                           optimizationSettings["ouptut"]["output_type"]["GiDWriteMeshFlag"].GetBool(),
-                           optimizationSettings["ouptut"]["output_type"]["GiDWriteConditionsFlag"].GetBool() )
+                           optimizationSettings["output"]["output_type"]["VolumeOutput"].GetBool(),
+                           optimizationSettings["output"]["output_type"]["GiDPostMode"].GetString(),
+                           optimizationSettings["output"]["output_type"]["GiDMultiFileFlag"].GetString(),
+                           optimizationSettings["output"]["output_type"]["GiDWriteMeshFlag"].GetBool(),
+                           optimizationSettings["output"]["output_type"]["GiDWriteConditionsFlag"].GetBool() )
         return gidIO
     
     # --------------------------------------------------------------------------
     def createCompleteOptimizationLogFilename( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["ouptut"]["output_directory"].GetString()
-        optimizationLogFilename = optimizationSettings["ouptut"]["optimization_log_filename"].GetString()
+        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
+        optimizationLogFilename = optimizationSettings["output"]["optimization_log_filename"].GetString()
         completeOptimizationLogFilename = resultsDirectory+"/"+optimizationLogFilename+".csv"
         return completeOptimizationLogFilename
 
@@ -108,18 +116,21 @@ class VertexMorphingMethod:
     def optimize( self ):
         
         print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
+        print("> ",time.ctime(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
         print("> ==============================================================================================================\n")
 
-        print(time.ctime())
         self.timeAtStartOfOptimization = time.time()
+        
+        self.outputInformationAboutResponseFunctions()
 
-        self.prepareOptimization()
+        self.designSurface = self.getDesignSurfaceFromInputModelPart()
+        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, optimizationSettings ) 
 
         iteratorForInitialDesign = 0
-        self.gidIO.initialize_results(self.optimizationModelPart)
-        self.gidIO.write_results(iteratorForInitialDesign, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
+        self.gidIO.initialize_results(self.designSurface)
+        self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.optimizationSettings.nodal_results, [])   
 
+        self.optimizationTools = OptimizationUtilities( self.designSurface, optimizationSettings )
         self.runSpecifiedOptimizationAlgorithm()
 
         self.gidIO.finalize_results()
@@ -129,50 +140,21 @@ class VertexMorphingMethod:
         print("> ==============================================================================================================\n")
 
     # --------------------------------------------------------------------------
-    def prepareOptimization( self ):
-        self.outputInformationAboutResponseFunctions()
-        self.createFolderToStoreOptimizationHistory()
-        self.extractDesignSurfaceAndDampingRegions()
-        self.createToolsNecessaryForOptimization()
-
-    # --------------------------------------------------------------------------
     def outputInformationAboutResponseFunctions( self ):
+
+        numberOfObjectives = self.optimizationSettings["objectives"].size()
+        numberOfConstraints = self.optimizationSettings["constraints"].size()
+
         print("\n> The following objectives are defined:\n")
-        for func_id in self.optimizationSettings.objectives:
-            print(func_id,":",self.optimizationSettings.objectives[func_id],"\n")
-        if len(self.optimizationSettings.constraints) != 0:
+        for objectiveNumber in range(numberOfObjectives):
+            print(self.optimizationSettings["objectives"][objectiveNumber],"\n")
+
+        if numberOfConstraints != 0:
             print("> The following constraints are defined:\n")
-            for func_id in self.optimizationSettings.constraints:
-                print(func_id,":",self.optimizationSettings.constraints[func_id],"\n")
+            for constraintNumber in range(numberOfConstraints):
+                print(self.optimizationSettings["constraints"][constraintNumber],"\n")
         else:
-            print("> No constraints defined.\n")
-
-    # --------------------------------------------------------------------------
-    def createFolderToStoreOptimizationHistory ( self ):
-        os.system( "rm -rf " + self.optimizationSettings.design_history_directory )
-        os.system( "mkdir -p " + self.optimizationSettings.design_history_directory )
-   
-    # --------------------------------------------------------------------------
-    def extractDesignSurfaceAndDampingRegions( self ):
-        self.optimizationModelPart = self.getDesignSurfaceFromInputModelPart()
-        if self.optimizationSettings.perform_damping:
-            self.dampingRegions = self.createContainerWithDampingRegionsAndSettings()
-        else:
-            self.dampingRegions = []
-
-    # --------------------------------------------------------------------------
-    def createToolsNecessaryForOptimization( self ):
-        self.vertexMorphingMapper = VertexMorphingMapper( self.optimizationModelPart,
-                                                          self.optimizationSettings.filter_function,
-                                                          self.optimizationSettings.filter_size,
-                                                          self.optimizationSettings.perform_damping,
-                                                          self.dampingRegions ) 
-        self.optimizationTools = OptimizationUtilities( self.optimizationModelPart,
-                                                        self.objectives,
-                                                        self.constraints,
-                                                        self.optimizationSettings.step_size,
-                                                        self.optimizationSettings.normalize_search_direction )
-        self.geometryTools = GeometryUtilities( self.optimizationModelPart ) 
+            print("> No constraints defined.\n")     
     
     # --------------------------------------------------------------------------
     def getDesignSurfaceFromInputModelPart ( self ):
@@ -182,30 +164,30 @@ class VertexMorphingMethod:
             return optimizationModel
         else:
             raise RuntimeError("Sub-model part specified for optimization does not exist!")
-    
-    # --------------------------------------------------------------------------
-    def createContainerWithDampingRegionsAndSettings ( self ):
-        damping_regions = []
-        print("> The following damping regions are defined: \n")
-        for region in self.optimizationSettings.damping_regions:
-            sub_mdpa_name = region[0]
-            damp_in_X = region[1]
-            damp_in_Y = region[2]
-            damp_in_Z = region[3]
-            damping_function = region[4]
-            damping_radius = region[5]
-            if self.inputModelPart.HasSubModelPart(sub_mdpa_name):
-                print(region)
-                damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
-                                        damp_in_X, 
-                                        damp_in_Y, 
-                                        damp_in_Z, 
-                                        damping_function, 
-                                        damping_radius] )
-            else:
-                raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)         
-        return damping_regions
-    
+
+    # # --------------------------------------------------------------------------
+    # def createContainerWithDampingRegionsAndSettings ( self ):
+    #     damping_regions = []
+    #     print("> The following damping regions are defined: \n")
+    #     for region in self.optimizationSettings.damping_regions:
+    #         sub_mdpa_name = region[0]
+    #         damp_in_X = region[1]
+    #         damp_in_Y = region[2]
+    #         damp_in_Z = region[3]
+    #         damping_function = region[4]
+    #         damping_radius = region[5]
+    #         if self.inputModelPart.HasSubModelPart(sub_mdpa_name):
+    #             print(region)
+    #             damping_regions.append( [ self.inputModelPart.GetSubModelPart(sub_mdpa_name), 
+    #                                     damp_in_X, 
+    #                                     damp_in_Y, 
+    #                                     damp_in_Z, 
+    #                                     damping_function, 
+    #                                     damping_radius] )
+    #         else:
+    #             raise ValueError("The following sub-model part specified for damping does not exist: ",sub_mdpa_name)         
+    #     return damping_regions
+
     #---------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
         if self.optimizationSettings.optimization_algorithm == "steepest_descent":
@@ -220,6 +202,9 @@ class VertexMorphingMethod:
 
         # Flags to trigger proper function calls
         constraints_given = False
+
+        # Tools to perform geometric operations
+        geometryTools = GeometryUtilities( optimizationSettings )
 
         # Get Id of objective
         onlyObjectiveFunction = None
@@ -259,15 +244,15 @@ class VertexMorphingMethod:
             self.communicator.requestFunctionValueOf( onlyObjectiveFunction )
             self.communicator.requestGradientOf( onlyObjectiveFunction )
 
-            self.analyzer.analyzeDesignAndReportToCommunicator( self.optimizationModelPart, optimizationIteration, self.communicator )
+            self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
             valueOfObjectiveFunction = self.communicator.getReportedFunctionValueOf ( onlyObjectiveFunction )
             gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )  
                         
             self.storeGradientOnNodes( gradientOfObjectiveFunction )
 
-            self.geometryTools.compute_unit_surface_normals()
-            self.geometryTools.project_grad_on_unit_surface_normal( constraints_given )
+            geometryTools.compute_unit_surface_normals()
+            geometryTools.project_grad_on_unit_surface_normal( constraints_given )
 
             self.vertexMorphingMapper.compute_mapping_matrix()
             self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
@@ -288,7 +273,7 @@ class VertexMorphingMethod:
                 print("> Relative change of objective function = ",round(relativeChangeOfObjectiveValue,6)," [%]") 
 
             # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
+            self.gidIO.write_results(optimizationIteration, self.designSurface, self.optimizationSettings.nodal_results, [])   
 
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
@@ -393,7 +378,7 @@ class VertexMorphingMethod:
             self.communicator.requestGradientOf( onlyObjectiveFunction )
             self.communicator.requestGradientOf( onlyConstraintFunction )
 
-            self.analyzer.analyzeDesignAndReportToCommunicator( self.optimizationModelPart, optimizationIteration, self.communicator )
+            self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
             valueOfObjectiveFunction = self.communicator.getReportedFunctionValueOf ( onlyObjectiveFunction )
             valueOfConstraintFunction = self.communicator.getReportedFunctionValueOf ( onlyConstraintFunction )
@@ -413,8 +398,8 @@ class VertexMorphingMethod:
                     constraints_given = False
                 break           
 
-            self.geometryTools.compute_unit_surface_normals()
-            self.geometryTools.project_grad_on_unit_surface_normal( constraints_given )
+            geometryTools.compute_unit_surface_normals()
+            geometryTools.project_grad_on_unit_surface_normal( constraints_given )
 
             self.vertexMorphingMapper.compute_mapping_matrix()
             self.vertexMorphingMapper.map_sensitivities_to_design_space( constraints_given )
@@ -442,7 +427,7 @@ class VertexMorphingMethod:
             print("\n> Current value of constraint function = ",round(valueOfConstraintFunction,12))     
 
             # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.optimizationModelPart, self.optimizationSettings.nodal_results, [])   
+            self.gidIO.write_results(optimizationIteration, self.designSurface, self.optimizationSettings.nodal_results, [])   
 
             # Write design history to file
             runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
@@ -504,7 +489,7 @@ class VertexMorphingMethod:
         for node_Id in objective_grads:
 
             # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-            if self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
+            if self.designSurface.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
                 continue
 
             # If not deactivated, nodal sensitivities will be assigned
@@ -512,7 +497,7 @@ class VertexMorphingMethod:
             sens_i[0] = objective_grads[node_Id][0]
             sens_i[1] = objective_grads[node_Id][1]
             sens_i[2] = objective_grads[node_Id][2]           
-            self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
+            self.designSurface.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
 
         # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
         if bool(constraint_grads):
@@ -520,7 +505,7 @@ class VertexMorphingMethod:
             for node_Id in constraint_grads:
 
                 # If deactivated, nodal sensitivities will not be assigned and hence remain zero
-                if self.optimizationModelPart.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
+                if self.designSurface.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED):
                     continue
 
                 # If not deactivated, nodal sensitivities will be assigned
@@ -528,7 +513,7 @@ class VertexMorphingMethod:
                 sens_i[0] = constraint_grads[node_Id][0]
                 sens_i[1] = constraint_grads[node_Id][1]
                 sens_i[2] = constraint_grads[node_Id][2]           
-                self.optimizationModelPart.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
+                self.designSurface.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
 
     # --------------------------------------------------------------------------
 
