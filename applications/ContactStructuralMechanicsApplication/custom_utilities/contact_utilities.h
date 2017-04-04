@@ -549,8 +549,8 @@ public:
         {
             auto itCond = pCond.begin() + i;
             
-            if (itCond->Is(ACTIVE) || itCond->Is(MASTER))
-//             if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) // NOTE: This can produce troubles, nodal normals are affected by the neighbour conditions (which can be innactive)
+            if (itCond->Is(SLAVE) || itCond->Is(MASTER) || itCond->Is(ACTIVE))
+//             if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) // NOTE: This can produce troubles, nodal normals are affected by the neighbour conditions (which can be innactive, think about search for neightbour conditions first)
             {
                 ConditionNormal(*(itCond.base()));
                 

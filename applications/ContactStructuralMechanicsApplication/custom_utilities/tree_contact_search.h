@@ -357,13 +357,15 @@ public:
     {        
         // Initialize values
         PointVector PointsFound(mAllocationSize);
-        std::vector<double> PointsDistances(mAllocationSize);
         unsigned int NumberPointsFound = 0;    
         
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
         KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+        
+        // Calculate the mean of the normal in all the nodes
+        ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
         
         // Iterate in the conditions
         ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
@@ -378,6 +380,8 @@ public:
             {
                 if (mSearchTreeType == KdtreeInRadius)
                 {
+                    std::vector<double> PointsDistances(mAllocationSize);
+                    
                     Point<3> Center;
                     const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
 
@@ -416,10 +420,6 @@ public:
                         if (ConditionPointersDestination->size() > 0)
                         {                        
                             itCond->Set(ACTIVE, true);
-                            for (unsigned int inode = 0; inode < itCond->GetGeometry().size(); inode++)
-                            {
-                                itCond->GetGeometry()[inode].Set(ACTIVE, true);
-                            }
                         }
                     }
                 }
@@ -428,9 +428,6 @@ public:
         
         // Here we remove all the inactive pairs
         ClearAllInactivePairs(); 
-        
-        // Calculate the mean of the normal in all the nodes
-        ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
     }
     
     /**

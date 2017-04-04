@@ -162,8 +162,9 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
                 
-                ## Debug
-                #node.SetValue(KratosMultiphysics.DISTANCE, 1.0e-1)
+                # Debug
+                if (self.debug_mode == True):
+                    node.SetValue(KratosMultiphysics.DISTANCE, 1.0e-1)
                 
             del(node)
             

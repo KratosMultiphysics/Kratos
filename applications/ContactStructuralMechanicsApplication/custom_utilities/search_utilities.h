@@ -112,9 +112,11 @@ public:
                 
                 array_1d<double, 3> Result;
                 if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
-                { 
-                    Geom1[iNode].Set(ACTIVE, true);
+                {
                     ConditionIsActive = true;
+                    
+//                     #pragma omp critical
+                    Geom1[iNode].Set(ACTIVE, true);
                 }
              }
              else
