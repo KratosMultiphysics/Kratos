@@ -37,7 +37,8 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 "scale_factor"              : 1.0
             },
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "debug_mode"                  : false
         }
         """)
 
@@ -62,6 +63,7 @@ class ALMContactProcess(KratosMultiphysics.Process):
         self.normal_variation         = self.params["normal_variation"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         self.type_search = self.params["type_search"].GetString()
+        self.debug_mode = self.params["debug_mode"].GetBool()
         
     def ExecuteInitialize(self):
         
@@ -159,6 +161,10 @@ class ALMContactProcess(KratosMultiphysics.Process):
                 node.SetValue(KratosMultiphysics.NORMAL,      ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_XI,  ZeroVector)
                 node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
+                
+                ## Debug
+                #node.SetValue(KratosMultiphysics.DISTANCE, 1.0e-1)
+                
             del(node)
             
             # Setting the conditions 
@@ -180,27 +186,29 @@ class ALMContactProcess(KratosMultiphysics.Process):
             self.contact_search.UpdateMortarConditions(self.search_factor)
             #self.contact_search.CheckMortarConditions()
             
-        ## Debug
-        #output_file = "POSTSEARCH"
+        # Debug
+        if (self.debug_mode == True):
+            output_file = "POSTSEARCH"
 
-        #gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
-        #singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
-        #deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed
-        #write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
+            gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+            singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
+            deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed
+            write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
 
-        #gid_io = KratosMultiphysics.GidIO(output_file, gid_mode, singlefile,
-                        #deformed_mesh_flag, write_conditions)
-        
-        #label = 0
-        #gid_io.InitializeMesh(label)
-        #gid_io.WriteMesh(self.main_model_part.GetMesh())
-        #gid_io.FinalizeMesh()
-        #gid_io.InitializeResults(label, self.main_model_part.GetMesh())
-        ##gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, "DISPLACEMENT", self.main_model_part.Nodes, label, 0)
-        #gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
-        #gid_io.FinalizeResults()
-        
-        #raise NameError('DEBUG')
+            gid_io = KratosMultiphysics.GidIO(output_file, gid_mode, singlefile,
+                            deformed_mesh_flag, write_conditions)
+            
+            label = 0
+            gid_io.InitializeMesh(label)
+            gid_io.WriteMesh(self.main_model_part.GetMesh())
+            gid_io.FinalizeMesh()
+            gid_io.InitializeResults(label, self.main_model_part.GetMesh())
+            gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
+            gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+            gid_io.WriteNodalResultsNonHistorical(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes, label)
+            gid_io.FinalizeResults()
+            
+            raise NameError('DEBUG')
         
     def ExecuteFinalizeSolutionStep(self):
         pass

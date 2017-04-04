@@ -28,9 +28,8 @@
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
 #include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/search_utilities.h"
 #include "custom_utilities/point_item.h"
-
-// TODO: Add parallelization
 
 namespace Kratos
 {
@@ -415,7 +414,7 @@ public:
                         if (CheckCondition(ConditionPointersDestination, (*itCond.base()), pCondOrigin) == true) 
                         {    
                             // If not active we check if can be potentially in contact
-                            ContactUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
+                            SearchUtilities::ContactContainerFiller(ConditionPointersDestination, (*itCond.base()), pCondOrigin, itCond->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), mActiveCheckFactor); 
                         }
                         
                         if (ConditionPointersDestination->size() > 0)
@@ -434,7 +433,7 @@ public:
         // Here we remove all the inactive pairs
         ClearAllInactivePairs(); 
         
-        // Calculate the mean of the normal in all the nodes (FIXME: this is supposed to be done in the strategy)
+        // Calculate the mean of the normal in all the nodes
         ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
     }
     
@@ -510,7 +509,7 @@ public:
                         if (ipair->second == false)
                         {
                             // Last oportunity for the condition pair
-                            const bool CondActive = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
+                            const bool CondActive = SearchUtilities::ContactContainerFiller(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
                                                                                             itCond->GetValue(NORMAL), (ipair->first)->GetValue(NORMAL), 
                                                                                             mActiveCheckFactor);
                             if (CondActive == false) // Not paired anymore paired

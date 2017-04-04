@@ -14,9 +14,8 @@
 // External includes
 
 // System includes
-# include "deprecated_tree_contact_search.h"
-
-// TODO: Not clear everything from one step to the other, just check what can you add (this way the process is simplified)
+#include "deprecated_tree_contact_search.h"
+#include "custom_utilities/search_utilities.h"
 
 namespace Kratos
 {
@@ -471,7 +470,7 @@ void DeprecatedTreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
                     {
                         // Last oportunity for the condition pair
                         const double ActiveCheckFactor = itCond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-                        const bool cond_active = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
+                        const bool cond_active = SearchUtilities::ContactContainerFiller(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
                                                                                           itCond->GetValue(NORMAL), (aux_contact_container.condition)->GetValue(NORMAL), 
                                                                                           ActiveCheckFactor);
                         if (cond_active == true) // Still paired
@@ -540,7 +539,7 @@ void DeprecatedTreeContactSearch::MortarContainerFiller(
         const double ActiveCheckFactor
         )
 {
-    ContactUtilities::ContactContainerFiller(ConditionPointers, pCondDestination, pCondOrigin, 
+    SearchUtilities::ContactContainerFiller(ConditionPointers, pCondDestination, pCondOrigin, 
                       pCondDestination->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), ActiveCheckFactor); 
 }
 

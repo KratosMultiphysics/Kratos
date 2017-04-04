@@ -41,6 +41,13 @@ public:
     ///@name Type Definitions
     ///@{
     
+    // General type definitions
+    typedef Node<3>                                          NodeType;
+    typedef Geometry<NodeType>                           GeometryType;
+    typedef GeometryData::IntegrationMethod         IntegrationMethod;
+    typedef ModelPart::NodesContainerType              NodesArrayType;
+    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -64,113 +71,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef GeometryData::IntegrationMethod         IntegrationMethod;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
 
-    /**
-     * This function fills the contact_container for the Mortar condition
-     * @param ContactPoint: The destination point
-     * @param Geom1 and Geom2: The geometries of the slave and master respectively
-     * @param ContactNormal1 and ContactNormal2: The normals of the slave and master respectively
-     * @param IntegrationOrder: The integration order   
-     * @return contact_container: Once has been filled
-     */
-
-    static inline bool ContactContainerFiller(
-            GeometryType& Geom1, // SLAVE
-            GeometryType& Geom2, // MASTER
-            const array_1d<double, 3> & ContactNormal1, // SLAVE
-            const array_1d<double, 3> & ContactNormal2, // MASTER
-            const double ActiveCheckFactor
-            )
-    {
-        // Define the basic information
-        const double Tolerance = std::numeric_limits<double>::epsilon();
-        const unsigned int NumberNodes = Geom1.PointsNumber();
-        
-        bool ConditionIsActive = false;
-        
-        for (unsigned int index = 0; index < NumberNodes; index++)
-        {
-            if (Geom1[index].Is(ACTIVE) == false)
-            {
-                Point<3> ProjectedPoint;
-                double AuxDistance = 0.0;
-                const array_1d<double, 3> Normal = Geom1[index].GetValue(NORMAL);
-                if (norm_2(Normal) < Tolerance)
-                {
-                    AuxDistance = FastProjectDirection(Geom2, Geom1[index], ProjectedPoint, ContactNormal2, ContactNormal1);
-                }
-                else
-                {
-                    AuxDistance = FastProjectDirection(Geom2, Geom1[index], ProjectedPoint, ContactNormal2, Normal);
-                }  
-              
-                // TODO: Think about this
-                const double DistanceTolerance = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
-//                 double DistanceTolerance = ActiveCheckFactor * Geom1.Length();
-//                 DistanceTolerance = (DistanceTolerance <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):DistanceTolerance;
-                
-                array_1d<double, 3> Result;
-                // NOTE: We don't use std::abs() because if the AuxDistance is negative is penetrating, in fact we just consider DistanceTolerance > 0 to have some tolerance and for the static schemes
-                if (AuxDistance <= DistanceTolerance && Geom2.IsInside(ProjectedPoint, Result))
-                { 
-                    Geom1[index].Set(ACTIVE, true);
-                    ConditionIsActive = true;
-                }
-             }
-             else
-             {
-                 ConditionIsActive = true;
-             }
-         }
-         
-         return ConditionIsActive;
-    }
-    
-    static inline void ContactContainerFiller(
-        std::vector<contact_container> *& ConditionPointers,
-        Condition::Pointer & pCond1,       // SLAVE
-        const Condition::Pointer & pCond2, // MASTER
-        const array_1d<double, 3> & ContactNormal1, // SLAVE
-        const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckFactor
-        )
-    {
-        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
-        
-        if (ConditionIsActive == true)
-        {
-            pCond1->Set(ACTIVE, true);
-            contact_container AuxContactContainer;
-            AuxContactContainer.condition   = pCond2;
-            AuxContactContainer.active_pair = true;
-            ConditionPointers->push_back(AuxContactContainer);
-        }
-    }
-    
-    static inline void ContactContainerFiller(
-        ConditionMap *& ConditionPointers,
-        Condition::Pointer & pCond1,       // SLAVE
-        const Condition::Pointer & pCond2, // MASTER
-        const array_1d<double, 3> & ContactNormal1, // SLAVE
-        const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckFactor
-        )
-    {
-        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
-        
-        if (ConditionIsActive == true)
-        {
-            ConditionPointers->AddNewCondition(pCond2);
-        }
-    }
-    
     /**
      * Project a point over a line/plane following an arbitrary direction
      * @param Geom: The geometry where to be projected
