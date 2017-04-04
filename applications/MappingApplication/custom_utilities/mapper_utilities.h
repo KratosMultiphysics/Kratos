@@ -202,7 +202,7 @@ namespace Kratos
 
       static bool ProjectPointToLine(Condition* pCondition,
                                      const array_1d<double, 3> GlobalCoords,
-                                     array_1d<double,2>& rLocalCoords,
+                                     array_1d<double,3>& rLocalCoords,
                                      double& rDistance) {
           // Point<3> point_to_project(GlobalCoords);
 
@@ -265,6 +265,7 @@ namespace Kratos
           
           rLocalCoords[0] = result_vec[0];
           rLocalCoords[1] = 0.0f;
+          rLocalCoords[2] = 0.0f;
 
           rDistance = result_vec[1];
 
@@ -285,7 +286,7 @@ namespace Kratos
 
       static bool ProjectPointToTriangle(Condition* pCondition,
                                          const array_1d<double, 3> GlobalCoords,
-                                         array_1d<double,2>& rLocalCoords,
+                                         array_1d<double,3>& rLocalCoords,
                                          double& rDistance) {
           // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
           // and d is the distance along n from the point to its projection in the condition
@@ -324,6 +325,7 @@ namespace Kratos
 
           rLocalCoords[0] = result_vec[0];
           rLocalCoords[1] = result_vec[1];
+          rLocalCoords[2] = 0.0f;          
           
           rDistance = result_vec[2];
 
@@ -341,7 +343,7 @@ namespace Kratos
 
       static bool ProjectPointToQuadrilateral(Condition* pCondition,
                                               const array_1d<double, 3> GlobalCoords,
-                                              array_1d<double,2>& rLocalCoords,
+                                              array_1d<double,3>& rLocalCoords,
                                               double& rDistance) {
           
           // change localcoords to 3 from 2!

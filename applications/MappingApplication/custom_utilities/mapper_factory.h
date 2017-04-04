@@ -312,12 +312,22 @@ namespace Kratos
           }
 
           if (mrJsonParameters.Has("approximation_tolerance")) {
+              if (mrJsonParameters["mapper_type"].GetString() == "NearestNeighbor") {
+                  KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" " 
+                               << "specified for Nearest Neighbor Mapper" << std::endl;
+              }
               if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f) {
                   KRATOS_ERROR << "Invalid Tolerance for Approximations specified" << std::endl;
               }
           }
 
           mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
+
+          if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f) { // nothing specified
+              mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
+          }
+
+          
       }
 
       void ReadAndCheckInterfaceModelParts() {

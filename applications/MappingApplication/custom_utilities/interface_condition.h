@@ -104,7 +104,7 @@ namespace Kratos
           bool is_closer = false;
           bool is_inside = false;
           double projection_distance;
-          array_1d<double,2> projection_local_coords;
+          array_1d<double,3> projection_local_coords;
 
           if (mGeometryFamily == GeometryData::Kratos_Linear 
               && mNumPoints == 2) { // I am a linear line condition

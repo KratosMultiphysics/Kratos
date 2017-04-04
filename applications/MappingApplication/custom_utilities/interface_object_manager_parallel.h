@@ -173,16 +173,16 @@ namespace Kratos
       }
 
       void FillSendBufferWithMatchInformation(CandidateManager& rCandidateManager,
-                                              int* pSendBuffer, int& rSendBufferSize,
-                                              const int CommPartner) override {
+                                              int* send_buffer, int& send_buffer_size,
+                                              const int comm_partner) override {
           int i = 0;
-          if (rCandidateManager.matching_information.count(CommPartner) > 0) {
-              for (auto info : rCandidateManager.matching_information.at(CommPartner)) {
-                  pSendBuffer[i] = info;
+          if (rCandidateManager.matching_information.count(comm_partner) > 0) {
+              for (auto info : rCandidateManager.matching_information.at(comm_partner)) {
+                  send_buffer[i] = info;
                   ++i;
               }
           }
-          rSendBufferSize = i;
+          send_buffer_size = i;
       }
 
       void FillBufferLocalSearch(CandidateManager& rCandidateManager,
@@ -255,42 +255,42 @@ namespace Kratos
           }
       }
 
-      void FillSendBufferWithResults(double* pSendBuffer, const int SendBufferSize,
+      void FillSendBufferWithResults(double* send_buffer, const int send_buffer_size,
                                      const std::vector<double>& min_distances) override {
-          for (int i = 0; i < SendBufferSize; ++i)
-              pSendBuffer[i] = min_distances[i];
+          for (int i = 0; i < send_buffer_size; ++i)
+              send_buffer[i] = min_distances[i];
       }
 
-      void FillSendBufferWithResults(int* pSendBuffer, const int SendBufferSize,
+      void FillSendBufferWithResults(int* send_buffer, const int send_buffer_size,
                                      const std::vector<int>& pairing_indices) override {
-          for (int i = 0; i < SendBufferSize; ++i)
-              pSendBuffer[i] = pairing_indices[i];
+          for (int i = 0; i < send_buffer_size; ++i)
+              send_buffer[i] = pairing_indices[i];
       }
 
       void StoreTempSearchResults(CandidateManager& rCandidateManager,
                                   std::vector<InterfaceObject::Pointer> temp_closest_results,
                                   std::vector<std::vector<double>> temp_shape_functions,
                                   std::vector<array_1d<double,2>> temp_local_coordinates,
-                                  const int CommPartner) override {
-          MapInsertElement(rCandidateManager.candidate_receive_objects, CommPartner, temp_closest_results);
-          MapInsertElement(rCandidateManager.candidate_local_coordinates, CommPartner, temp_local_coordinates);
-          MapInsertElement(rCandidateManager.candidate_shape_functions, CommPartner, temp_shape_functions);
+                                  const int comm_partner) override {
+          MapInsertElement(rCandidateManager.candidate_receive_objects, comm_partner, temp_closest_results);
+          MapInsertElement(rCandidateManager.candidate_local_coordinates, comm_partner, temp_local_coordinates);
+          MapInsertElement(rCandidateManager.candidate_shape_functions, comm_partner, temp_shape_functions);
       }
 
       void ProcessMatchInformation(CandidateManager& rCandidateManager,
                                    int* buffer, const int buffer_size,
-                                   const int CommPartner) override {
+                                   const int comm_partner) override {
           for (int i = 0; i < buffer_size; ++i) {
               if (buffer[i] == 1) { // Match
                   if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
-                      if (!rCandidateManager.candidate_receive_objects.at(CommPartner)[i]) {
+                      if (!rCandidateManager.candidate_receive_objects.at(comm_partner)[i]) {
                           KRATOS_ERROR << "interface_obj pointer mismatch"
                                        << std::endl;
                       }
                   }
-                  m_receive_objects[CommPartner].push_back(rCandidateManager.candidate_receive_objects.at(CommPartner)[i]);
-                  m_shape_functions[CommPartner].push_back(rCandidateManager.candidate_shape_functions.at(CommPartner)[i]);
-                  m_local_coordinates[CommPartner].push_back(rCandidateManager.candidate_local_coordinates.at(CommPartner)[i]);
+                  m_receive_objects[comm_partner].push_back(rCandidateManager.candidate_receive_objects.at(comm_partner)[i]);
+                  m_shape_functions[comm_partner].push_back(rCandidateManager.candidate_shape_functions.at(comm_partner)[i]);
+                  m_local_coordinates[comm_partner].push_back(rCandidateManager.candidate_local_coordinates.at(comm_partner)[i]);
               }
           }
       }
@@ -298,7 +298,7 @@ namespace Kratos
       // **********************************************************************
       // Functions for Mapping ************************************************
       // **********************************************************************
-      void ComputeBufferSizesAndCommunicationGraph(int& rSendBufferSize,
+      void ComputeBufferSizesAndCommunicationGraph(int& send_buffer_size,
                                                    int& receive_buffer_size,
                                                    GraphType& colored_graph,
                                                    int& max_colors) override {
@@ -316,7 +316,7 @@ namespace Kratos
           // sizes are switched bcs transfer direction is inverted from searching to mapping
           MapperUtilitiesMPI::ComputeMaxBufferSizes(local_memory_size_array,
                                                     receive_buffer_size,
-                                                    rSendBufferSize,
+                                                    send_buffer_size,
                                                     m_comm_rank,
                                                     m_comm_size);
 
@@ -326,17 +326,17 @@ namespace Kratos
           delete [] local_comm_list;
           delete [] local_memory_size_array;
       }
-      void FillBufferWithValues(double* buffer, int& buffer_size, const int CommPartner,
+      void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
                                 const Variable<double>& variable, Kratos::Flags& options) override {
           int i = 0;
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_receive_objects.count(CommPartner) > 0) {
-              interface_objects = m_receive_objects.at(CommPartner);
+          if (m_receive_objects.count(comm_partner) > 0) {
+              interface_objects = m_receive_objects.at(comm_partner);
           }
 
           for (auto interface_obj : interface_objects) {
               if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(CommPartner)[i]);
+                  buffer[i] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i]);
               } else {
                   buffer[i] = interface_obj->GetObjectValue(variable, options);
               }
@@ -352,20 +352,20 @@ namespace Kratos
           }
       }
 
-      void FillBufferWithValues(double* buffer, int& buffer_size, const int CommPartner,
+      void FillBufferWithValues(double* buffer, int& buffer_size, const int comm_partner,
                                 const Variable< array_1d<double,3> >& variable,
                                 Kratos::Flags& options) override {
           int i = 0;
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_receive_objects.count(CommPartner) > 0) {
-              interface_objects = m_receive_objects.at(CommPartner);
+          if (m_receive_objects.count(comm_partner) > 0) {
+              interface_objects = m_receive_objects.at(comm_partner);
           }
 
           for (auto interface_obj : interface_objects) {
               if (options.Is(MapperFlags::INTERPOLATE_VALUES)) {
-                  buffer[(i*3) + 0] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(CommPartner)[i])[0];
-                  buffer[(i*3) + 1] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(CommPartner)[i])[1];
-                  buffer[(i*3) + 2] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(CommPartner)[i])[2];
+                  buffer[(i*3) + 0] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[0];
+                  buffer[(i*3) + 1] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[1];
+                  buffer[(i*3) + 2] = interface_obj->GetObjectValueInterpolated(variable, m_shape_functions.at(comm_partner)[i])[2];
               } else {
                   buffer[(i*3) + 0] = interface_obj->GetObjectValue(variable, options)[0];
                   buffer[(i*3) + 1] = interface_obj->GetObjectValue(variable, options)[1];
@@ -383,12 +383,12 @@ namespace Kratos
           }
       }
 
-      void ProcessValues(const double* buffer, const int buffer_size, const int CommPartner,
+      void ProcessValues(const double* buffer, const int buffer_size, const int comm_partner,
                          const Variable<double>& variable,
                          Kratos::Flags& options, const double factor) override {
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_send_objects.count(CommPartner) > 0) {
-             interface_objects = m_send_objects.at(CommPartner);
+          if (m_send_objects.count(comm_partner) > 0) {
+             interface_objects = m_send_objects.at(comm_partner);
           }
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {
@@ -405,7 +405,7 @@ namespace Kratos
           }
       }
 
-      void ProcessValues(const double* buffer, const int buffer_size, const int CommPartner,
+      void ProcessValues(const double* buffer, const int buffer_size, const int comm_partner,
                          const Variable< array_1d<double,3> >& variable,
                          Kratos::Flags& options, const double factor) override {
 
@@ -420,8 +420,8 @@ namespace Kratos
           const int num_values = buffer_size / 3;
 
           std::vector<InterfaceObject::Pointer> interface_objects;
-          if (m_send_objects.count(CommPartner) > 0) {
-             interface_objects = m_send_objects.at(CommPartner);
+          if (m_send_objects.count(comm_partner) > 0) {
+             interface_objects = m_send_objects.at(comm_partner);
           }
 
           if (MapperUtilities::MAPPER_DEBUG_LEVEL) {

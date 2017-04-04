@@ -345,7 +345,6 @@ namespace Kratos
 
       double mMinDistanceNeighbor;
       int mPairingStatus; // 0 no Neighbor found; 1 approximation (i.e. nearest Node found); 2 match found
-      // bool m_neighbor_found;
       int mNeighborRank;
 
       ///@}
@@ -360,7 +359,6 @@ namespace Kratos
       void SetInitialValuesToMembers() {
           mMinDistanceNeighbor = std::numeric_limits<double>::max();
           mPairingStatus = this->GetIndexNoNeighbor();
-          // m_neighbor_found = false;
           mNeighborRank = 0;
       }
 

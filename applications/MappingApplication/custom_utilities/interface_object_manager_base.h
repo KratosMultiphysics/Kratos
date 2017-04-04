@@ -243,14 +243,6 @@ namespace Kratos
           KRATOS_ERROR << "Base class function called!" << std::endl;
       }
 
-      // virtual std::vector<InterfaceObject::Pointer>& GetDestinationInterfaceObjects() {
-      //     KRATOS_ERROR << "Base class function called!" << std::endl;
-      // }
-
-      // virtual std::vector<InterfaceObject::Pointer>& GetOriginInterfaceObjects() {
-      //     KRATOS_ERROR << "Base class function called!" << std::endl;
-      // }
-
       // ***** InterfaceObjectManagerParallel *****
       virtual void ProcessReceiveBuffer(InterfaceObjectConfigure::ContainerType& remote_p_point_list,
                                 const double* coordinate_list, const int coordinate_list_size,

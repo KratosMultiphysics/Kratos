@@ -74,11 +74,6 @@ public:
       m_p_mapper_communicator->Initialize();
 
       m_p_inverse_mapper.reset(); // explicitly specified to be safe
-
-      if (rJsonParameters["approximation_tolerance"].GetDouble() >= 0.0f) {
-          KRATOS_ERROR << "Invalid Parameter \"approximation_tolerance\" " 
-                       << "specified for Nearest Neighbor Mapper" << std::endl;
-      }
   }
 
   /// Destructor.
