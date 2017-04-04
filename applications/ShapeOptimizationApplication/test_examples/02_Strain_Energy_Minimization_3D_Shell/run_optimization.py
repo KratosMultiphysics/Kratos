@@ -55,7 +55,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
         Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 # ======================================================================================================================================
-# Optimization
+# Analyzer
 # ======================================================================================================================================
 
 class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
@@ -207,6 +207,11 @@ class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
     # --------------------------------------------------------------------------
 
 structureAnalyzer = kratosCSMAnalyzer()
+
+# ======================================================================================================================================
+# Optimization
+# ======================================================================================================================================
+
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
 structureAnalyzer.finalizeSolutionLoop()

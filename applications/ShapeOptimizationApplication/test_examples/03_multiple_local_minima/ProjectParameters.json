@@ -1,0 +1,53 @@
+{
+    "optimization_settings" : {
+        "objectives" : [{ 
+                "identifier"    : "targetDeviation",
+                "use_kratos"    : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "variable_type"             : "vertex_morphing", 
+            "input_model_part_name"     : "multiple_local_minima",
+            "design_submodel_part_name" : "design_surface",
+            "domain_size"               : 3,
+            "filter" : {
+                "filter_function_type" : "linear",
+                "filter_radius"        : 4
+            },
+            "damping" : {
+                "perform_damping" : false,
+                "damping_regions" : []
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 200,
+            "relative_tolerance" : 1e-3
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : false,
+            "step_size"                  : 0.05
+        },
+        "output" : {
+            "output_directory"          : "Optimization_Results",
+            "design_history_filename"   : "design_history",
+            "optimization_log_filename" : "optimization_log",
+            "nodal_results"             : [ "NORMALIZED_SURFACE_NORMAL",
+                                            "OBJECTIVE_SENSITIVITY",
+                                            "MAPPED_OBJECTIVE_SENSITIVITY",
+                                            "DESIGN_UPDATE",
+                                            "DESIGN_CHANGE_ABSOLUTE",
+                                            "SHAPE_UPDATE",
+                                            "SHAPE_CHANGE_ABSOLUTE" ],            
+            "output_type" : {
+                "format"                 : "GiD",
+                "VolumeOutput"           : true,
+                "GiDPostMode"            : "Binary",
+                "GiDWriteMeshFlag"       : true,
+                "GiDWriteConditionsFlag" : true,
+                "GiDMultiFileFlag"       : "Single"
+            }      
+        }                  
+    }
+}

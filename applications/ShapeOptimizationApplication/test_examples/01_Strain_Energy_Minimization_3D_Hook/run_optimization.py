@@ -11,11 +11,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # For time measures
 import time as timer
 
-# For optimization
-import optimization_settings as optimizationSettings
-import optimizer_factory as optimizerFactory
-import response_function_factory as responseFunctionFactory
-
 # ======================================================================================================================================
 # Model part & solver
 # ======================================================================================================================================
@@ -34,13 +29,15 @@ main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_dat
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
-# Create an optimizer  
+# Create an optimizer 
 # Note that internally variables related to the optimizer are added to the model part
-optimizer = optimizerFactory.CreateOptimizer( main_model_part, optimizationSettings )
+optimizerFactory = __import__("optimizer_factory")
+optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters["optimization_settings"] )
 
 # Create solver for all response functions specified in the optimization settings 
 # Note that internally variables related to the individual functions are added to the model part
-responseFunctionSolver = responseFunctionFactory.CreateSolver( main_model_part, optimizationSettings )
+responseFunctionFactory = __import__("response_function_factory")
+listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
 
 # Create solver for handling mesh-motion
 mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
@@ -65,7 +62,7 @@ for i in range(ProjectParameters["structure_solver_settings"]["processes_sub_mod
         Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 # ======================================================================================================================================
-# Optimization
+# Analyzer
 # ======================================================================================================================================
 
 class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
@@ -116,8 +113,8 @@ class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
 
         mesh_solver.Initialize()
 
-        for responseFunctionId in responseFunctionSolver:
-            responseFunctionSolver[responseFunctionId].initialize()
+        for responseFunctionId in listOfResponseFunctions:
+            listOfResponseFunctions[responseFunctionId].initialize()
 
         # Start process
         for process in self.list_of_processes:
@@ -146,20 +143,20 @@ class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
 
             print("\n> Starting calculation of response value")
             startTime = timer.time()                    
-            responseFunctionSolver["strain_energy"].calculate_value()
+            listOfResponseFunctions["strain_energy"].calculate_value()
             print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", responseFunctionSolver["strain_energy"].get_value())  
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].get_value())  
 
         # Calculation of gradient of objective function
         if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradients")
             startTime = timer.time()               
-            responseFunctionSolver["strain_energy"].calculate_gradient()
+            listOfResponseFunctions["strain_energy"].calculate_gradient()
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
             
-            gradientForCompleteModelPart = responseFunctionSolver["strain_energy"].get_gradient()
+            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].get_gradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
@@ -274,6 +271,11 @@ class kratosCSMAnalyzer( optimizerFactory.analyzerBaseClass ):
     # --------------------------------------------------------------------------
 
 structureAnalyzer = kratosCSMAnalyzer()
+
+# ======================================================================================================================================
+# Optimization
+# ======================================================================================================================================
+
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
 structureAnalyzer.finalizeSolutionLoop()

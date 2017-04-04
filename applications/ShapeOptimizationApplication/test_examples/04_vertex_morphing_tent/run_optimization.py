@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-import optimization_settings as opt_settings
 import sys
 
 # This test example is from M. Hojjat, E. Stavropoulou, 
@@ -20,8 +19,16 @@ import sys
 #
 # 
 
-import optimization_settings as optimizationSettings
-import optimizer_factory as optimizerFactory
+# ======================================================================================================================================
+# Model part and solver
+# ======================================================================================================================================
+
+parameter_file = open("ProjectParameters.json",'r')
+ProjectParameters = Parameters( parameter_file.read())
+inputModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["input_model_part_name"].GetString() )
+
+optimizerFactory = __import__("optimizer_factory")
+optimizer = optimizerFactory.CreateOptimizer( inputModelPart, ProjectParameters["optimization_settings"] )
 
 # ======================================================================================================================================
 # Solver preparation
@@ -69,18 +76,16 @@ class externalAnalyzer( optimizerFactory.analyzerBaseClass ):
         else:
             return 0.0
 
+    # --------------------------------------------------------------------------
 
-# ======================================================================================================================================
-# Optimization part
-# ======================================================================================================================================
-
-inputModelPart = ModelPart(optimizationSettings.input_model_part_name)
 newAnalyzer = externalAnalyzer()
 
-optimizer = optimizerFactory.CreateOptimizer( inputModelPart, optimizationSettings )
+# ======================================================================================================================================
+# Optimization
+# ======================================================================================================================================
+
 optimizer.importAnalyzer( newAnalyzer )
 optimizer.importModelPart()
-
 optimizer.optimize()
 
 # ======================================================================================================================================

@@ -102,11 +102,11 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
-        model_part_io = ModelPartIO( self.optimizationSettings.input_model_part_name )
+        model_part_io = ModelPartIO( self.optimizationSettings["design_variables"]["input_model_part_name"].GetString() )
         model_part_io.ReadModelPart( self.inputModelPart )
         buffer_size = 1
         self.inputModelPart.SetBufferSize( buffer_size )
-        self.inputModelPart.ProcessInfo.SetValue(DOMAIN_SIZE,self.optimizationSettings.domain_size)
+        self.inputModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.optimizationSettings["design_variables"]["domain_size"].GetInt() )
 
     # --------------------------------------------------------------------------
     def importAnalyzer( self, newAnalyzer ): 
@@ -338,7 +338,8 @@ class VertexMorphingMethod:
         onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
         # Get Id of constraint
-        onlyConstraintFunction = self.optimizationSettings["constraints"][0]["identifier"].GetString()         
+        onlyConstraintFunction = self.optimizationSettings["constraints"][0]["identifier"].GetString()
+        typOfOnlyConstraintFunction = self.optimizationSettings["constraints"][0]["type"].GetString()      
 
         # Initialize file where design evolution is recorded
         with open(self.optimizationLogFile, 'w') as csvfile:
@@ -348,8 +349,8 @@ class VertexMorphingMethod:
             row.append("\tf\t")
             row.append("\tdf_absolute[%]\t")
             row.append("\tdf_relative[%]\t")
-            row.append("\tc["+str(onlyConstraintFunction)+"]:"+str(self.constraints[onlyConstraintFunction]["type"])+"\t")    
-            row.append("\tc["+str(onlyConstraintFunction)+"] / reference_value[%]"+"\t")        
+            row.append("\tc["+onlyConstraintFunction+"]: "+typOfOnlyConstraintFunction+"\t")    
+            row.append("\tc["+onlyConstraintFunction+"] / reference_value[%]"+"\t")        
             row.append("\tcorrection_scaling[-]\t")
             row.append("\tstep_size[-]\t")
             row.append("\tt_iteration[s]\t")
@@ -390,14 +391,12 @@ class VertexMorphingMethod:
             self.storeGradientOnNodes( gradientOfObjectiveFunction, gradientOfConstraintFunction )
             
             # Check if constraint is active
-            for functionId in self.constraints:
-                if self.constraints[functionId]["type"] == "eq":
-                    constraints_given = True
-                elif valueOfConstraintFunction > 0:
-                    constraints_given = True
-                else:
-                    constraints_given = False
-                break           
+            if typOfOnlyConstraintFunction == "equality":
+                constraints_given = True
+            elif valueOfConstraintFunction > 0:
+                constraints_given = True
+            else:
+                constraints_given = False       
 
             geometryTools.compute_unit_surface_normals()
             geometryTools.project_grad_on_unit_surface_normal( constraints_given )
