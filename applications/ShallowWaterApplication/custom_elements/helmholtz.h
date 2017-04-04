@@ -59,7 +59,7 @@ namespace Kratos
 * symbolic implementation is defined in the file:
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
-template< unsigned int TDim, unsigned int TNumVar, unsigned int TNumNodes = TDim + 1 >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
+template< unsigned int TDim, unsigned int TNumVar = 1, unsigned int TNumNodes = TDim + 1 >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
 class Helmholtz : public Element
 {
 public:
@@ -78,13 +78,14 @@ public:
         bounded_matrix<double, TNumNodes, TDim > DN_DX;   // Shape function spatial derivatives
         array_1d<double, TNumNodes > N;                   // Shape functions
 
-//        Matrix C;         // TODO: ??
+        Matrix C;         // TODO: ??
 //        Vector stress;
 
 //        double bdf0;
 //        double bdf1;
 //        double bdf2;
 //        double c;             // Wave velocity (needed if artificial compressibility is considered)
+        double g;             // Gravity
         double h;             // Element size
         double area;        // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
