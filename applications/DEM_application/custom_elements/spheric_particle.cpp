@@ -152,6 +152,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
 
+    SphericParticle::ParticleDataBuffer buffer;
+
     mContactMoment.clear();
     additional_forces.clear();
     additionally_applied_moment.clear();
@@ -165,7 +167,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     InitializeForceComputation(r_process_info);
 
-    ComputeBallToBallContactForce(elastic_force, contact_force, RollingResistance, r_process_info, dt, multi_stage_RHS);
+    ComputeBallToBallContactForce(buffer, elastic_force, contact_force, RollingResistance, r_process_info, dt, multi_stage_RHS);
 
     ComputeBallToRigidFaceContactForce(elastic_force, contact_force, RollingResistance, rigid_element_force, r_process_info, dt, search_control);
 
@@ -740,7 +742,8 @@ void SphericParticle::ComputeRollingFriction(array_1d<double, 3>& rolling_resist
     }   
 }
 
-void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elastic_force,
+void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+                                                    array_1d<double, 3>& r_elastic_force,
                                                     array_1d<double, 3>& r_contact_force,
                                                     double& RollingResistance,
                                                     ProcessInfo& r_process_info,
@@ -813,17 +816,19 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double cohesive_force                    =  0.0;
 
         if (indentation > 0.0) {            
-            double OldLocalElasticContactForce[3] = {0.0};
-            RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);// still in global coordinates
-            // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
-            const double previous_indentation = indentation + LocalDeltDisp[2];
-            double LocalRelVel[3] = {0.0};
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
-            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
-                    LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, 
-                    ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding, LocalCoordSystem);
+            EvaluateBallToBallForcesForPositiveIndentiations(r_process_info,
+                                                             LocalElasticContactForce,
+                                                             DeltDisp,
+                                                             LocalDeltDisp,
+                                                             RelVel,
+                                                             indentation,
+                                                             ViscoDampingLocalContactForce,
+                                                             cohesive_force,
+                                                             ineighbour,
+                                                             sliding,
+                                                             LocalCoordSystem,
+                                                             OldLocalCoordSystem,
+                                                             mNeighbourElasticContactForces[i]);
         }
 
         array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
@@ -847,6 +852,33 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
     KRATOS_CATCH("")
 }// ComputeBallToBallContactForce
+
+void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(const ProcessInfo& r_process_info,
+                                                                       double LocalElasticContactForce[3],
+                                                                       double DeltDisp[3],
+                                                                       double LocalDeltDisp[3],
+                                                                       double RelVel[3],
+                                                                       const double indentation,
+                                                                       double ViscoDampingLocalContactForce[3],
+                                                                       double& cohesive_force,
+                                                                       SphericParticle* p_neighbour_element,
+                                                                       bool& sliding,
+                                                                       double LocalCoordSystem[3][3],
+                                                                       double OldLocalCoordSystem[3][3],
+                                                                       array_1d<double, 3>& neighbour_elastic_contact_force)
+{
+    double OldLocalElasticContactForce[3] = {0.0};
+    RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, neighbour_elastic_contact_force);// still in global coordinates
+    // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, neighbour_elastic_contact_force, OldLocalElasticContactForce);
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+    const double previous_indentation = indentation + LocalDeltDisp[2];
+    double LocalRelVel[3] = {0.0};
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
+    mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
+            LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+            ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
+}
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,

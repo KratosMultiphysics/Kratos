@@ -223,7 +223,8 @@ namespace Kratos {
     KRATOS_CATCH("")
     }*/
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
+                                                                 array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
                                                                  double& RollingResistance,
                                                                  ProcessInfo& r_process_info,

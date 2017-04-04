@@ -52,6 +52,20 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 /// Destructor.
 virtual ~SphericParticle();
 
+class ParticleDataBuffer
+{
+public:
+    ParticleDataBuffer()
+    {
+      mDistance = 0.0;
+    }
+
+    virtual ~ParticleDataBuffer(){}
+
+double mDistance;
+
+};
+
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void Initialize(const ProcessInfo& r_process_info);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
@@ -228,7 +242,8 @@ virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 
-virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+virtual void ComputeBallToBallContactForce(ParticleDataBuffer & buffer,
+                                           array_1d<double, 3>& rElasticForce,
                                            array_1d<double, 3>& rContactForce,
                                            double& RollingResistance,
                                            ProcessInfo& r_process_info,
@@ -282,6 +297,21 @@ virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_mome
 virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
+
+virtual void EvaluateBallToBallForcesForPositiveIndentiations(const ProcessInfo& r_process_info,
+                                                              double LocalElasticContactForce[3],
+                                                              double DeltDisp[3],
+                                                              double LocalDeltDisp[3],
+                                                              double RelVel[3],
+                                                              double indentation,
+                                                              double ViscoDampingLocalContactForce[3],
+                                                              double& cohesive_force,
+                                                              SphericParticle* element2,
+                                                              bool& sliding,
+                                                              double LocalCoordSystem[3][3],
+                                                              double OldLocalCoordSystem[3][3],
+                                                              array_1d<double, 3>& neighbour_elastic_contact_force);
+
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                    double LocalCoordSystem[3][3],

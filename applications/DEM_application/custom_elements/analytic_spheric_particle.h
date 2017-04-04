@@ -57,6 +57,20 @@ protected:
 
 AnalyticSphericParticle();
 
+class ParticleDataBuffer: public SphericParticle::ParticleDataBuffer
+{
+public:
+    ParticleDataBuffer(): SphericParticle::ParticleDataBuffer()
+    {
+        mCollidingOrNot = true;
+    }
+
+    virtual ~ParticleDataBuffer();
+
+double mCollidingOrNot;
+
+};
+
 private:
 
 friend class Serializer;
