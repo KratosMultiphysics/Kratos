@@ -101,13 +101,14 @@ public:
             {
                 Point<3> ProjectedPoint;
                 double AuxDistance = 0.0;
-                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < Tolerance)
+                const array_1d<double, 3> Normal = Geom1[index].GetValue(NORMAL);
+                if (norm_2(Normal) < Tolerance)
                 {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, AuxDistance, ContactNormal1);
+                    AuxDistance = FastProjectDirection(Geom2, Geom1[index], ProjectedPoint, ContactNormal2, ContactNormal1);
                 }
                 else
                 {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, AuxDistance, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                    AuxDistance = FastProjectDirection(Geom2, Geom1[index], ProjectedPoint, ContactNormal2, Normal);
                 }  
               
                 // TODO: Think about this
