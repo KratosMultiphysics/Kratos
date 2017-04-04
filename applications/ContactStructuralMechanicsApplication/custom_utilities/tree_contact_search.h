@@ -13,9 +13,6 @@
 #define  KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <vector>
-#include "boost/smart_ptr.hpp"
 
 // External includes
 
@@ -23,7 +20,6 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "contact_structural_mechanics_application.h"
 #include "includes/model_part.h"
-#include "containers/array_1d.h"
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
@@ -509,7 +505,7 @@ public:
                         if (ipair->second == false)
                         {
                             // Last oportunity for the condition pair
-                            const bool CondActive = SearchUtilities::ContactContainerFiller(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
+                            const bool CondActive = SearchUtilities::ContactChecker(itCond->GetGeometry(),   (ipair->first)->GetGeometry(), 
                                                                                             itCond->GetValue(NORMAL), (ipair->first)->GetValue(NORMAL), 
                                                                                             mActiveCheckFactor);
                             if (CondActive == false) // Not paired anymore paired
