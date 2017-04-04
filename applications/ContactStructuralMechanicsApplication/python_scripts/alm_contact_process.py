@@ -179,6 +179,28 @@ class ALMContactProcess(KratosMultiphysics.Process):
         if self.params["contact_type"].GetString() == "Frictionless":    
             self.contact_search.UpdateMortarConditions(self.search_factor)
             #self.contact_search.CheckMortarConditions()
+            
+        ## Debug
+        #output_file = "POSTSEARCH"
+
+        #gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+        #singlefile = KratosMultiphysics.MultiFileFlag.SingleFile
+        #deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteDeformed
+        #write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
+
+        #gid_io = KratosMultiphysics.GidIO(output_file, gid_mode, singlefile,
+                        #deformed_mesh_flag, write_conditions)
+        
+        #label = 0
+        #gid_io.InitializeMesh(label)
+        #gid_io.WriteMesh(self.main_model_part.GetMesh())
+        #gid_io.FinalizeMesh()
+        #gid_io.InitializeResults(label, self.main_model_part.GetMesh())
+        ##gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, "DISPLACEMENT", self.main_model_part.Nodes, label, 0)
+        #gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+        #gid_io.FinalizeResults()
+        
+        #raise NameError('DEBUG')
         
     def ExecuteFinalizeSolutionStep(self):
         pass
