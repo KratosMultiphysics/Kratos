@@ -171,29 +171,30 @@ void Helmholtz<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,3,3>& 
     //~ const int strain_size = 3;
 
     const double H = inner_prod(data.N, data.H);           // Bathymetry
-    const double h = data.h;                               // Characteristic element size
+    const double g = data.g;                               // Gravity
+    //~ const double h = data.h;                               // Characteristic element size  // Unused variable
 
-    const double& dt = data.dt;
-    const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
+    //~ const double& dt = data.dt;
+    //~ const double& bdf0 = data.bdf0;
+    //~ const double& bdf1 = data.bdf1;
+    //~ const double& bdf2 = data.bdf2;
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
     //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
-    const array_1d<double,nnodes>& eta = data.eta;
-    const array_1d<double,nnodes>& etan = data.etan;
-    const array_1d<double,nnodes>& etann = data.etann;
+    //~ const bounded_matrix<double,nnodes,dim>& f = data.f;    // Unused variable
+    //~ const array_1d<double,nnodes>& eta = data.eta;          // Unused variable
+    //~ const array_1d<double,nnodes>& etan = data.etan;        // Unused variable
+    //~ const array_1d<double,nnodes>& etann = data.etann;      // Unused variable
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
-    const Matrix& C = data.C;
+    //~ const Matrix& C = data.C;                               // Unused variable
 
     // Get shape function values
-    const array_1d<double,nnodes>& N = data.N;
+    //~ const array_1d<double,nnodes>& N = data.N;              // Unused variable
     const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
@@ -290,12 +291,13 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     // const int strain_size = 3;
 
     const double H = inner_prod(data.N, data.H);           // Bathymetry
-    const double h = data.h;                               // Characteristic element size
+    const double g = data.g;                               // Gravity
+    //~ const double h = data.h;                               // Characteristic element size    // Unused variable
 
-    const double& dt = data.dt;
-    const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
+    //~ const double& dt = data.dt;
+    //~ const double& bdf0 = data.bdf0;
+    //~ const double& bdf1 = data.bdf1;
+    //~ const double& bdf2 = data.bdf2;
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -304,8 +306,8 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& eta = data.eta;
-    const array_1d<double,nnodes>& etan = data.etan;
-    const array_1d<double,nnodes>& etann = data.etann;
+    //~ const array_1d<double,nnodes>& etan = data.etan;        // Unused variable
+    //~ const array_1d<double,nnodes>& etann = data.etann;      // Unused variable
     //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
@@ -410,14 +412,15 @@ double Helmholtz<2>::SubscaleErrorEstimate(const ElementDataStruct& data)  // No
     const int nnodes = 3;
     const int dim = 2;
 
-    const double H = inner_prod(data.N, data.H);          // Bathymetry
-    const double h = data.h;                              // Characteristic element size
+    //~ const double H = inner_prod(data.N, data.H);           // Bathymetry                        // Unused variable
+    //~ const double g = data.g;                               // Gravity                           // Unused variable
+    //~ const double h = data.h;                               // Characteristic element size       // Unused variable
 
-    const double& dt = data.dt;
-    const double& bdf0 = data.bdf0;
-    const double& bdf1 = data.bdf1;
-    const double& bdf2 = data.bdf2;
-    const double& dyn_tau = data.dyn_tau;
+    //~ const double& dt = data.dt;
+    //~ const double& bdf0 = data.bdf0;
+    //~ const double& bdf1 = data.bdf1;
+    //~ const double& bdf2 = data.bdf2;
+    //~ const double& dyn_tau = data.dyn_tau;
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
@@ -426,8 +429,8 @@ double Helmholtz<2>::SubscaleErrorEstimate(const ElementDataStruct& data)  // No
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
     const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& eta = data.eta;
-    const array_1d<double,nnodes>& etan = data.etan;
-    const array_1d<double,nnodes>& etann = data.etann;
+    //~ const array_1d<double,nnodes>& etan = data.etan;                   // Unused variable
+    //~ const array_1d<double,nnodes>& etann = data.etann;                 // Unused variable
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -454,7 +457,7 @@ double Helmholtz<2>::SubscaleErrorEstimate(const ElementDataStruct& data)  // No
     // const double v_gauss_norm = norm_2(v_gauss);
     // const double v_s_gauss_norm = norm_2(v_s_gauss);
 
-    return v_s_gauss_norm/v_gauss_norm;
+    return 1;
 }
 
 }
