@@ -8,9 +8,6 @@
 #
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------------------
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division 
 
@@ -33,8 +30,7 @@ import json
 # ==============================================================================
 def CreateOptimizer( inputModelPart, optimizationSettings ):
     if  optimizationSettings["design_variables"]["variable_type"].GetString() == "vertex_morphing":
-        communicator = Communicator( optimizationSettings )
-        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings, communicator )
+        optimizer = VertexMorphingMethod( inputModelPart, optimizationSettings )
         return optimizer
     else:
         sys.exit( "Specified design_control not implemented" )
@@ -42,16 +38,10 @@ def CreateOptimizer( inputModelPart, optimizationSettings ):
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__( self, inputModelPart, optimizationSettings, communicator ):
+    def __init__( self, inputModelPart, optimizationSettings ):
         
         self.inputModelPart = inputModelPart
         self.optimizationSettings = optimizationSettings
-        self.communicator = communicator
-
-        self.createFolderToStoreOptimizationResults( optimizationSettings )
-        self.gidIO = self.createGiDIO( optimizationSettings )
-        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )   
-
         self.addVariablesNeededForOptimization( inputModelPart )
     
     # --------------------------------------------------------------------------
@@ -119,18 +109,40 @@ class VertexMorphingMethod:
         print("> ",time.ctime(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
         print("> ==============================================================================================================\n")
 
-        self.timeAtStartOfOptimization = time.time()
         
         self.outputInformationAboutResponseFunctions()
 
-        self.designSurface = self.getDesignSurfaceFromInputModelPart()
-        self.listOfDampingRegions = self.getListOfDampingRegions()
+        # timer
+        self.timeAtStartOfOptimization = time.time()
 
+        # model data
+        self.designSurface = self.getDesignSurfaceFromInputModelPart()
+
+        # communicator
+        self.communicator = Communicator( optimizationSettings )        
+
+        # mapper
+        self.listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
         self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, self.listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
+
+        # outputWriter
+        self.createFolderToStoreOptimizationResults( optimizationSettings )
+        self.gidIO = self.createGiDIO( optimizationSettings )
+        self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
+        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )   
+
+        # algorithm_driver
+        # specifiedAlgorithm = OptimizationAlgorithems( self.design_surface, communicator, mapper, outputWriter, timer)
+
+        # outputWriter.initializeOutput()
+
+        # specifiedAlgorithm.run()
+
+         # outputWriter.finalizeOutput()
+
 
         iteratorForInitialDesign = 0
         self.gidIO.initialize_results( self.designSurface )
-        self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
         self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.nodalResults, [])   
 
         self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
@@ -170,7 +182,7 @@ class VertexMorphingMethod:
             raise RuntimeError("Sub-model part specified for optimization does not exist!")
 
     # --------------------------------------------------------------------------
-    def getListOfDampingRegions( self ):
+    def getListOfDampingRegionsFromInputModelPart( self ):
         listOfDampingRegions = {}
         print("> The following damping regions are defined: \n")
         for regionNumber in range(self.optimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
