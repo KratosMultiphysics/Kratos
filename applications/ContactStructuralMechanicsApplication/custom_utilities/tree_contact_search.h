@@ -80,7 +80,7 @@ public:
     
     // KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > tree;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
@@ -363,7 +363,7 @@ public:
         // Create a tree
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
-        tree Tree_points(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
+        KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
         
         // Iterate in the conditions
         ConditionsArrayType& pConditions = mrMainModelPart.Conditions();
@@ -381,20 +381,17 @@ public:
                     Point<3> Center;
                     const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
 
-                    NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
+                    NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
                 }
-//                 else if (mSearchTreeType == KdtreeInBox) // TODO: Complete search in bounding box
-//                 {
-//                     Point<3> MinPoint, MaxPoint;
-//                     CondOri->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-//                     NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
-//                 }
-//                 else if (mSearchTreeType == Kdop) // TODO: Complete search in k-DOP
-//                 {
-//                 }
+                else if (mSearchTreeType == KdtreeInBox)
+                {
+                    Node<3> MinPoint, MaxPoint;
+                    itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
+                    NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
+                }
                 else
                 {
-                    KRATOS_ERROR << " The type search declared does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
+                    KRATOS_ERROR << " The type search is not implemented yet does not exist!!!!. SearchTreeType = " << mSearchTreeType << std::endl;
                 }
                 
                 if (NumberPointsFound > 0)
@@ -668,6 +665,7 @@ protected:
         }
         else if (str == "KDOP")
         {
+            KRATOS_ERROR << "KDOP contact search: Not yet implemented" << std::endl;
             return Kdop;
         }
         else

@@ -365,15 +365,12 @@ void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everyt
 
             NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mallocation);
         }
-//         else if (type_search == 1) // TODO: Complete search in bounding box
-//         {
-//             Point<3> MinPoint, MaxPoint;
-//             CondOri->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-//             NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), mallocation);
-//         }
-//         else if (type_search == 1) // TODO: Complete search in k-DOP
-//         {
-//         }
+        else if (type_search == 1) // TODO: Complete search in bounding box
+        {
+            Node<3> MinPoint, MaxPoint;
+            pCondOrigin->GetGeometry().BoundingBox(MinPoint, MaxPoint);
+            NumberPointsFound = Tree_points.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mallocation);
+        }
         else
         {
             KRATOS_ERROR << " The type search declared does not exist!!!!. type_search = " << type_search << std::endl;
