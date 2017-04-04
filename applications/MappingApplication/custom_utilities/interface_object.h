@@ -148,9 +148,9 @@ namespace Kratos
           }
       }
 
-      bool HasNeighborInPartition(const int PartitionIndex) {
+      bool HasNeighborOrApproximationInPartition(const int PartitionIndex) {
           bool return_value = false;
-          if (mPairingStatus == this->GetIndexNeighborFound()) {
+          if (mPairingStatus >= this->GetIndexApproximation()) {
               if (mNeighborRank == PartitionIndex)
                   return_value = true;
           }

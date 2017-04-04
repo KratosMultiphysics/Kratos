@@ -134,7 +134,7 @@ namespace Kratos
                                        // this partition doesn't have a part of the interface!
 
           for (auto& interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborOrApproximationFound()) {
+              if (!interface_obj->NeighborOrApproximationFound()) { // TODO this prevents from printing warnings in case only an approx is found
                   all_neighbors_found = 0;
               }
           }
@@ -148,14 +148,14 @@ namespace Kratos
       void CheckResults() {
           for (auto& interface_obj : m_interface_objects) {
               const int pairing_status = interface_obj->GetPairingStatus();
-              if (pairing_status == 0) {
+              if (pairing_status == 0) { // TODO
                   std::cout << "MAPPER WARNING, Rank " << m_comm_rank
                             << "\tPoint [ "
                             << interface_obj->X() << " | "
                             << interface_obj->Y() << " | "
                             << interface_obj->Z() << " ] " 
                             << "has not found a neighbor" << std::endl;
-              } else if (pairing_status == 1) {
+              } else if (pairing_status == 1) { // TODO
                   std::cout << "MAPPER WARNING, Rank " << m_comm_rank
                             << "\tPoint [ "
                             << interface_obj->X() << " | "
