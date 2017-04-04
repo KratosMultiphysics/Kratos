@@ -385,8 +385,11 @@ public:
                 }
                 else if (mSearchTreeType == KdtreeInBox)
                 {
+                    const Point<3> Center = itCond->GetGeometry().Center();
                     Node<3> MinPoint, MaxPoint;
                     itCond->GetGeometry().BoundingBox(MinPoint, MaxPoint);
+                    ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
+                    ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
                     NumberPointsFound = TreePoints.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mAllocationSize);
                 }
                 else

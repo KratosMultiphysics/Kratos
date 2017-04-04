@@ -367,7 +367,10 @@ void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everyt
         }
         else if (type_search == 1) // TODO: Complete search in bounding box
         {
+            const Point<3> Center = pCondOrigin->GetGeometry().Center();
             Node<3> MinPoint, MaxPoint;
+            ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
+            ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
             pCondOrigin->GetGeometry().BoundingBox(MinPoint, MaxPoint);
             NumberPointsFound = Tree_points.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), mallocation);
         }

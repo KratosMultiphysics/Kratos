@@ -312,19 +312,44 @@ public:
     }
     
     /**
+     * This function scales the points according to a factor (to increase the bounding box)
+     * @param PointToScale: The point to scale
+     * @param Center: The reference point
+     * @param ScaleFactor: The factor considered to "grow" the node
+     */
+    
+    template<class TPointType>
+    static inline void ScaleNode(
+        TPointType& PointToScale,
+        const Point<3>& Center,
+        const double ScaleFactor
+        )
+    {
+        // We calculate the new distance
+        const double Distance = ScaleFactor * DistancePoints(PointToScale.Coordinates(), Center.Coordinates());
+        
+        // Now the vector between nodes
+        array_1d<double, 3> VectorPoints = PointToScale.Coordinates() - Center.Coordinates();
+        VectorPoints /= norm_2(VectorPoints);
+        
+        // Finally we rescale
+        PointToScale.Coordinates() = Center.Coordinates() + VectorPoints * Distance;
+    }
+    
+    /**
      * Calculates the distance between nodes
-     * @param PointOrigin: A point in the plane
-     * @param PointDestiny: The point to be projected
+     * @param PointOrigin: The first node
+     * @param PointDestiny: The second node
      */
     
     static inline double DistancePoints(
-        const Point<3>& PointOrigin,
-        const Point<3>& PointDestiny
+        const GeometryType::CoordinatesArrayType& PointOrigin,
+        const GeometryType::CoordinatesArrayType& PointDestiny
         )
     {
-        return std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
-                                    + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
-                                    + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
+        return std::sqrt((PointOrigin[0] - PointDestiny[0]) * (PointOrigin[0] - PointDestiny[0])
+                       + (PointOrigin[1] - PointDestiny[1]) * (PointOrigin[1] - PointDestiny[1])
+                       + (PointOrigin[2] - PointDestiny[2]) * (PointOrigin[2] - PointDestiny[2]));
     }
 
     /**
