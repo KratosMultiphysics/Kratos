@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import math
 
 # Import utilities
 import NonConformant_OneSideMap                # Import non-conformant mapper
@@ -114,22 +115,22 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             # Residual computation
             dis_residual = self._ComputeDisplacementResidual()
             nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM]
-            FluidInterfaceArea = self.partitioned_fsi_utilities.GetFluidInterfaceArea()
+            interface_dofs = self.partitioned_fsi_utilities.GetFluidInterfaceResidualSize()
 
             # Check convergence
-            if nl_res_norm/FluidInterfaceArea < self.nl_tol:
+            if nl_res_norm/math.sqrt(interface_dofs) < self.nl_tol:
                 print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
-                print("     Total non-linear iterations: ",nl_it," |res|/A = ",nl_res_norm/FluidInterfaceArea)
+                print("     Total non-linear iterations: ",nl_it," |res|/sqrt(Ndofs) = ",nl_res_norm/math.sqrt(interface_dofs))
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
-                print("     Residual computation finished. |res|/A =", nl_res_norm/FluidInterfaceArea)
+                print("     Residual computation finished. |res|/sqrt(Ndofs) =", nl_res_norm/math.sqrt(interface_dofs))
                 print("     Performing non-linear iteration ",nl_it," correction.")
                 # self.coupling_utility.UpdateSolution(vel_residual, self.iteration_value)
                 self.coupling_utility.UpdateSolution(dis_residual, self.iteration_value)
                 self.coupling_utility.FinalizeNonLinearIteration()
 
-        ## Compute the mesh residual
+        ## Compute the mesh residual as final testing (it is expected to be 0)
         self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm()
         mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosFSI.FSI_INTERFACE_MESH_RESIDUAL_NORM)
         print("     NL residual norm: ", nl_res_norm)
