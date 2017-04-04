@@ -66,20 +66,21 @@ public:
     ///@{
     
     /**
-     * This function fills the contact_container for the Mortar condition
-     * @param ContactPoint: The destination point
-     * @param Geom1 and Geom2: The geometries of the slave and master respectively
-     * @param ContactNormal1 and ContactNormal2: The normals of the slave and master respectively
-     * @param IntegrationOrder: The integration order   
-     * @return contact_container: Once has been filled
+     * This function checks if there is potential contact between two geometries (two conditions) 
+     * @param Geom1: The geometry of the slave 
+     * @param Geom2: The geometry of the master 
+     * @param ContactNormal1: The normals of the slave
+     * @param ContactNormal2: The normals of the master
+     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @return ConditionIsActive: True if the condition is active, false otherwise
      */
 
-    static inline bool ContactContainerFiller(
+    static inline bool ContactChecker(
             GeometryType& Geom1, // SLAVE
             GeometryType& Geom2, // MASTER
             const array_1d<double, 3> & ContactNormal1, // SLAVE
             const array_1d<double, 3> & ContactNormal2, // MASTER
-            const double ActiveCheckFactor
+            const double ActiveCheckLength
             )
     {
         // Define the basic information
@@ -110,8 +111,7 @@ public:
 //                 }
                 
                 array_1d<double, 3> Result;
-                if (AuxDistance <= ActiveCheckFactor)
-//                 if (AuxDistance <= ActiveCheckFactor && Geom2.IsInside(ProjectedPoint, Result)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
+                if (AuxDistance <= ActiveCheckLength && Geom2.IsInside(ProjectedPoint, Result)) // NOTE: This can be problematic (It depends the way IsInside() and the LocalPointCoordinates() are implemented)
                 { 
                     Geom1[iNode].Set(ACTIVE, true);
                     ConditionIsActive = true;
@@ -126,16 +126,27 @@ public:
          return ConditionIsActive;
     }
     
+    /**
+     * This function fills the contact_container for the Mortar condition
+     * @param ConditionPointers: The vector storing all the potential conditions
+     * @param Geom1: The geometry of the slave 
+     * @param Geom2: The geometry of the master 
+     * @param ContactNormal1: The normals of the slave
+     * @param ContactNormal2: The normals of the master
+     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @return ConditionIsActive: True if the condition is active, false otherwise
+     */
+    
     static inline void ContactContainerFiller(
         std::vector<contact_container> *& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
         const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckFactor
+        const double ActiveCheckLength
         )
     {
-        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
+        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength);
         
         if (ConditionIsActive == true)
         {
@@ -147,16 +158,27 @@ public:
         }
     }
     
+    /**
+     * This function fills the ConditionMap for the Mortar condition
+     * @param ConditionPointers: The map storing the potential contact conditions
+     * @param Geom1: The geometry of the slave 
+     * @param Geom2: The geometry of the master 
+     * @param ContactNormal1: The normals of the slave
+     * @param ContactNormal2: The normals of the master
+     * @param ActiveCheckLength: The threshold distance to check the potential contact
+     * @return ConditionIsActive: True if the condition is active, false otherwise
+     */
+    
     static inline void ContactContainerFiller(
         ConditionMap *& ConditionPointers,
         Condition::Pointer & pCond1,       // SLAVE
         const Condition::Pointer & pCond2, // MASTER
         const array_1d<double, 3> & ContactNormal1, // SLAVE
         const array_1d<double, 3> & ContactNormal2, // MASTER
-        const double ActiveCheckFactor
+        const double ActiveCheckLength
         )
     {
-        const bool ConditionIsActive = ContactContainerFiller(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckFactor);
+        const bool ConditionIsActive = ContactChecker(pCond1->GetGeometry(), pCond2->GetGeometry(), ContactNormal1, ContactNormal2, ActiveCheckLength);
         
         if (ConditionIsActive == true)
         {

@@ -470,7 +470,7 @@ void DeprecatedTreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
                     {
                         // Last oportunity for the condition pair
                         const double ActiveCheckFactor = itCond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-                        const bool cond_active = SearchUtilities::ContactContainerFiller(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
+                        const bool cond_active = SearchUtilities::ContactChecker(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
                                                                                           itCond->GetValue(NORMAL), (aux_contact_container.condition)->GetValue(NORMAL), 
                                                                                           ActiveCheckFactor);
                         if (cond_active == true) // Still paired
