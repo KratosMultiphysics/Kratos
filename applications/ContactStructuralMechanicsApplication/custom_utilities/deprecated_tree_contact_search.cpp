@@ -367,7 +367,8 @@ void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everyt
         }
         else if (type_search == 1)
         {
-            const Point<3> Center = pCondOrigin->GetGeometry().Center();
+            Point<3> Center;
+            ContactUtilities::CenterAndRadius(pCondOrigin, Center);
             Node<3> MinPoint, MaxPoint;
             ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
             ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
