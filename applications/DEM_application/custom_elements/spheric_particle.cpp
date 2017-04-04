@@ -812,7 +812,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
 
-        if (indentation > 0.0) {
+        if (indentation > 0.0) {            
             double OldLocalElasticContactForce[3] = {0.0};
             RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);// still in global coordinates
             // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
@@ -1686,49 +1686,49 @@ void SphericParticle::ApplyGlobalDampingToContactForces() {
     KRATOS_CATCH("")
 }
 
-int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
-void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
-double SphericParticle::GetRadius()                                                      { return mRadius;         }
-double SphericParticle::CalculateVolume()                                                { return 4.0 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
-void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
-void   SphericParticle::SetRadius()                                                      { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
-double SphericParticle::GetInteractionRadius()                                           { return mRadius;         }
-void   SphericParticle::SetInteractionRadius(const double radius)                        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
-double SphericParticle::GetSearchRadius()                                                { return mSearchRadius;   }
-double SphericParticle::GetSearchRadiusWithFem()                                         { return mSearchRadiusWithFem;   }
-void   SphericParticle::SetSearchRadius(const double radius)                             { mSearchRadius = radius; }
-void   SphericParticle::SetSearchRadiusWithFem(const double radius)                      { mSearchRadiusWithFem = radius; }
-double SphericParticle::GetMass()                                                        { return mRealMass;       }
-void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
-double SphericParticle::CalculateMomentOfInertia()                                       { return 0.4 * GetMass() * GetRadius() * GetRadius(); }
+int    SphericParticle::GetClusterId()                                                           { return mClusterId;      }
+void   SphericParticle::SetClusterId(int givenId)                                                { mClusterId = givenId;   }
+double SphericParticle::GetRadius()                                                              { return mRadius;         }
+double SphericParticle::CalculateVolume()                                                        { return 4.0 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
+void   SphericParticle::SetRadius(double radius)                                                 { mRadius = radius;       }
+void   SphericParticle::SetRadius()                                                              { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
+double SphericParticle::GetInteractionRadius(const int radius_index)                             { return mRadius;         }
+void   SphericParticle::SetInteractionRadius(const double radius, const int radius_index)        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
+double SphericParticle::GetSearchRadius()                                                        { return mSearchRadius;   }
+double SphericParticle::GetSearchRadiusWithFem()                                                 { return mSearchRadiusWithFem;   }
+void   SphericParticle::SetSearchRadius(const double radius)                                     { mSearchRadius = radius; }
+void   SphericParticle::SetSearchRadiusWithFem(const double radius)                              { mSearchRadiusWithFem = radius; }
+double SphericParticle::GetMass()                                                                { return mRealMass;       }
+void   SphericParticle::SetMass(double real_mass)                                                { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
+double SphericParticle::CalculateMomentOfInertia()                                               { return 0.4 * GetMass() * GetRadius() * GetRadius(); }
 
-double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                     }
-double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();           }
-double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                   }
-double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;        }
-double SphericParticle::GetCoefficientOfRestitution()                                    { return GetFastProperties()->GetCoefficientOfRestitution();  }
-double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();           }
-double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                   }
-int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();          }
-double SphericParticle::GetParticleCohesion()                                            { return GetFastProperties()->GetParticleCohesion();          }
-double SphericParticle::GetParticleKNormal()                                             { return GetFastProperties()->GetParticleKNormal();           }
-double SphericParticle::GetParticleKTangential()                                         { return GetFastProperties()->GetParticleKTangential();       }
+double SphericParticle::GetYoung()                                                               { return GetFastProperties()->GetYoung();                     }
+double SphericParticle::GetRollingFriction()                                                     { return GetFastProperties()->GetRollingFriction();           }
+double SphericParticle::GetPoisson()                                                             { return GetFastProperties()->GetPoisson();                   }
+double SphericParticle::GetTgOfFrictionAngle()                                                   { return GetFastProperties()->GetTgOfFrictionAngle() ;        }
+double SphericParticle::GetCoefficientOfRestitution()                                            { return GetFastProperties()->GetCoefficientOfRestitution();  }
+double SphericParticle::GetLnOfRestitCoeff()                                                     { return GetFastProperties()->GetLnOfRestitCoeff();           }
+double SphericParticle::GetDensity()                                                             { return GetFastProperties()->GetDensity();                   }
+int    SphericParticle::GetParticleMaterial()                                                    { return GetFastProperties()->GetParticleMaterial();          }
+double SphericParticle::GetParticleCohesion()                                                    { return GetFastProperties()->GetParticleCohesion();          }
+double SphericParticle::GetParticleKNormal()                                                     { return GetFastProperties()->GetParticleKNormal();           }
+double SphericParticle::GetParticleKTangential()                                                 { return GetFastProperties()->GetParticleKTangential();       }
 
 // Conical damage
-double SphericParticle::GetParticleContactRadius()                                       { return GetFastProperties()->GetParticleContactRadius();     }
-double SphericParticle::GetParticleMaxStress()                                           { return GetFastProperties()->GetParticleMaxStress();         }
-double SphericParticle::GetParticleAlpha()                                               { return GetFastProperties()->GetParticleAlpha();             }
-double SphericParticle::GetParticleGamma()                                               { return GetFastProperties()->GetParticleGamma();             }
+double SphericParticle::GetParticleContactRadius()                                               { return GetFastProperties()->GetParticleContactRadius();     }
+double SphericParticle::GetParticleMaxStress()                                                   { return GetFastProperties()->GetParticleMaxStress();         }
+double SphericParticle::GetParticleAlpha()                                                       { return GetFastProperties()->GetParticleAlpha();             }
+double SphericParticle::GetParticleGamma()                                                       { return GetFastProperties()->GetParticleGamma();             }
 
-array_1d<double, 3>& SphericParticle::GetForce()                                         { return GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);}
-double&              SphericParticle::GetElasticEnergy()                                 { return mElasticEnergy; }
-double&              SphericParticle::GetInelasticFrictionalEnergy()                     { return mInelasticFrictionalEnergy; }
-double&              SphericParticle::GetInelasticViscodampingEnergy()                   { return mInelasticViscodampingEnergy; }
+array_1d<double, 3>& SphericParticle::GetForce()                                                 { return GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);}
+double&              SphericParticle::GetElasticEnergy()                                         { return mElasticEnergy; }
+double&              SphericParticle::GetInelasticFrictionalEnergy()                             { return mInelasticFrictionalEnergy; }
+double&              SphericParticle::GetInelasticViscodampingEnergy()                           { return mInelasticViscodampingEnergy; }
 
-void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                             }
-void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }
-void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { GetFastProperties()->SetPoissonFromProperties( poisson);                         }
-void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);  }
+void   SphericParticle::SetYoungFromProperties(double* young)                                    { GetFastProperties()->SetYoungFromProperties( young);                             }
+void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)               { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }
+void   SphericParticle::SetPoissonFromProperties(double* poisson)                                { GetFastProperties()->SetPoissonFromProperties( poisson);                         }
+void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle)         { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);  }
 void   SphericParticle::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { GetFastProperties()->SetCoefficientOfRestitutionFromProperties( coefficient_of_restitution);      }
 void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);      }
 void   SphericParticle::SetDensityFromProperties(double* density)                        { GetFastProperties()->SetDensityFromProperties( density);                         }
