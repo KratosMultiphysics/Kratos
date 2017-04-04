@@ -1448,8 +1448,10 @@ void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const Pro
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template class SphericSwimmingParticle<SphericParticle>;  //Explicit Instantiation
-template class SphericSwimmingParticle<NanoParticle>;     //Explicit Instantiation
+//Explicit Instantiations
+template class SphericSwimmingParticle<SphericParticle>;
+template class SphericSwimmingParticle<NanoParticle>;
+template class SphericSwimmingParticle<AnalyticSphericParticle>;
 
 // Definition ( this probably neds to me moved to the .h file )
 template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAjs;
@@ -1478,6 +1480,7 @@ template double SphericSwimmingParticle<_T>::mTimeWindow;
 
 INSTANTIATE_SPHERIC_SWIMMING(SphericParticle)
 INSTANTIATE_SPHERIC_SWIMMING(NanoParticle)
+INSTANTIATE_SPHERIC_SWIMMING(AnalyticSphericParticle)
 
 #undef INSTANTIATE_SPHERIC_SWIMMING
 

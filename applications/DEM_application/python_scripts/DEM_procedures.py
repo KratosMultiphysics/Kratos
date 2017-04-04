@@ -1421,7 +1421,7 @@ class DEMIo(object):
             if (Var_Translator(self.DEM_parameters.PostBrokenRatio)):
                 self.PushPrintVar(self.PostBrokenRatio,       NEIGHBOUR_RATIO,              self.spheres_variables)
 
-        # NANO
+        # NANO (TODO: must be removed from here.)
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 

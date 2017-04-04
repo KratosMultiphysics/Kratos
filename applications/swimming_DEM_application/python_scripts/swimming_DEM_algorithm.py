@@ -18,6 +18,8 @@ class Algorithm(BaseAlgorithm):
         self.pp = pp
         self.SetBetaParamters()
         self.SetDoSolveDEMVariable()
+        # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
+        self.GetBassetForceTools()
 
     def CreateParts(self):
         # Order must be respected here
@@ -60,14 +62,14 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.vorticity_calculation_type = 5
         self.pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
         self.pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-        self.pp.CFD_DEM.basset_force_type = 0
+        self.pp.CFD_DEM.basset_force_type = 4
         self.pp.CFD_DEM.print_BASSET_FORCE_option = 1
         self.pp.CFD_DEM.basset_force_integration_type = 2
         self.pp.CFD_DEM.n_init_basset_steps = 0
         self.pp.CFD_DEM.time_steps_per_quadrature_step = 1
         self.pp.CFD_DEM.delta_time_quadrature = self.pp.CFD_DEM.time_steps_per_quadrature_step * self.pp.CFD_DEM.MaxTimeStep
         self.pp.CFD_DEM.quadrature_order = 2
-        self.pp.CFD_DEM.time_window = 0.1
+        self.pp.CFD_DEM.time_window = 0.8
         self.pp.CFD_DEM.number_of_exponentials = 10
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
@@ -132,6 +134,8 @@ class Algorithm(BaseAlgorithm):
 
     def AddExtraVariables(self):
         import variables_management as vars_man
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')
+
         fluid_model_part = self.all_model_parts.Get('FluidPart')
 
                 # building lists of variables for which memory is to be allocated
@@ -181,15 +185,15 @@ class Algorithm(BaseAlgorithm):
 
         # Add variables
 
-        vars_man.AddNodalVariables(self.spheres_model_part, self.pp.dem_vars)
+        vars_man.AddNodalVariables(spheres_model_part, self.pp.dem_vars)
         vars_man.AddNodalVariables(self.rigid_face_model_part, self.pp.rigid_faces_vars)
         vars_man.AddNodalVariables(self.DEM_inlet_model_part, self.pp.inlet_vars)
         # adding extra process info variables
-        vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, self.spheres_model_part)
+        vars_man.AddingExtraProcessInfoVariables(self.pp, fluid_model_part, spheres_model_part)
 
         fluid_model_part.SetBufferSize(3)
         self.solver_module.AddDofs(fluid_model_part, SolverSettings)
-        SDP.AddExtraDofs(self.pp, fluid_model_part, self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
+        SDP.AddExtraDofs(self.pp, fluid_model_part, spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part)
 
         os.chdir(self.main_path)
 
@@ -225,7 +229,6 @@ class Algorithm(BaseAlgorithm):
 
     def SetSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.pp.CFD_DEM, self.procedures)
-
 
     def TellTime(self, time):
         print("\n", "TIME = ", time)
@@ -275,6 +278,26 @@ class Algorithm(BaseAlgorithm):
 
     def GetRunCode(self):
         return SDP.CreateRunCode(self.pp)
+
+    def FillHistoryForcePrecalculatedVectors(self):
+        # Warning: this estimation is based on a constant time step for DEM. This is usually the case, but could not be so. A more robust implementation is needed!
+        N_steps = int(self.pp.CFD_DEM.FinalTime / self.pp.CFD_DEM.MaxTimeStep) + 20
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')
+        if self.pp.CFD_DEM.basset_force_type > 0:
+            self.basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
+        if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
+            self.basset_force_tool.FillHinsbergVectors(spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
+
+    def AppendValuesForTheHistoryForce(self):
+        spheres_model_part = self.all_model_parts.Get('SpheresPart')
+
+        if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
+            self.basset_force_tool.AppendIntegrandsWindow(spheres_model_part)
+        elif self.pp.CFD_DEM.basset_force_type == 2:
+            self.basset_force_tool.AppendIntegrands(spheres_model_part)
+
+    def GetBassetForceTools(self):
+        self.basset_force_tool = SDP.BassetForceTools()
 
     def ActivateTurbulenceModel(self):
         fluid_model_part = self.all_model_parts.Get('FluidPart')

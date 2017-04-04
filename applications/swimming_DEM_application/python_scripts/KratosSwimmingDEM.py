@@ -253,10 +253,6 @@ class Solution:
         # creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
         derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
 
-        # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
-        if self.pp.CFD_DEM.basset_force_type > 0:
-            basset_force_tool = swim_proc.BassetForceTools()
-
         # creating a stationarity assessment tool
         stationarity_tool = swim_proc.StationarityAssessmentTool(self.pp.CFD_DEM.max_pressure_variation_rate_tol , custom_functions_tool)
 
@@ -387,12 +383,7 @@ class Solution:
         import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
         recovery = derivative_recoverer.DerivativeRecoveryStrategy(self.pp, fluid_model_part, derivative_recovery_tool, custom_functions_tool)
 
-        N_steps = int(final_time / Dt_DEM) + 20
-
-        if self.pp.CFD_DEM.basset_force_type > 0:
-            basset_force_tool.FillDaitcheVectors(N_steps, self.pp.CFD_DEM.quadrature_order, self.pp.CFD_DEM.time_steps_per_quadrature_step)
-        if self.pp.CFD_DEM.basset_force_type >= 3 or self.pp.CFD_DEM.basset_force_type == 1:
-            basset_force_tool.FillHinsbergVectors(self.alg.spheres_model_part, self.pp.CFD_DEM.number_of_exponentials, self.pp.CFD_DEM.number_of_quadrature_steps_in_window)
+        self.alg.FillHistoryForcePrecalculatedVectors()
 
         self.alg.PerformZeroStepInitializations()
 
@@ -491,10 +482,7 @@ class Solution:
                                 node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy)
 
                         if quadrature_counter.Tick():
-                            if self.pp.CFD_DEM.basset_force_type == 1 or self.pp.CFD_DEM.basset_force_type >= 3:
-                                basset_force_tool.AppendIntegrandsWindow(self.alg.spheres_model_part)
-                            elif self.pp.CFD_DEM.basset_force_type == 2:
-                                basset_force_tool.AppendIntegrands(self.alg.spheres_model_part)
+                            self.alg.AppendValuesForTheHistoryForce()
 
                 # performing the time integration of the DEM part
 

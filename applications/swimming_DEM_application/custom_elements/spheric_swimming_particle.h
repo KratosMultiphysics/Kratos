@@ -282,24 +282,6 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-
-  /// input stream function
-  /*inline std::istream& operator >> (std::istream& rIStream, SphericSwimmingParticle& rThis){ return rIStream;}*/
-
-  /// output stream function
-  /*inline std::ostream& operator << (std::ostream& rOStream,
-                    const SphericSwimmingParticle& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-  ///@}
-
-  ///@} addtogroup block
-
 }  // namespace Kratos.
 
 #endif // KRATOS_SPHERIC_SWIMMING_PARTICLE_H_INCLUDED  defined
