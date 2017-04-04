@@ -383,8 +383,6 @@ public:
 
         Radius = std::sqrt(Radius);
         
-        ConditionNormal(pCond);
-        
         return Radius;
     }
 

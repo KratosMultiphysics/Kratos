@@ -312,7 +312,7 @@ public:
             if (itCond->Is(MASTER) == true)
             {
                 Point<3> Center;
-                double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
+                const double Radius = ContactUtilities::CenterAndRadius((*itCond.base()), Center); 
                 PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, (*itCond.base()), Radius));
                 (mPointListDestination).push_back(pPoint);
             }
@@ -363,7 +363,7 @@ public:
         // It will use a copy of mNodeList (a std::vector which contains pointers)
         // Copying the list is required because the tree will reorder it for efficiency
         KDTree TreePoints(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
-        
+
         // Calculate the mean of the normal in all the nodes
         ContactUtilities::ComputeNodesMeanNormalModelPart(mrMainModelPart); 
         
@@ -380,12 +380,10 @@ public:
             {
                 if (mSearchTreeType == KdtreeInRadius)
                 {
-                    std::vector<double> PointsDistances(mAllocationSize);
-                    
                     Point<3> Center;
                     const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius((*itCond.base()), Center);
 
-                    NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mAllocationSize);
+                    NumberPointsFound = TreePoints.SearchInRadius(Center, SearchRadius, PointsFound.begin(), mAllocationSize);
                 }
                 else if (mSearchTreeType == KdtreeInBox)
                 {

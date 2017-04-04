@@ -267,7 +267,8 @@ void DeprecatedTreeContactSearch::CreatePointListConditions(
     {
         const Condition::Pointer & pCond = (*cond_it.base());
         Point<3> Center;
-        double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
+        const double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
+        ContactUtilities::ConditionNormal(pCond);
         PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, pCond, Radius));
         (PoinList).push_back(pPoint);
     }
@@ -312,6 +313,7 @@ void DeprecatedTreeContactSearch::UpdatePointListConditions(
         const Condition::Pointer pCond = (*cond_it.base());
         Point<3> Center;
         const double Radius = ContactUtilities::CenterAndRadius(pCond, Center); 
+        ContactUtilities::ConditionNormal(pCond);
         PointItem::Pointer & pPoint = PoinList[index];
         pPoint->SetCondition(pCond);
         pPoint->SetRadius(Radius);
@@ -362,6 +364,7 @@ void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everyt
         {
             Point<3> Center;
             const double SearchRadius = SearchFactor * ContactUtilities::CenterAndRadius(pCondOrigin, Center);
+            ContactUtilities::ConditionNormal(pCondOrigin);
 
             NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mallocation);
         }
@@ -369,6 +372,8 @@ void DeprecatedTreeContactSearch::UpdateMortarConditions( // TODO: Change everyt
         {
             Point<3> Center;
             ContactUtilities::CenterAndRadius(pCondOrigin, Center);
+            ContactUtilities::ConditionNormal(pCondOrigin);
+            
             Node<3> MinPoint, MaxPoint;
             ContactUtilities::ScaleNode<Node<3>>(MinPoint, Center, SearchFactor);
             ContactUtilities::ScaleNode<Node<3>>(MaxPoint, Center, SearchFactor);
