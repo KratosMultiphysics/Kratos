@@ -281,7 +281,7 @@ namespace Kratos
               mpInterfaceObjectManager->FillBufferLocalSearch(candidate_manager, remote_p_interface_object_list, num_objects);
 
               FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                 min_distances, local_coordinates, shape_functions, mCommRank);
+                                 min_distances, local_coordinates, shape_functions);
 
               mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
                                                                       shape_functions, local_coordinates, mCommRank);
@@ -304,7 +304,7 @@ namespace Kratos
 
                   // Perform local Search
                   FindLocalNeighbors(remote_p_interface_object_list, num_objects, candidate_receive_objects,
-                                     min_distances, local_coordinates, shape_functions, mCommRank);
+                                     min_distances, local_coordinates, shape_functions);
 
                   mpInterfaceObjectManagerBins->StoreTempSearchResults(candidate_manager, candidate_receive_objects,
                                                                           shape_functions, local_coordinates, comm_partner);

@@ -209,13 +209,13 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
-      void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& interface_objects,
-                              const int interface_objects_size, std::vector<InterfaceObject::Pointer>& interface_object_results,
-                              std::vector<double>& min_distances, std::vector<array_1d<double,2>>& local_coordinates,
-                              std::vector<std::vector<double>>& shape_functions, const int comm_partner) {
-          // This function finds neighbors of the InterfaceObjects in interface_objects in bin_structure
+      void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
+                              const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
+                              std::vector<double>& rMinDistances, std::vector<array_1d<double,2>>& local_coordinates,
+                              std::vector<std::vector<double>>& rShapeFunctionValues) {
+          // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
           // It must be executable by serial and parallel version!
-          // interface_objects_size must be passed bcs interface_objects might contain old entries (it has the max receive buffer size as size)!
+          // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has the max receive buffer size as size)!
 
           if (mpLocalBinStructure) { // this partition has a bin structure
               InterfaceObjectConfigure::ResultContainerType neighbor_results(mLocalBinStructureSize);
@@ -226,8 +226,8 @@ namespace Kratos
               std::vector<double>::iterator distance_itr;
 
             //   Searching the neighbors
-              for (int i = 0; i < interface_objects_size; ++i){
-                  interface_object_itr = interface_objects.begin() + i;
+              for (int i = 0; i < InterfaceObjectsSize; ++i){
+                  interface_object_itr = rInterfaceObjects.begin() + i;
                   double search_radius = mSearchRadius; // reset search radius
 
                   results_itr = neighbor_results.begin();
@@ -240,37 +240,37 @@ namespace Kratos
                   if (number_of_results > 0) { // neighbors were found
                       SelectBestResult(interface_object_itr, neighbor_results,
                                        neighbor_distances, number_of_results,
-                                       interface_object_results[i], min_distances[i],
-                                       local_coordinates[i], shape_functions[i]);
+                                       rInterfaceObjectResults[i], rMinDistances[i],
+                                       local_coordinates[i], rShapeFunctionValues[i]);
                   } else {
-                      min_distances[i] = -1.0f; // indicates that the search was not succesful
-                      interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
+                      rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+                      rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
                   }
               }
           } else { // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
-              for (int i = 0; i < interface_objects_size; ++i) { // no results in this partition
-                  min_distances[i] = -1.0f; // indicates that the search was not succesful
-                  interface_object_results[i].reset(); // Release an old pointer, that is probably existing from a previous search
+              for (int i = 0; i < InterfaceObjectsSize; ++i) { // no results in this partition
+                  rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+                  rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
               }
           }
       }
 
-      void SelectBestResult(const InterfaceObjectConfigure::IteratorType& point,
-                            const InterfaceObjectConfigure::ResultContainerType& result_list,
-                            const std::vector<double>& distances, const std::size_t num_results,
-                            InterfaceObject::Pointer& vec_closest_results, double& closest_distance,
-                            array_1d<double,2>& local_coords, std::vector<double>& shape_functions_values) {
+      void SelectBestResult(const InterfaceObjectConfigure::IteratorType& rPoint,
+                            const InterfaceObjectConfigure::ResultContainerType& rResultList,
+                            const std::vector<double>& rDistances, const std::size_t NumResults,
+                            InterfaceObject::Pointer& rVecClosestResults, double& rClosestDistance,
+                            array_1d<double,2>& local_coords, std::vector<double>& rShapeFunctionsValues) {
 
           double min_distance = std::numeric_limits<double>::max();
-          closest_distance = -1.0f; // indicate a failed search in case no result is good
+          rClosestDistance = -1.0f; // indicate a failed search in case no result is good
           array_1d<double,2> local_coords_temp;
 
-          for (int i = 0; i < static_cast<int>(num_results); ++i) { // find index of best result
-              if (result_list[i]->EvaluateResult((*point)->Coordinates(), min_distance, distances[i],
-                                                 local_coords_temp, shape_functions_values)) {
-                  closest_distance = min_distance;
+          for (int i = 0; i < static_cast<int>(NumResults); ++i) { // find index of best result
+              if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance, rDistances[i],
+                                                 local_coords_temp, rShapeFunctionsValues)) {
+                  rClosestDistance = min_distance;
                   local_coords = local_coords_temp;
-                  vec_closest_results = result_list[i];
+                  rVecClosestResults = rResultList[i];
               }
           }
       }
@@ -324,7 +324,7 @@ namespace Kratos
           }
       }
 
-      virtual void ConductSearchIteration(const bool last_iteration) {
+      virtual void ConductSearchIteration(const bool LastIteration) {
           InterfaceObjectConfigure::ContainerType interface_objects;
           mpInterfaceObjectManager->GetInterfaceObjectsSerialSearch(interface_objects);
 
@@ -333,12 +333,13 @@ namespace Kratos
           std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
           std::vector<double> min_distances(num_objects);
           std::vector<array_1d<double,2>> local_coordinates(num_objects);
-          std::vector<std::vector<double>> shape_functions(num_objects);
+          std::vector<std::vector<double>> shape_function_values(num_objects);
+          std::vector<int> pairing_indices(num_objects);
 
           FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
-                             min_distances, local_coordinates, shape_functions, mCommRank);
+                             min_distances, local_coordinates, shape_function_values);
 
-          mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_functions, local_coordinates);
+          mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values, local_coordinates);
           mpInterfaceObjectManager->PostProcessReceivedResults(min_distances, interface_objects);
       }
 

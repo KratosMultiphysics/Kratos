@@ -344,6 +344,7 @@ namespace Kratos
                                               array_1d<double,2>& rLocalCoords,
                                               double& rDistance) {
           
+          // change localcoords to 3 from 2!
           // Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
           // bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
           

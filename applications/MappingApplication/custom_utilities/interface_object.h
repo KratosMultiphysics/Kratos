@@ -119,11 +119,11 @@ namespace Kratos
           return is_inside;
       }
 
-      void ProcessDistance(double distance, int rank) {
+      void ProcessDistance(double Distance, int Rank) {
           m_neighbor_found = true;
-          if (distance < mMinDistanceNeighbor) {
-              mMinDistanceNeighbor = distance;
-              mNeighborRank = rank;
+          if (Distance < mMinDistanceNeighbor) {
+              mMinDistanceNeighbor = Distance;
+              mNeighborRank = Rank;
           }
       }
 
@@ -139,10 +139,10 @@ namespace Kratos
           return m_neighbor_found;
       }
 
-      bool HasNeighborInPartition(const int partition_index) {
+      bool HasNeighborInPartition(const int PartitionIndex) {
           bool return_value = false;
           if (m_neighbor_found) {
-              if (mNeighborRank == partition_index)
+              if (mNeighborRank == PartitionIndex)
                   return_value = true;
           }
           return return_value;
