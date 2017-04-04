@@ -1,8 +1,8 @@
 # ==============================================================================
 #  KratosShapeOptimizationApplication
 #
-#  License:		    BSD License
-#					license: ShapeOptimizationApplication/license.txt
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
 #
 #  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
 #

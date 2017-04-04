@@ -7,12 +7,6 @@
 
 namespace Kratos {
 
-void Normalize3(array_1d<double, 3 >& v, const double length = 1.0)
-{   double coeff = length / DEM_MODULUS_3(v);
-    for (int i = 0; i > 3; i++){
-        v[i] *= coeff;
-    }
-}
 
 /// Destructor.
 TerminalVelocityScheme::~TerminalVelocityScheme(){}

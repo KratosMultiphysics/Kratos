@@ -53,7 +53,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.pressure_grad_recovery_type = 1
         self.pp.CFD_DEM.store_full_gradient = 0
         self.pp.CFD_DEM.laplacian_calculation_type = 0
-        self.pp.CFD_DEM.do_search_neighbours = False
+        self.pp.CFD_DEM.do_search_neighbours = True
         self.pp.CFD_DEM.faxen_terms_type = 0
         self.pp.CFD_DEM.material_acceleration_calculation_type = 1
         self.pp.CFD_DEM.faxen_force_type = 0
@@ -72,7 +72,7 @@ class Algorithm(BaseAlgorithm):
         self.pp.CFD_DEM.number_of_quadrature_steps_in_window = int(self.pp.CFD_DEM.time_window / self.pp.CFD_DEM.delta_time_quadrature)
         self.pp.CFD_DEM.print_steps_per_plot_step = 1
         self.pp.CFD_DEM.PostCationConcentration = False
-        self.pp.CFD_DEM.do_impose_flow_from_field = True
+        self.pp.CFD_DEM.do_impose_flow_from_field = False
         self.pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
         self.pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
         self.pp.CFD_DEM.print_VELOCITY_GRADIENT_option = 1
@@ -82,17 +82,6 @@ class Algorithm(BaseAlgorithm):
         self.pp.Dt = int(self.pp.Dt / self.pp.CFD_DEM.MaxTimeStep) * self.pp.CFD_DEM.MaxTimeStep
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
-        #Z
-        # NANO BEGIN
-        if self.pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-            self.pp.CFD_DEM.basset_force_type = 0
-            self.pp.CFD_DEM.PostCationConcentration = True
-            self.pp.initial_concentration = 1.0
-            self.pp.final_concentration = 0.01
-            self.pp.fluid_speed = 1e-14
-            self.pp.cation_concentration_frequence = 1
-            self.pp.CFD_DEM.drag_force_type = 9
-        # NANO END
 
         # defining and adding imposed porosity fields
         import swimming_DEM_procedures as SDP
@@ -209,6 +198,9 @@ class Algorithm(BaseAlgorithm):
     def DEMSolve(self, time = 'None'): # time is passed in case it is needed
         self.solver.Solve()
 
+    def FluidSolve(self, time = 'None'):
+        self.fluid_solver.Solve()
+
     def PerformZeroStepInitializations(self):
         pass
 
@@ -263,7 +255,7 @@ class Algorithm(BaseAlgorithm):
     def GetBackwardCouplingCounter(self):
         return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type > 1)
 
-    def GetBackwardCouplingCounter(self):
+    def GetRecoveryCounter(self):
         return SDP.Counter(1, 1, self.pp.CFD_DEM.coupling_level_type or self.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 
     def GetStationarityCounter(self):
@@ -325,7 +317,7 @@ class Algorithm(BaseAlgorithm):
     def ApplyForwardCoupling(self, alpha = 'None'):
         self.projection_module.ApplyForwardCoupling(alpha)
 
-    def ApplyForwardCouplingOfVelocityOnly(self):
+    def ApplyForwardCouplingOfVelocityOnly(self, time = None):
         self.projection_module.ApplyForwardCouplingOfVelocityOnly()
 
     def PerformFinalOperations(self, time = None):

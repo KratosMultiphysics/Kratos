@@ -101,7 +101,7 @@ class ProjectionModule:
         print("\nProjecting from particles to the fluid...")
         sys.stdout.flush()
 
-        if (self.coupling_type != 3):
+        if self.coupling_type != 3:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:

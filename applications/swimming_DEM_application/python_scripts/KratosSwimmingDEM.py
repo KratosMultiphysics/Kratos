@@ -328,7 +328,7 @@ class Solution:
         fluid_solve_counter          = self.alg.GetFluidSolveCounter()
         embedded_counter             = self.alg.GetEmbeddedCounter()
         DEM_to_fluid_counter         = self.alg.GetBackwardCouplingCounter()
-        derivative_recovery_counter  = self.alg.GetBackwardCouplingCounter()
+        derivative_recovery_counter  = self.alg.GetRecoveryCounter()
         stationarity_counter         = self.alg.GetStationarityCounter()
         print_counter                = self.alg.GetPrintCounter()
         debug_info_counter           = self.alg.GetDebugInfo()
@@ -427,7 +427,7 @@ class Solution:
                 sys.stdout.flush()
 
                 if fluid_solve_counter.Tick():
-                    self.alg.fluid_solver.Solve()
+                    self.alg.FluidSolve(time)
 
             # assessing stationarity
 
@@ -444,11 +444,11 @@ class Solution:
                 #if self.pp.dem.BoundingBoxOption == "ON":
                 #    self.alg.creator_destructor.DestroyParticlesOutsideBoundingBox(self.alg.spheres_model_part)
 
-                io_tools.PrintParticlesResults(self.pp.variables_to_print_in_file, time, self.alg.spheres_model_part)
+                io_tools.PrintParticlesResults(self.alg.pp.variables_to_print_in_file, time, self.alg.spheres_model_part)
                 graph_printer.PrintGraphs(time)
                 PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-            if output_time <= out and self.pp.CFD_DEM.coupling_scheme_type == "UpdatedDEM":
+            if output_time <= out and self.alg.pp.CFD_DEM.coupling_scheme_type == "UpdatedDEM":
 
                 if self.pp.CFD_DEM.coupling_level_type > 0:
                     self.alg.projection_module.ComputePostProcessResults(self.alg.spheres_model_part.ProcessInfo)
@@ -530,7 +530,7 @@ class Solution:
             #### PRINTING GRAPHS ####
             os.chdir(graphs_path)
             # measuring mean velocities in a certain control volume (the 'velocity trap')
-            if (self.pp.CFD_DEM.VelocityTrapOption):
+            if self.pp.CFD_DEM.VelocityTrapOption:
                 post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
             os.chdir(post_path)
