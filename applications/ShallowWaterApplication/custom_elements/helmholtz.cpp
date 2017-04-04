@@ -29,7 +29,7 @@ void Helmholtz<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
 
     for(unsigned int i=0; i<NumNodes; i++)
     {
-        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ETA).EquationId();
+        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ELEVATION).EquationId();
         //~ rResult[i*(NumVar)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
         //~ rResult[i*(NumVar)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
         //~ rResult[i*(NumVar)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
@@ -54,7 +54,7 @@ void Helmholtz<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
 
     for(unsigned int i=0; i<NumNodes; i++)
     {
-        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ETA).EquationId();
+        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ELEVATION).EquationId();
         //~ rResult[i*(NumVar)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
         //~ rResult[i*(NumVar)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
@@ -78,7 +78,7 @@ void Helmholtz<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCu
 
     for(unsigned int i=0; i<NumNodes; i++)
     {
-        ElementalDofList[i*(NumVar)  ]  =  this->GetGeometry()[i].pGetDof(ETA);
+        ElementalDofList[i*(NumVar)  ]  =  this->GetGeometry()[i].pGetDof(ELEVATION);
         //~ ElementalDofList[i*(NumVar)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
         //~ ElementalDofList[i*(NumVar)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
         //~ ElementalDofList[i*(NumVar)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
@@ -103,7 +103,7 @@ void Helmholtz<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCu
 
     for(unsigned int i=0; i<NumNodes; i++)
     {
-        ElementalDofList[i*(NumVar)  ]  =  this->GetGeometry()[i].pGetDof(ETA);
+        ElementalDofList[i*(NumVar)  ]  =  this->GetGeometry()[i].pGetDof(ELEVATION);
         //~ ElementalDofList[i*(NumVar)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
         //~ ElementalDofList[i*(NumVar)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
@@ -170,8 +170,8 @@ void Helmholtz<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,3,3>& 
     const int dim = 2;
     //~ const int strain_size = 3;
 
-    const double H_depth = inner_prod(data.N, data.H_depth);      // Density
-    const double h = data.h;                                      // Characteristic element size
+    const double H = inner_prod(data.N, data.H);           // Bathymetry
+    const double h = data.h;                               // Characteristic element size
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -206,7 +206,7 @@ void Helmholtz<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,3,3>& 
     //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
     //~ // const double tau2 = (h*h)/(c1*tau1);
 
-    const double clhs0 =             H_depth*h;
+    const double clhs0 =             H*g;
 const double clhs1 =             -clhs0*(DN(0,0)*DN(1,0) + DN(0,1)*DN(1,1));
 const double clhs2 =             -clhs0*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
 const double clhs3 =             -clhs0*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
@@ -289,8 +289,8 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     const int dim = 2;
     // const int strain_size = 3;
 
-    const double H_depth = inner_prod(data.N, data.H_depth);      // Density
-    const double h = data.h;                                      // Characteristic element size
+    const double H = inner_prod(data.N, data.H);           // Bathymetry
+    const double h = data.h;                               // Characteristic element size
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -333,7 +333,7 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
     //~ // const double tau2 = (h*h)/(c1*tau1);
 
-    const double crhs0 =             H_depth*h;
+    const double crhs0 =             H*g;
 const double crhs1 =             DN(0,0)*eta[0] + DN(1,0)*eta[1] + DN(2,0)*eta[2];
 const double crhs2 =             DN(0,1)*eta[0] + DN(1,1)*eta[1] + DN(2,1)*eta[2];
             rhs[0]=crhs0*(DN(0,0)*crhs1 + DN(0,1)*crhs2);
@@ -410,8 +410,8 @@ double Helmholtz<2>::SubscaleErrorEstimate(const ElementDataStruct& data)  // No
     const int nnodes = 3;
     const int dim = 2;
 
-    const double h_depth = inner_prod(data.N, data.H_depth);     // Bathymetry
-    const double h = data.h;                                     // Characteristic element size
+    const double H = inner_prod(data.N, data.H);          // Bathymetry
+    const double h = data.h;                              // Characteristic element size
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;

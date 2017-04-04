@@ -36,12 +36,6 @@ namespace Kratos
 	///@name Kratos Globals
 	///@{ 
 
-	// Variables definition 
-//	KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
-//	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
-//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-
-
 	///@} 
 	///@name Type Definitions
 	///@{ 
@@ -81,11 +75,9 @@ namespace Kratos
 		/// Destructor.
 		virtual ~KratosShallowWaterApplication(){}
 
-
 		///@}
 		///@name Operators 
 		///@{
-
 
 		///@}
 		///@name Operations
@@ -93,17 +85,13 @@ namespace Kratos
 
 		virtual void Register();
 
-
-
 		///@}
 		///@name Access
 		///@{ 
 
-
 		///@}
 		///@name Inquiry
 		///@{
-
 
 		///@}      
 		///@name Input and output
@@ -123,25 +111,23 @@ namespace Kratos
 		}
 
 		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in my application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
-
+		virtual void PrintData(std::ostream& rOStream) const
+		{
+			KRATOS_WATCH("in my application");
+			KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+			rOStream << "Variables:" << std::endl;
+			KratosComponents<VariableData>().PrintData(rOStream);
+			rOStream << std::endl;
+			rOStream << "Elements:" << std::endl;
+			KratosComponents<Element>().PrintData(rOStream);
+			rOStream << std::endl;
+			rOStream << "Conditions:" << std::endl;
+			KratosComponents<Condition>().PrintData(rOStream);
+		}
 
 		///@}      
 		///@name Friends
 		///@{
-
 
 		///@}
 
@@ -149,44 +135,35 @@ namespace Kratos
 		///@name Protected static Member Variables 
 		///@{ 
 
-
 		///@} 
 		///@name Protected member Variables 
 		///@{ 
-
 
 		///@} 
 		///@name Protected Operators
 		///@{ 
 
-
 		///@} 
 		///@name Protected Operations
 		///@{ 
-
 
 		///@} 
 		///@name Protected  Access 
 		///@{ 
 
-
 		///@}      
 		///@name Protected Inquiry 
 		///@{ 
 
-
 		///@}    
 		///@name Protected LifeCycle 
 		///@{ 
-
 
 		///@}
 
 	private:
 		///@name Static Member Variables 
 		///@{ 
-
-
 
 		//       static const ApplicationCondition  msApplicationCondition; 
 

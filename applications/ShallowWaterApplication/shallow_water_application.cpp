@@ -26,11 +26,6 @@
 
 namespace Kratos
 {
-	//Example
-// 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR)
-//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
-//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
-//
 
  	KratosShallowWaterApplication::KratosShallowWaterApplication()
  	{}
@@ -39,13 +34,8 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
- 		std::cout << "Initializing KratosShallowWaterApplication... " << std::endl;
- 
-// 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
-// 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
-// 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
+ 		std::cout << "Initializing KratosShallowWaterApplication... " << std::endl; 
 
- 
  	}
 
 }  // namespace Kratos.

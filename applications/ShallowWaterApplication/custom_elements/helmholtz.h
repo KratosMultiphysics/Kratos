@@ -59,7 +59,7 @@ namespace Kratos
 * symbolic implementation is defined in the file:
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
 */
-template< unsigned int TDim, unsigned int TNumVar, unsigned int TNumNodes = TDim + 1, unsigned int TDofSize = TNumNodes*TNumVar >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
+template< unsigned int TDim, unsigned int TNumVar, unsigned int TNumNodes = TDim + 1 >  // TODO: TNumVar is OK? (See helmholtz_cpp_template.cpp)
 class Helmholtz : public Element
 {
 public:
@@ -73,7 +73,7 @@ public:
     {
         //~ bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;   // TODO: ??
         bounded_matrix<double, TNumNodes, TDim> f;
-        array_1d<double,TNumNodes> eta, etan, etann, H_depth, h_depth;              // Eelvation, Bathymetry and depth. n denotes previous time step.
+        array_1d<double,TNumNodes> eta, etan, etann, H, d;              // Elevation, bathymetry and depth. n denotes previous time step.
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;   // Shape function spatial derivatives
         array_1d<double, TNumNodes > N;                   // Shape functions
@@ -244,8 +244,8 @@ public:
         if(ErrorCode != 0) return ErrorCode;
 
         // Check that all required variables have been registered
-        if(ETA.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"ETA Key is 0. Check if the application was correctly registered.",""); 
+        if(ELEVATION.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,"ELEVATION Key is 0. Check if the application was correctly registered.",""); 
         if(BATHYMETRY.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,"BATHYMETRY Key is 0. Check if the application was correctly registered.","");
         if(DELTA_TIME.Key() == 0)
@@ -254,11 +254,11 @@ public:
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(ETA) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing ETA variable on solution step data for node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].SolutionStepsDataHas(ELEVATION) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing ELEVATION variable on solution step data for node ",this->GetGeometry()[i].Id());
 
-            if(this->GetGeometry()[i].HasDofFor(ETA) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing ETA component degree of freedom on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(ELEVATION) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing ELEVATION component degree of freedom on node ",this->GetGeometry()[i].Id());
         }
 
 //        // Check constitutive law          // TODO: Is constitutive law needed?
@@ -462,11 +462,11 @@ protected:
                 //~ rData.f(i,k)   = body_force[k];
             //~ }
 
-            rData.eta[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA);
-            rData.etan[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA,1);
-            rData.etann[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ETA,2);
-            rData.H_depth[i] = this->GetGeometry()[i].FastGetSolutionStepValue(BATHYMETRY);
-            rData.h_depth[i] = this->GetGeometry()[i].FastGetSolutionStepValue(TOTAL_DEPTH);
+            rData.eta[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ELEVATION);
+            rData.etan[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ELEVATION,1);
+            rData.etann[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ELEVATION,2);
+            rData.H[i] = this->GetGeometry()[i].FastGetSolutionStepValue(BATHYMETRY);
+            rData.d[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DEPTH);
         }
 
     }
@@ -585,10 +585,10 @@ protected:
         //~ return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
     //~ }
     
-    // Computes total depth as h_depth = eta + H_depth
-    virtual double ComputeTotalDepth(const double& rEta, const double& rH_depth)
+    // Computes total depth as d = eta + H
+    virtual double ComputeTotalDepth(const double& rEta, const double& rH)
     {
-		return rEta + rH_depth;
+		return rEta + rH;
 	}
     
     ///@}

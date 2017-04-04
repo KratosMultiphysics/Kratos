@@ -71,10 +71,11 @@ for dim in dim_vector:
     #~ stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    dt      = Symbol('dt', positive = True)             # Time increment
-    H_depth = Symbol('H_depth', positive = True)        # Bathymetry
-    g       = Symbol('h', positive = True)              # gravity
-    h       = Symbol('h', positive = True)              # Element size
+    dt = Symbol('dt', positive = True)           # Time increment
+    H  = Symbol('H', positive = False)           # Bathymetry (H)
+    d  = Symbol('d', positive = False)           # Depth (h)
+    g  = Symbol('g', positive = True)            # gravity
+    h  = Symbol('h', positive = True)            # Element size
     #~ dyn_tau = Symbol('dyn_tau', positive = True)
     #~ stab_c1 = Symbol('stab_c1', positive = True)
     #~ stab_c2 = Symbol('stab_c2', positive = True)
@@ -136,12 +137,12 @@ for dim in dim_vector:
     ## Compute galerkin functional
     # Navier-Stokes functional
     if (divide_by_rho):
-        rv_galerkin = grad_q.transpose()*g*H_depth*grad_eta
+        rv_galerkin = grad_q.transpose()*g*H*grad_eta
         #~ rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
         #~ if (artificial_compressibility):
             #~ rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
     else:
-        rv_galerkin = grad_q.transpose()*g*H_depth*grad_eta
+        rv_galerkin = grad_q.transpose()*g*H*grad_eta
         #~ rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
         #~ if (artificial_compressibility):
             #~ rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
