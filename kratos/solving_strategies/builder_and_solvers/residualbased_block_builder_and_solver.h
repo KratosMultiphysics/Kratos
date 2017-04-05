@@ -727,6 +727,7 @@ public:
     //**************************************************************************
 
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
@@ -761,7 +762,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
         }
         else
         {
@@ -769,7 +770,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -1008,6 +1009,7 @@ protected:
     //**************************************************************************
 
     virtual void ConstructMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ElementsContainerType& rElements,
         ConditionsArrayType& rConditions,
@@ -1042,8 +1044,7 @@ protected:
         for(int iii=0; iii<nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-            (i_element)->EquationIdVector(ids, CurrentProcessInfo);
-
+	        pScheme->EquationId(i_element, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -1064,7 +1065,7 @@ protected:
         for (int iii = 0; iii<nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-            (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
+	        pScheme->Condition_EquationId(i_condition, ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
