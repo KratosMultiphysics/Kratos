@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
@@ -220,7 +220,7 @@ public:
 
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
-		
+
                 #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
                 {
                     #pragma omp  for schedule(guided, 512) nowait
@@ -247,7 +247,7 @@ public:
     #endif
                                     // clean local elemental memory
                                     pScheme->CleanMemory(*(it.base()));
-                                    
+
                             }
 
                     }
@@ -571,14 +571,14 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
-                    
+
         //resetting to zero the vector of reactions
-        
+
         if(BaseType::mCalculateReactionsFlag)
         {
             TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
         }
-        
+
 
 		//Getting the Elements
 		ElementsArrayType& pElements = r_model_part.Elements();
@@ -595,7 +595,7 @@ public:
 		Element::EquationIdVectorType EquationId;
 
 		// assemble all elements
-		
+
                 #pragma omp parallel firstprivate( RHS_Contribution, EquationId)
                 {
                     const int nelements = static_cast<int>(pElements.size());
@@ -685,7 +685,7 @@ public:
 #else
 		typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
 #endif
-		//         
+		//
 
 
 		std::vector<set_type> dofs_aux_list(nthreads);
@@ -700,7 +700,7 @@ public:
 				dofs_aux_list[i].reserve(nelements);
 #endif
 			}
-		
+
 #pragma omp parallel for firstprivate(nelements, ElementalDofList)
 			for (int i = 0; i < static_cast<int>(nelements); i++)
 			{
@@ -1016,7 +1016,7 @@ protected:
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
-    
+
     void Assemble(
         TSystemMatrixType& A,
         TSystemVectorType& b,
@@ -1057,7 +1057,7 @@ protected:
         }
     }
 
-    
+
     //**************************************************************************
 	virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
@@ -1085,7 +1085,7 @@ protected:
 			indices[iii].set_empty_key(empty_key);
 #else
 			indices[iii].reserve(40);
-#endif            
+#endif
 		}
 
 		Element::EquationIdVectorType ids(3, 0);
@@ -1095,7 +1095,7 @@ protected:
 		for (int iii = 0; iii<nelements; iii++)
 		{
 			typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-			pScheme->EquationId(Element::Pointer(&(rElements[iii])), ids, CurrentProcessInfo);
+			pScheme->EquationId( *(i_element.base()), ids, CurrentProcessInfo);
 
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
@@ -1123,7 +1123,7 @@ protected:
 		for (int iii = 0; iii<nconditions; iii++)
 		{
 			typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-			pScheme->Condition_EquationId(Condition::Pointer(&(rConditions[iii])), ids, CurrentProcessInfo);
+			pScheme->Condition_EquationId( *(i_condition.base()) , ids, CurrentProcessInfo);
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
 				if (ids[i] < BaseType::mEquationSystemSize)
@@ -1342,7 +1342,7 @@ private:
     /*@{ */
 #ifdef _OPENMP
 	std::vector< omp_lock_t > mlock_array;
-#endif 
+#endif
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1425,7 +1425,7 @@ private:
                     }
                 }
 	}
-	
+
     //**************************************************************************
 
     void AssembleLHS_CompleteOnFreeRows(
@@ -1448,7 +1448,7 @@ private:
             }
         }
     }
- 
+
 
 
 
@@ -1482,4 +1482,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
-
