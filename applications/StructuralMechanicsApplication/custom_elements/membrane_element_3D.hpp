@@ -277,6 +277,16 @@ namespace Kratos
         );
 
 
+    void CalculateTransMatrixToLocalCartesian(
+        unsigned int& PointNumber,
+        array_1d<double, 3>& g1,
+        array_1d<double, 3>& g2,
+        array_1d<double, 3>& g3,
+        array_1d<double, 3>& gab,
+        array_1d<double, 3> prestress,
+        array_1d<double, 2> par_g1_1);
+
+
     int  Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}

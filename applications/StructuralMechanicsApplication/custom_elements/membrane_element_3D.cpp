@@ -172,8 +172,8 @@ void MembraneElement3D::Initialize()
     mPreStress[1] = GetProperties()[PRESTRESS_22];
     mPreStress[2] = GetProperties()[PRESTRESS_12];
 
-    if (mPreStress[0] != mPreStress[1] || mPreStress[2] != 0.0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Only Isotropic Pre-stress state is considered in the membrane1 implementation! Further implementation not done yet!", "");
+    //if (mPreStress[0] != mPreStress[1] || mPreStress[2] != 0.0)
+    //    KRATOS_THROW_ERROR(std::invalid_argument, "Only Isotropic Pre-stress state is considered in the membrane1 implementation! Further implementation not done yet!", "");
 
     
     // resizing jacobian inverses containers
@@ -956,10 +956,21 @@ void MembraneElement3D::CalculateAll(
         //KRATOS_WATCH(StrainDeformation);
         array_1d<double,3> pre_stress_tensor;   // Vector with the Cauchy Pre-Stress components in local cartesian frame
         
-        // Getting the prestress values        
+
+
+        // Getting the prestress values
         pre_stress_tensor(0) = mPreStress[0];
         pre_stress_tensor(1) = mPreStress[1];
         pre_stress_tensor(2) = mPreStress[2];
+
+        array_1d<double, 2> par_g1_1;
+        par_g1_1(0) = 0.0;
+        par_g1_1(1) = 1.0;
+
+        if (this->GetId() == 42 && PointNumber == 1)
+            KRATOS_WATCH(pre_stress_tensor);
+
+        CalculateTransMatrixToLocalCartesian(PointNumber, g1, g2, g3, gab, pre_stress_tensor, par_g1_1);
 
 
         // !!!! the thickness is considered at the end by the IntToReferenceWeight !!!
@@ -1246,9 +1257,146 @@ void MembraneElement3D::CalculateMembraneElasticityTensor(
 }
 
 
-//***********************************************************************************
-//***********************************************************************************
+//************************************************************************************
+//************************************************************************************
+/** \brief MembraneElement3D::CalculateTransMatrixToLocalCartesian
+*
+* returns the Pre-Stress tensor already transformed in the oppurtune base
+* according to its definition. 
+*
+*/
+void MembraneElement3D::CalculateTransMatrixToLocalCartesian(
+    unsigned int& PointNumber,
+    array_1d<double, 3>& g1,
+    array_1d<double, 3>& g2,
+    array_1d<double, 3>& g3,
+    array_1d<double, 3>& gab,
+    array_1d<double, 3> prestress,
+    array_1d<double, 2> par_g1_1)
+{
+    if (this->GetId() == 42 && PointNumber == 1)
+    {
+        KRATOS_WATCH(g1);
+        KRATOS_WATCH(g2);
+        KRATOS_WATCH(g3);
+        KRATOS_WATCH(gab);
+        
+    }
 
+    CrossProduct(g3, g1, g2);
+    if (this->GetId() == 42 && PointNumber == 1)
+        KRATOS_WATCH(g3);
+    
+
+
+    array_1d<double, 3> t1; // T1 vector
+    array_1d<double, 3> t2; // T2 vector
+    array_1d<double, 3> t3; // T3 vector
+    array_1d<double, 3> a;  // A vector for the plane definition
+    array_1d<double, 3> b;  // B vector for the plane definition
+    boost::numeric::ublas::bounded_matrix<double, 3, 3> Tm; // Transformation matrix
+
+    // Hardcode the direction vector a, b
+    a(0) = 1.0;
+    a(1) = 0.0;
+    a(2) = 0.0;
+
+    b(0) = 0.0;
+    b(1) = 1.0;
+    b(2) = 0.0;
+
+    //array_1d<double, 3> g1;
+    //array_1d<double, 3> g2;
+    array_1d<double, 3> g1_ref;
+    array_1d<double, 3> g2_ref;
+    //array_1d<double, 3> g3;
+    //array_1d<double, 3> gab;
+    array_1d<double, 3> g_con_1_ref;
+    array_1d<double, 3> g_con_2_ref;
+    
+    //KRATOS_WATCH(g1);
+
+    // contravariant metric gab_con and base vectors g_con
+    double invdetGab = 1.0 / (gab[0] * gab[1] - gab[2] * gab[2]);
+    double gab_con11 = invdetGab*gab[1];
+    double gab_con12 = -invdetGab*gab[2];
+    double gab_con22 = -invdetGab*gab[0];
+
+    array_1d<double, 3> g_con_1 = g1*gab_con11 + g2*gab_con12;
+    array_1d<double, 3> g_con_2 = g1*gab_con12 + g2*gab_con22;
+
+    // local cartesian coordinates
+    double lg1 = norm_2(g1);
+    array_1d<double, 3> e1 = g1 / lg1;
+    double lg_con2 = norm_2(g_con_2);
+    array_1d<double, 3> e2 = g_con_2 / lg_con2;
+
+    // array_1d<double,3> n_pre_pk2=    // Integration of the PreStress over the thickness
+
+    // the Pre-Stress tensor is defined according to the projection definition proposed by Dr. Wüchner
+
+    // creation of T1 ==> Projection of A on the tangential plane
+    CrossProduct(t1, b, g3);
+
+    if (this->GetId() == 42 && PointNumber == 1)
+        KRATOS_WATCH(t1);
+
+    
+    // The frame must be orthogonal, so T3 == G3
+    t3 = g3;
+
+    // Then T2 can only be the cross product between T1 and T3
+    CrossProduct(t2, t3, t1);
+
+    if (this->GetId() == 42 && PointNumber == 1)
+        KRATOS_WATCH(t2);
+
+
+    // Normalization of the vectors
+    t1 = t1 / norm_2(t1);
+    t2 = t2 / norm_2(t2);
+    t3 = t3 / norm_2(t3);
+
+    // Transformation matrix from the projected basis T to the local cartesian basis
+    double eG11 = inner_prod(e1, t1);
+    double eG12 = inner_prod(e1, t2);
+    double eG21 = inner_prod(e2, t1);
+    double eG22 = inner_prod(e2, t2);
+
+    if (this->GetId() == 42 && PointNumber == 1)
+    {
+        KRATOS_WATCH(eG11);
+        KRATOS_WATCH(eG12);
+        KRATOS_WATCH(eG21);
+        KRATOS_WATCH(eG22);
+    }
+
+    
+    // finally, calculating the Transformation Matrix
+    Tm(0, 0) = eG11*eG11;
+    Tm(0, 1) = eG12*eG12;
+    Tm(0, 2) = 2.0*eG11*eG12;
+    
+    Tm(1, 0) = eG21*eG21;
+    Tm(1, 1) = eG22*eG22;
+    Tm(1, 2) = 2.0*eG21*eG22;
+
+    Tm(2, 0) = eG11*eG21;
+    Tm(2, 1) = eG12*eG22;
+    Tm(2, 2) = eG11*eG22 + eG12*eG21;
+
+    prestress = prod(Tm, prestress);
+
+    if (this->GetId() == 42 && PointNumber == 1)
+    {
+        KRATOS_WATCH(Tm);
+        KRATOS_WATCH(prestress);
+    }
+
+}
+
+//***********************************************************************************
+//***********************************************************************************
 int  MembraneElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
