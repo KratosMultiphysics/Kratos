@@ -352,7 +352,6 @@ namespace Kratos
 		void GenerateOctree();
 		void SetOctreeBoundingBox();
 		void MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves);
-		bool HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry);
 
 
       ///@}

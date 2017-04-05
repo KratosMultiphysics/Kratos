@@ -102,16 +102,12 @@ namespace Kratos
 	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
 		for (auto p_leaf : leaves) {
 			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
+				if (rElement1.GetGeometry().HasIntersection(p_element_2->GetGeometry())) {
 					rElement1.Set(SELECTED);
 					return;
 				}
 			}
 		}
-	}
-
-	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry) {
-		return  rFirstGeometry.HasIntersection(rSecondGeometry);
 	}
 
 }  // namespace Kratos.
