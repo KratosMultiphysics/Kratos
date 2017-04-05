@@ -133,9 +133,7 @@ public:
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
                     const Geometry< Node<3> >& geom = it->GetGeometry();
-                    const unsigned int& Dim  = geom.WorkingSpaceDimension();
-                    Vector central_position = geom.Center();
-                    central_position.resize(Dim);            
+                    array_1d<double,3> central_position = geom.Center();
 
                     if((central_position(direction) >= mreference_coordinate) && (central_position(direction) <= current_height) )
                     {

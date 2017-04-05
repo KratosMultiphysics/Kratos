@@ -14,10 +14,10 @@ class DamActivationConstructionProcess(Process):
     def __init__(self, Model, settings ):
 
         Process.__init__(self)
-        model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = Model[settings["model_part_name"].GetString()]
         settings.AddEmptyValue("is_fixed").SetBool(True)
                                 
-        self.process = DamConstructionProcess(model_part, settings) 
+        self.process = DamConstructionProcess(self.model_part, settings) 
                  
     def ExecuteInitialize(self):
 
