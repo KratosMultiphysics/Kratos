@@ -163,8 +163,8 @@
                                             "DESIGN_CHANGE_ABSOLUTE",
                                             "SHAPE_UPDATE",
                                             "SHAPE_CHANGE_ABSOLUTE" ],            
-            "output_type" : {
-                "format"                 : "GiD",
+            "output_format" : {
+                "name"                   : "GiD",
                 "VolumeOutput"           : true,
                 "GiDPostMode"            : "Binary",
                 "GiDWriteMeshFlag"       : true,

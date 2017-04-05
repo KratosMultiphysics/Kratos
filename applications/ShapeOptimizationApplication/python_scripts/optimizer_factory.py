@@ -125,11 +125,23 @@ class VertexMorphingMethod:
         listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
         self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
+        # dataWriter
+        optimizatoinDataWriterFactory = __import__("optimization_data_writer_factory")
+        optimizationDataWriter = optimizatoinDataWriterFactory.CreateDataWriter( self.designSurface, self.optimizationSettings )
+
+        
+        # optimizationDataWriter.initializeWriting()
+
+
+        
+
+
+
         # outputWriter
-        self.createFolderToStoreOptimizationResults( self.optimizationSettings )
-        self.gidIO = self.createGiDIO( self.optimizationSettings )
-        self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
-        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( self.optimizationSettings )   
+        # self.createFolderToStoreOptimizationResults( self.optimizationSettings )
+        # self.gidIO = self.createGiDIO( self.optimizationSettings )
+        # self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
+        # self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( self.optimizationSettings )   
 
         # algorithm_driver
         # specifiedAlgorithm = OptimizationAlgorithems( self.design_surface, communicator, mapper, outputWriter, timer)
@@ -141,14 +153,17 @@ class VertexMorphingMethod:
          # outputWriter.finalizeOutput()
 
 
-        iteratorForInitialDesign = 0
-        self.gidIO.initialize_results( self.designSurface )
-        self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.nodalResults, [])   
+        # Old format
 
-        self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
-        self.runSpecifiedOptimizationAlgorithm()
+        
+        # iteratorForInitialDesign = 0
+        # self.gidIO.initialize_results( self.designSurface )
+        # self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.nodalResults, [])   
 
-        self.gidIO.finalize_results()
+        # self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
+        # self.runSpecifiedOptimizationAlgorithm()
+
+        # self.gidIO.finalize_results()
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization in ",round(time.time() - self.timeAtStartOfOptimization,2)," s!")
