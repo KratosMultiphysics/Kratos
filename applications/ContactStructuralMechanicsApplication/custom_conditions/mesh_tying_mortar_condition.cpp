@@ -1004,8 +1004,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     )
 {        
     double auxdet;
+    const double Tolerance = std::numeric_limits<double>::epsilon();
 
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvMe = MathUtils<double>::InvertMatrix<NumNodes>(rAeData.Me, auxdet); 
+    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvMe = MathUtils<double>::InvertMatrix<NumNodes>(rAeData.Me, auxdet, Tolerance); 
 
     noalias(rDofData.Ae) = prod(rAeData.De, InvMe);
 }
