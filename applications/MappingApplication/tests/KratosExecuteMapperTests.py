@@ -61,13 +61,25 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         if (self.GiD_output):
             self.InitializeGiD(FileName)
 
-        parameter_file = open("MapperTests_json/" + FileName + "_parameters.json", 'r')
-        result_file    = open("MapperTests_results/" + FileName + "_results.json", 'r')
-        
-        project_parameters = Parameters(parameter_file.read())
-        self.results =       Parameters(result_file.read())
+        parameter_file_name = "MapperTests_json/" + FileName + "_parameters.json"
+        result_file_name = "MapperTests_results/" + FileName + "_results.json"
 
-        mapper_settings = project_parameters["mapper_settings"][0]
+        try:
+            parameter_file = open(parameter_file_name, 'r')
+            project_parameters = Parameters(parameter_file.read())
+            mapper_settings = project_parameters["mapper_settings"][0]
+        except:
+            raise("Project Parameter JSON File \"", parameter_file_name, "\" could not be read")
+        
+        results_read = False
+        try:
+            result_file  = open(result_file_name, 'r')           
+            self.results = Parameters(result_file.read())
+            results_read = True
+        except:
+            print("Warning: Result JSON File \"", result_file_name, "\" could not be read")
+
+        
 
         # needed for the tests only, usually one does not need to get the submodel-parts for the mapper
         self.interface_sub_model_part_origin = self.model_part_origin.GetSubModelPart(
@@ -82,7 +94,11 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         
         if (self.set_up_test_1):
             self.PrintValuesForJson() # needed to set up the test
-        self.SetPrescribedValues()
+
+        if (results_read):
+            self.SetPrescribedValues()
+        else:
+            raise("Result JSON File \"", result_file_name, "\" could not be read")
 
     ##### Testing Functions
     def TestMapConstantScalarValues(self, output_time):
@@ -679,11 +695,6 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             coordinates_destination_y.append(node.Y)
             coordinates_destination_z.append(node.Z)
 
-        num_nodes_origin = len(coordinates_origin_x)
-        print(num_nodes_origin)
-        num_nodes_destination = len(coordinates_destination_x)
-        print(num_nodes_destination)
-
         print("\n\nCopy into JSON:\n")
         print("{")
         print("    \"Origin_Coordinates\": {")
@@ -697,16 +708,16 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         print("        \"Z\":", coordinates_destination_z)
         print("    },")
         print("    \"Origin_send\": {")
-        print("        \"Scalar\":", self.CreateRandomValues(num_nodes_origin), ",")
-        print("        \"Vector_X\":", self.CreateRandomValues(num_nodes_origin), ",")
-        print("        \"Vector_Y\":", self.CreateRandomValues(num_nodes_origin), ",")
-        print("        \"Vector_Z\":", self.CreateRandomValues(num_nodes_origin))
+        print("        \"Scalar\":", self.CreateMappingValues(1, coordinates_origin_x, coordinates_origin_y, coordinates_origin_z), ",")
+        print("        \"Vector_X\":", self.CreateMappingValues(2, coordinates_origin_x, coordinates_origin_y, coordinates_origin_z), ",")
+        print("        \"Vector_Y\":", self.CreateMappingValues(3, coordinates_origin_x, coordinates_origin_y, coordinates_origin_z), ",")
+        print("        \"Vector_Z\":", self.CreateMappingValues(4, coordinates_origin_x, coordinates_origin_y, coordinates_origin_z))
         print("    },")
         print("    \"Destination_send\": {")
-        print("        \"Scalar\":", self.CreateRandomValues(num_nodes_destination), ",")
-        print("        \"Vector_X\":", self.CreateRandomValues(num_nodes_destination), ",")
-        print("        \"Vector_Y\":", self.CreateRandomValues(num_nodes_destination), ",")
-        print("        \"Vector_Z\":", self.CreateRandomValues(num_nodes_destination))
+        print("        \"Scalar\":", self.CreateMappingValues(1, coordinates_destination_x, coordinates_destination_y, coordinates_destination_z), ",")
+        print("        \"Vector_X\":", self.CreateMappingValues(2, coordinates_destination_x, coordinates_destination_y, coordinates_destination_z), ",")
+        print("        \"Vector_Y\":", self.CreateMappingValues(3, coordinates_destination_x, coordinates_destination_y, coordinates_destination_z), ",")
+        print("        \"Vector_Z\":", self.CreateMappingValues(4, coordinates_destination_x, coordinates_destination_y, coordinates_destination_z))
         print("    },")
         print("    \"Origin_receive\": {")
         print("        \"Scalar\": [],")
@@ -724,14 +735,27 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         err # needed to get the output
 
-    def CreateRandomValues(self, NumValues):
-        from random import uniform
-        values_range = [-100, 100]
+    def CreateMappingValues(self, Index, CoordsX, CoordsY, CoordsZ):
         values_precision = 4
         values = []
-        for i in range(NumValues) :
-            values.append(round(uniform(values_range[0],values_range[1]),values_precision))
+        value = 0.0
 
+        num_values = len(CoordsX)
+
+        for i in range(len(CoordsX)):
+            if (Index == 1):
+                value = (CoordsX[i] + CoordsY[i] + CoordsZ[i]) * 1e2
+            elif (Index == 2):
+                value = ((CoordsX[i]**2 + CoordsY[i] + CoordsZ[i])*1e2)**2
+            elif (Index == 3):
+                value = (CoordsX[i]**2 + CoordsY[i]**2 + CoordsZ[i]**2)*1e2
+            elif (Index == 4):
+                value = ((CoordsX[i] + CoordsY[i] + CoordsZ[i])*1e2)**(3)
+            else:
+                raise("ERROR: Wrong index for MappingValues specified")
+            
+            values.append(round(value, values_precision))
+    
         return values
 
     def PrintMappedValues(self, model_part, variable, info_string):
