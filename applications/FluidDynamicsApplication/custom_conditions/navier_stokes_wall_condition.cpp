@@ -141,7 +141,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
     // Gauss pt. Neumann BC contribution
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
-        //unsigned int row = i*LocalSize;
         const double pext = rGeom[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
         for (unsigned int j=0; j<TNumNodes; ++j)
@@ -154,33 +153,34 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution
         }
     }
 
-    // Compute Gauss pt. density, velocity norm and velocity projection
-    double rhoGauss = 0.0;
-    array_1d<double, 3> vGauss = ZeroVector(3);
-    for (unsigned int i=0; i<TNumNodes; ++i)
+    // Gauss pt. outlet inflow prevention contribution
+    if (this->Is(OUTLET))
     {
-        const double& rRho = rGeom[i].FastGetSolutionStepValue(DENSITY);
-        const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        rhoGauss += data.N[i]*rRho;
-        vGauss += data.N[i]*rVelNode;
-    }
+        // Compute Gauss pt. density, velocity norm and velocity projection
+        double rhoGauss = 0.0;
+        array_1d<double, 3> vGauss = ZeroVector(3);
+        for (unsigned int i=0; i<TNumNodes; ++i)
+        {
+            const double& rRho = rGeom[i].FastGetSolutionStepValue(DENSITY);
+            const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+            rhoGauss += data.N[i]*rRho;
+            vGauss += data.N[i]*rVelNode;
+        }
 
-    const double vGaussNorm = norm_2(vGauss);
-    const double vGaussProj = inner_prod(vGauss, data.Normal);
+        const double vGaussProj = inner_prod(vGauss, data.Normal);
+        const double vGaussSquaredNorm = std::pow(vGauss[0],2) + std::pow(vGauss[1],2) + std::pow(vGauss[2],2);
 
-    // Gauss pt. outflow condition contribution
-    const double delta = data.delta;
-    const double U_0 = data.charVel;
-    const double S_0 = 0.5*(1-tanh(vGaussProj/U_0/delta));
+        // Gauss pt. outflow condition contribution
+        const double delta = data.delta;
+        const double U_0 = data.charVel;
+        const double S_0 = 0.5*(1-tanh(vGaussProj/(U_0*delta)));
 
-    for (unsigned int i=0; i<TNumNodes; ++i)
-    {
-        if (rGeom[i].Is(OUTLET))
+        for (unsigned int i=0; i<TNumNodes; ++i)
         {
             unsigned int row = i*LocalSize;
             for (unsigned int d=0; d<TDim; ++d)
             {
-                rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*vGaussNorm*rhoGauss*S_0*data.Normal[d];
+                rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*rhoGauss*vGaussSquaredNorm*S_0*data.Normal[d];
             }
         }
     }
