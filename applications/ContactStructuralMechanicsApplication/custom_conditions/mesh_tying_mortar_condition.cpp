@@ -1006,7 +1006,17 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     double auxdet;
     const double Tolerance = std::numeric_limits<double>::epsilon();
 
-    boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvMe = MathUtils<double>::InvertMatrix<NumNodes>(rAeData.Me, auxdet, Tolerance); 
+    // We compute the norm
+    const double NormMe = norm_frobenius(rAeData.Me);
+    
+    // Now we normalize the matrix
+    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> NormalizedMe = rAeData.Me/NormMe;
+    
+    // We compute the normalized inverse
+    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> NormalizedInvMe = MathUtils<double>::InvertMatrix<NumNodes>(NormalizedMe, auxdet, Tolerance); 
+    
+    // Now we compute the inverse
+    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> InvMe = NormalizedInvMe/NormMe;
 
     noalias(rDofData.Ae) = prod(rAeData.De, InvMe);
 }
