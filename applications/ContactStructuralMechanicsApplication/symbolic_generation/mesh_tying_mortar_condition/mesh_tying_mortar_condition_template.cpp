@@ -24,7 +24,6 @@
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp" // NOTE: Change for a more performant solver
 
 namespace Kratos 
 {
@@ -126,29 +125,37 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
                 
                 DecompositionType DecompGeom( PointsArray );
                 
-                const GeometryType::IntegrationPointsArrayType& IntegrationPointsSlave = DecompGeom.IntegrationPoints( ThisIntegrationMethod );
+                const bool BadShape = (TDim == 2) ? false : ContactUtilities::HeronCheck(DecompGeom);
                 
-                // Integrating the mortar operators
-                for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
+                if (BadShape == false)
                 {
-                    const double Weight = IntegrationPointsSlave[PointNumber].Weight();
-                    const PointType LocalPointDecomp = IntegrationPointsSlave[PointNumber].Coordinates();
-                    PointType LocalPointParent;
-                    PointType GPGlobal;
-                    DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
-                    GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
+                    const GeometryType::IntegrationPointsArrayType& IntegrationPointsSlave = DecompGeom.IntegrationPoints( ThisIntegrationMethod );
                     
-                    const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );
-                    
-                    AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
+                    // Integrating the mortar operators
+                    for ( unsigned int PointNumber = 0; PointNumber < IntegrationPointsSlave.size(); PointNumber++ )
+                    {
+                        const double Weight = IntegrationPointsSlave[PointNumber].Weight();
+                        const PointType LocalPointDecomp = IntegrationPointsSlave[PointNumber].Coordinates();
+                        PointType LocalPointParent;
+                        PointType GPGlobal;
+                        DecompGeom.GlobalCoordinates(GPGlobal, LocalPointDecomp);
+                        GetGeometry().PointLocalCoordinates(LocalPointParent, GPGlobal);
+                        
+                        const double DetJ = DecompGeom.DeterminantOfJacobian( LocalPointDecomp );
+                        
+                        AllIntegrationPointsSlave.push_back( IntegrationPointType( LocalPointParent.Coordinate(1), LocalPointParent.Coordinate(2), Weight * DetJ ));
+                    }
                 }
             }
  
-            mPairSize += 1;
-            mThisMasterConditions.push_back(pCond);
-            mIntegrationPointsVector.push_back(AllIntegrationPointsSlave);
-//             mIntegrationPointsVector.push_back(IntegrationPointsSlave);
-//             mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
+            if (AllIntegrationPointsSlave.size() > 0)
+            {
+                mPairSize += 1;
+                mThisMasterConditions.push_back(pCond);
+                mIntegrationPointsVector.push_back(AllIntegrationPointsSlave);
+//                 mIntegrationPointsVector.push_back(IntegrationPointsSlave);
+//                 mThisMasterElements.push_back(pCond->GetValue(ELEMENT_POINTER));
+            }
         }
     }
         

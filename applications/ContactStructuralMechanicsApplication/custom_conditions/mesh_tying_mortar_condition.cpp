@@ -24,7 +24,6 @@
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp" // NOTE: Change for a more performant solver
 
 namespace Kratos 
 {
