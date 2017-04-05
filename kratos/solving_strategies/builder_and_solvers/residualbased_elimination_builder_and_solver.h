@@ -1095,7 +1095,7 @@ protected:
 		for (int iii = 0; iii<nelements; iii++)
 		{
 			typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-			pScheme->EquationId(i_element, ids, CurrentProcessInfo);
+			pScheme->EquationId(Element::Pointer(&(rElements[iii])), ids, CurrentProcessInfo);
 
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
@@ -1123,7 +1123,7 @@ protected:
 		for (int iii = 0; iii<nconditions; iii++)
 		{
 			typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-			pScheme->Condition_EquationId(i_condition, ids, CurrentProcessInfo);
+			pScheme->Condition_EquationId(Condition::Pointer(&(rConditions[iii])), ids, CurrentProcessInfo);
 			for (std::size_t i = 0; i < ids.size(); i++)
 			{
 				if (ids[i] < BaseType::mEquationSystemSize)
