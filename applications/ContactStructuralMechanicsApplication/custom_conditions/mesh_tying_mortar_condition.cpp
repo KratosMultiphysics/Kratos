@@ -101,10 +101,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
     {
         Condition::Pointer pCond = ipair->first;
         
-//          // Reading integration points
-//         IntegrationPointsType IntegrationPointsSlave;
-//         const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), IntegrationPointsSlave);
-        
         // Reading integration points
         ConditionArrayListType ConditionsPointsSlave;
         const bool IsInside = IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), pCond->GetGeometry(), pCond->GetValue(NORMAL), ConditionsPointsSlave);
@@ -288,7 +284,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::FinalizeNonLinearIter
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-//     this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
+    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
     
     // Iterate over the master segments
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
@@ -679,7 +675,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor>::CalculateConditionS
     this->InitializeDofData(rDofData, rCurrentProcessInfo);
     
     // Compute Ae and its derivative
-//     this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
+    this->CalculateAe(rDofData, rVariables, rCurrentProcessInfo); 
     
 //     // We calculate the Equation ID, LHS and RHS of the slave parent element
 //     boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution;
@@ -824,8 +820,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
     rDofData.InitializeAeComponents();
     
     double TotalWeight = 0.0;
-
-//     ExactMortarIntegrationUtility<TDim, NumNodes> IntUtil = ExactMortarIntegrationUtility<TDim, NumNodes>(mIntegrationOrder);
     
     for (unsigned int PairIndex = 0; PairIndex < mPairSize; ++PairIndex)
     {
@@ -834,7 +828,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
         
         // Get the integration points
         const IntegrationPointsType IntegrationPointsSlave = mIntegrationPointsVector[PairIndex];
-//         IntUtil.GetExactIntegration(this->GetGeometry(), this->GetValue(NORMAL), mThisMasterConditions[PairIndex]->GetGeometry(), mThisMasterConditions[PairIndex]->GetValue(NORMAL), IntegrationPointsSlave);
         
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( rVariables, rCurrentProcessInfo, PairIndex );
@@ -912,8 +905,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateKinematics(
        
     /// SLAVE CONDITION ///
     GetGeometry( ).ShapeFunctionsValues( rVariables.N_Slave, LocalPoint.Coordinates() );
-//     rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
-    rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
+    rVariables.Phi_LagrangeMultipliers = prod(rDofData.Ae, rVariables.N_Slave);
+//     rVariables.Phi_LagrangeMultipliers = rVariables.N_Slave; // TODO: This could be needed in the future to be different than the standart shape functions 
     
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     rVariables.DetJSlave = 1.0;
