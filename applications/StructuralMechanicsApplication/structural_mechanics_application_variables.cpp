@@ -87,4 +87,8 @@ KRATOS_CREATE_VARIABLE(bool, QUAD_ON);
 // Additional strain measures
 KRATOS_CREATE_VARIABLE(Vector, HENCKY_STRAIN_VECTOR);
 KRATOS_CREATE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
+
+// For MPC implementations
+KRATOS_CREATE_VARIABLE(bool, IS_SLAVE)
+KRATOS_CREATE_VARIABLE(MpcData, SLAVES) // Amap of the master nodes to their corresponding weights
 }

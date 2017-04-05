@@ -114,6 +114,13 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     // Adding the LAMBDA load factor considered in the arclength
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAMBDA);
+
+
+    // For MPC implementations
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_SLAVE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SLAVES); // Amap of the master nodes to their corresponding weights
+
+
 }
 
 

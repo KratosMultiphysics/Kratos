@@ -26,6 +26,7 @@
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
 #include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
+#include "custom_utilities/formulate_constraint_utility.hpp"
 
 namespace Kratos
 {
@@ -69,6 +70,17 @@ void  AddCustomUtilitiesToPython()
     .def("Transfer",TransferEigenvector1)
     .def("Transfer",TransferEigenvector2)
     ;
+
+    class_<MpcData, boost::noncopyable>( "MpcData", init<>() )
+	.def("AddSlave",&MpcData::AddSlave)
+	.def("AddMaster",&MpcData::AddMaster)
+    .def(self_ns::str(self))
+    ;
+    class_<Variable<MpcData> , bases<Flags>, boost::noncopyable >("MpcData", no_init)
+    ;
+
+    class_<AddMultiPointConstraint>("AddMultiPointConstraint")
+	.def("ApplyConstraint", &AddMultiPointConstraint::ApplyConstraint);
 
 }
 

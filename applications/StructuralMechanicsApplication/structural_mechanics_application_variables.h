@@ -25,6 +25,7 @@
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/shell_cross_section.hpp"
+#include "custom_utilities/constraint_slave.hpp"
 
 namespace Kratos
 {
@@ -103,6 +104,10 @@ KRATOS_DEFINE_VARIABLE(bool, QUAD_ON);
 // Additional strain measures
 KRATOS_DEFINE_VARIABLE(Vector, HENCKY_STRAIN_VECTOR);
 KRATOS_DEFINE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
+
+// For MPC implementations
+KRATOS_DEFINE_VARIABLE(bool, IS_SLAVE);
+KRATOS_DEFINE_VARIABLE(MpcData, SLAVES ); // Amap of the master nodes to their corresponding weights
 }
 
 #endif	/* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

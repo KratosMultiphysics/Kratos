@@ -172,6 +172,11 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
     // Torque moment condition
     KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
+
+
+    // For MPC implementations
+    KRATOS_REGISTER_VARIABLE(IS_SLAVE);
+    KRATOS_REGISTER_VARIABLE(SLAVES); // Amap of the master nodes to their corresponding weights
 }
 
 }  // namespace Kratos.
