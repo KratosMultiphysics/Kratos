@@ -34,6 +34,17 @@ namespace Kratos
 
 	void FindIntersectedGeometricalObjectsProcess::Execute() {
 		GenerateOctree();
+
+		std::vector<OctreeType::cell_type*> leaves;
+		for (auto p_element : mrModelPart1.ElementsArray()) {
+			leaves.clear();
+			mOctree.GetIntersectedLeaves(p_element, leaves);
+			for (auto p_leaf : leaves) {
+				
+			}
+		}
+
+
 	}
 
 	/// Turn back information as a string.
@@ -90,10 +101,6 @@ namespace Kratos
 
 		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 		mOctree.SetBoundingBox(low.data().data(), high.data().data());
-
-		KRATOS_WATCH(low);
-		KRATOS_WATCH(high);
-
 	}
 
 
