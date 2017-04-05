@@ -97,7 +97,7 @@ namespace Kratos
       void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& rCandidateSendObjects) override {
           InitializeSizes();
           for (auto interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
+              if (!interface_obj->NeighborOrApproximationFound()) { // check if the interface object already found a neighbor
                   rCandidateSendObjects.push_back(interface_obj);
               }
           }

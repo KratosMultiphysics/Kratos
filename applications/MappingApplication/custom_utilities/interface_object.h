@@ -132,13 +132,13 @@ namespace Kratos
           return mPairingStatus;
       }
 
-      bool NeighborFound() {
-          if (mPairingStatus == this->GetIndexNeighborFound())  {
-              return true;
-          } else {
-              return false;
-          }
-      }
+      // bool NeighborFound() {
+      //     if (mPairingStatus == this->GetIndexNeighborFound())  {
+      //         return true;
+      //     } else {
+      //         return false;
+      //     }
+      // }
 
       bool NeighborOrApproximationFound() {
           if (mPairingStatus >= this->GetIndexApproximation())  {
@@ -168,14 +168,6 @@ namespace Kratos
       int GetIndexNeighborFound() {
           return 2;
       }
-
-      // void SetIsBeingSent() {
-      //     m_is_being_sent = true;
-      // }
-
-      // bool GetIsBeingSent() {
-      //     return m_is_being_sent;
-      // }
 
       int GetNeighborRank() {
           return mNeighborRank;

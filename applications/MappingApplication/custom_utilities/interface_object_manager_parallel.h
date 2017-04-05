@@ -105,7 +105,7 @@ namespace Kratos
                   for (int j = 0; j < 6; ++j) { // retrieve bounding box of partition
                       bounding_box[j] = &global_bounding_boxes[(partition_index * 6) + j];
                   }
-                  if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
+                  if (!interface_obj->NeighborOrApproximationFound()) { // check if the interface object already found a neighbor
                       if (interface_obj->IsInBoundingBox(bounding_box)) {
                           rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
                           local_comm_list[partition_index] = 1;
@@ -121,14 +121,15 @@ namespace Kratos
 
               if (last_iteration) {
                   // Robustness check, if interface_obj has not found a neighbor, it is sent to every partition
-                  if (!interface_obj->NeighborFound()) { // TODO check why warning is not printed! => One Node only has an approximation!
+                  if (!interface_obj->NeighborOrApproximationFound()) {
                       // Send interface_obj to all Partitions
                       std::cout << "MAPPER WARNING, Rank " << m_comm_rank
-                                << ", interface_obj [ " << interface_obj->X()
-                                << " " << interface_obj->Y() << " "
+                                << ", interface_obj [ " 
+                                << interface_obj->X() << " " 
+                                << interface_obj->Y() << " "
                                 << interface_obj->Z() << " ] has not found "
-                                << "a neighbor yet and is sent to all partitions!"
-                                << std::endl;
+                                << "a neighbor or an approxiamtion yet and "
+                                << "is sent to all partitions!" << std::endl;
 
                       for (int partition_index = 0; partition_index < m_comm_size; ++partition_index) {
                           rCandidateManager.candidate_send_objects[partition_index].push_back(interface_obj);
