@@ -52,6 +52,10 @@ namespace Kratos {
 			skin_part.CreateNewElement("Element3D3N", 1, { 1,2,3 }, p_properties);
 			StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 			FindIntersectedGeometricalObjectsProcess(volume_part, skin_part).Execute();
+			std::cout << std::endl;
+			for (auto& element : volume_part.Elements()) {
+				std::cout << element.Id() << " : " << element.Is(SELECTED) << std::endl;
+			}
 		}
 	}
 }  // namespace Kratos.

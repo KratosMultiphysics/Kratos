@@ -39,6 +39,7 @@ namespace Kratos
 		for (auto p_element_1 : mrModelPart1.ElementsArray()) {
 			leaves.clear();
 			mOctree.GetIntersectedLeaves(p_element_1, leaves);
+			MarkIfIntersected(*p_element_1, leaves);
 		}
 	}
 
@@ -102,13 +103,28 @@ namespace Kratos
 	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
 		for (auto p_leaf : leaves) {
 			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-				if (rElement1.GetGeometry().HasIntersection(p_element_2->GetGeometry())) {
+				if (HasIntersection(rElement1.GetGeometry(),p_element_2->GetGeometry())) {
 					rElement1.Set(SELECTED);
 					return;
 				}
 			}
 		}
 	}
+
+	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry) {
+		auto faces = rFirstGeometry.Faces();
+		for (auto& face : faces) {
+			if (face.HasIntersection(rSecondGeometry))
+				return true;
+		}
+		// Let check second geometry is inside the first one.
+		// Considering that there are no intersection, if one point is inside all of it is inside.
+		array_1d<double, 3> local_point;
+		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point))
+			return true;
+		return false;
+	}
+
 
 }  // namespace Kratos.
 
