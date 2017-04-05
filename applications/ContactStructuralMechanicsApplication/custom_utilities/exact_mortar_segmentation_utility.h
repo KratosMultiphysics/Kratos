@@ -527,6 +527,37 @@ public:
     }
     
     /**
+     * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
+     * @param GeometryTriangle: The triangle to be checked
+     * @return True if the triangle is in bad shape, false otherwise
+     */
+    
+    bool HeronCheck(        
+        const PointType PointOrig1,
+        const PointType PointOrig2,
+        const PointType PointOrig3
+        )
+    {
+        const double a = MathUtils<double>::Norm3(PointOrig1.Coordinates()-PointOrig2.Coordinates());
+        const double b = MathUtils<double>::Norm3(PointOrig2.Coordinates()-PointOrig3.Coordinates());
+        const double c = MathUtils<double>::Norm3(PointOrig3.Coordinates()-PointOrig1.Coordinates());
+      
+        const double s = 0.5 * (a + b + c);
+        const double A2 = s * (s - a) * (s - b) * (s - c);
+        
+        const bool Check = A2 < 0.0 ? true : false;
+        
+//         // Debug
+//         if (Check == true)
+//         {
+//             std::cout << "Warning:: The triangle is in bad shape" << std::endl;
+//             std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << PointOrig1.X() << "," << PointOrig1.Y() << "," << PointOrig1.Z()  << "},{" << PointOrig2.X() << "," << PointOrig2.Y() << "," << PointOrig2.Z()  << "},{" << PointOrig3.X() << "," << PointOrig3.Y() << "," << PointOrig3.Z()  << "}}]}]" << std::endl;
+//         }
+        
+        return Check;
+    }
+    
+    /**
      * This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
      * @param ConditionsPointsSlave: The final solution vector, containing all the nodes
      * @param PointList: The intersection points
@@ -648,7 +679,7 @@ public:
             
             const std::vector<size_t> IndexVector = SortIndexes<double>(Angles);
 
-            ConditionsPointsSlave.resize((ListSize - 2));
+//             ConditionsPointsSlave.resize((ListSize - 2));
         
             // We recover this point to the triangle plane
             for (unsigned int inode = 0; inode < TNumNodes; inode++)
@@ -675,41 +706,38 @@ public:
 //                     
 //                     std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << aux1.X() << "," << aux1.Y() << "," << aux1.Z()  << "},{" << aux2.X() << "," << aux2.Y() << "," << aux2.Z()  << "},{" << aux3.X() << "," << aux3.Y() << "," << aux3.Z()  << "}}]}],";// << std::endl;
                 
-                if (FasTriagleCheck2D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
+                if (HeronCheck(PointList[0], PointList[IndexVector[elem + 0] + 1], PointList[IndexVector[elem + 0] + 2]) == false)
                 {
                     array_1d<PointType, 3> PointsLocals;
-                    
+                        
                     // Now we project to the slave surface
                     PointType point_local;
+                    
+                    if (FasTriagleCheck3D(PointList[0], PointList[IndexVector[elem] + 1], PointList[IndexVector[elem + 1] + 1]) > 0.0)
+                    {
+                        Geometry1.PointLocalCoordinates(point_local, PointList[0]);
+                        PointsLocals[0] = point_local;
+                        
+                        Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 0] + 1]);
+                        PointsLocals[1] = point_local;
+                        
+                        Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 1] + 1]);
+                        PointsLocals[2] = point_local;
+                    }
+                    else
+                    {
+                        Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 1] + 1]);
+                        PointsLocals[0] = point_local;
 
-                    Geometry1.PointLocalCoordinates(point_local, PointList[0]);
-                    PointsLocals[0] = point_local;
+                        Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 0] + 1]);
+                        PointsLocals[1] = point_local;
+    
+                        Geometry1.PointLocalCoordinates(point_local, PointList[0]);
+                        PointsLocals[2] = point_local;
+                    }
                     
-                    Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 0] + 1]);
-                    PointsLocals[1] = point_local;
-                    
-                    Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 1] + 1]);
-                    PointsLocals[2] = point_local;
-                    
-                    ConditionsPointsSlave[elem] = PointsLocals;
-                }
-                else
-                {
-                    array_1d<PointType, 3> PointsLocals;
-                    
-                    // Now we project to the slave surface
-                    PointType point_local;
-
-                    Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 1] + 1]);
-                    PointsLocals[0] = point_local;
-
-                    Geometry1.PointLocalCoordinates(point_local, PointList[IndexVector[elem + 0] + 1]);
-                    PointsLocals[1] = point_local;
- 
-                    Geometry1.PointLocalCoordinates(point_local, PointList[0]);
-                    PointsLocals[2] = point_local;
-                    
-                    ConditionsPointsSlave[elem] = PointsLocals;
+    //                 ConditionsPointsSlave[elem] = PointsLocals;
+                    ConditionsPointsSlave.push_back(PointsLocals);
                 }
             }
             
@@ -1100,15 +1128,22 @@ private:
                 (AllInside[1] == true) &&
                 (AllInside[2] == true))
             {
-                ConditionsPointsSlave.resize(1);
+//                 ConditionsPointsSlave.resize(1);
 
                 for (unsigned int inode = 0; inode < 3; inode++)
                 {
                     RotatePoint( SlaveGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
-                    
-                    PointType Point;
-                    SlaveGeometry.PointLocalCoordinates(Point, SlaveGeometry[inode]);
-                    ConditionsPointsSlave[0][inode] = Point;
+                }
+                
+                if (HeronCheck(SlaveGeometry[0], SlaveGeometry[1], SlaveGeometry[2]) == false)
+                {
+                    ConditionsPointsSlave.resize(1);
+                    for (unsigned int inode = 0; inode < 3; inode++)
+                    {
+                        PointType Point;
+                        SlaveGeometry.PointLocalCoordinates(Point, SlaveGeometry[inode]);
+                        ConditionsPointsSlave[0][inode] = Point;
+                    }
                 }
                 
                 return true;
@@ -1132,13 +1167,22 @@ private:
                  (AllInside[1] == true) &&
                  (AllInside[2] == true))
         {
-            ConditionsPointsSlave.resize(1);
-
             for (unsigned int inode = 0; inode < 3; inode++)
             {
-                PointType Point;
-                SlaveGeometry.PointLocalCoordinates(Point, MasterGeometry[inode]);
-                ConditionsPointsSlave[0][inode] = Point;
+                RotatePoint( MasterGeometry[inode], SlaveCenter, SlaveTangentXi, SlaveTangentEta, true);
+            }
+            
+//             ConditionsPointsSlave.resize(1);
+
+            if (HeronCheck(MasterGeometry[0], MasterGeometry[1], MasterGeometry[2]) == false)
+            {
+                ConditionsPointsSlave.resize(1);
+                for (unsigned int inode = 0; inode < 3; inode++)
+                {
+                    PointType Point;
+                    SlaveGeometry.PointLocalCoordinates(Point, MasterGeometry[inode]);
+                    ConditionsPointsSlave[0][inode] = Point;
+                }
             }
             
             return true;
