@@ -64,6 +64,7 @@ void MembraneElement3D::EquationIdVector(
 {
   KRATOS_TRY;
 
+  /*
   unsigned int number_of_nodes = GetGeometry().size();
   unsigned int dim = number_of_nodes * 3;
 
@@ -83,6 +84,25 @@ void MembraneElement3D::EquationIdVector(
   for (unsigned int i = 0; i < rResult.size(); ++i)
       equationIdVector[i] = rResult[i];
   //KRATOS_WATCH(equationIdVector);
+  */
+
+  unsigned int NumNodes, LocalSize;
+  unsigned int LocalIndex = 0;
+
+  NumNodes = GetGeometry().size();
+  LocalSize = NumNodes * 3;
+
+  unsigned int dpos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+
+  if (rResult.size() != LocalSize)
+      rResult.resize(LocalSize, false);
+
+  for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+  {
+      rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(DISPLACEMENT_X, dpos).EquationId();
+      rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(DISPLACEMENT_Y, dpos + 1).EquationId();
+      rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(DISPLACEMENT_Z, dpos + 2).EquationId();
+  }
 
   KRATOS_CATCH("")
 }
@@ -95,9 +115,25 @@ void MembraneElement3D::GetDofList(
     ProcessInfo& rCurrentProcessInfo)
 
 {
+    unsigned int NumNodes, LocalSize;
+    NumNodes = GetGeometry().size();
+    LocalSize = NumNodes * 3;
+
+    if (ElementalDofList.size() != LocalSize)
+        ElementalDofList.resize(LocalSize);
+
+    unsigned int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+    {
+        ElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(DISPLACEMENT_X);
+        ElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(DISPLACEMENT_Y);
+        ElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(DISPLACEMENT_Z);
+    }
 
     // TODO refered to vms.cpp in FluidDynamicsApplication
 
+    /*
     ElementalDofList.resize(0);
 
     for (unsigned int i = 0; i < GetGeometry().size(); ++i)
@@ -106,6 +142,7 @@ void MembraneElement3D::GetDofList(
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
     }
+    */
 }
 
 //***********************************************************************************
