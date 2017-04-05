@@ -735,15 +735,16 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         return values
 
     def PrintMappedValues(self, model_part, variable, info_string):
+        values_precision = 6 # higher than the precision of the mapped values bcs of "round()"
         if ("Vector" in info_string): # Vector Variable
             values_x = []
             values_y = []
             values_z = []
             for node in model_part.Nodes:
                 value = node.GetSolutionStepValue(variable)
-                values_x.append(value[0])
-                values_y.append(value[1])
-                values_z.append(value[2])
+                values_x.append(round(value[0], values_precision))
+                values_y.append(round(value[1], values_precision))
+                values_z.append(round(value[2], values_precision))
             print("\n\n Values for:", info_string)
             print("        \"Vector_X\":", values_x, ",")
             print("        \"Vector_Y\":", values_y, ",")
@@ -752,10 +753,9 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         else: # Scalar Variable
             values = []
             for node in model_part.Nodes:
-                values.append(node.GetSolutionStepValue(variable))
+                values.append(round(node.GetSolutionStepValue(variable), values_precision))
             print("\n\n Values for:", info_string)
             print("        \"Scalar\":", values, ",")
-        # err # needed to get the output
 
     def SetPrescribedValues(self):
         self.scalar_values_origin_send = {}
