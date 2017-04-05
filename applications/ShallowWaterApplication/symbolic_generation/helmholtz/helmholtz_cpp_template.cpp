@@ -14,30 +14,6 @@
 
 namespace Kratos {
 
-template<>
-void Helmholtz<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    unsigned int Dim = 3;
-    unsigned int NumVar = 1;
-    unsigned int NumNodes = Dim+1;
-    unsigned int DofSize  = NumNodes*NumVar;
-
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
-
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ELEVATION).EquationId();
-        //~ rResult[i*(NumVar)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        //~ rResult[i*(NumVar)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-        //~ rResult[i*(NumVar)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
-}
-
 
 template<>
 void Helmholtz<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
@@ -54,37 +30,12 @@ void Helmholtz<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
 
     for(unsigned int i=0; i<NumNodes; i++)
     {
-        rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(ELEVATION).EquationId();
+        //~ rResult[i*(NumVar)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
         //~ rResult[i*(NumVar)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        //~ rResult[i*(NumVar)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+        rResult[i*NumVar  ]  =  this->GetGeometry()[i].GetDof(ELEVATION).EquationId();
     }
 
     KRATOS_CATCH("")
-}
-
-
-template<>
-void Helmholtz<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    unsigned int Dim = 3;
-    unsigned int NumVar = 1;
-    unsigned int NumNodes = Dim+1;
-    unsigned int DofSize  = NumNodes*NumVar;
-
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
-
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(NumVar)  ]  =  this->GetGeometry()[i].pGetDof(ELEVATION);
-        //~ ElementalDofList[i*(NumVar)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        //~ ElementalDofList[i*(NumVar)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
-        //~ ElementalDofList[i*(NumVar)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
-    }
-
-    KRATOS_CATCH("");
 }
 
 
@@ -112,162 +63,45 @@ void Helmholtz<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCu
 }
 
 
-//~ template<>
-//~ void Helmholtz<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const ElementDataStruct& data) // NOT USED, SINCE SHALLOW WATER ARE 2D
-//~ {
-    //~ const int nnodes = 4;
-    //~ const int dim = 3;
-    //~ const int strain_size = 6;
-//~ 
-    //~ const double rho = inner_prod(data.N, data.rho);        // Density
-    //~ const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    //~ const double h = data.h;                                // Characteristic element size
-    //~ const double c = data.c;                                // Wave velocity
-//~ 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ // const double& bdf1 = data.bdf1;
-    //~ // const double& bdf2 = data.bdf2;
-    //~ const double& dyn_tau = data.dyn_tau;
-//~ 
-    //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
-    //~ // const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    //~ // const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    //~ // const bounded_matrix<double,nnodes,dim>& f = data.f;
-    //~ // const array_1d<double,nnodes>& p = data.p;
-    //~ // const array_1d<double,nnodes>& pn = data.pn;
-    //~ // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
-//~ 
-    //~ // Get constitutive matrix
-    //~ const Matrix& C = data.C;
-//~ 
-    //~ // Get shape function values
-    //~ const array_1d<double,nnodes>& N = data.N;
-    //~ const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-//~ 
-    //~ // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-//~ 
-    //~ // const double vconv_norm = norm_2(vconv_gauss);
-//~ 
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // const double tau2 = (h*h)/(c1*tau1);
-//~ 
-    //~ //substitute_lhs_3D
-//~ 
-//~ }
-
-
 template<>
 void Helmholtz<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,3,3>& lhs, const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
-    //~ const int strain_size = 3;
 
-    const double H = inner_prod(data.N, data.H);           // Bathymetry
+    // Get shape function values
+    const array_1d<double,nnodes>& N = data.N;
+    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+
+    // Get problem data
+    const double H = inner_prod(N, data.H);                // Bathymetry
     const double g = data.g;                               // Gravity
-    //~ const double h = data.h;                               // Characteristic element size  // Unused variable
+    //~ const double l = data.l;                               // Characteristic element size  // Unused variable
 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ const double& bdf1 = data.bdf1;
-    //~ const double& bdf2 = data.bdf2;
+    //~ const double& dt = data.dt;              // Unused variable
+    const double& bdf0 = data.bdf0;          // Unused variable
+    //~ const double& bdf1 = data.bdf1;          // Unused variable
+    //~ const double& bdf2 = data.bdf2;          // Unused variable
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
     //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& f = data.f;    // Unused variable
     //~ const array_1d<double,nnodes>& eta = data.eta;          // Unused variable
     //~ const array_1d<double,nnodes>& etan = data.etan;        // Unused variable
     //~ const array_1d<double,nnodes>& etann = data.etann;      // Unused variable
-    //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
     //~ const Matrix& C = data.C;                               // Unused variable
-
-    // Get shape function values
-    //~ const array_1d<double,nnodes>& N = data.N;              // Unused variable
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
 
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
     // const double vconv_norm = norm_2(vconv_gauss);
 
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // const double tau2 = (h*h)/(c1*tau1);
-
     //substitute_lhs_2D
 
 }
-
-
-//~ template<>
-//~ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const ElementDataStruct& data) // Not used, since shallow water are 2D
-//~ {
-    //~ const int nnodes = 4;
-    //~ const int dim = 3;
-    //~ const int strain_size = 6;
-//~ 
-    //~ const double rho = inner_prod(data.N, data.rho);        // Density
-    //~ const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    //~ const double h = data.h;                                // Characteristic element size
-    //~ const double c = data.c;                                // Wave velocity
-//~ 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ const double& bdf1 = data.bdf1;
-    //~ const double& bdf2 = data.bdf2;
-    //~ const double& dyn_tau = data.dyn_tau;
-//~ 
-    //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
-    //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& f = data.f;
-    //~ const array_1d<double,nnodes>& p = data.p;
-    //~ const array_1d<double,nnodes>& pn = data.pn;
-    //~ const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
-//~ 
-    //~ // Get constitutive matrix
-    //~ // const Matrix& C = data.C;
-//~ 
-    //~ // Get shape function values
-    //~ const array_1d<double,nnodes>& N = data.N;
-    //~ const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-//~ 
-    //~ // Auxiliary variables used in the calculation of the RHS
-    //~ const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    //~ const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    //~ // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
-//~ 
-    //~ // const double vconv_norm = norm_2(vconv_gauss);
-//~ 
-    //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-    //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-    //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
-//~ 
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // const double tau2 = (h*h)/(c1*tau1);
-//~ 
-    //~ //substitute_rhs_3D
-//~ }
 
 
 template<>
@@ -275,40 +109,37 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
 {
     const int nnodes = 3;
     const int dim = 2;
-    // const int strain_size = 3;
 
-    const double H = inner_prod(data.N, data.H);           // Bathymetry
+    // Get shape function values
+    const array_1d<double,nnodes>& N = data.N;
+    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+    
+    // Get problem data
+    const double H = inner_prod(N, data.H);                // Bathymetry
     const double g = data.g;                               // Gravity
-    //~ const double h = data.h;                               // Characteristic element size    // Unused variable
+    //~ const double l = data.l;                               // Characteristic element size    // Unused variable
 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ const double& bdf1 = data.bdf1;
-    //~ const double& bdf2 = data.bdf2;
+    //~ const double& dt = data.dt;             // Unused variable
+    const double& bdf0 = data.bdf0;
+    const double& bdf1 = data.bdf1;
+    const double& bdf2 = data.bdf2;
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
     //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& eta = data.eta;
-    //~ const array_1d<double,nnodes>& etan = data.etan;        // Unused variable
-    //~ const array_1d<double,nnodes>& etann = data.etann;      // Unused variable
-    //~ const array_1d<double,strain_size>& stress = data.stress;
+    const array_1d<double,nnodes>& etan = data.etan;
+    const array_1d<double,nnodes>& etann = data.etann;
 
     // Get constitutive matrix
     // const Matrix& C = data.C;
 
-    // Get shape function values
-    const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-
     // Auxiliary variables used in the calculation of the RHS
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_eta = prod(trans(DN), eta);
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
+    //~ const double eta_gauss = inner_prod(N,eta);             // Unused variable
 
     // const double vconv_norm = norm_2(vconv_gauss);
 
@@ -316,75 +147,8 @@ void Helmholtz<2>::ComputeGaussPointRHSContribution(array_1d<double,3>& rhs, con
     //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
     //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // const double tau2 = (h*h)/(c1*tau1);
-
     //substitute_rhs_2D
 }
-
-
-//~ template<>
-//~ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data) // Not used, since shallow water are 2D
-//~ {
-    //~ const int nnodes = 4;
-    //~ const int dim = 3;
-    //~ // const int strain_size = 3;
-//~ 
-    //~ const double rho = inner_prod(data.N, data.rho);        // Density
-    //~ const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    //~ const double h = data.h;                                // Characteristic element size
-    //~ // const double c = data.c;                                // Wave velocity
-//~ 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ const double& bdf1 = data.bdf1;
-    //~ const double& bdf2 = data.bdf2;
-    //~ const double& dyn_tau = data.dyn_tau;
-//~ 
-    //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
-    //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
-    //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
-    //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    //~ const bounded_matrix<double,nnodes,dim>& f = data.f;
-    //~ const array_1d<double,nnodes>& p = data.p;
-    //~ // const array_1d<double,nnodes>& pn = data.pn;
-    //~ // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ // const array_1d<double,strain_size>& stress = data.stress;
-//~ 
-    //~ // // Get constitutive matrix
-    //~ // const Matrix& C = data.C;
-//~ 
-    //~ // Get shape function values
-    //~ const array_1d<double,nnodes>& N = data.N;
-    //~ const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-//~ 
-    //~ // Auxiliary variables used in the calculation of the error estimator
-    //~ array_1d<double,dim> v_s_gauss;
-    //~ const array_1d<double,dim> v_gauss = prod(trans(v), N);
-    //~ const array_1d<double,dim> f_gauss = prod(trans(f), N);
-    //~ const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    //~ // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-//~ 
-    //~ // const double vconv_norm = norm_2(vconv_gauss);
-//~ 
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // // const double tau2 = (h*h)/(c1*tau1);
-//~ 
-    //~ // Gauss point velocity subscale value computation
-    //~ //substitute_gausspt_subscale_3D
-//~ 
-    //~ const double v_gauss_norm = norm_2(v_gauss);
-    //~ const double v_s_gauss_norm = norm_2(v_s_gauss);
-//~ 
-    //~ return v_s_gauss_norm/v_gauss_norm;
-//~ }
 
 
 template<>
@@ -393,44 +157,36 @@ double Helmholtz<2>::SubscaleErrorEstimate(const ElementDataStruct& data)  // No
     const int nnodes = 3;
     const int dim = 2;
 
+    // Get shape function values
+    //~ const array_1d<double,nnodes>& N = data.N;                          // Unused variable
+    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+
+    // Get problem data
     //~ const double H = inner_prod(data.N, data.H);           // Bathymetry                        // Unused variable
     //~ const double g = data.g;                               // Gravity                           // Unused variable
-    //~ const double h = data.h;                               // Characteristic element size       // Unused variable
+    //~ const double l = data.l;                               // Characteristic element size       // Unused variable
 
-    //~ const double& dt = data.dt;
-    //~ const double& bdf0 = data.bdf0;
-    //~ const double& bdf1 = data.bdf1;
-    //~ const double& bdf2 = data.bdf2;
-    //~ const double& dyn_tau = data.dyn_tau;
+    //~ const double& dt = data.dt;             // Unused variable
+    //~ const double& bdf0 = data.bdf0;         // Unused variable
+    //~ const double& bdf1 = data.bdf1;         // Unused variable
+    //~ const double& bdf2 = data.bdf2;         // Unused variable
 
     //~ const bounded_matrix<double,nnodes,dim>& v = data.v;
     //~ const bounded_matrix<double,nnodes,dim>& vn = data.vn;
     //~ const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
     //~ const bounded_matrix<double,nnodes,dim>& vmesh = data.vmesh;
     //~ const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
-    const bounded_matrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& eta = data.eta;
     //~ const array_1d<double,nnodes>& etan = data.etan;                   // Unused variable
     //~ const array_1d<double,nnodes>& etann = data.etann;                 // Unused variable
 
-    // Get shape function values
-    const array_1d<double,nnodes>& N = data.N;
-    const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
-
     // Auxiliary variables used in the calculation of the error estimator
     // array_1d<double,dim> v_s_gauss;
     // const array_1d<double,dim> v_gauss = prod(trans(v), N);
-    const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_eta = prod(trans(DN), eta);
     // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
 
     // const double vconv_norm = norm_2(vconv_gauss);
-
-    //~ // Stabilization parameters
-    //~ const double stab_c1 = 4.0;
-    //~ const double stab_c2 = 2.0;
-    //~ // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    //~ // // const double tau2 = (h*h)/(c1*tau1);
 
     // Gauss point velocity subscale value computation
     //substitute_gausspt_subscale_2D
