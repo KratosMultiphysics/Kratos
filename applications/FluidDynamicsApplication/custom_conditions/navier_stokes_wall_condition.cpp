@@ -130,7 +130,7 @@ const ConditionDataStruct& data)
 */
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
-                                                                                 const ConditionDataStruct& data)
+const ConditionDataStruct& data)
 {
     // Initialize the local RHS
     const unsigned int LocalSize = TDim+1;
