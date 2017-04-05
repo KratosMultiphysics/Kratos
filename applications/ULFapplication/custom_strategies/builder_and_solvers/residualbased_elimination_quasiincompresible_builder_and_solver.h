@@ -197,8 +197,10 @@ public:
     )
     {
         KRATOS_TRY
-	mActiveNodes.clear();
+	
+	mActiveNodes.clear(); 
         mActiveNodes.reserve(r_model_part.Nodes().size() );
+
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
         {
             if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
@@ -207,53 +209,28 @@ public:
             }
         }
 
-        WeakPointerVector<Node<3> > aux;
-        aux.resize(mActiveNodes.size());
-
         //getting the dof position
         //unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
 
         //fills the DofList and give a unique progressive tag to each node
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size()*TDim );
-        int free_id = 0;
-        int fix_id = mActiveNodes.size();
 
-        for(unsigned int i=0; i<mActiveNodes.size(); i++)
+        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
-            typename Dof< double >::Pointer pDofx = mActiveNodes[i].pGetDof(DISPLACEMENT_X);
-	    typename Dof< double >::Pointer pDofy = mActiveNodes[i].pGetDof(DISPLACEMENT_X);
+            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get() );
+            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get() );
 	    if (TDim==3)
-		    typename Dof< double >::Pointer pDofz = mActiveNodes[i].pGetDof(DISPLACEMENT_Z);
-            //int index;
-            //index = free_id++;
-            BaseType::mDofSet.push_back( pDofx );
-            BaseType::mDofSet.push_back( pDofy );
-	    if (TDim==3)
-	            BaseType::mDofSet.push_back( pDofz );
-
-            //pDofx->SetEquationId(index);
-            //aux(index) = mActiveNodes(i);
-
+	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z).get() );
         }
 
-        //reordering the active nodes according to their fixity
-	/*
-        for(unsigned int i=0; i<mActiveNodes.size(); i++)
-        {
-            mActiveNodes(i) = aux(i);
-        }
-	*/
-        this->mEquationSystemSize = TDim*mActiveNodes.size();
-	//this->mEquationSystemSize = BaseType::mDofSet.size();
-        //mActiveSize = free_id;
 
 
-        //throws an execption if there are no Degrees of freedom involved in the analysis
-        if (BaseType::mDofSet.size()==0)
+	 if (BaseType::mDofSet.size()==0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
+	
 
 	//BELOW IS THE OLD VERSION
 	/*
@@ -639,10 +616,17 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
-    /*@} */
-    /**@name Private Operators*/
+WeakPointerVector<Node<3> > mActiveNodes;
+
+//private:
+    /**@name Static Member Variables */
     /*@{ */
 
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+  //  WeakPointerVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operations*/
