@@ -132,14 +132,6 @@ namespace Kratos
           return mPairingStatus;
       }
 
-      // bool NeighborFound() {
-      //     if (mPairingStatus == this->GetIndexNeighborFound())  {
-      //         return true;
-      //     } else {
-      //         return false;
-      //     }
-      // }
-
       bool NeighborOrApproximationFound() {
           if (mPairingStatus >= this->GetIndexApproximation())  {
               return true;
