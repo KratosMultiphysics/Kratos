@@ -1412,11 +1412,22 @@ private:
                     }
                 }
             }
-            
+
             MyPropagation.TipCoordinates[0] = TipX/TipDen;
             MyPropagation.TipCoordinates[1] = TipY/TipDen;
             MyPropagation.TipCoordinates[2] = 0.0;
-
+            
+            //TODO: add flag asking for straight propagation
+            bool StraightPropagation = true;
+            if (StraightPropagation == true)
+            {
+                AuxArray1[0] = rAuxPropagationVariables.TipLocalCoordinates[0] + PropagationLength;
+                AuxArray1[1] = rAuxPropagationVariables.TipLocalCoordinates[1];
+                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+                MyPropagation.TipCoordinates[0] = AuxArray2[0];
+                MyPropagation.TipCoordinates[1] = AuxArray2[1];
+            }
+            
             noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
             AuxArray1[1] += 0.5*PropagationWidth;
             noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
