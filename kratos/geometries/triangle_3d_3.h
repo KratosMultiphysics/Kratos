@@ -215,7 +215,9 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
+        {
             KRATOS_ERROR << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
+        }
     }
 
     /**
@@ -378,8 +380,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Length() const override {
-		  return std::sqrt(2.0 * Area());
+    virtual double Length() const override 
+    {
+        return std::sqrt(2.0 * Area());
     }
 
     /** This method calculates and returns area or surface area of
@@ -397,14 +400,14 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Area() const override {
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+    virtual double Area() const override
+    {
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      double s = (a+b+c) / 2.0;
-
-      return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        return MathUtils<double>::Heron<true>(a,b,c); // NOTE: To check if the triangle is in bad shape
+//         return MathUtils<double>::Heron<false>(a,b,c);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -421,8 +424,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double DomainSize() const override {
-      return Area();
+    virtual double DomainSize() const override 
+    {
+        return Area();
     }
 
     /// Class Interface
@@ -435,16 +439,17 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MinEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    virtual double MinEdgeLength() const override 
+    {
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMinEdgeLength(sa, sb, sc);
+        return CalculateMinEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the maximum edge
@@ -455,16 +460,17 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MaxEdgeLength() const override {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    virtual double MaxEdgeLength() const override 
+    {
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMaxEdgeLength(sa, sb, sc);
+        return CalculateMaxEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the average edge
@@ -475,12 +481,13 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    virtual double AverageEdgeLength() const override {
-      return CalculateAvgEdgeLength(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+    virtual double AverageEdgeLength() const override 
+    {
+        return CalculateAvgEdgeLength(
+            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        );
     }
 
     /** Calculates the circumradius of the geometry.
@@ -490,12 +497,13 @@ public:
      *
      * @see Inradius()
      */
-    virtual double Circumradius() const override {
-      return CalculateCircumradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+    virtual double Circumradius() const override 
+    {
+        return CalculateCircumradius(
+            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        );
     }
 
     /** Calculates the inradius of the geometry.
@@ -505,12 +513,13 @@ public:
      *
      * @see Circumradius()
      */
-    virtual double Inradius() const override {
-      return CalculateInradius(
-        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+    virtual double Inradius() const override
+    {
+        return CalculateInradius(
+            MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+            MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+            MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        );
     }
 
     /// Quality functions
@@ -525,14 +534,15 @@ public:
      *
      * @return The inradius to circumradius quality metric.
      */
-    virtual double InradiusToCircumradiusQuality() const override {
-      constexpr double normFactor = 1.0;
+    virtual double InradiusToCircumradiusQuality() const override 
+    {
+        constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
+        return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -545,18 +555,19 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    virtual double InradiusToLongestEdgeQuality() const override {
-      constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+    virtual double InradiusToLongestEdgeQuality() const override 
+    {
+        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
+        return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -570,18 +581,19 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    virtual double AreaToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
+    virtual double AreaToEdgeLengthRatio() const override 
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * Area() / (sa+sb+sc);
+        return normFactor * Area() / (sa+sb+sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -595,21 +607,22 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToEdgeLengthRatio() const override {
-      constexpr double normFactor = 1.0;
+    virtual double ShortestAltitudeToEdgeLengthRatio() const override
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base.
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base.
+        const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
+        return normFactor * (Area() * 2 / base ) / std::sqrt(sa+sb+sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -623,14 +636,15 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    virtual double AreaToEdgeLengthSquareRatio() const {
-      constexpr double normFactor = 1.0;
+    virtual double AreaToEdgeLengthSquareRatio() const 
+    {
+        constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      return normFactor * Area() / std::pow(a+b+c, 2);
+        return normFactor * Area() / std::pow(a+b+c, 2);
     }
 
     /** Calculates the shortest altitude to longest edge.
@@ -644,21 +658,22 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToLongestEdge() const {
-      constexpr double normFactor = 1.0;
+    virtual double ShortestAltitudeToLongestEdge() const 
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const auto a = this->GetPoint(0) - this->GetPoint(1);
+        const auto b = this->GetPoint(1) - this->GetPoint(2);
+        const auto c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base (or edge).
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base (or edge).
+        const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / base;
+        return normFactor * (Area() * 2 / base ) / base;
     }
 
     /**
@@ -1094,7 +1109,9 @@ public:
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
+        {
             NumberNodesInFaces.resize(3,false);
+        }
         // Linear Triangles have elements of 2 nodes as faces
         NumberNodesInFaces[0]=2;
         NumberNodesInFaces[1]=2;
@@ -1105,7 +1122,9 @@ public:
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
+        {
             NodesInFaces.resize(3,3,false);
+        }
 
         NodesInFaces(0,0)=0;//face or other node
         NodesInFaces(1,0)=1;
