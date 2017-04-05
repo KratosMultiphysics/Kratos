@@ -346,36 +346,33 @@ namespace Kratos
                                               array_1d<double,3>& rLocalCoords,
                                               double& rDistance) {
           
-          // change localcoords to 3 from 2!
-          // Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
-          // bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
+          Condition::GeometryType& r_condition_geometry = pCondition->GetGeometry();
+          bool is_inside = r_condition_geometry.IsInside(GlobalCoords, rLocalCoords);
           
-          // if (is_inside) {
-          //     // Calculate Distance
-          //     array_1d<double, 3> projection_physical_coords;
-          //     projection_physical_coords[0] = 0.0f;
-          //     projection_physical_coords[1] = 0.0f;
-          //     projection_physical_coords[2] = 0.0f;
+          if (is_inside) {
+              // Calculate Distance
+              array_1d<double, 3> projection_physical_coords;
+              projection_physical_coords[0] = 0.0f;
+              projection_physical_coords[1] = 0.0f;
+              projection_physical_coords[2] = 0.0f;
 
-          //     double shape_function_value = 0.0f;
+              double shape_function_value = 0.0f;
 
-          //     for (int i = 0; i < static_cast<int>(r_condition_geometry.PointsNumber()); ++i) {
-          //         shape_function_value = r_condition_geometry.ShapeFunctionValue(i, rLocalCoords);
-          //         projection_physical_coords[0] += shape_function_value * r_condition_geometry[i].X();
-          //         projection_physical_coords[1] += shape_function_value * r_condition_geometry[i].Y();
-          //         projection_physical_coords[2] += shape_function_value * r_condition_geometry[i].Z();
-          //     }
+              for (int i = 0; i < static_cast<int>(r_condition_geometry.PointsNumber()); ++i) {
+                  shape_function_value = r_condition_geometry.ShapeFunctionValue(i, rLocalCoords);
+                  projection_physical_coords[0] += shape_function_value * r_condition_geometry[i].X();
+                  projection_physical_coords[1] += shape_function_value * r_condition_geometry[i].Y();
+                  projection_physical_coords[2] += shape_function_value * r_condition_geometry[i].Z();
+              }
 
-          //     rDistance = sqrt(pow(GlobalCoords[0] - projection_physical_coords[0] , 2) +
-          //                      pow(GlobalCoords[1] - projection_physical_coords[1] , 2) +
-          //                      pow(GlobalCoords[2] - projection_physical_coords[2] , 2));
+              rDistance = sqrt(pow(GlobalCoords[0] - projection_physical_coords[0] , 2) +
+                               pow(GlobalCoords[1] - projection_physical_coords[1] , 2) +
+                               pow(GlobalCoords[2] - projection_physical_coords[2] , 2));
 
-          //     KRATOS_WATCH(rDistance)
-          // }
+              KRATOS_WATCH(rDistance)
+          }
 
-          // return is_inside;
-
-          return false;
+          return is_inside;
       }
 
       static void CalculateLineNormal(Condition* pCondition,
