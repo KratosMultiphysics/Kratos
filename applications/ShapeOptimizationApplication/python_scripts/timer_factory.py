@@ -19,19 +19,43 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+# Import additional libraries
+import time
+
 # ==============================================================================
-class DesignLogger:
+def CreateTimer():
+    return Timer()
+
+# ==============================================================================
+class Timer:
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> initializeLogging << .")
+    def __init__( self ):
+        self.precision = 3
+        self.startTimeGlobal = None
+        self.startTimeLap = None
+        self.lapTime = None
+    # --------------------------------------------------------------------------
+    def startTimer( self ):
+        self.startTimeGlobal = time.time()
+        self.startTimeLap = time.time()
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> logCurrentDesign << .")
+    def getLapTime( self ):
+        lapTime = time.time() - self.startTimeLap
+        return round( lapTime, self.precision )
+
+    # --------------------------------------------------------------------------
+    def resetLapTime( self ):    
+        self.startTimeLap = time.time()    
 
     #---------------------------------------------------------------------------
-    def finalizeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
+    def getTotalTime( self ):
+        totalTime = time.time() - self.startTimeGlobal
+        return round( totalTime, self.precision )
+
+    # --------------------------------------------------------------------------
+    def getTimeStamp( self ):
+        return time.ctime()
 
 # ==============================================================================

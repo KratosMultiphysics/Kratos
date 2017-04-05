@@ -23,7 +23,7 @@ CheckForPreviousImport()
 from gid_output import GiDOutput
 
 # Import logger base classes
-from optimization_data_logger.design_logger_base import DesignLogger
+from design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerGID( DesignLogger ):

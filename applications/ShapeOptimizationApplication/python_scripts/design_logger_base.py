@@ -20,18 +20,22 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-class ResponseLogger():
+class DesignLogger:
+
+    # --------------------------------------------------------------------------
+    def __init__( self, designSurface, optimizationSettings ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> __init__ << .")
 
     # --------------------------------------------------------------------------
     def initializeLogging( self ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> initializeLogging << .")
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> initializeLogging << .")
 
     # --------------------------------------------------------------------------
-    def logCurrentResponses( self ):
-        raise RuntimeError("Design writer base class is called. Please check your implementation of the function >> logCurrentResponses << .")
+    def logCurrentDesign( self, optimizationIteration ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> logCurrentDesign << .")
 
-    # --------------------------------------------------------------------------
-    def finalizeLogging( self ):      
-        raise RuntimeError("Design writer base class is called. Please check your implementation of the function >> finalizeLogging << .")
+    #---------------------------------------------------------------------------
+    def finalizeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
 
 # ==============================================================================

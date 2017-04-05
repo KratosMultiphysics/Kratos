@@ -20,21 +20,21 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # Import logger classes
-from optimization_data_logger.design_logger_gid import DesignLoggerGID
-from optimization_data_logger.response_logger_steepest_descent import ResponseLoggerSteepestDescent
+from design_logger_gid import DesignLoggerGID
+from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 
 # ==============================================================================
-def CreateDataLogger( designSurface, optimizationSettings ):
-    responseLogger = createResponseLogger( optimizationSettings )
+def CreateDataLogger( designSurface, communicator, timer, optimizationSettings ):
+    responseLogger = createResponseLogger( communicator, timer, optimizationSettings )
     designLogger = createDesignLogger( designSurface, optimizationSettings )
     return optimizationDataLogger( responseLogger, designLogger, optimizationSettings )
 
 # -----------------------------------------------------------------------------
-def createResponseLogger( optimizationSettings ):
+def createResponseLogger( communicator, timer, optimizationSettings ):
     responseLogger = None
     optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
     if optimizationAlgorithm == "steepest_descent":
-        return ResponseLoggerSteepestDescent( optimizationSettings )
+        return ResponseLoggerSteepestDescent( communicator, timer, optimizationSettings )
     else:
         raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + optimizationAlgorithm)
 
@@ -87,9 +87,13 @@ class optimizationDataLogger():
         self.responseLogger.initializeLogging()
 
     # --------------------------------------------------------------------------
-    def logCurrentOptimizationData( self, optimizationIteration, communicator ):    
+    def logCurrentData( self, optimizationIteration ):    
         self.designLogger.logCurrentDesign( optimizationIteration )   
-        self.responseLogger.logCurrentResponses( optimizationIteration, communicator )
+        self.responseLogger.logCurrentResponses( optimizationIteration )
+
+    # --------------------------------------------------------------------------
+    def getRelativeChangeOfObjectiveValue( self ):
+        return self.responseLogger.getRelativeChangeOfObjectiveValue()
 
     # --------------------------------------------------------------------------
     def finalizeDataLogging( self ):

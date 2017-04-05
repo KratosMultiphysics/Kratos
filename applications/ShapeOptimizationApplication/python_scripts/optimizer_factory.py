@@ -75,34 +75,34 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def optimize( self ):
         
-        print("\n> ==============================================================================================================")
-        print("> ",time.ctime(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
-        print("> ==============================================================================================================\n")
-
         # timer
-        self.timeAtStartOfOptimization = time.time()
+        timerFactory = __import__("timer_factory")
+        self.timer = timerFactory.CreateTimer()
+    
+        # communicator
+        self.communicator = Communicator( self.optimizationSettings )    
 
         # model data
         self.designSurface = self.getDesignSurfaceFromInputModelPart()
-
-        # communicator
-        self.communicator = Communicator( self.optimizationSettings )        
+        self.listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
 
         # mapper
-        listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
-        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
+        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, self.listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
         # dataWriter
         optimizatoinDataLoggerFactory = __import__("optimization_data_logger_factory")
-        self.optimizationDataLogger = optimizatoinDataLoggerFactory.CreateDataLogger( self.designSurface, self.optimizationSettings )
+        self.optimizationDataLogger = optimizatoinDataLoggerFactory.CreateDataLogger( self.designSurface, self.communicator, self.timer, self.optimizationSettings )
 
-        self.optimizationDataLogger.initializeDataLogging()     
 
         # algorithm_driver
-        # specifiedAlgorithm = OptimizationAlgorithems( self.design_surface, communicator, mapper, outputWriter, timer)
-        # specifiedAlgorithm.run()
+        # .....algorithmDriver(timer, communicator, design_surface, vertexMorphingMapper, optimizationDataLogger )
 
+        print("\n> ==============================================================================================================")
+        print("> ",self.timer.getTimeStamp(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
+        print("> ==============================================================================================================\n")
 
+        self.optimizationDataLogger.initializeDataLogging() 
+            
         self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
         self.runSpecifiedOptimizationAlgorithm()
 
@@ -110,7 +110,7 @@ class VertexMorphingMethod:
 
 
         print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(time.time() - self.timeAtStartOfOptimization,2)," s!")
+        print("> Finished optimization                                                                                           ")
         print("> ==============================================================================================================\n")
 
     
@@ -149,9 +149,6 @@ class VertexMorphingMethod:
     # --------------------------------------------------------------------------
     def runSteepestDescentAlgorithm( self ):
 
-        # README!!!
-        # Note that the current implementation assumes that only one scalar objective is present
-
         # Flags to trigger proper function calls
         constraints_given = False
 
@@ -159,26 +156,25 @@ class VertexMorphingMethod:
         geometryTools = GeometryUtilities( self.designSurface )
 
         # Get Id of objective (right now only one objective is considered!!)
-        onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
+        onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
         # Start optimization loop
-        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1 
-        for optimizationIteration in range(1,maxOptimizationIterations):
+        self.timer.startTimer()
+        maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
+        for optimizationIteration in range(1, maxOptimizationIterations):
 
             # Some output
             print("\n>===================================================================")
-            print("> ",time.ctime(),": Starting optimization iteration ",optimizationIteration)
+            print("> ",self.timer.getTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
-            timeAtStartOfCurrentOptimizationStep = time.time()
-
             self.communicator.initializeCommunication()
-            self.communicator.requestFunctionValueOf( onlyObjectiveFunction )
-            self.communicator.requestGradientOf( onlyObjectiveFunction )
+            self.communicator.requestFunctionValueOf( onlyObjective )
+            self.communicator.requestGradientOf( onlyObjective )
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
-            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )            
+            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjective )            
             self.storeGradientOnNodes( gradientOfObjectiveFunction )
 
             geometryTools.compute_unit_surface_normals()
@@ -192,29 +188,31 @@ class VertexMorphingMethod:
 
             self.vertexMorphingMapper.map_design_update_to_geometry_space()         
             
-            self.optimizationDataLogger.logCurrentOptimizationData( optimizationIteration, self.communicator )
+            self.optimizationDataLogger.logCurrentData( optimizationIteration )
 
-            # # Take time needed for current optimization step
-            # print("\n> Time needed for current optimization step = ",runTimeOptimizationStep,"s")
-            # print("> Time needed for total optimization so far = ",runTimeOptimization,"s")                              
+            # Take time needed for current optimization step
+            print("\n> Time needed for current optimization step = ", self.timer.getLapTime(), "s")
+            print("> Time needed for total optimization so far = ", self.timer.getTotalTime(), "s") 
+            self.timer.resetLapTime()                             
 
-            # # Check convergence
-            # if optimizationIteration > 1 :
+            # Check convergence
+            if optimizationIteration > 1 :
 
-            #     # Check if maximum iterations were reached
-            #     if optimizationIteration == maxOptimizationIterations:
-            #         print("\n> Maximal iterations of optimization problem reached!")
-            #         break
+                # Check if maximum iterations were reached
+                if optimizationIteration == maxOptimizationIterations:
+                    print("\n> Maximal iterations of optimization problem reached!")
+                    break
 
-            #     # Check for relative tolerance
-            #     relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
-            #     if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
-            #         print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
-            #         break
+                # Check for relative tolerance
+                relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
+                relativeChangeOfObjectiveValue = self.optimizationDataLogger.getRelativeChangeOfObjectiveValue()
+                if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
+                    break
 
-            #     # Check if value of objective increases
-            #     if valueOfObjectiveFunction > previousValueOfObjectiveFunction:
-            #         print("\n> Value of objective function increased!")
+                # Check if value of objective increases
+                if relativeChangeOfObjectiveValue > 0:
+                    print("\n> Value of objective function increased!")
 
     # --------------------------------------------------------------------------
     def runPenalizedProjectionAlgorithm( self ):
