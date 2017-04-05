@@ -165,7 +165,7 @@ namespace Kratos
           return mNeighborRank;
       }
 
-      virtual bool EvaluateResult(const array_1d<double, 3> global_coords, double& min_distance,
+      virtual bool EvaluateResult(const array_1d<double, 3>& global_coords, double& min_distance,
                                   double distance, array_1d<double,2>& local_coords,
                                   std::vector<double>& shape_function_values) {
           KRATOS_ERROR << "Base class function called!" << std::endl;

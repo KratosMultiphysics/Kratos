@@ -97,7 +97,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
+      bool EvaluateResult(const array_1d<double, 3>& GlobalCoords, double& rMinDistance, // TODO reference??????
                           double Distance, array_1d<double,2>& local_coords,
                           std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           // Distance is the distance to the center and not the projection distance, therefore it is unused
