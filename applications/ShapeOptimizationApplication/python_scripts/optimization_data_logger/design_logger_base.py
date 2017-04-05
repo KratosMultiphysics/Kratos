@@ -20,14 +20,18 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateDataWriter( designSurface, optimizationSettings ):
-    
-    outputFormatName = optimizationSettings["output"]["output_format"]["name"].GetString()
+class DesignLogger:
 
-    # if outputFormatName = "GiD":
-    #     return ...
+    # --------------------------------------------------------------------------
+    def initializeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> initializeLogging << .")
 
-    # else:
+    # --------------------------------------------------------------------------
+    def logCurrentDesign( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> logCurrentDesign << .")
 
+    #---------------------------------------------------------------------------
+    def finalizeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
 
 # ==============================================================================

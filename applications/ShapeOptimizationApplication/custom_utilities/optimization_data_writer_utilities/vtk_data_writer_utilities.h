@@ -63,26 +63,26 @@ namespace Kratos
 
 */
 
-class OptimizationDataWriter
+class VTKDataWriterUtilities
 {
 public:
   ///@name Type Definitions
   ///@{
 
-  /// Pointer definition of OptimizationDataWriter
-  KRATOS_CLASS_POINTER_DEFINITION(OptimizationDataWriter);
+  /// Pointer definition of VTKDataWriterUtilities
+  KRATOS_CLASS_POINTER_DEFINITION(VTKDataWriterUtilities);
 
   ///@}
   ///@name Life Cycle
   ///@{
 
   /// Default constructor.
-  OptimizationDataWriter()
+  VTKDataWriterUtilities()
   {
   }
 
   /// Destructor.
-  virtual ~OptimizationDataWriter()
+  virtual ~VTKDataWriterUtilities()
   {
   }
 
@@ -95,27 +95,8 @@ public:
   ///@{
 
   // ==============================================================================
-  void initialize();
-
-
-  // --------------------------------------------------------------------------
-  virtual void initializeDesignOutput() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual void initializeOptimizationLog() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual double writeCurrentDesign() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual double logCurrentOptimizationStep() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual double finalizeDesignOutput() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual double fianlizeOptimizationLog() = 0;
-
+  // void initialize();
+// 
   // ==============================================================================
 
   ///@}
@@ -133,13 +114,13 @@ public:
   /// Turn back information as a string.
   virtual std::string Info() const
   {
-    return "OptimizationDataWriter";
+    return "VTKDataWriterUtilities";
   }
 
   /// Print information about this object.
   virtual void PrintInfo(std::ostream &rOStream) const
   {
-    rOStream << "OptimizationDataWriter";
+    rOStream << "VTKDataWriterUtilities";
   }
 
   /// Print object's data.
@@ -212,14 +193,14 @@ private:
   ///@{
 
   /// Assignment operator.
-  //      OptimizationDataWriter& operator=(OptimizationDataWriter const& rOther);
+  //      VTKDataWriterUtilities& operator=(VTKDataWriterUtilities const& rOther);
 
   /// Copy constructor.
-  //      OptimizationDataWriter(OptimizationDataWriter const& rOther);
+  //      VTKDataWriterUtilities(VTKDataWriterUtilities const& rOther);
 
   ///@}
 
-}; // Class OptimizationDataWriter
+}; // Class VTKDataWriterUtilities
 
 ///@}
 

@@ -18,11 +18,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# For GID output
-from gid_output import GiDOutput
-
 # Further necessary imports
-import csv
 import math
 import time
 import json
@@ -43,32 +39,6 @@ class VertexMorphingMethod:
         self.inputModelPart = inputModelPart
         self.optimizationSettings = optimizationSettings
         self.addVariablesNeededForOptimization( inputModelPart )
-    
-    # --------------------------------------------------------------------------
-    def createFolderToStoreOptimizationResults ( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
-        os.system( "rm -rf " + resultsDirectory )
-        os.system( "mkdir -p " + resultsDirectory )
-
-    # --------------------------------------------------------------------------
-    def createGiDIO( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
-        designHistoryFilename = optimizationSettings["output"]["design_history_filename"].GetString()
-        designHistoryFilenameWithPath =  resultsDirectory+"/"+designHistoryFilename
-        gidIO = GiDOutput( designHistoryFilenameWithPath,
-                           optimizationSettings["output"]["output_type"]["VolumeOutput"].GetBool(),
-                           optimizationSettings["output"]["output_type"]["GiDPostMode"].GetString(),
-                           optimizationSettings["output"]["output_type"]["GiDMultiFileFlag"].GetString(),
-                           optimizationSettings["output"]["output_type"]["GiDWriteMeshFlag"].GetBool(),
-                           optimizationSettings["output"]["output_type"]["GiDWriteConditionsFlag"].GetBool() )
-        return gidIO
-    
-    # --------------------------------------------------------------------------
-    def createCompleteOptimizationLogFilename( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
-        optimizationLogFilename = optimizationSettings["output"]["optimization_log_filename"].GetString()
-        completeOptimizationLogFilename = resultsDirectory+"/"+optimizationLogFilename+".csv"
-        return completeOptimizationLogFilename
 
     # --------------------------------------------------------------------------
     def addVariablesNeededForOptimization( self, inputModelPart ):
@@ -109,9 +79,6 @@ class VertexMorphingMethod:
         print("> ",time.ctime(),": Starting optimization using the following algorithm: ",self.optimizationSettings["optimization_algorithm"]["name"].GetString())
         print("> ==============================================================================================================\n")
 
-        
-        self.outputInformationAboutResponseFunctions()
-
         # timer
         self.timeAtStartOfOptimization = time.time()
 
@@ -126,65 +93,26 @@ class VertexMorphingMethod:
         self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
         # dataWriter
-        optimizatoinDataWriterFactory = __import__("optimization_data_writer_factory")
-        optimizationDataWriter = optimizatoinDataWriterFactory.CreateDataWriter( self.designSurface, self.optimizationSettings )
+        optimizatoinDataLoggerFactory = __import__("optimization_data_logger_factory")
+        self.optimizationDataLogger = optimizatoinDataLoggerFactory.CreateDataLogger( self.designSurface, self.optimizationSettings )
 
-        
-        # optimizationDataWriter.initializeWriting()
-
-
-        
-
-
-
-        # outputWriter
-        # self.createFolderToStoreOptimizationResults( self.optimizationSettings )
-        # self.gidIO = self.createGiDIO( self.optimizationSettings )
-        # self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
-        # self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( self.optimizationSettings )   
+        self.optimizationDataLogger.initializeDataLogging()     
 
         # algorithm_driver
         # specifiedAlgorithm = OptimizationAlgorithems( self.design_surface, communicator, mapper, outputWriter, timer)
-
-        # outputWriter.initializeOutput()
-
         # specifiedAlgorithm.run()
 
-         # outputWriter.finalizeOutput()
 
+        self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
+        self.runSpecifiedOptimizationAlgorithm()
 
-        # Old format
+        self.optimizationDataLogger.finalizeDataLogging()        
 
-        
-        # iteratorForInitialDesign = 0
-        # self.gidIO.initialize_results( self.designSurface )
-        # self.gidIO.write_results(iteratorForInitialDesign, self.designSurface, self.nodalResults, [])   
-
-        # self.optimizationTools = OptimizationUtilities( self.designSurface, self.optimizationSettings )
-        # self.runSpecifiedOptimizationAlgorithm()
-
-        # self.gidIO.finalize_results()
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization in ",round(time.time() - self.timeAtStartOfOptimization,2)," s!")
         print("> ==============================================================================================================\n")
 
-    # --------------------------------------------------------------------------
-    def outputInformationAboutResponseFunctions( self ):
-
-        numberOfObjectives = self.optimizationSettings["objectives"].size()
-        numberOfConstraints = self.optimizationSettings["constraints"].size()
-
-        print("\n> The following objectives are defined:\n")
-        for objectiveNumber in range(numberOfObjectives):
-            print(self.optimizationSettings["objectives"][objectiveNumber])
-
-        if numberOfConstraints != 0:
-            print("> The following constraints are defined:\n")
-            for constraintNumber in range(numberOfConstraints):
-                print(self.optimizationSettings["constraints"][constraintNumber],"\n")
-        else:
-            print("> No constraints defined.\n")     
     
     # --------------------------------------------------------------------------
     def getDesignSurfaceFromInputModelPart( self ):
@@ -208,13 +136,6 @@ class VertexMorphingMethod:
             else:
                 raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)         
         return listOfDampingRegions
-
-    # ---------------------------------------------------------------------------
-    def generateListOfNodalResults( self, outputSettings ):
-        listOfNodalResults = []
-        for nodalResultNumber in range(outputSettings["nodal_results"].size()):
-            listOfNodalResults.append( outputSettings["nodal_results"][nodalResultNumber].GetString() )
-        return listOfNodalResults
 
     # --------------------------------------------------------------------------
     def runSpecifiedOptimizationAlgorithm( self ):
@@ -240,24 +161,6 @@ class VertexMorphingMethod:
         # Get Id of objective (right now only one objective is considered!!)
         onlyObjectiveFunction = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
-        # Initialize file where design evolution is recorded
-        with open(self.optimizationLogFile, 'w') as csvfile:
-            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-            row = []
-            row.append("itr\t")
-            row.append("\tf\t")
-            row.append("\tdf_absolute[%]\t")
-            row.append("\tdf_relative[%]\t")
-            row.append("\tstep_size[-]\t")
-            row.append("\tt_iteration[s]\t")
-            row.append("\tt_total[s]") 
-            row.append("\ttime_stamp") 
-            historyWriter.writerow(row)    
-
-        # Miscellaneous working variables for data management
-        initialValueOfObjectiveFunction = 0.0
-        previousValueOfObjectiveFunction = 0.0
-
         # Start optimization loop
         maxOptimizationIterations = self.optimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1 
         for optimizationIteration in range(1,maxOptimizationIterations):
@@ -275,9 +178,7 @@ class VertexMorphingMethod:
 
             self.analyzer.analyzeDesignAndReportToCommunicator( self.designSurface, optimizationIteration, self.communicator )
 
-            valueOfObjectiveFunction = self.communicator.getReportedFunctionValueOf ( onlyObjectiveFunction )
-            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )  
-                        
+            gradientOfObjectiveFunction = self.communicator.getReportedGradientOf ( onlyObjectiveFunction )            
             self.storeGradientOnNodes( gradientOfObjectiveFunction )
 
             geometryTools.compute_unit_surface_normals()
@@ -291,63 +192,29 @@ class VertexMorphingMethod:
 
             self.vertexMorphingMapper.map_design_update_to_geometry_space()         
             
-            # Compute and output some measures to track changes in the objective function
-            absoluteChangeOfObjectiveValue = 0.0
-            relativeChangeOfObjectiveValue = 0.0
-            print("\n> Current value of objective function = ",valueOfObjectiveFunction)
-            if optimizationIteration > 1:
-                absoluteChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-initialValueOfObjectiveFunction) / initialValueOfObjectiveFunction
-                relativeChangeOfObjectiveValue = 100*(valueOfObjectiveFunction-previousValueOfObjectiveFunction) / initialValueOfObjectiveFunction
-                print("> Absolut change of objective function = ",round(absoluteChangeOfObjectiveValue,6)," [%]")
-                print("> Relative change of objective function = ",round(relativeChangeOfObjectiveValue,6)," [%]") 
+            self.optimizationDataLogger.logCurrentOptimizationData( optimizationIteration, self.communicator )
 
-            # Write design in GID format
-            self.gidIO.write_results(optimizationIteration, self.designSurface, self.nodalResults, [])   
+            # # Take time needed for current optimization step
+            # print("\n> Time needed for current optimization step = ",runTimeOptimizationStep,"s")
+            # print("> Time needed for total optimization so far = ",runTimeOptimization,"s")                              
 
-            # Write design history to file
-            runTimeOptimizationStep = round(time.time() - timeAtStartOfCurrentOptimizationStep,2)
-            runTimeOptimization = round(time.time() - self.timeAtStartOfOptimization,2)
-            with open(self.optimizationLogFile, 'a') as csvfile:
-                historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
-                row = []
-                row.append(str(optimizationIteration)+"\t")
-                row.append("\t"+str("%.12f"%(valueOfObjectiveFunction))+"\t")
-                row.append("\t"+str("%.2f"%(absoluteChangeOfObjectiveValue))+"\t")
-                row.append("\t"+str("%.6f"%(relativeChangeOfObjectiveValue))+"\t")
-                row.append("\t"+str(self.optimizationSettings["line_search"]["step_size"].GetDouble())+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimizationStep))+"\t")
-                row.append("\t"+str("%.1f"%(runTimeOptimization))+"\t")
-                row.append("\t"+str(time.ctime()))
-                historyWriter.writerow(row)     
+            # # Check convergence
+            # if optimizationIteration > 1 :
 
-            # Take time needed for current optimization step
-            print("\n> Time needed for current optimization step = ",runTimeOptimizationStep,"s")
-            print("> Time needed for total optimization so far = ",runTimeOptimization,"s")                              
+            #     # Check if maximum iterations were reached
+            #     if optimizationIteration == maxOptimizationIterations:
+            #         print("\n> Maximal iterations of optimization problem reached!")
+            #         break
 
-            # Check convergence
-            if optimizationIteration > 1 :
+            #     # Check for relative tolerance
+            #     relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
+            #     if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
+            #         print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
+            #         break
 
-                # Check if maximum iterations were reached
-                if optimizationIteration == maxOptimizationIterations:
-                    print("\n> Maximal iterations of optimization problem reached!")
-                    break
-
-                # Check for relative tolerance
-                relativeTolerance = self.optimizationSettings["optimization_algorithm"]["relative_tolerance"].GetDouble()
-                if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
-                    print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
-                    break
-
-                # Check if value of objective increases
-                if valueOfObjectiveFunction > previousValueOfObjectiveFunction:
-                    print("\n> Value of objective function increased!")
-
-            # Store values of for next iteration
-            previousValueOfObjectiveFunction = valueOfObjectiveFunction
-
-            # Store initial objective value
-            if optimizationIteration == 1:
-                initialValueOfObjectiveFunction = valueOfObjectiveFunction
+            #     # Check if value of objective increases
+            #     if valueOfObjectiveFunction > previousValueOfObjectiveFunction:
+            #         print("\n> Value of objective function increased!")
 
     # --------------------------------------------------------------------------
     def runPenalizedProjectionAlgorithm( self ):
