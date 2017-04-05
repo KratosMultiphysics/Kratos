@@ -115,7 +115,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
 
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddDofs(self)
         
-        if  self.settings["compute_mortar_contact"].GetInt() == 1:
+        if  self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 4:
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X)
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y)
@@ -126,11 +126,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         elif  self.settings["compute_mortar_contact"].GetInt() == 3:
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
-        elif  self.settings["compute_mortar_contact"].GetInt() == 4:
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X)
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y)
-                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z)
                     
         print("::[Mechanical Solver]:: DOF's ADDED")
     
@@ -187,7 +182,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
-        if  (self.settings["compute_mortar_contact"].GetInt() == 0 or self.settings["compute_mortar_contact"].GetInt() == 1):
+        if  (self.settings["compute_mortar_contact"].GetInt() == 1 or self.settings["compute_mortar_contact"].GetInt() == 2):
             Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
             Mortar.SetEchoLevel(self.echo_level)
 
