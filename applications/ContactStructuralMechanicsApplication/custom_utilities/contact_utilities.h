@@ -43,7 +43,9 @@ public:
     
     // General type definitions
     typedef Node<3>                                          NodeType;
+    typedef Point<3>                                        PointType;
     typedef Geometry<NodeType>                           GeometryType;
+    typedef Geometry<PointType>                     GeometryPointType;
     typedef GeometryData::IntegrationMethod         IntegrationMethod;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
@@ -84,8 +86,8 @@ public:
 
     static inline double FastProjectDirection(
         const GeometryType& Geom,
-        const Point<3>& PointDestiny,
-        Point<3>& PointProjected,
+        const PointType& PointDestiny,
+        PointType& PointProjected,
         const array_1d<double,3>& Normal,
         const array_1d<double,3>& Vector
         )
@@ -131,8 +133,8 @@ public:
 
     static inline void ProjectDirection(
         const GeometryType& Geom,
-        const Point<3>& PointDestiny,
-        Point<3>& PointProjected,
+        const PointType& PointDestiny,
+        PointType& PointProjected,
         double& Distance,
         const array_1d<double,3>& Vector
         )
@@ -156,10 +158,10 @@ public:
         
         GeometryNormal(Normal, Geom);
         
-        Point<3> PointDestiny;
+        PointType PointDestiny;
         PointDestiny.Coordinates() = CoordDestiny;
         
-        Point<3> PointProjected;
+        PointType PointProjected;
         
         Distance = FastProjectDirection(Geom, PointDestiny, PointProjected, Normal,Vector);
         
@@ -281,9 +283,9 @@ public:
      */
     
     static inline void Project(
-        const Point<3>& PointOrigin,
-        const Point<3>& PointDestiny,
-        Point<3>& PointProjected,
+        const PointType& PointOrigin,
+        const PointType& PointDestiny,
+        PointType& PointProjected,
         double& Distance,
         const array_1d<double,3>& Normal
         )
@@ -295,9 +297,9 @@ public:
         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
     }
     
-    static inline Point<3> FastProject(
-        const Point<3>& PointOrigin,
-        const Point<3>& PointDestiny,
+    static inline PointType FastProject(
+        const PointType& PointOrigin,
+        const PointType& PointDestiny,
         const array_1d<double,3>& Normal
         )
     {
@@ -305,10 +307,55 @@ public:
 
         const double Distance = inner_prod(VectorPoints, Normal); 
         
-        Point<3> PointProjected;
+        PointType PointProjected;
         PointProjected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
         
         return PointProjected;
+    }
+    
+    /**
+     * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
+     * @param GeometryTriangle: The triangle to be checked
+     * @return True if the triangle is in bad shape, false otherwise
+     */
+    
+    static inline bool HeronCheck(const GeometryPointType GeometryTriangle)
+    {
+        return HeronCheck(GeometryTriangle[0], GeometryTriangle[1], GeometryTriangle[2]);
+    }
+    
+    /**
+     * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
+     * @param PointOrig1: The triangle first point
+     * @param PointOrig2: The triangle second point
+     * @param PointOrig3: The triangle third point
+     * @return True if the triangle is in bad shape, false otherwise
+     */
+    
+    static inline bool HeronCheck(        
+        const PointType PointOrig1,
+        const PointType PointOrig2,
+        const PointType PointOrig3
+        )
+    {
+        const double a = MathUtils<double>::Norm3(PointOrig1.Coordinates()-PointOrig2.Coordinates());
+        const double b = MathUtils<double>::Norm3(PointOrig2.Coordinates()-PointOrig3.Coordinates());
+        const double c = MathUtils<double>::Norm3(PointOrig3.Coordinates()-PointOrig1.Coordinates());
+      
+        const double s = 0.5 * (a + b + c);
+        const double A2 = s * (s - a) * (s - b) * (s - c);
+        
+        const bool Check = A2 <= 0.0 ? true : false;  // We consider as bad shaped the ones with no area or negative A2 (semiperimeter smaller than any side)
+        
+//         // Debug
+//         std::cout << Check << " A2: " << A2 << std::endl;
+//         if (Check == true)
+//         {
+//             std::cout << "Warning:: The triangle is in bad shape" << std::endl;
+//             std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << PointOrig1.X() << "," << PointOrig1.Y() << "," << PointOrig1.Z()  << "},{" << PointOrig2.X() << "," << PointOrig2.Y() << "," << PointOrig2.Z()  << "},{" << PointOrig3.X() << "," << PointOrig3.Y() << "," << PointOrig3.Z()  << "}}]}]" << std::endl;
+//         }
+        
+        return Check;
     }
     
     /**
@@ -321,7 +368,7 @@ public:
     template<class TPointType>
     static inline void ScaleNode(
         TPointType& PointToScale,
-        const Point<3>& Center,
+        const PointType& Center,
         const double ScaleFactor
         )
     {
@@ -361,7 +408,7 @@ public:
 
     static inline double CenterAndRadius(
         Condition::Pointer pCond,
-        Point<3>& Center
+        PointType& Center
         )
     {
         double Radius = 0.0;
