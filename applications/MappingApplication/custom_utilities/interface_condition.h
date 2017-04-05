@@ -97,7 +97,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      bool EvaluateResult(const array_1d<double, 3>& GlobalCoords, double& rMinDistance, // TODO reference??????
+      bool EvaluateResult(const array_1d<double, 3>& GlobalCoords, double& rMinDistance,
                           double Distance, array_1d<double,2>& local_coords,
                           std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           // Distance is the distance to the center and not the projection distance, therefore it is unused
@@ -122,7 +122,7 @@ namespace Kratos
                                                                        projection_local_coords,
                                                                        projection_distance);
           } else {
-              std::cout << "MappingApplication, Used Geometry is not implemented, " 
+              std::cout << "MAPPER WARNING, Used Geometry is not implemented, " 
                         << "using an approximation" << std::endl;
               return false;
           }
@@ -142,16 +142,15 @@ namespace Kratos
           return is_closer;
       }
 
-      bool ComputeApproximation(const array_1d<double, 3> GlobalCoords, double& rMinDistance,
+      bool ComputeApproximation(const array_1d<double, 3>& GlobalCoords, double& rMinDistance,
                                 double Distance, std::vector<double>& rShapeFunctionValues) override { // I am an object in the bins
           bool is_closer = false;
           double distance_point = std::numeric_limits<double>::max();
           int closest_point_index = -1;
           // Loop over all points of the geometry
           for (int i = 0; i < mNumPoints; ++i) {
-              distance_point = sqrt(pow(GlobalCoords[0] - mpCondition->GetGeometry().GetPoint(i).X() , 2) +
-                                    pow(GlobalCoords[1] - mpCondition->GetGeometry().GetPoint(i).Y() , 2) +
-                                    pow(GlobalCoords[2] - mpCondition->GetGeometry().GetPoint(i).Z() , 2));
+              distance_point = MapperUtilities::ComputeDistance(GlobalCoords, 
+                                                                mpCondition->GetGeometry().GetPoint(i).Coordinates());
 
               if (distance_point < rMinDistance && distance_point <= mApproximationTolerance) {
                   rMinDistance = distance_point;
@@ -276,6 +275,7 @@ namespace Kratos
           // InterfaceObject to the variables "NEIGHBOR_COORDINATES" 
           // and "NEIGHBOR_RANK", for debugging
           array_1d<double,3> neighbor_coordinates;
+          // TODO exchange with "Coordinates()"
           neighbor_coordinates[0] = this->X();
           neighbor_coordinates[1] = this->Y();
           neighbor_coordinates[2] = this->Z();

@@ -178,6 +178,7 @@ namespace Kratos
           // InterfaceObject to the variables "NEIGHBOR_COORDINATES" 
           // and "NEIGHBOR_RANK", for debugging
           array_1d<double,3> neighbor_coordinates;
+          // TODO exchange with "Coordinates()"
           neighbor_coordinates[0] = this->X();
           neighbor_coordinates[1] = this->Y();
           neighbor_coordinates[2] = this->Z();

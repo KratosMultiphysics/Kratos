@@ -326,6 +326,8 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         self.CheckValues(self.interface_sub_model_part_destination,
                          variable_destination,
                          [-x for x in map_value])
+        
+        # self.mapper.UpdateInterface(0.075)
 
     def TestInverseMapConstantVectorValues(self, output_time):
         map_value = [1.4785, -0.88, -33.123]

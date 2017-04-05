@@ -138,68 +138,67 @@ namespace Kratos
           return num_elements;
       }
 
-      static double ComputeDistance(const array_1d<double, 3>& Coords1, 
-                                    const array_1d<double, 3>& Coords2) {
-          return sqrt(pow(Coords1[0] - Coords2[0] , 2) +
-                      pow(Coords1[1] - Coords2[1] , 2) +
-                      pow(Coords1[2] - Coords2[2] , 2));
+      static double ComputeDistance(const array_1d<double, 3>& rCoords1, 
+                                    const array_1d<double, 3>& rCoords2) {
+          return sqrt(pow(rCoords1[0] - rCoords2[0] , 2) +
+                      pow(rCoords1[1] - rCoords2[1] , 2) +
+                      pow(rCoords1[2] - rCoords2[2] , 2));
       }
 
-      static double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2) {
-          double search_radius = std::max(ComputeSearchRadius(rModelPart1),
-                                          ComputeSearchRadius(rModelPart2));
+      template <typename T>
+      static double ComputeMaxEdgeLengthLocal(const T& rEntityContainer) {
+          double max_element_size = 0.0f;
+          // Loop through each edge of a geometrical entity ONCE
+          for (auto& r_entity : rEntityContainer) {
+              for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
+                  for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
+                      double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(), 
+                                                           r_entity.GetGeometry()[j].Coordinates());
+                      max_element_size = std::max(max_element_size, edge_length);
+                  }
+              }
+          }
+          return max_element_size;
+      }
+
+      static double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNodes) {
+          double max_element_size = 0.0f;
+          // TODO modify loop such that it loop only once over the nodes
+          for (auto& r_node_1 : rNodes) {
+              for (auto& r_node_2 : rNodes) {
+                  double edge_length = ComputeDistance(r_node_1.Coordinates(), 
+                                                       r_node_2.Coordinates());
+                  max_element_size = std::max(max_element_size, edge_length);
+              }
+          }
+          return max_element_size;
+      }
+
+      static double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, const int EchoLevel) {
+          double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
+                                          ComputeSearchRadius(rModelPart2, EchoLevel));
           return search_radius;
       }
 
-      static double ComputeSearchRadius(ModelPart& rModelPart) {
+      static double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel) {
           double search_safety_factor = 1.2;
           double max_element_size = 0.0;
 
           int num_conditions_global = ComputeNumberOfConditions(rModelPart);
+          int num_elements_global = ComputeNumberOfElements(rModelPart);
 
           if (num_conditions_global > 0) {
-              // Loop through each edge of a geometrical entity ONCE
-              for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions()) {
-                  for (std::size_t i = 0; i < (condition.GetGeometry().size() - 1); ++i) {
-                      double node_1_x = condition.GetGeometry()[i].X();
-                      double node_1_y = condition.GetGeometry()[i].Y();
-                      double node_1_z = condition.GetGeometry()[i].Z();
+              max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
 
-                      for (std::size_t j = i + 1; j < condition.GetGeometry().size(); ++j) {
-                          double node_2_x = condition.GetGeometry()[j].X();
-                          double node_2_y = condition.GetGeometry()[j].Y();
-                          double node_2_z = condition.GetGeometry()[j].Z();
+          } else if (num_elements_global > 0) {
+              max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
 
-                          double edge_length = sqrt(pow(node_1_x - node_2_x , 2) +
-                                                    pow(node_1_y - node_2_y , 2) +
-                                                    pow(node_1_z - node_2_z , 2));
-
-                          max_element_size = std::max(max_element_size, edge_length);
-                      }
-                  }
-              }
           } else {
-              // TODO modify and use again
-              // std::cout << "MAPPER WARNING, no conditions for search radius "
-              //           << "computations found, using nodes (less efficient)"
-              //           << std::endl;
-              // TODO modify loop such that it loop only once over the nodes
-              for (auto& node_1 : rModelPart.GetCommunicator().LocalMesh().Nodes()) {
-                  double node_1_x = node_1.X();
-                  double node_1_y = node_1.Y();
-                  double node_1_z = node_1.Z();
-                  for (auto& node_2 : rModelPart.GetCommunicator().LocalMesh().Nodes()) {
-                      double node_2_x = node_2.X();
-                      double node_2_y = node_2.Y();
-                      double node_2_z = node_2.Z();
-
-                      double edge_length = sqrt(pow(node_1_x - node_2_x , 2) +
-                                                pow(node_1_y - node_2_y , 2) +
-                                                pow(node_1_z - node_2_z , 2));
-
-                      max_element_size = std::max(max_element_size, edge_length);
-                  }
-              }
+              if (EchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+              std::cout << "MAPPER WARNING, no conditions/elements for search radius "
+                        << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
+                        << "using nodes (less efficient)" << std::endl;
+              max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
           }
 
           rModelPart.GetCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
@@ -208,46 +207,15 @@ namespace Kratos
 
       static double ComputeConservativeFactor(const double NumNodesOrigin,
                                               const double NumNodesDestination) {
-          // num_nodes_* are casted to doubles in order to use the double devision
+          // NumNodes* are casted to doubles in order to use the double devision
           // if this function would take ints, then the return value would also be an int!
           return NumNodesOrigin / NumNodesDestination;
       }
 
       static bool ProjectPointToLine(Condition* pCondition,
-                                     const array_1d<double, 3> GlobalCoords,
+                                     const array_1d<double, 3>& GlobalCoords,
                                      array_1d<double,3>& rLocalCoords,
                                      double& rDistance) {
-          // Point<3> point_to_project(GlobalCoords);
-
-          // Point<3> point_projected;
-          // Point<3> point_in_plane = pCondition->GetGeometry()[0];
-
-          // array_1d<double,3> vector_points;
-          // noalias(vector_points) = point_to_project.Coordinates() - point_in_plane.Coordinates();
-
-          // CalculateLineNormal(pCondition, rNormal);
-
-          // rDistance = inner_prod(vector_points, rNormal);
-
-          // point_projected.Coordinates() = point_to_project.Coordinates() - rNormal * rDistance;
-
-          // rDistance = fabs(rDistance);
-
-          // array_1d<double, 3> point_projected_local_coords;
-          // point_projected_local_coords = pCondition->GetGeometry().PointLocalCoordinates(point_projected_local_coords,point_projected);
-
-          // rLocalCoords[0] = point_projected_local_coords[0];
-          // rLocalCoords[1] = 0.0;
-        
-
-          // if (-1.0-MapperUtilities::tol_local_coords < rLocalCoords[0] && 
-          //     rLocalCoords[0] < 1.0+MapperUtilities::tol_local_coords) {
-          //     return true;
-          // } else {
-          //     return false;
-          // }
-          
-          //**********************************************************************
           // xi,yi are Nodal Coordinates, n is the destination condition's unit normal
           // and d is the distance along n from the point to its projection in the condition
           // | DestX-0.5(x1+x2) |   | 0.5(x2-x1)  nx |   | Chi |
@@ -261,7 +229,6 @@ namespace Kratos
           array_1d<double, 2> RHS;
           array_1d<double, 2> result_vec;
           
-
           RHS[0] = GlobalCoords[0] - 0.5 * (pCondition->GetGeometry()[0].X() + pCondition->GetGeometry()[1].X());
           RHS[1] = GlobalCoords[1] - 0.5 * (pCondition->GetGeometry()[0].Y() + pCondition->GetGeometry()[1].Y());
 
@@ -282,11 +249,6 @@ namespace Kratos
 
           rDistance = result_vec[1];
 
-          // std::cout << "Point to project: [" << GlobalCoords[0] << " " << GlobalCoords[1] << " " << GlobalCoords[2] << "], local points: [" <<
-          // pCondition->GetGeometry()[0].X() << " " << pCondition->GetGeometry()[0].Y() << " " << pCondition->GetGeometry()[0].Z() << "] ["<<
-          // pCondition->GetGeometry()[1].X() << " " << pCondition->GetGeometry()[1].Y() << " " << pCondition->GetGeometry()[1].Z() << "] local coord: " <<
-          // rLocalCoords[0]  << std::endl;
-
           bool is_inside = false;
 
           if (rLocalCoords[0] >= -1.0f-MapperUtilities::tol_local_coords) {
@@ -298,7 +260,7 @@ namespace Kratos
       }
 
       static bool ProjectPointToTriangle(Condition* pCondition,
-                                         const array_1d<double, 3> GlobalCoords,
+                                         const array_1d<double, 3>& GlobalCoords,
                                          array_1d<double,3>& rLocalCoords,
                                          double& rDistance) {
           // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
@@ -314,7 +276,6 @@ namespace Kratos
           array_1d<double, 3> RHS;
           array_1d<double, 3> result_vec;
           
-
           RHS[0] = GlobalCoords[0] - pCondition->GetGeometry()[0].X();
           RHS[1] = GlobalCoords[1] - pCondition->GetGeometry()[0].Y();
           RHS[2] = GlobalCoords[2] - pCondition->GetGeometry()[0].Z();
@@ -355,7 +316,7 @@ namespace Kratos
       }
 
       static bool ProjectPointToQuadrilateral(Condition* pCondition,
-                                              const array_1d<double, 3> GlobalCoords,
+                                              const array_1d<double, 3>& GlobalCoords,
                                               array_1d<double,3>& rLocalCoords,
                                               double& rDistance) {
           
@@ -378,9 +339,7 @@ namespace Kratos
                   projection_physical_coords[2] += shape_function_value * r_condition_geometry[i].Z();
               }
 
-              rDistance = sqrt(pow(GlobalCoords[0] - projection_physical_coords[0] , 2) +
-                               pow(GlobalCoords[1] - projection_physical_coords[1] , 2) +
-                               pow(GlobalCoords[2] - projection_physical_coords[2] , 2));
+              rDistance = ComputeDistance(GlobalCoords, projection_physical_coords);
           }
 
           return is_inside;

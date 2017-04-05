@@ -321,13 +321,17 @@ namespace Kratos
               }
           }
 
+          if (mrJsonParameters.Has("echo_level")) {
+              if (mrJsonParameters["echo_level"].GetInt() < 0) {
+                  KRATOS_ERROR << "Echo Level cannot be smaller than 0" << std::endl;
+              }
+          }          
+
           mrJsonParameters.RecursivelyValidateAndAssignDefaults(mDefaultParameters);
 
           if (mrJsonParameters["approximation_tolerance"].GetDouble() < 0.0f) { // nothing specified
               mrJsonParameters["approximation_tolerance"].SetDouble(std::numeric_limits<double>::max());
           }
-
-          
       }
 
       void ReadAndCheckInterfaceModelParts() {
@@ -351,7 +355,8 @@ namespace Kratos
         // Compute the search radius in case it was not specified, can only be done after the modelparts are read
         if (mComputeSearchRadius) {
           double search_radius = MapperUtilities::ComputeSearchRadius(*mpInterfaceModelPartOrigin,
-                                                                      *mpInterfaceModelPartDestination);
+                                                                      *mpInterfaceModelPartDestination,
+                                                                      mrJsonParameters["echo_level"].GetInt());
           mrJsonParameters["search_radius"].SetDouble(search_radius);
         }
       }

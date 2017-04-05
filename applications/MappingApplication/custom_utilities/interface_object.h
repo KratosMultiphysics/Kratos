@@ -172,7 +172,7 @@ namespace Kratos
           return false;
       }
 
-      virtual bool ComputeApproximation(array_1d<double, 3> global_coords, double& min_distance,
+      virtual bool ComputeApproximation(const array_1d<double, 3>& global_coords, double& min_distance,
                                         double distance, std::vector<double>& shape_function_values) {
           KRATOS_ERROR << "Base class function called!" << std::endl;
           return false;
