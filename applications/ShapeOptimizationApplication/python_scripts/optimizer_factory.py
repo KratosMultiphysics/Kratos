@@ -119,17 +119,17 @@ class VertexMorphingMethod:
         self.designSurface = self.getDesignSurfaceFromInputModelPart()
 
         # communicator
-        self.communicator = Communicator( optimizationSettings )        
+        self.communicator = Communicator( self.optimizationSettings )        
 
         # mapper
-        self.listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
-        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, self.listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
+        listOfDampingRegions = self.getListOfDampingRegionsFromInputModelPart()
+        self.vertexMorphingMapper = VertexMorphingMapper( self.designSurface, listOfDampingRegions, self.optimizationSettings["design_variables"] ) 
 
         # outputWriter
-        self.createFolderToStoreOptimizationResults( optimizationSettings )
-        self.gidIO = self.createGiDIO( optimizationSettings )
+        self.createFolderToStoreOptimizationResults( self.optimizationSettings )
+        self.gidIO = self.createGiDIO( self.optimizationSettings )
         self.nodalResults = self.generateListOfNodalResults( self.optimizationSettings["output"] )
-        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( optimizationSettings )   
+        self.optimizationLogFile = self.createCompleteOptimizationLogFilename ( self.optimizationSettings )   
 
         # algorithm_driver
         # specifiedAlgorithm = OptimizationAlgorithems( self.design_surface, communicator, mapper, outputWriter, timer)
