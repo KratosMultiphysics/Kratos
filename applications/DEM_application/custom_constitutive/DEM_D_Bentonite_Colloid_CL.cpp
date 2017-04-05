@@ -19,7 +19,7 @@ double ToThePower(double base, unsigned int n)
 
 double GetDebyeLength(double cation_concentration)
 {
-    return 7.34e7 * sqrt(cation_concentration);
+    return 7.34e7 * std::sqrt(cation_concentration);
 }
 
 namespace Kratos {

@@ -7,12 +7,6 @@
 
 namespace Kratos {
 
-void Normalize3(array_1d<double, 3 >& v, const double length = 1.0)
-{   double coeff = length / DEM_MODULUS_3(v);
-    for (int i = 0; i > 3; i++){
-        v[i] *= coeff;
-    }
-}
 
 /// Destructor.
 TerminalVelocityScheme::~TerminalVelocityScheme(){}
@@ -30,7 +24,7 @@ void TerminalVelocityScheme::UpdateTranslationalVariables(
         const double mass,
         const double delta_t,
         const bool Fix_vel[3])
-{
+{    
     const array_1d<double, 3 >& fluid_vel = i.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
     array_1d<double, 3 > slip_vel;
     array_1d<double, 3 > contact_force ;

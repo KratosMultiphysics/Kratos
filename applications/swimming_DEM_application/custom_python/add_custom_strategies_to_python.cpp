@@ -91,10 +91,10 @@ namespace Kratos
 
 		void  AddCustomStrategiesToPython()
 		{
-            class_< HybridBashforthScheme, bases<DEMIntegrationScheme>, boost::noncopyable>
+            class_< HybridBashforthScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
             ("HybridBashforthScheme", init<>());
 
-            class_< TerminalVelocityScheme, bases<DEMIntegrationScheme>, boost::noncopyable>
+            class_< TerminalVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
             ("TerminalVelocityScheme", init<>());
 
             class_< SymplecticEulerOldVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
