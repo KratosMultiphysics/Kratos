@@ -1,0 +1,97 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bookmark}
+
+\title{Standard Helmholtz wave equation element symbolic implementation}
+\author{Miguel Masó Sotomayor}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+
+\section{Standard Helmholtz wave equation formulation}
+
+Shallow water equations derive from Navier-Stokes quations, assuming fully incompressibility, the vertical velocity $u_{3}$ to be small and the corresponding acceleration negligible. We now have the momentum conservation:
+
+\begin{equation}
+\frac{\partial\mathbf{u}}{\partial t} - 
+\frac{1}{\rho}\nabla\cdot\mathbf{\sigma} + 
+\mathbf{a}\cdot\nabla\mathbf{u} = 
+\mathbf{f}
+\end{equation}
+
+and the mass conservation:
+
+\begin{equation}
+\nabla\cdot\mathbf{u} = 0
+\end{equation}
+
+Vertical coordinate inegration...
+
+In omission of all non-linear terms, bottom drag, etc., and approximately $h~H$, and substituting $H\mathbf{U}$ term, shallow water equations can be written as the standard Helmholtz wave equation
+
+\begin{equation}
+\frac{\partial^{2}\eta}{\partial t^{2}} - 
+\nabla\cdot\left(
+	gH\mathbf{I}\cdot\nabla\eta
+\right) = 0
+\end{equation} 
+
+Once arrived at this point, the Helmholtz equation residual can be defined as
+
+\begin{equation}
+R\left(\eta	\right) = 
+\frac{\partial^{2}\eta}{\partial t^{2}} - 
+\nabla\cdot\left(
+	gH\mathbf{I}\cdot\nabla\eta
+\right)
+\end{equation}
+
+
+
+\section{Galerkin weak form}
+
+Considering the free surface elevation test function $\upsilon$, the
+Galerkin weak form of the problem can be obtained as
+
+\begin{equation}
+\int_{\Omega} \upsilon R\left(\eta\right) d\Omega = 0
+\end{equation}
+
+Developing terms int the residual Galerkin residual weak form one obtains
+
+\begin{equation}
+\int_{\Omega^{e}} \upsilon \frac{\partial^{2}\eta}{\partial t^{2}} d\Omega + 
+\int	_{\Omega^{e}} \nabla \cdot \upsilon gH\mathbf{I} \cdot \nabla\eta d\Omega -
+\oint_{\Gamma^{e}} \upsilon\hat{q} d\Gamma = 0
+\end{equation}
+
+
+
+\subsection*{Temporal approximation}
+
+Using a backward difference scheme
+
+\begin{equation}
+%\frac{\partial^ {2}\eta_{n}}{\partial t^ {2}} \approx
+\ddot{\eta}_{n} =
+\frac{\eta_{n} - 2\eta_{n-1} + \eta_{n-2}}{\Delta t}
+\end{equation}
+
+
+\section{Symbols to be employed}
+
+
+
+\section{Implementation}
+
+
+
+\end{document}

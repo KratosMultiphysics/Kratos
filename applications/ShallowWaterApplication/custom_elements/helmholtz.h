@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 // TODO: UPDATE THIS INFORMATION
-/**this element is a 3D stokes element, stabilized by employing an ASGS stabilization
+/**this element is a 2D Helmholtz element
 * formulation is described in the file:
 *    https://drive.google.com/file/d/0B_gRLnSH5vCwZ2Zxd09YUmlPZ28/view?usp=sharing
 * symbolic implementation is defined in the file:
@@ -73,7 +73,7 @@ public:
     {
         //~ bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;   // TODO: ??
         bounded_matrix<double, TNumNodes, TDim> f;
-        array_1d<double,TNumNodes> eta, etan, etann, H, d;              // Elevation, bathymetry and depth. n denotes previous time step.
+        array_1d<double,TNumNodes> eta, etan, etann, H, h;              // Elevation, bathymetry and depth. n denotes previous time step.
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;   // Shape function spatial derivatives
         array_1d<double, TNumNodes > N;                   // Shape functions
@@ -81,15 +81,13 @@ public:
         Matrix C;         // TODO: ??
 //        Vector stress;
 
-//        double bdf0;
-//        double bdf1;
-//        double bdf2;
-//        double c;             // Wave velocity (needed if artificial compressibility is considered)
+        double bdf0;
+        double bdf1;
+        double bdf2;
         double g;             // Gravity
-        double h;             // Element size
-        double area;        // In 2D: element area. In 3D: element volume
+        double l;             // Element size
+        double area;          // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
-//        double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
     };
 
     ///@}
@@ -178,8 +176,8 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        rLeftHandSideMatrix  *= data.volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
+        rLeftHandSideMatrix  *= data.area/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.area/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("Error in Stokes Element Symbolic")
     }
@@ -220,8 +218,8 @@ public:
             noalias(rRightHandSideVector) += rhs_local;
         }
 
-        // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
-        rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
+        // rRightHandSideVector *= area/static_cast<double>(TNumNodes);
+        rRightHandSideVector *= data.area/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("")
 
@@ -432,7 +430,7 @@ protected:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.area);
 
         // Compute element size
-        rData.h = ComputeH(rData.DN_DX);
+        rData.l = ComputeL(rData.DN_DX);
 
         // Database access to all of the variables needed
         const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -467,36 +465,28 @@ protected:
             rData.etan[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ELEVATION,1);
             rData.etann[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ELEVATION,2);
             rData.H[i] = this->GetGeometry()[i].FastGetSolutionStepValue(BATHYMETRY);
-            rData.d[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DEPTH);
+            rData.h[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DEPTH);
         }
 
     }
 
-    //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
+    // Compute element size
+    double ComputeL(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
     {
-        double h=0.0;
+        double l=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            double h_inv = 0.0;
+            double l_inv = 0.0;
             for(unsigned int k=0; k<TDim; k++)
             {
-                h_inv += DN_DX(i,k)*DN_DX(i,k);
+                l_inv += DN_DX(i,k)*DN_DX(i,k);
             }
-            h += 1.0/h_inv;
+            l += 1.0/l_inv;
         }
-        h = sqrt(h)/static_cast<double>(TNumNodes);
-        return h;
+        l = sqrt(l)/static_cast<double>(TNumNodes);
+        return l;
     }
 
-    // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4,4>& Ncontainer)
-    {
-        Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
-        Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
-        Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
-    }
 
     // 2D triangle shape functions values at Gauss points
     void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
@@ -508,11 +498,6 @@ protected:
         Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
     }
 
-    // 3D tetrahedra shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
-    {
-        Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
-    }
 
     // 2D triangle shape functions values at centered Gauss point
     void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
@@ -520,77 +505,47 @@ protected:
         Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
     }
 
-    // Computes the strain rate in Voigt notation
-    //void ComputeStrain(const ElementDataStruct& rData, const unsigned int& strain_size, Vector& strain)
-    //{
-        //const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
-        //const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
-
-        //// Compute strain (B*v)
-        //// 3D strain computation
-        //if (strain_size == 6)
-        //{
-            //strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-            //strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-            //strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-            //strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-            //strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-            //strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
-        //}
-        //// 2D strain computation
-        //else if (strain_size == 3)
-        //{
-            //strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
-            //strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-            //strain[2] = DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1);
-        //}
-    //}
-
-    // Call the constitutive law to get the stress value
-    virtual void ComputeConstitutiveResponse(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int strain_size = (TDim*3)-3;
-
-        if(rData.C.size1() != strain_size)
-            rData.C.resize(strain_size,strain_size,false);
-        if(rData.stress.size() != strain_size)
-            rData.stress.resize(strain_size,false);
-
-        Vector strain(strain_size);
-        ComputeStrain(rData, strain_size, strain);
-
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(this->GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        const Vector Nvec(rData.N);
-        Values.SetShapeFunctionsValues(Nvec);
-
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-        Values.SetStrainVector(strain);             //this is the input parameter
-        Values.SetStressVector(rData.stress);       //this is an ouput parameter
-        Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
-
-        //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-        //this is ok under the hypothesis that no history dependent behaviour is employed
-        mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
-
-    }
-
-    //~ // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
-    //~ virtual double ComputeEffectiveViscosity(const Vector& rStrain, const Vector& rStress)
+ 
+    //~ // Call the constitutive law to get the stress value
+    //~ virtual void ComputeConstitutiveResponse(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     //~ {
-        //~ return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
+        //~ const unsigned int strain_size = (TDim*3)-3;
+//~ 
+        //~ if(rData.C.size1() != strain_size)
+            //~ rData.C.resize(strain_size,strain_size,false);
+        //~ if(rData.stress.size() != strain_size)
+            //~ rData.stress.resize(strain_size,false);
+//~ 
+        //~ Vector strain(strain_size);
+        //~ ComputeStrain(rData, strain_size, strain);
+//~ 
+        //~ // Create constitutive law parameters:
+        //~ ConstitutiveLaw::Parameters Values(this->GetGeometry(), GetProperties(), rCurrentProcessInfo);
+//~ 
+        //~ const Vector Nvec(rData.N);
+        //~ Values.SetShapeFunctionsValues(Nvec);
+//~ 
+        //~ // Set constitutive law flags:
+        //~ Flags& ConstitutiveLawOptions=Values.GetOptions();
+        //~ ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        //~ ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+//~ 
+        //~ Values.SetStrainVector(strain);             //this is the input parameter
+        //~ Values.SetStressVector(rData.stress);       //this is an ouput parameter
+        //~ Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+//~ 
+        //~ //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+        //~ //this is ok under the hypothesis that no history dependent behaviour is employed
+        //~ mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+//~ 
     //~ }
-    
-    // Computes total depth as d = eta + H
+
+
+    // Compute total depth as h = eta + H
     virtual double ComputeTotalDepth(const double& rEta, const double& rH)
     {
-		return rEta + rH;
-	}
+        return rEta + rH;
+    }
     
     ///@}
     ///@name Protected  Access
@@ -660,27 +615,12 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                                    Fluid2DASGS& rThis);
- */
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                                    const Fluid2DASGS& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
+
 
 } // namespace Kratos.
 
