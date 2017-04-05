@@ -39,18 +39,9 @@ namespace Kratos
 		for (auto p_element_1 : mrModelPart1.ElementsArray()) {
 			leaves.clear();
 			mOctree.GetIntersectedLeaves(p_element_1, leaves);
-			for (auto p_leaf : leaves) {
-				for (auto p_element_2 : *(p_leaf->pGetObjects())) {
-					if (HasIntersection(p_element_1->GetGeometry(), p_element_2->GetGeometry())) {
-						p_element_1->Set(SELECTED);
-						break;
-					}
-				}
-			}
 		}
-
-
 	}
+
 
 	/// Turn back information as a string.
 	std::string FindIntersectedGeometricalObjectsProcess::Info() const {
@@ -108,8 +99,19 @@ namespace Kratos
 		mOctree.SetBoundingBox(low.data().data(), high.data().data());
 	}
 
+	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
+		for (auto p_leaf : leaves) {
+			for (auto p_element_2 : *(p_leaf->pGetObjects())) {
+				if (HasIntersection(rElement1.GetGeometry(), p_element_2->GetGeometry())) {
+					rElement1.Set(SELECTED);
+					return;
+				}
+			}
+		}
+	}
+
 	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry) {
-		return false;
+		return  rFirstGeometry.HasIntersection(rSecondGeometry);
 	}
 
 }  // namespace Kratos.
